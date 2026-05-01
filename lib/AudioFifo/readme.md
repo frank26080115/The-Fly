@@ -1,0 +1,1 @@
+Implements an audio FIFO buffer suitable for this project
