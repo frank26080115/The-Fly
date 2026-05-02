@@ -1,0 +1,16 @@
+{
+  "hosts": [
+    {
+      "name": "Frank's Galaxy S24",
+      "mac": "00:1A:7D:DA:71:13"
+    },
+    {
+      "name": "Lenovo Laptop",
+      "mac": "3C:22:FB:8A:10:4D"
+    },
+    {
+      "name": "Surface Pro 7",
+      "mac": "40:16:7E:2B:91:0A"
+    }
+  ]
+}

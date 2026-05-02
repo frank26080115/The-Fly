@@ -120,3 +120,21 @@ void reset_upsample_2x_linear_state(Upsample2xLinearState &state)
     state.has_prev = false;
     state.prev = 0;
 }
+
+size_t mono_s16_to_stereo_s16(const int16_t *src, size_t src_samples, int16_t *dst)
+{
+    if (!src || !dst)
+    {
+        return 0;
+    }
+
+    const int16_t *src_end = src + src_samples;
+    while (src < src_end)
+    {
+        const int16_t sample = *src++;
+        *dst++ = sample;
+        *dst++ = sample;
+    }
+
+    return src_samples << 1;
+}
