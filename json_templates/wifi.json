@@ -1,0 +1,47 @@
+{
+  "timezone": "PST8",
+  "ntp_servers": [
+    "pool.ntp.org",
+    "time.nist.gov",
+    "time.google.com"
+  ],
+  "stations": [
+    {
+      "ssid": "Home-WiFi",
+      "password": "replace-with-home-password"
+    },
+    {
+      "ssid": "Phone-Hotspot",
+      "password": "replace-with-hotspot-password"
+    },
+    {
+      "ssid": "Studio-WiFi",
+      "password": "replace-with-studio-password"
+    },
+    {
+      "ssid": "Travel-Router",
+      "password": "replace-with-travel-password"
+    }
+  ],
+  "access_point": {
+    "ssid": "The-Fly-Setup",
+    "password": "replace-with-setup-password"
+  },
+  "cloud_uploads": [
+    {
+      "name": "primary",
+      "url": "https://uploads.example.com/the-fly/audio",
+      "password": "replace-with-primary-upload-password"
+    },
+    {
+      "name": "backup",
+      "url": "https://backup.example.com/the-fly/audio",
+      "password": "replace-with-backup-upload-password"
+    },
+    {
+      "name": "local-dev",
+      "url": "http://192.168.1.50:8080/uploads",
+      "password": "replace-with-local-dev-password"
+    }
+  ]
+}
