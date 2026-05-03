@@ -183,6 +183,33 @@ public:
         return queueEnabled_;
     }
 
+    void setMuted(bool muted)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        muted_ = muted;
+        if (muted_)
+        {
+            upsampleHasPrev_ = false;
+            upsamplePrev_    = 0;
+        }
+    }
+
+    void mute()
+    {
+        setMuted(true);
+    }
+
+    void unmute()
+    {
+        setMuted(false);
+    }
+
+    bool muted() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return muted_;
+    }
+
     size_t capacity() const
     {
         return capacitySamples_;
@@ -272,12 +299,26 @@ private:
         }
 
         const size_t first = minSize(toWrite, capacitySamples_ - writeIndex_);
-        std::memcpy(&buffer_[writeIndex_], samples, first * sizeof(int16_t));
+        if (muted_)
+        {
+            std::memset(&buffer_[writeIndex_], 0, first * sizeof(int16_t));
+        }
+        else
+        {
+            std::memcpy(&buffer_[writeIndex_], samples, first * sizeof(int16_t));
+        }
 
         const size_t second = toWrite - first;
         if (second > 0)
         {
-            std::memcpy(buffer_.get(), samples + first, second * sizeof(int16_t));
+            if (muted_)
+            {
+                std::memset(buffer_.get(), 0, second * sizeof(int16_t));
+            }
+            else
+            {
+                std::memcpy(buffer_.get(), samples + first, second * sizeof(int16_t));
+            }
         }
 
         writeIndex_ = (writeIndex_ + toWrite) % capacitySamples_;
@@ -300,7 +341,7 @@ private:
 
         for (size_t i = 0; i < inputToWrite; ++i)
         {
-            const int32_t sample = samples[i];
+            const int32_t sample = muted_ ? 0 : samples[i];
             buffer_[writeIndex_] = hasPrev ? static_cast<int16_t>((prev + sample) >> 1) : static_cast<int16_t>(sample);
             writeIndex_          = (writeIndex_ + 1) % capacitySamples_;
             buffer_[writeIndex_] = static_cast<int16_t>(sample);
@@ -366,6 +407,7 @@ private:
     bool                       upsampleHasPrev_   = false;
     int16_t                    upsamplePrev_      = 0;
     bool                       queueEnabled_      = true;
+    bool                       muted_             = false;
     bool                       overflowed_        = false;
     bool                       underflowed_       = false;
     mutable State              state_             = State::Filling;
