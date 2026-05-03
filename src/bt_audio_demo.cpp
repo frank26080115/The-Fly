@@ -25,16 +25,16 @@
 
 namespace
 {
-constexpr const char *TAG = "bt_audio_demo";
+constexpr const char* TAG = "bt_audio_demo";
 
-constexpr i2s_port_t kI2sPort = I2S_NUM_0;
-constexpr uint32_t kHfpCvsdSampleRate = 8000;
-constexpr uint32_t kHfpMsbcSampleRate = 16000;
-constexpr int kCore2SpkBclk = 12;
-constexpr int kCore2SpkLrck = 0;
-constexpr int kCore2SpkDout = 2;
-constexpr int kCore2MicClk = 0;
-constexpr int kCore2MicDin = 34;
+constexpr i2s_port_t kI2sPort           = I2S_NUM_0;
+constexpr uint32_t   kHfpCvsdSampleRate = 8000;
+constexpr uint32_t   kHfpMsbcSampleRate = 16000;
+constexpr int        kCore2SpkBclk      = 12;
+constexpr int        kCore2SpkLrck      = 0;
+constexpr int        kCore2SpkDout      = 2;
+constexpr int        kCore2MicClk       = 0;
+constexpr int        kCore2MicDin       = 34;
 
 enum class DemoMode
 {
@@ -55,22 +55,22 @@ enum class IncomingAudioFormat
     msbc_16khz,
 };
 
-DemoMode g_mode = DemoMode::hostToSpeaker;
-esp_bd_addr_t g_host_addr = {};
-bool g_bt_ready = false;
-bool g_hfp_ready = false;
-bool g_audio_ready = false;
-uint32_t g_active_sample_rate = kHfpMsbcSampleRate;
-HfpCodecMode g_codec_mode = HfpCodecMode::msbc;
+DemoMode            g_mode                  = DemoMode::hostToSpeaker;
+esp_bd_addr_t       g_host_addr             = {};
+bool                g_bt_ready              = false;
+bool                g_hfp_ready             = false;
+bool                g_audio_ready           = false;
+uint32_t            g_active_sample_rate    = kHfpMsbcSampleRate;
+HfpCodecMode        g_codec_mode            = HfpCodecMode::msbc;
 IncomingAudioFormat g_incoming_audio_format = IncomingAudioFormat::none;
-sbc_t g_sbc_decoder = {};
-sbc_t g_sbc_encoder = {};
-bool g_sbc_decoder_ready = false;
-bool g_sbc_encoder_ready = false;
+sbc_t               g_sbc_decoder           = {};
+sbc_t               g_sbc_encoder           = {};
+bool                g_sbc_decoder_ready     = false;
+bool                g_sbc_encoder_ready     = false;
 
 constexpr size_t kSbcScratchBytes = 512;
-uint8_t g_sbc_decode_pcm[kSbcScratchBytes];
-uint8_t g_sbc_encode_pcm[kSbcScratchBytes];
+uint8_t          g_sbc_decode_pcm[kSbcScratchBytes];
+uint8_t          g_sbc_encode_pcm[kSbcScratchBytes];
 
 void indicate_incoming_audio_format(IncomingAudioFormat format)
 {
@@ -79,11 +79,13 @@ void indicate_incoming_audio_format(IncomingAudioFormat format)
     switch (format)
     {
     case IncomingAudioFormat::cvsd_8khz:
-        ESP_LOGI(TAG, "incoming HFP audio format: CVSD/narrowband, 8 kHz; local endpoint: signed 16-bit mono PCM");
+        ESP_LOGI(TAG, "incoming HFP audio format: CVSD/narrowband, 8 kHz; local endpoint: "
+                      "signed 16-bit mono PCM");
         break;
 
     case IncomingAudioFormat::msbc_16khz:
-        ESP_LOGI(TAG, "incoming HFP audio format: mSBC/wideband, 16 kHz; decoded local endpoint: signed 16-bit mono PCM");
+        ESP_LOGI(TAG, "incoming HFP audio format: mSBC/wideband, 16 kHz; decoded local "
+                      "endpoint: signed 16-bit mono PCM");
         break;
 
     case IncomingAudioFormat::none:
@@ -113,7 +115,7 @@ void finish_sbc()
     }
 }
 
-bool configure_sbc_struct(sbc_t &sbc)
+bool configure_sbc_struct(sbc_t& sbc)
 {
     memset(&sbc, 0, sizeof(sbc));
     if (sbc_init(&sbc, 0) != 0)
@@ -121,13 +123,13 @@ bool configure_sbc_struct(sbc_t &sbc)
         return false;
     }
 
-    sbc.frequency = SBC_FREQ_16000;
-    sbc.mode = SBC_MODE_MONO;
+    sbc.frequency  = SBC_FREQ_16000;
+    sbc.mode       = SBC_MODE_MONO;
     sbc.allocation = SBC_AM_LOUDNESS;
-    sbc.subbands = SBC_SB_8;
-    sbc.blocks = SBC_BLK_15;
-    sbc.bitpool = 26;
-    sbc.endian = SBC_LE;
+    sbc.subbands   = SBC_SB_8;
+    sbc.blocks     = SBC_BLK_15;
+    sbc.bitpool    = 26;
+    sbc.endian     = SBC_LE;
     return true;
 }
 
@@ -145,9 +147,7 @@ bool init_sbc_for_msbc()
         return false;
     }
 
-    ESP_LOGI(TAG, "libsbc initialized: frame=%u bytes, pcm=%u bytes",
-             static_cast<unsigned>(sbc_get_frame_length(&g_sbc_encoder)),
-             static_cast<unsigned>(sbc_get_codesize(&g_sbc_encoder)));
+    ESP_LOGI(TAG, "libsbc initialized: frame=%u bytes, pcm=%u bytes", static_cast<unsigned>(sbc_get_frame_length(&g_sbc_encoder)), static_cast<unsigned>(sbc_get_codesize(&g_sbc_encoder)));
     return true;
 }
 
@@ -155,29 +155,26 @@ bool init_speaker_i2s(uint32_t sample_rate)
 {
     stop_i2s();
 
-    i2s_config_t config = {};
-    config.mode = static_cast<i2s_mode_t>(I2S_MODE_MASTER | I2S_MODE_TX);
-    config.sample_rate = sample_rate;
-    config.bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT;
-    config.channel_format = I2S_CHANNEL_FMT_ONLY_RIGHT;
+    i2s_config_t config         = {};
+    config.mode                 = static_cast<i2s_mode_t>(I2S_MODE_MASTER | I2S_MODE_TX);
+    config.sample_rate          = sample_rate;
+    config.bits_per_sample      = I2S_BITS_PER_SAMPLE_16BIT;
+    config.channel_format       = I2S_CHANNEL_FMT_ONLY_RIGHT;
     config.communication_format = I2S_COMM_FORMAT_STAND_I2S;
-    config.intr_alloc_flags = ESP_INTR_FLAG_LEVEL1;
-    config.dma_buf_count = 8;
-    config.dma_buf_len = 120;
-    config.use_apll = false;
-    config.tx_desc_auto_clear = true;
-    config.fixed_mclk = 0;
+    config.intr_alloc_flags     = ESP_INTR_FLAG_LEVEL1;
+    config.dma_buf_count        = 8;
+    config.dma_buf_len          = 120;
+    config.use_apll             = false;
+    config.tx_desc_auto_clear   = true;
+    config.fixed_mclk           = 0;
 
     i2s_pin_config_t pins = {};
-    pins.bck_io_num = kCore2SpkBclk;
-    pins.ws_io_num = kCore2SpkLrck;
-    pins.data_out_num = kCore2SpkDout;
-    pins.data_in_num = I2S_PIN_NO_CHANGE;
+    pins.bck_io_num       = kCore2SpkBclk;
+    pins.ws_io_num        = kCore2SpkLrck;
+    pins.data_out_num     = kCore2SpkDout;
+    pins.data_in_num      = I2S_PIN_NO_CHANGE;
 
-    if (!ok(i2s_driver_install(kI2sPort, &config, 0, nullptr), "speaker i2s install") ||
-        !ok(i2s_set_pin(kI2sPort, &pins), "speaker i2s pins") ||
-        !ok(i2s_zero_dma_buffer(kI2sPort), "speaker i2s zero") ||
-        !ok(i2s_start(kI2sPort), "speaker i2s start"))
+    if (!ok(i2s_driver_install(kI2sPort, &config, 0, nullptr), "speaker i2s install") || !ok(i2s_set_pin(kI2sPort, &pins), "speaker i2s pins") || !ok(i2s_zero_dma_buffer(kI2sPort), "speaker i2s zero") || !ok(i2s_start(kI2sPort), "speaker i2s start"))
     {
         return false;
     }
@@ -189,28 +186,26 @@ bool init_mic_pdm(uint32_t sample_rate)
 {
     stop_i2s();
 
-    i2s_config_t config = {};
-    config.mode = static_cast<i2s_mode_t>(I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_PDM);
-    config.sample_rate = sample_rate;
-    config.bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT;
-    config.channel_format = I2S_CHANNEL_FMT_ONLY_RIGHT;
+    i2s_config_t config         = {};
+    config.mode                 = static_cast<i2s_mode_t>(I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_PDM);
+    config.sample_rate          = sample_rate;
+    config.bits_per_sample      = I2S_BITS_PER_SAMPLE_16BIT;
+    config.channel_format       = I2S_CHANNEL_FMT_ONLY_RIGHT;
     config.communication_format = I2S_COMM_FORMAT_STAND_PCM_SHORT;
-    config.intr_alloc_flags = ESP_INTR_FLAG_LEVEL1;
-    config.dma_buf_count = 8;
-    config.dma_buf_len = 120;
-    config.use_apll = false;
-    config.tx_desc_auto_clear = false;
-    config.fixed_mclk = 0;
+    config.intr_alloc_flags     = ESP_INTR_FLAG_LEVEL1;
+    config.dma_buf_count        = 8;
+    config.dma_buf_len          = 120;
+    config.use_apll             = false;
+    config.tx_desc_auto_clear   = false;
+    config.fixed_mclk           = 0;
 
     i2s_pin_config_t pins = {};
-    pins.bck_io_num = I2S_PIN_NO_CHANGE;
-    pins.ws_io_num = kCore2MicClk;
-    pins.data_out_num = I2S_PIN_NO_CHANGE;
-    pins.data_in_num = kCore2MicDin;
+    pins.bck_io_num       = I2S_PIN_NO_CHANGE;
+    pins.ws_io_num        = kCore2MicClk;
+    pins.data_out_num     = I2S_PIN_NO_CHANGE;
+    pins.data_in_num      = kCore2MicDin;
 
-    if (!ok(i2s_driver_install(kI2sPort, &config, 0, nullptr), "mic pdm install") ||
-        !ok(i2s_set_pin(kI2sPort, &pins), "mic pdm pins") ||
-        !ok(i2s_start(kI2sPort), "mic pdm start"))
+    if (!ok(i2s_driver_install(kI2sPort, &config, 0, nullptr), "mic pdm install") || !ok(i2s_set_pin(kI2sPort, &pins), "mic pdm pins") || !ok(i2s_start(kI2sPort), "mic pdm start"))
     {
         return false;
     }
@@ -255,7 +250,7 @@ bool configure_local_audio_for_hfp(uint32_t sample_rate)
 // negotiated by Bluedroid and reported through ESP_HF_CLIENT_AUDIO_STATE_EVT.
 // The sample-rate constants configure only the local NS4168/SPM1423 I2S/PDM
 // endpoint so it matches the negotiated HFP audio path.
-void hfp_incoming_audio(const uint8_t *buf, uint32_t len)
+void hfp_incoming_audio(const uint8_t* buf, uint32_t len)
 {
     if (g_mode != DemoMode::hostToSpeaker || !g_audio_ready || !buf || len == 0)
     {
@@ -274,13 +269,8 @@ void hfp_incoming_audio(const uint8_t *buf, uint32_t len)
         size_t pos = 0;
         while (pos < len)
         {
-            size_t pcm_written = 0;
-            const ssize_t consumed = sbc_decode(&g_sbc_decoder,
-                                                buf + pos,
-                                                len - pos,
-                                                g_sbc_decode_pcm,
-                                                sizeof(g_sbc_decode_pcm),
-                                                &pcm_written);
+            size_t        pcm_written = 0;
+            const ssize_t consumed    = sbc_decode(&g_sbc_decoder, buf + pos, len - pos, g_sbc_decode_pcm, sizeof(g_sbc_decode_pcm), &pcm_written);
             if (consumed <= 0 || pcm_written == 0)
             {
                 break;
@@ -297,7 +287,7 @@ void hfp_incoming_audio(const uint8_t *buf, uint32_t len)
     i2s_write(kI2sPort, buf, len, &written, 0);
 }
 
-uint32_t hfp_outgoing_audio(uint8_t *buf, uint32_t len)
+uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
 {
     if (g_mode != DemoMode::micToHost || !g_audio_ready || !buf || len == 0)
     {
@@ -326,13 +316,8 @@ uint32_t hfp_outgoing_audio(uint8_t *buf, uint32_t len)
             return 0;
         }
 
-        ssize_t encoded = 0;
-        const ssize_t consumed = sbc_encode(&g_sbc_encoder,
-                                            g_sbc_encode_pcm,
-                                            codesize,
-                                            buf,
-                                            len,
-                                            &encoded);
+        ssize_t       encoded  = 0;
+        const ssize_t consumed = sbc_encode(&g_sbc_encoder, g_sbc_encode_pcm, codesize, buf, len, &encoded);
         if (consumed <= 0 || encoded <= 0)
         {
             return 0;
@@ -349,7 +334,7 @@ uint32_t hfp_outgoing_audio(uint8_t *buf, uint32_t len)
     return static_cast<uint32_t>(read);
 }
 
-void tx_pump_task(void *)
+void tx_pump_task(void*)
 {
     for (;;)
     {
@@ -361,7 +346,7 @@ void tx_pump_task(void *)
     }
 }
 
-void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t *param)
+void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
 {
     if (!param)
     {
@@ -388,16 +373,14 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t *param)
             g_codec_mode = HfpCodecMode::cvsd;
             indicate_incoming_audio_format(IncomingAudioFormat::cvsd_8khz);
             g_audio_ready = configure_local_audio_for_hfp(kHfpCvsdSampleRate);
-            ESP_LOGI(TAG, "HFP CVSD/narrowband audio connected at %lu Hz",
-                     static_cast<unsigned long>(g_active_sample_rate));
+            ESP_LOGI(TAG, "HFP CVSD/narrowband audio connected at %lu Hz", static_cast<unsigned long>(g_active_sample_rate));
         }
         else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTED_MSBC)
         {
             g_codec_mode = HfpCodecMode::msbc;
             indicate_incoming_audio_format(IncomingAudioFormat::msbc_16khz);
             g_audio_ready = init_sbc_for_msbc() && configure_local_audio_for_hfp(kHfpMsbcSampleRate);
-            ESP_LOGI(TAG, "HFP mSBC/wideband audio connected at %lu Hz",
-                     static_cast<unsigned long>(g_active_sample_rate));
+            ESP_LOGI(TAG, "HFP mSBC/wideband audio connected at %lu Hz", static_cast<unsigned long>(g_active_sample_rate));
         }
         else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_DISCONNECTED)
         {
@@ -497,9 +480,9 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t *param)
 
 bool init_m5_audio_shell(DemoMode mode)
 {
-    auto cfg = M5.config();
-    cfg.internal_spk = mode == DemoMode::hostToSpeaker;
-    cfg.internal_mic = mode == DemoMode::micToHost;
+    auto cfg                   = M5.config();
+    cfg.internal_spk           = mode == DemoMode::hostToSpeaker;
+    cfg.internal_mic           = mode == DemoMode::micToHost;
     cfg.external_speaker_value = 0;
     M5.begin(cfg);
 
@@ -542,10 +525,7 @@ bool init_bluetooth()
     ok(esp_bt_controller_mem_release(ESP_BT_MODE_BLE), "release ble memory");
 
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-    if (!ok(esp_bt_controller_init(&bt_cfg), "bt controller init") ||
-        !ok(esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT), "bt controller enable") ||
-        !ok(esp_bluedroid_init(), "bluedroid init") ||
-        !ok(esp_bluedroid_enable(), "bluedroid enable"))
+    if (!ok(esp_bt_controller_init(&bt_cfg), "bt controller init") || !ok(esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT), "bt controller enable") || !ok(esp_bluedroid_init(), "bluedroid init") || !ok(esp_bluedroid_enable(), "bluedroid enable"))
     {
         return false;
     }
@@ -559,7 +539,7 @@ bool init_bluetooth()
     return true;
 }
 
-bool start_demo(DemoMode mode, const char *host_mac)
+bool start_demo(DemoMode mode, const char* host_mac)
 {
     if (!parse_mac(host_mac, g_host_addr))
     {
@@ -567,7 +547,7 @@ bool start_demo(DemoMode mode, const char *host_mac)
         return false;
     }
 
-    g_mode = mode;
+    g_mode        = mode;
     g_audio_ready = false;
 
     if (!init_m5_audio_shell(mode) || !init_bluetooth())
@@ -577,8 +557,7 @@ bool start_demo(DemoMode mode, const char *host_mac)
 
     if (!g_hfp_ready)
     {
-        if (!ok(esp_hf_client_register_callback(hfp_event), "hfp callback") ||
-            !ok(esp_hf_client_register_data_callback(hfp_incoming_audio, hfp_outgoing_audio), "hfp data callback") ||
+        if (!ok(esp_hf_client_register_callback(hfp_event), "hfp callback") || !ok(esp_hf_client_register_data_callback(hfp_incoming_audio, hfp_outgoing_audio), "hfp data callback") ||
             // esp_hf_client_init() has no per-instance sample-rate or codec config.
             // It initializes the Bluedroid HFP Client profile after Bluedroid is enabled.
             // Audio format is determined by HFP/SCO negotiation and reported by
@@ -594,9 +573,9 @@ bool start_demo(DemoMode mode, const char *host_mac)
 
     return ok(esp_hf_client_connect(g_host_addr), "hfp connect");
 }
-}
+} // namespace
 
-bool bt_audio_demo_host_to_ns4168(const char *host_mac)
+bool bt_audio_demo_host_to_ns4168(const char* host_mac)
 {
     return start_demo(DemoMode::hostToSpeaker, host_mac);
 }
@@ -606,7 +585,7 @@ bool bt_audio_demo_host_to_ns4168()
     return bt_audio_demo_host_to_ns4168(BT_AUDIO_DEMO_HOST_MAC);
 }
 
-bool bt_audio_demo_spm1423_to_host(const char *host_mac)
+bool bt_audio_demo_spm1423_to_host(const char* host_mac)
 {
     return start_demo(DemoMode::micToHost, host_mac);
 }

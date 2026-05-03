@@ -18,9 +18,7 @@ static void IRAM_ATTR gpioButtonIsr(void* arg)
     static_cast<GpioButton*>(arg)->handleInterrupt();
 }
 
-Button::Button(int idx, void(*app_fptr)(void)) :
-    app_fptr(app_fptr),
-    internal_index(static_cast<uint8_t>(idx))
+Button::Button(int idx, void (*app_fptr)(void)) : app_fptr(app_fptr), internal_index(static_cast<uint8_t>(idx))
 {
     if (idx >= 0 && idx < BUTTONS_MAX_CNT)
     {
@@ -30,8 +28,8 @@ Button::Button(int idx, void(*app_fptr)(void)) :
 
 void Button::poll()
 {
-    uint32_t now = nonZeroMillis();
-    bool pressed = isPressed();
+    uint32_t now     = nonZeroMillis();
+    bool     pressed = isPressed();
 
     if (pressed)
     {
@@ -53,7 +51,7 @@ bool Button::hasPressed()
 
 void Button::clrPressed()
 {
-    clr_time = nonZeroMillis();
+    clr_time       = nonZeroMillis();
     press_cnt_prev = press_cnt;
 }
 
@@ -94,11 +92,7 @@ void Button::dispatchAppHandler()
     }
 }
 
-GpioButton::GpioButton(int pin, int idx, uint8_t down_state, void(*isr_fptr)(void), void(*app_fptr)(void)) :
-    Button(idx, app_fptr),
-    isr_fptr(isr_fptr),
-    pin(static_cast<int8_t>(pin)),
-    down_state(down_state)
+GpioButton::GpioButton(int pin, int idx, uint8_t down_state, void (*isr_fptr)(void), void (*app_fptr)(void)) : Button(idx, app_fptr), isr_fptr(isr_fptr), pin(static_cast<int8_t>(pin)), down_state(down_state)
 {
     pinMode(this->pin, down_state == LOW ? INPUT_PULLUP : INPUT_PULLDOWN);
     if (isr_fptr != nullptr)
@@ -109,8 +103,8 @@ GpioButton::GpioButton(int pin, int idx, uint8_t down_state, void(*isr_fptr)(voi
 
 void GpioButton::poll()
 {
-    uint32_t now = nonZeroMillis();
-    bool pressed = isPressed();
+    uint32_t now     = nonZeroMillis();
+    bool     pressed = isPressed();
 
     if (!pressed)
     {
@@ -164,11 +158,7 @@ void GpioButton::handleInterrupt()
     }
 }
 
-TouchButton::TouchButton(int id, int idx, void(*app_fptr)(void)) :
-    Button(idx, app_fptr),
-    id(id)
-{
-}
+TouchButton::TouchButton(int id, int idx, void (*app_fptr)(void)) : Button(idx, app_fptr), id(id) {}
 
 void TouchButton::poll()
 {
@@ -190,10 +180,7 @@ bool TouchButton::isPressed()
     }
 }
 
-PwrButton::PwrButton(int idx, void(*app_fptr)(void)) :
-    Button(idx, app_fptr)
-{
-}
+PwrButton::PwrButton(int idx, void (*app_fptr)(void)) : Button(idx, app_fptr) {}
 
 void PwrButton::poll()
 {

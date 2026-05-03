@@ -3,15 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-FlyGuiText::FlyGuiText(int16_t x, int16_t y, int16_t width, int16_t height,
-                       float fontSize, uint8_t fontStyle, size_t maxLength,
-                       const char* initialText) :
-    FlyGuiItem(x, y, width, height, nullptr, initialText),
-    fontSize_(fontSize),
-    fontStyle_(fontStyle),
-    maxLength_(maxLength)
+FlyGuiText::FlyGuiText(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle, size_t maxLength, const char* initialText) : FlyGuiItem(x, y, width, height, nullptr, initialText), fontSize_(fontSize), fontStyle_(fontStyle), maxLength_(maxLength)
 {
-    text_ = static_cast<char*>(calloc(maxLength_ + 1, sizeof(char)));
+    text_      = static_cast<char*>(calloc(maxLength_ + 1, sizeof(char)));
     drawnText_ = static_cast<char*>(calloc(maxLength_ + 1, sizeof(char)));
     if (initialText)
     {
@@ -67,9 +61,9 @@ void FlyGuiText::redraw(M5GFX& display, bool forced)
     }
 
     // Design: FlyGuiText redraws only character ranges that changed.
-    size_t start = 0;
-    const size_t oldLength = strlen(drawnText_);
-    const size_t newLength = strlen(text_);
+    size_t       start       = 0;
+    const size_t oldLength   = strlen(drawnText_);
+    const size_t newLength   = strlen(text_);
     const size_t maxCompared = oldLength > newLength ? oldLength : newLength;
 
     while (start < maxCompared)
@@ -111,11 +105,9 @@ void FlyGuiText::updateRememberedText()
 
 void FlyGuiText::drawTextRun(M5GFX& display, size_t start, size_t end)
 {
-    const int32_t originX = x() + textPrefixWidth(display, text_, start);
-    const int32_t eraseWidth = textPrefixWidth(display, drawnText_, end) -
-                               textPrefixWidth(display, drawnText_, start);
-    const int32_t drawWidth = textPrefixWidth(display, text_, end) -
-                              textPrefixWidth(display, text_, start);
+    const int32_t originX    = x() + textPrefixWidth(display, text_, start);
+    const int32_t eraseWidth = textPrefixWidth(display, drawnText_, end) - textPrefixWidth(display, drawnText_, start);
+    const int32_t drawWidth  = textPrefixWidth(display, text_, end) - textPrefixWidth(display, text_, start);
     const int32_t clearWidth = eraseWidth > drawWidth ? eraseWidth : drawWidth;
 
     display.fillRect(originX, y(), clearWidth + 2, textHeight(), TFT_BLACK);
@@ -133,9 +125,9 @@ int32_t FlyGuiText::textPrefixWidth(M5GFX& display, const char* text, size_t len
         return 0;
     }
 
-    char saved = const_cast<char*>(text)[length];
+    char saved                      = const_cast<char*>(text)[length];
     const_cast<char*>(text)[length] = '\0';
-    const int32_t width = display.textWidth(text);
+    const int32_t width             = display.textWidth(text);
     const_cast<char*>(text)[length] = saved;
     return width;
 }
@@ -145,30 +137,19 @@ int32_t FlyGuiText::textHeight() const
     return height() > 0 ? height() : static_cast<int32_t>(fontSize_ * 8.0f) + 4;
 }
 
-FlyGuiDateTime::FlyGuiDateTime(int16_t x, int16_t y, int16_t width, int16_t height,
-                               float fontSize, uint8_t fontStyle) :
-    FlyGuiText(x, y, width, height, fontSize, fontStyle, 19)
-{
-}
+FlyGuiDateTime::FlyGuiDateTime(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle) : FlyGuiText(x, y, width, height, fontSize, fontStyle, 19) {}
 
 void FlyGuiDateTime::redraw(M5GFX& display, bool forced)
 {
     // Design: FlyGuiDateTime always shows current date/time and keeps frequent draws quick.
     const m5::rtc_datetime_t now = M5.Rtc.getDateTime();
-    char text[20];
-    snprintf(text, sizeof(text), "%04u-%02u-%02u %02u:%02u:%02u",
-             now.date.year, now.date.month, now.date.date,
-             now.time.hours, now.time.minutes, now.time.seconds);
+    char                     text[20];
+    snprintf(text, sizeof(text), "%04u-%02u-%02u %02u:%02u:%02u", now.date.year, now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds);
     setText(text);
     FlyGuiText::redraw(display, forced);
 }
 
-FlyGuiStopwatch::FlyGuiStopwatch(int16_t x, int16_t y, int16_t width, int16_t height,
-                                 float fontSize, uint8_t fontStyle) :
-    FlyGuiText(x, y, width, height, fontSize, fontStyle, 12),
-    startMs_(millis())
-{
-}
+FlyGuiStopwatch::FlyGuiStopwatch(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle) : FlyGuiText(x, y, width, height, fontSize, fontStyle, 12), startMs_(millis()) {}
 
 void FlyGuiStopwatch::start(uint32_t startMs)
 {
@@ -190,15 +171,12 @@ void FlyGuiStopwatch::redraw(M5GFX& display, bool forced)
 {
     // Design: FlyGuiStopwatch shows elapsed time since a starting time.
     const uint32_t elapsed = elapsedMs() / 1000;
-    const uint32_t hours = elapsed / 3600;
+    const uint32_t hours   = elapsed / 3600;
     const uint32_t minutes = (elapsed / 60) % 60;
     const uint32_t seconds = elapsed % 60;
 
     char text[13];
-    snprintf(text, sizeof(text), "%02lu:%02lu:%02lu",
-             static_cast<unsigned long>(hours),
-             static_cast<unsigned long>(minutes),
-             static_cast<unsigned long>(seconds));
+    snprintf(text, sizeof(text), "%02lu:%02lu:%02lu", static_cast<unsigned long>(hours), static_cast<unsigned long>(minutes), static_cast<unsigned long>(seconds));
     setText(text);
     FlyGuiText::redraw(display, forced);
 }

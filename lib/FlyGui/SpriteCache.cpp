@@ -2,11 +2,7 @@
 
 #include <string.h>
 
-FlyGuiSpriteCache::FlyGuiSpriteCache(FlyGuiSpriteBuffer* entries, uint8_t capacity) :
-    entries_(entries),
-    capacity_(capacity)
-{
-}
+FlyGuiSpriteCache::FlyGuiSpriteCache(FlyGuiSpriteBuffer* entries, uint8_t capacity) : entries_(entries), capacity_(capacity) {}
 
 void* FlyGuiSpriteCache::find(const char* imagePath) const
 {
@@ -18,8 +14,7 @@ void* FlyGuiSpriteCache::find(const char* imagePath) const
 
     for (uint8_t idx = 0; idx < capacity_; ++idx)
     {
-        if (entries_[idx].buffer && entries_[idx].imagePath &&
-            strcmp(entries_[idx].imagePath, imagePath) == 0)
+        if (entries_[idx].buffer && entries_[idx].imagePath && strcmp(entries_[idx].imagePath, imagePath) == 0)
         {
             return entries_[idx].buffer;
         }
@@ -40,7 +35,7 @@ bool FlyGuiSpriteCache::remember(const char* imagePath, void* buffer)
         if (!entries_[idx].buffer)
         {
             entries_[idx].imagePath = imagePath;
-            entries_[idx].buffer = buffer;
+            entries_[idx].buffer    = buffer;
             return true;
         }
     }
@@ -58,6 +53,6 @@ void FlyGuiSpriteCache::clear()
     for (uint8_t idx = 0; idx < capacity_; ++idx)
     {
         entries_[idx].imagePath = nullptr;
-        entries_[idx].buffer = nullptr;
+        entries_[idx].buffer    = nullptr;
     }
 }
