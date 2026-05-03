@@ -2,15 +2,6 @@ There is an upstream and downstream sound source. It is possible that the two st
 
 The file will be a sequence of packets, and each packets has a header and a payload. The header describes the payload, and the payload is raw.
 
-Proposed header
-```
-typedef struct PACKED {
-    uint32_t magic;        // helps resync
-    uint32_t timestamp;    // millis()
-    uint8_t  counter;      // or sample counter
-    uint8_t  code:4;       // 0xF for special marker/event, other codes used to describe direction and sample rate
-    uint8_t  flags:4;      // codec, underrun, etc.
-    uint32_t payload_len;  // bytes following header
-}
-audio_pkt_header_t;
-```
+Proposed header is now defined in `inc\defs.h` as `file_packet_t`
+
+For smoother streaming, when starting a new file, pre-allocate like 1GB of space (check available beforehand) on the card, and truncate the file after recording finishes.

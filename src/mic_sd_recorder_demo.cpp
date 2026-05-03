@@ -8,6 +8,9 @@
 #include "driver/i2s.h"
 #include "esp_log.h"
 
+#include "AudioFileRecorder.h"
+#include "conf.h"
+
 namespace
 {
 constexpr const char *TAG = "mic_sd_recorder_demo";
@@ -17,7 +20,6 @@ constexpr uint32_t kSampleRate = 16000;
 constexpr uint32_t kRecordDurationMs = 60000;
 constexpr size_t kDmaFrameSamples = 1024;
 constexpr size_t kRecordBufferBytes = 8192;
-constexpr uint64_t kHalfGiB = 512ULL * 1024ULL * 1024ULL;
 
 constexpr int kCore2SdSclk = 18;
 constexpr int kCore2SdMiso = 38;
@@ -87,29 +89,6 @@ uint64_t max_prealloc_size()
         size = 7ULL * kHalfGiB;
     }
     return size;
-}
-
-bool grow_file(File &file, uint64_t size)
-{
-    while (size >= kHalfGiB)
-    {
-        if (file.seek(static_cast<uint32_t>(size - 1)))
-        {
-            if (file.write(static_cast<uint8_t>(0)) == 1)
-            {
-                file.flush();
-                file.seek(0);
-                ESP_LOGI(TAG, "reserved %llu bytes", static_cast<unsigned long long>(size));
-                return true;
-            }
-        }
-
-        ESP_LOGW(TAG, "reserve failed at %llu bytes", static_cast<unsigned long long>(size));
-        size -= kHalfGiB;
-    }
-
-    file.seek(0);
-    return false;
 }
 
 bool init_mic_pdm()
@@ -204,7 +183,7 @@ bool mic_sd_recorder_demo()
         return false;
     }
 
-    grow_file(file, max_prealloc_size());
+    AudioFileRecorder::grow_file(file, max_prealloc_size());
 
     if (!init_mic_pdm())
     {
