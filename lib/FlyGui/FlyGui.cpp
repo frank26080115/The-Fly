@@ -8,14 +8,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-static constexpr uint32_t kSlowPollIntervalMs = 1000 / 15;
+static constexpr uint32_t kSlowPollIntervalMs   = 1000 / 15;
 static constexpr uint32_t kMediumPollIntervalMs = 1000 / 30;
-static constexpr uint16_t kTopBarHeight = 22;
-static constexpr int16_t kTopBarDateTimeX = 4;
-static constexpr int16_t kTopBarDateTimeY = 4;
-static constexpr int16_t kTopBarDateTimeWidth = 150;
-static constexpr int16_t kTopBarDateTimeHeight = 14;
-static constexpr int16_t kTopBarBatteryWidth = 44;
+static constexpr uint16_t kTopBarHeight         = 22;
+static constexpr int16_t  kTopBarDateTimeX      = 4;
+static constexpr int16_t  kTopBarDateTimeY      = 4;
+static constexpr int16_t  kTopBarDateTimeWidth  = 150;
+static constexpr int16_t  kTopBarDateTimeHeight = 14;
+static constexpr int16_t  kTopBarBatteryWidth   = 44;
 
 static bool openFlyGuiImageFile(const char* path, fs::File& file)
 {
@@ -65,21 +65,12 @@ static bool loadFlyGuiImageFile(const char* path, void** buffer, size_t* bufferS
         return false;
     }
 
-    *buffer = data;
+    *buffer     = data;
     *bufferSize = size;
     return true;
 }
 
-FlyGuiItem::FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height,
-                       const char* imagePath, const char* mainText) :
-    x_(x),
-    y_(y),
-    width_(width),
-    height_(height),
-    imagePath_(imagePath),
-    mainText_(mainText)
-{
-}
+FlyGuiItem::FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* imagePath, const char* mainText) : x_(x), y_(y), width_(width), height_(height), imagePath_(imagePath), mainText_(mainText) {}
 
 void FlyGuiItem::setMainText(const char* text)
 {
@@ -108,11 +99,10 @@ void FlyGuiItem::onLoad()
     {
         for (FlyGuiItem* sibling = owner_->firstItem(); sibling; sibling = sibling->next())
         {
-            if (sibling != this && sibling->imageBuffer() && sibling->imagePath() &&
-                strcmp(sibling->imagePath(), imagePath_) == 0)
+            if (sibling != this && sibling->imageBuffer() && sibling->imagePath() && strcmp(sibling->imagePath(), imagePath_) == 0)
             {
                 // Design: duplicate image paths borrow an already-loaded sibling buffer.
-                imageBuffer_ = sibling->imageBuffer();
+                imageBuffer_     = sibling->imageBuffer();
                 imageBufferSize_ = sibling->imageBufferSize();
                 ownsImageBuffer_ = false;
                 setDirty();
@@ -137,7 +127,7 @@ void FlyGuiItem::onUnload()
         free(imageBuffer_);
     }
 
-    imageBuffer_ = nullptr;
+    imageBuffer_     = nullptr;
     imageBufferSize_ = 0;
     ownsImageBuffer_ = false;
 }
@@ -188,25 +178,22 @@ void FlyGuiItem::redraw(M5GFX& display, bool forced)
     markClean();
 }
 
-FlyGuiView::FlyGuiView(uint16_t id) :
-    id_(id)
-{
-}
+FlyGuiView::FlyGuiView(uint16_t id) : id_(id) {}
 
 void FlyGuiView::addItem(FlyGuiItem& item)
 {
     // Design: FlyGuiView owns FlyGuiItems as a linked list.
-    item.next_ = nullptr;
+    item.next_  = nullptr;
     item.owner_ = this;
     if (!firstItem_)
     {
         firstItem_ = &item;
-        lastItem_ = &item;
+        lastItem_  = &item;
     }
     else
     {
         lastItem_->next_ = &item;
-        lastItem_ = &item;
+        lastItem_        = &item;
     }
     setDirty();
 }
@@ -217,12 +204,12 @@ void FlyGuiView::removeAllItems()
     while (item)
     {
         FlyGuiItem* next = item->next_;
-        item->owner_ = nullptr;
-        item->next_ = nullptr;
-        item = next;
+        item->owner_     = nullptr;
+        item->next_      = nullptr;
+        item             = next;
     }
     firstItem_ = nullptr;
-    lastItem_ = nullptr;
+    lastItem_  = nullptr;
     setDirty();
 }
 
@@ -236,8 +223,7 @@ void* FlyGuiView::findLoadedImageBuffer(const FlyGuiItem& requester, const char*
 
     for (FlyGuiItem* item = firstItem_; item; item = item->next_)
     {
-        if (item != &requester && item->imageBuffer() && item->imagePath() &&
-            strcmp(item->imagePath(), imagePath) == 0)
+        if (item != &requester && item->imageBuffer() && item->imagePath() && strcmp(item->imagePath(), imagePath) == 0)
         {
             return item->imageBuffer();
         }
@@ -300,19 +286,9 @@ void FlyGuiView::redraw(M5GFX& display, bool forced)
     markClean();
 }
 
-FlyGuiModal::FlyGuiModal(int16_t x, int16_t y, int16_t width, int16_t height,
-                         const char* imagePath, const char* mainText) :
-    FlyGuiItem(x, y, width, height, imagePath, mainText)
-{
-}
+FlyGuiModal::FlyGuiModal(int16_t x, int16_t y, int16_t width, int16_t height, const char* imagePath, const char* mainText) : FlyGuiItem(x, y, width, height, imagePath, mainText) {}
 
-FlyGui::FlyGui(M5GFX& display) :
-    display_(display),
-    topBarDateTime_(new FlyGuiDateTime(kTopBarDateTimeX, kTopBarDateTimeY,
-                                       kTopBarDateTimeWidth, kTopBarDateTimeHeight,
-                                       1.0f, 1))
-{
-}
+FlyGui::FlyGui(M5GFX& display) : display_(display), topBarDateTime_(new FlyGuiDateTime(kTopBarDateTimeX, kTopBarDateTimeY, kTopBarDateTimeWidth, kTopBarDateTimeHeight, 1.0f, 1)) {}
 
 FlyGui::~FlyGui()
 {
@@ -364,7 +340,7 @@ void FlyGui::setAudioActive(bool active)
 
 void FlyGui::poll()
 {
-    const uint32_t now = millis();
+    const uint32_t       now  = millis();
     const FlyGuiPollMode mode = pollMode_;
 
     // Design: medium/slow polling skip touch and draw work off-schedule while audio is active.
@@ -376,12 +352,12 @@ void FlyGui::poll()
     M5.update();
     dispatchButtons();
 
-    const auto touch = M5.Touch.getDetail();
+    const auto       touch = M5.Touch.getDetail();
     FlyGuiTouchEvent event;
-    event.x = touch.x;
-    event.y = touch.y;
-    event.pressed = touch.isPressed();
-    event.justPressed = touch.wasPressed();
+    event.x            = touch.x;
+    event.y            = touch.y;
+    event.pressed      = touch.isPressed();
+    event.justPressed  = touch.wasPressed();
     event.justReleased = touch.wasReleased();
 
     if (event.pressed || event.justPressed || event.justReleased)
@@ -436,7 +412,7 @@ void FlyGui::removeModal(FlyGuiModal& modal)
 
 void FlyGui::drawTopBar(bool forced)
 {
-    const int32_t battery = M5.Power.getBatteryLevel();
+    const int32_t  battery   = M5.Power.getBatteryLevel();
     const uint32_t currentMs = millis();
 
     if (!forced && battery == topBarLastBattery_ && currentMs - lastTopBarDrawMs_ < 1000)
@@ -474,7 +450,7 @@ void FlyGui::drawTopBar(bool forced)
     }
 
     topBarLastBattery_ = battery;
-    lastTopBarDrawMs_ = currentMs;
+    lastTopBarDrawMs_  = currentMs;
 }
 
 void FlyGui::dispatchButtons()
@@ -485,8 +461,8 @@ void FlyGui::dispatchButtons()
     }
 
     // Design: polling reads the three dedicated buttons and calls the active view handlers.
-    Button* left = buttons[TOUCHBUTTON_LEFT];
-    Button* mid = buttons[TOUCHBUTTON_CENTER];
+    Button* left  = buttons[TOUCHBUTTON_LEFT];
+    Button* mid   = buttons[TOUCHBUTTON_CENTER];
     Button* right = buttons[TOUCHBUTTON_RIGHT];
 
     if (left && left->hasPressed())
@@ -523,16 +499,16 @@ bool FlyGui::shouldRunScheduledPoll(FlyGuiPollMode mode, uint32_t now)
 void FlyGui::appendView(FlyGuiView& view)
 {
     view.next_ = nullptr;
-    view.gui_ = this;
+    view.gui_  = this;
 
     if (!firstView_)
     {
         firstView_ = &view;
-        lastView_ = &view;
+        lastView_  = &view;
     }
     else
     {
         lastView_->next_ = &view;
-        lastView_ = &view;
+        lastView_        = &view;
     }
 }

@@ -41,346 +41,370 @@
 #define MSBC_SYNCWORD 0xad
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-struct sbc_frame_hdr {
-	uint8_t syncword:8;		/* Sync word */
-	uint8_t subbands:1;		/* Subbands */
-	uint8_t allocation_method:1;	/* Allocation method */
-	uint8_t channel_mode:2;		/* Channel mode */
-	uint8_t blocks:2;		/* Blocks */
-	uint8_t sampling_frequency:2;	/* Sampling frequency */
-	uint8_t bitpool:8;		/* Bitpool */
-	uint8_t crc_check:8;		/* CRC check */
-} __attribute__ ((packed));
+struct sbc_frame_hdr
+{
+    uint8_t syncword : 8;           /* Sync word */
+    uint8_t subbands : 1;           /* Subbands */
+    uint8_t allocation_method : 1;  /* Allocation method */
+    uint8_t channel_mode : 2;       /* Channel mode */
+    uint8_t blocks : 2;             /* Blocks */
+    uint8_t sampling_frequency : 2; /* Sampling frequency */
+    uint8_t bitpool : 8;            /* Bitpool */
+    uint8_t crc_check : 8;          /* CRC check */
+} __attribute__((packed));
 #elif __BYTE_ORDER == __BIG_ENDIAN
-struct sbc_frame_hdr {
-	uint8_t syncword:8;		/* Sync word */
-	uint8_t sampling_frequency:2;	/* Sampling frequency */
-	uint8_t blocks:2;		/* Blocks */
-	uint8_t channel_mode:2;		/* Channel mode */
-	uint8_t allocation_method:1;	/* Allocation method */
-	uint8_t subbands:1;		/* Subbands */
-	uint8_t bitpool:8;		/* Bitpool */
-	uint8_t crc_check:8;		/* CRC check */
-} __attribute__ ((packed));
+struct sbc_frame_hdr
+{
+    uint8_t syncword : 8;           /* Sync word */
+    uint8_t sampling_frequency : 2; /* Sampling frequency */
+    uint8_t blocks : 2;             /* Blocks */
+    uint8_t channel_mode : 2;       /* Channel mode */
+    uint8_t allocation_method : 1;  /* Allocation method */
+    uint8_t subbands : 1;           /* Subbands */
+    uint8_t bitpool : 8;            /* Bitpool */
+    uint8_t crc_check : 8;          /* CRC check */
+} __attribute__((packed));
 #else
 #error "Unknown byte order"
 #endif
 
 static int is_supported_syncword(uint8_t syncword)
 {
-	return syncword == SBC_SYNCWORD || syncword == MSBC_SYNCWORD;
+    return syncword == SBC_SYNCWORD || syncword == MSBC_SYNCWORD;
 }
 
-static int hdr_blocks(struct sbc_frame_hdr *hdr)
+static int hdr_blocks(struct sbc_frame_hdr* hdr)
 {
-	if (hdr->syncword == MSBC_SYNCWORD)
-		return 15;
+    if (hdr->syncword == MSBC_SYNCWORD)
+        return 15;
 
-	return (hdr->blocks + 1) * 4;
+    return (hdr->blocks + 1) * 4;
 }
 
-static int hdr_subbands(struct sbc_frame_hdr *hdr)
+static int hdr_subbands(struct sbc_frame_hdr* hdr)
 {
-	if (hdr->syncword == MSBC_SYNCWORD)
-		return 8;
+    if (hdr->syncword == MSBC_SYNCWORD)
+        return 8;
 
-	return (hdr->subbands + 1) * 4;
+    return (hdr->subbands + 1) * 4;
 }
 
-static int hdr_bitpool(struct sbc_frame_hdr *hdr)
+static int hdr_bitpool(struct sbc_frame_hdr* hdr)
 {
-	if (hdr->syncword == MSBC_SYNCWORD)
-		return 26;
+    if (hdr->syncword == MSBC_SYNCWORD)
+        return 26;
 
-	return hdr->bitpool;
+    return hdr->bitpool;
 }
 
-static int hdr_frequency(struct sbc_frame_hdr *hdr)
+static int hdr_frequency(struct sbc_frame_hdr* hdr)
 {
-	if (hdr->syncword == MSBC_SYNCWORD)
-		return 0;
+    if (hdr->syncword == MSBC_SYNCWORD)
+        return 0;
 
-	return hdr->sampling_frequency;
+    return hdr->sampling_frequency;
 }
 
-static int hdr_channel_mode(struct sbc_frame_hdr *hdr)
+static int hdr_channel_mode(struct sbc_frame_hdr* hdr)
 {
-	if (hdr->syncword == MSBC_SYNCWORD)
-		return 0;
+    if (hdr->syncword == MSBC_SYNCWORD)
+        return 0;
 
-	return hdr->channel_mode;
+    return hdr->channel_mode;
 }
 
-static int hdr_allocation_method(struct sbc_frame_hdr *hdr)
+static int hdr_allocation_method(struct sbc_frame_hdr* hdr)
 {
-	if (hdr->syncword == MSBC_SYNCWORD)
-		return 0;
+    if (hdr->syncword == MSBC_SYNCWORD)
+        return 0;
 
-	return hdr->allocation_method;
+    return hdr->allocation_method;
 }
 
-static int calc_frame_len(struct sbc_frame_hdr *hdr)
+static int calc_frame_len(struct sbc_frame_hdr* hdr)
 {
-	int tmp, nrof_subbands, nrof_blocks, channel_mode, bitpool;
+    int tmp, nrof_subbands, nrof_blocks, channel_mode, bitpool;
 
-	nrof_subbands = hdr_subbands(hdr);
-	nrof_blocks = hdr_blocks(hdr);
-	channel_mode = hdr_channel_mode(hdr);
-	bitpool = hdr_bitpool(hdr);
+    nrof_subbands = hdr_subbands(hdr);
+    nrof_blocks   = hdr_blocks(hdr);
+    channel_mode  = hdr_channel_mode(hdr);
+    bitpool       = hdr_bitpool(hdr);
 
-	switch (channel_mode) {
-	case 0x00:
-		nrof_subbands /= 2;
-		tmp = nrof_blocks * bitpool;
-		break;
-	case 0x01:
-		tmp = nrof_blocks * bitpool * 2;
-		break;
-	case 0x02:
-		tmp = nrof_blocks * bitpool;
-		break;
-	case 0x03:
-		tmp = nrof_blocks * bitpool + nrof_subbands;
-		break;
-	default:
-		return 0;
-	}
+    switch (channel_mode)
+    {
+    case 0x00:
+        nrof_subbands /= 2;
+        tmp = nrof_blocks * bitpool;
+        break;
+    case 0x01:
+        tmp = nrof_blocks * bitpool * 2;
+        break;
+    case 0x02:
+        tmp = nrof_blocks * bitpool;
+        break;
+    case 0x03:
+        tmp = nrof_blocks * bitpool + nrof_subbands;
+        break;
+    default:
+        return 0;
+    }
 
-	return (nrof_subbands + ((tmp + 7) / 8));
+    return (nrof_subbands + ((tmp + 7) / 8));
 }
 
-static double calc_bit_rate(struct sbc_frame_hdr *hdr)
+static double calc_bit_rate(struct sbc_frame_hdr* hdr)
 {
-	int nrof_subbands, nrof_blocks;
-	double f;
+    int    nrof_subbands, nrof_blocks;
+    double f;
 
-	nrof_subbands = hdr_subbands(hdr);
-	nrof_blocks = hdr_blocks(hdr);
+    nrof_subbands = hdr_subbands(hdr);
+    nrof_blocks   = hdr_blocks(hdr);
 
-	switch (hdr_frequency(hdr)) {
-	case 0:
-		f = 16;
-		break;
-	case 1:
-		f = 32;
-		break;
-	case 2:
-		f = 44.1;
-		break;
-	case 3:
-		f = 48;
-		break;
-	default:
-		return 0;
-	}
+    switch (hdr_frequency(hdr))
+    {
+    case 0:
+        f = 16;
+        break;
+    case 1:
+        f = 32;
+        break;
+    case 2:
+        f = 44.1;
+        break;
+    case 3:
+        f = 48;
+        break;
+    default:
+        return 0;
+    }
 
-	return ((8 * (calc_frame_len(hdr) + 4) * f) /
-			(nrof_subbands * nrof_blocks));
+    return ((8 * (calc_frame_len(hdr) + 4) * f) / (nrof_subbands * nrof_blocks));
 }
 
-static char *freq2str(uint8_t freq)
+static char* freq2str(uint8_t freq)
 {
-	switch (freq) {
-	case 0:
-		return "16 kHz";
-	case 1:
-		return "32 kHz";
-	case 2:
-		return "44.1 kHz";
-	case 3:
-		return "48 kHz";
-	default:
-		return "Unknown";
-	}
+    switch (freq)
+    {
+    case 0:
+        return "16 kHz";
+    case 1:
+        return "32 kHz";
+    case 2:
+        return "44.1 kHz";
+    case 3:
+        return "48 kHz";
+    default:
+        return "Unknown";
+    }
 }
 
-static char *mode2str(uint8_t mode)
+static char* mode2str(uint8_t mode)
 {
-	switch (mode) {
-	case 0:
-		return "Mono";
-	case 1:
-		return "Dual Channel";
-	case 2:
-		return "Stereo";
-	case 3:
-		return "Joint Stereo";
-	default:
-		return "Unknown";
-	}
+    switch (mode)
+    {
+    case 0:
+        return "Mono";
+    case 1:
+        return "Dual Channel";
+    case 2:
+        return "Stereo";
+    case 3:
+        return "Joint Stereo";
+    default:
+        return "Unknown";
+    }
 }
 
-static ssize_t __read(int fd, void *buf, size_t count)
+static ssize_t __read(int fd, void* buf, size_t count)
 {
-	ssize_t len, pos = 0;
+    ssize_t len, pos = 0;
 
-	while (count > 0) {
-		len = read(fd, buf + pos, count);
-		if (len <= 0)
-			return len;
+    while (count > 0)
+    {
+        len = read(fd, buf + pos, count);
+        if (len <= 0)
+            return len;
 
-		count -= len;
-		pos   += len;
-	}
+        count -= len;
+        pos += len;
+    }
 
-	return pos;
+    return pos;
 }
 
 #define SIZE 32
 
-static int analyze_file(char *filename)
+static int analyze_file(char* filename)
 {
-	struct sbc_frame_hdr hdr;
-	unsigned char buf[64];
-	double rate;
-	int bitpool[SIZE], frame_len[SIZE];
-	int subbands, blocks, freq, method;
-	int n, p1, p2, fd, size, num;
-	ssize_t len;
-	unsigned int count;
+    struct sbc_frame_hdr hdr;
+    unsigned char        buf[64];
+    double               rate;
+    int                  bitpool[SIZE], frame_len[SIZE];
+    int                  subbands, blocks, freq, method;
+    int                  n, p1, p2, fd, size, num;
+    ssize_t              len;
+    unsigned int         count;
 
-	if (strcmp(filename, "-")) {
-		printf("Filename\t\t%s\n", basename(filename));
+    if (strcmp(filename, "-"))
+    {
+        printf("Filename\t\t%s\n", basename(filename));
 
-		fd = open(filename, O_RDONLY);
-		if (fd < 0) {
-			perror("Can't open file");
-			return -1;
-		}
-	} else
-		fd = fileno(stdin);
+        fd = open(filename, O_RDONLY);
+        if (fd < 0)
+        {
+            perror("Can't open file");
+            return -1;
+        }
+    }
+    else
+        fd = fileno(stdin);
 
-	len = __read(fd, &hdr, sizeof(hdr));
-	if (len != sizeof(hdr) || !is_supported_syncword(hdr.syncword)) {
-		fprintf(stderr, "Not a SBC audio file\n");
-		return -1;
-	}
+    len = __read(fd, &hdr, sizeof(hdr));
+    if (len != sizeof(hdr) || !is_supported_syncword(hdr.syncword))
+    {
+        fprintf(stderr, "Not a SBC audio file\n");
+        return -1;
+    }
 
-	subbands = hdr_subbands(&hdr);
-	blocks = hdr_blocks(&hdr);
-	freq = hdr_frequency(&hdr);
-	method = hdr_allocation_method(&hdr);
+    subbands = hdr_subbands(&hdr);
+    blocks   = hdr_blocks(&hdr);
+    freq     = hdr_frequency(&hdr);
+    method   = hdr_allocation_method(&hdr);
 
-	count = calc_frame_len(&hdr);
+    count = calc_frame_len(&hdr);
 
-	bitpool[0] = hdr_bitpool(&hdr);
-	frame_len[0] = count + 4;
+    bitpool[0]   = hdr_bitpool(&hdr);
+    frame_len[0] = count + 4;
 
-	for (n = 1; n < SIZE; n++) {
-		bitpool[n] = 0;
-		frame_len[n] = 0;
-	}
+    for (n = 1; n < SIZE; n++)
+    {
+        bitpool[n]   = 0;
+        frame_len[n] = 0;
+    }
 
-	if (lseek(fd, 0, SEEK_SET) < 0) {
-		num = 1;
-		rate = calc_bit_rate(&hdr);
-		while (count) {
-			size = count > sizeof(buf) ? sizeof(buf) : count;
-			len = __read(fd, buf, size);
-			if (len < 0)
-				break;
-			count -= len;
-		}
-	} else {
-		num = 0;
-		rate = 0;
-	}
+    if (lseek(fd, 0, SEEK_SET) < 0)
+    {
+        num  = 1;
+        rate = calc_bit_rate(&hdr);
+        while (count)
+        {
+            size = count > sizeof(buf) ? sizeof(buf) : count;
+            len  = __read(fd, buf, size);
+            if (len < 0)
+                break;
+            count -= len;
+        }
+    }
+    else
+    {
+        num  = 0;
+        rate = 0;
+    }
 
-	while (1) {
-		len = __read(fd, &hdr, sizeof(hdr));
-		if (len < 0) {
-			fprintf(stderr, "Unable to read frame header"
-					" (error %d)\n", errno);
-			break;
-		}
+    while (1)
+    {
+        len = __read(fd, &hdr, sizeof(hdr));
+        if (len < 0)
+        {
+            fprintf(stderr,
+                    "Unable to read frame header"
+                    " (error %d)\n",
+                    errno);
+            break;
+        }
 
-		if (len == 0)
-			break;
+        if (len == 0)
+            break;
 
-		if ((size_t) len < sizeof(hdr) ||
-				!is_supported_syncword(hdr.syncword)) {
-			fprintf(stderr, "Corrupted SBC stream "
-					"(len %zd syncword 0x%02x)\n",
-					len, hdr.syncword);
-			break;
-		}
+        if ((size_t)len < sizeof(hdr) || !is_supported_syncword(hdr.syncword))
+        {
+            fprintf(stderr,
+                    "Corrupted SBC stream "
+                    "(len %zd syncword 0x%02x)\n",
+                    len, hdr.syncword);
+            break;
+        }
 
-		count = calc_frame_len(&hdr);
-		len = count + 4;
+        count = calc_frame_len(&hdr);
+        len   = count + 4;
 
-		p1 = -1;
-		p2 = -1;
-		for (n = 0; n < SIZE; n++) {
-			if (p1 < 0 && (bitpool[n] == 0 ||
-						bitpool[n] == hdr_bitpool(&hdr)))
-				p1 = n;
-			if (p2 < 0 && (frame_len[n] == 0 || frame_len[n] == len))
-				p2 = n;
-		}
-		if (p1 >= 0)
-			bitpool[p1] = hdr_bitpool(&hdr);
-		if (p2 >= 0)
-			frame_len[p2] = len;
+        p1 = -1;
+        p2 = -1;
+        for (n = 0; n < SIZE; n++)
+        {
+            if (p1 < 0 && (bitpool[n] == 0 || bitpool[n] == hdr_bitpool(&hdr)))
+                p1 = n;
+            if (p2 < 0 && (frame_len[n] == 0 || frame_len[n] == len))
+                p2 = n;
+        }
+        if (p1 >= 0)
+            bitpool[p1] = hdr_bitpool(&hdr);
+        if (p2 >= 0)
+            frame_len[p2] = len;
 
-		while (count) {
-			size = count > sizeof(buf) ? sizeof(buf) : count;
+        while (count)
+        {
+            size = count > sizeof(buf) ? sizeof(buf) : count;
 
-			len = __read(fd, buf, size);
-			if (len != size) {
-				fprintf(stderr, "Unable to read frame data "
-						"(error %d)\n", errno);
-				break;
-			}
+            len = __read(fd, buf, size);
+            if (len != size)
+            {
+                fprintf(stderr,
+                        "Unable to read frame data "
+                        "(error %d)\n",
+                        errno);
+                break;
+            }
 
-			count -= len;
-		}
+            count -= len;
+        }
 
-		rate += calc_bit_rate(&hdr);
-		num++;
-	}
+        rate += calc_bit_rate(&hdr);
+        num++;
+    }
 
-	printf("Subbands\t\t%d\n", subbands);
-	printf("Block length\t\t%d\n", blocks);
-	printf("Sampling frequency\t%s\n", freq2str(freq));
-	printf("Channel mode\t\t%s\n", mode2str(hdr_channel_mode(&hdr)));
-	printf("Allocation method\t%s\n", method ? "SNR" : "Loudness");
-	printf("Bitpool\t\t\t%d", bitpool[0]);
-	for (n = 1; n < SIZE; n++)
-		if (bitpool[n] > 0)
-			printf(", %d", bitpool[n]);
-	printf("\n");
-	printf("Number of frames\t%d\n", num);
-	printf("Frame length\t\t%d", frame_len[0]);
-	for (n = 1; n < SIZE; n++)
-		if (frame_len[n] > 0)
-			printf(", %d", frame_len[n]);
-	printf(" Bytes\n");
-	if (num > 0)
-		printf("Bit rate\t\t%.3f kbps\n", rate / num);
+    printf("Subbands\t\t%d\n", subbands);
+    printf("Block length\t\t%d\n", blocks);
+    printf("Sampling frequency\t%s\n", freq2str(freq));
+    printf("Channel mode\t\t%s\n", mode2str(hdr_channel_mode(&hdr)));
+    printf("Allocation method\t%s\n", method ? "SNR" : "Loudness");
+    printf("Bitpool\t\t\t%d", bitpool[0]);
+    for (n = 1; n < SIZE; n++)
+        if (bitpool[n] > 0)
+            printf(", %d", bitpool[n]);
+    printf("\n");
+    printf("Number of frames\t%d\n", num);
+    printf("Frame length\t\t%d", frame_len[0]);
+    for (n = 1; n < SIZE; n++)
+        if (frame_len[n] > 0)
+            printf(", %d", frame_len[n]);
+    printf(" Bytes\n");
+    if (num > 0)
+        printf("Bit rate\t\t%.3f kbps\n", rate / num);
 
-	if (fd > fileno(stderr))
-		close(fd);
+    if (fd > fileno(stderr))
+        close(fd);
 
-	printf("\n");
+    printf("\n");
 
-	return 0;
+    return 0;
 }
 
-
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-	int i;
+    int i;
 
-	if (argc < 2) {
-		fprintf(stderr, "Usage: sbcinfo <file>\n");
-		exit(1);
-	}
+    if (argc < 2)
+    {
+        fprintf(stderr, "Usage: sbcinfo <file>\n");
+        exit(1);
+    }
 
-	for (i = 0; i < argc - 1; i++)
-		if (analyze_file(argv[i + 1]) < 0)
-			exit(1);
+    for (i = 0; i < argc - 1; i++)
+        if (analyze_file(argv[i + 1]) < 0)
+            exit(1);
 
-	return 0;
+    return 0;
 }
 
 #endif

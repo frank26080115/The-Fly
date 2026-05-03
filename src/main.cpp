@@ -2,7 +2,7 @@
 #include "common.h"
 
 TaskHandle_t loopTask_core0_Handle = NULL;
-static void loopTask_core0(void *pvParameters);
+static void  loopTask_core0(void* pvParameters);
 
 void setup()
 {
@@ -14,7 +14,7 @@ void loop()
     // this is running on core 1
 }
 
-static void loopTask_core0(void *pvParameters)
+static void loopTask_core0(void* pvParameters)
 {
     // this is running on core 0
     while (true)

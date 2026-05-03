@@ -17,50 +17,62 @@ enum
 class Button
 {
 public:
-    Button(int idx, void(*app_fptr)(void));
+    Button(int idx, void (*app_fptr)(void));
     virtual ~Button() = default;
-    virtual void poll();
-    virtual bool hasPressed();
-    virtual void clrPressed();
-    virtual bool isPressed();
+    virtual void     poll();
+    virtual bool     hasPressed();
+    virtual void     clrPressed();
+    virtual bool     isPressed();
     virtual uint32_t isHeld(); // if it is held, return the how long since the initial press down event
-    virtual bool hasIsrHandler();
-    inline bool hasAppHandler() { return app_fptr != nullptr; };
+    virtual bool     hasIsrHandler();
+    inline bool      hasAppHandler()
+    {
+        return app_fptr != nullptr;
+    };
+
 protected:
     void recordPress(uint32_t now, bool call_app_handler);
     void dispatchAppHandler();
-    void (*app_fptr)(void) = nullptr;
-    volatile uint32_t down_time = 0;
-    volatile uint32_t clr_time = 0;
-    volatile uint32_t press_cnt = 0;
-    volatile uint32_t press_cnt_prev = 0;
-    uint32_t app_press_cnt_prev = 0;
-    uint8_t internal_index; // tracks which one it is within the global `buttons` array
+    void (*app_fptr)(void)               = nullptr;
+    volatile uint32_t down_time          = 0;
+    volatile uint32_t clr_time           = 0;
+    volatile uint32_t press_cnt          = 0;
+    volatile uint32_t press_cnt_prev     = 0;
+    uint32_t          app_press_cnt_prev = 0;
+    uint8_t           internal_index; // tracks which one it is within the global `buttons` array
 };
 
 class GpioButton : public Button
 {
 public:
-    GpioButton(int pin, int idx, uint8_t down_state, void(*isr_fptr)(void), void(*app_fptr)(void));
+    GpioButton(int pin, int idx, uint8_t down_state, void (*isr_fptr)(void), void (*app_fptr)(void));
     virtual void poll();
     virtual bool hasPressed();
     virtual void clrPressed();
-    virtual bool isPressed() { return digitalRead(this->pin) == this->down_state; };
+    virtual bool isPressed()
+    {
+        return digitalRead(this->pin) == this->down_state;
+    };
     virtual uint32_t isHeld(); // if it is held, return the how long since the initial press down event
-    virtual bool hasIsrHandler() { return isr_fptr != nullptr; };
+    virtual bool     hasIsrHandler()
+    {
+        return isr_fptr != nullptr;
+    };
     void handleInterrupt();
+
 private:
     void (*isr_fptr)(void) = nullptr;
-    int8_t pin;
+    int8_t  pin;
     uint8_t down_state;
 };
 
 class TouchButton : public Button
 {
 public:
-    TouchButton(int id, int idx, void(*app_fptr)(void));
+    TouchButton(int id, int idx, void (*app_fptr)(void));
     virtual void poll();
     virtual bool isPressed();
+
 private:
     int id;
 };
@@ -68,7 +80,7 @@ private:
 class PwrButton : public Button
 {
 public:
-    PwrButton(int idx, void(*app_fptr)(void));
+    PwrButton(int idx, void (*app_fptr)(void));
     virtual void poll();
     virtual bool isPressed();
 };

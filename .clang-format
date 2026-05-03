@@ -2,7 +2,7 @@ BasedOnStyle: LLVM
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
-ColumnLimit: 100
+ColumnLimit: 800
 
 BreakBeforeBraces: Allman
 AllowShortIfStatementsOnASingleLine: false
@@ -15,11 +15,11 @@ ReferenceAlignment: Left
 SortIncludes: false
 IncludeBlocks: Preserve
 
-NamespaceIndentation: All
+NamespaceIndentation: None
 AccessModifierOffset: -4
 
-AlignConsecutiveAssignments: false
-AlignConsecutiveDeclarations: false
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
 AlignAfterOpenBracket: Align
 
 SpaceBeforeParens: ControlStatements
