@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "esp_bt.h"
-#include "esp_bt_device.h"
 #include "esp_bt_main.h"
 #include "esp_gap_bt_api.h"
 #include "esp_hf_client_api.h"
@@ -170,7 +169,7 @@ bool init_bluetooth()
 
     ok(esp_bt_sleep_disable(), "bt sleep disable");
     ok(esp_bt_gap_register_callback(gap_event), "gap callback");
-    ok(esp_bt_dev_set_device_name(BT_PAIRING_DEMO_DEVICE_NAME), "bt name");
+    ok(esp_bt_gap_set_device_name(BT_PAIRING_DEMO_DEVICE_NAME), "bt name");
     ok(esp_bt_gap_set_security_param(ESP_BT_SP_IOCAP_MODE, &iocap, sizeof(iocap)), "ssp iocap");
     ok(esp_bt_gap_set_pin(ESP_BT_PIN_TYPE_FIXED, strlen(kLegacyPin), pin), "legacy pin");
     ok(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "initial scan mode");

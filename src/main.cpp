@@ -19,6 +19,6 @@ static void loopTask_core0(void* pvParameters)
     // this is running on core 0
     while (true)
     {
-        yield();
+        taskYIELD();
     }
 }

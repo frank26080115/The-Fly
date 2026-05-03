@@ -4,13 +4,13 @@
 #include <string.h>
 
 #include "esp_bt.h"
-#include "esp_bt_device.h"
 #include "esp_bt_main.h"
 #include "esp_gap_bt_api.h"
 #include "esp_hf_client_api.h"
 #include "esp_log.h"
 #include "esp_system.h"
-#include "driver/i2s.h"
+#include "driver/i2s_pdm.h"
+#include "driver/i2s_std.h"
 #include "nvs_flash.h"
 #include "sbc.h"
 #include "utilfuncs.h"
@@ -27,14 +27,16 @@ namespace
 {
 constexpr const char* TAG = "bt_audio_demo";
 
-constexpr i2s_port_t kI2sPort           = I2S_NUM_0;
-constexpr uint32_t   kHfpCvsdSampleRate = 8000;
-constexpr uint32_t   kHfpMsbcSampleRate = 16000;
-constexpr int        kCore2SpkBclk      = 12;
-constexpr int        kCore2SpkLrck      = 0;
-constexpr int        kCore2SpkDout      = 2;
-constexpr int        kCore2MicClk       = 0;
-constexpr int        kCore2MicDin       = 34;
+constexpr i2s_port_t kI2sPort            = I2S_NUM_0;
+constexpr uint32_t   kHfpCvsdSampleRate  = 8000;
+constexpr uint32_t   kHfpMsbcSampleRate  = 16000;
+constexpr int        kCore2SpkBclk       = 12;
+constexpr int        kCore2SpkLrck       = 0;
+constexpr int        kCore2SpkDout       = 2;
+constexpr int        kCore2MicClk        = 0;
+constexpr int        kCore2MicDin        = 34;
+constexpr size_t     kDmaBufferCount     = 8;
+constexpr size_t     kHfpDmaFrameSamples = 120;
 
 enum class DemoMode
 {
@@ -67,6 +69,8 @@ sbc_t               g_sbc_decoder           = {};
 sbc_t               g_sbc_encoder           = {};
 bool                g_sbc_decoder_ready     = false;
 bool                g_sbc_encoder_ready     = false;
+i2s_chan_handle_t   g_i2s_tx                = nullptr;
+i2s_chan_handle_t   g_i2s_rx                = nullptr;
 
 constexpr size_t kSbcScratchBytes = 512;
 uint8_t          g_sbc_decode_pcm[kSbcScratchBytes];
@@ -97,8 +101,19 @@ void indicate_incoming_audio_format(IncomingAudioFormat format)
 
 void stop_i2s()
 {
-    i2s_stop(kI2sPort);
-    i2s_driver_uninstall(kI2sPort);
+    if (g_i2s_tx)
+    {
+        i2s_channel_disable(g_i2s_tx);
+        i2s_del_channel(g_i2s_tx);
+        g_i2s_tx = nullptr;
+    }
+
+    if (g_i2s_rx)
+    {
+        i2s_channel_disable(g_i2s_rx);
+        i2s_del_channel(g_i2s_rx);
+        g_i2s_rx = nullptr;
+    }
 }
 
 void finish_sbc()
@@ -155,27 +170,34 @@ bool init_speaker_i2s(uint32_t sample_rate)
 {
     stop_i2s();
 
-    i2s_config_t config         = {};
-    config.mode                 = static_cast<i2s_mode_t>(I2S_MODE_MASTER | I2S_MODE_TX);
-    config.sample_rate          = sample_rate;
-    config.bits_per_sample      = I2S_BITS_PER_SAMPLE_16BIT;
-    config.channel_format       = I2S_CHANNEL_FMT_ONLY_RIGHT;
-    config.communication_format = I2S_COMM_FORMAT_STAND_I2S;
-    config.intr_alloc_flags     = ESP_INTR_FLAG_LEVEL1;
-    config.dma_buf_count        = 8;
-    config.dma_buf_len          = 120;
-    config.use_apll             = false;
-    config.tx_desc_auto_clear   = true;
-    config.fixed_mclk           = 0;
+    i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
+    chan_config.dma_desc_num      = kDmaBufferCount;
+    chan_config.dma_frame_num     = kHfpDmaFrameSamples;
+    chan_config.auto_clear        = true;
 
-    i2s_pin_config_t pins = {};
-    pins.bck_io_num       = kCore2SpkBclk;
-    pins.ws_io_num        = kCore2SpkLrck;
-    pins.data_out_num     = kCore2SpkDout;
-    pins.data_in_num      = I2S_PIN_NO_CHANGE;
+    i2s_std_config_t config   = {};
+    config.clk_cfg            = I2S_STD_CLK_DEFAULT_CONFIG(sample_rate);
+    config.slot_cfg           = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
+    config.slot_cfg.slot_mask = I2S_STD_SLOT_RIGHT;
+    config.gpio_cfg.mclk      = I2S_GPIO_UNUSED;
+    config.gpio_cfg.bclk      = static_cast<gpio_num_t>(kCore2SpkBclk);
+    config.gpio_cfg.ws        = static_cast<gpio_num_t>(kCore2SpkLrck);
+    config.gpio_cfg.dout      = static_cast<gpio_num_t>(kCore2SpkDout);
+    config.gpio_cfg.din       = I2S_GPIO_UNUSED;
 
-    if (!ok(i2s_driver_install(kI2sPort, &config, 0, nullptr), "speaker i2s install") || !ok(i2s_set_pin(kI2sPort, &pins), "speaker i2s pins") || !ok(i2s_zero_dma_buffer(kI2sPort), "speaker i2s zero") || !ok(i2s_start(kI2sPort), "speaker i2s start"))
+    if (!ok(i2s_new_channel(&chan_config, &g_i2s_tx, nullptr), "speaker i2s channel") || !ok(i2s_channel_init_std_mode(g_i2s_tx, &config), "speaker i2s std init"))
     {
+        stop_i2s();
+        return false;
+    }
+
+    int16_t zeros[kHfpDmaFrameSamples] = {};
+    size_t  loaded                     = 0;
+    i2s_channel_preload_data(g_i2s_tx, zeros, sizeof(zeros), &loaded);
+
+    if (!ok(i2s_channel_enable(g_i2s_tx), "speaker i2s enable"))
+    {
+        stop_i2s();
         return false;
     }
 
@@ -186,27 +208,20 @@ bool init_mic_pdm(uint32_t sample_rate)
 {
     stop_i2s();
 
-    i2s_config_t config         = {};
-    config.mode                 = static_cast<i2s_mode_t>(I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_PDM);
-    config.sample_rate          = sample_rate;
-    config.bits_per_sample      = I2S_BITS_PER_SAMPLE_16BIT;
-    config.channel_format       = I2S_CHANNEL_FMT_ONLY_RIGHT;
-    config.communication_format = I2S_COMM_FORMAT_STAND_PCM_SHORT;
-    config.intr_alloc_flags     = ESP_INTR_FLAG_LEVEL1;
-    config.dma_buf_count        = 8;
-    config.dma_buf_len          = 120;
-    config.use_apll             = false;
-    config.tx_desc_auto_clear   = false;
-    config.fixed_mclk           = 0;
+    i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
+    chan_config.dma_desc_num      = kDmaBufferCount;
+    chan_config.dma_frame_num     = kHfpDmaFrameSamples;
 
-    i2s_pin_config_t pins = {};
-    pins.bck_io_num       = I2S_PIN_NO_CHANGE;
-    pins.ws_io_num        = kCore2MicClk;
-    pins.data_out_num     = I2S_PIN_NO_CHANGE;
-    pins.data_in_num      = kCore2MicDin;
+    i2s_pdm_rx_config_t config = {};
+    config.clk_cfg             = I2S_PDM_RX_CLK_DEFAULT_CONFIG(sample_rate);
+    config.slot_cfg            = I2S_PDM_RX_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
+    config.slot_cfg.slot_mask  = I2S_PDM_SLOT_RIGHT;
+    config.gpio_cfg.clk        = static_cast<gpio_num_t>(kCore2MicClk);
+    config.gpio_cfg.din        = static_cast<gpio_num_t>(kCore2MicDin);
 
-    if (!ok(i2s_driver_install(kI2sPort, &config, 0, nullptr), "mic pdm install") || !ok(i2s_set_pin(kI2sPort, &pins), "mic pdm pins") || !ok(i2s_start(kI2sPort), "mic pdm start"))
+    if (!ok(i2s_new_channel(&chan_config, nullptr, &g_i2s_rx), "mic pdm channel") || !ok(i2s_channel_init_pdm_rx_mode(g_i2s_rx, &config), "mic pdm init") || !ok(i2s_channel_enable(g_i2s_rx), "mic pdm enable"))
     {
+        stop_i2s();
         return false;
     }
 
@@ -277,14 +292,14 @@ void hfp_incoming_audio(const uint8_t* buf, uint32_t len)
             }
 
             size_t i2s_written = 0;
-            i2s_write(kI2sPort, g_sbc_decode_pcm, pcm_written, &i2s_written, 0);
+            i2s_channel_write(g_i2s_tx, g_sbc_decode_pcm, pcm_written, &i2s_written, 0);
             pos += static_cast<size_t>(consumed);
         }
         return;
     }
 
     size_t written = 0;
-    i2s_write(kI2sPort, buf, len, &written, 0);
+    i2s_channel_write(g_i2s_tx, buf, len, &written, 0);
 }
 
 uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
@@ -311,7 +326,7 @@ uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
         }
 
         size_t read = 0;
-        if (i2s_read(kI2sPort, g_sbc_encode_pcm, codesize, &read, 0) != ESP_OK || read < codesize)
+        if (i2s_channel_read(g_i2s_rx, g_sbc_encode_pcm, codesize, &read, 0) != ESP_OK || read < codesize)
         {
             return 0;
         }
@@ -327,7 +342,7 @@ uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
     }
 
     size_t read = 0;
-    if (i2s_read(kI2sPort, buf, len, &read, 0) != ESP_OK)
+    if (i2s_channel_read(g_i2s_rx, buf, len, &read, 0) != ESP_OK)
     {
         return 0;
     }
@@ -531,7 +546,7 @@ bool init_bluetooth()
     }
 
     ok(esp_bt_sleep_disable(), "bt sleep disable");
-    ok(esp_bt_dev_set_device_name(BT_AUDIO_DEMO_DEVICE_NAME), "bt name");
+    ok(esp_bt_gap_set_device_name(BT_AUDIO_DEMO_DEVICE_NAME), "bt name");
     ok(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "bt scan mode");
     ok(esp_bredr_sco_datapath_set(ESP_SCO_DATA_PATH_HCI), "sco hci path");
 

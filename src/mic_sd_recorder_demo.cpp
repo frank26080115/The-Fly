@@ -5,7 +5,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include "driver/i2s.h"
+#include "driver/i2s_pdm.h"
 #include "esp_log.h"
 
 #include "AudioFileRecorder.h"
@@ -19,6 +19,7 @@ constexpr i2s_port_t kI2sPort           = I2S_NUM_0;
 constexpr uint32_t   kSampleRate        = 16000;
 constexpr uint32_t   kRecordDurationMs  = 60000;
 constexpr size_t     kDmaFrameSamples   = 1024;
+constexpr size_t     kDmaBufferCount    = 8;
 constexpr size_t     kRecordBufferBytes = 8192;
 
 constexpr int kCore2SdSclk = 18;
@@ -27,6 +28,20 @@ constexpr int kCore2SdMosi = 23;
 constexpr int kCore2SdCs   = 4;
 constexpr int kCore2MicClk = 0;
 constexpr int kCore2MicDin = 34;
+
+i2s_chan_handle_t g_i2s_rx = nullptr;
+
+void stop_mic_pdm()
+{
+    if (!g_i2s_rx)
+    {
+        return;
+    }
+
+    i2s_channel_disable(g_i2s_rx);
+    i2s_del_channel(g_i2s_rx);
+    g_i2s_rx = nullptr;
+}
 
 bool init_m5()
 {
@@ -83,48 +98,39 @@ uint64_t max_prealloc_size()
 
 bool init_mic_pdm()
 {
-    i2s_stop(kI2sPort);
-    i2s_driver_uninstall(kI2sPort);
+    stop_mic_pdm();
 
-    i2s_config_t config         = {};
-    config.mode                 = static_cast<i2s_mode_t>(I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_PDM);
-    config.sample_rate          = kSampleRate;
-    config.bits_per_sample      = I2S_BITS_PER_SAMPLE_16BIT;
-    config.channel_format       = I2S_CHANNEL_FMT_ONLY_RIGHT;
-    config.communication_format = I2S_COMM_FORMAT_STAND_PCM_SHORT;
-    config.intr_alloc_flags     = ESP_INTR_FLAG_LEVEL1;
-    config.dma_buf_count        = 8;
-    config.dma_buf_len          = kDmaFrameSamples;
-    config.use_apll             = false;
-    config.tx_desc_auto_clear   = false;
-    config.fixed_mclk           = 0;
+    i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
+    chan_config.dma_desc_num      = kDmaBufferCount;
+    chan_config.dma_frame_num     = kDmaFrameSamples;
 
-    i2s_pin_config_t pins = {};
-    pins.bck_io_num       = I2S_PIN_NO_CHANGE;
-    pins.ws_io_num        = kCore2MicClk;
-    pins.data_out_num     = I2S_PIN_NO_CHANGE;
-    pins.data_in_num      = kCore2MicDin;
+    i2s_pdm_rx_config_t config = {};
+    config.clk_cfg             = I2S_PDM_RX_CLK_DEFAULT_CONFIG(kSampleRate);
+    config.slot_cfg            = I2S_PDM_RX_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
+    config.slot_cfg.slot_mask  = I2S_PDM_SLOT_RIGHT;
+    config.gpio_cfg.clk        = static_cast<gpio_num_t>(kCore2MicClk);
+    config.gpio_cfg.din        = static_cast<gpio_num_t>(kCore2MicDin);
 
-    esp_err_t err = i2s_driver_install(kI2sPort, &config, 0, nullptr);
+    esp_err_t err = i2s_new_channel(&chan_config, nullptr, &g_i2s_rx);
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "mic pdm install failed: %s", esp_err_to_name(err));
+        ESP_LOGE(TAG, "mic pdm channel failed: %s", esp_err_to_name(err));
         return false;
     }
 
-    err = i2s_set_pin(kI2sPort, &pins);
+    err = i2s_channel_init_pdm_rx_mode(g_i2s_rx, &config);
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "mic pdm pins failed: %s", esp_err_to_name(err));
-        i2s_driver_uninstall(kI2sPort);
+        ESP_LOGE(TAG, "mic pdm init failed: %s", esp_err_to_name(err));
+        stop_mic_pdm();
         return false;
     }
 
-    err = i2s_start(kI2sPort);
+    err = i2s_channel_enable(g_i2s_rx);
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "mic pdm start failed: %s", esp_err_to_name(err));
-        i2s_driver_uninstall(kI2sPort);
+        ESP_LOGE(TAG, "mic pdm enable failed: %s", esp_err_to_name(err));
+        stop_mic_pdm();
         return false;
     }
 
@@ -140,7 +146,7 @@ uint32_t record_audio(File& file)
     while (millis() - started < kRecordDurationMs)
     {
         size_t          bytes_read = 0;
-        const esp_err_t err        = i2s_read(kI2sPort, buffer, sizeof(buffer), &bytes_read, pdMS_TO_TICKS(250));
+        const esp_err_t err        = i2s_channel_read(g_i2s_rx, buffer, sizeof(buffer), &bytes_read, 250);
         if (err == ESP_OK && bytes_read > 0)
         {
             written_total += file.write(buffer, bytes_read);
@@ -182,8 +188,7 @@ bool mic_sd_recorder_demo()
     }
 
     const uint32_t actual_size = record_audio(file);
-    i2s_stop(kI2sPort);
-    i2s_driver_uninstall(kI2sPort);
+    stop_mic_pdm();
     file.close();
 
     if (truncate(vfs_path, static_cast<off_t>(actual_size)) != 0)
