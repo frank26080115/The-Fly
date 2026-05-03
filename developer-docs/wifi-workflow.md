@@ -8,7 +8,7 @@ There shall be a `wifi.json` file on the microSD card.
 
 If the user chooses to launch the access point mode, then only FTP is enabled, as there is no internet to do much else anyways.
 
-Otherwise, the user can choose any one of the Wi-Fi routers to connect to. When successful, the FTP server starts to run, and also, the user is presented with the option to sync time with NTP, and to pick a cloud upload destination.
+Otherwise, the user can choose any one of the Wi-Fi routers to connect to. When successful, the FTP server starts to run, and also, the user is presented with the option to sync time with NTP, and to pick a cloud upload destination (up to 2).
 
 A file named `upload-history.txt` tracks which files have been uploaded, one file name per line. Do not upload any files that have been uploaded already. Only add a file to the list after completion of upload.
 

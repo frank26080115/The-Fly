@@ -16,6 +16,8 @@ The RTC should be used to provide a time stamp for all audio recordings.
 
 Bluetooth will never be active when Wi-Fi is active. Audio recording is also not possible if Wi-Fi is active. There should never be any worry about file handles or concurrent access to multiple files or the file system changing state unexpectedly.
 
+Assume the microSD card is permanently attached, always available. Unavailability is a fatal event and not able to recover from until reboot.
+
 ### File name conventions
 
 All audio recordings are two files, one with a `.raw` extension which contains the actual audio, and another one with the same name but ends with `.meta.json`, containing any metadata.

@@ -40,6 +40,12 @@ public:
     }
 
     std::lock_guard<std::mutex> lock(mutex_);
+    if (!queueEnabled_) {
+      upsampleHasPrev_ = false;
+      upsamplePrev_ = 0;
+      return sampleCount;
+    }
+
     if (sampleRateHz == 8000) {
       return queueUpsampled8kLocked(samples, sampleCount);
     }
@@ -56,6 +62,23 @@ public:
       if (usedSamples_ == 0) {
         underflowed_ = true;
       }
+      return 0;
+    }
+
+    const size_t toRead = minSize(maxSamples, usedSamples_);
+    readLocked(samples, toRead);
+    noteEmptyLocked();
+    return toRead;
+  }
+
+  size_t dequeueMonoImmediate(int16_t *samples, size_t maxSamples) {
+    if (samples == nullptr || maxSamples == 0) {
+      return 0;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (usedSamples_ == 0) {
+      underflowed_ = true;
       return 0;
     }
 
@@ -112,6 +135,29 @@ public:
   size_t availableToWrite() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return capacitySamples_ - usedSamples_;
+  }
+
+  uint8_t getFillPercentagle() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return static_cast<uint8_t>((usedSamples_ * 100U) / capacitySamples_);
+  }
+
+  uint8_t getFillPercentage() const {
+    return getFillPercentagle();
+  }
+
+  void setQueueEnabled(bool enabled) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    queueEnabled_ = enabled;
+    if (!queueEnabled_) {
+      upsampleHasPrev_ = false;
+      upsamplePrev_ = 0;
+    }
+  }
+
+  bool queueEnabled() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return queueEnabled_;
   }
 
   size_t capacity() const {
@@ -269,6 +315,7 @@ private:
   size_t usedSamples_ = 0;
   bool upsampleHasPrev_ = false;
   int16_t upsamplePrev_ = 0;
+  bool queueEnabled_ = true;
   bool overflowed_ = false;
   bool underflowed_ = false;
   mutable State state_ = State::Filling;
