@@ -1,6 +1,6 @@
 There is a JSON file called `bluetooth.json` on the microSD card. This file contains multiple hosts. Each host is described by a friendly name and a MAC address.
 
-The GUI is populated with this list, the user can choose one of these hosts to connect to, or to enable pairing (advertising) mode.
+The GUI is populated with this list, the user can choose one of these hosts to connect to, or to wait for an incoming connection, or to enable pairing (advertising) mode.
 
 If a connection is established, then proceed.
 

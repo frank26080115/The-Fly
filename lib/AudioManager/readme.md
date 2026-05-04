@@ -11,7 +11,7 @@ This module owns all 4 FIFOs:
 
 It only needs to pump the `Bluetooth to Speaker` and `Mic to Bluetooth` FIFOs. Make these two different functions.
 
-Pumping `Bluetooth to Speaker` (`pump_bt2s`) means dequeuing and then putting into I2S DMA. Make sure both the FIFO has enough data and the I2S can accept the data before actually performing the dequeue and the write.
+Pumping `Bluetooth to Speaker` (`pump_bt2spk`) means dequeuing and then putting into I2S DMA. Make sure both the FIFO has enough data and the I2S can accept the data before actually performing the dequeue and the write.
 
 Pumping `Mic to Bluetooth` (`pump_mic2bt`) means checking if the I2S has data, if so, enqueue it. The `hfp_outgoing_audio` callback will handle the dequeuing.
 
@@ -29,7 +29,7 @@ Just a reminder, all the audio is 16 KHz sample rate, 16 bit PCM. The AudioFifo 
 
 There are two hardware implementation cases:
 
- 1. M5Stack Core 2 internal speaker and internal mic, so we need push-to-talk
+ 1. M5Stack NS4168 speaker and SPM1423 mic, so we need push-to-talk
  2. external WM8960
 
 This module does not need to check the buttons for anything. It needs to provide the functions that the GUI calls.
