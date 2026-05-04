@@ -9,7 +9,6 @@
 #include "esp_bt_main.h"
 #include "esp_log.h"
 #include "esp_mac.h"
-#include "nvs_flash.h"
 #include "AudioManager.h"
 #include "utilfuncs.h"
 
@@ -23,21 +22,24 @@ constexpr char        kLegacyPin[]        = "0000";
 constexpr size_t      kLegacyPinMaxLength = sizeof(esp_bt_pin_code_t);
 constexpr int         kHfpMaxVolume       = 15;
 
-State                 g_state                               = State::Idle;
-esp_bd_addr_t         g_target_mac                          = {};
-esp_bd_addr_t         g_connected_mac                       = {};
-PairedDevice          g_last_paired_device                  = {};
-bool                  g_has_connected_mac                   = false;
-bool                  g_has_last_paired_device              = false;
-bool                  g_bt_ready                            = false;
-bool                  g_hfp_ready                           = false;
-bool                  g_data_callback_ready                 = false;
-bool                  g_disconnect_requested                = false;
-IncomingAudioCallback g_incoming_audio                      = nullptr;
-OutgoingAudioCallback g_outgoing_audio                      = nullptr;
-PairedCallback        g_paired_callback                     = nullptr;
-StateChangedCallback  g_state_changed_callback              = nullptr;
-char                  g_legacy_pin[kLegacyPinMaxLength + 1] = kLegacyPin;
+State                 g_state                  = State::Idle;
+esp_bd_addr_t         g_target_mac             = {};
+esp_bd_addr_t         g_connected_mac          = {};
+PairedDevice          g_last_paired_device     = {};
+bool                  g_has_connected_mac      = false;
+bool                  g_has_last_paired_device = false;
+bool                  g_bt_ready               = false;
+bool                  g_hfp_ready              = false;
+bool                  g_data_callback_ready    = false;
+bool                  g_disconnect_requested   = false;
+IncomingAudioCallback g_incoming_audio         = nullptr;
+OutgoingAudioCallback g_outgoing_audio         = nullptr;
+PairedCallback        g_paired_callback        = nullptr;
+StateChangedCallback  g_state_changed_callback = nullptr;
+
+char g_legacy_pin[kLegacyPinMaxLength + 1] = kLegacyPin;
+// this is used during init and also when handling ESP_BT_GAP_PIN_REQ_EVT
+// the user can supply it, or it defaults to kLegacyPin when none is specified
 
 void set_state(State next)
 {
@@ -312,23 +314,14 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
 
 bool init_bluetooth(const char* device_name, const char* pin_code)
 {
+    // already performed, do not re-perform
     if (g_bt_ready)
     {
+        ESP_LOGW(TAG, "init_bluetooth called after Bluetooth was already initialized");
         return true;
     }
 
-    set_legacy_pin(pin_code);
-
-    esp_err_t err = nvs_flash_init();
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND)
-    {
-        ok(nvs_flash_erase(), "nvs erase");
-        err = nvs_flash_init();
-    }
-    if (!ok(err, "nvs init"))
-    {
-        return false;
-    }
+    set_legacy_pin(pin_code); // copies into memory
 
     ok(esp_bt_controller_mem_release(ESP_BT_MODE_BLE), "release ble memory");
 
