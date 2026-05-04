@@ -16,11 +16,11 @@ constexpr uint32_t   kModeDurationMs = 10000;
 constexpr size_t     kFrameSamples   = 256;
 constexpr size_t     kDmaBufferCount = 8;
 
-constexpr int kCore2SpkBclk = 12;
-constexpr int kCore2SpkLrck = 0;
-constexpr int kCore2SpkDout = 2;
-constexpr int kCore2MicClk  = 0;
-constexpr int kCore2MicDin  = 34;
+constexpr int kNS4168SpeakerBclk = 12;
+constexpr int kNS4168SpeakerLrck = 0;
+constexpr int kNS4168SpeakerDout = 2;
+constexpr int kSPM1423MicClk     = 0;
+constexpr int kSPM1423MicDin     = 34;
 
 constexpr uint8_t kAxp192Address      = 0x34;
 constexpr uint8_t kAxp192Gpio2Control = 0x93;
@@ -49,7 +49,7 @@ void stop_i2s()
     }
 }
 
-void set_core2_speaker_enabled(bool enabled)
+void set_ns4168_speaker_enabled(bool enabled)
 {
     static bool wire_started = false;
     if (!wire_started)
@@ -64,14 +64,14 @@ void set_core2_speaker_enabled(bool enabled)
     const uint8_t result = Wire.endTransmission();
     if (result != 0)
     {
-        ESP_LOGW(TAG, "AXP192 speaker GPIO2 write failed: %u", result);
+        ESP_LOGW(TAG, "AXP192 NS4168 speaker GPIO2 write failed: %u", result);
     }
 }
 
 bool init_speaker_i2s()
 {
     stop_i2s();
-    set_core2_speaker_enabled(true);
+    set_ns4168_speaker_enabled(true);
 
     i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
     chan_config.dma_desc_num      = kDmaBufferCount;
@@ -83,9 +83,9 @@ bool init_speaker_i2s()
     config.slot_cfg           = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
     config.slot_cfg.slot_mask = I2S_STD_SLOT_RIGHT;
     config.gpio_cfg.mclk      = I2S_GPIO_UNUSED;
-    config.gpio_cfg.bclk      = static_cast<gpio_num_t>(kCore2SpkBclk);
-    config.gpio_cfg.ws        = static_cast<gpio_num_t>(kCore2SpkLrck);
-    config.gpio_cfg.dout      = static_cast<gpio_num_t>(kCore2SpkDout);
+    config.gpio_cfg.bclk      = static_cast<gpio_num_t>(kNS4168SpeakerBclk);
+    config.gpio_cfg.ws        = static_cast<gpio_num_t>(kNS4168SpeakerLrck);
+    config.gpio_cfg.dout      = static_cast<gpio_num_t>(kNS4168SpeakerDout);
     config.gpio_cfg.din       = I2S_GPIO_UNUSED;
 
     if (!ok(i2s_new_channel(&chan_config, &g_i2s_tx, nullptr), "speaker i2s channel") || !ok(i2s_channel_init_std_mode(g_i2s_tx, &config), "speaker i2s std init"))
@@ -110,7 +110,7 @@ bool init_speaker_i2s()
 bool init_mic_pdm()
 {
     stop_i2s();
-    set_core2_speaker_enabled(false);
+    set_ns4168_speaker_enabled(false);
 
     i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
     chan_config.dma_desc_num      = kDmaBufferCount;
@@ -120,8 +120,8 @@ bool init_mic_pdm()
     config.clk_cfg             = I2S_PDM_RX_CLK_DEFAULT_CONFIG(kSampleRate);
     config.slot_cfg            = I2S_PDM_RX_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
     config.slot_cfg.slot_mask  = I2S_PDM_SLOT_RIGHT;
-    config.gpio_cfg.clk        = static_cast<gpio_num_t>(kCore2MicClk);
-    config.gpio_cfg.din        = static_cast<gpio_num_t>(kCore2MicDin);
+    config.gpio_cfg.clk        = static_cast<gpio_num_t>(kSPM1423MicClk);
+    config.gpio_cfg.din        = static_cast<gpio_num_t>(kSPM1423MicDin);
 
     if (!ok(i2s_new_channel(&chan_config, nullptr, &g_i2s_rx), "mic pdm channel") || !ok(i2s_channel_init_pdm_rx_mode(g_i2s_rx, &config), "mic pdm init") || !ok(i2s_channel_enable(g_i2s_rx), "mic pdm enable"))
     {

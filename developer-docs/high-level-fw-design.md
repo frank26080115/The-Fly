@@ -34,6 +34,8 @@ When using CVSD, the local PCM sample rate is 8 kHz.
 
 When using mSBC, the Bluetooth-side payload is mSBC/SBC encoded. After decoding, the local PCM sample rate is 16 kHz.
 
+Avoid any volume manipulation of audio samples, relegate that to the DAC or amp which should have settings for volume.
+
 ### Buffer Sizes
 
  * CVSD / 8 kHz path:

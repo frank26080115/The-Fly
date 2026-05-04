@@ -55,7 +55,7 @@ public:
         return queue16kLocked(samples, sampleCount);
     }
 
-    size_t dequeueMono(int16_t* samples, size_t maxSamples)
+    size_t dequeueMono(int16_t* samples, size_t maxSamples, uint32_t sampleRateHz = kInternalSampleRateHz)
     {
         if (samples == nullptr || maxSamples == 0)
         {
@@ -68,17 +68,20 @@ public:
             if (usedSamples_ == 0)
             {
                 underflowed_ = true;
+                if (silenceWhenEmpty_)
+                {
+                    return writeSilenceLocked(samples, maxSamples);
+                }
             }
             return 0;
         }
 
-        const size_t toRead = minSize(maxSamples, usedSamples_);
-        readLocked(samples, toRead);
+        const size_t toRead = sampleRateHz == 8000 ? readDownsampled8kLocked(samples, maxSamples) : readLocked(samples, minSize(maxSamples, usedSamples_));
         noteEmptyLocked();
         return toRead;
     }
 
-    size_t dequeueMonoImmediate(int16_t* samples, size_t maxSamples)
+    size_t dequeueMonoImmediate(int16_t* samples, size_t maxSamples, uint32_t sampleRateHz = kInternalSampleRateHz)
     {
         if (samples == nullptr || maxSamples == 0)
         {
@@ -89,16 +92,19 @@ public:
         if (usedSamples_ == 0)
         {
             underflowed_ = true;
+            if (silenceWhenEmpty_)
+            {
+                return writeSilenceLocked(samples, maxSamples);
+            }
             return 0;
         }
 
-        const size_t toRead = minSize(maxSamples, usedSamples_);
-        readLocked(samples, toRead);
+        const size_t toRead = sampleRateHz == 8000 ? readDownsampled8kLocked(samples, maxSamples) : readLocked(samples, minSize(maxSamples, usedSamples_));
         noteEmptyLocked();
         return toRead;
     }
 
-    size_t dequeueStereo(int16_t* interleavedSamples, size_t maxFrames)
+    size_t dequeueStereo(int16_t* interleavedSamples, size_t maxFrames, uint32_t sampleRateHz = kInternalSampleRateHz)
     {
         if (interleavedSamples == nullptr || maxFrames == 0)
         {
@@ -111,8 +117,27 @@ public:
             if (usedSamples_ == 0)
             {
                 underflowed_ = true;
+                if (silenceWhenEmpty_)
+                {
+                    return writeStereoSilenceLocked(interleavedSamples, maxFrames);
+                }
             }
             return 0;
+        }
+
+        if (sampleRateHz == 8000)
+        {
+            const size_t frames = minSize(maxFrames, usedSamples_ / 2);
+            for (size_t i = 0; i < frames; ++i)
+            {
+                const int16_t sample          = buffer_[readIndex_];
+                interleavedSamples[i * 2]     = sample;
+                interleavedSamples[i * 2 + 1] = sample;
+                readIndex_                    = (readIndex_ + 2) % capacitySamples_;
+            }
+            usedSamples_ -= frames * 2;
+            noteEmptyLocked();
+            return frames;
         }
 
         const size_t frames = minSize(maxFrames, usedSamples_);
@@ -208,6 +233,18 @@ public:
     {
         std::lock_guard<std::mutex> lock(mutex_);
         return muted_;
+    }
+
+    void setSilenceWhenEmpty(bool enabled)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        silenceWhenEmpty_ = enabled;
+    }
+
+    bool silenceWhenEmpty() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return silenceWhenEmpty_;
     }
 
     size_t capacity() const
@@ -357,7 +394,7 @@ private:
         return inputToWrite;
     }
 
-    void readLocked(int16_t* samples, size_t sampleCount)
+    size_t readLocked(int16_t* samples, size_t sampleCount)
     {
         const size_t first = minSize(sampleCount, capacitySamples_ - readIndex_);
         std::memcpy(samples, &buffer_[readIndex_], first * sizeof(int16_t));
@@ -370,6 +407,32 @@ private:
 
         readIndex_ = (readIndex_ + sampleCount) % capacitySamples_;
         usedSamples_ -= sampleCount;
+        return sampleCount;
+    }
+
+    size_t readDownsampled8kLocked(int16_t* samples, size_t maxSamples)
+    {
+        const size_t toRead = minSize(maxSamples, usedSamples_ / 2);
+        for (size_t i = 0; i < toRead; ++i)
+        {
+            samples[i] = buffer_[readIndex_];
+            readIndex_ = (readIndex_ + 2) % capacitySamples_;
+        }
+
+        usedSamples_ -= toRead * 2;
+        return toRead;
+    }
+
+    size_t writeSilenceLocked(int16_t* samples, size_t sampleCount)
+    {
+        std::memset(samples, 0, sampleCount * sizeof(int16_t));
+        return sampleCount;
+    }
+
+    size_t writeStereoSilenceLocked(int16_t* interleavedSamples, size_t frames)
+    {
+        std::memset(interleavedSamples, 0, frames * 2 * sizeof(int16_t));
+        return frames;
     }
 
     bool canDequeueLocked()
@@ -408,6 +471,7 @@ private:
     int16_t                    upsamplePrev_      = 0;
     bool                       queueEnabled_      = true;
     bool                       muted_             = false;
+    bool                       silenceWhenEmpty_  = false;
     bool                       overflowed_        = false;
     bool                       underflowed_       = false;
     mutable State              state_             = State::Filling;

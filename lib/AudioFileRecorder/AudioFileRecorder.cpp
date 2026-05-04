@@ -9,6 +9,7 @@
 
 #include "conf.h"
 #include "defs.h"
+#include "ClockAgent.h"
 #include "esp_log.h"
 
 namespace AudioFileRecorder
@@ -75,7 +76,7 @@ uint64_t max_prealloc_size()
 
 void make_recording_path(char type_code)
 {
-    m5::rtc_datetime_t now = M5.Rtc.getDateTime();
+    m5::rtc_datetime_t now = Clock.getDateTime();
     snprintf(g_sd_path, sizeof(g_sd_path), "/%c-%04d-%02d-%02d-%02d-%02d-%02d-U.raw", type_code, now.date.year, now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds);
     snprintf(g_vfs_path, sizeof(g_vfs_path), "/sd%s", g_sd_path);
 }

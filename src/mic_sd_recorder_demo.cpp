@@ -9,6 +9,7 @@
 #include "esp_log.h"
 
 #include "AudioFileRecorder.h"
+#include "ClockAgent.h"
 #include "conf.h"
 
 namespace
@@ -22,12 +23,12 @@ constexpr size_t     kDmaFrameSamples   = 1024;
 constexpr size_t     kDmaBufferCount    = 8;
 constexpr size_t     kRecordBufferBytes = 8192;
 
-constexpr int kCore2SdSclk = 18;
-constexpr int kCore2SdMiso = 38;
-constexpr int kCore2SdMosi = 23;
-constexpr int kCore2SdCs   = 4;
-constexpr int kCore2MicClk = 0;
-constexpr int kCore2MicDin = 34;
+constexpr int kCore2SdSclk   = 18;
+constexpr int kCore2SdMiso   = 38;
+constexpr int kCore2SdMosi   = 23;
+constexpr int kCore2SdCs     = 4;
+constexpr int kSPM1423MicClk = 0;
+constexpr int kSPM1423MicDin = 34;
 
 i2s_chan_handle_t g_i2s_rx = nullptr;
 
@@ -51,6 +52,7 @@ bool init_m5()
     cfg.internal_spk           = false;
     cfg.external_speaker_value = 0;
     M5.begin(cfg);
+    Clock.begin();
     M5.Mic.end();
     M5.Speaker.end();
     if (M5.Power.getType() == m5::Power_Class::pmic_t::pmic_axp192)
@@ -77,7 +79,7 @@ bool init_sd()
 
 void make_recording_path(char* sd_path, size_t sd_path_size, char* vfs_path, size_t vfs_path_size)
 {
-    m5::rtc_datetime_t now = M5.Rtc.getDateTime();
+    m5::rtc_datetime_t now = Clock.getDateTime();
     snprintf(sd_path, sd_path_size, "/M-%04d-%02d-%02d-%02d-%02d-%02d-U.raw", now.date.year, now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds);
     snprintf(vfs_path, vfs_path_size, "/sd%s", sd_path);
 }
@@ -108,8 +110,8 @@ bool init_mic_pdm()
     config.clk_cfg             = I2S_PDM_RX_CLK_DEFAULT_CONFIG(kSampleRate);
     config.slot_cfg            = I2S_PDM_RX_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
     config.slot_cfg.slot_mask  = I2S_PDM_SLOT_RIGHT;
-    config.gpio_cfg.clk        = static_cast<gpio_num_t>(kCore2MicClk);
-    config.gpio_cfg.din        = static_cast<gpio_num_t>(kCore2MicDin);
+    config.gpio_cfg.clk        = static_cast<gpio_num_t>(kSPM1423MicClk);
+    config.gpio_cfg.din        = static_cast<gpio_num_t>(kSPM1423MicDin);
 
     esp_err_t err = i2s_new_channel(&chan_config, nullptr, &g_i2s_rx);
     if (err != ESP_OK)

@@ -30,11 +30,11 @@ constexpr const char* TAG = "bt_audio_demo";
 constexpr i2s_port_t kI2sPort            = I2S_NUM_0;
 constexpr uint32_t   kHfpCvsdSampleRate  = 8000;
 constexpr uint32_t   kHfpMsbcSampleRate  = 16000;
-constexpr int        kCore2SpkBclk       = 12;
-constexpr int        kCore2SpkLrck       = 0;
-constexpr int        kCore2SpkDout       = 2;
-constexpr int        kCore2MicClk        = 0;
-constexpr int        kCore2MicDin        = 34;
+constexpr int        kNS4168SpeakerBclk  = 12;
+constexpr int        kNS4168SpeakerLrck  = 0;
+constexpr int        kNS4168SpeakerDout  = 2;
+constexpr int        kSPM1423MicClk      = 0;
+constexpr int        kSPM1423MicDin      = 34;
 constexpr size_t     kDmaBufferCount     = 8;
 constexpr size_t     kHfpDmaFrameSamples = 120;
 
@@ -180,9 +180,9 @@ bool init_speaker_i2s(uint32_t sample_rate)
     config.slot_cfg           = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
     config.slot_cfg.slot_mask = I2S_STD_SLOT_RIGHT;
     config.gpio_cfg.mclk      = I2S_GPIO_UNUSED;
-    config.gpio_cfg.bclk      = static_cast<gpio_num_t>(kCore2SpkBclk);
-    config.gpio_cfg.ws        = static_cast<gpio_num_t>(kCore2SpkLrck);
-    config.gpio_cfg.dout      = static_cast<gpio_num_t>(kCore2SpkDout);
+    config.gpio_cfg.bclk      = static_cast<gpio_num_t>(kNS4168SpeakerBclk);
+    config.gpio_cfg.ws        = static_cast<gpio_num_t>(kNS4168SpeakerLrck);
+    config.gpio_cfg.dout      = static_cast<gpio_num_t>(kNS4168SpeakerDout);
     config.gpio_cfg.din       = I2S_GPIO_UNUSED;
 
     if (!ok(i2s_new_channel(&chan_config, &g_i2s_tx, nullptr), "speaker i2s channel") || !ok(i2s_channel_init_std_mode(g_i2s_tx, &config), "speaker i2s std init"))
@@ -216,8 +216,8 @@ bool init_mic_pdm(uint32_t sample_rate)
     config.clk_cfg             = I2S_PDM_RX_CLK_DEFAULT_CONFIG(sample_rate);
     config.slot_cfg            = I2S_PDM_RX_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
     config.slot_cfg.slot_mask  = I2S_PDM_SLOT_RIGHT;
-    config.gpio_cfg.clk        = static_cast<gpio_num_t>(kCore2MicClk);
-    config.gpio_cfg.din        = static_cast<gpio_num_t>(kCore2MicDin);
+    config.gpio_cfg.clk        = static_cast<gpio_num_t>(kSPM1423MicClk);
+    config.gpio_cfg.din        = static_cast<gpio_num_t>(kSPM1423MicDin);
 
     if (!ok(i2s_new_channel(&chan_config, nullptr, &g_i2s_rx), "mic pdm channel") || !ok(i2s_channel_init_pdm_rx_mode(g_i2s_rx, &config), "mic pdm init") || !ok(i2s_channel_enable(g_i2s_rx), "mic pdm enable"))
     {

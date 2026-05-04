@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ClockAgent.h"
+
 FlyGuiText::FlyGuiText(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle, size_t maxLength, const char* initialText) : FlyGuiItem(x, y, width, height, nullptr, initialText), fontSize_(fontSize), fontStyle_(fontStyle), maxLength_(maxLength)
 {
     text_      = static_cast<char*>(calloc(maxLength_ + 1, sizeof(char)));
@@ -142,7 +144,7 @@ FlyGuiDateTime::FlyGuiDateTime(int16_t x, int16_t y, int16_t width, int16_t heig
 void FlyGuiDateTime::redraw(M5GFX& display, bool forced)
 {
     // Design: FlyGuiDateTime always shows current date/time and keeps frequent draws quick.
-    const m5::rtc_datetime_t now = M5.Rtc.getDateTime();
+    const m5::rtc_datetime_t now = Clock.getDateTime();
     char                     text[20];
     snprintf(text, sizeof(text), "%04u-%02u-%02u %02u:%02u:%02u", now.date.year, now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds);
     setText(text);

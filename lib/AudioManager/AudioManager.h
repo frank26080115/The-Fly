@@ -12,34 +12,48 @@ namespace AudioManager
 
 enum class Hardware
 {
-    Core2Internal,
+    M5StackInternal,
     WM8960,
 };
 
-enum class I2SMode
+enum class P2TMode
 {
     Stopped,
     Speaker,
     Mic,
 };
 
-static constexpr uint32_t kSampleRateHz = 16000;
-static constexpr uint8_t  kMinVolume    = 0;
-static constexpr uint8_t  kMaxVolume    = 10;
+enum class HfpCodec
+{
+    Cvsd,
+    Msbc,
+};
 
-bool init(Hardware hardware = Hardware::Core2Internal);
+static constexpr uint32_t kSampleRateHz = 16000;
+// we normalize all audio to 16KHz when it gets put into the FIFO (and recorded file)
+// the FIFO will upsample or downsample as needed
+
+static constexpr uint8_t kMinVolume = 0;
+static constexpr uint8_t kMaxVolume = 30;
+// 30 is chosen because Bluetooth sets volume 0-15, but I want the user interface to operate on 10% steps.
+// 30 allows the Bluetooth host to set the volume in steps of 3, while the user interface can set the volume in steps of 2
+
+bool init(Hardware hardware = Hardware::M5StackInternal);
 void stop();
 
 bool    enableSpeakerMode();
 bool    enableMicMode();
-I2SMode mode();
+P2TMode mode();
 
-void pump_bt2s();
+void pump_bt2spk();
 void pump_mic2bt();
-bool startPumpTask(BaseType_t coreId = 1, UBaseType_t priority = 3);
+void pump_task();
 
 void     hfp_incoming_audio(const uint8_t* buf, uint32_t len);
 uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len);
+bool     setHfpAudioFormat(HfpCodec codec, uint32_t sampleRateHz);
+HfpCodec hfpAudioCodec();
+uint32_t hfpAudioSampleRateHz();
 
 AudioFifo& bluetoothToSpeakerFifo();
 AudioFifo& bluetoothToFileFifo();
