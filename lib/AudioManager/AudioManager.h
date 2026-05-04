@@ -13,7 +13,7 @@ namespace AudioManager
 enum class Hardware
 {
     M5StackInternal,
-    WM8960,
+    ExternalI2SCodec,
 };
 
 enum class P2TMode
@@ -69,5 +69,6 @@ void setMicMuted(bool muted);
 void muteMic();
 void unmuteMic();
 bool micMuted();
+uint8_t micPeakLevel();
 
 } // namespace AudioManager

@@ -1,15 +1,12 @@
 #include "AudioFileRecorder.h"
 
 #include <M5Unified.h>
-#include <SD.h>
-#include <SPI.h>
-#include <errno.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "conf.h"
 #include "defs.h"
 #include "ClockAgent.h"
+#include "SdCard.h"
 #include "esp_log.h"
 
 namespace AudioFileRecorder
@@ -19,52 +16,26 @@ namespace
 
 constexpr const char* TAG = "AudioFileRecorder";
 
-constexpr int kCore2SdSclk = 18;
-constexpr int kCore2SdMiso = 38;
-constexpr int kCore2SdMosi = 23;
-constexpr int kCore2SdCs   = 4;
-
-constexpr uint32_t kSdFrequencyHz            = 40000000U;
 constexpr uint32_t kPumpBudgetMs             = 20;
 constexpr uint8_t  kPumpTargetFillPercentage = 10;
 
 AudioFifo* g_bt_fifo  = nullptr;
 AudioFifo* g_mic_fifo = nullptr;
-File       g_file;
+FsFile     g_file;
 char       g_sd_path[48]    = {};
-char       g_vfs_path[56]   = {};
 uint64_t   g_bytes_written  = 0;
 uint32_t   g_sequence_num   = 0;
-bool       g_sd_ready       = false;
 bool       g_recording      = false;
 bool       g_next_source_bt = true;
 
 bool init_sd()
 {
-    if (g_sd_ready)
-    {
-        return true;
-    }
-
-    SPI.begin(kCore2SdSclk, kCore2SdMiso, kCore2SdMosi, kCore2SdCs);
-    if (!SD.begin(kCore2SdCs, SPI, kSdFrequencyHz))
-    {
-        ESP_LOGE(TAG, "microSD init failed");
-        return false;
-    }
-
-    const uint64_t total = SD.totalBytes();
-    const uint64_t used  = SD.usedBytes();
-    ESP_LOGI(TAG, "microSD space: total=%llu used=%llu free=%llu", static_cast<unsigned long long>(total), static_cast<unsigned long long>(used), static_cast<unsigned long long>(total > used ? total - used : 0));
-    g_sd_ready = true;
-    return true;
+    return SdCard::begin();
 }
 
 uint64_t max_prealloc_size()
 {
-    const uint64_t total      = SD.totalBytes();
-    const uint64_t used       = SD.usedBytes();
-    const uint64_t free_bytes = total > used ? total - used : 0;
+    const uint64_t free_bytes = SdCard::freeBytes();
     uint64_t       size       = (free_bytes / kHalfGiB) * kHalfGiB;
 
     if (size > kMaxGrowFileBytes)
@@ -78,7 +49,6 @@ void make_recording_path(char type_code)
 {
     m5::rtc_datetime_t now = Clock.getDateTime();
     snprintf(g_sd_path, sizeof(g_sd_path), "/%c-%04d-%02d-%02d-%02d-%02d-%02d-U.raw", type_code, now.date.year, now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds);
-    snprintf(g_vfs_path, sizeof(g_vfs_path), "/sd%s", g_sd_path);
 }
 
 uint8_t flags_for_fifo(AudioFifo& fifo)
@@ -225,8 +195,7 @@ bool startRecording(char typeCode)
     g_mic_fifo->clear();
 
     make_recording_path(typeCode);
-    g_file = SD.open(g_sd_path, FILE_WRITE);
-    if (!g_file)
+    if (!g_file.open(g_sd_path, O_RDWR | O_CREAT | O_TRUNC))
     {
         ESP_LOGE(TAG, "open failed: %s", g_sd_path);
         return false;
@@ -278,17 +247,18 @@ bool stopRecording()
     if (g_file)
     {
         g_file.flush();
-        g_file.close();
     }
 
     g_recording = false;
 
-    if (g_vfs_path[0] != '\0' && truncate(g_vfs_path, static_cast<off_t>(g_bytes_written)) != 0)
+    if (!g_file.truncate(g_bytes_written))
     {
-        ESP_LOGE(TAG, "truncate failed: errno=%d", errno);
+        ESP_LOGE(TAG, "truncate failed");
+        g_file.close();
         return false;
     }
 
+    g_file.close();
     ESP_LOGI(TAG, "recording stopped: %s bytes=%llu", g_sd_path, static_cast<unsigned long long>(g_bytes_written));
     return true;
 }
@@ -308,12 +278,7 @@ const char* currentSdPath()
     return g_sd_path;
 }
 
-const char* currentVfsPath()
-{
-    return g_vfs_path;
-}
-
-bool grow_file(File& file, uint64_t size)
+bool grow_file(FsFile& file, uint64_t size)
 {
     if (size > kMaxGrowFileBytes)
     {
@@ -322,22 +287,18 @@ bool grow_file(File& file, uint64_t size)
 
     while (size >= kHalfGiB)
     {
-        if (file.seek(static_cast<uint32_t>(size - 1)))
+        if (file.preAllocate(size))
         {
-            if (file.write(static_cast<uint8_t>(0)) == 1)
-            {
-                file.flush();
-                file.seek(0);
-                ESP_LOGI(TAG, "reserved %llu bytes", static_cast<unsigned long long>(size));
-                return true;
-            }
+            file.rewind();
+            ESP_LOGI(TAG, "reserved %llu bytes", static_cast<unsigned long long>(size));
+            return true;
         }
 
         ESP_LOGW(TAG, "reserve failed at %llu bytes", static_cast<unsigned long long>(size));
         size -= kHalfGiB;
     }
 
-    file.seek(0);
+    file.rewind();
     return false;
 }
 

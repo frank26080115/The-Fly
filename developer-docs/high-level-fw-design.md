@@ -6,9 +6,9 @@ The two libraries from M5Stack:
  * https://github.com/m5stack/M5Unified/tree/0.2.14
  * https://github.com/m5stack/M5GFX/tree/0.2.20
 
-There may be a WM8960 available, this is enabled or disabled via a build-time preprocessor flag. When the WM8960 is used, there is only 
+There may be a WM8960 or SGTL5000 available (external I2S codec), this is enabled or disabled via a build-time preprocessor flag.
 
-If the WM8960 is not available, the M5Stack has both a microphone (SPM1423 via PDM) and a speaker (NS4168 via I2S). These share pins. A push-to-talk button will switch between the two.
+If the external I2S codec is not available, the M5Stack has both a microphone (SPM1423 via PDM) and a speaker (NS4168 via I2S). These share pins. A push-to-talk button will switch between the two.
 
 For the graphical UI, the screen updates should be only-as-necessary as to not hog time writing to the screen.
 
