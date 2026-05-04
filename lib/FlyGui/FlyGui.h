@@ -26,6 +26,7 @@ enum FlyGuiPollMode
 
 enum FlyGuiViewId : uint16_t
 {
+    FLYGUI_VIEW_SPLASH = 0,
     FLYGUI_VIEW_MAIN = 1,
     FLYGUI_VIEW_BLUETOOTH,
     FLYGUI_VIEW_RECORDING,

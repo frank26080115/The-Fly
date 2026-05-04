@@ -24,7 +24,7 @@ enum class SpeakerPath
 {
     None,
     NS4168,
-    WM8960,
+    ExternalI2SCodec,
 };
 
 constexpr i2s_port_t kI2sPort = I2S_NUM_0;
@@ -73,6 +73,7 @@ volatile size_t   g_i2s_tx_available_bytes = 0;
 portMUX_TYPE      g_i2s_tx_credit_mux      = portMUX_INITIALIZER_UNLOCKED;
 std::mutex        g_pump_mutex;
 size_t            g_pending_speaker_bytes = 0;
+uint16_t          g_mic_peak              = 0;
 
 int16_t g_mono_buffer[kPumpSamples];
 int16_t g_stereo_buffer[kPumpSamples * 2];
@@ -102,12 +103,12 @@ void set_ns4168_speaker_enabled(bool enabled)
 
 void update_hardware_volume()
 {
-    if (g_speaker_path != SpeakerPath::WM8960)
+    if (g_speaker_path != SpeakerPath::ExternalI2SCodec)
     {
         return;
     }
 
-    // TODO: Apply g_volume to WM8960 once its codec control path is wired up.
+    // TODO: Apply g_volume to external I2S codec once its codec control path is wired up.
     ESP_LOGD(TAG, "volume set to %u/%u", g_volume, kMaxVolume);
 }
 
@@ -139,6 +140,41 @@ void apply_ns4168_software_volume(int16_t* samples, size_t sampleCount)
     {
         samples[i] = static_cast<int16_t>((static_cast<int32_t>(samples[i]) * gain) >> kVolumeGainShift);
     }
+}
+
+uint16_t sample_abs_peak(int16_t sample)
+{
+    if (sample == INT16_MIN)
+    {
+        return 32767;
+    }
+
+    const int16_t magnitude = sample < 0 ? -sample : sample;
+    return static_cast<uint16_t>(magnitude);
+}
+
+void decay_mic_peak(size_t frames)
+{
+    uint32_t decay = 1;
+    if (frames > 0)
+    {
+        decay = std::max<uint32_t>(decay, (32767U * frames) / (kSampleRateHz * 3U));
+    }
+
+    g_mic_peak = decay >= g_mic_peak ? 0 : static_cast<uint16_t>(g_mic_peak - decay);
+}
+
+void update_mic_peak(const int16_t* samples, size_t sampleCount, size_t frames)
+{
+    decay_mic_peak(frames);
+
+    uint16_t chunk_peak = 0;
+    for (size_t i = 0; i < sampleCount; ++i)
+    {
+        chunk_peak = std::max<uint16_t>(chunk_peak, sample_abs_peak(samples[i]));
+    }
+
+    g_mic_peak = std::max(g_mic_peak, chunk_peak);
 }
 
 void finish_sbc()
@@ -346,15 +382,15 @@ bool enable_spm1423_mic()
     return true;
 }
 
-bool enable_wm8960_speaker()
+bool enable_exti2scodec_speaker()
 {
-    ESP_LOGE(TAG, "WM8960 I2S pin/codec setup is not implemented yet");
+    ESP_LOGE(TAG, "ExternalI2SCodec I2S pin/codec setup is not implemented yet");
     return false;
 }
 
-bool enable_wm8960_mic()
+bool enable_exti2scodec_mic()
 {
-    ESP_LOGE(TAG, "WM8960 I2S pin/codec setup is not implemented yet");
+    ESP_LOGE(TAG, "ExternalI2SCodec I2S pin/codec setup is not implemented yet");
     return false;
 }
 
@@ -397,7 +433,7 @@ bool enableSpeakerMode()
         init(g_hardware);
     }
 
-    return g_hardware == Hardware::M5StackInternal ? enable_ns4168_speaker() : enable_wm8960_speaker();
+    return g_hardware == Hardware::M5StackInternal ? enable_ns4168_speaker() : enable_exti2scodec_speaker();
 }
 
 bool enableMicMode()
@@ -407,7 +443,7 @@ bool enableMicMode()
         init(g_hardware);
     }
 
-    return g_hardware == Hardware::M5StackInternal ? enable_spm1423_mic() : enable_wm8960_mic();
+    return g_hardware == Hardware::M5StackInternal ? enable_spm1423_mic() : enable_exti2scodec_mic();
 }
 
 P2TMode mode()
@@ -510,21 +546,44 @@ void pump_mic2bt()
 {
     if (g_mode != P2TMode::Mic || !g_i2s_rx || g_fifo_mic2bt.availableToWrite() == 0)
     {
+        decay_mic_peak(0);
         return;
     }
 
+    const bool ext_mic = g_hardware == Hardware::ExternalI2SCodec;
     size_t bytes_read = 0;
-    if (i2s_channel_read(g_i2s_rx, g_mono_buffer, sizeof(g_mono_buffer), &bytes_read, 0) != ESP_OK || bytes_read == 0)
+    void*  read_buffer = ext_mic ? static_cast<void*>(g_stereo_buffer) : static_cast<void*>(g_mono_buffer);
+    size_t read_bytes  = ext_mic ? sizeof(g_stereo_buffer) : sizeof(g_mono_buffer);
+
+    if (i2s_channel_read(g_i2s_rx, read_buffer, read_bytes, &bytes_read, 0) != ESP_OK || bytes_read == 0)
     {
+        decay_mic_peak(0);
         return;
     }
 
-    const size_t samples = bytes_read / sizeof(g_mono_buffer[0]);
+    const size_t samples = bytes_read / sizeof(int16_t);
     if (samples == 0)
     {
+        decay_mic_peak(0);
         return;
     }
 
+    if (ext_mic)
+    {
+        const size_t frames = samples / 2;
+        if (frames == 0)
+        {
+            decay_mic_peak(0);
+            return;
+        }
+
+        update_mic_peak(g_stereo_buffer, frames * 2, frames);
+        g_fifo_mic2bt.queueStereo(g_stereo_buffer, frames, kSampleRateHz);
+        g_fifo_mic2file.queueStereo(g_stereo_buffer, frames, kSampleRateHz);
+        return;
+    }
+
+    update_mic_peak(g_mono_buffer, samples, samples);
     g_fifo_mic2bt.queue(g_mono_buffer, samples, kSampleRateHz);
     g_fifo_mic2file.queue(g_mono_buffer, samples, kSampleRateHz);
 }
@@ -726,6 +785,11 @@ void unmuteMic()
 bool micMuted()
 {
     return g_fifo_mic2bt.muted();
+}
+
+uint8_t micPeakLevel()
+{
+    return static_cast<uint8_t>((static_cast<uint32_t>(g_mic_peak) * 100U) / 32767U);
 }
 
 } // namespace AudioManager

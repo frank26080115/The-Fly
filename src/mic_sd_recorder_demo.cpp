@@ -1,15 +1,12 @@
 #include <Arduino.h>
-#include <SD.h>
-#include <SPI.h>
 #include <M5Unified.h>
-#include <errno.h>
-#include <unistd.h>
 
 #include "driver/i2s_pdm.h"
 #include "esp_log.h"
 
 #include "AudioFileRecorder.h"
 #include "ClockAgent.h"
+#include "SdCard.h"
 #include "conf.h"
 
 namespace
@@ -23,10 +20,6 @@ constexpr size_t     kDmaFrameSamples   = 1024;
 constexpr size_t     kDmaBufferCount    = 8;
 constexpr size_t     kRecordBufferBytes = 8192;
 
-constexpr int kCore2SdSclk   = 18;
-constexpr int kCore2SdMiso   = 38;
-constexpr int kCore2SdMosi   = 23;
-constexpr int kCore2SdCs     = 4;
 constexpr int kSPM1423MicClk = 0;
 constexpr int kSPM1423MicDin = 34;
 
@@ -64,31 +57,18 @@ bool init_m5()
 
 bool init_sd()
 {
-    SPI.begin(kCore2SdSclk, kCore2SdMiso, kCore2SdMosi, kCore2SdCs);
-    if (!SD.begin(kCore2SdCs, SPI, 40000000U))
-    {
-        ESP_LOGE(TAG, "microSD init failed");
-        return false;
-    }
-
-    const uint64_t total = SD.totalBytes();
-    const uint64_t used  = SD.usedBytes();
-    ESP_LOGI(TAG, "microSD space: total=%llu used=%llu free=%llu", static_cast<unsigned long long>(total), static_cast<unsigned long long>(used), static_cast<unsigned long long>(total > used ? total - used : 0));
-    return true;
+    return SdCard::begin();
 }
 
-void make_recording_path(char* sd_path, size_t sd_path_size, char* vfs_path, size_t vfs_path_size)
+void make_recording_path(char* sd_path, size_t sd_path_size)
 {
     m5::rtc_datetime_t now = Clock.getDateTime();
     snprintf(sd_path, sd_path_size, "/M-%04d-%02d-%02d-%02d-%02d-%02d-U.raw", now.date.year, now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds);
-    snprintf(vfs_path, vfs_path_size, "/sd%s", sd_path);
 }
 
 uint64_t max_prealloc_size()
 {
-    const uint64_t total      = SD.totalBytes();
-    const uint64_t used       = SD.usedBytes();
-    const uint64_t free_bytes = total > used ? total - used : 0;
+    const uint64_t free_bytes = SdCard::freeBytes();
     uint64_t       size       = (free_bytes / kHalfGiB) * kHalfGiB;
 
     if (size > 7ULL * kHalfGiB)
@@ -139,7 +119,7 @@ bool init_mic_pdm()
     return true;
 }
 
-uint32_t record_audio(File& file)
+uint32_t record_audio(FsFile& file)
 {
     static uint8_t buffer[kRecordBufferBytes];
     uint32_t       written_total = 0;
@@ -171,11 +151,10 @@ bool mic_sd_recorder_demo()
     }
 
     char sd_path[48];
-    char vfs_path[56];
-    make_recording_path(sd_path, sizeof(sd_path), vfs_path, sizeof(vfs_path));
+    make_recording_path(sd_path, sizeof(sd_path));
 
-    File file = SD.open(sd_path, FILE_WRITE);
-    if (!file)
+    FsFile file;
+    if (!file.open(sd_path, O_RDWR | O_CREAT | O_TRUNC))
     {
         ESP_LOGE(TAG, "open failed: %s", sd_path);
         return false;
@@ -191,14 +170,15 @@ bool mic_sd_recorder_demo()
 
     const uint32_t actual_size = record_audio(file);
     stop_mic_pdm();
-    file.close();
 
-    if (truncate(vfs_path, static_cast<off_t>(actual_size)) != 0)
+    if (!file.truncate(actual_size))
     {
-        ESP_LOGE(TAG, "truncate failed: errno=%d", errno);
+        ESP_LOGE(TAG, "truncate failed");
+        file.close();
         return false;
     }
 
+    file.close();
     ESP_LOGI(TAG, "closed %s", sd_path);
     return true;
 }

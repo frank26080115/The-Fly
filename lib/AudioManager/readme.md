@@ -30,7 +30,7 @@ Just a reminder, all the audio is 16 KHz sample rate, 16 bit PCM. The AudioFifo 
 There are two hardware implementation cases:
 
  1. M5Stack NS4168 speaker and SPM1423 mic, so we need push-to-talk
- 2. external WM8960
+ 2. external I2S codec
 
 This module does not need to check the buttons for anything. It needs to provide the functions that the GUI calls.
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include <FS.h>
+#include <SdFat.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -35,8 +35,7 @@ bool isRecording();
 
 uint64_t    bytesWritten();
 const char* currentSdPath();
-const char* currentVfsPath();
 
-bool grow_file(File& file, uint64_t size);
+bool grow_file(FsFile& file, uint64_t size);
 
 } // namespace AudioFileRecorder

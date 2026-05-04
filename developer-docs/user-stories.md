@@ -10,7 +10,7 @@ The single audio stream from Bluetooth is being recorded to the microSD card. Th
 
 I connect The Fly to my phone and join the meeting.
 
-If The Fly is built with a WM8960 then I will be listening through the earbuds and talking to the inline mic of the earbuds.
+If The Fly is built with a external I2S codec then I will be listening through the earbuds and talking to the inline mic of the earbuds.
 
 There is a mute button available.
 

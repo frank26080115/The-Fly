@@ -55,6 +55,28 @@ public:
         return queue16kLocked(samples, sampleCount);
     }
 
+    size_t queueStereo(const int16_t* interleavedSamples, size_t frameCount, uint32_t sampleRateHz = kInternalSampleRateHz)
+    {
+        if (interleavedSamples == nullptr || frameCount == 0)
+        {
+            return 0;
+        }
+
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (!queueEnabled_)
+        {
+            upsampleHasPrev_ = false;
+            upsamplePrev_    = 0;
+            return frameCount;
+        }
+
+        if (sampleRateHz == 8000)
+        {
+            return queueStereoUpsampled8kLocked(interleavedSamples, frameCount);
+        }
+        return queueStereo16kLocked(interleavedSamples, frameCount);
+    }
+
     size_t dequeueMono(int16_t* samples, size_t maxSamples, uint32_t sampleRateHz = kInternalSampleRateHz)
     {
         if (samples == nullptr || maxSamples == 0)
@@ -323,6 +345,12 @@ private:
         }
     }
 
+    static int16_t mixStereoFrameToMono(const int16_t* frame)
+    {
+        //return static_cast<int16_t>((static_cast<int32_t>(frame[0]) + static_cast<int32_t>(frame[1])) >> 1); // this does actual mixing
+        return frame[0] != 0 ? frame[0] : frame[1]; // there is only ever one mic, so just take whichever sample is not zero
+    }
+
     size_t queue16kLocked(const int16_t* samples, size_t sampleCount)
     {
         const size_t toWrite = minSize(sampleCount, capacitySamples_ - usedSamples_);
@@ -366,6 +394,27 @@ private:
         return toWrite;
     }
 
+    size_t queueStereo16kLocked(const int16_t* interleavedSamples, size_t frameCount)
+    {
+        const size_t toWrite = minSize(frameCount, capacitySamples_ - usedSamples_);
+        if (toWrite < frameCount)
+        {
+            overflowed_ = true;
+        }
+
+        for (size_t i = 0; i < toWrite; ++i)
+        {
+            buffer_[writeIndex_] = muted_ ? 0 : mixStereoFrameToMono(&interleavedSamples[i * 2]);
+            writeIndex_          = (writeIndex_ + 1) % capacitySamples_;
+        }
+
+        usedSamples_ += toWrite;
+        upsampleHasPrev_ = false;
+        upsamplePrev_    = 0;
+        updateWatermarkLocked();
+        return toWrite;
+    }
+
     size_t queueUpsampled8kLocked(const int16_t* samples, size_t sampleCount)
     {
         const size_t inputToWrite = minSize(sampleCount, (capacitySamples_ - usedSamples_) / 2);
@@ -379,6 +428,35 @@ private:
         for (size_t i = 0; i < inputToWrite; ++i)
         {
             const int32_t sample = muted_ ? 0 : samples[i];
+            buffer_[writeIndex_] = hasPrev ? static_cast<int16_t>((prev + sample) >> 1) : static_cast<int16_t>(sample);
+            writeIndex_          = (writeIndex_ + 1) % capacitySamples_;
+            buffer_[writeIndex_] = static_cast<int16_t>(sample);
+            writeIndex_          = (writeIndex_ + 1) % capacitySamples_;
+            prev                 = sample;
+            hasPrev              = true;
+        }
+
+        usedSamples_ += inputToWrite * 2;
+        upsamplePrev_    = static_cast<int16_t>(prev);
+        upsampleHasPrev_ = hasPrev;
+        updateWatermarkLocked();
+        return inputToWrite;
+    }
+
+    size_t queueStereoUpsampled8kLocked(const int16_t* interleavedSamples, size_t frameCount)
+    {
+        const size_t inputToWrite = minSize(frameCount, (capacitySamples_ - usedSamples_) / 2);
+        if (inputToWrite < frameCount)
+        {
+            overflowed_ = true;
+        }
+
+        int32_t prev    = upsamplePrev_;
+        bool    hasPrev = upsampleHasPrev_;
+
+        for (size_t i = 0; i < inputToWrite; ++i)
+        {
+            const int32_t sample = muted_ ? 0 : mixStereoFrameToMono(&interleavedSamples[i * 2]);
             buffer_[writeIndex_] = hasPrev ? static_cast<int16_t>((prev + sample) >> 1) : static_cast<int16_t>(sample);
             writeIndex_          = (writeIndex_ + 1) % capacitySamples_;
             buffer_[writeIndex_] = static_cast<int16_t>(sample);

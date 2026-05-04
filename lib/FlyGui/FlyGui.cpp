@@ -1,10 +1,11 @@
 #include "FlyGui.h"
 
 #include "../Buttons/Buttons.h"
+#include "../SdCard/SdCard.h"
 #include "FlyGuiText.h"
 #include <FS.h>
 #include <LittleFS.h>
-#include <SD.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -17,48 +18,21 @@ static constexpr int16_t  kTopBarDateTimeWidth  = 150;
 static constexpr int16_t  kTopBarDateTimeHeight = 14;
 static constexpr int16_t  kTopBarBatteryWidth   = 44;
 
-static bool openFlyGuiImageFile(const char* path, fs::File& file)
+static bool readImageFile(fs::File& file, void** buffer, size_t* bufferSize)
 {
-    file = LittleFS.open(path, "r");
-    if (file)
-    {
-        return true;
-    }
-
-    file = SD.open(path, "r");
-    return file;
-}
-
-static bool loadFlyGuiImageFile(const char* path, void** buffer, size_t* bufferSize)
-{
-    if (!path || !*path || !buffer || !bufferSize)
-    {
-        return false;
-    }
-
-    fs::File file;
-    if (!openFlyGuiImageFile(path, file))
-    {
-        return false;
-    }
-
     const size_t size = file.size();
     if (size == 0)
     {
-        file.close();
         return false;
     }
 
     void* data = malloc(size);
     if (!data)
     {
-        file.close();
         return false;
     }
 
     const size_t bytesRead = file.read(static_cast<uint8_t*>(data), size);
-    file.close();
-
     if (bytesRead != size)
     {
         free(data);
@@ -68,6 +42,73 @@ static bool loadFlyGuiImageFile(const char* path, void** buffer, size_t* bufferS
     *buffer     = data;
     *bufferSize = size;
     return true;
+}
+
+static bool readImageFile(FsFile& file, void** buffer, size_t* bufferSize)
+{
+    const uint64_t fileSize = file.fileSize();
+    if (fileSize == 0 || fileSize > SIZE_MAX)
+    {
+        return false;
+    }
+
+    const size_t size = static_cast<size_t>(fileSize);
+    void*        data = malloc(size);
+    if (!data)
+    {
+        return false;
+    }
+
+    const int bytesRead = file.read(data, size);
+    if (bytesRead < 0 || static_cast<size_t>(bytesRead) != size)
+    {
+        free(data);
+        return false;
+    }
+
+    *buffer     = data;
+    *bufferSize = size;
+    return true;
+}
+
+static bool loadLittleFsImageFile(const char* path, void** buffer, size_t* bufferSize)
+{
+    fs::File file = LittleFS.open(path, "r");
+    if (file)
+    {
+        const bool loaded = readImageFile(file, buffer, bufferSize);
+        file.close();
+        return loaded;
+    }
+    return false;
+}
+
+static bool loadSdFatImageFile(const char* path, void** buffer, size_t* bufferSize)
+{
+    if (!SdCard::begin())
+    {
+        return false;
+    }
+
+    FsFile file;
+    if (!file.open(path, O_RDONLY))
+    {
+        return false;
+    }
+
+    const bool loaded = readImageFile(file, buffer, bufferSize);
+    file.close();
+    return loaded;
+}
+
+static bool loadFlyGuiImageFile(const char* path, void** buffer, size_t* bufferSize)
+{
+    if (!path || !*path || !buffer || !bufferSize)
+    {
+        return false;
+    }
+
+    return loadLittleFsImageFile(path, buffer, bufferSize) || loadSdFatImageFile(path, buffer, bufferSize);
 }
 
 FlyGuiItem::FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* imagePath, const char* mainText) : x_(x), y_(y), width_(width), height_(height), imagePath_(imagePath), mainText_(mainText) {}
