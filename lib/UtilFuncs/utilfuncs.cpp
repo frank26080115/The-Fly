@@ -1,4 +1,6 @@
 #include "utilfuncs.h"
+#include <Arduino.h>
+#include "thefly_common.h"
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -134,4 +136,13 @@ size_t mono_s16_to_stereo_s16(const int16_t* src, size_t src_samples, int16_t* d
     }
 
     return src_samples << 1;
+}
+
+void requestRebootWithFlag(uint32_t flag)
+{
+    reset_magic = RESET_MAGIC;
+    reset_flag  = flag;
+
+    delay(10);     // let stores settle; tiny paranoia tax
+    ESP.restart(); // whole-chip software reset
 }

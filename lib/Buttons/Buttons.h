@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "common.h"
+#include "thefly_common.h"
 
 #define BUTTONS_MAX_CNT 16
 

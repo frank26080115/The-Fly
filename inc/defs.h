@@ -7,6 +7,8 @@
 use this for things like enumerations, structures
 */
 
+#define RESET_MAGIC    0x51A7C0DE
+
 enum
 {
     AUDSRC_BT,
