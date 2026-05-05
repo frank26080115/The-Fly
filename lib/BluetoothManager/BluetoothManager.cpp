@@ -20,6 +20,7 @@ namespace
 constexpr const char* TAG                 = "BtManager";
 constexpr char        kLegacyPin[]        = "0000";
 constexpr size_t      kLegacyPinMaxLength = sizeof(esp_bt_pin_code_t);
+constexpr size_t      kGeneratedPinLength = 4;
 constexpr int         kHfpMaxVolume       = 15;
 
 State                 g_state                  = State::Idle;
@@ -37,9 +38,11 @@ OutgoingAudioCallback g_outgoing_audio         = nullptr;
 PairedCallback        g_paired_callback        = nullptr;
 StateChangedCallback  g_state_changed_callback = nullptr;
 
-char g_legacy_pin[kLegacyPinMaxLength + 1] = kLegacyPin;
+char g_legacy_pin[kLegacyPinMaxLength + 1] = { '0', '0', '0', '0', '\0' };
 // this is used during init and also when handling ESP_BT_GAP_PIN_REQ_EVT
 // the user can supply it, or it defaults to kLegacyPin when none is specified
+char g_generated_legacy_pin[kGeneratedPinLength + 1] = {};
+bool g_has_generated_legacy_pin                      = false;
 
 void set_state(State next)
 {
@@ -111,6 +114,18 @@ size_t legacy_pin_length()
 void set_legacy_pin(const char* pin)
 {
     strlcpy(g_legacy_pin, pin ? pin : kLegacyPin, sizeof(g_legacy_pin));
+}
+
+void format_pin_from_mac(const esp_bd_addr_t mac, char* pin, size_t pin_size)
+{
+    const uint16_t suffix = (static_cast<uint16_t>(mac[ESP_BD_ADDR_LEN - 2]) << 8) | mac[ESP_BD_ADDR_LEN - 1];
+    uint16_t       value  = suffix % 10000;
+    if (value == 0)
+    {
+        // avoid a all 0 result
+        value = 1;
+    }
+    snprintf(pin, pin_size, "%04u", static_cast<unsigned>(value));
 }
 
 void format_device_name(char* name, size_t name_size)
@@ -386,6 +401,33 @@ void setAudioCallbacks(IncomingAudioCallback incomingAudio, OutgoingAudioCallbac
     g_incoming_audio = incomingAudio;
     g_outgoing_audio = outgoingAudio;
     register_data_callbacks_if_ready();
+}
+
+bool generateLegacyPinFromMac()
+{
+    esp_bd_addr_t mac = {};
+    const bool    read_mac = ok(esp_read_mac(mac, ESP_MAC_BT), "read bt mac for pin");
+    if (read_mac)
+    {
+        format_pin_from_mac(mac, g_generated_legacy_pin, sizeof(g_generated_legacy_pin));
+    }
+    else
+    {
+        strlcpy(g_generated_legacy_pin, "0001", sizeof(g_generated_legacy_pin));
+    }
+
+    g_has_generated_legacy_pin = true;
+    set_legacy_pin(g_generated_legacy_pin);
+    return read_mac;
+}
+
+const char* generatedLegacyPin()
+{
+    if (!g_has_generated_legacy_pin)
+    {
+        generateLegacyPinFromMac();
+    }
+    return g_generated_legacy_pin;
 }
 
 void setPairedCallback(PairedCallback callback)

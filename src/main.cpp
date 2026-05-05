@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "nvs_flash.h"
 #include "AudioManager.h"
+#include "Hotel.h"
 #include "thefly_common.h"
 #include "utilfuncs.h"
 
@@ -52,6 +53,8 @@ void setup()
 void loop()
 {
     // this is running on core 1
+    Hotel::pollCore1();
+    taskYIELD();
 }
 
 static void loopTask_core0(void* pvParameters)
@@ -60,6 +63,7 @@ static void loopTask_core0(void* pvParameters)
     while (true)
     {
         AudioManager::pump_task();
+        Hotel::pollCore0();
         taskYIELD();
     }
 }

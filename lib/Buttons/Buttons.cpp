@@ -1,6 +1,8 @@
 #include "Buttons.h"
 #include <M5Unified.h>
 
+#include "../Hotel/Hotel.h"
+
 #ifndef BTN_DEBOUNCE
 #define BTN_DEBOUNCE 50
 #endif
@@ -33,6 +35,7 @@ void Button::poll()
 
     if (pressed)
     {
+        Hotel::noteUserActivity();
         if (down_time == 0)
         {
             recordPress(now, true);
@@ -112,6 +115,8 @@ void GpioButton::poll()
         return;
     }
 
+    Hotel::noteUserActivity();
+
     if (!hasIsrHandler() && down_time == 0)
     {
         recordPress(now, true);
@@ -149,6 +154,8 @@ void GpioButton::handleInterrupt()
     {
         return;
     }
+
+    Hotel::noteUserActivityFromIsr();
 
     uint32_t now = nonZeroMillis();
     recordPress(now, false);
