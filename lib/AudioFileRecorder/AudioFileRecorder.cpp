@@ -6,7 +6,7 @@
 #include "conf.h"
 #include "defs.h"
 #include "ClockAgent.h"
-#include "SdCard.h"
+#include "MicroSdCard.h"
 #include "esp_log.h"
 
 namespace AudioFileRecorder
@@ -30,12 +30,12 @@ bool       g_next_source_bt = true;
 
 bool init_sd()
 {
-    return SdCard::begin();
+    return MicroSdCard::begin();
 }
 
 uint64_t max_prealloc_size()
 {
-    const uint64_t free_bytes = SdCard::freeBytes();
+    const uint64_t free_bytes = MicroSdCard::freeBytes();
     uint64_t       size       = (free_bytes / kHalfGiB) * kHalfGiB;
 
     if (size > kMaxGrowFileBytes)

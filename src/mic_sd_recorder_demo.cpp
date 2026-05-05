@@ -6,7 +6,7 @@
 
 #include "AudioFileRecorder.h"
 #include "ClockAgent.h"
-#include "SdCard.h"
+#include "MicroSdCard.h"
 #include "conf.h"
 
 namespace
@@ -57,7 +57,7 @@ bool init_m5()
 
 bool init_sd()
 {
-    return SdCard::begin();
+    return MicroSdCard::begin();
 }
 
 void make_recording_path(char* sd_path, size_t sd_path_size)
@@ -68,7 +68,7 @@ void make_recording_path(char* sd_path, size_t sd_path_size)
 
 uint64_t max_prealloc_size()
 {
-    const uint64_t free_bytes = SdCard::freeBytes();
+    const uint64_t free_bytes = MicroSdCard::freeBytes();
     uint64_t       size       = (free_bytes / kHalfGiB) * kHalfGiB;
 
     if (size > 7ULL * kHalfGiB)

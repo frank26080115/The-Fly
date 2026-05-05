@@ -1,4 +1,4 @@
-#include "SdCard.h"
+#include "MicroSdCard.h"
 
 #include <M5Unified.h>
 #include <SPI.h>
@@ -6,12 +6,12 @@
 #include "ClockAgent.h"
 #include "esp_log.h"
 
-namespace SdCard
+namespace MicroSdCard
 {
 namespace
 {
 
-constexpr const char* TAG = "SdCard";
+constexpr const char* TAG = "MicroSdCard";
 
 constexpr int kCore2SdSclk = 18;
 constexpr int kCore2SdMiso = 38;
@@ -96,4 +96,4 @@ uint64_t freeBytes()
     return static_cast<uint64_t>(freeClusters) * static_cast<uint64_t>(g_sd.bytesPerCluster());
 }
 
-} // namespace SdCard
+} // namespace MicroSdCard

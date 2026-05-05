@@ -1,7 +1,8 @@
 #include "FlyGui.h"
 
 #include "../Buttons/Buttons.h"
-#include "../SdCard/SdCard.h"
+#include "../Hotel/Hotel.h"
+#include "../MicroSdCard/MicroSdCard.h"
 #include "FlyGuiText.h"
 #include <FS.h>
 #include <LittleFS.h>
@@ -85,7 +86,7 @@ static bool loadLittleFsImageFile(const char* path, void** buffer, size_t* buffe
 
 static bool loadSdFatImageFile(const char* path, void** buffer, size_t* bufferSize)
 {
-    if (!SdCard::begin())
+    if (!MicroSdCard::begin())
     {
         return false;
     }
@@ -111,7 +112,25 @@ static bool loadFlyGuiImageFile(const char* path, void** buffer, size_t* bufferS
     return loadLittleFsImageFile(path, buffer, bufferSize) || loadSdFatImageFile(path, buffer, bufferSize);
 }
 
-FlyGuiItem::FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* imagePath, const char* mainText) : x_(x), y_(y), width_(width), height_(height), imagePath_(imagePath), mainText_(mainText) {}
+FlyGuiItem::FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* imagePath, const char* mainText, Button* button) : button_(button), x_(x), y_(y), width_(width), height_(height), imagePath_(imagePath), mainText_(mainText) {}
+
+void FlyGuiItem::relocate(int16_t x, int16_t y, int16_t width, int16_t height)
+{
+    if (x_ == x && y_ == y && width_ == width && height_ == height)
+    {
+        return;
+    }
+
+    x_      = x;
+    y_      = y;
+    width_  = width;
+    height_ = height;
+    setDirty();
+    if (owner_)
+    {
+        owner_->setDirty();
+    }
+}
 
 void FlyGuiItem::setMainText(const char* text)
 {
@@ -192,9 +211,61 @@ bool FlyGuiItem::contains(int16_t x, int16_t y) const
     return visible_ && x >= x_ && y >= y_ && x < x_ + width_ && y < y_ + height_;
 }
 
+bool FlyGuiItem::isPressed() const
+{
+    return pressed_ || (button_ && const_cast<Button*>(button_)->isPressed());
+}
+
 bool FlyGuiItem::handleTouch(const FlyGuiTouchEvent& event)
 {
-    return contains(event.x, event.y);
+    const bool hit = contains(event.x, event.y);
+    if (event.justReleased || !event.pressed)
+    {
+        pressed_ = false;
+    }
+
+    if (!hit)
+    {
+        if (event.pressed)
+        {
+            pressed_ = false;
+        }
+        return false;
+    }
+
+    if (event.pressed || event.justPressed)
+    {
+        pressed_ = true;
+        if (width_ > 0 && height_ > 0)
+        {
+            M5.Display.drawRect(x_, y_, width_, height_, TFT_WHITE);
+        }
+        setDirty();
+        if (owner_)
+        {
+            owner_->setDirty();
+        }
+    }
+
+    return true;
+}
+
+bool FlyGuiItem::handleButtonPress(Button& button)
+{
+    if (&button != button_ || !visible_)
+    {
+        return false;
+    }
+
+    FlyGuiTouchEvent event;
+    event.x           = x_ + width_ / 2;
+    event.y           = y_ + height_ / 2;
+    event.pressed     = true;
+    event.justPressed = true;
+
+    const bool handled = handleTouch(event);
+    pressed_           = button.isPressed();
+    return handled;
 }
 
 void FlyGuiItem::redraw(M5GFX& display, bool forced)
@@ -305,6 +376,18 @@ bool FlyGuiView::handleTouch(const FlyGuiTouchEvent& event)
     return false;
 }
 
+bool FlyGuiView::handleButtonPress(Button& button)
+{
+    for (FlyGuiItem* item = firstItem_; item; item = item->next_)
+    {
+        if (item->handleButtonPress(button))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void FlyGuiView::redraw(M5GFX& display, bool forced)
 {
     // Design: views and items both have dirty-aware redraw functions.
@@ -403,6 +486,7 @@ void FlyGui::poll()
 
     if (event.pressed || event.justPressed || event.justReleased)
     {
+        Hotel::noteUserActivity();
         if (modal_)
         {
             modal_->handleTouch(event);
@@ -509,20 +593,41 @@ void FlyGui::dispatchButtons()
     if (left && left->hasPressed())
     {
         left->clrPressed();
-        currentView_->onPressLeft();
+        if (!dispatchButtonToItem(*left))
+        {
+            currentView_->onPressLeft();
+        }
     }
 
     if (mid && mid->hasPressed())
     {
         mid->clrPressed();
-        currentView_->onPressMid();
+        if (!dispatchButtonToItem(*mid))
+        {
+            currentView_->onPressMid();
+        }
     }
 
     if (right && right->hasPressed())
     {
         right->clrPressed();
-        currentView_->onPressRight();
+        if (!dispatchButtonToItem(*right))
+        {
+            currentView_->onPressRight();
+        }
     }
+}
+
+bool FlyGui::dispatchButtonToItem(Button& button)
+{
+    Hotel::noteUserActivity();
+
+    if (modal_ && modal_->handleButtonPress(button))
+    {
+        return true;
+    }
+
+    return currentView_ && currentView_->handleButtonPress(button);
 }
 
 bool FlyGui::shouldRunScheduledPoll(FlyGuiPollMode mode, uint32_t now)

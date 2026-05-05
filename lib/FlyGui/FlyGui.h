@@ -7,6 +7,7 @@
 class FlyGui;
 class FlyGuiView;
 class FlyGuiDateTime;
+class Button;
 
 struct FlyGuiTouchEvent
 {
@@ -40,7 +41,7 @@ enum FlyGuiViewId : uint16_t
 class FlyGuiItem
 {
 public:
-    FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* imagePath = nullptr, const char* mainText = nullptr);
+    FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* imagePath = nullptr, const char* mainText = nullptr, Button* button = nullptr);
     virtual ~FlyGuiItem() = default;
 
     FlyGuiItem* next() const
@@ -68,6 +69,7 @@ public:
     {
         return height_;
     }
+    void relocate(int16_t x, int16_t y, int16_t width, int16_t height);
 
     const char* imagePath() const
     {
@@ -109,10 +111,21 @@ public:
     }
 
     bool contains(int16_t x, int16_t y) const;
+    bool isPressed() const;
+
+    Button* button() const
+    {
+        return button_;
+    }
+    void attachButton(Button* button)
+    {
+        button_ = button;
+    }
 
     virtual void onLoad();
     virtual void onUnload();
     virtual bool handleTouch(const FlyGuiTouchEvent& event);
+    virtual bool handleButtonPress(Button& button);
     virtual void redraw(M5GFX& display, bool forced);
 
 protected:
@@ -126,6 +139,7 @@ private:
 
     FlyGuiItem* next_            = nullptr;
     FlyGuiView* owner_           = nullptr;
+    Button*     button_          = nullptr;
     int16_t     x_               = 0;
     int16_t     y_               = 0;
     int16_t     width_           = 0;
@@ -137,6 +151,7 @@ private:
     bool        ownsImageBuffer_ = false;
     bool        visible_         = true;
     bool        dirty_           = true;
+    bool        pressed_         = false;
 };
 
 class FlyGuiView
@@ -178,6 +193,7 @@ public:
     virtual void onLoad();
     virtual void onUnload();
     virtual bool handleTouch(const FlyGuiTouchEvent& event);
+    virtual bool handleButtonPress(Button& button);
     virtual void redraw(M5GFX& display, bool forced);
 
     virtual void onPressLeft() {}
@@ -245,6 +261,7 @@ public:
 private:
     void drawTopBar(bool forced);
     void dispatchButtons();
+    bool dispatchButtonToItem(Button& button);
     bool shouldRunScheduledPoll(FlyGuiPollMode mode, uint32_t now);
     void appendView(FlyGuiView& view);
 
