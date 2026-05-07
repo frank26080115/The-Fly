@@ -193,6 +193,11 @@ public:
     size_t availableToRead() const
     {
         std::lock_guard<std::mutex> lock(mutex_);
+        updateWatermarkLocked();
+        if (state_ == State::Filling)
+        {
+            return 0;
+        }
         return usedSamples_;
     }
 
