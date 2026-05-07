@@ -11,8 +11,9 @@ literally every source file probably includes this file
 #include "conf.h"
 #include "defs.h"
 #include "pins.h"
+#include "dbg_log.h"
 
 // extern/global variables and functions go here
 
-extern RTC_DATA_ATTR uint32_t reset_flag;
-extern RTC_DATA_ATTR uint32_t reset_magic;
+extern uint32_t reset_flag;
+extern uint32_t reset_magic;
