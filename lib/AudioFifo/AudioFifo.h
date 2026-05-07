@@ -207,15 +207,10 @@ public:
         return capacitySamples_ - usedSamples_;
     }
 
-    uint8_t getFillPercentagle() const
+    uint8_t getFillPercentage() const
     {
         std::lock_guard<std::mutex> lock(mutex_);
         return static_cast<uint8_t>((usedSamples_ * 100U) / capacitySamples_);
-    }
-
-    uint8_t getFillPercentage() const
-    {
-        return getFillPercentagle();
     }
 
     void setQueueEnabled(bool enabled)
@@ -441,7 +436,7 @@ private:
             hasPrev              = true;
         }
 
-        usedSamples_ += inputToWrite * 2;
+        usedSamples_    += inputToWrite * 2;
         upsamplePrev_    = static_cast<int16_t>(prev);
         upsampleHasPrev_ = hasPrev;
         updateWatermarkLocked();
