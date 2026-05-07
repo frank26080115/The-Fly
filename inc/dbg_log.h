@@ -35,11 +35,11 @@
 #define DBG_DRAM_LOGD(tag, format, ...) ESP_DRAM_LOGD(tag, format, ##__VA_ARGS__)
 #define DBG_DRAM_LOGV(tag, format, ...) ESP_DRAM_LOGV(tag, format, ##__VA_ARGS__)
 
-#define DBG_LOG_LEVEL(level, tag, format, ...) ESP_LOG_LEVEL(level, tag, format, ##__VA_ARGS__)
-#define DBG_LOG_LEVEL_LOCAL(level, tag, format, ...) ESP_LOG_LEVEL_LOCAL(level, tag, format, ##__VA_ARGS__)
-#define DBG_LOG_BUFFER_HEX(tag, buffer, buff_len) ESP_LOG_BUFFER_HEX(tag, buffer, buff_len)
-#define DBG_LOG_BUFFER_CHAR(tag, buffer, buff_len) ESP_LOG_BUFFER_CHAR(tag, buffer, buff_len)
-#define DBG_LOG_BUFFER_HEXDUMP(tag, buffer, buff_len, level) ESP_LOG_BUFFER_HEXDUMP(tag, buffer, buff_len, level)
+#define DBG_LOG_LEVEL(         level, tag, format, ...)         ESP_LOG_LEVEL(         level, tag, format, ##__VA_ARGS__)
+#define DBG_LOG_LEVEL_LOCAL(   level, tag, format, ...)         ESP_LOG_LEVEL_LOCAL(   level, tag, format, ##__VA_ARGS__)
+#define DBG_LOG_BUFFER_HEX(    tag, buffer, buff_len)           ESP_LOG_BUFFER_HEX(    tag, buffer, buff_len)
+#define DBG_LOG_BUFFER_CHAR(   tag, buffer, buff_len)           ESP_LOG_BUFFER_CHAR(   tag, buffer, buff_len)
+#define DBG_LOG_BUFFER_HEXDUMP(tag, buffer, buff_len, level)    ESP_LOG_BUFFER_HEXDUMP(tag, buffer, buff_len, level)
 
 #else
 
@@ -61,10 +61,10 @@
 #define DBG_DRAM_LOGD(tag, format, ...) ((void)0)
 #define DBG_DRAM_LOGV(tag, format, ...) ((void)0)
 
-#define DBG_LOG_LEVEL(level, tag, format, ...) ((void)0)
-#define DBG_LOG_LEVEL_LOCAL(level, tag, format, ...) ((void)0)
-#define DBG_LOG_BUFFER_HEX(tag, buffer, buff_len) ((void)0)
-#define DBG_LOG_BUFFER_CHAR(tag, buffer, buff_len) ((void)0)
+#define DBG_LOG_LEVEL         (level, tag, format, ...) ((void)0)
+#define DBG_LOG_LEVEL_LOCAL   (level, tag, format, ...) ((void)0)
+#define DBG_LOG_BUFFER_HEX    (tag, buffer, buff_len)   ((void)0)
+#define DBG_LOG_BUFFER_CHAR   (tag, buffer, buff_len)   ((void)0)
 #define DBG_LOG_BUFFER_HEXDUMP(tag, buffer, buff_len, level) ((void)0)
 
 #endif

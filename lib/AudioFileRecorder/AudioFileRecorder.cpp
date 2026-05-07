@@ -5,7 +5,7 @@
 
 #include "ClockAgent.h"
 #include "MicroSdCard.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 
 namespace AudioFileRecorder
 {
@@ -17,8 +17,8 @@ constexpr const char* TAG = "AudioFileRecorder";
 constexpr uint32_t kPumpBudgetMs             = 20;
 constexpr uint8_t  kPumpTargetFillPercentage = 10;
 
-AudioFifo* g_bt_fifo  = nullptr;
-AudioFifo* g_mic_fifo = nullptr;
+AudioFifo* g_host_fifo = nullptr;
+AudioFifo* g_mic_fifo  = nullptr;
 FsFile     g_file;
 char       g_sd_path[48]    = {};
 uint64_t   g_bytes_written  = 0;
@@ -107,7 +107,7 @@ bool write_packet(AudioFifo& fifo, uint8_t source)
     packet.payload_length = static_cast<uint16_t>(samples_read);
     if (g_file.write(reinterpret_cast<const uint8_t*>(&packet), sizeof(packet)) != sizeof(packet))
     {
-        ESP_LOGE(TAG, "packet write failed");
+        DBG_LOGE(TAG, "packet write failed");
         return false;
     }
 
@@ -122,7 +122,7 @@ bool pump_one_packet()
 {
     static bool next_source_toggle = true; // this function call will only do one packet, so we have a toggle to pick which of the two FIFOs is the source
 
-    if (!g_bt_fifo || !g_mic_fifo || !g_file)
+    if (!g_host_fifo || !g_mic_fifo || !g_file)
     {
         return false;
     }
@@ -131,10 +131,10 @@ bool pump_one_packet()
         next_source_toggle = true;
     }
 
-    AudioFifo*    first_fifo    = next_source_toggle ? g_bt_fifo : g_mic_fifo;
-    AudioFifo*    second_fifo   = next_source_toggle ? g_mic_fifo : g_bt_fifo;
-    const uint8_t first_source  = next_source_toggle ? AUDSRC_BT : AUDSRC_MIC;
-    const uint8_t second_source = next_source_toggle ? AUDSRC_MIC : AUDSRC_BT;
+    AudioFifo*    first_fifo    = next_source_toggle ? g_host_fifo : g_mic_fifo;
+    AudioFifo*    second_fifo   = next_source_toggle ? g_mic_fifo  : g_host_fifo;
+    const uint8_t first_source  = next_source_toggle ? AUDSRC_BT   : AUDSRC_MIC;
+    const uint8_t second_source = next_source_toggle ? AUDSRC_MIC  : AUDSRC_BT;
 
     if (write_packet(*first_fifo, first_source))
     {
@@ -156,19 +156,19 @@ bool fifos_below_pump_target()
     // so we want to always drain the FIFOs as much as possible
     // but maybe not completely if kPumpTargetFillPercentage is not zero, this is configurable
 
-    if (!g_bt_fifo || !g_mic_fifo)
+    if (!g_host_fifo || !g_mic_fifo)
     {
         return true;
     }
 
-    return g_bt_fifo->getFillPercentage() <= kPumpTargetFillPercentage && g_mic_fifo->getFillPercentage() <= kPumpTargetFillPercentage;
+    return g_host_fifo->getFillPercentage() <= kPumpTargetFillPercentage && g_mic_fifo->getFillPercentage() <= kPumpTargetFillPercentage;
 }
 
 void set_queue_enabled(bool enabled)
 {
-    if (g_bt_fifo)
+    if (g_host_fifo)
     {
-        g_bt_fifo->setQueueEnabled(enabled);
+        g_host_fifo->setQueueEnabled(enabled);
     }
     if (g_mic_fifo)
     {
@@ -180,10 +180,10 @@ void set_queue_enabled(bool enabled)
 
 // public
 
-bool init(AudioFifo& btFifo, AudioFifo& micFifo)
+bool init(AudioFifo& hostFifo, AudioFifo& micFifo)
 {
-    g_bt_fifo  = &btFifo;
-    g_mic_fifo = &micFifo;
+    g_host_fifo = &hostFifo;
+    g_mic_fifo  = &micFifo;
     return init_sd();
 }
 
@@ -194,9 +194,9 @@ bool startRecording(RecordingType type)
 
 bool startRecording(char typeCode)
 {
-    if (!g_bt_fifo || !g_mic_fifo)
+    if (!g_host_fifo || !g_mic_fifo)
     {
-        ESP_LOGE(TAG, "not initialized, data sources not set");
+        DBG_LOGE(TAG, "not initialized, data sources not set");
         return false;
     }
 
@@ -212,16 +212,16 @@ bool startRecording(char typeCode)
         return false;
     }
 
-    g_bt_fifo->setQueueEnabled(false);
-    g_mic_fifo->setQueueEnabled(false);
-    g_bt_fifo->clear();
-    g_mic_fifo->clear();
+    g_host_fifo->setQueueEnabled(false);
+    g_mic_fifo ->setQueueEnabled(false);
+    g_host_fifo->clear();
+    g_mic_fifo ->clear();
 
     // make the new file name and open it
     make_recording_path(typeCode);
     if (!g_file.open(g_sd_path, O_RDWR | O_CREAT | O_TRUNC))
     {
-        ESP_LOGE(TAG, "open failed: %s", g_sd_path);
+        DBG_LOGE(TAG, "open failed: %s", g_sd_path);
         return false;
     }
 
@@ -232,7 +232,7 @@ bool startRecording(char typeCode)
     g_sequence_num   = 0;
     g_recording      = true;
     set_queue_enabled(true); // actually start recording
-    ESP_LOGI(TAG, "recording started: %s", g_sd_path);
+    DBG_LOGI(TAG, "recording started: %s", g_sd_path);
     return true;
 }
 
@@ -278,7 +278,7 @@ bool stopRecording()
         // shrink the grown file to what is required
         if (!g_file.truncate(g_bytes_written))
         {
-            ESP_LOGE(TAG, "truncate failed");
+            DBG_LOGE(TAG, "truncate failed");
             g_file.close();
             return false;
         }
@@ -286,7 +286,7 @@ bool stopRecording()
         g_file.close();
     }
 
-    ESP_LOGI(TAG, "recording stopped: %s bytes=%llu", g_sd_path, static_cast<unsigned long long>(g_bytes_written));
+    DBG_LOGI(TAG, "recording stopped: %s bytes=%llu", g_sd_path, static_cast<unsigned long long>(g_bytes_written));
     return true;
 }
 
@@ -327,16 +327,16 @@ bool grow_file(FsFile& file, uint64_t size)
         if (file.preAllocate(size))
         {
             file.rewind(); // reset seek pointer to beginning
-            ESP_LOGI(TAG, "file reserved %llu bytes", static_cast<unsigned long long>(size));
+            DBG_LOGI(TAG, "file reserved %llu bytes", static_cast<unsigned long long>(size));
             return true;
         }
 
-        ESP_LOGW(TAG, "file reserve failed at %llu bytes", static_cast<unsigned long long>(size));
+        DBG_LOGW(TAG, "file reserve failed at %llu bytes", static_cast<unsigned long long>(size));
         size -= kHalfGiB;
     }
 
     // failed? allow to continue but report error
-    ESP_LOGW(TAG, "file reserve failed completely");
+    DBG_LOGW(TAG, "file reserve failed completely");
     file.rewind();
     return false;
 }
