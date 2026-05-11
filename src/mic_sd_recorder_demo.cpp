@@ -1,3 +1,4 @@
+#include "thefly_common.h"
 #include <Arduino.h>
 #include <M5Unified.h>
 
@@ -7,7 +8,6 @@
 #include "AudioFileRecorder.h"
 #include "ClockAgent.h"
 #include "MicroSdCard.h"
-#include "conf.h"
 
 namespace
 {

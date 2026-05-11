@@ -1,5 +1,7 @@
 #pragma once
 
+#include "thefly_common.h"
+
 #include <Arduino.h>
 #include <SdFat.h>
 
@@ -13,11 +15,11 @@ namespace AudioFileRecorder
 
 enum class RecordingType : char
 {
-    Bluetooth = 'B',
-    Memo      = 'M',
-    Todo      = 'T',
-    Journal   = 'J',
-    Unknown   = 'U',
+    Meeting = 'C',
+    Memo    = 'M',
+    Todo    = 'T',
+    Journal = 'J',
+    Unknown = 'U',
 };
 
 enum PacketFlags : uint8_t
@@ -26,7 +28,7 @@ enum PacketFlags : uint8_t
     kPacketFlagFifoUnderflow = 1 << 1,
 };
 
-bool init(AudioFifo& btFifo, AudioFifo& micFifo);
+bool init(AudioFifo& hostFifo, AudioFifo& micFifo);
 bool startRecording(RecordingType type);
 bool startRecording(char typeCode);
 void pump();
