@@ -44,6 +44,7 @@ char g_legacy_pin[kLegacyPinMaxLength + 1] = { '0', '0', '0', '0', '\0' };
 char g_generated_legacy_pin[kGeneratedPinLength + 1] = {};
 bool g_has_generated_legacy_pin                      = false;
 
+// very simply sets the state of the state machine, with an optional callback
 void set_state(State next)
 {
     if (g_state == next)
@@ -60,7 +61,7 @@ void set_state(State next)
 
 void close_pairing_or_waiting_window()
 {
-    ok(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "close bt discovery window");
+    ok(esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "close bt discovery window");
 }
 
 Result result_from_esp(esp_err_t err, const char* what)
@@ -361,7 +362,7 @@ bool init_bluetooth(const char* device_name, const char* pin_code)
     ok(esp_bt_gap_set_device_name(device_name ? device_name : formatted_device_name), "bt name");
     ok(esp_bt_gap_set_security_param(ESP_BT_SP_IOCAP_MODE, &iocap, sizeof(iocap)), "ssp iocap");
     ok(esp_bt_gap_set_pin(ESP_BT_PIN_TYPE_FIXED, pin_length, pin), "legacy pin");
-    ok(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "initial scan mode");
+    ok(esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "initial scan mode");
     ok(esp_bredr_sco_datapath_set(ESP_SCO_DATA_PATH_HCI), "sco hci path");
 
     g_bt_ready = true;
@@ -507,7 +508,7 @@ Result startWaitingForIncomingConnection()
 
     g_disconnect_requested = false;
     set_state(State::WaitingForIncomingConnection);
-    return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE), "open incoming connection window");
+    return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "open incoming connection window");
 }
 
 Result disconnect()
