@@ -10,13 +10,23 @@
 #include "driver/i2s_pdm.h"
 #include "driver/i2s_std.h"
 #include "esp_log.h"
+#ifdef USE_BLUEDROID_MSBC
+#include "bluedroid_sbc.h"
+#else
 #include "sbc.h"
+#endif
 #include "utilfuncs.h"
 
 namespace AudioManager
 {
 namespace
 {
+
+#ifdef USE_BLUEDROID_MSBC
+using SbcCodec = bluedroid_sbc_t;
+#else
+using SbcCodec = sbc_t;
+#endif
 
 constexpr const char* TAG = "AudioManager";
 
@@ -80,8 +90,8 @@ int16_t g_stereo_buffer[kPumpSamples * 2];
 uint8_t g_pending_speaker_buffer[kPumpSamples * 2 * sizeof(int16_t)];
 uint8_t g_sbc_decode_pcm[kSbcScratchBytes];
 uint8_t g_sbc_encode_pcm[kSbcScratchBytes];
-sbc_t   g_sbc_decoder = {};
-sbc_t   g_sbc_encoder = {};
+SbcCodec g_sbc_decoder = {};
+SbcCodec g_sbc_encoder = {};
 
 void set_ns4168_speaker_enabled(bool enabled)
 {
@@ -181,19 +191,39 @@ void finish_sbc()
 {
     if (g_sbc_decoder_ready)
     {
+#ifdef USE_BLUEDROID_MSBC
+        bluedroid_sbc_finish(&g_sbc_decoder);
+#else
         sbc_finish(&g_sbc_decoder);
+#endif
         g_sbc_decoder_ready = false;
     }
 
     if (g_sbc_encoder_ready)
     {
+#ifdef USE_BLUEDROID_MSBC
+        bluedroid_sbc_finish(&g_sbc_encoder);
+#else
         sbc_finish(&g_sbc_encoder);
+#endif
         g_sbc_encoder_ready = false;
     }
 }
 
-bool configure_sbc_struct(sbc_t& sbc)
+bool configure_sbc_struct(SbcCodec& sbc)
 {
+#ifdef USE_BLUEDROID_MSBC
+    memset(&sbc, 0, sizeof(sbc));
+    if (bluedroid_sbc_init(&sbc, 0) != 0)
+    {
+        return false;
+    }
+    if (bluedroid_sbc_configure_msbc(&sbc) != 0)
+    {
+        bluedroid_sbc_finish(&sbc);
+        return false;
+    }
+#else
     memset(&sbc, 0, sizeof(sbc));
     if (sbc_init(&sbc, 0) != 0)
     {
@@ -207,6 +237,8 @@ bool configure_sbc_struct(sbc_t& sbc)
     sbc.blocks     = SBC_BLK_15;
     sbc.bitpool    = 26;
     sbc.endian     = SBC_LE;
+#endif
+
     return true;
 }
 
@@ -223,7 +255,26 @@ bool init_sbc()
         return false;
     }
 
-    ESP_LOGI(TAG, "libsbc initialized: frame=%u bytes, pcm=%u bytes", static_cast<unsigned>(sbc_get_frame_length(&g_sbc_encoder)), static_cast<unsigned>(sbc_get_codesize(&g_sbc_encoder)));
+    const size_t frame_length =
+#ifdef USE_BLUEDROID_MSBC
+        bluedroid_sbc_get_frame_length(&g_sbc_encoder);
+#else
+        sbc_get_frame_length(&g_sbc_encoder);
+#endif
+    const size_t codesize =
+#ifdef USE_BLUEDROID_MSBC
+        bluedroid_sbc_get_codesize(&g_sbc_encoder);
+#else
+        sbc_get_codesize(&g_sbc_encoder);
+#endif
+
+    ESP_LOGI(TAG, "%s initialized: frame=%u bytes, pcm=%u bytes",
+#ifdef USE_BLUEDROID_MSBC
+             bluedroid_sbc_get_implementation_info(&g_sbc_encoder),
+#else
+             sbc_get_implementation_info(&g_sbc_encoder),
+#endif
+             static_cast<unsigned>(frame_length), static_cast<unsigned>(codesize));
     return true;
 }
 
@@ -612,7 +663,13 @@ void hfp_incoming_audio(const uint8_t* buf, uint32_t len)
         while (pos < len)
         {
             size_t        pcm_written = 0;
-            const ssize_t consumed    = sbc_decode(&g_sbc_decoder, buf + pos, len - pos, g_sbc_decode_pcm, sizeof(g_sbc_decode_pcm), &pcm_written);
+            const ssize_t consumed    =
+#ifdef USE_BLUEDROID_MSBC
+                bluedroid_sbc_decode(&g_sbc_decoder, buf + pos, len - pos, g_sbc_decode_pcm, sizeof(g_sbc_decode_pcm), &pcm_written);
+#else
+                sbc_decode(&g_sbc_decoder, buf + pos, len - pos, g_sbc_decode_pcm, sizeof(g_sbc_decode_pcm), &pcm_written);
+#endif
+
             if (consumed <= 0 || pcm_written == 0)
             {
                 break;
@@ -657,7 +714,12 @@ uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
             return 0;
         }
 
-        const size_t codesize = sbc_get_codesize(&g_sbc_encoder);
+        const size_t codesize =
+#ifdef USE_BLUEDROID_MSBC
+            bluedroid_sbc_get_codesize(&g_sbc_encoder);
+#else
+            sbc_get_codesize(&g_sbc_encoder);
+#endif
         if (codesize == 0 || codesize > sizeof(g_sbc_encode_pcm))
         {
             return 0;
@@ -671,7 +733,12 @@ uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
         }
 
         ssize_t       encoded  = 0;
-        const ssize_t consumed = sbc_encode(&g_sbc_encoder, g_sbc_encode_pcm, codesize, buf, len, &encoded);
+        const ssize_t consumed =
+#ifdef USE_BLUEDROID_MSBC
+            bluedroid_sbc_encode(&g_sbc_encoder, g_sbc_encode_pcm, codesize, buf, len, &encoded);
+#else
+            sbc_encode(&g_sbc_encoder, g_sbc_encode_pcm, codesize, buf, len, &encoded);
+#endif
         if (consumed <= 0 || encoded <= 0)
         {
             return 0;

@@ -8,3 +8,5 @@ use this file for preprocessor definitions that are used to configure parts of t
 
 constexpr uint64_t kHalfGiB = 512ULL * 1024ULL * 1024ULL;
 constexpr uint64_t kMaxGrowFileBytes = 2ULL * 1024ULL * 1024ULL * 1024ULL;
+
+#define USE_BLUEDROID_MSBC
