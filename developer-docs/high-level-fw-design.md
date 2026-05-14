@@ -20,7 +20,7 @@ Assume the microSD card is permanently attached, always available. Unavailabilit
 
 ### File name conventions
 
-All audio recordings are two files, one with a `.raw` extension which contains the actual audio, and another one with the same name but ends with `.meta.json`, containing any metadata.
+All audio recordings are two files, one with a `.rec` extension which contains the actual audio, ~and another one with the same name but ends with `.meta.json`, containing any metadata.~ (TODO: we don't need a metadata file)
 
 The file name will look like `T-YYYY-MM-DD-HH-MM-SS-U`. Where `T` is a letter code representing the categorization of the recording. The rest is the time according to the RTC.
 
