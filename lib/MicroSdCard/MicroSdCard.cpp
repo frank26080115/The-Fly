@@ -18,10 +18,13 @@ constexpr int kCore2SdMiso = 38;
 constexpr int kCore2SdMosi = 23;
 constexpr int kCore2SdCs   = 4;
 
-constexpr uint32_t kSdFrequencyMHz = 40;
+constexpr uint32_t kSdFrequenciesMHz[] = {
+    //40,
+    20, 10, 4};
 
 SdFs g_sd;
 bool g_ready = false;
+uint32_t g_frequency_mhz = 0;
 
 void sdFatDateTime(uint16_t* date, uint16_t* time, uint8_t* ms10)
 {
@@ -41,6 +44,38 @@ void sdFatDateTime(uint16_t* date, uint16_t* time, uint8_t* ms10)
     *ms10 = 0;
 }
 
+bool tryBeginAtFrequency(uint32_t frequencyMHz)
+{
+    g_sd.end();
+
+    const SdSpiConfig config(kCore2SdCs, SHARED_SPI, SD_SCK_MHZ(frequencyMHz), &SPI);
+    if (!g_sd.cardBegin(config))
+    {
+        ESP_LOGW(TAG, "microSD card init failed at %lu MHz: error=0x%02X data=0x%02X", static_cast<unsigned long>(frequencyMHz), g_sd.sdErrorCode(), g_sd.sdErrorData());
+        return false;
+    }
+
+    if (!g_sd.volumeBegin())
+    {
+        ESP_LOGW(TAG, "microSD filesystem mount failed at %lu MHz: cardType=%u sectors=%lu error=0x%02X data=0x%02X", static_cast<unsigned long>(frequencyMHz), g_sd.card()->type(), static_cast<unsigned long>(g_sd.card()->sectorCount()), g_sd.sdErrorCode(), g_sd.sdErrorData());
+        g_sd.end();
+        return false;
+    }
+
+    ESP_LOGI(TAG, "microSD initialized at %lu MHz", static_cast<unsigned long>(frequencyMHz));
+    g_frequency_mhz = frequencyMHz;
+    return true;
+}
+
+void enableCore2SdPower()
+{
+    if (M5.Power.getType() == m5::Power_Class::pmic_axp192)
+    {
+        M5.Power.Axp192.setLDO2(3300);
+        delay(50);
+    }
+}
+
 } // namespace
 
 bool begin()
@@ -50,18 +85,25 @@ bool begin()
         return true;
     }
 
+    enableCore2SdPower();
+    pinMode(kCore2SdCs, OUTPUT);
+    digitalWrite(kCore2SdCs, HIGH);
     SPI.begin(kCore2SdSclk, kCore2SdMiso, kCore2SdMosi, kCore2SdCs);
+    delay(10);
     FsDateTime::setCallback(sdFatDateTime);
 
-    if (!g_sd.begin(SdSpiConfig(kCore2SdCs, SHARED_SPI, SD_SCK_MHZ(kSdFrequencyMHz), &SPI)))
+    for (uint32_t frequencyMHz : kSdFrequenciesMHz)
     {
-        ESP_LOGE(TAG, "microSD init failed");
-        return false;
+        if (tryBeginAtFrequency(frequencyMHz))
+        {
+            ESP_LOGI(TAG, "microSD space: total=%llu used=%llu free=%llu ; freq=%lu MHz", static_cast<unsigned long long>(totalBytes()), static_cast<unsigned long long>(usedBytes()), static_cast<unsigned long long>(freeBytes()), static_cast<unsigned long>(g_frequency_mhz));
+            g_ready = true;
+            return true;
+        }
     }
 
-    ESP_LOGI(TAG, "microSD space: total=%llu used=%llu free=%llu", static_cast<unsigned long long>(totalBytes()), static_cast<unsigned long long>(usedBytes()), static_cast<unsigned long long>(freeBytes()));
-    g_ready = true;
-    return true;
+    ESP_LOGE(TAG, "microSD init failed");
+    return false;
 }
 
 bool isReady()
