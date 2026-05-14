@@ -96,7 +96,9 @@ bool begin()
     {
         if (tryBeginAtFrequency(frequencyMHz))
         {
+            #ifdef RUN_BRINGUP_TEST
             ESP_LOGI(TAG, "microSD space: total=%llu used=%llu free=%llu ; freq=%lu MHz", static_cast<unsigned long long>(totalBytes()), static_cast<unsigned long long>(usedBytes()), static_cast<unsigned long long>(freeBytes()), static_cast<unsigned long>(g_frequency_mhz));
+            #endif
             g_ready = true;
             return true;
         }
