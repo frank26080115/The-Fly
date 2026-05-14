@@ -20,7 +20,7 @@ namespace
 
 constexpr const char* TAG = "test_sdcard";
 constexpr uint32_t    kTestSampleRateHz        = 16000;
-constexpr uint32_t    kThroughputTestMs        = 60000;
+constexpr uint32_t    kThroughputChunkStepMs   = 30000;
 constexpr uint32_t    kThroughputReportMs      = 5000;
 
 uint32_t g_prng = 0x51A7C0DE;
@@ -190,35 +190,38 @@ void run_recording_throughput_test()
 
     const size_t bt_capacity_samples  = bt_fifo.availableToWrite();
     const size_t mic_capacity_samples = mic_fifo.availableToWrite();
-    size_t       chunk_samples        = min(bt_capacity_samples, mic_capacity_samples) / 4;
-    if (chunk_samples == 0)
-    {
-        chunk_samples = 1;
-    }
+    const size_t max_capacity_samples = max<size_t>(min(bt_capacity_samples, mic_capacity_samples), 1);
+    size_t       chunk_samples        = min<size_t>(64, max_capacity_samples);
 
-    int16_t* bt_samples  = new (std::nothrow) int16_t[chunk_samples];
-    int16_t* mic_samples = new (std::nothrow) int16_t[chunk_samples];
+    int16_t* bt_samples  = new (std::nothrow) int16_t[max_capacity_samples];
+    int16_t* mic_samples = new (std::nothrow) int16_t[max_capacity_samples];
     if (!bt_samples || !mic_samples)
     {
         delete[] bt_samples;
         delete[] mic_samples;
-        Serial.printf("%s: sample chunk allocation failed: chunk=%u samples\n", TAG, static_cast<unsigned>(chunk_samples));
+        Serial.printf("%s: sample chunk allocation failed: chunk=%u samples\n", TAG, static_cast<unsigned>(max_capacity_samples));
         return;
     }
 
-    Serial.printf("%s: throughput test: duration=%lu ms report=%lu ms chunk=%u samples\n",
+    Serial.printf("%s: throughput test: step=%lu ms report=%lu ms chunk=%u max_chunk=%u samples\n",
                   TAG,
-                  static_cast<unsigned long>(kThroughputTestMs),
+                  static_cast<unsigned long>(kThroughputChunkStepMs),
                   static_cast<unsigned long>(kThroughputReportMs),
-                  static_cast<unsigned>(chunk_samples));
+                  static_cast<unsigned>(chunk_samples),
+                  static_cast<unsigned>(max_capacity_samples));
 
-    const uint32_t started_ms      = millis();
-    uint32_t       next_report_ms  = started_ms + kThroughputReportMs;
-    uint32_t       last_report_ms  = started_ms;
-    uint64_t       total_samples   = 0;
-    uint64_t       report_samples  = 0;
+    const uint32_t started_ms         = millis();
+    uint32_t       next_report_ms     = started_ms + kThroughputReportMs;
+    uint32_t       last_report_ms     = started_ms;
+    uint32_t       section_started_ms = started_ms;
+    uint64_t       total_samples      = 0;
+    uint64_t       report_samples     = 0;
+    bool           finished           = false;
 
-    while (static_cast<uint32_t>(millis() - started_ms) < kThroughputTestMs)
+    AudioFileRecorder::resetWriteDurationStats();
+    Serial.printf("%s: throughput section: chunk=%u samples\n", TAG, static_cast<unsigned>(chunk_samples));
+
+    while (!finished)
     {
         const uint64_t bt_submitted = queue_chunk(bt_fifo, bt_samples, chunk_samples);
         total_samples += bt_submitted;
@@ -235,15 +238,37 @@ void run_recording_throughput_test()
             const uint32_t elapsed_ms = now_ms - last_report_ms;
             const uint64_t bytes_per_second = elapsed_ms == 0 ? 0 : ((report_samples * sizeof(int16_t) * 1000ULL) / elapsed_ms);
 
-            Serial.printf("%s: submitted samples=%llu interval_bytes_per_second=%llu file_bytes=%llu\n",
+            Serial.printf("%s: chunk=%u submitted samples=%llu interval_bytes_per_second=%llu file_bytes=%llu write_avg_ms=%.3f write_max_ms=%.3f\n",
                           TAG,
+                          static_cast<unsigned>(chunk_samples),
                           static_cast<unsigned long long>(total_samples),
                           static_cast<unsigned long long>(bytes_per_second),
-                          static_cast<unsigned long long>(AudioFileRecorder::bytesWritten()));
+                          static_cast<unsigned long long>(AudioFileRecorder::bytesWritten()),
+                          AudioFileRecorder::writeDurationAverageMs(),
+                          AudioFileRecorder::writeDurationMaxMs());
 
             report_samples = 0;
             last_report_ms = now_ms;
             next_report_ms = now_ms + kThroughputReportMs;
+            AudioFileRecorder::resetWriteDurationStats();
+        }
+
+        if (static_cast<uint32_t>(now_ms - section_started_ms) >= kThroughputChunkStepMs)
+        {
+            if (chunk_samples >= max_capacity_samples)
+            {
+                finished = true;
+            }
+            else
+            {
+                chunk_samples = min(chunk_samples * 2, max_capacity_samples);
+                section_started_ms = now_ms;
+                report_samples = 0;
+                last_report_ms = now_ms;
+                next_report_ms = now_ms + kThroughputReportMs;
+                AudioFileRecorder::resetWriteDurationStats();
+                Serial.printf("%s: throughput section: chunk=%u samples\n", TAG, static_cast<unsigned>(chunk_samples));
+            }
         }
     }
 
