@@ -46,7 +46,16 @@ uint64_t max_prealloc_size()
 
 void make_recording_path(char type_code)
 {
-    m5::rtc_datetime_t now = Clock.getDateTime();
+    m5::rtc_datetime_t now = {};
+    if (!Clock.getDateTime(&now))
+    {
+        now.date.year    = 2026;
+        now.date.month   = 1;
+        now.date.date    = 1;
+        now.time.hours   = 0;
+        now.time.minutes = 0;
+        now.time.seconds = 0;
+    }
     snprintf(g_sd_path, sizeof(g_sd_path), "/%c-%04d-%02d-%02d-%02d-%02d-%02d-U.raw", type_code, now.date.year, now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds);
 }
 

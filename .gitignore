@@ -45,6 +45,9 @@ Build/
 build-*/
 .pio/
 
+# Reference-only sketches and snippets. These are not part of the firmware.
+code_for_reference/
+
 # CMake generated files
 CMakeFiles/
 CMakeCache.txt

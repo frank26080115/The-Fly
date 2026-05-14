@@ -95,6 +95,18 @@ SbcCodec g_sbc_encoder = {};
 
 void set_ns4168_speaker_enabled(bool enabled)
 {
+    const auto pmic_type = M5.Power.getType();
+    if (pmic_type == m5::Power_Class::pmic_axp192)
+    {
+        M5.Power.Axp192.setGPIO2(enabled);
+        return;
+    }
+    if (pmic_type == m5::Power_Class::pmic_axp2101)
+    {
+        M5.Power.Axp2101.setALDO3(enabled ? 3300 : 0);
+        return;
+    }
+
     if (!g_wire_started)
     {
         Wire.begin(kInternalI2cSda, kInternalI2cScl, 400000);
@@ -390,6 +402,8 @@ bool enable_ns4168_speaker()
     i2s_std_config_t config = {};
     config.clk_cfg          = I2S_STD_CLK_DEFAULT_CONFIG(kSampleRateHz);
     config.slot_cfg         = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
+    config.slot_cfg.slot_mask = I2S_STD_SLOT_BOTH;
+    config.slot_cfg.ws_width  = 16;
     config.gpio_cfg.mclk    = I2S_GPIO_UNUSED;
     config.gpio_cfg.bclk    = static_cast<gpio_num_t>(kNS4168SpeakerBclk);
     config.gpio_cfg.ws      = static_cast<gpio_num_t>(kNS4168SpeakerLrck);
@@ -445,6 +459,17 @@ bool enable_exti2scodec_mic()
     return false;
 }
 
+bool begin_fifos()
+{
+    if (!g_fifo_bt2spk.begin() || !g_fifo_bt2file.begin() || !g_fifo_mic2bt.begin() || !g_fifo_mic2file.begin())
+    {
+        ESP_LOGE(TAG, "Audio FIFO allocation failed");
+        return false;
+    }
+
+    return true;
+}
+
 } // namespace
 
 bool init(Hardware hardware)
@@ -459,6 +484,12 @@ bool init(Hardware hardware)
     M5.Speaker.end();
     M5.Mic.end();
 
+    if (!begin_fifos())
+    {
+        ESP_LOGE(TAG, "AudioManager begin_fifos failed");
+        return false;
+    }
+
     g_fifo_bt2spk.clear();
     g_fifo_bt2file.clear();
     g_fifo_mic2bt.clear();
@@ -466,7 +497,11 @@ bool init(Hardware hardware)
     g_fifo_mic2bt.setMuted(false);
     g_fifo_mic2file.setMuted(false);
 
-    AudioFileRecorder::init(g_fifo_bt2file, g_fifo_mic2file);
+    if (!AudioFileRecorder::init(g_fifo_bt2file, g_fifo_mic2file))
+    {
+        ESP_LOGE(TAG, "AudioFileRecorder initialization failed");
+        return false;
+    }
 
     g_initialized = true;
     return true;

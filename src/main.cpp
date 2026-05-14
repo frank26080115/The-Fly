@@ -4,6 +4,7 @@
 #include "Hotel.h"
 #include "thefly_common.h"
 #include "utilfuncs.h"
+#include "all_tests.h"
 
 constexpr const char* MAINTAG = "main.cpp";
 
@@ -15,6 +16,10 @@ RTC_DATA_ATTR uint32_t reset_magic = 0;
 
 void setup()
 {
+    #ifdef RUN_BRINGUP_TEST
+    run_test();
+    #endif
+
     // NVS is the ESP-IDF non-volatile key/value store. Bluetooth uses it for
     // controller/host state such as pairing, bonding, and calibration metadata.
     // Initialize it once at boot, before any module tries to bring up Bluetooth.

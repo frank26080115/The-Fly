@@ -7,6 +7,7 @@
 #include <cstring>
 #include <memory>
 #include <mutex>
+#include <new>
 
 class AudioFifo
 {
@@ -21,7 +22,7 @@ public:
         Draining,
     };
 
-    explicit AudioFifo(size_t capacitySamples = kDefaultCapacitySamples, size_t watermarkSamples = 0) : capacitySamples_(capacitySamples ? capacitySamples : 1), watermarkSamples_(watermarkSamples), buffer_(new int16_t[capacitySamples_]), emptySinceMs_(millis())
+    explicit AudioFifo(size_t capacitySamples = kDefaultCapacitySamples, size_t watermarkSamples = 0) : capacitySamples_(capacitySamples ? capacitySamples : 1), watermarkSamples_(watermarkSamples)
     {
         if (watermarkSamples_ > capacitySamples_)
         {
@@ -33,6 +34,31 @@ public:
     AudioFifo(const AudioFifo&)            = delete;
     AudioFifo& operator=(const AudioFifo&) = delete;
 
+    bool begin()
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (buffer_)
+        {
+            resetLocked();
+            return true;
+        }
+
+        buffer_.reset(new (std::nothrow) int16_t[capacitySamples_]);
+        if (!buffer_)
+        {
+            return false;
+        }
+
+        resetLocked();
+        return true;
+    }
+
+    bool begun() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return buffer_ != nullptr;
+    }
+
     size_t queue(const int16_t* samples, size_t sampleCount, uint32_t sampleRateHz = kInternalSampleRateHz)
     {
         if (samples == nullptr || sampleCount == 0)
@@ -41,6 +67,10 @@ public:
         }
 
         std::lock_guard<std::mutex> lock(mutex_);
+        if (!buffer_)
+        {
+            return 0;
+        }
         if (!queueEnabled_)
         {
             upsampleHasPrev_ = false;
@@ -63,6 +93,10 @@ public:
         }
 
         std::lock_guard<std::mutex> lock(mutex_);
+        if (!buffer_)
+        {
+            return 0;
+        }
         if (!queueEnabled_)
         {
             upsampleHasPrev_ = false;
@@ -85,6 +119,15 @@ public:
         }
 
         std::lock_guard<std::mutex> lock(mutex_);
+        if (!buffer_)
+        {
+            underflowed_ = true;
+            if (silenceWhenEmpty_)
+            {
+                return writeSilenceLocked(samples, maxSamples);
+            }
+            return 0;
+        }
         if (!canDequeueLocked())
         {
             if (usedSamples_ == 0)
@@ -111,6 +154,15 @@ public:
         }
 
         std::lock_guard<std::mutex> lock(mutex_);
+        if (!buffer_)
+        {
+            underflowed_ = true;
+            if (silenceWhenEmpty_)
+            {
+                return writeSilenceLocked(samples, maxSamples);
+            }
+            return 0;
+        }
         if (usedSamples_ == 0)
         {
             underflowed_ = true;
@@ -134,6 +186,15 @@ public:
         }
 
         std::lock_guard<std::mutex> lock(mutex_);
+        if (!buffer_)
+        {
+            underflowed_ = true;
+            if (silenceWhenEmpty_)
+            {
+                return writeStereoSilenceLocked(interleavedSamples, maxFrames);
+            }
+            return 0;
+        }
         if (!canDequeueLocked())
         {
             if (usedSamples_ == 0)
@@ -181,18 +242,16 @@ public:
     void clear()
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        readIndex_       = 0;
-        writeIndex_      = 0;
-        usedSamples_     = 0;
-        state_           = watermarkSamples_ == 0 ? State::Draining : State::Filling;
-        emptySinceMs_    = millis();
-        upsampleHasPrev_ = false;
-        upsamplePrev_    = 0;
+        resetLocked();
     }
 
     size_t availableToRead() const
     {
         std::lock_guard<std::mutex> lock(mutex_);
+        if (!buffer_)
+        {
+            return 0;
+        }
         updateWatermarkLocked();
         if (state_ == State::Filling)
         {
@@ -204,12 +263,20 @@ public:
     size_t availableToWrite() const
     {
         std::lock_guard<std::mutex> lock(mutex_);
+        if (!buffer_)
+        {
+            return 0;
+        }
         return capacitySamples_ - usedSamples_;
     }
 
     uint8_t getFillPercentage() const
     {
         std::lock_guard<std::mutex> lock(mutex_);
+        if (!buffer_)
+        {
+            return 0;
+        }
         return static_cast<uint8_t>((usedSamples_ * 100U) / capacitySamples_);
     }
 
@@ -288,6 +355,10 @@ public:
     bool readyToDequeue() const
     {
         std::lock_guard<std::mutex> lock(mutex_);
+        if (!buffer_)
+        {
+            return false;
+        }
         updateWatermarkLocked();
         return state_ == State::Draining && usedSamples_ > 0;
     }
@@ -349,6 +420,17 @@ private:
     {
         //return static_cast<int16_t>((static_cast<int32_t>(frame[0]) + static_cast<int32_t>(frame[1])) >> 1); // this does actual mixing
         return frame[0] != 0 ? frame[0] : frame[1]; // there is only ever one mic, so just take whichever sample is not zero
+    }
+
+    void resetLocked()
+    {
+        readIndex_       = 0;
+        writeIndex_      = 0;
+        usedSamples_     = 0;
+        state_           = watermarkSamples_ == 0 ? State::Draining : State::Filling;
+        emptySinceMs_    = millis();
+        upsampleHasPrev_ = false;
+        upsamplePrev_    = 0;
     }
 
     size_t queue16kLocked(const int16_t* samples, size_t sampleCount)
