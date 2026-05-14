@@ -277,7 +277,10 @@ public:
         {
             return 0;
         }
-        return static_cast<uint8_t>((usedSamples_ * 100U) / capacitySamples_);
+        // return at least 1 unless actually empty, or at most 99 unless actually full
+        uint8_t percentage = static_cast<uint8_t>((usedSamples_ * 100U) / capacitySamples_);
+        percentage = percentage <= 0 ? (usedSamples_ > 0 ? 1 : 0) : (percentage >= 100 ? (usedSamples_ >= (capacitySamples_ - 1) ? 100 : 99) : percentage);
+        return percentage;
     }
 
     void setQueueEnabled(bool enabled)
