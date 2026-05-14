@@ -15,7 +15,8 @@ namespace // private
 constexpr const char* TAG = "AudioFileRecorder";
 
 constexpr uint32_t kPumpBudgetMs             = 20;
-constexpr uint8_t  kPumpTargetFillPercentage = 10;
+constexpr uint8_t  kPumpTargetFillPercentage = 0;    // keep this at zero, draining the FIFO fully is the best way of letting the host decoder know that there was a gap in the data
+constexpr float    kWriteDurationAverageAlpha = 0.05f;
 
 AudioFifo* g_host_fifo = nullptr;
 AudioFifo* g_mic_fifo  = nullptr;
@@ -24,6 +25,10 @@ char       g_sd_path[48]    = {};
 uint64_t   g_bytes_written  = 0;
 uint32_t   g_sequence_num   = 0;
 bool       g_recording      = false;
+bool       g_pure_pcm_mode  = false; // for testing only
+bool       g_write_duration_average_valid = false;
+float      g_write_duration_average_us    = 0.0f;
+uint32_t   g_write_duration_max_us        = 0;
 
 bool init_sd()
 {
@@ -56,7 +61,7 @@ void make_recording_path(char type_code)
         now.time.minutes = 0;
         now.time.seconds = 0;
     }
-    snprintf(g_sd_path, sizeof(g_sd_path), "/%c-%04d-%02d-%02d-%02d-%02d-%02d-U.raw", type_code, now.date.year, now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds);
+    snprintf(g_sd_path, sizeof(g_sd_path), "/%c-%04d-%02d-%02d-%02d-%02d-%02d-U.%s", type_code, now.date.year, now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds, g_pure_pcm_mode ? "pcm" : "rec");
 }
 
 uint8_t flags_for_fifo(AudioFifo& fifo)
@@ -78,6 +83,24 @@ void reset_fifo_flags(AudioFifo& fifo)
     fifo.resetFlowFlags();
 }
 
+void update_write_duration_stats(uint32_t duration_us)
+{
+    if (!g_write_duration_average_valid)
+    {
+        g_write_duration_average_us    = static_cast<float>(duration_us);
+        g_write_duration_average_valid = true;
+    }
+    else
+    {
+        g_write_duration_average_us += (static_cast<float>(duration_us) - g_write_duration_average_us) * kWriteDurationAverageAlpha;
+    }
+
+    if (duration_us > g_write_duration_max_us)
+    {
+        g_write_duration_max_us = duration_us;
+    }
+}
+
 bool write_packet(AudioFifo& fifo, uint8_t source)
 {
     const size_t available = fifo.availableToRead();
@@ -87,17 +110,17 @@ bool write_packet(AudioFifo& fifo, uint8_t source)
         return false;
     }
 
+    uint32_t now_ms       = millis();
+    uint32_t started_us   = micros();
+
     // create the packet to be written, starting with the header
     file_packet_t packet = {};
     packet.magic         = FILE_PACKET_HEADER_MAGIC;
     packet.src           = source;
     packet.flags         = flags_for_fifo(fifo); // error flags
-
-#ifdef FILE_CONTAINS_DEBUG
-    packet.ms_timestamp = millis();
-    packet.sequence_num = g_sequence_num++;
-    packet.fifo_cnt     = static_cast<uint32_t>(available);
-#endif
+    packet.ms_timestamp  = now_ms;
+    packet.sequence_num  = g_sequence_num++;
+    packet.fifo_cnt      = static_cast<uint32_t>(available);
 
     // FILE_PACKET_PAYLOAD_MAX needs to be be about the same size as each fragment expected from the audio interface callbacks
     // otherwise we can adjust the FIFO watermark, or kPumpTargetFillPercentage
@@ -114,7 +137,11 @@ bool write_packet(AudioFifo& fifo, uint8_t source)
 
     // write the whole thing to the file
     packet.payload_length = static_cast<uint16_t>(samples_read);
-    if (g_file.write(reinterpret_cast<const uint8_t*>(&packet), sizeof(packet)) != sizeof(packet))
+
+    const uint8_t* data_ptr = g_pure_pcm_mode ? reinterpret_cast<uint8_t*>(packet.payload) : reinterpret_cast<uint8_t*>(&packet);
+    const size_t   data_sz  = g_pure_pcm_mode ? packet.payload_length : sizeof(packet);
+
+    if (g_file.write(data_ptr, data_sz) != sizeof(packet))
     {
         DBG_LOGE(TAG, "packet write failed");
         return false;
@@ -124,6 +151,9 @@ bool write_packet(AudioFifo& fifo, uint8_t source)
 
     g_bytes_written += sizeof(packet);
     reset_fifo_flags(fifo);
+
+    update_write_duration_stats(static_cast<uint32_t>(micros() - started_us));
+
     return true;
 }
 
@@ -263,7 +293,7 @@ void pump()
     } while (!fifos_below_pump_target() && (millis() - started) < kPumpBudgetMs);
 }
 
-bool stopRecording()
+bool stopRecording(bool estop)
 {
     set_queue_enabled(false); // tells the queues to stop recording
 
@@ -272,10 +302,13 @@ bool stopRecording()
         return true;
     }
 
-    // drain the last bit of the FIFO out, there is less pressure now since the FIFOs have been signalled to stop queuing
-    while (pump_one_packet())
+    if (!estop)
     {
-        taskYIELD();
+        // drain the last bit of the FIFO out, there is less pressure now since the FIFOs have been signalled to stop queuing
+        while (pump_one_packet())
+        {
+            taskYIELD();
+        }
     }
 
     g_recording = false;
@@ -302,6 +335,33 @@ bool stopRecording()
 bool isRecording()
 {
     return g_recording;
+}
+
+bool purePcmMode()
+{
+    return g_pure_pcm_mode;
+}
+
+void setPurePcmMode(bool enabled)
+{
+    g_pure_pcm_mode = enabled;
+}
+
+float writeDurationAverageMs()
+{
+    return g_write_duration_average_us / 1000.0f;
+}
+
+float writeDurationMaxMs()
+{
+    return static_cast<float>(g_write_duration_max_us) / 1000.0f;
+}
+
+void resetWriteDurationStats()
+{
+    g_write_duration_average_valid = false;
+    g_write_duration_average_us    = 0.0f;
+    g_write_duration_max_us        = 0;
 }
 
 uint64_t bytesWritten()
