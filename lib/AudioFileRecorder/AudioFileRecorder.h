@@ -32,8 +32,14 @@ bool init(AudioFifo& hostFifo, AudioFifo& micFifo);
 bool startRecording(RecordingType type);
 bool startRecording(char typeCode);
 void pump();
-bool stopRecording();
+bool stopRecording(bool estop = false);
 bool isRecording();
+bool purePcmMode();
+void setPurePcmMode(bool enabled);
+
+float writeDurationAverageMs();
+float writeDurationMaxMs();
+void  resetWriteDurationStats();
 
 uint64_t    bytesWritten();
 const char* currentSdPath();
