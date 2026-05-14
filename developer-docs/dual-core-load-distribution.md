@@ -110,7 +110,7 @@ Preferred core: Core 1.
 Responsibilities:
 
 * own the open recording file handle
-* write queued audio packets to the pre-grown `.raw` file
+* write queued audio packets to the pre-grown `.rec` file
 * track actual recorded byte count
 * flush on stop, truncate to actual length, and close
 * write the `.meta.json` file after audio is closed
@@ -154,7 +154,7 @@ A 512 KB queue holds about 16 seconds of mono 16 kHz PCM. That is generous for n
 
 For call recording with both upstream and downstream PCM at 16 kHz, budget about 64,000 bytes/sec before packet headers. A 512 KB queue then holds about 8 seconds.
 
-The queue should store packet boundaries if the recording format needs direction, timestamp, codec, flags, or event markers. If the raw file is temporarily plain PCM for demos, a byte ring buffer is fine.
+~The queue should store packet boundaries if the recording format needs direction, timestamp, codec, flags, or event markers. If the raw file is temporarily plain PCM for demos, a byte ring buffer is fine.~ TODO: update this line to follow current implementation
 
 ## Locking rules
 
