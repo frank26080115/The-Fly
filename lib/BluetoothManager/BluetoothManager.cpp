@@ -7,6 +7,7 @@
 
 #include "esp_bt.h"
 #include "esp_bt_main.h"
+#include "esp32-hal-bt.h"
 #include "esp_log.h"
 #include "esp_mac.h"
 #include "AudioManager.h"
@@ -66,7 +67,98 @@ void close_pairing_or_waiting_window()
 
 Result result_from_esp(esp_err_t err, const char* what)
 {
-    return ok(err, what) ? Result::Ok : Result::EspError;
+    return strict_ok(err, what) ? Result::Ok : Result::EspError;
+}
+
+esp_bt_cod_t handsfree_cod()
+{
+    esp_bt_cod_t cod = {};
+    cod.major        = ESP_BT_COD_MAJOR_DEV_AV;
+    cod.minor        = 0x01;
+    cod.service      = ESP_BT_COD_SRVC_AUDIO | ESP_BT_COD_SRVC_TELEPHONY;
+    return cod;
+}
+
+const char* controller_status_name(esp_bt_controller_status_t status)
+{
+    switch (status)
+    {
+    case ESP_BT_CONTROLLER_STATUS_IDLE:
+        return "IDLE";
+    case ESP_BT_CONTROLLER_STATUS_INITED:
+        return "INITED";
+    case ESP_BT_CONTROLLER_STATUS_ENABLED:
+        return "ENABLED";
+    default:
+        return "UNKNOWN";
+    }
+}
+
+const char* bluedroid_status_name(esp_bluedroid_status_t status)
+{
+    switch (status)
+    {
+    case ESP_BLUEDROID_STATUS_UNINITIALIZED:
+        return "UNINITIALIZED";
+    case ESP_BLUEDROID_STATUS_INITIALIZED:
+        return "INITIALIZED";
+    case ESP_BLUEDROID_STATUS_ENABLED:
+        return "ENABLED";
+    default:
+        return "UNKNOWN";
+    }
+}
+
+bool ensure_controller_enabled()
+{
+    esp_bt_controller_status_t status = esp_bt_controller_get_status();
+    ESP_LOGI(TAG, "bt controller status: %s", controller_status_name(status));
+
+    if (btStarted())
+    {
+        ESP_LOGI(TAG, "Arduino btStarted: yes");
+        return true;
+    }
+
+    ESP_LOGI(TAG, "Arduino btStart");
+    if (!btStart())
+    {
+        status = esp_bt_controller_get_status();
+        ESP_LOGE(TAG, "Arduino btStart failed, controller status: %s", controller_status_name(status));
+        return false;
+    }
+
+    status = esp_bt_controller_get_status();
+    ESP_LOGI(TAG, "bt controller status after Arduino btStart: %s", controller_status_name(status));
+    return status == ESP_BT_CONTROLLER_STATUS_ENABLED;
+}
+
+bool ensure_bluedroid_enabled()
+{
+    esp_bluedroid_status_t status = esp_bluedroid_get_status();
+    ESP_LOGI(TAG, "bluedroid status: %s", bluedroid_status_name(status));
+
+    if (status == ESP_BLUEDROID_STATUS_UNINITIALIZED)
+    {
+        if (!strict_ok(esp_bluedroid_init(), "bluedroid init"))
+        {
+            return false;
+        }
+        status = esp_bluedroid_get_status();
+        ESP_LOGI(TAG, "bluedroid status after init: %s", bluedroid_status_name(status));
+    }
+
+    if (status == ESP_BLUEDROID_STATUS_INITIALIZED)
+    {
+        if (!strict_ok(esp_bluedroid_enable(), "bluedroid enable"))
+        {
+            return false;
+        }
+        status = esp_bluedroid_get_status();
+        ESP_LOGI(TAG, "bluedroid status after enable: %s", bluedroid_status_name(status));
+    }
+
+    return status == ESP_BLUEDROID_STATUS_ENABLED;
 }
 
 bool bonded_mac_matches(const esp_bd_addr_t mac)
@@ -333,16 +425,12 @@ bool init_bluetooth(const char* device_name, const char* pin_code)
     // already performed, do not re-perform
     if (g_bt_ready)
     {
-        ESP_LOGW(TAG, "init_bluetooth called after Bluetooth was already initialized");
         return true;
     }
 
     set_legacy_pin(pin_code); // copies into memory
 
-    ok(esp_bt_controller_mem_release(ESP_BT_MODE_BLE), "release ble memory");
-
-    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-    if (!ok(esp_bt_controller_init(&bt_cfg), "bt controller init") || !ok(esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT), "bt controller enable") || !ok(esp_bluedroid_init(), "bluedroid init") || !ok(esp_bluedroid_enable(), "bluedroid enable"))
+    if (!ensure_controller_enabled() || !ensure_bluedroid_enabled())
     {
         return false;
     }
@@ -357,13 +445,10 @@ bool init_bluetooth(const char* device_name, const char* pin_code)
         format_device_name(formatted_device_name, sizeof(formatted_device_name));
     }
 
-    ok(esp_bt_sleep_disable(), "bt sleep disable");
-    ok(esp_bt_gap_register_callback(gap_event), "gap callback");
-    ok(esp_bt_gap_set_device_name(device_name ? device_name : formatted_device_name), "bt name");
-    ok(esp_bt_gap_set_security_param(ESP_BT_SP_IOCAP_MODE, &iocap, sizeof(iocap)), "ssp iocap");
-    ok(esp_bt_gap_set_pin(ESP_BT_PIN_TYPE_FIXED, pin_length, pin), "legacy pin");
-    ok(esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "initial scan mode");
-    ok(esp_bredr_sco_datapath_set(ESP_SCO_DATA_PATH_HCI), "sco hci path");
+    if (!strict_ok(esp_bt_sleep_disable(), "bt sleep disable") || !strict_ok(esp_bt_gap_register_callback(gap_event), "gap callback") || !strict_ok(esp_bt_gap_set_device_name(device_name ? device_name : formatted_device_name), "bt name") || !strict_ok(esp_bt_gap_set_cod(handsfree_cod(), ESP_BT_INIT_COD), "bt class of device") || !strict_ok(esp_bt_gap_set_security_param(ESP_BT_SP_IOCAP_MODE, &iocap, sizeof(iocap)), "ssp iocap") || !strict_ok(esp_bt_gap_set_pin(ESP_BT_PIN_TYPE_FIXED, pin_length, pin), "legacy pin") || !strict_ok(esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "initial scan mode") || !strict_ok(esp_bredr_sco_datapath_set(ESP_SCO_DATA_PATH_HCI), "sco hci path"))
+    {
+        return false;
+    }
 
     g_bt_ready = true;
     return true;
