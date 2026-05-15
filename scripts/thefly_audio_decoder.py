@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 """
 Decode The Fly `.rec` audio recording format into a 16 kHz, 16-bit, stereo WAV.
 
@@ -45,8 +47,6 @@ Use an intermediate file with the `.pcm` extension for the first decode pass. Th
 
 """
 
-from __future__ import annotations
-
 import argparse
 import struct
 import sys
@@ -62,6 +62,7 @@ FILE_PACKET_PAYLOAD_MAX = 256
 OUTPUT_SAMPLE_RATE_HZ = 16000
 OUTPUT_CHANNELS = 2
 SAMPLE_WIDTH_BYTES = 2
+FIFO_BACKLOG_SPIKE_WARNING_THRESHOLD_SAMPLES = 3072
 
 PACKET_FLAG_FIFO_OVERFLOW = 1 << 0
 PACKET_FLAG_FIFO_UNDERFLOW = 1 << 1
@@ -130,14 +131,15 @@ class FifoSpikeTracker:
             and self._previous.backlog_samples > point.backlog_samples
         ):
             self.spike_count += 1
-            warn(
-                "fifo backlog spike: "
-                f"src={self.src} seq={self._previous.sequence_num} "
-                f"timestamp={self._previous.timestamp_ms}ms "
-                f"offset={self._previous.file_offset} "
-                f"backlog={self._previous.backlog_samples} samples "
-                f"fifo_cnt={self._previous.fifo_cnt} payload={self._previous.payload_length}"
-            )
+            if self._previous.backlog_samples > FIFO_BACKLOG_SPIKE_WARNING_THRESHOLD_SAMPLES:
+                warn(
+                    "fifo backlog spike: "
+                    f"src={self.src} seq={self._previous.sequence_num} "
+                    f"timestamp={self._previous.timestamp_ms}ms "
+                    f"offset={self._previous.file_offset} "
+                    f"backlog={self._previous.backlog_samples} samples "
+                    f"fifo_cnt={self._previous.fifo_cnt} payload={self._previous.payload_length}"
+                )
 
         self._older = self._previous
         self._previous = point
