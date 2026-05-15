@@ -11,6 +11,7 @@ use this library for utility functions more complex than just inline functions o
 */
 
 bool ok(esp_err_t err, const char* what);
+bool strict_ok(esp_err_t err, const char* what);
 void idle_forever();
 void copy_bda(uint8_t dst[ESP_BD_ADDR_LEN], const uint8_t src[ESP_BD_ADDR_LEN]);
 void log_bda(const char* label, const uint8_t bda[ESP_BD_ADDR_LEN]);

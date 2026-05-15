@@ -23,6 +23,18 @@ bool ok(esp_err_t err, const char* what)
     return false;
 }
 
+bool strict_ok(esp_err_t err, const char* what)
+{
+    if (err == ESP_OK)
+    {
+        ESP_LOGI(TAG, "%s ok", what);
+        return true;
+    }
+
+    ESP_LOGE(TAG, "%s failed: %s", what, esp_err_to_name(err));
+    return false;
+}
+
 void idle_forever()
 {
     while (true)
