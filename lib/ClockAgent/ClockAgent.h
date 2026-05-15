@@ -9,6 +9,7 @@ class ClockAgent
 public:
     bool begin();
     bool syncFromRtc();
+    bool syncToCompileTime();
 
     bool getDateTime(m5::rtc_date_t* date, m5::rtc_time_t* time);
     bool getDateTime(m5::rtc_datetime_t* datetime);
