@@ -1,0 +1,245 @@
+#include "SpriteDraw.h"
+
+#include "thefly_common.h"
+
+#include <Arduino.h>
+#include <lgfx/utility/lgfx_pngle.h>
+#include <pgmspace.h>
+
+namespace SpriteDraw
+{
+namespace
+{
+
+constexpr size_t kMaxRunChunkPixels = 128;
+
+struct PngDecodeContext
+{
+    const uint8_t* data       = nullptr;
+    size_t         data_size  = 0;
+    size_t         read_index = 0;
+    M5GFX*         display    = nullptr;
+    int32_t        origin_x   = 0;
+    int32_t        origin_y   = 0;
+    uint32_t       callbacks  = 0;
+    uint32_t       pixels     = 0;
+    bool           fast_mode  = false;
+    DrawCallback   callback   = nullptr;
+};
+
+uint32_t read_png_bytes(void* user_data, uint8_t* buffer, uint32_t length)
+{
+    auto* context = static_cast<PngDecodeContext*>(user_data);
+    if (context == nullptr || context->data == nullptr || context->read_index > context->data_size)
+    {
+        return 0;
+    }
+
+    const size_t remaining = context->data_size - context->read_index;
+    const size_t count     = length < remaining ? length : remaining;
+
+    if (buffer != nullptr)
+    {
+        for (size_t index = 0; index < count; ++index)
+        {
+            buffer[index] = pgm_read_byte(context->data + context->read_index + index);
+        }
+    }
+
+    context->read_index += count;
+    return static_cast<uint32_t>(count);
+}
+
+lgfx::rgb565_t argb_to_rgb565(const uint8_t* argb)
+{
+    const uint16_t alpha = argb[0];
+    uint16_t       red   = argb[1];
+    uint16_t       green = argb[2];
+    uint16_t       blue  = argb[3];
+
+    if (alpha != 255)
+    {
+        red   = static_cast<uint16_t>((red * alpha + 127) / 255);
+        green = static_cast<uint16_t>((green * alpha + 127) / 255);
+        blue  = static_cast<uint16_t>((blue * alpha + 127) / 255);
+    }
+
+    return lgfx::rgb565_t(static_cast<uint8_t>(red), static_cast<uint8_t>(green), static_cast<uint8_t>(blue));
+}
+
+void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, size_t length, const uint8_t* argb)
+{
+    auto* context = static_cast<PngDecodeContext*>(user_data);
+    if (context == nullptr || context->display == nullptr || argb == nullptr || length == 0)
+    {
+        return;
+    }
+
+    M5GFX& display = *context->display;
+    int32_t dst_x  = context->origin_x + static_cast<int32_t>(x);
+    int32_t dst_y  = context->origin_y + static_cast<int32_t>(y);
+
+    ++context->callbacks;
+    context->pixels += static_cast<uint32_t>(length);
+
+    if (context->callback) {
+        context->callback();
+    }
+    else {
+        if (!context->fast_mode) {
+            taskYIELD();
+        }
+    }
+
+    if (dst_y < 0 || dst_y >= display.height())
+    {
+        return;
+    }
+
+    if (div_x != 1)
+    {
+        if (!context->fast_mode)
+        {
+            display.startWrite();
+        }
+
+        for (size_t index = 0; index < length; ++index)
+        {
+            const int32_t pixel_x = dst_x + static_cast<int32_t>(index * div_x);
+            if (pixel_x >= 0 && pixel_x < display.width())
+            {
+                display.drawPixel(pixel_x, dst_y, argb_to_rgb565(argb));
+            }
+            argb += 4;
+        }
+
+        if (!context->fast_mode)
+        {
+            display.endWrite();
+        }
+
+        return;
+    }
+
+    if (dst_x < 0)
+    {
+        const size_t skip = static_cast<size_t>(-dst_x);
+        if (skip >= length)
+        {
+            return;
+        }
+        argb += skip * 4;
+        length -= skip;
+        dst_x = 0;
+    }
+
+    if (dst_x >= display.width())
+    {
+        return;
+    }
+
+    const size_t max_visible = static_cast<size_t>(display.width() - dst_x);
+    if (length > max_visible)
+    {
+        length = max_visible;
+    }
+
+    lgfx::rgb565_t line[kMaxRunChunkPixels];
+    if (!context->fast_mode)
+    {
+        display.startWrite();
+    }
+
+    while (length > 0)
+    {
+        const size_t chunk = length < kMaxRunChunkPixels ? length : kMaxRunChunkPixels;
+        for (size_t index = 0; index < chunk; ++index)
+        {
+            line[index] = argb_to_rgb565(argb + index * 4);
+        }
+
+        display.setAddrWindow(dst_x, dst_y, static_cast<int32_t>(chunk), 1);
+        display.writePixels(line, static_cast<int32_t>(chunk));
+
+        dst_x += static_cast<int32_t>(chunk);
+        argb += chunk * 4;
+        length -= chunk;
+    }
+
+    if (!context->fast_mode)
+    {
+        display.endWrite();
+    }
+}
+
+} // namespace
+
+DrawResult drawPng(M5GFX& display,
+                   const uint8_t* sprite,
+                   size_t sprite_bytes,
+                   int32_t x,
+                   int32_t y,
+                   uint32_t width,
+                   uint32_t height,
+                   bool fast_mode,
+                   DrawCallback callback)
+{
+    DrawResult result;
+
+    pngle_t* pngle = lgfx_pngle_new();
+    if (pngle == nullptr || sprite == nullptr || sprite_bytes == 0)
+    {
+        if (pngle != nullptr)
+        {
+            lgfx_pngle_destroy(pngle);
+        }
+        return result;
+    }
+
+    PngDecodeContext context;
+    context.data      = sprite;
+    context.data_size = sprite_bytes;
+    context.display   = &display;
+    context.origin_x  = x;
+    context.origin_y  = y;
+    context.fast_mode = fast_mode;
+    context.callback  = callback;
+
+    if (lgfx_pngle_prepare(pngle, read_png_bytes, &context) < 0)
+    {
+        result.callbacks = context.callbacks;
+        result.pixels    = context.pixels;
+        lgfx_pngle_destroy(pngle);
+        return result;
+    }
+
+    result.decoded_width  = lgfx_pngle_get_width(pngle);
+    result.decoded_height = lgfx_pngle_get_height(pngle);
+
+    if (result.decoded_width != width || result.decoded_height != height)
+    {
+        lgfx_pngle_destroy(pngle);
+        return result;
+    }
+
+    const uint32_t started_us = micros();
+    if (fast_mode)
+    {
+        display.startWrite();
+    }
+    const int decode_result = lgfx_pngle_decomp(pngle, draw_png_run);
+    if (fast_mode)
+    {
+        display.endWrite();
+    }
+    result.elapsed_us = micros() - started_us;
+
+    result.ok        = decode_result >= 0;
+    result.callbacks = context.callbacks;
+    result.pixels    = context.pixels;
+
+    lgfx_pngle_destroy(pngle);
+    return result;
+}
+
+} // namespace SpriteDraw
