@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
+#include <M5Unified.h>
 #include <WiFi.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
 #include <stdlib.h>
 
 #include "AudioManager.h"
@@ -18,8 +21,22 @@ namespace
 constexpr const char* TAG = "test_btspeakerphone";
 constexpr const char* kApSsid = "TheFly-BT-Web-Test";
 constexpr const char* kHelloWorld = "hello world\n";
+constexpr uint32_t    kCore0StackSize = 8192;
+constexpr UBaseType_t kCore0Priority  = 2;
+constexpr uint32_t    kButtonPollMs   = 5;
+constexpr uint16_t    kColourGrey     = 0x7BEF;
+
+enum class ControlCommand : uint8_t
+{
+    EnableSpeaker,
+    EnableMic,
+    Stop,
+};
 
 AsyncWebServer g_web_server(80);
+TaskHandle_t   g_core0_task = nullptr;
+QueueHandle_t  g_control_queue = nullptr;
+QueueHandle_t  g_colour_queue  = nullptr;
 
 void print_local_bdaddr()
 {
@@ -61,6 +78,49 @@ bool init_nvs()
 void on_state_changed(BtManager::State state)
 {
     Serial.printf("%s: Bluetooth state: %s\n", TAG, BtManager::stateName(state));
+}
+
+bool init_control_queues()
+{
+    if (!g_control_queue)
+    {
+        g_control_queue = xQueueCreate(8, sizeof(ControlCommand));
+    }
+    if (!g_colour_queue)
+    {
+        g_colour_queue = xQueueCreate(1, sizeof(uint16_t));
+    }
+
+    if (!g_control_queue || !g_colour_queue)
+    {
+        Serial.printf("%s: failed to create FreeRTOS queues\n", TAG);
+        return false;
+    }
+
+    return true;
+}
+
+void send_control_command(ControlCommand command)
+{
+    if (!g_control_queue)
+    {
+        return;
+    }
+
+    if (xQueueSend(g_control_queue, &command, 0) != pdTRUE)
+    {
+        Serial.printf("%s: control command queue full\n", TAG);
+    }
+}
+
+void send_display_colour(uint16_t colour)
+{
+    if (!g_colour_queue)
+    {
+        return;
+    }
+
+    xQueueOverwrite(g_colour_queue, &colour);
 }
 
 bool get_first_bonded_device(esp_bd_addr_t first_device)
@@ -117,6 +177,127 @@ void choke_file_fifos()
     AudioManager::bluetoothToFileFifo().choke();
     AudioManager::micToFileFifo().choke();
     Serial.printf("%s: file FIFOs choked\n", TAG);
+}
+
+void init_display_and_buttons()
+{
+    M5.Display.setBrightness(255);
+    M5.Display.setColorDepth(16);
+    M5.Display.fillScreen(kColourGrey);
+    M5.update();
+    M5.BtnA.setDebounceThresh(20);
+    M5.BtnB.setDebounceThresh(20);
+    M5.BtnC.setDebounceThresh(20);
+}
+
+void apply_requested_colour(uint16_t& current_colour)
+{
+    uint16_t requested_colour = current_colour;
+    while (xQueueReceive(g_colour_queue, &requested_colour, 0) == pdTRUE)
+    {
+    }
+
+    if (requested_colour != current_colour)
+    {
+        current_colour = requested_colour;
+        M5.Display.fillScreen(current_colour);
+    }
+}
+
+void btspeakerphone_core0_task(void*)
+{
+    bool     ptt_was_pressed = false;
+    uint16_t current_colour  = kColourGrey;
+
+    init_display_and_buttons();
+    Serial.printf("%s: core 0 UI/control task started\n", TAG);
+
+    while (true)
+    {
+        apply_requested_colour(current_colour);
+        M5.update();
+
+        if (M5.BtnC.wasPressed())
+        {
+            send_control_command(ControlCommand::Stop);
+        }
+
+        const bool ptt_pressed = M5.BtnA.isPressed();
+        if (ptt_pressed != ptt_was_pressed)
+        {
+            send_control_command(ptt_pressed ? ControlCommand::EnableMic : ControlCommand::EnableSpeaker);
+            ptt_was_pressed = ptt_pressed;
+        }
+
+        delay(kButtonPollMs);
+    }
+}
+
+bool start_core0_control_task()
+{
+    const BaseType_t task_created = xTaskCreatePinnedToCore(btspeakerphone_core0_task,
+                                                            "btspk_core0",
+                                                            kCore0StackSize,
+                                                            nullptr,
+                                                            kCore0Priority,
+                                                            &g_core0_task,
+                                                            0);
+    if (task_created != pdPASS)
+    {
+        Serial.printf("%s: failed to create core 0 task\n", TAG);
+        return false;
+    }
+
+    return true;
+}
+
+bool handle_control_command(ControlCommand command, bool& stop_requested)
+{
+    switch (command)
+    {
+    case ControlCommand::EnableSpeaker:
+        Serial.printf("%s: push-to-talk released, enabling speaker mode\n", TAG);
+        if (!AudioManager::enableSpeakerMode())
+        {
+            Serial.printf("%s: enableSpeakerMode failed\n", TAG);
+            send_display_colour(kColourGrey);
+            BtManager::disconnect();
+            AudioManager::stop();
+            stop_requested = true;
+            return false;
+        }
+        send_display_colour(BtManager::state() == BtManager::State::Connected ? TFT_BLUE : kColourGrey);
+        return true;
+
+    case ControlCommand::EnableMic:
+        if (BtManager::state() != BtManager::State::Connected)
+        {
+            Serial.printf("%s: push-to-talk ignored, Bluetooth is not connected\n", TAG);
+            return true;
+        }
+        Serial.printf("%s: push-to-talk down, enabling mic mode\n", TAG);
+        if (!AudioManager::enableMicMode())
+        {
+            Serial.printf("%s: enableMicMode failed\n", TAG);
+            send_display_colour(kColourGrey);
+            BtManager::disconnect();
+            AudioManager::stop();
+            stop_requested = true;
+            return false;
+        }
+        send_display_colour(TFT_RED);
+        return true;
+
+    case ControlCommand::Stop:
+        Serial.printf("%s: stop requested: right touch button\n", TAG);
+        send_display_colour(kColourGrey);
+        BtManager::disconnect();
+        AudioManager::stop();
+        stop_requested = true;
+        return true;
+    }
+
+    return true;
 }
 
 #if 0
@@ -184,6 +365,12 @@ void test_btspeakerphone()
         idle_forever();
     }
 
+    if (!init_control_queues() || !start_core0_control_task())
+    {
+        idle_forever();
+    }
+    send_display_colour(kColourGrey);
+
     choke_file_fifos();
     AudioManager::setVolume(AudioManager::kMaxVolume);
 
@@ -210,10 +397,40 @@ void test_btspeakerphone()
     }
     #endif
 
-    Serial.printf("%s: pumping Bluetooth audio to speaker forever\n", TAG);
-    while (true)
+    Serial.printf("%s: pumping Bluetooth audio forever\n", TAG);
+    bool blue_sent      = false;
+    bool stop_requested = false;
+    while (!stop_requested)
     {
-        AudioManager::pump_bt2spk();
+        ControlCommand command = ControlCommand::EnableSpeaker;
+        while (xQueueReceive(g_control_queue, &command, 0) == pdTRUE)
+        {
+            handle_control_command(command, stop_requested);
+        }
+
+        if (stop_requested)
+        {
+            break;
+        }
+
+        if (BtManager::state() == BtManager::State::Connected && !blue_sent && AudioManager::mode() != AudioManager::P2TMode::Mic)
+        {
+            send_display_colour(TFT_BLUE);
+            blue_sent = true;
+        }
+
+        if (AudioManager::mode() == AudioManager::P2TMode::Mic)
+        {
+            AudioManager::pump_mic2bt();
+        }
+        else
+        {
+            AudioManager::pump_bt2spk();
+        }
+
         taskYIELD();
     }
+
+    Serial.printf("%s: finished, spinning forever\n", TAG);
+    idle_forever();
 }
