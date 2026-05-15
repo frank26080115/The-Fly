@@ -59,6 +59,13 @@ public:
         return buffer_ != nullptr;
     }
 
+    void end()
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        resetLocked();
+        buffer_.reset();
+    }
+
     size_t queue(const int16_t* samples, size_t sampleCount, uint32_t sampleRateHz = kInternalSampleRateHz)
     {
         if (samples == nullptr || sampleCount == 0)
