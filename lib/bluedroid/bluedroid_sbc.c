@@ -101,7 +101,11 @@ static int prepare_decoder(bluedroid_sbc_t* sbc)
     OI_STATUS status;
     if (is_msbc(sbc))
     {
-        status = OI_CODEC_mSBC_DecoderReset(&sbc->decoder, sbc->decoder_data_mono.data, sizeof(sbc->decoder_data_mono.data));
+        status = OI_CODEC_SBC_DecoderReset(&sbc->decoder, sbc->decoder_data_mono.data, sizeof(sbc->decoder_data_mono.data), 1, 1, FALSE);
+        if (OI_SUCCESS(status))
+        {
+            sbc->decoder.common.frameInfo.mSBCEnabled = TRUE;
+        }
     }
     else
     {
