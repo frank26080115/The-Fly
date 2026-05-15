@@ -119,6 +119,7 @@ void choke_file_fifos()
     Serial.printf("%s: file FIFOs choked\n", TAG);
 }
 
+#if 0
 bool start_test_web_ap()
 {
     WiFi.mode(WIFI_AP);
@@ -140,6 +141,7 @@ bool start_test_web_ap()
     Serial.printf("%s: Wi-Fi AP started: ssid=\"%s\" ip=%s\n", TAG, kApSsid, WiFi.softAPIP().toString().c_str());
     return true;
 }
+#endif
 
 } // namespace
 
@@ -201,10 +203,12 @@ void test_btspeakerphone()
         idle_forever();
     }
 
+    #if 0
     if (!start_test_web_ap())
     {
         idle_forever();
     }
+    #endif
 
     Serial.printf("%s: pumping Bluetooth audio to speaker forever\n", TAG);
     while (true)
