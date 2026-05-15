@@ -23,6 +23,14 @@ bool ok(esp_err_t err, const char* what)
     return false;
 }
 
+void idle_forever()
+{
+    while (true)
+    {
+        delay(1000);
+    }
+}
+
 void copy_bda(uint8_t dst[ESP_BD_ADDR_LEN], const uint8_t src[ESP_BD_ADDR_LEN])
 {
     memcpy(dst, src, ESP_BD_ADDR_LEN);

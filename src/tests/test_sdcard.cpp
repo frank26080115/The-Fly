@@ -14,6 +14,7 @@ For two mono 16 KHz streams being recorded, we want at least 64000 bytes/sec
 #include "AudioFileRecorder.h"
 #include "AudioManager.h"
 #include "MicroSdCard.h"
+#include "utilfuncs.h"
 
 namespace
 {
@@ -275,14 +276,6 @@ void run_recording_throughput_test()
     AudioFileRecorder::pump();
     delete[] bt_samples;
     delete[] mic_samples;
-}
-
-void idle_forever()
-{
-    while (true)
-    {
-        delay(1000);
-    }
 }
 
 } // namespace
