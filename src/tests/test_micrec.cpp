@@ -1,12 +1,9 @@
 #include <Arduino.h>
 #include <M5Unified.h>
-#include <SdFat.h>
-#include <new>
-#include <string.h>
 
 #include "AudioFileRecorder.h"
 #include "AudioManager.h"
-#include "MicroSdCard.h"
+#include "ClockAgent.h"
 #include "utilfuncs.h"
 
 namespace
@@ -20,6 +17,8 @@ constexpr UBaseType_t kCore0Priority  = 2;
 
 volatile bool g_stop_requested = false;
 TaskHandle_t  g_core0_task     = nullptr;
+uint16_t      g_cur_colour     = TFT_BLACK;
+uint16_t      g_next_colour    = TFT_BLACK;
 
 void request_stop(const char* reason)
 {
@@ -27,6 +26,7 @@ void request_stop(const char* reason)
     {
         Serial.printf("%s: stop requested: %s\n", TAG, reason);
     }
+    g_next_colour = TFT_GREEN;
     g_stop_requested = true;
 }
 
@@ -85,10 +85,12 @@ void micrec_core0_task(void*)
             if (ptt_pressed)
             {
                 switch_to_mic_mode();
+                g_next_colour = TFT_RED;
             }
             else
             {
                 switch_to_speaker_mode();
+                g_next_colour = TFT_BLUE;
             }
             ptt_was_pressed = ptt_pressed;
         }
@@ -128,6 +130,14 @@ void test_micrec()
 {
     Serial.begin(115200);
     delay(1000);
+
+    auto cfg = M5.config();
+    M5.begin(cfg);
+    Clock.syncToCompileTime();
+
+    M5.Display.setBrightness(255);
+    M5.Display.setColorDepth(16);
+    M5.Display.fillScreen(g_cur_colour);
 
     Serial.println();
     Serial.printf("%s: starting mic recording test\n", TAG);
@@ -170,6 +180,11 @@ void test_micrec()
     Serial.printf("%s: choking mic-to-Bluetooth FIFO for local recording test\n", TAG);
     AudioManager::micToBluetoothFifo().setChoked(true);
 
+    // indicates ready
+    g_cur_colour = TFT_BLUE;
+    g_next_colour = TFT_BLUE;
+    M5.Display.fillScreen(g_cur_colour);
+
     g_stop_requested = false;
     const BaseType_t task_created = xTaskCreatePinnedToCore(micrec_core0_task,
                                                             "micrec_core0",
@@ -189,6 +204,11 @@ void test_micrec()
     uint32_t next_status_ms = millis() + kStatusReportMs;
     while (!g_stop_requested)
     {
+        if (g_cur_colour != g_next_colour) {
+            g_cur_colour = g_next_colour;
+            M5.Display.fillScreen(g_cur_colour);
+        }
+
         AudioFileRecorder::pump();
 
         const uint32_t now_ms = millis();
@@ -209,6 +229,8 @@ void test_micrec()
         Serial.printf("%s: recording stop failed\n", TAG);
         idle_forever();
     }
+
+    M5.Display.fillScreen(TFT_GREEN);
 
     Serial.printf("%s: recording complete: %s bytes=%llu\n",
                   TAG,
