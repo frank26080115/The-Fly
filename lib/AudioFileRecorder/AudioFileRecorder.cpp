@@ -1,6 +1,7 @@
 #include "AudioFileRecorder.h"
 
 #include <M5Unified.h>
+#include <mutex>
 #include <string.h>
 
 #include "ClockAgent.h"
@@ -29,6 +30,9 @@ bool       g_pure_pcm_mode  = false; // for testing only
 bool       g_write_duration_average_valid = false;
 float      g_write_duration_average_us    = 0.0f;
 uint32_t   g_write_duration_max_us        = 0;
+bool       g_next_source_toggle           = true;
+std::mutex g_recorder_mutex;
+std::mutex g_pump_mutex;
 
 bool init_sd()
 {
@@ -101,8 +105,25 @@ void update_write_duration_stats(uint32_t duration_us)
     }
 }
 
+bool recording_file_ready_locked()
+{
+    return g_recording && g_file;
+}
+
+bool recording_file_ready()
+{
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
+    return recording_file_ready_locked();
+}
+
 bool write_packet(AudioFifo& fifo, uint8_t source)
 {
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
+    if (!recording_file_ready_locked())
+    {
+        return false;
+    }
+
     const size_t available = fifo.availableToRead();
     if (available == 0)
     {
@@ -128,7 +149,8 @@ bool write_packet(AudioFifo& fifo, uint8_t source)
 
     // read an appropriate amount from the FIFO
     const size_t samples_to_read = available < FILE_PACKET_PAYLOAD_MAX ? available : FILE_PACKET_PAYLOAD_MAX;
-    const size_t samples_read    = fifo.dequeueMonoImmediate(reinterpret_cast<int16_t*>(packet.payload), samples_to_read);
+    int16_t      samples[FILE_PACKET_PAYLOAD_MAX];
+    const size_t samples_read = fifo.dequeueMonoImmediate(samples, samples_to_read);
     if (samples_read == 0)
     {
         // hmmmm... should never happen
@@ -137,11 +159,12 @@ bool write_packet(AudioFifo& fifo, uint8_t source)
 
     // write the whole thing to the file
     packet.payload_length = static_cast<uint16_t>(samples_read);
+    memcpy(packet.payload, samples, samples_read * sizeof(samples[0]));
 
-    const uint8_t* data_ptr = g_pure_pcm_mode ? reinterpret_cast<uint8_t*>(packet.payload) : reinterpret_cast<uint8_t*>(&packet);
-    const size_t   data_sz  = g_pure_pcm_mode ? packet.payload_length : sizeof(packet);
+    const uint8_t* data_ptr = g_pure_pcm_mode ? reinterpret_cast<const uint8_t*>(packet.payload) : reinterpret_cast<const uint8_t*>(&packet);
+    const size_t   data_sz  = g_pure_pcm_mode ? samples_read * sizeof(samples[0]) : sizeof(packet);
 
-    if (g_file.write(data_ptr, data_sz) != sizeof(packet))
+    if (g_file.write(data_ptr, data_sz) != data_sz)
     {
         DBG_LOGE(TAG, "packet write failed");
         return false;
@@ -149,7 +172,7 @@ bool write_packet(AudioFifo& fifo, uint8_t source)
 
     // assume automatic cache flushing will happen when required, do not call flush manually
 
-    g_bytes_written += sizeof(packet);
+    g_bytes_written += data_sz;
     reset_fifo_flags(fifo);
 
     update_write_duration_stats(static_cast<uint32_t>(micros() - started_us));
@@ -159,25 +182,21 @@ bool write_packet(AudioFifo& fifo, uint8_t source)
 
 bool pump_one_packet()
 {
-    static bool next_source_toggle = true; // this function call will only do one packet, so we have a toggle to pick which of the two FIFOs is the source
+    std::lock_guard<std::mutex> pump_lock(g_pump_mutex);
 
-    if (!g_host_fifo || !g_mic_fifo || !g_file)
+    if (!g_host_fifo || !g_mic_fifo || !recording_file_ready())
     {
         return false;
     }
 
-    if (g_bytes_written == 0) {
-        next_source_toggle = true;
-    }
-
-    AudioFifo*    first_fifo    = next_source_toggle ? g_host_fifo : g_mic_fifo;
-    AudioFifo*    second_fifo   = next_source_toggle ? g_mic_fifo  : g_host_fifo;
-    const uint8_t first_source  = next_source_toggle ? AUDSRC_BT   : AUDSRC_MIC;
-    const uint8_t second_source = next_source_toggle ? AUDSRC_MIC  : AUDSRC_BT;
+    AudioFifo*    first_fifo    = g_next_source_toggle ? g_host_fifo : g_mic_fifo;
+    AudioFifo*    second_fifo   = g_next_source_toggle ? g_mic_fifo  : g_host_fifo;
+    const uint8_t first_source  = g_next_source_toggle ? AUDSRC_BT   : AUDSRC_MIC;
+    const uint8_t second_source = g_next_source_toggle ? AUDSRC_MIC  : AUDSRC_BT;
 
     if (write_packet(*first_fifo, first_source))
     {
-        next_source_toggle = !next_source_toggle;
+        g_next_source_toggle = !g_next_source_toggle;
         return true;
     }
 
@@ -221,8 +240,11 @@ void set_queue_enabled(bool enabled)
 
 bool init(AudioFifo& hostFifo, AudioFifo& micFifo)
 {
-    g_host_fifo = &hostFifo;
-    g_mic_fifo  = &micFifo;
+    {
+        std::lock_guard<std::mutex> lock(g_recorder_mutex);
+        g_host_fifo = &hostFifo;
+        g_mic_fifo  = &micFifo;
+    }
     return init_sd();
 }
 
@@ -239,7 +261,7 @@ bool startRecording(char typeCode)
         return false;
     }
 
-    if (g_recording)
+    if (isRecording())
     {
         // if already recording, stop recording and start a new file
         stopRecording();
@@ -256,28 +278,40 @@ bool startRecording(char typeCode)
     g_host_fifo->clear();
     g_mic_fifo ->clear();
 
-    // make the new file name and open it
-    make_recording_path(typeCode);
-    if (!g_file.open(g_sd_path, O_RDWR | O_CREAT | O_TRUNC))
+    char started_path[sizeof(g_sd_path)] = {};
     {
-        DBG_LOGE(TAG, "open failed: %s", g_sd_path);
-        return false;
+        std::lock_guard<std::mutex> pump_lock(g_pump_mutex);
+        g_next_source_toggle = true;
     }
+    {
+        std::lock_guard<std::mutex> lock(g_recorder_mutex);
 
+        // make the new file name and open it
+        make_recording_path(typeCode);
+        if (!g_file.open(g_sd_path, O_RDWR | O_CREAT | O_TRUNC))
+        {
+            DBG_LOGE(TAG, "open failed: %s", g_sd_path);
+            return false;
+        }
+
+#ifdef ENABLE_PREALLOCATION
     // preallocate file space to avoid unexpected latency for editing file table entry
-    grow_file(g_file, max_prealloc_size());
+        grow_file(g_file, max_prealloc_size());
+#endif
 
-    g_bytes_written  = 0;
-    g_sequence_num   = 0;
-    g_recording      = true;
+        g_bytes_written  = 0;
+        g_sequence_num   = 0;
+        g_recording      = true;
+        strncpy(started_path, g_sd_path, sizeof(started_path) - 1);
+    }
     set_queue_enabled(true); // actually start recording
-    DBG_LOGI(TAG, "recording started: %s", g_sd_path);
+    DBG_LOGI(TAG, "recording started: %s", started_path);
     return true;
 }
 
 void pump()
 {
-    if (!g_recording || !g_file)
+    if (!recording_file_ready())
     {
         return;
     }
@@ -297,9 +331,12 @@ bool stopRecording(bool estop)
 {
     set_queue_enabled(false); // tells the queues to stop recording
 
-    if (!g_recording && !g_file)
     {
-        return true;
+        std::lock_guard<std::mutex> lock(g_recorder_mutex);
+        if (!g_recording && !g_file)
+        {
+            return true;
+        }
     }
 
     if (!estop)
@@ -311,54 +348,77 @@ bool stopRecording(bool estop)
         }
     }
 
-    g_recording = false;
-
-    if (g_file)
+    bool     ok = true;
+    char     stopped_path[sizeof(g_sd_path)] = {};
+    uint64_t stopped_bytes = 0;
     {
-        g_file.flush(); // this makes sure the buffer actually makes it onto the card
-
-        // shrink the grown file to what is required
-        if (!g_file.truncate(g_bytes_written))
+        std::lock_guard<std::mutex> lock(g_recorder_mutex);
+        if (!g_recording && !g_file)
         {
-            DBG_LOGE(TAG, "truncate failed");
-            g_file.close();
-            return false;
+            return true;
         }
 
-        g_file.close();
+        g_recording = false;
+        stopped_bytes = g_bytes_written;
+        strncpy(stopped_path, g_sd_path, sizeof(stopped_path) - 1);
+
+        if (g_file)
+        {
+            g_file.flush(); // this makes sure the buffer actually makes it onto the card
+
+            // shrink the grown file to what is required
+            if (!g_file.truncate(g_bytes_written))
+            {
+                ok = false;
+            }
+
+            g_file.close();
+        }
     }
 
-    DBG_LOGI(TAG, "recording stopped: %s bytes=%llu", g_sd_path, static_cast<unsigned long long>(g_bytes_written));
+    if (!ok)
+    {
+        DBG_LOGE(TAG, "truncate failed");
+        return false;
+    }
+
+    DBG_LOGI(TAG, "recording stopped: %s bytes=%llu", stopped_path, static_cast<unsigned long long>(stopped_bytes));
     return true;
 }
 
 bool isRecording()
 {
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
     return g_recording;
 }
 
 bool purePcmMode()
 {
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
     return g_pure_pcm_mode;
 }
 
 void setPurePcmMode(bool enabled)
 {
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
     g_pure_pcm_mode = enabled;
 }
 
 float writeDurationAverageMs()
 {
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
     return g_write_duration_average_us / 1000.0f;
 }
 
 float writeDurationMaxMs()
 {
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
     return static_cast<float>(g_write_duration_max_us) / 1000.0f;
 }
 
 void resetWriteDurationStats()
 {
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
     g_write_duration_average_valid = false;
     g_write_duration_average_us    = 0.0f;
     g_write_duration_max_us        = 0;
@@ -366,6 +426,7 @@ void resetWriteDurationStats()
 
 uint64_t bytesWritten()
 {
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
     return g_bytes_written;
 }
 
