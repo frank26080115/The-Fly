@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "AudioManager.h"
+#include "utilfuncs.h"
 
 namespace
 {
@@ -14,15 +15,6 @@ constexpr int         kI2sPort        = 0;
 constexpr int         kI2sBclkPin     = 12;
 constexpr int         kI2sLrckPin     = 0;
 constexpr int         kI2sDoutPin     = 2;
-
-void idle_forever()
-{
-    Serial.printf("%s: finished, spinning forever\n", TAG);
-    while (true)
-    {
-        delay(1000);
-    }
-}
 
 int16_t square_sample(size_t sampleIndex, uint32_t frequencyHz)
 {

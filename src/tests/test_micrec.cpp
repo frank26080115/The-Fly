@@ -7,6 +7,7 @@
 #include "AudioFileRecorder.h"
 #include "AudioManager.h"
 #include "MicroSdCard.h"
+#include "utilfuncs.h"
 
 namespace
 {
@@ -19,15 +20,6 @@ constexpr UBaseType_t kCore0Priority  = 2;
 
 volatile bool g_stop_requested = false;
 TaskHandle_t  g_core0_task     = nullptr;
-
-void idle_forever()
-{
-    Serial.printf("%s: finished, spinning forever\n", TAG);
-    while (true)
-    {
-        delay(1000);
-    }
-}
 
 void request_stop(const char* reason)
 {
