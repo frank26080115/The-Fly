@@ -10,3 +10,6 @@ extern void test_sdcard();
 extern void test_speaker();
 extern void test_micrec();
 extern void test_screen();
+extern void test_btpairing();
+extern void test_btspeakerphone();
+extern void test_pngdecode();
