@@ -392,6 +392,8 @@ bool enable_channel(i2s_chan_handle_t handle, const char* label)
 bool enable_ns4168_speaker()
 {
     stop_i2s();
+    g_fifo_bt2spk.clear();
+    g_fifo_bt2spk.setChoked(false);
     set_ns4168_speaker_enabled(true);
 
     i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
@@ -424,6 +426,8 @@ bool enable_ns4168_speaker()
 bool enable_spm1423_mic()
 {
     stop_i2s();
+    g_fifo_bt2spk.clear();
+    g_fifo_bt2spk.setChoked(true);
     set_ns4168_speaker_enabled(false);
 
     i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
@@ -439,6 +443,7 @@ bool enable_spm1423_mic()
 
     if (!ok(i2s_new_channel(&chan_config, nullptr, &g_i2s_rx), "SPM1423 mic pdm channel") || !ok(i2s_channel_init_pdm_rx_mode(g_i2s_rx, &config), "SPM1423 mic pdm init") || !register_i2s_callbacks(g_i2s_rx, true) || !enable_channel(g_i2s_rx, "SPM1423 mic pdm enable"))
     {
+        g_fifo_bt2spk.setChoked(false);
         stop_i2s();
         return false;
     }
