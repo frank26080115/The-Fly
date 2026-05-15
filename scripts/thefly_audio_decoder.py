@@ -103,6 +103,9 @@ class ChannelState:
     last_sequence_num: Optional[int] = None
     last_timestamp_ms: Optional[int] = None
     last_output_samples: int = 0
+    peak_abs: int = 0
+    peak_value: int = 0
+    peak_sample: Optional[int] = None
 
 
 @dataclass
@@ -449,7 +452,17 @@ def note_fifo_point(packet: Packet, trackers: Dict[int, FifoSpikeTracker]) -> No
     )
 
 
+def note_channel_peak(state: ChannelState, samples: Sequence[int]) -> None:
+    for index, sample in enumerate(samples):
+        sample_abs = abs(sample)
+        if sample_abs > state.peak_abs:
+            state.peak_abs = sample_abs
+            state.peak_value = sample
+            state.peak_sample = state.cursor_samples + index
+
+
 def write_channel_samples(state: ChannelState, samples: Sequence[int]) -> None:
+    note_channel_peak(state, samples)
     state.file.write(samples_to_bytes(samples))
     state.cursor_samples += len(samples)
 
@@ -508,6 +521,21 @@ def wrap_pcm_as_wav(pcm_path: Path, wav_path: Path) -> None:
             wav.writeframes(data)
 
 
+def format_peak_report(state: ChannelState) -> str:
+    if state.peak_sample is None:
+        return f"{state.name} peak:     none"
+
+    peak_seconds = state.peak_sample / OUTPUT_SAMPLE_RATE_HZ
+    peak_percent = (state.peak_abs * 100.0) / 32768.0
+    return (
+        f"{state.name} peak:     "
+        f"{state.peak_abs} ({peak_percent:.1f}% FS) "
+        f"value={state.peak_value} "
+        f"at {peak_seconds:.3f} s "
+        f"(sample {state.peak_sample})"
+    )
+
+
 def decode_recording(input_path: Path, pcm_path: Path, wav_path: Path, gap_threshold_ms: float) -> None:
     resample_carry_by_src: Dict[int, List[int]] = {}
     fifo_trackers: Dict[int, FifoSpikeTracker] = {}
@@ -564,6 +592,8 @@ def decode_recording(input_path: Path, pcm_path: Path, wav_path: Path, gap_thres
         print(f"decoded packets: {packet_count}")
         print(f"left samples:    {states[0].cursor_samples}")
         print(f"right samples:   {states[1].cursor_samples}")
+        print(format_peak_report(states[0]))
+        print(format_peak_report(states[1]))
         print(f"duration:        {duration_seconds:.3f} s")
         print(f"pcm output:      {pcm_path}")
         print(f"wav output:      {wav_path}")
