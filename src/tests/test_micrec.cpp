@@ -10,7 +10,7 @@ namespace
 {
 
 constexpr const char* TAG             = "test_micrec";
-constexpr uint32_t    kStatusReportMs = 1000;
+constexpr uint32_t    kStatusReportMs = 500;
 constexpr uint32_t    kButtonPollMs   = 5;
 constexpr uint32_t    kCore0StackSize = 8192;
 constexpr UBaseType_t kCore0Priority  = 2;
@@ -109,10 +109,11 @@ void micrec_core0_task(void*)
 
 void print_status()
 {
-    Serial.printf("%s: mode=%u mic_peak=%u file_bytes=%llu write_avg_ms=%.3f write_max_ms=%.3f\n",
+    Serial.printf("%s: mode=%u mic_peak=%u mic_scaled_peak=%u file_bytes=%llu write_avg_ms=%.3f write_max_ms=%.3f\n",
                   TAG,
                   static_cast<unsigned>(AudioManager::mode()),
                   static_cast<unsigned>(AudioManager::micPeakLevel()),
+                  static_cast<unsigned>(AudioManager::micScaledPeakLevel()),
                   static_cast<unsigned long long>(AudioFileRecorder::bytesWritten()),
                   AudioFileRecorder::writeDurationAverageMs(),
                   AudioFileRecorder::writeDurationMaxMs());
