@@ -8,3 +8,5 @@
 extern void run_test();
 extern void test_sdcard();
 extern void test_speaker();
+extern void test_micrec();
+extern void test_screen();
