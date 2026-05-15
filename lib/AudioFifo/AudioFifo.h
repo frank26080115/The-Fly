@@ -71,7 +71,7 @@ public:
         {
             return 0;
         }
-        if (!queueEnabled_)
+        if (!queueEnabled_ || choked_)
         {
             upsampleHasPrev_ = false;
             upsamplePrev_    = 0;
@@ -97,7 +97,7 @@ public:
         {
             return 0;
         }
-        if (!queueEnabled_)
+        if (!queueEnabled_ || choked_)
         {
             upsampleHasPrev_ = false;
             upsamplePrev_    = 0;
@@ -267,6 +267,10 @@ public:
         {
             return 0;
         }
+        if (choked_)
+        {
+            return capacitySamples_;
+        }
         return capacitySamples_ - usedSamples_;
     }
 
@@ -325,6 +329,33 @@ public:
     {
         std::lock_guard<std::mutex> lock(mutex_);
         return muted_;
+    }
+
+    void setChoked(bool choked)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        choked_ = choked;
+        if (choked_)
+        {
+            upsampleHasPrev_ = false;
+            upsamplePrev_    = 0;
+        }
+    }
+
+    void choke()
+    {
+        setChoked(true);
+    }
+
+    void unchoke()
+    {
+        setChoked(false);
+    }
+
+    bool choked() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return choked_;
     }
 
     void setSilenceWhenEmpty(bool enabled)
@@ -634,6 +665,7 @@ private:
     int16_t                    upsamplePrev_      = 0;
     bool                       queueEnabled_      = true;
     bool                       muted_             = false;
+    bool                       choked_            = false;
     bool                       silenceWhenEmpty_  = false;
     bool                       overflowed_        = false;
     bool                       underflowed_       = false;
