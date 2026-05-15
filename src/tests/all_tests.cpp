@@ -2,8 +2,11 @@
 
 void run_test()
 {
-    test_sdcard();
+    //test_sdcard();
     //test_speaker();
     //test_micrec();
     //test_screen();
+    //test_btpairing();
+    //test_btspeakerphone();
+    test_pngdecode();
 }
