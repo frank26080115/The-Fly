@@ -63,9 +63,9 @@ constexpr uint16_t kVolumeGainByLevel[kMaxVolume] = {
 };
 
 AudioFifo g_fifo_bt2spk(kFifoCapacitySamples, kFifoWatermarkSamples);
-AudioFifo g_fifo_bt2file(kFifoCapacitySamples, 0);
+AudioFifo g_fifo_bt2file(kFifoCapacitySamples * 2, 0);
 AudioFifo g_fifo_mic2bt(kFifoCapacitySamples, kFifoWatermarkSamples);
-AudioFifo g_fifo_mic2file(kFifoCapacitySamples, 0);
+AudioFifo g_fifo_mic2file(kFifoCapacitySamples * 2, 0);
 
 Hardware          g_hardware               = Hardware::M5StackInternal;
 P2TMode           g_mode                   = P2TMode::Stopped;
