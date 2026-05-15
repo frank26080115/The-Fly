@@ -71,5 +71,6 @@ void muteMic();
 void unmuteMic();
 bool micMuted();
 uint8_t micPeakLevel();
+uint8_t micScaledPeakLevel();
 
 } // namespace AudioManager

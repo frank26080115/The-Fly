@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "AudioFileRecorder.h"
+#include "MicGainManager.h"
 #include "driver/i2s_pdm.h"
 #include "driver/i2s_std.h"
 #include "esp_log.h"
@@ -83,7 +84,6 @@ volatile size_t   g_i2s_tx_available_bytes = 0;
 portMUX_TYPE      g_i2s_tx_credit_mux      = portMUX_INITIALIZER_UNLOCKED;
 std::mutex        g_pump_mutex;
 size_t            g_pending_speaker_bytes = 0;
-uint16_t          g_mic_peak              = 0;
 
 int16_t g_mono_buffer[kPumpSamples];
 int16_t g_stereo_buffer[kPumpSamples * 2];
@@ -162,41 +162,6 @@ void apply_ns4168_software_volume(int16_t* samples, size_t sampleCount)
     {
         samples[i] = static_cast<int16_t>((static_cast<int32_t>(samples[i]) * gain) >> kVolumeGainShift);
     }
-}
-
-uint16_t sample_abs_peak(int16_t sample)
-{
-    if (sample == INT16_MIN)
-    {
-        return 32767;
-    }
-
-    const int16_t magnitude = sample < 0 ? -sample : sample;
-    return static_cast<uint16_t>(magnitude);
-}
-
-void decay_mic_peak(size_t frames)
-{
-    uint32_t decay = 1;
-    if (frames > 0)
-    {
-        decay = std::max<uint32_t>(decay, (32767U * frames) / (kSampleRateHz * 3U));
-    }
-
-    g_mic_peak = decay >= g_mic_peak ? 0 : static_cast<uint16_t>(g_mic_peak - decay);
-}
-
-void update_mic_peak(const int16_t* samples, size_t sampleCount, size_t frames)
-{
-    decay_mic_peak(frames);
-
-    uint16_t chunk_peak = 0;
-    for (size_t i = 0; i < sampleCount; ++i)
-    {
-        chunk_peak = std::max<uint16_t>(chunk_peak, sample_abs_peak(samples[i]));
-    }
-
-    g_mic_peak = std::max(g_mic_peak, chunk_peak);
 }
 
 void finish_sbc()
@@ -448,6 +413,7 @@ bool enable_spm1423_mic()
         return false;
     }
 
+    MicGainManager::ignoreSamplesFor();
     g_mode = P2TMode::Mic;
     return true;
 }
@@ -501,6 +467,7 @@ bool init(Hardware hardware)
     g_fifo_mic2file.clear();
     g_fifo_mic2bt.setMuted(false);
     g_fifo_mic2file.setMuted(false);
+    MicGainManager::init();
 
     if (!AudioFileRecorder::init(g_fifo_bt2file, g_fifo_mic2file))
     {
@@ -637,7 +604,7 @@ void pump_mic2bt()
 {
     if (g_mode != P2TMode::Mic || !g_i2s_rx || g_fifo_mic2bt.availableToWrite() == 0)
     {
-        decay_mic_peak(0);
+        MicGainManager::process(nullptr, 0);
         return;
     }
 
@@ -648,14 +615,14 @@ void pump_mic2bt()
 
     if (i2s_channel_read(g_i2s_rx, read_buffer, read_bytes, &bytes_read, 0) != ESP_OK || bytes_read == 0)
     {
-        decay_mic_peak(0);
+        MicGainManager::process(nullptr, 0);
         return;
     }
 
     const size_t samples = bytes_read / sizeof(int16_t);
     if (samples == 0)
     {
-        decay_mic_peak(0);
+        MicGainManager::process(nullptr, 0);
         return;
     }
 
@@ -664,17 +631,17 @@ void pump_mic2bt()
         const size_t frames = samples / 2;
         if (frames == 0)
         {
-            decay_mic_peak(0);
+            MicGainManager::process(nullptr, 0);
             return;
         }
 
-        update_mic_peak(g_stereo_buffer, frames * 2, frames);
+        MicGainManager::process(g_stereo_buffer, frames * 2);
         g_fifo_mic2bt.queueStereo(g_stereo_buffer, frames, kSampleRateHz);
         g_fifo_mic2file.queueStereo(g_stereo_buffer, frames, kSampleRateHz);
         return;
     }
 
-    update_mic_peak(g_mono_buffer, samples, samples);
+    MicGainManager::process(g_mono_buffer, samples);
     g_fifo_mic2bt.queue(g_mono_buffer, samples, kSampleRateHz);
     g_fifo_mic2file.queue(g_mono_buffer, samples, kSampleRateHz);
 }
@@ -896,7 +863,12 @@ bool micMuted()
 
 uint8_t micPeakLevel()
 {
-    return static_cast<uint8_t>((static_cast<uint32_t>(g_mic_peak) * 100U) / 32767U);
+    return MicGainManager::rawPeakLevel();
+}
+
+uint8_t micScaledPeakLevel()
+{
+    return MicGainManager::scaledPeakLevel();
 }
 
 } // namespace AudioManager
