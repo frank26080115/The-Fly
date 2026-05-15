@@ -17,20 +17,26 @@ constexpr const char* TAG = "AudioFileRecorder";
 
 constexpr uint32_t kPumpBudgetMs             = 20;
 constexpr uint8_t  kPumpTargetFillPercentage = 0;    // keep this at zero, draining the FIFO fully is the best way of letting the host decoder know that there was a gap in the data
-constexpr float    kWriteDurationAverageAlpha = 0.05f;
+constexpr float    kWriteDurationAverageAlpha       = 0.05f;
+constexpr uint32_t kWriteDurationThresholdUs        = 10000;
+constexpr uint32_t kTimedFlushIntervalMs            = 2000;
 
 AudioFifo* g_host_fifo = nullptr;
 AudioFifo* g_mic_fifo  = nullptr;
 FsFile     g_file;
-char       g_sd_path[48]    = {};
-uint64_t   g_bytes_written  = 0;
-uint32_t   g_sequence_num   = 0;
-bool       g_recording      = false;
-bool       g_pure_pcm_mode  = false; // for testing only
-bool       g_write_duration_average_valid = false;
-float      g_write_duration_average_us    = 0.0f;
-uint32_t   g_write_duration_max_us        = 0;
-bool       g_next_source_toggle           = true;
+char       g_sd_path[48]                            = {};
+uint64_t   g_bytes_written                          = 0;
+uint32_t   g_sequence_num                           = 0;
+uint32_t   g_last_flush_ms                          = 0;
+bool       g_recording                              = false;
+bool       g_pure_pcm_mode                          = false; // for testing only
+bool       g_write_duration_average_valid           = false;
+float      g_write_duration_average_us              = 0.0f;
+uint32_t   g_write_duration_max_us                  = 0;
+uint32_t   g_last_longwrite_ms                      = 0;
+bool       g_longwrite                              = false;
+bool       g_longwrite_latched                      = false;
+bool       g_next_source_toggle                     = true;
 std::mutex g_recorder_mutex;
 std::mutex g_pump_mutex;
 
@@ -87,8 +93,18 @@ void reset_fifo_flags(AudioFifo& fifo)
     fifo.resetFlowFlags();
 }
 
+bool recording_file_ready_locked();
+
 void update_write_duration_stats(uint32_t duration_us)
 {
+    const bool exceeded_threshold = duration_us > kWriteDurationThresholdUs;
+    if (exceeded_threshold)
+    {
+        g_longwrite = true; // this is to be set false at the top of every pump
+        g_longwrite_latched = true;
+        g_last_longwrite_ms = millis();
+    }
+
     if (!g_write_duration_average_valid)
     {
         g_write_duration_average_us    = static_cast<float>(duration_us);
@@ -103,6 +119,23 @@ void update_write_duration_stats(uint32_t duration_us)
     {
         g_write_duration_max_us = duration_us;
     }
+}
+
+void flush_if_due()
+{
+    const uint32_t now_ms = millis();
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
+    if (!recording_file_ready_locked())
+    {
+        return;
+    }
+    if (static_cast<uint32_t>(now_ms - g_last_flush_ms) < kTimedFlushIntervalMs)
+    {
+        return;
+    }
+
+    g_file.flush();
+    g_last_flush_ms = millis();
 }
 
 bool recording_file_ready_locked()
@@ -301,6 +334,7 @@ bool startRecording(char typeCode)
 
         g_bytes_written  = 0;
         g_sequence_num   = 0;
+        g_last_flush_ms  = millis();
         g_recording      = true;
         strncpy(started_path, g_sd_path, sizeof(started_path) - 1);
     }
@@ -311,11 +345,14 @@ bool startRecording(char typeCode)
 
 void pump()
 {
+    flush_if_due();
+
     if (!recording_file_ready())
     {
         return;
     }
 
+    g_longwrite = false;
     const uint32_t started = millis();
     // pump until no data or until too much time has passed
     do
@@ -365,6 +402,7 @@ bool stopRecording(bool estop)
         if (g_file)
         {
             g_file.flush(); // this makes sure the buffer actually makes it onto the card
+            g_last_flush_ms = millis();
 
             // shrink the grown file to what is required
             if (!g_file.truncate(g_bytes_written))
@@ -422,6 +460,36 @@ void resetWriteDurationStats()
     g_write_duration_average_valid = false;
     g_write_duration_average_us    = 0.0f;
     g_write_duration_max_us        = 0;
+}
+
+bool longWrite()
+{
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
+    return g_longwrite;
+}
+
+bool longWriteSinceReset()
+{
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
+    return g_longwrite_latched;
+}
+
+void resetLongWrite()
+{
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
+    g_longwrite = false;
+}
+
+void resetLongWriteSinceReset()
+{
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
+    g_longwrite_latched = false;
+}
+
+uint32_t lastLongWriteTimestampMs()
+{
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
+    return g_last_longwrite_ms;
 }
 
 uint64_t bytesWritten()
