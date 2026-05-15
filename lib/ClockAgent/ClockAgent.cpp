@@ -1,5 +1,10 @@
 #include "ClockAgent.h"
 
+#include <stdio.h>
+#include <string.h>
+
+#include "version.h"
+
 namespace
 {
 
@@ -68,6 +73,29 @@ bool valid_time(const m5::rtc_time_t& time)
     return time.hours >= 0 && time.hours <= 23 && time.minutes >= 0 && time.minutes <= 59 && time.seconds >= 0 && time.seconds <= 59;
 }
 
+int8_t month_from_name(const char* month)
+{
+    static constexpr const char* kMonths[] = {
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    };
+
+    if (!month)
+    {
+        return 0;
+    }
+
+    for (size_t i = 0; i < sizeof(kMonths) / sizeof(kMonths[0]); ++i)
+    {
+        if (strncmp(month, kMonths[i], 3) == 0)
+        {
+            return static_cast<int8_t>(i + 1);
+        }
+    }
+
+    return 0;
+}
+
 int64_t datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime)
 {
     const int64_t days = days_from_civil(datetime.date.year, datetime.date.month, datetime.date.date);
@@ -98,6 +126,42 @@ m5::rtc_datetime_t epoch_seconds_to_datetime(int64_t epoch_seconds)
     datetime.time.minutes = static_cast<int8_t>((seconds_of_day / 60LL) % 60LL);
     datetime.time.seconds = static_cast<int8_t>(seconds_of_day % 60LL);
     return datetime;
+}
+
+bool parse_compiler_time(const char* text, m5::rtc_datetime_t& datetime)
+{
+    char month_name[4] = {};
+    int  year          = 0;
+    int  month_day     = 0;
+    int  hours         = 0;
+    int  minutes       = 0;
+    int  seconds       = 0;
+
+    if (!text || sscanf(text, "%3s %d %d %d:%d:%d", month_name, &month_day, &year, &hours, &minutes, &seconds) != 6)
+    {
+        return false;
+    }
+
+    const int8_t month = month_from_name(month_name);
+    if (month == 0)
+    {
+        return false;
+    }
+
+    datetime.date.year    = static_cast<int16_t>(year);
+    datetime.date.month   = month;
+    datetime.date.date    = static_cast<int8_t>(month_day);
+    datetime.time.hours   = static_cast<int8_t>(hours);
+    datetime.time.minutes = static_cast<int8_t>(minutes);
+    datetime.time.seconds = static_cast<int8_t>(seconds);
+
+    if (!valid_date(datetime.date) || !valid_time(datetime.time))
+    {
+        return false;
+    }
+
+    datetime.date.weekDay = weekday_from_days(days_from_civil(year, month, month_day));
+    return true;
 }
 
 m5::rtc_datetime_t merge_datetime(const m5::rtc_datetime_t& base, const m5::rtc_date_t* date, const m5::rtc_time_t* time)
@@ -140,6 +204,30 @@ bool ClockAgent::syncFromRtc()
     }
 
     baseEpochSeconds_ = datetime_to_epoch_seconds(datetime);
+    baseMillis_       = millis();
+    synced_           = true;
+    return true;
+}
+
+bool ClockAgent::syncToCompileTime()
+{
+    m5::rtc_datetime_t compile_datetime = {};
+    if (!parse_compiler_time(compiler_time_str, compile_datetime))
+    {
+        return false;
+    }
+
+    const int64_t compile_epoch_seconds = datetime_to_epoch_seconds(compile_datetime);
+
+    m5::rtc_datetime_t rtc_datetime = {};
+    const bool         rtc_valid = M5.Rtc.getDateTime(&rtc_datetime) && valid_date(rtc_datetime.date) && valid_time(rtc_datetime.time);
+    if (!rtc_valid || compile_epoch_seconds > datetime_to_epoch_seconds(rtc_datetime))
+    {
+        setDateTime(compile_datetime);
+        return synced_;
+    }
+
+    baseEpochSeconds_ = datetime_to_epoch_seconds(rtc_datetime);
     baseMillis_       = millis();
     synced_           = true;
     return true;
