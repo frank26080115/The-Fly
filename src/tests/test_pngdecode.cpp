@@ -1,0 +1,80 @@
+#include <Arduino.h>
+#include <M5Unified.h>
+
+#include "FlyGui.h"
+#include "SpriteDraw.h"
+
+#include "all_tests.h"
+#include "sprites.h"
+
+namespace
+{
+
+constexpr const char* TAG = "test_pngdecode";
+
+void on_sprite_draw_callback()
+{
+    taskYIELD();
+}
+
+void report_draw_result(const SpriteDraw::DrawResult& result)
+{
+    Serial.printf("%s: draw %s: decoded=%lux%lu callbacks=%lu pixels=%lu elapsed=%lu.%03lu ms\n",
+                  TAG,
+                  result.ok ? "ok" : "failed",
+                  static_cast<unsigned long>(result.decoded_width),
+                  static_cast<unsigned long>(result.decoded_height),
+                  static_cast<unsigned long>(result.callbacks),
+                  static_cast<unsigned long>(result.pixels),
+                  static_cast<unsigned long>(result.elapsed_us / 1000U),
+                  static_cast<unsigned long>(result.elapsed_us % 1000U));
+}
+
+} // namespace
+
+void test_pngdecode()
+{
+    Serial.begin(115200);
+    delay(1000);
+
+    auto cfg = M5.config();
+    M5.begin(cfg);
+
+    FlyGui gui(M5.Display);
+    M5GFX& display = gui.display();
+
+    display.setBrightness(255);
+    display.setColorDepth(16);
+    display.fillScreen(TFT_BLACK);
+
+    Serial.println();
+    Serial.printf("%s: starting PNG decode test\n", TAG);
+
+    bool use_fast = true;
+
+    while (true)
+    {
+        display.fillScreen(TFT_BLACK);
+
+        const int32_t splash_x = (display.width() - static_cast<int32_t>(SPRIT_SPLASH_WIDTH)) / 2;
+        const int32_t splash_y = (display.height() - static_cast<int32_t>(SPRIT_SPLASH_HEIGHT)) / 2;
+        const SpriteDraw::DrawResult result =
+            SpriteDraw::drawPng(display,
+                                sprit_splash,
+                                SPRIT_SPLASH_BYTES,
+                                splash_x,
+                                splash_y,
+                                SPRIT_SPLASH_WIDTH,
+                                SPRIT_SPLASH_HEIGHT,
+                                use_fast,
+                                on_sprite_draw_callback
+                            );
+        report_draw_result(result);
+
+        delay(3000);
+        display.fillScreen(TFT_BLACK);
+        delay(3000);
+
+        use_fast = !use_fast;
+    }
+}
