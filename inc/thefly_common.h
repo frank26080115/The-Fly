@@ -11,6 +11,7 @@ literally every source file probably includes this file
 #include "conf.h"
 #include "defs.h"
 #include "pins.h"
+#include "thefly_utils.h"
 #include "dbg_log.h"
 
 // extern/global variables and functions go here
