@@ -1,0 +1,11 @@
+{
+  "name": "libsbc-msbc",
+  "version": "1.0.0",
+  "build": {
+    "includeDir": ".",
+    "srcFilter": [
+      "+<sbc.c>",
+      "+<sbc_primitives.c>"
+    ]
+  }
+}

@@ -10,11 +10,19 @@
 #include "MicGainManager.h"
 #include "driver/i2s_pdm.h"
 #include "driver/i2s_std.h"
+#include "esp_heap_caps.h"
 #include "esp_log.h"
-#ifdef USE_BLUEDROID_MSBC
+#if defined(USE_BLUEDROID_MSBC) && defined(USE_LIBSBC_MSBC)
+#error "Use only one of USE_BLUEDROID_MSBC or USE_LIBSBC_MSBC"
+#endif
+#if defined(USE_BLUEDROID_MSBC)
 #include "bluedroid_sbc.h"
-#else
+#define AUDIO_MANAGER_USE_MSBC_CODEC 1
+#elif defined(USE_LIBSBC_MSBC)
 #include "sbc.h"
+#define AUDIO_MANAGER_USE_MSBC_CODEC 1
+#else
+#define AUDIO_MANAGER_USE_MSBC_CODEC 0
 #endif
 #include "utilfuncs.h"
 
@@ -23,9 +31,9 @@ namespace AudioManager
 namespace
 {
 
-#ifdef USE_BLUEDROID_MSBC
+#if defined(USE_BLUEDROID_MSBC)
 using SbcCodec = bluedroid_sbc_t;
-#else
+#elif defined(USE_LIBSBC_MSBC)
 using SbcCodec = sbc_t;
 #endif
 
@@ -36,6 +44,13 @@ enum class SpeakerPath
     None,
     NS4168,
     ExternalI2SCodec,
+};
+
+enum class HfpCallbackPayload
+{
+    Unknown,
+    EncodedMsbc,
+    Pcm,
 };
 
 constexpr i2s_port_t kI2sPort = I2S_NUM_0;
@@ -51,22 +66,23 @@ constexpr uint8_t kAxp192Gpio2Control = 0x93;
 constexpr int     kInternalI2cSda     = 21;
 constexpr int     kInternalI2cScl     = 22;
 
-constexpr size_t   kFifoCapacitySamples           = 8192;
 constexpr size_t   kFifoWatermarkSamples          = 240;
 constexpr size_t   kPumpSamples                   = 240;
 constexpr size_t   kDmaBufferCount                = 8;
 constexpr uint8_t  kVolumeStep                    = 3;
 constexpr uint8_t  kVolumeGainShift               = 10;
 constexpr size_t   kSbcScratchBytes               = 512;
+constexpr uint32_t kMsbcFrameBytes                = 57;
+constexpr uint32_t kMsbcPcmBytes                  = 240;
 constexpr uint16_t kVolumeGainByLevel[kMaxVolume] = {
     // gain = 10^(dB / 20) ; -50 dB was used to generate this table
     3, 4, 5, 6, 7, 9, 11, 13, 16, 19, 24, 29, 35, 43, 52, 64, 78, 95, 115, 141, 172, 209, 255, 311, 380, 463, 565, 688, 840, 1024,
 };
 
-AudioFifo g_fifo_bt2spk(kFifoCapacitySamples, kFifoWatermarkSamples);
-AudioFifo g_fifo_bt2file(kFifoCapacitySamples * 2, 0);
-AudioFifo g_fifo_mic2bt(kFifoCapacitySamples, kFifoWatermarkSamples);
-AudioFifo g_fifo_mic2file(kFifoCapacitySamples * 2, 0);
+AudioFifo g_fifo_bt2spk   (1024 * 4, kFifoWatermarkSamples);
+AudioFifo g_fifo_bt2file  (1024 * 8, 0);
+AudioFifo g_fifo_mic2bt   (1024 * 4, kFifoWatermarkSamples);
+AudioFifo g_fifo_mic2file (1024 * 8, 0);
 
 Hardware          g_hardware               = Hardware::M5StackInternal;
 P2TMode           g_mode                   = P2TMode::Stopped;
@@ -78,8 +94,11 @@ bool              g_initialized            = false;
 bool              g_wire_started           = false;
 HfpCodec          g_hfp_codec              = HfpCodec::Msbc;
 uint32_t          g_hfp_rate_hz            = kSampleRateHz;
+HfpCallbackPayload g_hfp_callback_payload  = HfpCallbackPayload::Unknown;
+#if AUDIO_MANAGER_USE_MSBC_CODEC
 bool              g_sbc_decoder_ready      = false;
 bool              g_sbc_encoder_ready      = false;
+#endif
 volatile size_t   g_i2s_tx_available_bytes = 0;
 portMUX_TYPE      g_i2s_tx_credit_mux      = portMUX_INITIALIZER_UNLOCKED;
 std::mutex        g_pump_mutex;
@@ -88,10 +107,121 @@ size_t            g_pending_speaker_bytes = 0;
 int16_t g_mono_buffer[kPumpSamples];
 int16_t g_stereo_buffer[kPumpSamples * 2];
 uint8_t g_pending_speaker_buffer[kPumpSamples * 2 * sizeof(int16_t)];
+#if AUDIO_MANAGER_USE_MSBC_CODEC
 uint8_t g_sbc_decode_pcm[kSbcScratchBytes];
 uint8_t g_sbc_encode_pcm[kSbcScratchBytes];
 SbcCodec g_sbc_decoder = {};
 SbcCodec g_sbc_encoder = {};
+#endif
+
+HfpAudioDiagnostics g_hfp_diag     = {};
+portMUX_TYPE        g_hfp_diag_mux = portMUX_INITIALIZER_UNLOCKED;
+
+template <typename Updater>
+void update_hfp_diag(Updater updater)
+{
+    portENTER_CRITICAL(&g_hfp_diag_mux);
+    updater(g_hfp_diag);
+    portEXIT_CRITICAL(&g_hfp_diag_mux);
+}
+
+void note_speaker_i2s_write(size_t requested, size_t written, size_t bytes_per_frame, esp_err_t err)
+{
+    update_hfp_diag([requested, written, bytes_per_frame, err](HfpAudioDiagnostics& diag) {
+        if (written > 0)
+        {
+            diag.speakerI2sWriteBytes += written;
+            diag.speakerI2sWriteFrames += bytes_per_frame ? written / bytes_per_frame : 0;
+            ++diag.speakerPumpCalls;
+        }
+        if (written < requested)
+        {
+            ++diag.speakerI2sShortWrites;
+        }
+        if (err != ESP_OK)
+        {
+            ++diag.speakerI2sWriteErrors;
+        }
+    });
+}
+
+bool is_msbc_h2_header(const uint8_t* buf, uint32_t len)
+{
+    if (len < 3 || buf[0] != 0x01 || buf[2] != 0xad)
+    {
+        return false;
+    }
+
+    return buf[1] == 0x08 || buf[1] == 0x38 || buf[1] == 0xc8 || buf[1] == 0xf8;
+}
+
+bool has_msbc_frame_header(const uint8_t* buf, uint32_t len)
+{
+    if (len == 0)
+    {
+        return false;
+    }
+
+    return is_msbc_h2_header(buf, len) || (buf[0] == 0xad && (len % kMsbcFrameBytes) == 0);
+}
+
+void note_hfp_callback_payload(HfpCallbackPayload payload, const char* reason, uint32_t len)
+{
+    if (g_hfp_callback_payload != HfpCallbackPayload::Unknown || payload == HfpCallbackPayload::Unknown)
+    {
+        return;
+    }
+
+    g_hfp_callback_payload = payload;
+    ESP_LOGI(TAG,
+             "HFP callback payload detected as %s: %s, len=%lu",
+             payload == HfpCallbackPayload::EncodedMsbc ? "encoded mSBC" : "PCM",
+             reason,
+             static_cast<unsigned long>(len));
+}
+
+bool hfp_callback_should_decode_msbc(const uint8_t* buf, uint32_t len)
+{
+    if (g_hfp_callback_payload == HfpCallbackPayload::Pcm)
+    {
+        return false;
+    }
+
+    if (has_msbc_frame_header(buf, len))
+    {
+        note_hfp_callback_payload(HfpCallbackPayload::EncodedMsbc, "mSBC frame header present", len);
+        return true;
+    }
+
+    if (len >= kMsbcPcmBytes && (len % sizeof(int16_t)) == 0)
+    {
+        note_hfp_callback_payload(HfpCallbackPayload::Pcm, "no mSBC header and PCM-sized callback", len);
+        return false;
+    }
+
+    return g_hfp_callback_payload == HfpCallbackPayload::EncodedMsbc;
+}
+
+void queue_hfp_pcm(const uint8_t* buf, uint32_t len)
+{
+    if (len < sizeof(int16_t))
+    {
+        return;
+    }
+
+    const size_t samples = len / sizeof(int16_t);
+    const auto*  pcm     = reinterpret_cast<const int16_t*>(buf);
+    const size_t queued_spk  = g_fifo_bt2spk.queue(pcm, samples, g_hfp_rate_hz);
+    const size_t queued_file = g_fifo_bt2file.queue(pcm, samples, g_hfp_rate_hz);
+    update_hfp_diag([len, samples, queued_spk, queued_file](HfpAudioDiagnostics& diag) {
+        ++diag.incomingDecodeFrames;
+        diag.incomingConsumedBytes += len;
+        diag.incomingPcmSamples += samples;
+        diag.incomingQueuedSpkSamples += queued_spk;
+        diag.incomingQueuedFileSamples += queued_file;
+    });
+    pump_bt2spk();
+}
 
 void set_ns4168_speaker_enabled(bool enabled)
 {
@@ -166,11 +296,12 @@ void apply_ns4168_software_volume(int16_t* samples, size_t sampleCount)
 
 void finish_sbc()
 {
+#if AUDIO_MANAGER_USE_MSBC_CODEC
     if (g_sbc_decoder_ready)
     {
-#ifdef USE_BLUEDROID_MSBC
+#if defined(USE_BLUEDROID_MSBC)
         bluedroid_sbc_finish(&g_sbc_decoder);
-#else
+#elif defined(USE_LIBSBC_MSBC)
         sbc_finish(&g_sbc_decoder);
 #endif
         g_sbc_decoder_ready = false;
@@ -178,18 +309,20 @@ void finish_sbc()
 
     if (g_sbc_encoder_ready)
     {
-#ifdef USE_BLUEDROID_MSBC
+#if defined(USE_BLUEDROID_MSBC)
         bluedroid_sbc_finish(&g_sbc_encoder);
-#else
+#elif defined(USE_LIBSBC_MSBC)
         sbc_finish(&g_sbc_encoder);
 #endif
         g_sbc_encoder_ready = false;
     }
+#endif
 }
 
+#if AUDIO_MANAGER_USE_MSBC_CODEC
 bool configure_sbc_struct(SbcCodec& sbc)
 {
-#ifdef USE_BLUEDROID_MSBC
+#if defined(USE_BLUEDROID_MSBC)
     memset(&sbc, 0, sizeof(sbc));
     if (bluedroid_sbc_init(&sbc, 0) != 0)
     {
@@ -200,7 +333,7 @@ bool configure_sbc_struct(SbcCodec& sbc)
         bluedroid_sbc_finish(&sbc);
         return false;
     }
-#else
+#elif defined(USE_LIBSBC_MSBC)
     memset(&sbc, 0, sizeof(sbc));
     if (sbc_init(&sbc, 0) != 0)
     {
@@ -218,9 +351,14 @@ bool configure_sbc_struct(SbcCodec& sbc)
 
     return true;
 }
+#endif
 
 bool init_sbc()
 {
+#if !AUDIO_MANAGER_USE_MSBC_CODEC
+    ESP_LOGI(TAG, "userspace mSBC codec disabled; assuming HFP audio callbacks are PCM");
+    return true;
+#else
     finish_sbc();
 
     g_sbc_decoder_ready = configure_sbc_struct(g_sbc_decoder);
@@ -233,26 +371,27 @@ bool init_sbc()
     }
 
     const size_t frame_length =
-#ifdef USE_BLUEDROID_MSBC
+#if defined(USE_BLUEDROID_MSBC)
         bluedroid_sbc_get_frame_length(&g_sbc_encoder);
-#else
+#elif defined(USE_LIBSBC_MSBC)
         sbc_get_frame_length(&g_sbc_encoder);
 #endif
     const size_t codesize =
-#ifdef USE_BLUEDROID_MSBC
+#if defined(USE_BLUEDROID_MSBC)
         bluedroid_sbc_get_codesize(&g_sbc_encoder);
-#else
+#elif defined(USE_LIBSBC_MSBC)
         sbc_get_codesize(&g_sbc_encoder);
 #endif
 
     ESP_LOGI(TAG, "%s initialized: frame=%u bytes, pcm=%u bytes",
-#ifdef USE_BLUEDROID_MSBC
+#if defined(USE_BLUEDROID_MSBC)
              bluedroid_sbc_get_implementation_info(&g_sbc_encoder),
-#else
+#elif defined(USE_LIBSBC_MSBC)
              sbc_get_implementation_info(&g_sbc_encoder),
 #endif
              static_cast<unsigned>(frame_length), static_cast<unsigned>(codesize));
     return true;
+#endif
 }
 
 size_t take_i2s_tx_frames(size_t maxFrames)
@@ -430,9 +569,35 @@ bool enable_exti2scodec_mic()
     return false;
 }
 
+void log_heap_after_fifo_begin(const char* fifo_name, bool result)
+{
+    ESP_LOGI(TAG,
+             "%s begin %s: free heap=%u, largest block=%u, internal free=%u, spiram free=%u",
+             fifo_name,
+             result ? "ok" : "failed",
+             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_8BIT)),
+             static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)),
+             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)),
+             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT)));
+}
+
 bool begin_fifos()
 {
-    if (!g_fifo_bt2spk.begin() || !g_fifo_bt2file.begin() || !g_fifo_mic2bt.begin() || !g_fifo_mic2file.begin())
+    log_heap_after_fifo_begin("before FIFO allocation", true);
+
+    const bool bt2spk_ok = g_fifo_bt2spk.begin();
+    log_heap_after_fifo_begin("g_fifo_bt2spk", bt2spk_ok);
+
+    const bool bt2file_ok = g_fifo_bt2file.begin();
+    log_heap_after_fifo_begin("g_fifo_bt2file", bt2file_ok);
+
+    const bool mic2bt_ok = g_fifo_mic2bt.begin();
+    log_heap_after_fifo_begin("g_fifo_mic2bt", mic2bt_ok);
+
+    const bool mic2file_ok = g_fifo_mic2file.begin();
+    log_heap_after_fifo_begin("g_fifo_mic2file", mic2file_ok);
+
+    if (!bt2spk_ok || !bt2file_ok || !mic2bt_ok || !mic2file_ok)
     {
         ESP_LOGE(TAG, "Audio FIFO allocation failed");
         return false;
@@ -530,6 +695,7 @@ void pump_bt2spk()
 
         size_t          written = 0;
         const esp_err_t err     = i2s_channel_write(g_i2s_tx, g_pending_speaker_buffer, bytes_to_write, &written, 0);
+        note_speaker_i2s_write(bytes_to_write, written, bytes_per_frame, err);
         if (written > 0)
         {
             const size_t remaining = g_pending_speaker_bytes - written;
@@ -585,6 +751,7 @@ void pump_bt2spk()
     }
 
     const esp_err_t err = i2s_channel_write(g_i2s_tx, samples_to_write, bytes_to_write, &written, 0);
+    note_speaker_i2s_write(bytes_to_write, written, speaker_bytes_per_frame(), err);
     if (err != ESP_OK || written < bytes_to_write)
     {
         return_i2s_tx_bytes(bytes_to_write - written);
@@ -656,13 +823,25 @@ void hfp_incoming_audio(const uint8_t* buf, uint32_t len)
 {
     if (!buf || len == 0)
     {
+        update_hfp_diag([](HfpAudioDiagnostics& diag) {
+            ++diag.incomingNullOrEmpty;
+        });
         return;
     }
 
-    if (g_hfp_codec == HfpCodec::Msbc)
+    update_hfp_diag([len](HfpAudioDiagnostics& diag) {
+        ++diag.incomingCallbacks;
+        diag.incomingBytes += len;
+    });
+
+#if AUDIO_MANAGER_USE_MSBC_CODEC
+    if (g_hfp_codec == HfpCodec::Msbc && hfp_callback_should_decode_msbc(buf, len))
     {
         if (!g_sbc_decoder_ready)
         {
+            update_hfp_diag([](HfpAudioDiagnostics& diag) {
+                ++diag.incomingNoDecoder;
+            });
             return;
         }
 
@@ -671,60 +850,74 @@ void hfp_incoming_audio(const uint8_t* buf, uint32_t len)
         {
             size_t        pcm_written = 0;
             const ssize_t consumed    =
-#ifdef USE_BLUEDROID_MSBC
+#if defined(USE_BLUEDROID_MSBC)
                 bluedroid_sbc_decode(&g_sbc_decoder, buf + pos, len - pos, g_sbc_decode_pcm, sizeof(g_sbc_decode_pcm), &pcm_written);
-#else
+#elif defined(USE_LIBSBC_MSBC)
                 sbc_decode(&g_sbc_decoder, buf + pos, len - pos, g_sbc_decode_pcm, sizeof(g_sbc_decode_pcm), &pcm_written);
 #endif
 
             if (consumed <= 0 || pcm_written == 0)
             {
+                update_hfp_diag([](HfpAudioDiagnostics& diag) {
+                    ++diag.incomingDecodeFailures;
+                });
                 break;
             }
 
             const auto*  pcm     = reinterpret_cast<const int16_t*>(g_sbc_decode_pcm);
             const size_t samples = pcm_written / sizeof(int16_t);
-            g_fifo_bt2spk.queue(pcm, samples, g_hfp_rate_hz);
-            g_fifo_bt2file.queue(pcm, samples, g_hfp_rate_hz);
+            const size_t queued_spk  = g_fifo_bt2spk.queue(pcm, samples, g_hfp_rate_hz);
+            const size_t queued_file = g_fifo_bt2file.queue(pcm, samples, g_hfp_rate_hz);
+            update_hfp_diag([consumed, samples, queued_spk, queued_file](HfpAudioDiagnostics& diag) {
+                ++diag.incomingDecodeFrames;
+                diag.incomingConsumedBytes += static_cast<size_t>(consumed);
+                diag.incomingPcmSamples += samples;
+                diag.incomingQueuedSpkSamples += queued_spk;
+                diag.incomingQueuedFileSamples += queued_file;
+            });
             pos += static_cast<size_t>(consumed);
         }
 
         pump_bt2spk();
         return;
     }
+#endif
 
-    if (len < sizeof(int16_t))
-    {
-        return;
-    }
-
-    const size_t samples = len / sizeof(int16_t);
-    const auto*  pcm     = reinterpret_cast<const int16_t*>(buf);
-    g_fifo_bt2spk.queue(pcm, samples, g_hfp_rate_hz);
-    g_fifo_bt2file.queue(pcm, samples, g_hfp_rate_hz);
-    pump_bt2spk();
+    queue_hfp_pcm(buf, len);
 }
 
 uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
 {
     if (!buf || len < sizeof(int16_t))
     {
+        update_hfp_diag([](HfpAudioDiagnostics& diag) {
+            ++diag.outgoingNullOrSmall;
+        });
         return 0;
     }
 
+    update_hfp_diag([len](HfpAudioDiagnostics& diag) {
+        ++diag.outgoingCallbacks;
+        diag.outgoingRequestedBytes += len;
+    });
+
     pump_mic2bt();
 
-    if (g_hfp_codec == HfpCodec::Msbc)
+#if AUDIO_MANAGER_USE_MSBC_CODEC
+    if (g_hfp_codec == HfpCodec::Msbc && g_hfp_callback_payload != HfpCallbackPayload::Pcm)
     {
         if (!g_sbc_encoder_ready)
         {
+            update_hfp_diag([](HfpAudioDiagnostics& diag) {
+                ++diag.outgoingNoEncoder;
+            });
             return 0;
         }
 
         const size_t codesize =
-#ifdef USE_BLUEDROID_MSBC
+#if defined(USE_BLUEDROID_MSBC)
             bluedroid_sbc_get_codesize(&g_sbc_encoder);
-#else
+#elif defined(USE_LIBSBC_MSBC)
             sbc_get_codesize(&g_sbc_encoder);
 #endif
         if (codesize == 0 || codesize > sizeof(g_sbc_encode_pcm))
@@ -736,27 +929,48 @@ uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
         const size_t read            = g_fifo_mic2bt.dequeueMono(reinterpret_cast<int16_t*>(g_sbc_encode_pcm), samples_to_read);
         if (read < samples_to_read)
         {
+            update_hfp_diag([read](HfpAudioDiagnostics& diag) {
+                ++diag.outgoingUnderflows;
+                diag.outgoingPcmSamplesRead += read;
+            });
             return 0;
         }
 
         ssize_t       encoded  = 0;
         const ssize_t consumed =
-#ifdef USE_BLUEDROID_MSBC
+#if defined(USE_BLUEDROID_MSBC)
             bluedroid_sbc_encode(&g_sbc_encoder, g_sbc_encode_pcm, codesize, buf, len, &encoded);
-#else
+#elif defined(USE_LIBSBC_MSBC)
             sbc_encode(&g_sbc_encoder, g_sbc_encode_pcm, codesize, buf, len, &encoded);
 #endif
         if (consumed <= 0 || encoded <= 0)
         {
+            update_hfp_diag([](HfpAudioDiagnostics& diag) {
+                ++diag.outgoingEncodeFailures;
+            });
             return 0;
         }
 
+        update_hfp_diag([read, encoded](HfpAudioDiagnostics& diag) {
+            ++diag.outgoingEncodeFrames;
+            diag.outgoingPcmSamplesRead += read;
+            diag.outgoingReturnedBytes += static_cast<size_t>(encoded);
+        });
         pump_mic2bt();
         return static_cast<uint32_t>(encoded);
     }
+#endif
 
     const size_t output_samples = len / sizeof(int16_t);
     const size_t read           = g_fifo_mic2bt.dequeueMono(reinterpret_cast<int16_t*>(buf), output_samples, g_hfp_rate_hz);
+    update_hfp_diag([read, output_samples](HfpAudioDiagnostics& diag) {
+        diag.outgoingPcmSamplesRead += read;
+        diag.outgoingReturnedBytes += read * sizeof(int16_t);
+        if (read < output_samples)
+        {
+            ++diag.outgoingUnderflows;
+        }
+    });
     pump_mic2bt();
     return static_cast<uint32_t>(read * sizeof(int16_t));
 }
@@ -771,6 +985,7 @@ bool setHfpAudioFormat(HfpCodec codec, uint32_t sampleRateHz)
 
     g_hfp_codec   = codec;
     g_hfp_rate_hz = sampleRateHz;
+    g_hfp_callback_payload = HfpCallbackPayload::Unknown;
 
     if (g_hfp_codec == HfpCodec::Msbc)
     {
@@ -797,6 +1012,22 @@ HfpCodec hfpAudioCodec()
 uint32_t hfpAudioSampleRateHz()
 {
     return g_hfp_rate_hz;
+}
+
+HfpAudioDiagnostics hfpAudioDiagnostics()
+{
+    HfpAudioDiagnostics snapshot = {};
+    portENTER_CRITICAL(&g_hfp_diag_mux);
+    snapshot = g_hfp_diag;
+    portEXIT_CRITICAL(&g_hfp_diag_mux);
+    return snapshot;
+}
+
+void resetHfpAudioDiagnostics()
+{
+    portENTER_CRITICAL(&g_hfp_diag_mux);
+    g_hfp_diag = {};
+    portEXIT_CRITICAL(&g_hfp_diag_mux);
 }
 
 AudioFifo& bluetoothToSpeakerFifo()

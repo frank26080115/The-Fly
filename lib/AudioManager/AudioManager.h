@@ -30,6 +30,34 @@ enum class HfpCodec
     Msbc,
 };
 
+struct HfpAudioDiagnostics
+{
+    uint32_t incomingCallbacks          = 0;
+    uint32_t incomingNullOrEmpty        = 0;
+    uint32_t incomingNoDecoder          = 0;
+    uint32_t incomingDecodeFrames       = 0;
+    uint32_t incomingDecodeFailures     = 0;
+    uint64_t incomingBytes              = 0;
+    uint64_t incomingConsumedBytes      = 0;
+    uint64_t incomingPcmSamples         = 0;
+    uint64_t incomingQueuedSpkSamples   = 0;
+    uint64_t incomingQueuedFileSamples  = 0;
+    uint32_t outgoingCallbacks          = 0;
+    uint32_t outgoingNullOrSmall        = 0;
+    uint32_t outgoingNoEncoder          = 0;
+    uint32_t outgoingUnderflows         = 0;
+    uint32_t outgoingEncodeFrames       = 0;
+    uint32_t outgoingEncodeFailures     = 0;
+    uint64_t outgoingRequestedBytes     = 0;
+    uint64_t outgoingReturnedBytes      = 0;
+    uint64_t outgoingPcmSamplesRead     = 0;
+    uint64_t speakerPumpCalls           = 0;
+    uint64_t speakerI2sWriteBytes       = 0;
+    uint64_t speakerI2sWriteFrames      = 0;
+    uint32_t speakerI2sShortWrites      = 0;
+    uint32_t speakerI2sWriteErrors      = 0;
+};
+
 static constexpr uint32_t kSampleRateHz = 16000;
 // we normalize all audio to 16KHz when it gets put into the FIFO (and recorded file)
 // the FIFO will upsample or downsample as needed
@@ -55,6 +83,8 @@ uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len);
 bool     setHfpAudioFormat(HfpCodec codec, uint32_t sampleRateHz);
 HfpCodec hfpAudioCodec();
 uint32_t hfpAudioSampleRateHz();
+HfpAudioDiagnostics hfpAudioDiagnostics();
+void resetHfpAudioDiagnostics();
 
 AudioFifo& bluetoothToSpeakerFifo();
 AudioFifo& bluetoothToFileFifo();

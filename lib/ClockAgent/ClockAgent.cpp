@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "version.h"
+#include "thefly_version.h"
 
 namespace
 {
