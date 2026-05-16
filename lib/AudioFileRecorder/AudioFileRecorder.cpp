@@ -327,7 +327,7 @@ bool startRecording(char typeCode)
             return false;
         }
 
-#ifdef ENABLE_PREALLOCATION
+#ifdef ENABLE_FILE_PREALLOCATION
     // preallocate file space to avoid unexpected latency for editing file table entry
         grow_file(g_file, max_prealloc_size());
 #endif

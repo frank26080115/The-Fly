@@ -24,6 +24,8 @@
 #else
 #define AUDIO_MANAGER_USE_MSBC_CODEC 0
 #endif
+#define AUDIO_MANAGER_HFP_CALLBACKS_ARE_PCM 1
+#include "BluetoothManager.h"
 #include "utilfuncs.h"
 
 namespace AudioManager
@@ -74,6 +76,7 @@ constexpr uint8_t  kVolumeGainShift               = 10;
 constexpr size_t   kSbcScratchBytes               = 512;
 constexpr uint32_t kMsbcFrameBytes                = 57;
 constexpr uint32_t kMsbcPcmBytes                  = 240;
+constexpr size_t   kHfpOutgoingNotifyMinSamples   = kMsbcPcmBytes / sizeof(int16_t);
 constexpr uint16_t kVolumeGainByLevel[kMaxVolume] = {
     // gain = 10^(dB / 20) ; -50 dB was used to generate this table
     3, 4, 5, 6, 7, 9, 11, 13, 16, 19, 24, 29, 35, 43, 52, 64, 78, 95, 115, 141, 172, 209, 255, 311, 380, 463, 565, 688, 840, 1024,
@@ -221,6 +224,50 @@ void queue_hfp_pcm(const uint8_t* buf, uint32_t len)
         diag.incomingQueuedFileSamples += queued_file;
     });
     pump_bt2spk();
+}
+
+bool should_notify_hfp_outgoing_ready(size_t queued_bt, bool allow_existing_fifo)
+{
+    const size_t readable_samples = g_fifo_mic2bt.availableToRead();
+    const bool   queued           = queued_bt > 0 || (allow_existing_fifo && readable_samples >= kHfpOutgoingNotifyMinSamples);
+    const bool   enough_samples   = readable_samples >= kHfpOutgoingNotifyMinSamples;
+    const bool   bt_ready         = BtManager::canNotifyOutgoingAudioReady();
+    const bool   ready            = queued && enough_samples && bt_ready;
+
+    update_hfp_diag([readable_samples, queued, enough_samples, bt_ready, ready](HfpAudioDiagnostics& diag) {
+        ++diag.micNotifyChecks;
+        diag.micLastReadableSamples = static_cast<uint32_t>(min(readable_samples, static_cast<size_t>(UINT32_MAX)));
+        diag.micNotifyMinSamples    = static_cast<uint32_t>(kHfpOutgoingNotifyMinSamples);
+        if (!queued)
+        {
+            ++diag.micNotifyNoQueued;
+        }
+        if (queued && !enough_samples)
+        {
+            ++diag.micNotifyBelowMin;
+        }
+        if (queued && enough_samples && !bt_ready)
+        {
+            ++diag.micNotifyBtNotReady;
+        }
+        if (ready)
+        {
+            ++diag.micNotifyReady;
+        }
+    });
+
+    return ready;
+}
+
+void notify_hfp_outgoing_ready_if_possible(size_t queued_bt, bool allow_existing_fifo)
+{
+    if (should_notify_hfp_outgoing_ready(queued_bt, allow_existing_fifo))
+    {
+        BtManager::notifyOutgoingAudioReady();
+        update_hfp_diag([](HfpAudioDiagnostics& diag) {
+            ++diag.micNotifyCalls;
+        });
+    }
 }
 
 void set_ns4168_speaker_enabled(bool enabled)
@@ -769,10 +816,39 @@ void pump_bt2spk()
 
 void pump_mic2bt()
 {
-    if (g_mode != P2TMode::Mic || !g_i2s_rx || g_fifo_mic2bt.availableToWrite() == 0)
+    update_hfp_diag([](HfpAudioDiagnostics& diag) {
+        ++diag.micPumpCalls;
+    });
+
+    if (g_mode != P2TMode::Mic)
     {
+        update_hfp_diag([](HfpAudioDiagnostics& diag) {
+            ++diag.micSkipNotMicMode;
+        });
         MicGainManager::process(nullptr, 0);
         return;
+    }
+
+    if (!g_i2s_rx)
+    {
+        update_hfp_diag([](HfpAudioDiagnostics& diag) {
+            ++diag.micSkipNoI2s;
+        });
+        MicGainManager::process(nullptr, 0);
+        return;
+    }
+
+    const bool bt_ready = BtManager::canNotifyOutgoingAudioReady();
+    if (!bt_ready)
+    {
+        g_fifo_mic2bt.clear();
+    }
+    else if (g_fifo_mic2bt.availableToWrite() == 0)
+    {
+        update_hfp_diag([](HfpAudioDiagnostics& diag) {
+            ++diag.micSkipFifoFull;
+        });
+        notify_hfp_outgoing_ready_if_possible(0, true);
     }
 
     const bool ext_mic = g_hardware == Hardware::ExternalI2SCodec;
@@ -780,8 +856,26 @@ void pump_mic2bt()
     void*  read_buffer = ext_mic ? static_cast<void*>(g_stereo_buffer) : static_cast<void*>(g_mono_buffer);
     size_t read_bytes  = ext_mic ? sizeof(g_stereo_buffer) : sizeof(g_mono_buffer);
 
-    if (i2s_channel_read(g_i2s_rx, read_buffer, read_bytes, &bytes_read, 0) != ESP_OK || bytes_read == 0)
+    update_hfp_diag([read_bytes](HfpAudioDiagnostics& diag) {
+        ++diag.micI2sReadCalls;
+        diag.micI2sRequestedBytes += read_bytes;
+    });
+
+    const esp_err_t read_err = i2s_channel_read(g_i2s_rx, read_buffer, read_bytes, &bytes_read, 0);
+    if (read_err != ESP_OK)
     {
+        update_hfp_diag([](HfpAudioDiagnostics& diag) {
+            ++diag.micI2sReadErrors;
+        });
+        MicGainManager::process(nullptr, 0);
+        return;
+    }
+
+    if (bytes_read == 0)
+    {
+        update_hfp_diag([](HfpAudioDiagnostics& diag) {
+            ++diag.micI2sReadEmpty;
+        });
         MicGainManager::process(nullptr, 0);
         return;
     }
@@ -793,6 +887,11 @@ void pump_mic2bt()
         return;
     }
 
+    update_hfp_diag([bytes_read, samples](HfpAudioDiagnostics& diag) {
+        diag.micI2sReadBytes += bytes_read;
+        diag.micI2sReadSamples += samples;
+    });
+
     if (ext_mic)
     {
         const size_t frames = samples / 2;
@@ -803,14 +902,48 @@ void pump_mic2bt()
         }
 
         MicGainManager::process(g_stereo_buffer, frames * 2);
-        g_fifo_mic2bt.queueStereo(g_stereo_buffer, frames, kSampleRateHz);
-        g_fifo_mic2file.queueStereo(g_stereo_buffer, frames, kSampleRateHz);
+        size_t queued_bt = 0;
+        if (bt_ready && g_fifo_mic2bt.availableToWrite() > 0)
+        {
+            queued_bt = g_fifo_mic2bt.queueStereo(g_stereo_buffer, frames, kSampleRateHz);
+        }
+        const size_t queued_file = g_fifo_mic2file.queueStereo(g_stereo_buffer, frames, kSampleRateHz);
+        update_hfp_diag([queued_bt, queued_file, frames, bt_ready](HfpAudioDiagnostics& diag) {
+            diag.micQueuedBtSamples += queued_bt;
+            diag.micQueuedFileSamples += queued_file;
+            if (!bt_ready)
+            {
+                diag.micBtNotReadySamples += frames;
+            }
+            else if (queued_bt < frames)
+            {
+                diag.micBtFifoFullSamples += frames - queued_bt;
+            }
+        });
+        notify_hfp_outgoing_ready_if_possible(queued_bt, true);
         return;
     }
 
     MicGainManager::process(g_mono_buffer, samples);
-    g_fifo_mic2bt.queue(g_mono_buffer, samples, kSampleRateHz);
-    g_fifo_mic2file.queue(g_mono_buffer, samples, kSampleRateHz);
+    size_t queued_bt = 0;
+    if (bt_ready && g_fifo_mic2bt.availableToWrite() > 0)
+    {
+        queued_bt = g_fifo_mic2bt.queue(g_mono_buffer, samples, kSampleRateHz);
+    }
+    const size_t queued_file = g_fifo_mic2file.queue(g_mono_buffer, samples, kSampleRateHz);
+    update_hfp_diag([queued_bt, queued_file, samples, bt_ready](HfpAudioDiagnostics& diag) {
+        diag.micQueuedBtSamples += queued_bt;
+        diag.micQueuedFileSamples += queued_file;
+        if (!bt_ready)
+        {
+            diag.micBtNotReadySamples += samples;
+        }
+        else if (queued_bt < samples)
+        {
+            diag.micBtFifoFullSamples += samples - queued_bt;
+        }
+    });
+    notify_hfp_outgoing_ready_if_possible(queued_bt, true);
 }
 
 void pump_task()
@@ -834,7 +967,7 @@ void hfp_incoming_audio(const uint8_t* buf, uint32_t len)
         diag.incomingBytes += len;
     });
 
-#if AUDIO_MANAGER_USE_MSBC_CODEC
+#if AUDIO_MANAGER_USE_MSBC_CODEC && !AUDIO_MANAGER_HFP_CALLBACKS_ARE_PCM
     if (g_hfp_codec == HfpCodec::Msbc && hfp_callback_should_decode_msbc(buf, len))
     {
         if (!g_sbc_decoder_ready)
@@ -903,8 +1036,8 @@ uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
 
     pump_mic2bt();
 
-#if AUDIO_MANAGER_USE_MSBC_CODEC
-    if (g_hfp_codec == HfpCodec::Msbc && g_hfp_callback_payload != HfpCallbackPayload::Pcm)
+#if AUDIO_MANAGER_USE_MSBC_CODEC && !AUDIO_MANAGER_HFP_CALLBACKS_ARE_PCM
+    if (g_hfp_codec == HfpCodec::Msbc && g_hfp_callback_payload == HfpCallbackPayload::EncodedMsbc)
     {
         if (!g_sbc_encoder_ready)
         {
@@ -922,6 +1055,9 @@ uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
 #endif
         if (codesize == 0 || codesize > sizeof(g_sbc_encode_pcm))
         {
+            update_hfp_diag([](HfpAudioDiagnostics& diag) {
+                ++diag.outgoingEncodeFailures;
+            });
             return 0;
         }
 
@@ -985,7 +1121,9 @@ bool setHfpAudioFormat(HfpCodec codec, uint32_t sampleRateHz)
 
     g_hfp_codec   = codec;
     g_hfp_rate_hz = sampleRateHz;
-    g_hfp_callback_payload = HfpCallbackPayload::Unknown;
+    // ESP-IDF Bluedroid's HFP co-layer keeps SBC/mSBC inside the stack. The
+    // application data callbacks see raw signed 16-bit mono PCM.
+    g_hfp_callback_payload = HfpCallbackPayload::Pcm;
 
     if (g_hfp_codec == HfpCodec::Msbc)
     {
@@ -997,10 +1135,17 @@ bool setHfpAudioFormat(HfpCodec codec, uint32_t sampleRateHz)
             finish_sbc();
             return false;
         }
+#if AUDIO_MANAGER_HFP_CALLBACKS_ARE_PCM
+        finish_sbc();
+        ESP_LOGI(TAG, "HFP mSBC format set: callback PCM, %lu Hz", static_cast<unsigned long>(g_hfp_rate_hz));
+        return true;
+#else
         return init_sbc();
+#endif
     }
 
     finish_sbc();
+    ESP_LOGI(TAG, "HFP CVSD format set: callback PCM, %lu Hz", static_cast<unsigned long>(g_hfp_rate_hz));
     return true;
 }
 

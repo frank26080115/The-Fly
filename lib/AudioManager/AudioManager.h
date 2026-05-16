@@ -56,6 +56,28 @@ struct HfpAudioDiagnostics
     uint64_t speakerI2sWriteFrames      = 0;
     uint32_t speakerI2sShortWrites      = 0;
     uint32_t speakerI2sWriteErrors      = 0;
+    uint32_t micPumpCalls               = 0;
+    uint32_t micSkipNotMicMode          = 0;
+    uint32_t micSkipNoI2s               = 0;
+    uint32_t micSkipFifoFull            = 0;
+    uint32_t micI2sReadCalls            = 0;
+    uint32_t micI2sReadEmpty            = 0;
+    uint32_t micI2sReadErrors           = 0;
+    uint64_t micI2sRequestedBytes       = 0;
+    uint64_t micI2sReadBytes            = 0;
+    uint64_t micI2sReadSamples          = 0;
+    uint64_t micQueuedBtSamples         = 0;
+    uint64_t micQueuedFileSamples       = 0;
+    uint64_t micBtNotReadySamples       = 0;
+    uint64_t micBtFifoFullSamples       = 0;
+    uint32_t micNotifyChecks            = 0;
+    uint32_t micNotifyReady             = 0;
+    uint32_t micNotifyCalls             = 0;
+    uint32_t micNotifyNoQueued          = 0;
+    uint32_t micNotifyBelowMin          = 0;
+    uint32_t micNotifyBtNotReady        = 0;
+    uint32_t micLastReadableSamples     = 0;
+    uint32_t micNotifyMinSamples        = 0;
 };
 
 static constexpr uint32_t kSampleRateHz = 16000;

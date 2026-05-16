@@ -616,17 +616,19 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTED)
         {
             g_hfp_audio_connecting = false;
-            g_hfp_audio_connected = true;
+            g_hfp_audio_connected = false;
             g_hfp_audio_connect_started_ms = 0;
             AudioManager::setHfpAudioFormat(AudioManager::HfpCodec::Cvsd, 8000);
+            g_hfp_audio_connected = true;
             ESP_LOGI(TAG, "HFP CVSD/narrowband audio connected");
         }
         else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTED_MSBC)
         {
             g_hfp_audio_connecting = false;
-            g_hfp_audio_connected = true;
+            g_hfp_audio_connected = false;
             g_hfp_audio_connect_started_ms = 0;
             AudioManager::setHfpAudioFormat(AudioManager::HfpCodec::Msbc, AudioManager::kSampleRateHz);
+            g_hfp_audio_connected = true;
             ESP_LOGI(TAG, "HFP mSBC/wideband audio connected");
         }
         else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_DISCONNECTED && g_state == State::Connected && g_has_connected_mac)
@@ -984,10 +986,15 @@ Result pickupPhone()
 
 void notifyOutgoingAudioReady()
 {
-    if (g_state == State::Connected)
+    if (canNotifyOutgoingAudioReady())
     {
         esp_hf_client_outgoing_data_ready();
     }
+}
+
+bool canNotifyOutgoingAudioReady()
+{
+    return g_state == State::Connected && g_hfp_audio_connected && g_data_callback_ready;
 }
 
 State state()
