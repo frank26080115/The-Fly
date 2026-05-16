@@ -213,10 +213,8 @@ bool write_packet(AudioFifo& fifo, uint8_t source)
     return true;
 }
 
-bool pump_one_packet()
+bool pump_one_packet_locked()
 {
-    std::lock_guard<std::mutex> pump_lock(g_pump_mutex);
-
     if (!g_host_fifo || !g_mic_fifo || !recording_file_ready())
     {
         return false;
@@ -345,6 +343,12 @@ bool startRecording(char typeCode)
 
 void pump()
 {
+    std::unique_lock<std::mutex> pump_lock(g_pump_mutex, std::try_to_lock);
+    if (!pump_lock.owns_lock())
+    {
+        return;
+    }
+
     flush_if_due();
 
     if (!recording_file_ready())
@@ -357,7 +361,7 @@ void pump()
     // pump until no data or until too much time has passed
     do
     {
-        if (!pump_one_packet())
+        if (!pump_one_packet_locked())
         {
             return;
         }
@@ -376,18 +380,19 @@ bool stopRecording(bool estop)
         }
     }
 
+    bool     ok = true;
+    char     stopped_path[sizeof(g_sd_path)] = {};
+    uint64_t stopped_bytes = 0;
+    std::lock_guard<std::mutex> pump_lock(g_pump_mutex);
     if (!estop)
     {
         // drain the last bit of the FIFO out, there is less pressure now since the FIFOs have been signalled to stop queuing
-        while (pump_one_packet())
+        while (pump_one_packet_locked())
         {
             taskYIELD();
         }
     }
 
-    bool     ok = true;
-    char     stopped_path[sizeof(g_sd_path)] = {};
-    uint64_t stopped_bytes = 0;
     {
         std::lock_guard<std::mutex> lock(g_recorder_mutex);
         if (!g_recording && !g_file)

@@ -12,3 +12,4 @@ constexpr uint64_t kMaxGrowFileBytes = 2ULL * 1024ULL * 1024ULL * 1024ULL;
 #define USE_BLUEDROID_MSBC
 // #define USE_LIBSBC_MSBC
 // #define ENABLE_FILE_PREALLOCATION
+// #define ENABLE_HFP_AUDIO_DIAGNOSTICS
