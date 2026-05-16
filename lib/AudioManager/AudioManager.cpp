@@ -117,6 +117,7 @@ SbcCodec g_sbc_decoder = {};
 SbcCodec g_sbc_encoder = {};
 #endif
 
+#ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
 HfpAudioDiagnostics g_hfp_diag     = {};
 portMUX_TYPE        g_hfp_diag_mux = portMUX_INITIALIZER_UNLOCKED;
 
@@ -128,9 +129,15 @@ void update_hfp_diag(Updater updater)
     portEXIT_CRITICAL(&g_hfp_diag_mux);
 }
 
+#define HFP_AUDIO_DIAG(...) update_hfp_diag(__VA_ARGS__)
+#else
+#define HFP_AUDIO_DIAG(...) do { } while (false)
+#endif
+
+#ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
 void note_speaker_i2s_write(size_t requested, size_t written, size_t bytes_per_frame, esp_err_t err)
 {
-    update_hfp_diag([requested, written, bytes_per_frame, err](HfpAudioDiagnostics& diag) {
+    HFP_AUDIO_DIAG([requested, written, bytes_per_frame, err](HfpAudioDiagnostics& diag) {
         if (written > 0)
         {
             diag.speakerI2sWriteBytes += written;
@@ -147,6 +154,9 @@ void note_speaker_i2s_write(size_t requested, size_t written, size_t bytes_per_f
         }
     });
 }
+#else
+#define note_speaker_i2s_write(...) do { } while (false)
+#endif
 
 bool is_msbc_h2_header(const uint8_t* buf, uint32_t len)
 {
@@ -216,7 +226,7 @@ void queue_hfp_pcm(const uint8_t* buf, uint32_t len)
     const auto*  pcm     = reinterpret_cast<const int16_t*>(buf);
     const size_t queued_spk  = g_fifo_bt2spk.queue(pcm, samples, g_hfp_rate_hz);
     const size_t queued_file = g_fifo_bt2file.queue(pcm, samples, g_hfp_rate_hz);
-    update_hfp_diag([len, samples, queued_spk, queued_file](HfpAudioDiagnostics& diag) {
+    HFP_AUDIO_DIAG([len, samples, queued_spk, queued_file](HfpAudioDiagnostics& diag) {
         ++diag.incomingDecodeFrames;
         diag.incomingConsumedBytes += len;
         diag.incomingPcmSamples += samples;
@@ -234,7 +244,7 @@ bool should_notify_hfp_outgoing_ready(size_t queued_bt, bool allow_existing_fifo
     const bool   bt_ready         = BtManager::canNotifyOutgoingAudioReady();
     const bool   ready            = queued && enough_samples && bt_ready;
 
-    update_hfp_diag([readable_samples, queued, enough_samples, bt_ready, ready](HfpAudioDiagnostics& diag) {
+    HFP_AUDIO_DIAG([readable_samples, queued, enough_samples, bt_ready, ready](HfpAudioDiagnostics& diag) {
         ++diag.micNotifyChecks;
         diag.micLastReadableSamples = static_cast<uint32_t>(min(readable_samples, static_cast<size_t>(UINT32_MAX)));
         diag.micNotifyMinSamples    = static_cast<uint32_t>(kHfpOutgoingNotifyMinSamples);
@@ -259,15 +269,17 @@ bool should_notify_hfp_outgoing_ready(size_t queued_bt, bool allow_existing_fifo
     return ready;
 }
 
-void notify_hfp_outgoing_ready_if_possible(size_t queued_bt, bool allow_existing_fifo)
+void notify_hfp_outgoing_ready(bool ready)
 {
-    if (should_notify_hfp_outgoing_ready(queued_bt, allow_existing_fifo))
+    if (!ready)
     {
-        BtManager::notifyOutgoingAudioReady();
-        update_hfp_diag([](HfpAudioDiagnostics& diag) {
-            ++diag.micNotifyCalls;
-        });
+        return;
     }
+
+    BtManager::notifyOutgoingAudioReady();
+    HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
+        ++diag.micNotifyCalls;
+    });
 }
 
 void set_ns4168_speaker_enabled(bool enabled)
@@ -481,6 +493,10 @@ bool IRAM_ATTR i2s_rx_transfer_ready(i2s_chan_handle_t, i2s_event_data_t*, void*
 
 void stop_i2s()
 {
+    std::lock_guard<std::mutex> lock(g_pump_mutex);
+
+    g_mode = P2TMode::Stopped;
+
     if (g_i2s_tx)
     {
         i2s_channel_disable(g_i2s_tx);
@@ -495,7 +511,6 @@ void stop_i2s()
         g_i2s_rx = nullptr;
     }
 
-    g_mode         = P2TMode::Stopped;
     g_speaker_path = SpeakerPath::None;
     if (g_hardware == Hardware::M5StackInternal)
     {
@@ -723,7 +738,11 @@ P2TMode mode()
 
 void pump_bt2spk()
 {
-    std::lock_guard<std::mutex> lock(g_pump_mutex);
+    std::unique_lock<std::mutex> lock(g_pump_mutex, std::try_to_lock);
+    if (!lock.owns_lock())
+    {
+        return;
+    }
 
     if (g_mode != P2TMode::Speaker || !g_i2s_tx)
     {
@@ -816,13 +835,21 @@ void pump_bt2spk()
 
 void pump_mic2bt()
 {
-    update_hfp_diag([](HfpAudioDiagnostics& diag) {
+    bool notify_ready = false;
+
+    std::unique_lock<std::mutex> lock(g_pump_mutex, std::try_to_lock);
+    if (!lock.owns_lock())
+    {
+        return;
+    }
+
+    HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
         ++diag.micPumpCalls;
     });
 
     if (g_mode != P2TMode::Mic)
     {
-        update_hfp_diag([](HfpAudioDiagnostics& diag) {
+        HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
             ++diag.micSkipNotMicMode;
         });
         MicGainManager::process(nullptr, 0);
@@ -831,7 +858,7 @@ void pump_mic2bt()
 
     if (!g_i2s_rx)
     {
-        update_hfp_diag([](HfpAudioDiagnostics& diag) {
+        HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
             ++diag.micSkipNoI2s;
         });
         MicGainManager::process(nullptr, 0);
@@ -845,10 +872,10 @@ void pump_mic2bt()
     }
     else if (g_fifo_mic2bt.availableToWrite() == 0)
     {
-        update_hfp_diag([](HfpAudioDiagnostics& diag) {
+        HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
             ++diag.micSkipFifoFull;
         });
-        notify_hfp_outgoing_ready_if_possible(0, true);
+        notify_ready = should_notify_hfp_outgoing_ready(0, true);
     }
 
     const bool ext_mic = g_hardware == Hardware::ExternalI2SCodec;
@@ -856,7 +883,7 @@ void pump_mic2bt()
     void*  read_buffer = ext_mic ? static_cast<void*>(g_stereo_buffer) : static_cast<void*>(g_mono_buffer);
     size_t read_bytes  = ext_mic ? sizeof(g_stereo_buffer) : sizeof(g_mono_buffer);
 
-    update_hfp_diag([read_bytes](HfpAudioDiagnostics& diag) {
+    HFP_AUDIO_DIAG([read_bytes](HfpAudioDiagnostics& diag) {
         ++diag.micI2sReadCalls;
         diag.micI2sRequestedBytes += read_bytes;
     });
@@ -864,7 +891,7 @@ void pump_mic2bt()
     const esp_err_t read_err = i2s_channel_read(g_i2s_rx, read_buffer, read_bytes, &bytes_read, 0);
     if (read_err != ESP_OK)
     {
-        update_hfp_diag([](HfpAudioDiagnostics& diag) {
+        HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
             ++diag.micI2sReadErrors;
         });
         MicGainManager::process(nullptr, 0);
@@ -873,7 +900,7 @@ void pump_mic2bt()
 
     if (bytes_read == 0)
     {
-        update_hfp_diag([](HfpAudioDiagnostics& diag) {
+        HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
             ++diag.micI2sReadEmpty;
         });
         MicGainManager::process(nullptr, 0);
@@ -887,7 +914,7 @@ void pump_mic2bt()
         return;
     }
 
-    update_hfp_diag([bytes_read, samples](HfpAudioDiagnostics& diag) {
+    HFP_AUDIO_DIAG([bytes_read, samples](HfpAudioDiagnostics& diag) {
         diag.micI2sReadBytes += bytes_read;
         diag.micI2sReadSamples += samples;
     });
@@ -908,7 +935,7 @@ void pump_mic2bt()
             queued_bt = g_fifo_mic2bt.queueStereo(g_stereo_buffer, frames, kSampleRateHz);
         }
         const size_t queued_file = g_fifo_mic2file.queueStereo(g_stereo_buffer, frames, kSampleRateHz);
-        update_hfp_diag([queued_bt, queued_file, frames, bt_ready](HfpAudioDiagnostics& diag) {
+        HFP_AUDIO_DIAG([queued_bt, queued_file, frames, bt_ready](HfpAudioDiagnostics& diag) {
             diag.micQueuedBtSamples += queued_bt;
             diag.micQueuedFileSamples += queued_file;
             if (!bt_ready)
@@ -920,30 +947,34 @@ void pump_mic2bt()
                 diag.micBtFifoFullSamples += frames - queued_bt;
             }
         });
-        notify_hfp_outgoing_ready_if_possible(queued_bt, true);
-        return;
+        notify_ready = notify_ready || should_notify_hfp_outgoing_ready(queued_bt, true);
+    }
+    else
+    {
+        MicGainManager::process(g_mono_buffer, samples);
+        size_t queued_bt = 0;
+        if (bt_ready && g_fifo_mic2bt.availableToWrite() > 0)
+        {
+            queued_bt = g_fifo_mic2bt.queue(g_mono_buffer, samples, kSampleRateHz);
+        }
+        const size_t queued_file = g_fifo_mic2file.queue(g_mono_buffer, samples, kSampleRateHz);
+        HFP_AUDIO_DIAG([queued_bt, queued_file, samples, bt_ready](HfpAudioDiagnostics& diag) {
+            diag.micQueuedBtSamples += queued_bt;
+            diag.micQueuedFileSamples += queued_file;
+            if (!bt_ready)
+            {
+                diag.micBtNotReadySamples += samples;
+            }
+            else if (queued_bt < samples)
+            {
+                diag.micBtFifoFullSamples += samples - queued_bt;
+            }
+        });
+        notify_ready = notify_ready || should_notify_hfp_outgoing_ready(queued_bt, true);
     }
 
-    MicGainManager::process(g_mono_buffer, samples);
-    size_t queued_bt = 0;
-    if (bt_ready && g_fifo_mic2bt.availableToWrite() > 0)
-    {
-        queued_bt = g_fifo_mic2bt.queue(g_mono_buffer, samples, kSampleRateHz);
-    }
-    const size_t queued_file = g_fifo_mic2file.queue(g_mono_buffer, samples, kSampleRateHz);
-    update_hfp_diag([queued_bt, queued_file, samples, bt_ready](HfpAudioDiagnostics& diag) {
-        diag.micQueuedBtSamples += queued_bt;
-        diag.micQueuedFileSamples += queued_file;
-        if (!bt_ready)
-        {
-            diag.micBtNotReadySamples += samples;
-        }
-        else if (queued_bt < samples)
-        {
-            diag.micBtFifoFullSamples += samples - queued_bt;
-        }
-    });
-    notify_hfp_outgoing_ready_if_possible(queued_bt, true);
+    lock.unlock();
+    notify_hfp_outgoing_ready(notify_ready);
 }
 
 void pump_task()
@@ -956,13 +987,13 @@ void hfp_incoming_audio(const uint8_t* buf, uint32_t len)
 {
     if (!buf || len == 0)
     {
-        update_hfp_diag([](HfpAudioDiagnostics& diag) {
+        HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
             ++diag.incomingNullOrEmpty;
         });
         return;
     }
 
-    update_hfp_diag([len](HfpAudioDiagnostics& diag) {
+    HFP_AUDIO_DIAG([len](HfpAudioDiagnostics& diag) {
         ++diag.incomingCallbacks;
         diag.incomingBytes += len;
     });
@@ -972,7 +1003,7 @@ void hfp_incoming_audio(const uint8_t* buf, uint32_t len)
     {
         if (!g_sbc_decoder_ready)
         {
-            update_hfp_diag([](HfpAudioDiagnostics& diag) {
+            HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
                 ++diag.incomingNoDecoder;
             });
             return;
@@ -991,7 +1022,7 @@ void hfp_incoming_audio(const uint8_t* buf, uint32_t len)
 
             if (consumed <= 0 || pcm_written == 0)
             {
-                update_hfp_diag([](HfpAudioDiagnostics& diag) {
+                HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
                     ++diag.incomingDecodeFailures;
                 });
                 break;
@@ -1001,7 +1032,7 @@ void hfp_incoming_audio(const uint8_t* buf, uint32_t len)
             const size_t samples = pcm_written / sizeof(int16_t);
             const size_t queued_spk  = g_fifo_bt2spk.queue(pcm, samples, g_hfp_rate_hz);
             const size_t queued_file = g_fifo_bt2file.queue(pcm, samples, g_hfp_rate_hz);
-            update_hfp_diag([consumed, samples, queued_spk, queued_file](HfpAudioDiagnostics& diag) {
+            HFP_AUDIO_DIAG([consumed, samples, queued_spk, queued_file](HfpAudioDiagnostics& diag) {
                 ++diag.incomingDecodeFrames;
                 diag.incomingConsumedBytes += static_cast<size_t>(consumed);
                 diag.incomingPcmSamples += samples;
@@ -1023,13 +1054,13 @@ uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
 {
     if (!buf || len < sizeof(int16_t))
     {
-        update_hfp_diag([](HfpAudioDiagnostics& diag) {
+        HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
             ++diag.outgoingNullOrSmall;
         });
         return 0;
     }
 
-    update_hfp_diag([len](HfpAudioDiagnostics& diag) {
+    HFP_AUDIO_DIAG([len](HfpAudioDiagnostics& diag) {
         ++diag.outgoingCallbacks;
         diag.outgoingRequestedBytes += len;
     });
@@ -1041,7 +1072,7 @@ uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
     {
         if (!g_sbc_encoder_ready)
         {
-            update_hfp_diag([](HfpAudioDiagnostics& diag) {
+            HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
                 ++diag.outgoingNoEncoder;
             });
             return 0;
@@ -1055,7 +1086,7 @@ uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
 #endif
         if (codesize == 0 || codesize > sizeof(g_sbc_encode_pcm))
         {
-            update_hfp_diag([](HfpAudioDiagnostics& diag) {
+            HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
                 ++diag.outgoingEncodeFailures;
             });
             return 0;
@@ -1065,7 +1096,7 @@ uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
         const size_t read            = g_fifo_mic2bt.dequeueMono(reinterpret_cast<int16_t*>(g_sbc_encode_pcm), samples_to_read);
         if (read < samples_to_read)
         {
-            update_hfp_diag([read](HfpAudioDiagnostics& diag) {
+            HFP_AUDIO_DIAG([read](HfpAudioDiagnostics& diag) {
                 ++diag.outgoingUnderflows;
                 diag.outgoingPcmSamplesRead += read;
             });
@@ -1081,13 +1112,13 @@ uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
 #endif
         if (consumed <= 0 || encoded <= 0)
         {
-            update_hfp_diag([](HfpAudioDiagnostics& diag) {
+            HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
                 ++diag.outgoingEncodeFailures;
             });
             return 0;
         }
 
-        update_hfp_diag([read, encoded](HfpAudioDiagnostics& diag) {
+        HFP_AUDIO_DIAG([read, encoded](HfpAudioDiagnostics& diag) {
             ++diag.outgoingEncodeFrames;
             diag.outgoingPcmSamplesRead += read;
             diag.outgoingReturnedBytes += static_cast<size_t>(encoded);
@@ -1099,7 +1130,7 @@ uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
 
     const size_t output_samples = len / sizeof(int16_t);
     const size_t read           = g_fifo_mic2bt.dequeueMono(reinterpret_cast<int16_t*>(buf), output_samples, g_hfp_rate_hz);
-    update_hfp_diag([read, output_samples](HfpAudioDiagnostics& diag) {
+    HFP_AUDIO_DIAG([read, output_samples](HfpAudioDiagnostics& diag) {
         diag.outgoingPcmSamplesRead += read;
         diag.outgoingReturnedBytes += read * sizeof(int16_t);
         if (read < output_samples)
@@ -1162,17 +1193,21 @@ uint32_t hfpAudioSampleRateHz()
 HfpAudioDiagnostics hfpAudioDiagnostics()
 {
     HfpAudioDiagnostics snapshot = {};
+#ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
     portENTER_CRITICAL(&g_hfp_diag_mux);
     snapshot = g_hfp_diag;
     portEXIT_CRITICAL(&g_hfp_diag_mux);
+#endif
     return snapshot;
 }
 
 void resetHfpAudioDiagnostics()
 {
+#ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
     portENTER_CRITICAL(&g_hfp_diag_mux);
     g_hfp_diag = {};
     portEXIT_CRITICAL(&g_hfp_diag_mux);
+#endif
 }
 
 AudioFifo& bluetoothToSpeakerFifo()

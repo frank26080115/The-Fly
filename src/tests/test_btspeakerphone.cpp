@@ -34,7 +34,9 @@ constexpr const char* kHelloWorld = "hello world\n";
 constexpr uint32_t    kCore0StackSize = 8192;
 constexpr UBaseType_t kCore0Priority  = 2;
 constexpr uint32_t    kButtonPollMs   = 5;
+#ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
 constexpr uint32_t    kAudioDiagReportMs = 2000;
+#endif
 constexpr uint16_t    kColourGrey     = 0x7BEF;
 
 enum class ControlCommand : uint8_t
@@ -49,6 +51,7 @@ TaskHandle_t   g_core0_task = nullptr;
 QueueHandle_t  g_control_queue = nullptr;
 QueueHandle_t  g_colour_queue  = nullptr;
 
+#ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
 const char* hfp_codec_name(AudioManager::HfpCodec codec)
 {
     switch (codec)
@@ -147,6 +150,7 @@ void log_audio_diagnostics(const AudioManager::HfpAudioDiagnostics& diag, const 
              diag.micNotifyMinSamples,
              BtManager::canNotifyOutgoingAudioReady() ? 1U : 0U);
 }
+#endif
 
 void print_local_bdaddr()
 {
@@ -572,9 +576,11 @@ void test_btspeakerphone()
     #endif
 
     Serial.printf("%s: pumping Bluetooth audio forever\n", TAG);
+#ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
     AudioManager::resetHfpAudioDiagnostics();
     AudioManager::HfpAudioDiagnostics previous_diag = {};
     uint32_t last_diag_report_ms = millis();
+#endif
     bool     blue_sent           = false;
     bool     stop_requested      = false;
     while (!stop_requested)
@@ -605,6 +611,7 @@ void test_btspeakerphone()
             AudioManager::pump_bt2spk();
         }
 
+#ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
         const uint32_t now_ms = millis();
         if (now_ms - last_diag_report_ms >= kAudioDiagReportMs)
         {
@@ -613,6 +620,7 @@ void test_btspeakerphone()
             previous_diag       = diag;
             last_diag_report_ms = now_ms;
         }
+#endif
 
         taskYIELD();
     }
