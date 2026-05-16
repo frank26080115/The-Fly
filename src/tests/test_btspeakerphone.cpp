@@ -17,8 +17,8 @@
 #include "nvs_flash.h"
 #include "utilfuncs.h"
 
-// #define USE_SPECIFIC_BDADDR    "F4:26:79:C6:FA:01" // PC
- #define USE_SPECIFIC_BDADDR    "58:79:e0:36:81:59" // phone
+//#define USE_SPECIFIC_BDADDR    "F4:26:79:C6:FA:01" // PC
+#define USE_SPECIFIC_BDADDR    "58:79:e0:36:81:59" // phone
 // #define USE_SPECIFIC_BONDED_IDX    0
 
 #if defined(USE_SPECIFIC_BDADDR) && defined(USE_SPECIFIC_BONDED_IDX)
@@ -114,6 +114,38 @@ void log_audio_diagnostics(const AudioManager::HfpAudioDiagnostics& diag, const 
              static_cast<int>(AudioManager::mode()),
              hfp_codec_name(AudioManager::hfpAudioCodec()),
              static_cast<unsigned long>(AudioManager::hfpAudioSampleRateHz()));
+
+    ESP_LOGI(TAG,
+             "audio diag mic: pump=%" PRIu32 " (+%" PRIu32 ") skip mode/no_i2s/full=%" PRIu32 "/%" PRIu32 "/%" PRIu32 " i2s=%" PRIu32 " (+%" PRIu32 ") req=%" PRIu64 " (+%" PRIu64 ") read=%" PRIu64 " (+%" PRIu64 ") empty=%" PRIu32 " err=%" PRIu32 " samp=%" PRIu64 " q_bt=%" PRIu64 " (+%" PRIu64 ") q_file=%" PRIu64 " bt_drop notready/full=%" PRIu64 "/%" PRIu64 " notify chk/ready/call=%" PRIu32 "/%" PRIu32 "/%" PRIu32 " block q/min/bt=%" PRIu32 "/%" PRIu32 "/%" PRIu32 " fifo=%u%%/%u min=%" PRIu32 " can_bt=%u",
+             diag.micPumpCalls,
+             delta32(diag.micPumpCalls, previous.micPumpCalls),
+             diag.micSkipNotMicMode,
+             diag.micSkipNoI2s,
+             diag.micSkipFifoFull,
+             diag.micI2sReadCalls,
+             delta32(diag.micI2sReadCalls, previous.micI2sReadCalls),
+             diag.micI2sRequestedBytes,
+             delta64(diag.micI2sRequestedBytes, previous.micI2sRequestedBytes),
+             diag.micI2sReadBytes,
+             delta64(diag.micI2sReadBytes, previous.micI2sReadBytes),
+             diag.micI2sReadEmpty,
+             diag.micI2sReadErrors,
+             diag.micI2sReadSamples,
+             diag.micQueuedBtSamples,
+             delta64(diag.micQueuedBtSamples, previous.micQueuedBtSamples),
+             diag.micQueuedFileSamples,
+             diag.micBtNotReadySamples,
+             diag.micBtFifoFullSamples,
+             diag.micNotifyChecks,
+             diag.micNotifyReady,
+             diag.micNotifyCalls,
+             diag.micNotifyNoQueued,
+             diag.micNotifyBelowMin,
+             diag.micNotifyBtNotReady,
+             static_cast<unsigned>(AudioManager::micToBluetoothFifo().getFillPercentage()),
+             static_cast<unsigned>(AudioManager::micToBluetoothFifo().availableToRead()),
+             diag.micNotifyMinSamples,
+             BtManager::canNotifyOutgoingAudioReady() ? 1U : 0U);
 }
 
 void print_local_bdaddr()

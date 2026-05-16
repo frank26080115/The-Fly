@@ -58,6 +58,7 @@ Result startPairing();
 Result startWaitingForIncomingConnection();
 Result disconnect();
 Result pickupPhone();
+bool   canNotifyOutgoingAudioReady();
 void   notifyOutgoingAudioReady();
 
 State                state();

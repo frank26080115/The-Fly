@@ -101,11 +101,7 @@ static int prepare_decoder(bluedroid_sbc_t* sbc)
     OI_STATUS status;
     if (is_msbc(sbc))
     {
-        status = OI_CODEC_SBC_DecoderReset(&sbc->decoder, sbc->decoder_data_mono.data, sizeof(sbc->decoder_data_mono.data), 1, 1, FALSE);
-        if (OI_SUCCESS(status))
-        {
-            sbc->decoder.common.frameInfo.mSBCEnabled = TRUE;
-        }
+        status = OI_CODEC_SBC_DecoderReset(&sbc->decoder, sbc->decoder_data_mono.data, sizeof(sbc->decoder_data_mono.data), 1, 1, FALSE, TRUE);
     }
     else
     {
@@ -116,19 +112,12 @@ static int prepare_decoder(bluedroid_sbc_t* sbc)
 
         if (channel_count(sbc) == 1)
         {
-            status = OI_CODEC_SBC_DecoderReset(&sbc->decoder, sbc->decoder_data_mono.data, sizeof(sbc->decoder_data_mono.data), 1, 1, FALSE);
+            status = OI_CODEC_SBC_DecoderReset(&sbc->decoder, sbc->decoder_data_mono.data, sizeof(sbc->decoder_data_mono.data), 1, 1, FALSE, FALSE);
         }
         else
         {
-            status = OI_CODEC_SBC_DecoderReset(&sbc->decoder, sbc->decoder_data_stereo.data, sizeof(sbc->decoder_data_stereo.data), 2, 2, FALSE);
+            status = OI_CODEC_SBC_DecoderReset(&sbc->decoder, sbc->decoder_data_stereo.data, sizeof(sbc->decoder_data_stereo.data), 2, 2, FALSE, FALSE);
         }
-
-        if (!OI_SUCCESS(status))
-        {
-            return BLUEDROID_SBC_ERR;
-        }
-
-        status = OI_CODEC_SBC_DecoderConfigureRaw(&sbc->decoder, FALSE, sbc->frequency, sbc->mode, oi_subbands(sbc), oi_blocks(sbc), sbc->allocation, sbc->bitpool);
     }
 
     if (!OI_SUCCESS(status))
@@ -168,8 +157,9 @@ static int prepare_encoder(bluedroid_sbc_t* sbc)
     sbc->encoder.s16NumOfBlocks      = blocks;
     sbc->encoder.s16AllocationMethod = sbc->allocation;
     sbc->encoder.s16BitPool          = sbc->bitpool;
+    sbc->encoder.u16BitRate          = 64;
+    sbc->encoder.sbc_mode            = is_msbc(sbc) ? SBC_MODE_MSBC : SBC_MODE_STD;
     sbc->encoder.u8NumPacketToEncode = 1;
-    sbc->encoder.mSBCEnabled         = is_msbc(sbc) ? TRUE : FALSE;
     SBC_Encoder_Init(&sbc->encoder);
     sbc->encoder_ready = 1;
     return BLUEDROID_SBC_OK;
@@ -278,7 +268,11 @@ ssize_t bluedroid_sbc_encode(bluedroid_sbc_t* sbc, const void* input, size_t inp
         return BLUEDROID_SBC_ERR;
     }
 
+#if (SBC_NO_PCM_CPY_OPTION == TRUE)
     sbc->encoder.ps16PcmBuffer       = (SINT16*)input;
+#else
+    memcpy(sbc->encoder.as16PcmBuffer, input, codesize);
+#endif
     sbc->encoder.pu8Packet           = (UINT8*)output;
     sbc->encoder.u16PacketLength     = 0;
     sbc->encoder.u8NumPacketToEncode = 1;
@@ -348,7 +342,7 @@ size_t bluedroid_sbc_get_codesize(bluedroid_sbc_t* sbc)
 const char* bluedroid_sbc_get_implementation_info(bluedroid_sbc_t* sbc)
 {
     (void)sbc;
-    return "Bluedroid SBC/mSBC";
+    return "ESP-IDF Bluedroid SBC/mSBC";
 }
 
 void bluedroid_sbc_finish(bluedroid_sbc_t* sbc)
