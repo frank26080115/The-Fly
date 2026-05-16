@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include "oi_codec_sbc.h"
-#include "sbc_encoder.h"
+#include "decoder/include/oi_codec_sbc.h"
+#include "encoder/include/sbc_encoder.h"
 
 #ifdef __cplusplus
 extern "C"

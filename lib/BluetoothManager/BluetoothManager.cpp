@@ -10,6 +10,8 @@
 #include "esp32-hal-bt.h"
 #include "esp_log.h"
 #include "esp_mac.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "AudioManager.h"
 #include "utilfuncs.h"
 
@@ -23,6 +25,10 @@ constexpr char        kLegacyPin[]        = "0000";
 constexpr size_t      kLegacyPinMaxLength = sizeof(esp_bt_pin_code_t);
 constexpr size_t      kGeneratedPinLength = 4;
 constexpr int         kHfpMaxVolume       = 15;
+constexpr uint32_t    kAudioConnectRetryMs = 1000;
+constexpr uint32_t    kAudioConnectTimeoutMs = 3000;
+constexpr uint32_t    kAudioConnectTaskStack = 4096;
+constexpr UBaseType_t kAudioConnectTaskPriority = 1;
 
 State                 g_state                  = State::Idle;
 esp_bd_addr_t         g_target_mac             = {};
@@ -34,6 +40,13 @@ bool                  g_bt_ready               = false;
 bool                  g_hfp_ready              = false;
 bool                  g_data_callback_ready    = false;
 bool                  g_disconnect_requested   = false;
+volatile bool         g_hfp_audio_connecting   = false;
+volatile bool         g_hfp_audio_connected    = false;
+volatile bool         g_hfp_call_active        = false;
+volatile bool         g_hfp_call_setup_active  = false;
+volatile bool         g_hfp_answer_requested   = false;
+uint32_t              g_hfp_audio_connect_started_ms = 0;
+TaskHandle_t          g_audio_connect_task     = nullptr;
 IncomingAudioCallback g_incoming_audio         = nullptr;
 OutgoingAudioCallback g_outgoing_audio         = nullptr;
 PairedCallback        g_paired_callback        = nullptr;
@@ -104,6 +117,95 @@ const char* bluedroid_status_name(esp_bluedroid_status_t status)
         return "INITIALIZED";
     case ESP_BLUEDROID_STATUS_ENABLED:
         return "ENABLED";
+    default:
+        return "UNKNOWN";
+    }
+}
+
+const char* hfp_event_name(esp_hf_client_cb_event_t event)
+{
+    switch (event)
+    {
+    case ESP_HF_CLIENT_CONNECTION_STATE_EVT:
+        return "ESP_HF_CLIENT_CONNECTION_STATE_EVT";
+    case ESP_HF_CLIENT_AUDIO_STATE_EVT:
+        return "ESP_HF_CLIENT_AUDIO_STATE_EVT";
+    case ESP_HF_CLIENT_BVRA_EVT:
+        return "ESP_HF_CLIENT_BVRA_EVT";
+    case ESP_HF_CLIENT_CIND_CALL_EVT:
+        return "ESP_HF_CLIENT_CIND_CALL_EVT";
+    case ESP_HF_CLIENT_CIND_CALL_SETUP_EVT:
+        return "ESP_HF_CLIENT_CIND_CALL_SETUP_EVT";
+    case ESP_HF_CLIENT_CIND_CALL_HELD_EVT:
+        return "ESP_HF_CLIENT_CIND_CALL_HELD_EVT";
+    case ESP_HF_CLIENT_CIND_SERVICE_AVAILABILITY_EVT:
+        return "ESP_HF_CLIENT_CIND_SERVICE_AVAILABILITY_EVT";
+    case ESP_HF_CLIENT_CIND_SIGNAL_STRENGTH_EVT:
+        return "ESP_HF_CLIENT_CIND_SIGNAL_STRENGTH_EVT";
+    case ESP_HF_CLIENT_CIND_ROAMING_STATUS_EVT:
+        return "ESP_HF_CLIENT_CIND_ROAMING_STATUS_EVT";
+    case ESP_HF_CLIENT_CIND_BATTERY_LEVEL_EVT:
+        return "ESP_HF_CLIENT_CIND_BATTERY_LEVEL_EVT";
+    case ESP_HF_CLIENT_COPS_CURRENT_OPERATOR_EVT:
+        return "ESP_HF_CLIENT_COPS_CURRENT_OPERATOR_EVT";
+    case ESP_HF_CLIENT_BTRH_EVT:
+        return "ESP_HF_CLIENT_BTRH_EVT";
+    case ESP_HF_CLIENT_CLIP_EVT:
+        return "ESP_HF_CLIENT_CLIP_EVT";
+    case ESP_HF_CLIENT_CCWA_EVT:
+        return "ESP_HF_CLIENT_CCWA_EVT";
+    case ESP_HF_CLIENT_CLCC_EVT:
+        return "ESP_HF_CLIENT_CLCC_EVT";
+    case ESP_HF_CLIENT_VOLUME_CONTROL_EVT:
+        return "ESP_HF_CLIENT_VOLUME_CONTROL_EVT";
+    case ESP_HF_CLIENT_AT_RESPONSE_EVT:
+        return "ESP_HF_CLIENT_AT_RESPONSE_EVT";
+    case ESP_HF_CLIENT_CNUM_EVT:
+        return "ESP_HF_CLIENT_CNUM_EVT";
+    case ESP_HF_CLIENT_BSIR_EVT:
+        return "ESP_HF_CLIENT_BSIR_EVT";
+    case ESP_HF_CLIENT_BINP_EVT:
+        return "ESP_HF_CLIENT_BINP_EVT";
+    case ESP_HF_CLIENT_RING_IND_EVT:
+        return "ESP_HF_CLIENT_RING_IND_EVT";
+    case ESP_HF_CLIENT_PKT_STAT_NUMS_GET_EVT:
+        return "ESP_HF_CLIENT_PKT_STAT_NUMS_GET_EVT";
+    default:
+        return "ESP_HF_CLIENT_UNKNOWN_EVT";
+    }
+}
+
+const char* hfp_connection_state_name(esp_hf_client_connection_state_t state)
+{
+    switch (state)
+    {
+    case ESP_HF_CLIENT_CONNECTION_STATE_DISCONNECTED:
+        return "DISCONNECTED";
+    case ESP_HF_CLIENT_CONNECTION_STATE_CONNECTING:
+        return "CONNECTING";
+    case ESP_HF_CLIENT_CONNECTION_STATE_CONNECTED:
+        return "CONNECTED";
+    case ESP_HF_CLIENT_CONNECTION_STATE_SLC_CONNECTED:
+        return "SLC_CONNECTED";
+    case ESP_HF_CLIENT_CONNECTION_STATE_DISCONNECTING:
+        return "DISCONNECTING";
+    default:
+        return "UNKNOWN";
+    }
+}
+
+const char* hfp_audio_state_name(esp_hf_client_audio_state_t state)
+{
+    switch (state)
+    {
+    case ESP_HF_CLIENT_AUDIO_STATE_DISCONNECTED:
+        return "DISCONNECTED";
+    case ESP_HF_CLIENT_AUDIO_STATE_CONNECTING:
+        return "CONNECTING";
+    case ESP_HF_CLIENT_AUDIO_STATE_CONNECTED:
+        return "CONNECTED";
+    case ESP_HF_CLIENT_AUDIO_STATE_CONNECTED_MSBC:
+        return "CONNECTED_MSBC";
     default:
         return "UNKNOWN";
     }
@@ -262,6 +364,100 @@ bool register_data_callbacks_if_ready()
     return true;
 }
 
+bool hfp_audio_connect_timed_out()
+{
+    return g_hfp_audio_connecting && (millis() - g_hfp_audio_connect_started_ms) >= kAudioConnectTimeoutMs;
+}
+
+esp_err_t connect_hfp_audio_once(const char* reason)
+{
+    if (!g_has_connected_mac)
+    {
+        ESP_LOGW(TAG, "hfp audio connect skipped (%s): no connected MAC", reason);
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    if (g_hfp_audio_connected)
+    {
+        ESP_LOGI(TAG, "hfp audio connect skipped (%s): already connected", reason);
+        return ESP_OK;
+    }
+
+    if (g_hfp_audio_connecting)
+    {
+        if (!hfp_audio_connect_timed_out())
+        {
+            ESP_LOGI(TAG, "hfp audio connect skipped (%s): already connecting", reason);
+            return ESP_OK;
+        }
+
+        ESP_LOGW(TAG, "hfp audio connect timed out while %s, retrying", reason);
+        g_hfp_audio_connecting = false;
+    }
+
+    const esp_err_t err = esp_hf_client_connect_audio(g_connected_mac);
+    ESP_LOGI(TAG, "esp_hf_client_connect_audio (%s) returned: %s", reason, esp_err_to_name(err));
+    if (err == ESP_OK)
+    {
+        g_hfp_audio_connecting = true;
+        g_hfp_audio_connect_started_ms = millis();
+    }
+    return err;
+}
+
+void answer_incoming_call_once(const char* reason)
+{
+    if (g_hfp_answer_requested || g_hfp_call_active)
+    {
+        return;
+    }
+
+    const esp_err_t err = esp_hf_client_answer_call();
+    ESP_LOGI(TAG, "esp_hf_client_answer_call (%s) returned: %s", reason, esp_err_to_name(err));
+    if (err == ESP_OK)
+    {
+        g_hfp_answer_requested = true;
+    }
+}
+
+void audio_connect_retry_task(void*)
+{
+    ESP_LOGI(TAG, "hfp audio connect retry task started");
+
+    while (g_state == State::Connected && g_has_connected_mac && !g_hfp_audio_connected && !g_disconnect_requested && g_hfp_call_active)
+    {
+        if (!g_hfp_audio_connecting || hfp_audio_connect_timed_out())
+        {
+            connect_hfp_audio_once("retry task");
+        }
+        vTaskDelay(pdMS_TO_TICKS(kAudioConnectRetryMs));
+    }
+
+    ESP_LOGI(TAG, "hfp audio connect retry task stopped");
+    g_audio_connect_task = nullptr;
+    vTaskDelete(nullptr);
+}
+
+void start_audio_connect_retries()
+{
+    if (g_audio_connect_task || g_hfp_audio_connected)
+    {
+        return;
+    }
+
+    const BaseType_t created = xTaskCreate(audio_connect_retry_task,
+                                           "hfp_audio_retry",
+                                           kAudioConnectTaskStack,
+                                           nullptr,
+                                           kAudioConnectTaskPriority,
+                                           &g_audio_connect_task);
+    if (created != pdPASS)
+    {
+        g_audio_connect_task = nullptr;
+        ESP_LOGE(TAG, "failed to create hfp audio connect retry task");
+    }
+}
+
 void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param)
 {
     switch (event)
@@ -336,14 +532,23 @@ void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param)
 
 void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
 {
+    ESP_LOGI(TAG, "hfp_event: %s (%d)", hfp_event_name(event), static_cast<int>(event));
+
     if (!param)
     {
+        ESP_LOGW(TAG, "hfp_event %s had null param", hfp_event_name(event));
         return;
     }
 
     switch (event)
     {
     case ESP_HF_CLIENT_CONNECTION_STATE_EVT:
+        ESP_LOGI(TAG,
+                 "hfp connection state: %s (%d), peer_feat=0x%08" PRIx32 ", chld_feat=0x%08" PRIx32,
+                 hfp_connection_state_name(param->conn_stat.state),
+                 static_cast<int>(param->conn_stat.state),
+                 param->conn_stat.peer_feat,
+                 param->conn_stat.chld_feat);
         switch (param->conn_stat.state)
         {
         case ESP_HF_CLIENT_CONNECTION_STATE_CONNECTING:
@@ -358,9 +563,14 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         case ESP_HF_CLIENT_CONNECTION_STATE_SLC_CONNECTED:
             copy_bda(g_connected_mac, param->conn_stat.remote_bda);
             g_has_connected_mac = true;
+            g_hfp_audio_connecting = false;
+            g_hfp_audio_connected = false;
+            g_hfp_call_active = false;
+            g_hfp_call_setup_active = false;
+            g_hfp_answer_requested = false;
+            g_hfp_audio_connect_started_ms = 0;
             close_pairing_or_waiting_window();
             set_state(State::Connected);
-            ok(esp_hf_client_connect_audio(g_connected_mac), "hfp audio connect");
             break;
 
         case ESP_HF_CLIENT_CONNECTION_STATE_DISCONNECTING:
@@ -370,6 +580,12 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         case ESP_HF_CLIENT_CONNECTION_STATE_DISCONNECTED:
         default:
             g_has_connected_mac = false;
+            g_hfp_audio_connecting = false;
+            g_hfp_audio_connected = false;
+            g_hfp_call_active = false;
+            g_hfp_call_setup_active = false;
+            g_hfp_answer_requested = false;
+            g_hfp_audio_connect_started_ms = 0;
             if (g_disconnect_requested || g_state == State::Pairing)
             {
                 g_disconnect_requested = false;
@@ -384,21 +600,150 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         break;
 
     case ESP_HF_CLIENT_AUDIO_STATE_EVT:
+        ESP_LOGI(TAG,
+                 "hfp audio state: %s (%d), sync_conn_handle=%u",
+                 hfp_audio_state_name(param->audio_stat.state),
+                 static_cast<int>(param->audio_stat.state),
+                 static_cast<unsigned>(param->audio_stat.sync_conn_handle));
+        if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTING)
+        {
+            g_hfp_audio_connecting = true;
+            if (g_hfp_audio_connect_started_ms == 0)
+            {
+                g_hfp_audio_connect_started_ms = millis();
+            }
+        }
         if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTED)
         {
+            g_hfp_audio_connecting = false;
+            g_hfp_audio_connected = true;
+            g_hfp_audio_connect_started_ms = 0;
             AudioManager::setHfpAudioFormat(AudioManager::HfpCodec::Cvsd, 8000);
             ESP_LOGI(TAG, "HFP CVSD/narrowband audio connected");
         }
         else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTED_MSBC)
         {
+            g_hfp_audio_connecting = false;
+            g_hfp_audio_connected = true;
+            g_hfp_audio_connect_started_ms = 0;
             AudioManager::setHfpAudioFormat(AudioManager::HfpCodec::Msbc, AudioManager::kSampleRateHz);
             ESP_LOGI(TAG, "HFP mSBC/wideband audio connected");
         }
         else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_DISCONNECTED && g_state == State::Connected && g_has_connected_mac)
         {
+            g_hfp_audio_connecting = false;
+            g_hfp_audio_connected = false;
+            g_hfp_audio_connect_started_ms = 0;
             AudioManager::setHfpAudioFormat(AudioManager::HfpCodec::Cvsd, 8000);
-            ok(esp_hf_client_connect_audio(g_connected_mac), "hfp audio reconnect");
         }
+        break;
+
+    case ESP_HF_CLIENT_CIND_CALL_EVT:
+        ESP_LOGI(TAG, "hfp call status: %d", static_cast<int>(param->call.status));
+        g_hfp_call_active = param->call.status != 0;
+        if (!g_hfp_call_active)
+        {
+            g_hfp_call_setup_active = false;
+            g_hfp_answer_requested = false;
+        }
+        if (param->call.status && !g_hfp_audio_connected)
+        {
+            connect_hfp_audio_once("call active");
+            start_audio_connect_retries();
+        }
+        break;
+
+    case ESP_HF_CLIENT_CIND_CALL_SETUP_EVT:
+        ESP_LOGI(TAG, "hfp call setup status: %d", static_cast<int>(param->call_setup.status));
+        g_hfp_call_setup_active = param->call_setup.status != 0;
+        if (param->call_setup.status == ESP_HF_CALL_SETUP_STATUS_INCOMING)
+        {
+            answer_incoming_call_once("incoming call setup");
+        }
+        break;
+
+    case ESP_HF_CLIENT_CIND_CALL_HELD_EVT:
+        ESP_LOGI(TAG, "hfp call held status: %d", static_cast<int>(param->call_held.status));
+        break;
+
+    case ESP_HF_CLIENT_AT_RESPONSE_EVT:
+        ESP_LOGI(TAG, "hfp AT response: code=%d cme=%d", static_cast<int>(param->at_response.code), static_cast<int>(param->at_response.cme));
+        break;
+
+    case ESP_HF_CLIENT_CLIP_EVT:
+        ESP_LOGI(TAG, "hfp caller id: %s", param->clip.number ? param->clip.number : "(null)");
+        break;
+
+    case ESP_HF_CLIENT_CCWA_EVT:
+        ESP_LOGI(TAG, "hfp call waiting: %s", param->ccwa.number ? param->ccwa.number : "(null)");
+        break;
+
+    case ESP_HF_CLIENT_CLCC_EVT:
+        ESP_LOGI(TAG,
+                 "hfp current call: idx=%d dir=%d status=%d mpty=%d number=%s",
+                 param->clcc.idx,
+                 static_cast<int>(param->clcc.dir),
+                 static_cast<int>(param->clcc.status),
+                 static_cast<int>(param->clcc.mpty),
+                 param->clcc.number ? param->clcc.number : "(null)");
+        break;
+
+    case ESP_HF_CLIENT_CIND_SERVICE_AVAILABILITY_EVT:
+        ESP_LOGI(TAG, "hfp service availability: %d", static_cast<int>(param->service_availability.status));
+        break;
+
+    case ESP_HF_CLIENT_CIND_SIGNAL_STRENGTH_EVT:
+        ESP_LOGI(TAG, "hfp signal strength: %d", param->signal_strength.value);
+        break;
+
+    case ESP_HF_CLIENT_CIND_ROAMING_STATUS_EVT:
+        ESP_LOGI(TAG, "hfp roaming status: %d", static_cast<int>(param->roaming.status));
+        break;
+
+    case ESP_HF_CLIENT_CIND_BATTERY_LEVEL_EVT:
+        ESP_LOGI(TAG, "hfp battery level: %d", param->battery_level.value);
+        break;
+
+    case ESP_HF_CLIENT_COPS_CURRENT_OPERATOR_EVT:
+        ESP_LOGI(TAG, "hfp operator: %s", param->cops.name ? param->cops.name : "(null)");
+        break;
+
+    case ESP_HF_CLIENT_BVRA_EVT:
+        ESP_LOGI(TAG, "hfp voice recognition state: %d", static_cast<int>(param->bvra.value));
+        break;
+
+    case ESP_HF_CLIENT_BTRH_EVT:
+        ESP_LOGI(TAG, "hfp response and hold status: %d", static_cast<int>(param->btrh.status));
+        break;
+
+    case ESP_HF_CLIENT_CNUM_EVT:
+        ESP_LOGI(TAG, "hfp subscriber number: %s type=%d", param->cnum.number ? param->cnum.number : "(null)", static_cast<int>(param->cnum.type));
+        break;
+
+    case ESP_HF_CLIENT_BSIR_EVT:
+        ESP_LOGI(TAG, "hfp in-band ringtone state: %d", static_cast<int>(param->bsir.state));
+        break;
+
+    case ESP_HF_CLIENT_BINP_EVT:
+        ESP_LOGI(TAG, "hfp voice tag number: %s", param->binp.number ? param->binp.number : "(null)");
+        break;
+
+    case ESP_HF_CLIENT_RING_IND_EVT:
+        ESP_LOGI(TAG, "hfp ring indication");
+        g_hfp_call_setup_active = true;
+        answer_incoming_call_once("ring indication");
+        break;
+
+    case ESP_HF_CLIENT_PKT_STAT_NUMS_GET_EVT:
+        ESP_LOGI(TAG,
+                 "hfp packet stats: rx_total=%" PRIu32 " rx_correct=%" PRIu32 " rx_err=%" PRIu32 " rx_none=%" PRIu32 " rx_lost=%" PRIu32 " tx_total=%" PRIu32 " tx_discarded=%" PRIu32,
+                 param->pkt_nums.rx_total,
+                 param->pkt_nums.rx_correct,
+                 param->pkt_nums.rx_err,
+                 param->pkt_nums.rx_none,
+                 param->pkt_nums.rx_lost,
+                 param->pkt_nums.tx_total,
+                 param->pkt_nums.tx_discarded);
         break;
 
     case ESP_HF_CLIENT_VOLUME_CONTROL_EVT:
@@ -416,6 +761,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         break;
 
     default:
+        ESP_LOGI(TAG, "hfp event has no detailed logger yet: %s (%d)", hfp_event_name(event), static_cast<int>(event));
         break;
     }
 }
