@@ -35,7 +35,8 @@
 # content rather than hand-written project source.
 #
 # What to commit for another PC:
-# Commit this script, `dependencies.lock`, and `managed_components.zip`.
+# Commit this script, the root `CMakeLists.txt` that defines the ESP-IDF
+# component-manager project, `dependencies.lock`, `.dummy`, and `managed_components.zip`.
 # Do not commit the expanded `managed_components/` directory. It is ignored by
 # `.gitignore`; this script recreates it from `managed_components.zip` if the
 # archive exists and the directory is missing. If you already have the directory

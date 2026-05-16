@@ -44,6 +44,8 @@ build/
 Build/
 build-*/
 .pio/
+managed_components/
+!managed_components.zip
 
 # Reference-only sketches and snippets. These are not part of the firmware.
 code_for_reference/
