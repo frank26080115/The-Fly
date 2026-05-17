@@ -7,6 +7,8 @@
 #include "esp_hf_client_api.h"
 #include "AudioManager.h"
 
+class BtHostList;
+
 namespace BtManager
 {
 
@@ -51,6 +53,7 @@ const char* generatedLegacyPin();
 
 void setPairedCallback(PairedCallback callback);
 void setStateChangedCallback(StateChangedCallback callback);
+BtHostList& hostList();
 
 Result connectToMac(const char* mac);
 Result connectToMac(const esp_bd_addr_t mac);
