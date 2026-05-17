@@ -86,7 +86,7 @@ static bool loadLittleFsImageFile(const char* path, void** buffer, size_t* buffe
 
 static bool loadSdFatImageFile(const char* path, void** buffer, size_t* bufferSize)
 {
-    if (!MicroSdCard::begin())
+    if (!MicroSdCard::isReady())
     {
         return false;
     }
