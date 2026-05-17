@@ -674,14 +674,6 @@ bool init(Hardware hardware)
 {
     g_hardware = hardware;
 
-    auto cfg                   = M5.config();
-    cfg.internal_spk           = hardware == Hardware::M5StackInternal;
-    cfg.internal_mic           = hardware == Hardware::M5StackInternal;
-    cfg.external_speaker_value = 0;
-    M5.begin(cfg);
-    M5.Speaker.end();
-    M5.Mic.end();
-
     if (!begin_fifos())
     {
         ESP_LOGE(TAG, "AudioManager begin_fifos failed");

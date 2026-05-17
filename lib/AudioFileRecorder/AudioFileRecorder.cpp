@@ -40,11 +40,6 @@ bool       g_next_source_toggle                     = true;
 std::mutex g_recorder_mutex;
 std::mutex g_pump_mutex;
 
-bool init_sd()
-{
-    return MicroSdCard::begin();
-}
-
 uint64_t max_prealloc_size()
 {
     uint64_t free_bytes = MicroSdCard::freeBytes();
@@ -276,7 +271,7 @@ bool init(AudioFifo& hostFifo, AudioFifo& micFifo)
         g_host_fifo = &hostFifo;
         g_mic_fifo  = &micFifo;
     }
-    return init_sd();
+    return true;
 }
 
 bool startRecording(RecordingType type)
@@ -298,9 +293,9 @@ bool startRecording(char typeCode)
         stopRecording();
     }
 
-    // make sure card is ready
-    if (!init_sd())
+    if (!MicroSdCard::isReady())
     {
+        DBG_LOGE(TAG, "microSD card is not ready");
         return false;
     }
 
