@@ -8,11 +8,13 @@
   "stations": [
     {
       "ssid": "Home-WiFi",
-      "password": "replace-with-home-password"
+      "password": "replace-with-home-password",
+      "icon": "home"
     },
     {
       "ssid": "Phone-Hotspot",
-      "password": "replace-with-hotspot-password"
+      "password": "replace-with-hotspot-password",
+      "icon": "phone"
     },
     {
       "ssid": "Studio-WiFi",
@@ -23,10 +25,17 @@
       "password": "replace-with-travel-password"
     }
   ],
-  "access_point": {
-    "ssid": "The-Fly-Setup",
-    "password": "replace-with-setup-password"
-  },
+  "access_points": [
+    {
+      "ssid": "The-Fly-Setup",
+      "password": "replace-with-password",
+      "icon": "home"
+    },
+    {
+      "ssid": "The-Fly-AP2",
+      "password": "replace-with-password"
+    }
+  ],
   "cloud_uploads": [
     {
       "name": "primary",
