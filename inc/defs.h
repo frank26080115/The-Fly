@@ -31,3 +31,20 @@ typedef struct __attribute__((packed))
     uint16_t payload[FILE_PACKET_PAYLOAD_MAX];
 }
 file_packet_t;
+
+// strings can be parsed into one of these internally stored icons
+enum : uint8_t
+{
+    ICON_UNKNOWN = 0,
+    ICON_PHONE,
+    ICON_LAPTOP,
+    ICON_TABLET,
+    ICON_BLUETOOTH,
+    ICON_WIFI,
+    ICON_HOME,
+    ICON_WIFIAP,
+    ICON_WWW,
+    ICON_CLOUD,
+    ICON_FTP,
+    ICON_LAST
+};
