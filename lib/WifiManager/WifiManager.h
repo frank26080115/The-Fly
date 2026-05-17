@@ -27,6 +27,8 @@ cloud_item_t;
 class WifiManager
 {
 public:
+    static constexpr size_t kNtpServerCount = 3;
+
     enum class LoadResult
     {
         Ok,
@@ -91,8 +93,6 @@ public:
     const char* lastResultName() const;
 
 private:
-    static constexpr size_t kNtpServerCount = 3;
-
     void notifyConnected(const wifi_item_t* item);
     void notifyDisconnected(const wifi_item_t* item);
 
