@@ -7,6 +7,8 @@
 #include "all_tests.h"
 #include "sprites.h"
 
+extern FlyGui* gui;
+
 namespace
 {
 
@@ -40,11 +42,8 @@ void test_pngdecode()
     auto cfg = M5.config();
     M5.begin(cfg);
 
-    FlyGui gui(M5.Display);
-    M5GFX& display = gui.display();
-
-    display.setBrightness(255);
-    display.setColorDepth(16);
+    gui = new FlyGui(M5.Display);
+    M5GFX& display = gui->display();
     display.fillScreen(TFT_BLACK);
 
     Serial.println();

@@ -1,18 +1,31 @@
+#include "thefly_common.h"
 #include <Arduino.h>
+#include "M5Unified.h"
 #include "nvs_flash.h"
 #include "AudioManager.h"
+#include "AudioFileRecorder.h"
+#include "BattTracker.h"
+#include "BluetoothManager.h"
+#include "BtHostList.h"
 #include "Hotel.h"
-#include "thefly_common.h"
+#include "FlyGui.h"
+#include "MicroSdCard.h"
+#include "WifiManager.h"
+#include "esp_log.h"
 #include "utilfuncs.h"
 #include "all_tests.h"
 
 constexpr const char* MAINTAG = "main.cpp";
 
+extern void all_init();
+extern void show_splash();
+
 TaskHandle_t loopTask_core0_Handle = NULL;
 static void  loopTask_core0(void* pvParameters);
 
-RTC_DATA_ATTR uint32_t reset_flag  = 0;
-RTC_DATA_ATTR uint32_t reset_magic = 0;
+FlyGui* gui;
+BtHostList* bt_host_list;
+WifiManager* wifi_manager;
 
 void setup()
 {
@@ -20,37 +33,40 @@ void setup()
     run_test();
     #endif
 
-    // NVS is the ESP-IDF non-volatile key/value store. Bluetooth uses it for
-    // controller/host state such as pairing, bonding, and calibration metadata.
-    // Initialize it once at boot, before any module tries to bring up Bluetooth.
-    esp_err_t err = nvs_flash_init();
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND)
-    {
-        // The NVS partition can become unreadable after partition-size changes
-        // or IDF version changes. Erase it and retry so Bluetooth has a clean
-        // store instead of failing later during stack initialization.
-        ok(nvs_flash_erase(), "nvs erase");
-        err = nvs_flash_init();
-    }
-    if (!ok(err, "nvs init"))
-    {
-        return;
+    all_init();
+
+    if (reset_was_magic == false) {
+        show_splash();
     }
 
-    Serial.begin(115200);
-
-    if (reset_magic == RESET_MAGIC)
+    if (!MicroSdCard::begin())
     {
-        ESP_LOGI(MAINTAG, "Booted after flagged reset: flag=%u\n", reset_flag);
+        ESP_LOGE(MAINTAG, "microSD init failed");
+    }
 
-        // Clear it so it is one-shot
-        reset_magic = 0;
-        reset_flag  = 0;
-    }
-    else
+    bt_host_list = new BtHostList();
+    if (!bt_host_list->loadFromMicroSd())
     {
-        ESP_LOGI(MAINTAG, "Normal boot / power-on / unflagged reset\n");
+        ESP_LOGE(MAINTAG, "BtHostList file load failed");
     }
+
+    wifi_manager = new WifiManager();
+    if (!wifi_manager->loadFromMicroSd())
+    {
+        ESP_LOGE(MAINTAG, "WifiManager file load failed: %s", wifi_manager->lastResultName());
+    }
+
+    if (!AudioManager::init())
+    {
+        ESP_LOGE(MAINTAG, "AudioManager init failed");
+    }
+
+    if (!BtManager::init())
+    {
+        ESP_LOGE(MAINTAG, "BluetoothManager init failed");
+    }
+
+    BattTracker::init();
 
     xTaskCreateUniversal(loopTask_core0, "loopTask_core0", getArduinoLoopTaskStackSize(), NULL, 1, &loopTask_core0_Handle, 0);
 }
@@ -58,6 +74,11 @@ void setup()
 void loop()
 {
     // this is running on core 1
+    AudioFileRecorder::pump();
+    if (wifi_manager)
+    {
+        wifi_manager->poll();
+    }
     Hotel::pollCore1();
     taskYIELD();
 }

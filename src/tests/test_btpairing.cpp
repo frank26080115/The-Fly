@@ -10,6 +10,8 @@
 #include "nvs_flash.h"
 #include "utilfuncs.h"
 
+extern bool init_nvs();
+
 namespace
 {
 
@@ -28,30 +30,6 @@ void print_local_bdaddr()
     }
 
     log_bda("local Bluetooth address", bda);
-}
-
-bool init_nvs()
-{
-    esp_err_t err = nvs_flash_init();
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND)
-    {
-        err = nvs_flash_erase();
-        if (err != ESP_OK)
-        {
-            Serial.printf("%s: nvs erase failed: %s\n", TAG, esp_err_to_name(err));
-            return false;
-        }
-        err = nvs_flash_init();
-    }
-
-    if (err != ESP_OK)
-    {
-        Serial.printf("%s: nvs init failed: %s\n", TAG, esp_err_to_name(err));
-        return false;
-    }
-
-    Serial.printf("%s: NVS initialized\n", TAG);
-    return true;
 }
 
 void print_bonded_devices()

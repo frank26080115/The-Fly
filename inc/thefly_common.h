@@ -18,3 +18,4 @@ literally every source file probably includes this file
 
 extern uint32_t reset_flag;
 extern uint32_t reset_magic;
+extern bool reset_was_magic;
