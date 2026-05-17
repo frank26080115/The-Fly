@@ -13,6 +13,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "AudioManager.h"
+#include "BtHostList.h"
 #include "utilfuncs.h"
 
 namespace BtManager
@@ -34,6 +35,7 @@ State                 g_state                  = State::Idle;
 esp_bd_addr_t         g_target_mac             = {};
 esp_bd_addr_t         g_connected_mac          = {};
 PairedDevice          g_last_paired_device     = {};
+BtHostList            g_host_list;
 bool                  g_has_connected_mac      = false;
 bool                  g_has_last_paired_device = false;
 bool                  g_bt_ready               = false;
@@ -475,6 +477,7 @@ void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param)
             strlcpy(g_last_paired_device.name, reinterpret_cast<const char*>(param->auth_cmpl.device_name), sizeof(g_last_paired_device.name));
             g_has_last_paired_device = true;
             log_bda("paired with", g_last_paired_device.mac);
+            g_host_list.insert(g_last_paired_device.name, g_last_paired_device.mac);
 
             if (g_paired_callback)
             {
@@ -872,6 +875,11 @@ void setPairedCallback(PairedCallback callback)
 void setStateChangedCallback(StateChangedCallback callback)
 {
     g_state_changed_callback = callback;
+}
+
+BtHostList& hostList()
+{
+    return g_host_list;
 }
 
 Result connectToMac(const char* mac)
