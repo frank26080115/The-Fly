@@ -9,20 +9,30 @@ use this for things like enumerations, structures
 
 #define RESET_MAGIC    0x51A7C0DE
 
-enum
-{
-    AUDSRC_BT,
-    AUDSRC_MIC,
-};
-
 #define FILE_PACKET_HEADER_MAGIC 0xDEADBEEF
 #define FILE_PACKET_PAYLOAD_MAX 256
+
+typedef enum : uint8_t
+{
+    AUDSRC_BT_16KHZ_MONO     = 0,
+    AUDSRC_MIC_16KHZ_MONO    = 1,
+    AUDSRC_BT_32KHZ_MONO     = 2,
+    AUDSRC_MIC_32KHZ_MONO    = 3,
+    AUDSRC_BT_32KHZ_STEREO   = 4,
+    AUDSRC_MIC_32KHZ_STEREO  = 5,
+    AUDSRC_BT_48KHZ_MONO     = 6,
+    AUDSRC_MIC_48KHZ_MONO    = 7,
+    AUDSRC_BT_48KHZ_STEREO   = 8,
+    AUDSRC_MIC_48KHZ_STEREO  = 9,
+    AUDSRC_META_TEXT         = 0xAA,
+}
+filepkt_src_e;
 
 // this structure is a fixed size, which makes everything less complicated, and enables easier scrubbing
 typedef struct __attribute__((packed))
 {
     uint32_t magic;          // always FILE_PACKET_HEADER_MAGIC, makes it easier to sync
-    uint8_t  src;            // indicates where the audio came from, AUDSRC_BT or AUDSRC_MIC
+    filepkt_src_e src;       // indicates where the audio came from (or a special type)
     uint8_t  flags;          // indicates any warnings from the FIFO
     uint32_t ms_timestamp;   // millis() when written to file
     uint32_t sequence_num;   // per whole file, not per channel/FIFO
