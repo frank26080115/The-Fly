@@ -59,6 +59,7 @@ from typing import BinaryIO, Dict, Iterable, List, Optional, Sequence, Tuple
 
 FILE_PACKET_HEADER_MAGIC = 0xDEADBEEF
 FILE_PACKET_PAYLOAD_MAX = 256
+AUDSRC_META_TEXT = 0xAA
 OUTPUT_SAMPLE_RATE_HZ = 16000
 OUTPUT_CHANNELS = 2
 SAMPLE_WIDTH_BYTES = 2
@@ -191,7 +192,11 @@ def plausible_header(data: bytes) -> bool:
     if len(data) < HEADER_SIZE:
         return False
     magic, src, _flags, _timestamp, _sequence, _fifo_cnt, payload_length = parse_header(data)
-    return magic == FILE_PACKET_HEADER_MAGIC and src <= 9 and payload_length <= FILE_PACKET_PAYLOAD_MAX
+    if magic != FILE_PACKET_HEADER_MAGIC:
+        return False
+    if src == AUDSRC_META_TEXT:
+        return payload_length <= PAYLOAD_BYTES
+    return src <= 9 and payload_length <= FILE_PACKET_PAYLOAD_MAX
 
 
 def find_next_packet(stream: BinaryIO, start_offset: int) -> Optional[int]:
@@ -336,6 +341,14 @@ def decode_packet_samples(packet: Packet, resample_carry_by_src: Dict[int, List[
 
     carry = resample_carry_by_src.setdefault(packet.src, [])
     return resample_to_output_rate(samples, fmt.sample_rate_hz, carry)
+
+
+def decode_meta_text(packet: Packet) -> str:
+    byte_count = min(packet.payload_length, PAYLOAD_BYTES)
+    if packet.payload_length > PAYLOAD_BYTES:
+        warn(f"metadata text too large at byte {packet.offset}: {packet.payload_length}; clamped")
+    text_bytes = packet.payload[:byte_count].rstrip(b"\x00")
+    return text_bytes.decode("utf-8", errors="replace")
 
 
 def samples_to_bytes(samples: Sequence[int]) -> bytes:
@@ -509,7 +522,37 @@ def merge_channels_to_pcm(left_path: Path, right_path: Path, pcm_path: Path, fra
             remaining -= frames
 
 
-def wrap_pcm_as_wav(pcm_path: Path, wav_path: Path) -> None:
+def append_wav_info_icmt(wav_path: Path, comment: Optional[str]) -> None:
+    if not comment:
+        return
+
+    comment_data = comment.encode("utf-8", errors="replace")
+    if not comment_data.endswith(b"\x00"):
+        comment_data += b"\x00"
+
+    icmt_payload = comment_data
+    icmt_chunk = b"ICMT" + struct.pack("<I", len(icmt_payload)) + icmt_payload
+    if len(icmt_payload) % 2:
+        icmt_chunk += b"\x00"
+
+    list_payload = b"INFO" + icmt_chunk
+    list_chunk = b"LIST" + struct.pack("<I", len(list_payload)) + list_payload
+    if len(list_payload) % 2:
+        list_chunk += b"\x00"
+
+    with wav_path.open("r+b") as wav:
+        riff_header = wav.read(12)
+        if len(riff_header) != 12 or riff_header[:4] != b"RIFF" or riff_header[8:12] != b"WAVE":
+            raise ValueError(f"not a RIFF/WAVE file: {wav_path}")
+
+        wav.seek(0, 2)
+        wav.write(list_chunk)
+        file_size = wav.tell()
+        wav.seek(4)
+        wav.write(struct.pack("<I", file_size - 8))
+
+
+def wrap_pcm_as_wav(pcm_path: Path, wav_path: Path, comment: Optional[str]) -> None:
     with pcm_path.open("rb") as pcm, wave.open(str(wav_path), "wb") as wav:
         wav.setnchannels(OUTPUT_CHANNELS)
         wav.setsampwidth(SAMPLE_WIDTH_BYTES)
@@ -519,6 +562,7 @@ def wrap_pcm_as_wav(pcm_path: Path, wav_path: Path) -> None:
             if not data:
                 break
             wav.writeframes(data)
+    append_wav_info_icmt(wav_path, comment)
 
 
 def format_peak_report(state: ChannelState) -> str:
@@ -540,6 +584,7 @@ def decode_recording(input_path: Path, pcm_path: Path, wav_path: Path, gap_thres
     resample_carry_by_src: Dict[int, List[int]] = {}
     fifo_trackers: Dict[int, FifoSpikeTracker] = {}
     base_timestamp_ms: Optional[int] = None
+    info_comment: Optional[str] = None
     packet_count = 0
 
     left_tmp = tempfile.NamedTemporaryFile(prefix="thefly-left-", suffix=".pcm", delete=False)
@@ -555,6 +600,10 @@ def decode_recording(input_path: Path, pcm_path: Path, wav_path: Path, gap_thres
     try:
         for packet in iter_packets(input_path):
             packet_count += 1
+            if packet.src == AUDSRC_META_TEXT:
+                info_comment = decode_meta_text(packet)
+                continue
+
             if base_timestamp_ms is None:
                 base_timestamp_ms = packet.ms_timestamp
 
@@ -586,7 +635,7 @@ def decode_recording(input_path: Path, pcm_path: Path, wav_path: Path, gap_thres
             state.file.close()
 
         merge_channels_to_pcm(left_path, right_path, pcm_path, frame_count)
-        wrap_pcm_as_wav(pcm_path, wav_path)
+        wrap_pcm_as_wav(pcm_path, wav_path, info_comment)
 
         duration_seconds = frame_count / OUTPUT_SAMPLE_RATE_HZ
         print(f"decoded packets: {packet_count}")
@@ -595,6 +644,8 @@ def decode_recording(input_path: Path, pcm_path: Path, wav_path: Path, gap_thres
         print(format_peak_report(states[0]))
         print(format_peak_report(states[1]))
         print(f"duration:        {duration_seconds:.3f} s")
+        if info_comment is not None:
+            print(f"wav comment:     {info_comment}")
         print(f"pcm output:      {pcm_path}")
         print(f"wav output:      {wav_path}")
     finally:
