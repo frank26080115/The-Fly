@@ -19,9 +19,9 @@ enum class State
     Idle,
     Connecting,
     Connected,
+    AudioAvailable,
     Reconnecting,
     Pairing,
-    WaitingForIncomingConnection,
 };
 
 enum class Result
@@ -58,8 +58,8 @@ BtHostList& hostList();
 Result connectToMac(const char* mac);
 Result connectToMac(const esp_bd_addr_t mac);
 Result startPairing();
-Result startWaitingForIncomingConnection();
 Result disconnect();
+Result shutdown();
 Result pickupPhone();
 bool   canNotifyOutgoingAudioReady();
 void   notifyOutgoingAudioReady();

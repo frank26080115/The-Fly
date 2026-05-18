@@ -7,9 +7,9 @@ State machine:
 - Idle
 - Connecting
 - Connected
+- Audio Available
 - Reconnecting
 - Pairing
-- Waiting for Incoming Connection
 
 the bluetooth profile being implemented is only HFP
 
@@ -21,12 +21,12 @@ Public functions:
 
 - Connect to MAC
 - Start pairing
-- Start waiting for incoming connection
 - Disconnect (also ends pairing or any connection attempts)
+- Shutdown Bluetooth for Wi-Fi mode
 - Get State
 
 upon successful pairing, the caller is notified of the MAC and name of the paired device. This module does not handle any files that store such data.
 
-When finished pairing, immediately disconnect.
+The device normally stays connectable but not discoverable. Pairing mode temporarily makes it discoverable, then returns it to connectable/non-discoverable mode.
 
 If attempting to connect to a device that we are not bonded with, return an error code

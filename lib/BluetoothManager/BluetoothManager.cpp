@@ -30,6 +30,7 @@ constexpr uint32_t    kAudioConnectRetryMs = 1000;
 constexpr uint32_t    kAudioConnectTimeoutMs = 3000;
 constexpr uint32_t    kAudioConnectTaskStack = 4096;
 constexpr UBaseType_t kAudioConnectTaskPriority = 1;
+constexpr uint32_t    kShutdownDisconnectWaitMs = 1500;
 
 State                 g_state                  = State::Idle;
 esp_bd_addr_t         g_target_mac             = {};
@@ -75,9 +76,19 @@ void set_state(State next)
     }
 }
 
-void close_pairing_or_waiting_window()
+bool hfp_control_connected()
 {
-    ok(esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "close bt discovery window");
+    return g_state == State::Connected || g_state == State::AudioAvailable;
+}
+
+void close_pairing_window()
+{
+    ok(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "close bt discovery window");
+}
+
+void make_bluetooth_non_connectable()
+{
+    ok(esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "close bt radio window");
 }
 
 Result result_from_esp(esp_err_t err, const char* what)
@@ -426,7 +437,7 @@ void audio_connect_retry_task(void*)
 {
     ESP_LOGI(TAG, "hfp audio connect retry task started");
 
-    while (g_state == State::Connected && g_has_connected_mac && !g_hfp_audio_connected && !g_disconnect_requested && g_hfp_call_active)
+    while (hfp_control_connected() && g_has_connected_mac && !g_hfp_audio_connected && !g_disconnect_requested && g_hfp_call_active)
     {
         if (!g_hfp_audio_connecting || hfp_audio_connect_timed_out())
         {
@@ -486,7 +497,8 @@ void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param)
 
             if (g_state == State::Pairing)
             {
-                disconnect();
+                close_pairing_window();
+                set_state(State::Idle);
             }
         }
         else
@@ -572,7 +584,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             g_hfp_call_setup_active = false;
             g_hfp_answer_requested = false;
             g_hfp_audio_connect_started_ms = 0;
-            close_pairing_or_waiting_window();
+            close_pairing_window();
             set_state(State::Connected);
             break;
 
@@ -594,7 +606,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
                 g_disconnect_requested = false;
                 set_state(State::Idle);
             }
-            else if (g_state == State::Connected || g_state == State::Connecting || g_state == State::Reconnecting)
+            else if (hfp_control_connected() || g_state == State::Connecting || g_state == State::Reconnecting)
             {
                 set_state(State::Reconnecting);
             }
@@ -623,6 +635,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             g_hfp_audio_connect_started_ms = 0;
             AudioManager::setHfpAudioFormat(AudioManager::HfpCodec::Cvsd, 8000);
             g_hfp_audio_connected = true;
+            set_state(State::AudioAvailable);
             ESP_LOGI(TAG, "HFP CVSD/narrowband audio connected");
         }
         else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTED_MSBC)
@@ -632,14 +645,16 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             g_hfp_audio_connect_started_ms = 0;
             AudioManager::setHfpAudioFormat(AudioManager::HfpCodec::Msbc, AudioManager::kSampleRateHz);
             g_hfp_audio_connected = true;
+            set_state(State::AudioAvailable);
             ESP_LOGI(TAG, "HFP mSBC/wideband audio connected");
         }
-        else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_DISCONNECTED && g_state == State::Connected && g_has_connected_mac)
+        else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_DISCONNECTED && hfp_control_connected() && g_has_connected_mac)
         {
             g_hfp_audio_connecting = false;
             g_hfp_audio_connected = false;
             g_hfp_audio_connect_started_ms = 0;
             AudioManager::setHfpAudioFormat(AudioManager::HfpCodec::Cvsd, 8000);
+            set_state(State::Connected);
         }
         break;
 
@@ -796,7 +811,15 @@ bool init_bluetooth(const char* device_name, const char* pin_code)
         format_device_name(formatted_device_name, sizeof(formatted_device_name));
     }
 
-    if (!strict_ok(esp_bt_sleep_disable(), "bt sleep disable") || !strict_ok(esp_bt_gap_register_callback(gap_event), "gap callback") || !strict_ok(esp_bt_gap_set_device_name(device_name ? device_name : formatted_device_name), "bt name") || !strict_ok(esp_bt_gap_set_cod(handsfree_cod(), ESP_BT_INIT_COD), "bt class of device") || !strict_ok(esp_bt_gap_set_security_param(ESP_BT_SP_IOCAP_MODE, &iocap, sizeof(iocap)), "ssp iocap") || !strict_ok(esp_bt_gap_set_pin(ESP_BT_PIN_TYPE_FIXED, pin_length, pin), "legacy pin") || !strict_ok(esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "initial scan mode") || !strict_ok(esp_bredr_sco_datapath_set(ESP_SCO_DATA_PATH_HCI), "sco hci path"))
+    if (   !strict_ok(esp_bt_sleep_disable(), "bt sleep disable")
+        || !strict_ok(esp_bt_gap_register_callback(gap_event), "gap callback")
+        || !strict_ok(esp_bt_gap_set_device_name(device_name ? device_name : formatted_device_name), "bt name")
+        || !strict_ok(esp_bt_gap_set_cod(handsfree_cod(), ESP_BT_INIT_COD), "bt class of device")
+        || !strict_ok(esp_bt_gap_set_security_param(ESP_BT_SP_IOCAP_MODE, &iocap, sizeof(iocap)), "ssp iocap")
+        || !strict_ok(esp_bt_gap_set_pin(ESP_BT_PIN_TYPE_FIXED, pin_length, pin), "legacy pin")
+        || !strict_ok(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "initial scan mode")
+        || !strict_ok(esp_bredr_sco_datapath_set(ESP_SCO_DATA_PATH_HCI), "sco hci path")
+        )
     {
         return false;
     }
@@ -905,12 +928,12 @@ Result connectToMac(const esp_bd_addr_t mac)
         return Result::NotBonded;
     }
 
-    if (g_state != State::Idle && g_state != State::Reconnecting && g_state != State::WaitingForIncomingConnection)
+    if (g_state != State::Idle && g_state != State::Reconnecting)
     {
         return Result::Busy;
     }
 
-    close_pairing_or_waiting_window();
+    close_pairing_window();
     copy_bda(g_target_mac, mac);
     g_disconnect_requested = false;
     set_state(State::Connecting);
@@ -924,7 +947,7 @@ Result startPairing()
         return Result::InitFailed;
     }
 
-    if (g_state == State::Connected || g_state == State::Connecting)
+    if (hfp_control_connected() || g_state == State::Connecting)
     {
         return Result::Busy;
     }
@@ -933,23 +956,6 @@ Result startPairing()
     g_has_last_paired_device = false;
     set_state(State::Pairing);
     return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE), "open pairing window");
-}
-
-Result startWaitingForIncomingConnection()
-{
-    if (!init_hfp(nullptr, nullptr))
-    {
-        return Result::InitFailed;
-    }
-
-    if (g_state == State::Connected || g_state == State::Connecting || g_state == State::Pairing)
-    {
-        return Result::Busy;
-    }
-
-    g_disconnect_requested = false;
-    set_state(State::WaitingForIncomingConnection);
-    return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "open incoming connection window");
 }
 
 Result disconnect()
@@ -961,7 +967,7 @@ Result disconnect()
     }
 
     g_disconnect_requested = true;
-    close_pairing_or_waiting_window();
+    close_pairing_window();
 
     if (g_has_connected_mac)
     {
@@ -977,6 +983,67 @@ Result disconnect()
     return Result::Ok;
 }
 
+Result shutdown()
+{
+    if (!g_bt_ready && !btStarted() && esp_bluedroid_get_status() == ESP_BLUEDROID_STATUS_UNINITIALIZED)
+    {
+        set_state(State::Idle);
+        return Result::Ok;
+    }
+
+    g_disconnect_requested = true;
+    if (g_bt_ready)
+    {
+        make_bluetooth_non_connectable();
+    }
+
+    if (g_has_connected_mac)
+    {
+        ok(esp_hf_client_disconnect_audio(g_connected_mac), "hfp audio disconnect");
+        ok(esp_hf_client_disconnect(g_connected_mac), "hfp disconnect");
+
+        const uint32_t started_ms = millis();
+        while (g_has_connected_mac && static_cast<uint32_t>(millis() - started_ms) < kShutdownDisconnectWaitMs)
+        {
+            delay(10);
+        }
+    }
+
+    bool ok_all = true;
+    if (g_hfp_ready)
+    {
+        ok_all = ok(esp_hf_client_deinit(), "hfp deinit") && ok_all;
+    }
+
+    if (esp_bluedroid_get_status() == ESP_BLUEDROID_STATUS_ENABLED)
+    {
+        ok_all = ok(esp_bluedroid_disable(), "bluedroid disable") && ok_all;
+    }
+    if (esp_bluedroid_get_status() != ESP_BLUEDROID_STATUS_UNINITIALIZED)
+    {
+        ok_all = ok(esp_bluedroid_deinit(), "bluedroid deinit") && ok_all;
+    }
+    if (btStarted())
+    {
+        ok_all = btStop() && ok_all;
+    }
+
+    g_has_connected_mac = false;
+    g_hfp_audio_connecting = false;
+    g_hfp_audio_connected = false;
+    g_hfp_call_active = false;
+    g_hfp_call_setup_active = false;
+    g_hfp_answer_requested = false;
+    g_hfp_audio_connect_started_ms = 0;
+    g_audio_connect_task = nullptr;
+    g_hfp_ready = false;
+    g_bt_ready = false;
+    g_data_callback_ready = false;
+    g_disconnect_requested = false;
+    set_state(State::Idle);
+    return ok_all ? Result::Ok : Result::EspError;
+}
+
 Result pickupPhone()
 {
     if (!init_hfp(nullptr, nullptr))
@@ -984,7 +1051,7 @@ Result pickupPhone()
         return Result::InitFailed;
     }
 
-    if (g_state != State::Connected)
+    if (!hfp_control_connected())
     {
         return Result::Busy;
     }
@@ -1002,7 +1069,7 @@ void notifyOutgoingAudioReady()
 
 bool canNotifyOutgoingAudioReady()
 {
-    return g_state == State::Connected && g_hfp_audio_connected && g_data_callback_ready;
+    return hfp_control_connected() && g_hfp_audio_connected && g_data_callback_ready;
 }
 
 State state()
@@ -1046,12 +1113,12 @@ const char* stateName(State value)
         return "Connecting";
     case State::Connected:
         return "Connected";
+    case State::AudioAvailable:
+        return "Audio Available";
     case State::Reconnecting:
         return "Reconnecting";
     case State::Pairing:
         return "Pairing";
-    case State::WaitingForIncomingConnection:
-        return "Waiting for Incoming Connection";
     default:
         return "Unknown";
     }

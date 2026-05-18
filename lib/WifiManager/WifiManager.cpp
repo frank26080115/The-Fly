@@ -7,6 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "AudioFileRecorder.h"
+#include "AudioManager.h"
+#include "BluetoothManager.h"
 #include "IconLookup.h"
 #include "MicroSdCard.h"
 #include "esp_log.h"
@@ -268,6 +271,21 @@ bool scan_has_ssid(int network_count, const char* ssid)
 bool is_connected_status(WifiManager::Status status)
 {
     return status == WifiManager::Status::StationConnected || status == WifiManager::Status::AccessPoint;
+}
+
+void shutdown_for_wifi_activation()
+{
+    const BtManager::Result bt_result = BtManager::shutdown();
+    if (bt_result != BtManager::Result::Ok)
+    {
+        ESP_LOGW(TAG, "Bluetooth shutdown before Wi-Fi returned: %s", BtManager::resultName(bt_result));
+    }
+
+    AudioManager::stop();
+    if (!AudioFileRecorder::stopRecording())
+    {
+        ESP_LOGW(TAG, "audio file recorder did not stop cleanly before Wi-Fi activation");
+    }
 }
 
 } // namespace
@@ -563,12 +581,22 @@ const wifi_item_t* WifiManager::accessPoint(size_t index) const
 
 bool WifiManager::connectToHotspot(const wifi_item_t* hotspot)
 {
+    return connectToHotspot(hotspot, true);
+}
+
+bool WifiManager::connectToHotspot(const wifi_item_t* hotspot, bool shutdown_first)
+{
     if (!hotspot || !hotspot->ssid || hotspot->ssid[0] == '\0')
     {
         m_status      = Status::ConnectFailed;
         m_active_wifi = nullptr;
         ESP_LOGW(TAG, "cannot connect to missing Wi-Fi hotspot");
         return false;
+    }
+
+    if (shutdown_first)
+    {
+        shutdown_for_wifi_activation();
     }
 
     if (m_reported_connected)
@@ -603,6 +631,8 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
         ESP_LOGW(TAG, "cannot start missing Wi-Fi access point");
         return false;
     }
+
+    shutdown_for_wifi_activation();
 
     if (m_reported_connected)
     {
@@ -650,6 +680,8 @@ bool WifiManager::scanAndConnect()
         return false;
     }
 
+    shutdown_for_wifi_activation();
+
     WiFi.softAPdisconnect(true);
     if (!WiFi.mode(WIFI_STA))
     {
@@ -675,7 +707,7 @@ bool WifiManager::scanAndConnect()
         {
             ESP_LOGI(TAG, "found configured Wi-Fi network \"%s\"", item->ssid);
             WiFi.scanDelete();
-            return connectToHotspot(item);
+            return connectToHotspot(item, false);
         }
     }
 

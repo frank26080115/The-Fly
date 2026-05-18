@@ -172,6 +172,12 @@ void on_state_changed(BtManager::State state)
     Serial.printf("%s: Bluetooth state: %s\n", TAG, BtManager::stateName(state));
 }
 
+bool bluetooth_control_connected()
+{
+    const BtManager::State state = BtManager::state();
+    return state == BtManager::State::Connected || state == BtManager::State::AudioAvailable;
+}
+
 bool init_control_queues()
 {
     if (!g_control_queue)
@@ -422,11 +428,11 @@ bool handle_control_command(ControlCommand command, bool& stop_requested)
             stop_requested = true;
             return false;
         }
-        send_display_colour(BtManager::state() == BtManager::State::Connected ? TFT_BLUE : kColourGrey);
+        send_display_colour(bluetooth_control_connected() ? TFT_BLUE : kColourGrey);
         return true;
 
     case ControlCommand::EnableMic:
-        if (BtManager::state() != BtManager::State::Connected)
+        if (!bluetooth_control_connected())
         {
             Serial.printf("%s: push-to-talk ignored, Bluetooth is not connected\n", TAG);
             return true;
@@ -574,7 +580,7 @@ void test_btspeakerphone()
             break;
         }
 
-        if (BtManager::state() == BtManager::State::Connected && !blue_sent && AudioManager::mode() != AudioManager::P2TMode::Mic)
+        if (bluetooth_control_connected() && !blue_sent && AudioManager::mode() != AudioManager::P2TMode::Mic)
         {
             send_display_colour(TFT_BLUE);
             blue_sent = true;
