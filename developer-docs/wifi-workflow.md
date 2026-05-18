@@ -10,6 +10,8 @@ If the user chooses to launch the access point mode, then only FTP is enabled, a
 
 Otherwise, the user can choose any one of the Wi-Fi routers to connect to. When successful, the FTP server starts to run, and also, the user is presented with the option to sync time with NTP, and to pick a cloud upload destination (up to 2).
 
+Starting any Wi-Fi mode first stops audio, closes any active recording, disconnects Bluetooth, and shuts down the Bluetooth stack. Bluetooth and recording stay inactive while Wi-Fi is active.
+
 A file named `upload-history.txt` tracks which files have been uploaded, one file name per line. Do not upload any files that have been uploaded already. Only add a file to the list after completion of upload.
 
 The upload is a simple HTTPS form submission, it includes the file, and another field for the file name itself (even if it is redundant), the username, and a hash.

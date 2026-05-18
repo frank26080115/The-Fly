@@ -14,15 +14,13 @@ For the graphical UI, the screen updates should be only-as-necessary as to not h
 
 The RTC should be used to provide a time stamp for all audio recordings.
 
-Bluetooth will never be active when Wi-Fi is active. Audio recording is also not possible if Wi-Fi is active. There should never be any worry about file handles or concurrent access to multiple files or the file system changing state unexpectedly.
+Bluetooth will never be active when Wi-Fi is active. Activating Wi-Fi stops audio, closes any active recording, disconnects Bluetooth, and shuts down the Bluetooth stack. Audio recording is also not possible if Wi-Fi is active. There should never be any worry about file handles or concurrent access to multiple files or the file system changing state unexpectedly.
 
 Assume the microSD card is permanently attached, always available. Unavailability is a fatal event and not able to recover from until reboot.
 
 ### File name conventions
 
-All audio recordings are two files, one with a `.rec` extension which contains the actual audio, ~and another one with the same name but ends with `.meta.json`, containing any metadata.~ (TODO: we don't need a metadata file)
-
-The file name will look like `T-YYYY-MM-DD-HH-MM-SS-U`. Where `T` is a letter code representing the categorization of the recording. The rest is the time according to the RTC.
+All audio recordings are using a `.rec` extension. The file name will look like `T-YYYY-MM-DD-HH-MM-SS-U`. Where `T` is a letter code representing the categorization of the recording. The rest is the time according to the RTC.
 
 ### Audio Data Formats
 
@@ -32,9 +30,9 @@ For the local audio pipeline and recording format, both modes become signed 16-b
 
 When using CVSD, the local PCM sample rate is 8 kHz.
 
-When using mSBC, the Bluetooth-side payload is mSBC/SBC encoded. After decoding, the local PCM sample rate is 16 kHz.
+When using mSBC, the Bluetooth stack being used already handles encoding and decoding, local PCM sample rate is 16 kHz.
 
-Avoid any volume manipulation of audio samples, relegate that to the DAC or amp which should have settings for volume.
+If possible or required, avoid any volume manipulation of audio samples, relegate that to the DAC or amp which should have settings for volume. Currently, the internal microphone has a high-pass-filter and automatic-gain-control implemented, because it has no other way of controlling itself.
 
 ### Buffer Sizes
 

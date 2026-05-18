@@ -93,6 +93,7 @@ public:
     const char* lastResultName() const;
 
 private:
+    bool connectToHotspot(const wifi_item_t* hotspot, bool shutdown_first);
     void notifyConnected(const wifi_item_t* item);
     void notifyDisconnected(const wifi_item_t* item);
 

@@ -1,14 +1,18 @@
 There is a JSON file called `bluetooth.json` on the microSD card. This file contains multiple hosts. Each host is described by a friendly name and a MAC address.
 
-The GUI is populated with this list, the user can choose one of these hosts to connect to, or to wait for an incoming connection, or to enable pairing (advertising) mode.
+The GUI is populated with this list, the user can choose one of these hosts to connect to, or enable pairing mode.
+
+During normal Bluetooth operation, the device is connectable but not discoverable. A previously paired phone can manually connect to it from its saved Bluetooth device list, but new phones should not find it in a discovery scan.
+
+Pairing mode temporarily makes the device discoverable as well as connectable. After pairing succeeds, the device returns to connectable/non-discoverable operation.
 
 If a connection is established, then proceed.
 
 If pairing is established, this JSON file is updated with the new entry. If the host's name is not available, the user can always edit the JSON file later. The name in the JSON file takes priority.
 
-After connecting, a new audio file recording is started. The file name follows our naming convention. The file is first "grown" to a large size, then the write seek pointer is reset to 0, then recording can actually begin.
+After connecting, a new audio file recording is started. The file name follows our naming convention.
 
-There are two FIFOs heading into the file. The thread will drain both of them and stream them into the file interleaved. Every chunk being streamed has a header to indicate the source of the chunk.
+There are two FIFOs heading into the file. The thread will drain both of them and stream them into the file interleaved (if possible). Every chunk being streamed has a header to indicate the source of the chunk.
 
 There is a stop button, it will immediately stop the recording, and also disconnect from Bluetooth. The file is truncated to the correct size and then closed.
 
