@@ -44,6 +44,7 @@ public:
     enum class Status
     {
         Idle,
+        StationScanning,
         StationConnecting,
         StationConnected,
         AccessPoint,
@@ -54,6 +55,7 @@ public:
     };
 
     using ConnectionCallback = void (*)(const wifi_item_t* item);
+    using ScanFinishedCallback = void (*)(const wifi_item_t* item);
 
     WifiManager();
     ~WifiManager();
@@ -84,6 +86,7 @@ public:
     const char* statusName() const;
     void setOnConnectCallback(ConnectionCallback callback);
     void setOnDisconnectCallback(ConnectionCallback callback);
+    void setOnScanFinished(ScanFinishedCallback callback);
 
     size_t        cloudEndpointCount() const;
     cloud_item_t* cloudEndpoint(size_t index);
@@ -96,6 +99,7 @@ private:
     bool connectToHotspot(const wifi_item_t* hotspot, bool shutdown_first);
     void notifyConnected(const wifi_item_t* item);
     void notifyDisconnected(const wifi_item_t* item);
+    void notifyScanFinished(const wifi_item_t* item);
 
     char*         m_timezone                       = nullptr;
     char*         m_ntp_servers[kNtpServerCount]   = {};
@@ -115,4 +119,5 @@ private:
     bool          m_reported_connected             = false;
     ConnectionCallback m_on_connect                = nullptr;
     ConnectionCallback m_on_disconnect             = nullptr;
+    ScanFinishedCallback m_on_scan_finished        = nullptr;
 };

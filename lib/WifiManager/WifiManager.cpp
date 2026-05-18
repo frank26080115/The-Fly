@@ -58,6 +58,8 @@ const char* status_name(WifiManager::Status status)
     {
     case WifiManager::Status::Idle:
         return "Idle";
+    case WifiManager::Status::StationScanning:
+        return "StationScanning";
     case WifiManager::Status::StationConnecting:
         return "StationConnecting";
     case WifiManager::Status::StationConnected:
@@ -667,6 +669,11 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
 
 bool WifiManager::scanAndConnect()
 {
+    if (m_status == Status::StationScanning)
+    {
+        return true;
+    }
+
     if (m_reported_connected)
     {
         notifyDisconnected(m_connected_wifi);
@@ -691,31 +698,20 @@ bool WifiManager::scanAndConnect()
         return false;
     }
 
-    const int network_count = WiFi.scanNetworks();
-    if (network_count < 0)
+    const int scan_result = WiFi.scanNetworks(true);
+    if (scan_result != WIFI_SCAN_RUNNING)
     {
         m_status      = Status::ScanFailed;
         m_active_wifi = nullptr;
-        ESP_LOGW(TAG, "Wi-Fi scan failed: %d", network_count);
+        ESP_LOGW(TAG, "could not start async Wi-Fi scan: %d", scan_result);
         WiFi.scanDelete();
         return false;
     }
 
-    for (wifi_item_t* item = m_station_head; item; item = static_cast<wifi_item_t*>(item->next_node))
-    {
-        if (scan_has_ssid(network_count, item->ssid))
-        {
-            ESP_LOGI(TAG, "found configured Wi-Fi network \"%s\"", item->ssid);
-            WiFi.scanDelete();
-            return connectToHotspot(item, false);
-        }
-    }
-
-    WiFi.scanDelete();
-    m_status      = Status::NoKnownNetwork;
     m_active_wifi = nullptr;
-    ESP_LOGW(TAG, "no configured Wi-Fi stations were found in scan");
-    return false;
+    m_status      = Status::StationScanning;
+    ESP_LOGI(TAG, "started async Wi-Fi scan");
+    return true;
 }
 
 bool WifiManager::disconnect()
@@ -738,6 +734,50 @@ bool WifiManager::disconnect()
 
 void WifiManager::poll()
 {
+    if (m_status == Status::StationScanning)
+    {
+        const int network_count = WiFi.scanComplete();
+        if (network_count == WIFI_SCAN_RUNNING)
+        {
+            return;
+        }
+
+        if (network_count < 0)
+        {
+            m_status      = Status::ScanFailed;
+            m_active_wifi = nullptr;
+            ESP_LOGW(TAG, "Wi-Fi scan failed: %d", network_count);
+            WiFi.scanDelete();
+            return;
+        }
+
+        const wifi_item_t* found_item = nullptr;
+        for (wifi_item_t* item = m_station_head; item; item = static_cast<wifi_item_t*>(item->next_node))
+        {
+            if (scan_has_ssid(network_count, item->ssid))
+            {
+                ESP_LOGI(TAG, "found configured Wi-Fi network \"%s\"", item->ssid);
+                found_item = item;
+                break;
+            }
+        }
+
+        WiFi.scanDelete();
+        m_active_wifi = nullptr;
+        if (found_item)
+        {
+            m_status = Status::Idle;
+        }
+        else
+        {
+            m_status = Status::NoKnownNetwork;
+            ESP_LOGW(TAG, "no configured Wi-Fi stations were found in scan");
+        }
+
+        notifyScanFinished(found_item);
+        return;
+    }
+
     const Status current = status();
 
     if (is_connected_status(current))
@@ -768,6 +808,11 @@ void WifiManager::poll()
 
 WifiManager::Status WifiManager::status() const
 {
+    if (m_status == Status::StationScanning)
+    {
+        return m_status;
+    }
+
     const wifi_mode_t mode = WiFi.getMode();
     if (mode == WIFI_MODE_AP || mode == WIFI_MODE_APSTA)
     {
@@ -797,6 +842,11 @@ void WifiManager::setOnDisconnectCallback(ConnectionCallback callback)
     m_on_disconnect = callback;
 }
 
+void WifiManager::setOnScanFinished(ScanFinishedCallback callback)
+{
+    m_on_scan_finished = callback;
+}
+
 void WifiManager::notifyConnected(const wifi_item_t* item)
 {
     m_connected_wifi      = item;
@@ -816,6 +866,14 @@ void WifiManager::notifyDisconnected(const wifi_item_t* item)
     if (m_on_disconnect)
     {
         m_on_disconnect(item);
+    }
+}
+
+void WifiManager::notifyScanFinished(const wifi_item_t* item)
+{
+    if (m_on_scan_finished)
+    {
+        m_on_scan_finished(item);
     }
 }
 
