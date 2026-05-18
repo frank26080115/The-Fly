@@ -11,6 +11,72 @@
 namespace
 {
 constexpr const char* TAG = "utilfuncs";
+
+bool is_leap_year(int32_t year)
+{
+    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+}
+
+int64_t days_from_civil(int32_t year, int32_t month, int32_t day)
+{
+    year -= month <= 2;
+    const int32_t  era = (year >= 0 ? year : year - 399) / 400;
+    const uint32_t yoe = static_cast<uint32_t>(year - era * 400);
+    const uint32_t mp  = static_cast<uint32_t>(month + (month > 2 ? -3 : 9));
+    const uint32_t doy = (153 * mp + 2) / 5 + static_cast<uint32_t>(day) - 1;
+    const uint32_t doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    return static_cast<int64_t>(era) * 146097 + static_cast<int64_t>(doe) - 719468;
+}
+
+int8_t weekday_from_days(int64_t days)
+{
+    int64_t weekday = (days + 4) % 7;
+    if (weekday < 0)
+    {
+        weekday += 7;
+    }
+    return static_cast<int8_t>(weekday);
+}
+
+bool valid_date(int32_t year, int32_t month, int32_t day)
+{
+    if (year < 1900 || year > 2099 || month < 1 || month > 12)
+    {
+        return false;
+    }
+
+    static constexpr int8_t kMonthDays[] = {
+        31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+    };
+
+    int8_t max_day = kMonthDays[month - 1];
+    if (month == 2 && is_leap_year(year))
+    {
+        ++max_day;
+    }
+
+    return day >= 1 && day <= max_day;
+}
+
+bool valid_time(int32_t hours, int32_t minutes, int32_t seconds)
+{
+    return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59 && seconds >= 0 && seconds <= 59;
+}
+
+int32_t parse_digits(const char* digits, size_t offset, size_t width, int32_t fallback)
+{
+    int32_t value = 0;
+    for (size_t i = 0; i < width; ++i)
+    {
+        const char ch = digits[offset + i];
+        if (ch < '0' || ch > '9')
+        {
+            return fallback;
+        }
+        value = value * 10 + (ch - '0');
+    }
+    return value;
+}
 }
 
 bool ok(esp_err_t err, const char* what)
@@ -89,6 +155,51 @@ bool parse_mac(const char* mac, esp_bd_addr_t out)
         }
     }
 
+    return true;
+}
+
+bool parse_datetime(const char* text, m5::rtc_datetime_t& out)
+{
+    out = {};
+    if (!text)
+    {
+        return false;
+    }
+
+    char   digits[15] = {};
+    size_t count      = 0;
+    for (const char* cursor = text; *cursor && count < sizeof(digits) - 1; ++cursor)
+    {
+        if (isdigit(static_cast<unsigned char>(*cursor)))
+        {
+            digits[count++] = *cursor;
+        }
+    }
+
+    if (count < 4)
+    {
+        return false;
+    }
+
+    const int32_t year    = parse_digits(digits, 0, 4, 0);
+    const int32_t month   = count >= 6 ? parse_digits(digits, 4, 2, 1) : 1;
+    const int32_t day     = count >= 8 ? parse_digits(digits, 6, 2, 1) : 1;
+    const int32_t hours   = count >= 10 ? parse_digits(digits, 8, 2, 0) : 0;
+    const int32_t minutes = count >= 12 ? parse_digits(digits, 10, 2, 0) : 0;
+    const int32_t seconds = count >= 14 ? parse_digits(digits, 12, 2, 0) : 0;
+
+    if (!valid_date(year, month, day) || !valid_time(hours, minutes, seconds))
+    {
+        return false;
+    }
+
+    out.date.year    = static_cast<int16_t>(year);
+    out.date.month   = static_cast<int8_t>(month);
+    out.date.date    = static_cast<int8_t>(day);
+    out.date.weekDay = weekday_from_days(days_from_civil(year, month, day));
+    out.time.hours   = static_cast<int8_t>(hours);
+    out.time.minutes = static_cast<int8_t>(minutes);
+    out.time.seconds = static_cast<int8_t>(seconds);
     return true;
 }
 
