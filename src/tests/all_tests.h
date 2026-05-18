@@ -15,3 +15,5 @@ extern void test_btspeakerphone();
 extern void test_pngdecode();
 extern void test_micfilterperformance();
 extern void test_micfilterresult();
+extern void test_imu();
+extern void test_bootreadfiles();
