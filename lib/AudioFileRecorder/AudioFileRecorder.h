@@ -37,6 +37,7 @@ bool stopRecording(bool estop = false);
 bool isRecording();
 bool purePcmMode();
 void setPurePcmMode(bool enabled);
+bool queueMetaText(const char* text);
 
 float writeDurationAverageMs();
 float writeDurationMaxMs();

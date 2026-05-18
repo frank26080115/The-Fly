@@ -22,11 +22,15 @@ constexpr uint8_t  kPumpTargetFillPercentage = 0;    // keep this at zero, drain
 constexpr float    kWriteDurationAverageAlpha       = 0.05f;
 constexpr uint32_t kWriteDurationThresholdUs        = 10000;
 constexpr uint32_t kTimedFlushIntervalMs            = 2000;
+constexpr size_t   kMetaTextPayloadMaxBytes         = FILE_PACKET_PAYLOAD_MAX * sizeof(uint16_t);
 
 AudioFifo* g_host_fifo = nullptr;
 AudioFifo* g_mic_fifo  = nullptr;
 FsFile     g_file;
 char       g_sd_path[48]                            = {};
+char       g_queued_meta_text[kMetaTextPayloadMaxBytes + 1] = {};
+size_t     g_queued_meta_text_length                = 0;
+bool       g_meta_text_queued                       = false;
 uint64_t   g_bytes_written                          = 0;
 uint32_t   g_sequence_num                           = 0;
 uint32_t   g_last_flush_ms                          = 0;
@@ -207,6 +211,46 @@ bool write_packet(AudioFifo& fifo, filepkt_src_e source)
 
     update_write_duration_stats(static_cast<uint32_t>(micros() - started_us));
 
+    return true;
+}
+
+bool write_queued_meta_text_locked()
+{
+    if (!g_meta_text_queued)
+    {
+        return true;
+    }
+
+    if (g_pure_pcm_mode)
+    {
+        DBG_LOGW(TAG, "queued metadata text ignored in pure PCM mode");
+        return true;
+    }
+
+    uint32_t started_us = micros();
+
+    file_packet_t packet = {};
+    packet.magic         = FILE_PACKET_HEADER_MAGIC;
+    packet.src           = AUDSRC_META_TEXT;
+    packet.flags         = 0;
+    packet.ms_timestamp  = millis();
+    packet.sequence_num  = g_sequence_num++;
+    packet.fifo_cnt      = 0;
+    packet.payload_length = static_cast<uint16_t>(g_queued_meta_text_length);
+    memcpy(reinterpret_cast<uint8_t*>(packet.payload), g_queued_meta_text, g_queued_meta_text_length);
+
+    if (g_file.write(reinterpret_cast<const uint8_t*>(&packet), sizeof(packet)) != sizeof(packet))
+    {
+        DBG_LOGE(TAG, "metadata text packet write failed");
+        return false;
+    }
+
+    g_bytes_written += sizeof(packet);
+    update_write_duration_stats(static_cast<uint32_t>(micros() - started_us));
+
+    g_queued_meta_text[0]      = '\0';
+    g_queued_meta_text_length  = 0;
+    g_meta_text_queued         = false;
     return true;
 }
 
@@ -397,6 +441,11 @@ bool stopRecording(bool estop)
             return true;
         }
 
+        if (!write_queued_meta_text_locked())
+        {
+            ok = false;
+        }
+
         g_recording = false;
         stopped_bytes = g_bytes_written;
         strncpy(stopped_path, g_sd_path, sizeof(stopped_path) - 1);
@@ -442,6 +491,25 @@ void setPurePcmMode(bool enabled)
 {
     std::lock_guard<std::mutex> lock(g_recorder_mutex);
     g_pure_pcm_mode = enabled;
+}
+
+bool queueMetaText(const char* text)
+{
+    if (!text)
+    {
+        return false;
+    }
+
+    const size_t text_length = strnlen(text, kMetaTextPayloadMaxBytes + 1);
+    const bool   fits        = text_length <= kMetaTextPayloadMaxBytes;
+    const size_t copy_length = fits ? text_length : kMetaTextPayloadMaxBytes;
+
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
+    memcpy(g_queued_meta_text, text, copy_length);
+    g_queued_meta_text[copy_length] = '\0';
+    g_queued_meta_text_length       = copy_length;
+    g_meta_text_queued              = copy_length > 0;
+    return fits;
 }
 
 float writeDurationAverageMs()
