@@ -311,6 +311,67 @@ bool BtHostList::saveToMicroSd()
     return true;
 }
 
+bool BtHostList::pruneBonds()
+{
+    const int bonded_count = esp_bt_gap_get_bond_device_num();
+    if (bonded_count == ESP_ERR_INVALID_STATE)
+    {
+        ESP_LOGW(TAG, "could not prune bluetooth bonds, gap is not initialized");
+        return false;
+    }
+    if (bonded_count <= 0)
+    {
+        ESP_LOGI(TAG, "no bluetooth bonds to prune");
+        return true;
+    }
+
+    esp_bd_addr_t* bonded = static_cast<esp_bd_addr_t*>(calloc(bonded_count, sizeof(esp_bd_addr_t)));
+    if (!bonded)
+    {
+        ESP_LOGW(TAG, "could not allocate bluetooth bond list");
+        return false;
+    }
+
+    int listed = bonded_count;
+    const esp_err_t list_err = esp_bt_gap_get_bond_device_list(&listed, bonded);
+    if (list_err != ESP_OK)
+    {
+        ESP_LOGW(TAG, "could not get bluetooth bond list: %s", esp_err_to_name(list_err));
+        free(bonded);
+        return false;
+    }
+
+    bool ok = true;
+    int  pruned = 0;
+    for (int i = 0; i < listed; ++i)
+    {
+        bt_host_item_t* host = find_host(m_head, bonded[i]);
+        if (host)
+        {
+            host->bonded = true;
+            continue;
+        }
+
+        char mac[18];
+        format_mac(bonded[i], mac, sizeof(mac));
+        const esp_err_t remove_err = esp_bt_gap_remove_bond_device(bonded[i]);
+        if (remove_err != ESP_OK)
+        {
+            ESP_LOGW(TAG, "could not prune bluetooth bond %s: %s", mac, esp_err_to_name(remove_err));
+            ok = false;
+            continue;
+        }
+
+        ESP_LOGI(TAG, "pruned bluetooth bond %s", mac);
+        ++pruned;
+    }
+
+    free(bonded);
+
+    ESP_LOGI(TAG, "pruned %d bluetooth bonds", pruned);
+    return ok;
+}
+
 bool BtHostList::insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t icon)
 {
     m_last_result = LoadResult::Ok;

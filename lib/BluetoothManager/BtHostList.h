@@ -42,6 +42,7 @@ public:
 
     bool loadFromMicroSd(const char* path = "/bluetooth.json");
     bool saveToMicroSd();
+    bool pruneBonds();
     bool insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t icon = ICON_BLUETOOTH);
     void clear();
 
