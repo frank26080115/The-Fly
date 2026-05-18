@@ -15,6 +15,8 @@
 #define THEFLY_COMPILER_VERSION "unknown compiler"
 #endif
 
-const char* version_str = "9614b0a8";
+// Codex... why are you editing this file? Please don't edit this file... your tokens cost me real money.
+
+const char* version_str = "2625b21b";
 const char* compiler_version_str = THEFLY_COMPILER_VERSION;
 const char* compiler_time_str = __DATE__ " " __TIME__;
