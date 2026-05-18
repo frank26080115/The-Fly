@@ -7,6 +7,8 @@
 #include "ClockAgent.h"
 #include "MicroSdCard.h"
 #include "dbg_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 namespace AudioFileRecorder
 {

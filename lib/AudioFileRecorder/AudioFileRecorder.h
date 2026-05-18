@@ -9,6 +9,7 @@
 #include <cstdint>
 
 #include "AudioFifo.h"
+#include "FileHistory.h"
 
 namespace AudioFileRecorder
 {
