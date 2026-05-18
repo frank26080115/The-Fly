@@ -146,7 +146,7 @@ bool recording_file_ready()
     return recording_file_ready_locked();
 }
 
-bool write_packet(AudioFifo& fifo, uint8_t source)
+bool write_packet(AudioFifo& fifo, filepkt_src_e source)
 {
     std::lock_guard<std::mutex> lock(g_recorder_mutex);
     if (!recording_file_ready_locked())
@@ -219,8 +219,8 @@ bool pump_one_packet_locked()
 
     AudioFifo*    first_fifo    = g_next_source_toggle ? g_host_fifo : g_mic_fifo;
     AudioFifo*    second_fifo   = g_next_source_toggle ? g_mic_fifo  : g_host_fifo;
-    const uint8_t first_source  = g_next_source_toggle ? AUDSRC_BT   : AUDSRC_MIC;
-    const uint8_t second_source = g_next_source_toggle ? AUDSRC_MIC  : AUDSRC_BT;
+    const filepkt_src_e first_source  = g_next_source_toggle ? AUDSRC_BT_16KHZ_MONO  : AUDSRC_MIC_16KHZ_MONO;
+    const filepkt_src_e second_source = g_next_source_toggle ? AUDSRC_MIC_16KHZ_MONO : AUDSRC_BT_16KHZ_MONO;
 
     if (write_packet(*first_fifo, first_source))
     {
