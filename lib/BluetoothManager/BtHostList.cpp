@@ -102,6 +102,20 @@ bt_host_item_t* find_host(bt_host_item_t* head, const esp_bd_addr_t bdaddr)
     return nullptr;
 }
 
+const bt_host_item_t* find_host_by_icon(const bt_host_item_t* head, uint8_t icon)
+{
+    const bt_host_item_t* item = head;
+    while (item)
+    {
+        if (item->icon == icon)
+        {
+            return item;
+        }
+        item = static_cast<bt_host_item_t*>(item->next_node);
+    }
+    return nullptr;
+}
+
 void format_mac(const esp_bd_addr_t bdaddr, char* buffer, size_t buffer_size)
 {
     snprintf(buffer,
@@ -461,6 +475,26 @@ const bt_host_item_t* BtHostList::get(size_t index) const
         --index;
     }
     return item;
+}
+
+bt_host_item_t* BtHostList::getFirstPhone()
+{
+    return const_cast<bt_host_item_t*>(find_host_by_icon(m_head, ICON_PHONE));
+}
+
+const bt_host_item_t* BtHostList::getFirstPhone() const
+{
+    return find_host_by_icon(m_head, ICON_PHONE);
+}
+
+bt_host_item_t* BtHostList::getFirstLaptop()
+{
+    return const_cast<bt_host_item_t*>(find_host_by_icon(m_head, ICON_LAPTOP));
+}
+
+const bt_host_item_t* BtHostList::getFirstLaptop() const
+{
+    return find_host_by_icon(m_head, ICON_LAPTOP);
 }
 
 BtHostList::LoadResult BtHostList::lastResult() const

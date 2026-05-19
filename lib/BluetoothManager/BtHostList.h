@@ -49,6 +49,10 @@ public:
     size_t          size() const;
     bt_host_item_t* get(size_t index);
     const bt_host_item_t* get(size_t index) const;
+    bt_host_item_t* getFirstPhone();
+    const bt_host_item_t* getFirstPhone() const;
+    bt_host_item_t* getFirstLaptop();
+    const bt_host_item_t* getFirstLaptop() const;
     LoadResult      lastResult() const;
     const char*     lastResultName() const;
 
