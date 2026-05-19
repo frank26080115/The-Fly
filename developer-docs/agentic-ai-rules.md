@@ -11,3 +11,7 @@ Do not delete comments unless a change will contradict the comment (or an entire
 When coding, style following `.editorconfig` and `.clang-format`
 
 It is acceptable to do a build to check for a specific thing, but if you think the build is about to be tested by the human so that it can be tested on hardware, simply notify the human that it is ready to build and flash.
+
+Do not modify `version.c`, it is auto-generated on every build, do not fight it, simply ignore it.
+
+Try organizing files such that the most important core function are first, then useful helpers, then getters and setters, then debug helpers.

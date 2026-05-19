@@ -3,8 +3,18 @@
 #include "nvs_flash.h"
 #include "M5Unified.h"
 #include "FlyGui.h"
-#include "SpriteDraw.h"
-#include "sprites.h"
+#include "ActiveRecordingView.h"
+#include "ApModeView.h"
+#include "BluetoothDeviceView.h"
+#include "ErrorView.h"
+#include "FileListView.h"
+#include "MainScreenView.h"
+#include "SplashView.h"
+#include "UploadProgressView.h"
+#include "WebActionView.h"
+#include "WifiChooserView.h"
+#include <stdarg.h>
+#include <stdio.h>
 
 constexpr const char* TAG = "all_init.cpp";
 
@@ -14,6 +24,20 @@ bool reset_was_magic = false;
 
 extern FlyGui* gui;
 
+namespace
+{
+SplashView          g_splash_view;
+MainScreenView      g_main_screen_view;
+BluetoothDeviceView g_bluetooth_device_view;
+ActiveRecordingView g_active_recording_view;
+WifiChooserView     g_wifi_chooser_view;
+WebActionView       g_web_action_view;
+ApModeView          g_ap_mode_view;
+UploadProgressView  g_upload_progress_view;
+FileListView        g_file_list_view;
+ErrorView           g_error_view;
+} // namespace
+
 bool init_nvs();
 void check_reset_flag();
 void init_m5();
@@ -22,13 +46,15 @@ void init_gui();
 void all_init()
 {
     Serial.begin(115200);
-    if (!init_nvs())
-    {
-        ESP_LOGE(TAG, "NVS init failed");
-    }
+    const bool nvs_ok = init_nvs();
     check_reset_flag();
     init_m5();
     init_gui();
+
+    if (!nvs_ok)
+    {
+        show_fatal_error_f(true, "NVS init failed");
+    }
 }
 
 bool init_nvs()
@@ -79,23 +105,25 @@ void init_gui()
     display.setBrightness(255);
     display.setColorDepth(16);
     display.fillScreen(TFT_BLACK);
+
+    gui->addView(g_splash_view);
+    gui->addView(g_main_screen_view);
+    gui->addView(g_bluetooth_device_view);
+    gui->addView(g_active_recording_view);
+    gui->addView(g_wifi_chooser_view);
+    gui->addView(g_web_action_view);
+    gui->addView(g_ap_mode_view);
+    gui->addView(g_upload_progress_view);
+    gui->addView(g_file_list_view);
+    gui->addView(g_error_view);
 }
 
 void show_splash()
 {
-    M5GFX& display = gui->display();
-    const SpriteDraw::DrawResult result =
-    SpriteDraw::drawPng(display,
-                        sprit_splash,
-                        SPRIT_SPLASH_BYTES,
-                        0,
-                        0,
-                        SPRIT_SPLASH_WIDTH,
-                        SPRIT_SPLASH_HEIGHT,
-                        true,
-                        NULL
-                    );
-    (void) result;
+    if (!gui || !gui->showView(FLYGUI_VIEW_SPLASH))
+    {
+        show_fatal_error_f(true, "Failed to show splash view");
+    }
 }
 
 void check_reset_flag()
@@ -113,5 +141,52 @@ void check_reset_flag()
     else
     {
         ESP_LOGI(TAG, "Normal boot / power-on / unflagged reset\n");
+    }
+}
+
+void show_fatal_error_f(bool fatal, const char* format, ...)
+{
+    char message[256];
+
+    va_list args;
+    va_start(args, format);
+    vsnprintf(message, sizeof(message), format ? format : "", args);
+    va_end(args);
+
+    ESP_LOGE(TAG, "%s", message);
+
+    if (!gui)
+    {
+        while (fatal)
+        {
+            delay(1000);
+        }
+        return;
+    }
+
+    FlyGuiView* previous_view    = gui->currentView();
+    const uint16_t previous_view_id = previous_view ? previous_view->id() : FLYGUI_VIEW_MAIN;
+
+    g_error_view.setMessage(message, fatal);
+    if (!gui->showView(FLYGUI_VIEW_ERROR))
+    {
+        ESP_LOGE(TAG, "Failed to show error view");
+        while (fatal)
+        {
+            delay(1000);
+        }
+        return;
+    }
+
+    gui->redraw(true);
+    while (fatal || !g_error_view.dismissed())
+    {
+        gui->poll();
+        delay(10);
+    }
+
+    if (!fatal && previous_view_id != FLYGUI_VIEW_ERROR)
+    {
+        gui->showView(previous_view_id);
     }
 }

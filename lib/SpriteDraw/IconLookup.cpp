@@ -83,6 +83,19 @@ void clear_sprite(sprite_desc_t* sprite)
     sprite->byte_cnt = 0;
 }
 
+void assign_sprite(sprite_desc_t* sprite, const uint8_t* data, uint32_t width, uint32_t height, size_t byte_cnt)
+{
+    if (!sprite)
+    {
+        return;
+    }
+
+    sprite->data     = data;
+    sprite->width    = width;
+    sprite->height   = height;
+    sprite->byte_cnt = byte_cnt;
+}
+
 } // namespace
 
 uint8_t fromString(const char* value)
@@ -140,38 +153,33 @@ bool getSprite(uint8_t icon, sprite_desc_t* sprite)
     switch (icon)
     {
     case ICON_PHONE:
-        // TODO: assign sprite from non-existent sprit_icon_phone.
-        break;
+        assign_sprite(sprite, sprit_btn_smartphone, SPRIT_BTN_SMARTPHONE_WIDTH, SPRIT_BTN_SMARTPHONE_HEIGHT, SPRIT_BTN_SMARTPHONE_BYTES);
+        return true;
     case ICON_LAPTOP:
-        // TODO: assign sprite from non-existent sprit_icon_laptop.
-        break;
+        assign_sprite(sprite, sprit_btn_laptop, SPRIT_BTN_LAPTOP_WIDTH, SPRIT_BTN_LAPTOP_HEIGHT, SPRIT_BTN_LAPTOP_BYTES);
+        return true;
     case ICON_TABLET:
-        // TODO: assign sprite from non-existent sprit_icon_tablet.
         break;
     case ICON_BLUETOOTH:
-        // TODO: assign sprite from non-existent sprit_icon_bluetooth.
-        break;
+        assign_sprite(sprite, sprit_btn_bluetooth, SPRIT_BTN_BLUETOOTH_WIDTH, SPRIT_BTN_BLUETOOTH_HEIGHT, SPRIT_BTN_BLUETOOTH_BYTES);
+        return true;
     case ICON_WIFI:
-        // TODO: assign sprite from non-existent sprit_icon_wifi.
-        break;
+        assign_sprite(sprite, sprit_btn_wifi, SPRIT_BTN_WIFI_WIDTH, SPRIT_BTN_WIFI_HEIGHT, SPRIT_BTN_WIFI_BYTES);
+        return true;
     case ICON_HOME:
-        // TODO: assign sprite from non-existent sprit_icon_home.
-        break;
+        assign_sprite(sprite, sprit_btn_wifihome, SPRIT_BTN_WIFIHOME_WIDTH, SPRIT_BTN_WIFIHOME_HEIGHT, SPRIT_BTN_WIFIHOME_BYTES);
+        return true;
     case ICON_WIFIAP:
-        // TODO: assign sprite from non-existent sprit_icon_wifiap.
-        break;
+        assign_sprite(sprite, sprit_btn_wifi, SPRIT_BTN_WIFI_WIDTH, SPRIT_BTN_WIFI_HEIGHT, SPRIT_BTN_WIFI_BYTES);
+        return true;
     case ICON_WWW:
-        // TODO: assign sprite from non-existent sprit_icon_www.
         break;
     case ICON_CLOUD:
-        // TODO: assign sprite from non-existent sprit_icon_cloud.
         break;
     case ICON_FTP:
-        // TODO: assign sprite from non-existent sprit_icon_ftp.
         break;
     case ICON_UNKNOWN:
     default:
-        // TODO: assign sprite from non-existent sprit_icon_unknown.
         break;
     }
 

@@ -3,6 +3,8 @@
 #include "thefly_common.h"
 
 #include <Arduino.h>
+#include <esp_heap_caps.h>
+#include <esp_log.h>
 #include <lgfx/utility/lgfx_pngle.h>
 #include <pgmspace.h>
 
@@ -12,6 +14,7 @@ namespace
 {
 
 constexpr size_t kMaxRunChunkPixels = 128;
+constexpr const char* TAG = "SpriteDraw";
 
 struct PngDecodeContext
 {
@@ -26,6 +29,19 @@ struct PngDecodeContext
     bool           fast_mode  = false;
     DrawCallback   callback   = nullptr;
 };
+
+void log_png_heap(const char* phase, const void* pngle)
+{
+    ESP_LOGI(TAG,
+             "pngle heap %s pngle=%p free8=%u largest8=%u free_internal=%u largest_internal=%u min_free8=%u",
+             phase,
+             pngle,
+             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_8BIT)),
+             static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)),
+             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)),
+             static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)),
+             static_cast<unsigned>(heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT)));
+}
 
 uint32_t read_png_bytes(void* user_data, uint8_t* buffer, uint32_t length)
 {
@@ -186,13 +202,18 @@ DrawResult drawPng(M5GFX& display,
 {
     DrawResult result;
 
-    pngle_t* pngle = lgfx_pngle_new();
-    if (pngle == nullptr || sprite == nullptr || sprite_bytes == 0)
+    if (sprite == nullptr || sprite_bytes == 0 || width == 0 || height == 0)
     {
-        if (pngle != nullptr)
-        {
-            lgfx_pngle_destroy(pngle);
-        }
+        result.failure_stage = DRAW_FAILURE_INVALID_ARGUMENT;
+        return result;
+    }
+
+    log_png_heap("before-new", nullptr);
+    pngle_t* pngle = lgfx_pngle_new();
+    log_png_heap("after-new", pngle);
+    if (pngle == nullptr)
+    {
+        result.failure_stage = DRAW_FAILURE_ALLOC;
         return result;
     }
 
@@ -207,8 +228,10 @@ DrawResult drawPng(M5GFX& display,
 
     if (lgfx_pngle_prepare(pngle, read_png_bytes, &context) < 0)
     {
-        result.callbacks = context.callbacks;
-        result.pixels    = context.pixels;
+        result.callbacks     = context.callbacks;
+        result.pixels        = context.pixels;
+        result.read_bytes    = static_cast<uint32_t>(context.read_index);
+        result.failure_stage = DRAW_FAILURE_PREPARE;
         lgfx_pngle_destroy(pngle);
         return result;
     }
@@ -218,6 +241,8 @@ DrawResult drawPng(M5GFX& display,
 
     if (result.decoded_width != width || result.decoded_height != height)
     {
+        result.read_bytes    = static_cast<uint32_t>(context.read_index);
+        result.failure_stage = DRAW_FAILURE_SIZE_MISMATCH;
         lgfx_pngle_destroy(pngle);
         return result;
     }
@@ -234,9 +259,15 @@ DrawResult drawPng(M5GFX& display,
     }
     result.elapsed_us = micros() - started_us;
 
-    result.ok        = decode_result >= 0;
-    result.callbacks = context.callbacks;
-    result.pixels    = context.pixels;
+    result.ok            = decode_result >= 0;
+    result.callbacks     = context.callbacks;
+    result.pixels        = context.pixels;
+    result.read_bytes    = static_cast<uint32_t>(context.read_index);
+    result.decode_result = decode_result;
+    if (!result.ok)
+    {
+        result.failure_stage = DRAW_FAILURE_DECODE;
+    }
 
     lgfx_pngle_destroy(pngle);
     return result;

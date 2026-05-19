@@ -1,11 +1,9 @@
 #include "SplashView.h"
 
-#include <LittleFS.h>
+#include "SpriteDraw.h"
+#include "sprites.h"
 
-static constexpr const char* kSplashPath    = "/splash.png";
 static constexpr uint32_t    kSplashDelayMs = 800;
-static constexpr int32_t     kSplashWidth   = 320;
-static constexpr int32_t     kSplashHeight  = 240;
 
 SplashView::SplashView() : FlyGuiView(FLYGUI_VIEW_SPLASH) {}
 
@@ -22,7 +20,9 @@ void SplashView::redraw(M5GFX& display, bool forced)
         return;
     }
 
-    if (!LittleFS.begin(false) || !display.drawPngFile(LittleFS, kSplashPath, 0, 0, kSplashWidth, kSplashHeight))
+    const SpriteDraw::DrawResult result =
+        SpriteDraw::drawPng(display, sprit_splash, SPRIT_SPLASH_BYTES, 0, 0, SPRIT_SPLASH_WIDTH, SPRIT_SPLASH_HEIGHT, true);
+    if (!result.ok)
     {
         display.fillScreen(TFT_BLACK);
     }

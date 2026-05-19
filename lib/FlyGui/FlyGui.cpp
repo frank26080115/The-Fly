@@ -2,415 +2,35 @@
 
 #include "../Buttons/Buttons.h"
 #include "../Hotel/Hotel.h"
-#include "../MicroSdCard/MicroSdCard.h"
 #include "FlyGuiText.h"
-#include <FS.h>
-#include <LittleFS.h>
+#include "SpriteDraw.h"
+#include "sprites.h"
+#include "esp_log.h"
+#include <stddef.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 
+static constexpr const char* TAG = "FlyGui";
 static constexpr uint32_t kSlowPollIntervalMs   = 1000 / 15;
 static constexpr uint32_t kMediumPollIntervalMs = 1000 / 30;
-static constexpr uint16_t kTopBarHeight         = 22;
 static constexpr int16_t  kTopBarDateTimeX      = 4;
-static constexpr int16_t  kTopBarDateTimeY      = 4;
+static constexpr int16_t  kTopBarDateTimeY      = 1;
 static constexpr int16_t  kTopBarDateTimeWidth  = 150;
-static constexpr int16_t  kTopBarDateTimeHeight = 14;
-static constexpr int16_t  kTopBarBatteryWidth   = 44;
+static constexpr int16_t  kTopBarDateTimeHeight = 8;
+static constexpr int16_t  kTopBarBatteryWidth   = 22;
 
-static bool readImageFile(fs::File& file, void** buffer, size_t* bufferSize)
+struct BatterySprite
 {
-    const size_t size = file.size();
-    if (size == 0)
-    {
-        return false;
-    }
+    const uint8_t* data     = nullptr;
+    uint32_t       width    = 0;
+    uint32_t       height   = 0;
+    size_t         byte_cnt = 0;
+};
 
-    void* data = malloc(size);
-    if (!data)
-    {
-        return false;
-    }
-
-    const size_t bytesRead = file.read(static_cast<uint8_t*>(data), size);
-    if (bytesRead != size)
-    {
-        free(data);
-        return false;
-    }
-
-    *buffer     = data;
-    *bufferSize = size;
-    return true;
-}
-
-static bool readImageFile(FsFile& file, void** buffer, size_t* bufferSize)
-{
-    const uint64_t fileSize = file.fileSize();
-    if (fileSize == 0 || fileSize > SIZE_MAX)
-    {
-        return false;
-    }
-
-    const size_t size = static_cast<size_t>(fileSize);
-    void*        data = malloc(size);
-    if (!data)
-    {
-        return false;
-    }
-
-    const int bytesRead = file.read(data, size);
-    if (bytesRead < 0 || static_cast<size_t>(bytesRead) != size)
-    {
-        free(data);
-        return false;
-    }
-
-    *buffer     = data;
-    *bufferSize = size;
-    return true;
-}
-
-static bool loadLittleFsImageFile(const char* path, void** buffer, size_t* bufferSize)
-{
-    fs::File file = LittleFS.open(path, "r");
-    if (file)
-    {
-        const bool loaded = readImageFile(file, buffer, bufferSize);
-        file.close();
-        return loaded;
-    }
-    return false;
-}
-
-static bool loadSdFatImageFile(const char* path, void** buffer, size_t* bufferSize)
-{
-    if (!MicroSdCard::isReady())
-    {
-        return false;
-    }
-
-    FsFile file;
-    if (!file.open(path, O_RDONLY))
-    {
-        return false;
-    }
-
-    const bool loaded = readImageFile(file, buffer, bufferSize);
-    file.close();
-    return loaded;
-}
-
-static bool loadFlyGuiImageFile(const char* path, void** buffer, size_t* bufferSize)
-{
-    if (!path || !*path || !buffer || !bufferSize)
-    {
-        return false;
-    }
-
-    return loadLittleFsImageFile(path, buffer, bufferSize) || loadSdFatImageFile(path, buffer, bufferSize);
-}
-
-FlyGuiItem::FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* imagePath, const char* mainText, Button* button) : button_(button), x_(x), y_(y), width_(width), height_(height), imagePath_(imagePath), mainText_(mainText) {}
-
-void FlyGuiItem::relocate(int16_t x, int16_t y, int16_t width, int16_t height)
-{
-    if (x_ == x && y_ == y && width_ == width && height_ == height)
-    {
-        return;
-    }
-
-    x_      = x;
-    y_      = y;
-    width_  = width;
-    height_ = height;
-    setDirty();
-    if (owner_)
-    {
-        owner_->setDirty();
-    }
-}
-
-void FlyGuiItem::setMainText(const char* text)
-{
-    if (mainText_ == text || (mainText_ && text && strcmp(mainText_, text) == 0))
-    {
-        return;
-    }
-    mainText_ = text;
-    setDirty();
-}
-
-void* FlyGuiItem::findSiblingImageBuffer() const
-{
-    return owner_ ? owner_->findLoadedImageBuffer(*this, imagePath_) : nullptr;
-}
-
-void FlyGuiItem::onLoad()
-{
-    // Design: item load can prepare a RAM-backed icon buffer from its image path.
-    if (imageBuffer_ || !imagePath_ || !*imagePath_)
-    {
-        return;
-    }
-
-    if (owner_)
-    {
-        for (FlyGuiItem* sibling = owner_->firstItem(); sibling; sibling = sibling->next())
-        {
-            if (sibling != this && sibling->imageBuffer() && sibling->imagePath() && strcmp(sibling->imagePath(), imagePath_) == 0)
-            {
-                // Design: duplicate image paths borrow an already-loaded sibling buffer.
-                imageBuffer_     = sibling->imageBuffer();
-                imageBufferSize_ = sibling->imageBufferSize();
-                ownsImageBuffer_ = false;
-                setDirty();
-                return;
-            }
-        }
-    }
-
-    // Design: when no sibling has the image, malloc a buffer and remember that we own it.
-    if (loadFlyGuiImageFile(imagePath_, &imageBuffer_, &imageBufferSize_))
-    {
-        ownsImageBuffer_ = true;
-        setDirty();
-    }
-}
-
-void FlyGuiItem::onUnload()
-{
-    // Design: only the item that malloc'd the image buffer frees it.
-    if (ownsImageBuffer_ && imageBuffer_)
-    {
-        free(imageBuffer_);
-    }
-
-    imageBuffer_     = nullptr;
-    imageBufferSize_ = 0;
-    ownsImageBuffer_ = false;
-}
-
-void FlyGuiItem::setVisible(bool visible)
-{
-    // Design: public visibility changes set the item's dirty flag appropriately.
-    if (visible_ != visible)
-    {
-        visible_ = visible;
-        setDirty();
-        if (owner_)
-        {
-            owner_->setDirty();
-        }
-    }
-}
-
-bool FlyGuiItem::contains(int16_t x, int16_t y) const
-{
-    return visible_ && x >= x_ && y >= y_ && x < x_ + width_ && y < y_ + height_;
-}
-
-bool FlyGuiItem::isPressed() const
-{
-    return pressed_ || (button_ && const_cast<Button*>(button_)->isPressed());
-}
-
-bool FlyGuiItem::handleTouch(const FlyGuiTouchEvent& event)
-{
-    const bool hit = contains(event.x, event.y);
-    if (event.justReleased || !event.pressed)
-    {
-        pressed_ = false;
-    }
-
-    if (!hit)
-    {
-        if (event.pressed)
-        {
-            pressed_ = false;
-        }
-        return false;
-    }
-
-    if (event.pressed || event.justPressed)
-    {
-        pressed_ = true;
-        if (width_ > 0 && height_ > 0)
-        {
-            M5.Display.drawRect(x_, y_, width_, height_, TFT_WHITE);
-        }
-        setDirty();
-        if (owner_)
-        {
-            owner_->setDirty();
-        }
-    }
-
-    return true;
-}
-
-bool FlyGuiItem::handleButtonPress(Button& button)
-{
-    if (&button != button_ || !visible_)
-    {
-        return false;
-    }
-
-    FlyGuiTouchEvent event;
-    event.x           = x_ + width_ / 2;
-    event.y           = y_ + height_ / 2;
-    event.pressed     = true;
-    event.justPressed = true;
-
-    const bool handled = handleTouch(event);
-    pressed_           = button.isPressed();
-    return handled;
-}
-
-void FlyGuiItem::redraw(M5GFX& display, bool forced)
-{
-    // Design: redraw accepts a forced flag and otherwise honors the item dirty flag.
-    if (!visible_ || (!forced && !dirty_))
-    {
-        return;
-    }
-
-    if (imageBuffer_ && imageBufferSize_ > 0)
-    {
-        // Design: loaded PNG bytes are drawn through M5GFX's PNG decoder.
-        lgfx::PointerWrapper png(static_cast<const uint8_t*>(imageBuffer_), imageBufferSize_);
-        display.drawPng(&png, x_, y_, width_, height_);
-    }
-
-    if (mainText_)
-    {
-        display.drawString(mainText_, x_, y_);
-    }
-    markClean();
-}
-
-FlyGuiView::FlyGuiView(uint16_t id) : id_(id) {}
-
-void FlyGuiView::addItem(FlyGuiItem& item)
-{
-    // Design: FlyGuiView owns FlyGuiItems as a linked list.
-    item.next_  = nullptr;
-    item.owner_ = this;
-    if (!firstItem_)
-    {
-        firstItem_ = &item;
-        lastItem_  = &item;
-    }
-    else
-    {
-        lastItem_->next_ = &item;
-        lastItem_        = &item;
-    }
-    setDirty();
-}
-
-void FlyGuiView::removeAllItems()
-{
-    FlyGuiItem* item = firstItem_;
-    while (item)
-    {
-        FlyGuiItem* next = item->next_;
-        item->owner_     = nullptr;
-        item->next_      = nullptr;
-        item             = next;
-    }
-    firstItem_ = nullptr;
-    lastItem_  = nullptr;
-    setDirty();
-}
-
-void* FlyGuiView::findLoadedImageBuffer(const FlyGuiItem& requester, const char* imagePath) const
-{
-    // Design: items can ask their owning view to find a sibling that already loaded the same image.
-    if (!imagePath || !*imagePath)
-    {
-        return nullptr;
-    }
-
-    for (FlyGuiItem* item = firstItem_; item; item = item->next_)
-    {
-        if (item != &requester && item->imageBuffer() && item->imagePath() && strcmp(item->imagePath(), imagePath) == 0)
-        {
-            return item->imageBuffer();
-        }
-    }
-
-    return nullptr;
-}
-
-void FlyGuiView::onLoad()
-{
-    // Design: view load propagates to its items for RAM-backed image/icon setup.
-    for (FlyGuiItem* item = firstItem_; item; item = item->next_)
-    {
-        item->onLoad();
-    }
-    setDirty();
-}
-
-void FlyGuiView::onUnload()
-{
-    // Design: view unload propagates to its items so derived items can release RAM buffers.
-    for (FlyGuiItem* item = firstItem_; item; item = item->next_)
-    {
-        item->onUnload();
-    }
-}
-
-bool FlyGuiView::handleTouch(const FlyGuiTouchEvent& event)
-{
-    // Design: touch propagates through the active view's items until one handles it.
-    for (FlyGuiItem* item = firstItem_; item; item = item->next_)
-    {
-        if (item->handleTouch(event))
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool FlyGuiView::handleButtonPress(Button& button)
-{
-    for (FlyGuiItem* item = firstItem_; item; item = item->next_)
-    {
-        if (item->handleButtonPress(button))
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-void FlyGuiView::redraw(M5GFX& display, bool forced)
-{
-    // Design: views and items both have dirty-aware redraw functions.
-    if (!forced && !dirty_)
-    {
-        for (FlyGuiItem* item = firstItem_; item; item = item->next_)
-        {
-            if (item->dirty())
-            {
-                item->redraw(display, false);
-            }
-        }
-        return;
-    }
-
-    for (FlyGuiItem* item = firstItem_; item; item = item->next_)
-    {
-        item->redraw(display, forced);
-    }
-    markClean();
-}
-
-FlyGuiModal::FlyGuiModal(int16_t x, int16_t y, int16_t width, int16_t height, const char* imagePath, const char* mainText) : FlyGuiItem(x, y, width, height, imagePath, mainText) {}
+static bool isBatteryCharging();
+static int32_t batteryStatusCode(int32_t percent, bool charging);
+static BatterySprite batterySpriteForStatus(int32_t status);
+static const char* drawFailureStageName(SpriteDraw::DrawFailureStage stage);
 
 FlyGui::FlyGui(M5GFX& display) : display_(display), topBarDateTime_(new FlyGuiDateTime(kTopBarDateTimeX, kTopBarDateTimeY, kTopBarDateTimeWidth, kTopBarDateTimeHeight, 1.0f, 1)) {}
 
@@ -514,6 +134,11 @@ void FlyGui::redraw(bool forced)
     {
         modal_->redraw(display_, forced);
     }
+
+    if (topBarNeedsFullRedraw_)
+    {
+        drawTopBar(false);
+    }
 }
 
 void FlyGui::showModal(FlyGuiModal& modal)
@@ -535,47 +160,26 @@ void FlyGui::removeModal(FlyGuiModal& modal)
     }
 }
 
-void FlyGui::drawTopBar(bool forced)
+void FlyGui::requestTopBarFullRedraw()
 {
-    const int32_t  battery   = M5.Power.getBatteryLevel();
-    const uint32_t currentMs = millis();
+    topBarNeedsFullRedraw_ = true;
+}
 
-    if (!forced && battery == topBarLastBattery_ && currentMs - lastTopBarDrawMs_ < 1000)
+void FlyGui::appendView(FlyGuiView& view)
+{
+    view.next_ = nullptr;
+    view.gui_  = this;
+
+    if (!firstView_)
     {
-        return;
+        firstView_ = &view;
+        lastView_  = &view;
     }
-
-    // Design: FlyGui is responsible for drawing the top bar with date/time and battery status.
-    if (forced)
+    else
     {
-        display_.fillRect(0, 0, display_.width(), kTopBarHeight, TFT_BLACK);
+        lastView_->next_ = &view;
+        lastView_        = &view;
     }
-
-    if (topBarDateTime_)
-    {
-        // Design: top-bar date/time drawing reuses the FlyGuiDateTime text item.
-        topBarDateTime_->redraw(display_, forced);
-    }
-
-    if (forced || battery != topBarLastBattery_)
-    {
-        const int32_t batteryX = display_.width() - kTopBarBatteryWidth;
-        display_.fillRect(batteryX, 0, kTopBarBatteryWidth, kTopBarHeight, TFT_BLACK);
-
-        if (battery >= 0)
-        {
-            char batteryText[8];
-            snprintf(batteryText, sizeof(batteryText), "%ld%%", static_cast<long>(battery));
-            display_.setTextColor(TFT_WHITE, TFT_BLACK);
-            display_.setTextSize(1);
-            display_.setTextDatum(top_right);
-            display_.drawString(batteryText, display_.width() - 4, 4);
-            display_.setTextDatum(top_left);
-        }
-    }
-
-    topBarLastBattery_ = battery;
-    lastTopBarDrawMs_  = currentMs;
 }
 
 void FlyGui::dispatchButtons()
@@ -590,28 +194,44 @@ void FlyGui::dispatchButtons()
     Button* mid   = buttons[TOUCHBUTTON_CENTER];
     Button* right = buttons[TOUCHBUTTON_RIGHT];
 
-    if (left && left->hasPressed())
+    const bool leftPressed  = (left && left->hasPressed()) || M5.BtnA.wasPressed();
+    const bool midPressed   = (mid && mid->hasPressed()) || M5.BtnB.wasPressed();
+    const bool rightPressed = (right && right->hasPressed()) || M5.BtnC.wasPressed();
+
+    if (leftPressed)
     {
-        left->clrPressed();
-        if (!dispatchButtonToItem(*left))
+        if (left)
+        {
+            left->clrPressed();
+        }
+        Hotel::noteUserActivity();
+        if (!left || !dispatchButtonToItem(*left))
         {
             currentView_->onPressLeft();
         }
     }
 
-    if (mid && mid->hasPressed())
+    if (midPressed)
     {
-        mid->clrPressed();
-        if (!dispatchButtonToItem(*mid))
+        if (mid)
+        {
+            mid->clrPressed();
+        }
+        Hotel::noteUserActivity();
+        if (!mid || !dispatchButtonToItem(*mid))
         {
             currentView_->onPressMid();
         }
     }
 
-    if (right && right->hasPressed())
+    if (rightPressed)
     {
-        right->clrPressed();
-        if (!dispatchButtonToItem(*right))
+        if (right)
+        {
+            right->clrPressed();
+        }
+        Hotel::noteUserActivity();
+        if (!right || !dispatchButtonToItem(*right))
         {
             currentView_->onPressRight();
         }
@@ -642,19 +262,440 @@ bool FlyGui::shouldRunScheduledPoll(FlyGuiPollMode mode, uint32_t now)
     return true;
 }
 
-void FlyGui::appendView(FlyGuiView& view)
-{
-    view.next_ = nullptr;
-    view.gui_  = this;
+FlyGuiView::FlyGuiView(uint16_t id) : id_(id) {}
 
-    if (!firstView_)
+void FlyGuiView::addItem(FlyGuiItem& item)
+{
+    // Design: FlyGuiView owns FlyGuiItems as a linked list.
+    item.next_  = nullptr;
+    item.owner_ = this;
+    if (!firstItem_)
     {
-        firstView_ = &view;
-        lastView_  = &view;
+        firstItem_ = &item;
+        lastItem_  = &item;
     }
     else
     {
-        lastView_->next_ = &view;
-        lastView_        = &view;
+        lastItem_->next_ = &item;
+        lastItem_        = &item;
+    }
+    setDirty();
+}
+
+void FlyGuiView::removeAllItems()
+{
+    FlyGuiItem* item = firstItem_;
+    while (item)
+    {
+        FlyGuiItem* next = item->next_;
+        item->owner_     = nullptr;
+        item->next_      = nullptr;
+        item             = next;
+    }
+    firstItem_ = nullptr;
+    lastItem_  = nullptr;
+    setDirty();
+}
+
+void FlyGuiView::onLoad()
+{
+    for (FlyGuiItem* item = firstItem_; item; item = item->next_)
+    {
+        item->onLoad();
+    }
+    setDirty();
+}
+
+void FlyGuiView::onUnload()
+{
+    for (FlyGuiItem* item = firstItem_; item; item = item->next_)
+    {
+        item->onUnload();
+    }
+}
+
+bool FlyGuiView::handleTouch(const FlyGuiTouchEvent& event)
+{
+    // Design: touch propagates through the active view's items until one handles it.
+    for (FlyGuiItem* item = firstItem_; item; item = item->next_)
+    {
+        if (item->handleTouch(event))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool FlyGuiView::handleButtonPress(Button& button)
+{
+    for (FlyGuiItem* item = firstItem_; item; item = item->next_)
+    {
+        if (item->handleButtonPress(button))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void FlyGuiView::redraw(M5GFX& display, bool forced)
+{
+    // Design: views and items both have dirty-aware redraw functions.
+    if (!forced && !dirty_)
+    {
+        for (FlyGuiItem* item = firstItem_; item; item = item->next_)
+        {
+            if (item->dirty())
+            {
+                item->redraw(display, false);
+            }
+        }
+        return;
+    }
+
+    for (FlyGuiItem* item = firstItem_; item; item = item->next_)
+    {
+        item->redraw(display, forced);
+    }
+    markClean();
+}
+
+FlyGuiItem::FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* mainText, Button* button) : button_(button), x_(x), y_(y), width_(width), height_(height), mainText_(mainText) {}
+
+void FlyGuiItem::relocate(int16_t x, int16_t y, int16_t width, int16_t height)
+{
+    if (x_ == x && y_ == y && width_ == width && height_ == height)
+    {
+        return;
+    }
+
+    x_      = x;
+    y_      = y;
+    width_  = width;
+    height_ = height;
+    setDirty();
+    if (owner_)
+    {
+        owner_->setDirty();
+    }
+}
+
+void FlyGuiItem::setMainText(const char* text)
+{
+    if (mainText_ == text || (mainText_ && text && strcmp(mainText_, text) == 0))
+    {
+        return;
+    }
+    mainText_ = text;
+    setDirty();
+}
+
+void FlyGuiItem::onLoad()
+{
+    setDirty();
+}
+
+void FlyGuiItem::onUnload()
+{
+}
+
+void FlyGuiItem::setVisible(bool visible)
+{
+    // Design: public visibility changes set the item's dirty flag appropriately.
+    if (visible_ != visible)
+    {
+        visible_ = visible;
+        setDirty();
+        if (owner_)
+        {
+            owner_->setDirty();
+        }
+    }
+}
+
+bool FlyGuiItem::contains(int16_t x, int16_t y) const
+{
+    return visible_ && x >= x_ && y >= y_ && x < x_ + width_ && y < y_ + height_;
+}
+
+bool FlyGuiItem::isPressed() const
+{
+    return pressed_ || (button_ && const_cast<Button*>(button_)->isPressed());
+}
+
+bool FlyGuiItem::trigger()
+{
+    if (!visible_)
+    {
+        return false;
+    }
+
+    if (callback_)
+    {
+        callback_();
+    }
+
+    return true;
+}
+
+void FlyGuiItem::setSprite(const uint8_t* data, uint32_t width, uint32_t height, size_t byte_cnt)
+{
+    spriteData_   = data;
+    spriteWidth_  = width;
+    spriteHeight_ = height;
+    spriteBytes_  = byte_cnt;
+    setDirty();
+}
+
+void FlyGuiItem::clearSprite()
+{
+    spriteData_   = nullptr;
+    spriteWidth_  = 0;
+    spriteHeight_ = 0;
+    spriteBytes_  = 0;
+    setDirty();
+}
+
+bool FlyGuiItem::handleTouch(const FlyGuiTouchEvent& event)
+{
+    const bool hit = contains(event.x, event.y);
+    const bool wasPressed = pressed_;
+
+    if (event.justReleased || !event.pressed)
+    {
+        pressed_ = false;
+    }
+
+    if (!hit)
+    {
+        if (wasPressed)
+        {
+            pressed_ = false;
+            setDirty();
+            if (owner_)
+            {
+                owner_->setDirty();
+            }
+        }
+        return false;
+    }
+
+    if (event.justReleased && wasPressed)
+    {
+        setDirty();
+        if (owner_)
+        {
+            owner_->setDirty();
+        }
+        return trigger();
+    }
+
+    if (event.pressed || event.justPressed)
+    {
+        pressed_ = true;
+        if (width_ > 0 && height_ > 0)
+        {
+            M5.Display.drawRect(x_, y_, width_, height_, TFT_WHITE);
+        }
+        if (!wasPressed)
+        {
+            setDirty();
+            if (owner_)
+            {
+                owner_->setDirty();
+            }
+        }
+    }
+
+    return true;
+}
+
+bool FlyGuiItem::handleButtonPress(Button& button)
+{
+    if (&button != button_ || !visible_)
+    {
+        return false;
+    }
+
+    FlyGuiTouchEvent event;
+    event.x           = x_ + width_ / 2;
+    event.y           = y_ + height_ / 2;
+    event.pressed     = true;
+    event.justPressed = true;
+
+    const bool handled = handleTouch(event);
+    pressed_           = button.isPressed();
+    trigger();
+    return handled;
+}
+
+void FlyGuiItem::redraw(M5GFX& display, bool forced)
+{
+    // Design: redraw accepts a forced flag and otherwise honors the item dirty flag.
+    if (!visible_ || (!forced && !dirty_))
+    {
+        return;
+    }
+
+    if (width_ > 0 && height_ > 0)
+    {
+        display.fillRect(x_, y_, width_, height_, TFT_BLACK);
+    }
+
+    if (spriteData_ && spriteBytes_ > 0 && spriteWidth_ > 0 && spriteHeight_ > 0)
+    {
+        ESP_LOGI(TAG,
+                 "item png draw begin item=%p forced=%d dirty=%d pos=%d,%d box=%dx%d sprite=%p sprite=%lux%lu bytes=%u",
+                 static_cast<const void*>(this),
+                 forced ? 1 : 0,
+                 dirty_ ? 1 : 0,
+                 x_,
+                 y_,
+                 width_,
+                 height_,
+                 static_cast<const void*>(spriteData_),
+                 static_cast<unsigned long>(spriteWidth_),
+                 static_cast<unsigned long>(spriteHeight_),
+                 static_cast<unsigned>(spriteBytes_));
+
+        const SpriteDraw::DrawResult result = SpriteDraw::drawPng(display, spriteData_, spriteBytes_, x_, y_, spriteWidth_, spriteHeight_, true, nullptr);
+
+        ESP_LOGI(TAG,
+                 "item png draw result item=%p ok=%d stage=%s(%u) decode=%ld decoded=%lux%lu callbacks=%lu pixels=%lu read=%lu elapsed_us=%lu",
+                 static_cast<const void*>(this),
+                 result.ok ? 1 : 0,
+                 drawFailureStageName(result.failure_stage),
+                 static_cast<unsigned>(result.failure_stage),
+                 static_cast<long>(result.decode_result),
+                 static_cast<unsigned long>(result.decoded_width),
+                 static_cast<unsigned long>(result.decoded_height),
+                 static_cast<unsigned long>(result.callbacks),
+                 static_cast<unsigned long>(result.pixels),
+                 static_cast<unsigned long>(result.read_bytes),
+                 static_cast<unsigned long>(result.elapsed_us));
+
+        if (!result.ok)
+        {
+            return;
+        }
+    }
+
+    if (mainText_)
+    {
+        display.drawString(mainText_, x_, y_);
+    }
+
+    markClean();
+}
+
+FlyGuiModal::FlyGuiModal(int16_t x, int16_t y, int16_t width, int16_t height, const char* mainText) : FlyGuiItem(x, y, width, height, mainText) {}
+
+static const char* drawFailureStageName(SpriteDraw::DrawFailureStage stage)
+{
+    switch (stage)
+    {
+    case SpriteDraw::DRAW_FAILURE_NONE:
+        return "none";
+    case SpriteDraw::DRAW_FAILURE_INVALID_ARGUMENT:
+        return "invalid_arg";
+    case SpriteDraw::DRAW_FAILURE_ALLOC:
+        return "alloc";
+    case SpriteDraw::DRAW_FAILURE_PREPARE:
+        return "prepare";
+    case SpriteDraw::DRAW_FAILURE_SIZE_MISMATCH:
+        return "size_mismatch";
+    case SpriteDraw::DRAW_FAILURE_DECODE:
+        return "decode";
+    default:
+        return "unknown";
+    }
+}
+
+void FlyGui::drawTopBar(bool forced)
+{
+    const int32_t  battery    = batteryStatusCode(M5.Power.getBatteryLevel(), isBatteryCharging());
+    const uint32_t currentMs  = millis();
+    const bool     fullRedraw = forced || topBarNeedsFullRedraw_;
+
+    if (!fullRedraw && battery == topBarLastBattery_ && currentMs - lastTopBarDrawMs_ < 1000)
+    {
+        return;
+    }
+
+    // Design: FlyGui is responsible for drawing the top bar with date/time and battery status.
+    if (fullRedraw)
+    {
+        display_.fillRect(0, 0, display_.width(), FlyGui::topBarHeight(), TFT_BLACK);
+    }
+
+    if (topBarDateTime_)
+    {
+        // Design: top-bar date/time drawing reuses the FlyGuiDateTime text item.
+        topBarDateTime_->redraw(display_, fullRedraw);
+    }
+
+    if (fullRedraw || battery != topBarLastBattery_)
+    {
+        const int32_t batteryX = display_.width() - kTopBarBatteryWidth;
+        display_.fillRect(batteryX, 0, kTopBarBatteryWidth, FlyGui::topBarHeight(), TFT_BLACK);
+
+        const BatterySprite sprite = batterySpriteForStatus(battery);
+        if (sprite.data && sprite.byte_cnt > 0 && sprite.width > 0 && sprite.height > 0)
+        {
+            const int32_t x = display_.width() - 4 - static_cast<int32_t>(sprite.width);
+            const int32_t y = (FlyGui::topBarHeight() - static_cast<int32_t>(sprite.height)) / 2;
+            SpriteDraw::drawPng(display_, sprite.data, sprite.byte_cnt, x, y, sprite.width, sprite.height, true, nullptr);
+        }
+    }
+
+    topBarLastBattery_     = battery;
+    lastTopBarDrawMs_      = currentMs;
+    topBarNeedsFullRedraw_ = false;
+}
+
+static bool isBatteryCharging()
+{
+    return M5.Power.isCharging() == m5::Power_Class::is_charging;
+}
+
+static int32_t batteryStatusCode(int32_t percent, bool charging)
+{
+    if (percent < 0)
+    {
+        return -1;
+    }
+
+    int32_t level = 0;
+    if (percent >= 67)
+    {
+        level = 2;
+    }
+    else if (percent >= 34)
+    {
+        level = 1;
+    }
+
+    return level | (charging ? 0x04 : 0x00);
+}
+
+static BatterySprite batterySpriteForStatus(int32_t status)
+{
+    switch (status)
+    {
+    case 0x00:
+        return { sprit_batt_low, SPRIT_BATT_LOW_WIDTH, SPRIT_BATT_LOW_HEIGHT, SPRIT_BATT_LOW_BYTES };
+    case 0x01:
+        return { sprit_batt_medium, SPRIT_BATT_MEDIUM_WIDTH, SPRIT_BATT_MEDIUM_HEIGHT, SPRIT_BATT_MEDIUM_BYTES };
+    case 0x02:
+        return { sprit_batt_full, SPRIT_BATT_FULL_WIDTH, SPRIT_BATT_FULL_HEIGHT, SPRIT_BATT_FULL_BYTES };
+    case 0x04:
+        return { sprit_batt_low_charging, SPRIT_BATT_LOW_CHARGING_WIDTH, SPRIT_BATT_LOW_CHARGING_HEIGHT, SPRIT_BATT_LOW_CHARGING_BYTES };
+    case 0x05:
+        return { sprit_batt_medium_charging, SPRIT_BATT_MEDIUM_CHARGING_WIDTH, SPRIT_BATT_MEDIUM_CHARGING_HEIGHT, SPRIT_BATT_MEDIUM_CHARGING_BYTES };
+    case 0x06:
+        return { sprit_batt_full_charging, SPRIT_BATT_FULL_CHARGING_WIDTH, SPRIT_BATT_FULL_CHARGING_HEIGHT, SPRIT_BATT_FULL_CHARGING_BYTES };
+    default:
+        return {};
     }
 }

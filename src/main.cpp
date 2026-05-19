@@ -24,6 +24,7 @@ TaskHandle_t loopTask_core0_Handle = NULL;
 static void  loopTask_core0(void* pvParameters);
 
 FlyGui* gui;
+M5GFX* gui_display;
 BtHostList* bt_host_list;
 WifiManager* wifi_manager;
 
@@ -41,32 +42,37 @@ void setup()
 
     if (!MicroSdCard::begin())
     {
-        ESP_LOGE(MAINTAG, "microSD init failed");
+        show_fatal_error_f(true, "microSD init failed");
     }
 
     bt_host_list = new BtHostList();
     if (!bt_host_list->loadFromMicroSd())
     {
-        ESP_LOGE(MAINTAG, "BtHostList file load failed");
+        show_fatal_error_f(false, "Bluetooth host list load failed");
     }
 
-    wifi_manager = new WifiManager();
-    if (!wifi_manager->loadFromMicroSd())
+    //wifi_manager = new WifiManager();
+    if (wifi_manager && !wifi_manager->loadFromMicroSd())
     {
-        ESP_LOGE(MAINTAG, "WifiManager file load failed: %s", wifi_manager->lastResultName());
+        show_fatal_error_f(false, "Wi-Fi configuration load failed: %s", wifi_manager->lastResultName());
     }
 
     if (!AudioManager::init())
     {
-        ESP_LOGE(MAINTAG, "AudioManager init failed");
+        show_fatal_error_f(true, "AudioManager init failed");
     }
 
     if (!BtManager::init())
     {
-        ESP_LOGE(MAINTAG, "BluetoothManager init failed");
+        show_fatal_error_f(true, "BluetoothManager init failed");
     }
 
     BattTracker::init();
+
+    if (!gui || !gui->showView(FLYGUI_VIEW_MAIN))
+    {
+        show_fatal_error_f(true, "Failed to show main view");
+    }
 
     xTaskCreateUniversal(loopTask_core0, "loopTask_core0", getArduinoLoopTaskStackSize(), NULL, 1, &loopTask_core0_Handle, 0);
 }
@@ -74,9 +80,9 @@ void setup()
 void loop()
 {
     // this is running on core 1
+    gui->poll();
     AudioFileRecorder::pump();
-    if (wifi_manager)
-    {
+    if (wifi_manager) {
         wifi_manager->poll();
     }
     Hotel::pollCore1();
@@ -90,6 +96,36 @@ static void loopTask_core0(void* pvParameters)
     {
         AudioManager::pump_task();
         Hotel::pollCore0();
-        taskYIELD();
+        vTaskDelay(pdMS_TO_TICKS(1));
     }
+}
+
+void main_screen_bluetooth()
+{
+    ESP_LOGI(MAINTAG, "main screen bluetooth selected");
+}
+
+void main_screen_wifi()
+{
+    ESP_LOGI(MAINTAG, "main screen wifi selected");
+}
+
+void main_screen_memo()
+{
+    ESP_LOGI(MAINTAG, "main screen memo selected");
+}
+
+void main_screen_smartphone()
+{
+    ESP_LOGI(MAINTAG, "main screen smartphone selected");
+}
+
+void main_screen_laptop()
+{
+    ESP_LOGI(MAINTAG, "main screen laptop selected");
+}
+
+void main_screen_wifihome()
+{
+    ESP_LOGI(MAINTAG, "main screen wifi home selected");
 }

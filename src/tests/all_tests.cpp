@@ -12,5 +12,5 @@ void run_test()
     //test_micfilterperformance();
     //test_micfilterresult();
     //test_imu();
-    test_bootreadfiles();
+    //test_bootreadfiles();
 }
