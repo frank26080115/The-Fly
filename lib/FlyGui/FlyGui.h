@@ -213,6 +213,12 @@ public:
     }
     void setVisible(bool visible);
 
+    bool faded() const
+    {
+        return faded_;
+    }
+    void setFaded(bool faded);
+
     bool dirty() const
     {
         return dirty_;
@@ -274,6 +280,7 @@ private:
     bool        visible_  = true;
     bool        dirty_    = true;
     bool        pressed_  = false;
+    bool        faded_    = false;
 };
 
 class FlyGuiModal : public FlyGuiItem

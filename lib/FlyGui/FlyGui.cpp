@@ -414,6 +414,12 @@ void FlyGuiItem::setVisible(bool visible)
     }
 }
 
+void FlyGuiItem::setFaded(bool faded)
+{
+    faded_ = faded;
+    setDirty();
+}
+
 bool FlyGuiItem::contains(int16_t x, int16_t y) const
 {
     return visible_ && x >= x_ && y >= y_ && x < x_ + width_ && y < y_ + height_;
@@ -540,7 +546,8 @@ void FlyGuiItem::redraw(bool forced)
 
     if (spriteData_ && spriteBytes_ > 0 && spriteWidth_ > 0 && spriteHeight_ > 0)
     {
-        const SpriteDraw::DrawResult result = SpriteDraw::drawPng(spriteData_, spriteBytes_, x_, y_, spriteWidth_, spriteHeight_, true, nullptr);
+        const uint8_t brightness = faded_ ? (SpriteDraw::PNG_BRTNESS_50 | SpriteDraw::PNG_DITHER_FLAG) : SpriteDraw::PNG_BRTNESS_100;
+        const SpriteDraw::DrawResult result = SpriteDraw::drawPng(spriteData_, spriteBytes_, x_, y_, spriteWidth_, spriteHeight_, true, brightness);
 
         if (!result.ok)
         {
@@ -616,7 +623,7 @@ void FlyGui::drawTopBar(bool forced)
         {
             const int32_t x = thefly_display.width() - 4 - static_cast<int32_t>(sprite.width);
             const int32_t y = (FlyGui::topBarHeight() - static_cast<int32_t>(sprite.height)) / 2;
-            SpriteDraw::drawPng(sprite.data, sprite.byte_cnt, x, y, sprite.width, sprite.height, true, nullptr);
+            SpriteDraw::drawPng(sprite.data, sprite.byte_cnt, x, y, sprite.width, sprite.height, true);
         }
     }
 
