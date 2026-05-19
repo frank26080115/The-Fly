@@ -32,7 +32,7 @@ static int32_t batteryStatusCode(int32_t percent, bool charging);
 static BatterySprite batterySpriteForStatus(int32_t status);
 static const char* drawFailureStageName(SpriteDraw::DrawFailureStage stage);
 
-FlyGui::FlyGui(M5GFX& display) : display_(display), topBarDateTime_(new FlyGuiDateTime(kTopBarDateTimeX, kTopBarDateTimeY, kTopBarDateTimeWidth, kTopBarDateTimeHeight, 1.0f, 1)) {}
+FlyGui::FlyGui() : topBarDateTime_(new FlyGuiDateTime(kTopBarDateTimeX, kTopBarDateTimeY, kTopBarDateTimeWidth, kTopBarDateTimeHeight, 1.0f, 1)) {}
 
 FlyGui::~FlyGui()
 {
@@ -127,12 +127,12 @@ void FlyGui::redraw(bool forced)
 
     if (currentView_)
     {
-        currentView_->redraw(display_, forced);
+        currentView_->redraw(forced);
     }
 
     if (modal_)
     {
-        modal_->redraw(display_, forced);
+        modal_->redraw(forced);
     }
 
     if (topBarNeedsFullRedraw_)
@@ -339,7 +339,7 @@ bool FlyGuiView::handleButtonPress(Button& button)
     return false;
 }
 
-void FlyGuiView::redraw(M5GFX& display, bool forced)
+void FlyGuiView::redraw(bool forced)
 {
     // Design: views and items both have dirty-aware redraw functions.
     if (!forced && !dirty_)
@@ -348,7 +348,7 @@ void FlyGuiView::redraw(M5GFX& display, bool forced)
         {
             if (item->dirty())
             {
-                item->redraw(display, false);
+                item->redraw(false);
             }
         }
         return;
@@ -356,7 +356,7 @@ void FlyGuiView::redraw(M5GFX& display, bool forced)
 
     for (FlyGuiItem* item = firstItem_; item; item = item->next_)
     {
-        item->redraw(display, forced);
+        item->redraw(forced);
     }
     markClean();
 }
@@ -496,7 +496,7 @@ bool FlyGuiItem::handleTouch(const FlyGuiTouchEvent& event)
         pressed_ = true;
         if (width_ > 0 && height_ > 0)
         {
-            M5.Display.drawRect(x_, y_, width_, height_, TFT_WHITE);
+            thefly_display.drawRect(x_, y_, width_, height_, TFT_WHITE);
         }
         if (!wasPressed)
         {
@@ -530,7 +530,7 @@ bool FlyGuiItem::handleButtonPress(Button& button)
     return handled;
 }
 
-void FlyGuiItem::redraw(M5GFX& display, bool forced)
+void FlyGuiItem::redraw(bool forced)
 {
     // Design: redraw accepts a forced flag and otherwise honors the item dirty flag.
     if (!visible_ || (!forced && !dirty_))
@@ -540,7 +540,7 @@ void FlyGuiItem::redraw(M5GFX& display, bool forced)
 
     if (spriteData_ && spriteBytes_ > 0 && spriteWidth_ > 0 && spriteHeight_ > 0)
     {
-        const SpriteDraw::DrawResult result = SpriteDraw::drawPng(display, spriteData_, spriteBytes_, x_, y_, spriteWidth_, spriteHeight_, true, nullptr);
+        const SpriteDraw::DrawResult result = SpriteDraw::drawPng(spriteData_, spriteBytes_, x_, y_, spriteWidth_, spriteHeight_, true, nullptr);
 
         if (!result.ok)
         {
@@ -549,12 +549,12 @@ void FlyGuiItem::redraw(M5GFX& display, bool forced)
     }
     else if (width_ > 0 && height_ > 0)
     {
-        display.fillRect(x_, y_, width_, height_, TFT_BLACK);
+        thefly_display.fillRect(x_, y_, width_, height_, TFT_BLACK);
     }
 
     if (mainText_)
     {
-        display.drawString(mainText_, x_, y_);
+        thefly_display.drawString(mainText_, x_, y_);
     }
 
     markClean();
@@ -597,26 +597,26 @@ void FlyGui::drawTopBar(bool forced)
     // Design: FlyGui is responsible for drawing the top bar with date/time and battery status.
     if (fullRedraw)
     {
-        display_.fillRect(0, 0, display_.width(), FlyGui::topBarHeight(), TFT_BLACK);
+        thefly_display.fillRect(0, 0, thefly_display.width(), FlyGui::topBarHeight(), TFT_BLACK);
     }
 
     if (topBarDateTime_)
     {
         // Design: top-bar date/time drawing reuses the FlyGuiDateTime text item.
-        topBarDateTime_->redraw(display_, fullRedraw);
+        topBarDateTime_->redraw(fullRedraw);
     }
 
     if (fullRedraw || battery != topBarLastBattery_)
     {
-        const int32_t batteryX = display_.width() - kTopBarBatteryWidth;
-        display_.fillRect(batteryX, 0, kTopBarBatteryWidth, FlyGui::topBarHeight(), TFT_BLACK);
+        const int32_t batteryX = thefly_display.width() - kTopBarBatteryWidth;
+        thefly_display.fillRect(batteryX, 0, kTopBarBatteryWidth, FlyGui::topBarHeight(), TFT_BLACK);
 
         const BatterySprite sprite = batterySpriteForStatus(battery);
         if (sprite.data && sprite.byte_cnt > 0 && sprite.width > 0 && sprite.height > 0)
         {
-            const int32_t x = display_.width() - 4 - static_cast<int32_t>(sprite.width);
+            const int32_t x = thefly_display.width() - 4 - static_cast<int32_t>(sprite.width);
             const int32_t y = (FlyGui::topBarHeight() - static_cast<int32_t>(sprite.height)) / 2;
-            SpriteDraw::drawPng(display_, sprite.data, sprite.byte_cnt, x, y, sprite.width, sprite.height, true, nullptr);
+            SpriteDraw::drawPng(sprite.data, sprite.byte_cnt, x, y, sprite.width, sprite.height, true, nullptr);
         }
     }
 

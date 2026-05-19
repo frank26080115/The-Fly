@@ -5,7 +5,7 @@
 namespace FlyGuiTextUtil
 {
 
-void drawWrappedText(M5GFX& display, const char* text, int16_t x, int16_t y, int16_t width, int16_t maxY, int16_t lineHeight);
+void drawWrappedText(const char* text, int16_t x, int16_t y, int16_t width, int16_t maxY, int16_t lineHeight);
 
 } // namespace FlyGuiTextUtil
 
@@ -21,7 +21,7 @@ public:
         return text_;
     }
 
-    void redraw(M5GFX& display, bool forced) override;
+    void redraw(bool forced) override;
 
 protected:
     void   updateRememberedText();
@@ -31,8 +31,8 @@ protected:
     }
 
 private:
-    void    drawTextRun(M5GFX& display, size_t start, size_t end);
-    int32_t textPrefixWidth(M5GFX& display, const char* text, size_t length) const;
+    void    drawTextRun(size_t start, size_t end);
+    int32_t textPrefixWidth(const char* text, size_t length) const;
     int32_t textHeight() const;
 
     float   fontSize_  = 1.0f;
@@ -47,7 +47,7 @@ class FlyGuiDateTime : public FlyGuiText
 public:
     FlyGuiDateTime(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle);
 
-    void redraw(M5GFX& display, bool forced) override;
+    void redraw(bool forced) override;
 };
 
 class FlyGuiStopwatch : public FlyGuiText
@@ -58,7 +58,7 @@ public:
     void     start(uint32_t startMs = millis());
     void     reset(uint32_t startMs = millis());
     uint32_t elapsedMs() const;
-    void     redraw(M5GFX& display, bool forced) override;
+    void     redraw(bool forced) override;
 
 private:
     uint32_t startMs_ = 0;

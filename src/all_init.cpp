@@ -100,11 +100,10 @@ void init_m5()
 
 void init_gui()
 {
-    gui = new FlyGui(M5.Display);
-    M5GFX& display = gui->display();
-    display.setBrightness(255);
-    display.setColorDepth(16);
-    display.fillScreen(TFT_BLACK);
+    gui = new FlyGui();
+    thefly_display.setBrightness(255);
+    thefly_display.setColorDepth(16);
+    thefly_display.fillScreen(TFT_BLACK);
 
     gui->addView(g_splash_view);
     gui->addView(g_main_screen_view);

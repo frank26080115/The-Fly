@@ -84,15 +84,14 @@ void test_screen()
     auto cfg = M5.config();
     M5.begin(cfg);
 
-    FlyGui gui(M5.Display);
-    M5GFX& display = gui.display();
+    FlyGui gui;
 
-    display.setBrightness(255);
-    display.setColorDepth(16);
-    display.fillScreen(TFT_BLACK);
+    thefly_display.setBrightness(255);
+    thefly_display.setColorDepth(16);
+    thefly_display.fillScreen(TFT_BLACK);
 
     Serial.println();
-    Serial.printf("%s: starting full-screen HSV fill test: %dx%d\n", TAG, display.width(), display.height());
+    Serial.printf("%s: starting full-screen HSV fill test: %dx%d\n", TAG, thefly_display.width(), thefly_display.height());
 
     uint16_t hue              = 0;
     uint32_t report_started_ms = millis();
@@ -100,7 +99,7 @@ void test_screen()
 
     while (true)
     {
-        display.fillScreen(hsv_to_rgb565(hue, kSaturation, kValue));
+        thefly_display.fillScreen(hsv_to_rgb565(hue, kSaturation, kValue));
         hue = static_cast<uint16_t>((hue + 1U) % kHueCount);
         ++frames;
 

@@ -1,5 +1,6 @@
 #include "SpriteDraw.h"
 
+#include "Display.h"
 #include "thefly_common.h"
 
 #include <Arduino.h>
@@ -21,7 +22,6 @@ struct PngDecodeContext
     const uint8_t* data       = nullptr;
     size_t         data_size  = 0;
     size_t         read_index = 0;
-    M5GFX*         display    = nullptr;
     int32_t        origin_x   = 0;
     int32_t        origin_y   = 0;
     uint32_t       callbacks  = 0;
@@ -86,14 +86,13 @@ lgfx::rgb565_t argb_to_rgb565(const uint8_t* argb)
 void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, size_t length, const uint8_t* argb)
 {
     auto* context = static_cast<PngDecodeContext*>(user_data);
-    if (context == nullptr || context->display == nullptr || argb == nullptr || length == 0)
+    if (context == nullptr || argb == nullptr || length == 0)
     {
         return;
     }
 
-    M5GFX& display = *context->display;
-    int32_t dst_x  = context->origin_x + static_cast<int32_t>(x);
-    int32_t dst_y  = context->origin_y + static_cast<int32_t>(y);
+    int32_t dst_x = context->origin_x + static_cast<int32_t>(x);
+    int32_t dst_y = context->origin_y + static_cast<int32_t>(y);
 
     ++context->callbacks;
     context->pixels += static_cast<uint32_t>(length);
@@ -107,7 +106,7 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
         }
     }
 
-    if (dst_y < 0 || dst_y >= display.height())
+    if (dst_y < 0 || dst_y >= thefly_display.height())
     {
         return;
     }
@@ -116,22 +115,22 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
     {
         if (!context->fast_mode)
         {
-            display.startWrite();
+            thefly_display.startWrite();
         }
 
         for (size_t index = 0; index < length; ++index)
         {
             const int32_t pixel_x = dst_x + static_cast<int32_t>(index * div_x);
-            if (pixel_x >= 0 && pixel_x < display.width())
+            if (pixel_x >= 0 && pixel_x < thefly_display.width())
             {
-                display.drawPixel(pixel_x, dst_y, argb_to_rgb565(argb));
+                thefly_display.drawPixel(pixel_x, dst_y, argb_to_rgb565(argb));
             }
             argb += 4;
         }
 
         if (!context->fast_mode)
         {
-            display.endWrite();
+            thefly_display.endWrite();
         }
 
         return;
@@ -149,12 +148,12 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
         dst_x = 0;
     }
 
-    if (dst_x >= display.width())
+    if (dst_x >= thefly_display.width())
     {
         return;
     }
 
-    const size_t max_visible = static_cast<size_t>(display.width() - dst_x);
+    const size_t max_visible = static_cast<size_t>(thefly_display.width() - dst_x);
     if (length > max_visible)
     {
         length = max_visible;
@@ -163,7 +162,7 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
     lgfx::rgb565_t line[kMaxRunChunkPixels];
     if (!context->fast_mode)
     {
-        display.startWrite();
+        thefly_display.startWrite();
     }
 
     while (length > 0)
@@ -174,8 +173,8 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
             line[index] = argb_to_rgb565(argb + index * 4);
         }
 
-        display.setAddrWindow(dst_x, dst_y, static_cast<int32_t>(chunk), 1);
-        display.writePixels(line, static_cast<int32_t>(chunk));
+        thefly_display.setAddrWindow(dst_x, dst_y, static_cast<int32_t>(chunk), 1);
+        thefly_display.writePixels(line, static_cast<int32_t>(chunk));
 
         dst_x += static_cast<int32_t>(chunk);
         argb += chunk * 4;
@@ -184,14 +183,13 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
 
     if (!context->fast_mode)
     {
-        display.endWrite();
+        thefly_display.endWrite();
     }
 }
 
 } // namespace
 
-DrawResult drawPng(M5GFX& display,
-                   const uint8_t* sprite,
+DrawResult drawPng(const uint8_t* sprite,
                    size_t sprite_bytes,
                    int32_t x,
                    int32_t y,
@@ -220,7 +218,6 @@ DrawResult drawPng(M5GFX& display,
     PngDecodeContext context;
     context.data      = sprite;
     context.data_size = sprite_bytes;
-    context.display   = &display;
     context.origin_x  = x;
     context.origin_y  = y;
     context.fast_mode = fast_mode;
@@ -250,12 +247,12 @@ DrawResult drawPng(M5GFX& display,
     const uint32_t started_us = micros();
     if (fast_mode)
     {
-        display.startWrite();
+        thefly_display.startWrite();
     }
     const int decode_result = lgfx_pngle_decomp(pngle, draw_png_run);
     if (fast_mode)
     {
-        display.endWrite();
+        thefly_display.endWrite();
     }
     result.elapsed_us = micros() - started_us;
 

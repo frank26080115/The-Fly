@@ -13,7 +13,7 @@ void SplashView::onLoad()
     FlyGuiView::onLoad();
 }
 
-void SplashView::redraw(M5GFX& display, bool forced)
+void SplashView::redraw(bool forced)
 {
     if (!forced && !dirty())
     {
@@ -21,10 +21,10 @@ void SplashView::redraw(M5GFX& display, bool forced)
     }
 
     const SpriteDraw::DrawResult result =
-        SpriteDraw::drawPng(display, sprit_splash, SPRIT_SPLASH_BYTES, 0, 0, SPRIT_SPLASH_WIDTH, SPRIT_SPLASH_HEIGHT, true);
+        SpriteDraw::drawPng(sprit_splash, SPRIT_SPLASH_BYTES, 0, 0, SPRIT_SPLASH_WIDTH, SPRIT_SPLASH_HEIGHT, true);
     if (!result.ok)
     {
-        display.fillScreen(TFT_BLACK);
+        thefly_display.fillScreen(TFT_BLACK);
     }
 
     markClean();
