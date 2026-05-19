@@ -130,3 +130,8 @@ void main_screen_wifihome()
 {
     ESP_LOGI(MAINTAG, "main screen wifi home selected");
 }
+
+void conn_waiting_cancel()
+{
+    ESP_LOGI(MAINTAG, "connection waiting cancel selected");
+}
