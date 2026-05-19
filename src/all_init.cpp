@@ -6,6 +6,7 @@
 #include "ActiveRecordingView.h"
 #include "ApModeView.h"
 #include "BluetoothDeviceView.h"
+#include "ConnWaitingView.h"
 #include "ErrorView.h"
 #include "FileListView.h"
 #include "MainScreenView.h"
@@ -23,6 +24,7 @@ RTC_DATA_ATTR uint32_t reset_magic = 0;
 bool reset_was_magic = false;
 
 extern FlyGui* gui;
+extern void conn_waiting_cancel();
 
 namespace
 {
@@ -36,6 +38,7 @@ ApModeView          g_ap_mode_view;
 UploadProgressView  g_upload_progress_view;
 FileListView        g_file_list_view;
 ErrorView           g_error_view;
+ConnWaitingView     g_conn_waiting_view(CONN_WAITING_BLUETOOTH_CONNECTING, "", conn_waiting_cancel);
 } // namespace
 
 bool init_nvs();
@@ -115,6 +118,7 @@ void init_gui()
     gui->addView(g_upload_progress_view);
     gui->addView(g_file_list_view);
     gui->addView(g_error_view);
+    gui->addView(g_conn_waiting_view);
 }
 
 void show_splash()

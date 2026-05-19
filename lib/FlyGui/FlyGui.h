@@ -43,6 +43,7 @@ enum FlyGuiViewId : uint16_t
     FLYGUI_VIEW_UPLOAD_PROGRESS,
     FLYGUI_VIEW_FILE_LIST,
     FLYGUI_VIEW_ERROR,
+    FLYGUI_VIEW_CONN_WAITING,
 };
 
 class FlyGui
