@@ -64,6 +64,7 @@ void test_pngdecode()
                                 SPRIT_SPLASH_WIDTH,
                                 SPRIT_SPLASH_HEIGHT,
                                 use_fast,
+                                SpriteDraw::PNG_BRTNESS_100,
                                 on_sprite_draw_callback
                             );
         report_draw_result(result);
