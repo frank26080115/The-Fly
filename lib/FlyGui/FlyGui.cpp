@@ -538,47 +538,18 @@ void FlyGuiItem::redraw(M5GFX& display, bool forced)
         return;
     }
 
-    if (width_ > 0 && height_ > 0)
-    {
-        display.fillRect(x_, y_, width_, height_, TFT_BLACK);
-    }
-
     if (spriteData_ && spriteBytes_ > 0 && spriteWidth_ > 0 && spriteHeight_ > 0)
     {
-        ESP_LOGI(TAG,
-                 "item png draw begin item=%p forced=%d dirty=%d pos=%d,%d box=%dx%d sprite=%p sprite=%lux%lu bytes=%u",
-                 static_cast<const void*>(this),
-                 forced ? 1 : 0,
-                 dirty_ ? 1 : 0,
-                 x_,
-                 y_,
-                 width_,
-                 height_,
-                 static_cast<const void*>(spriteData_),
-                 static_cast<unsigned long>(spriteWidth_),
-                 static_cast<unsigned long>(spriteHeight_),
-                 static_cast<unsigned>(spriteBytes_));
-
         const SpriteDraw::DrawResult result = SpriteDraw::drawPng(display, spriteData_, spriteBytes_, x_, y_, spriteWidth_, spriteHeight_, true, nullptr);
-
-        ESP_LOGI(TAG,
-                 "item png draw result item=%p ok=%d stage=%s(%u) decode=%ld decoded=%lux%lu callbacks=%lu pixels=%lu read=%lu elapsed_us=%lu",
-                 static_cast<const void*>(this),
-                 result.ok ? 1 : 0,
-                 drawFailureStageName(result.failure_stage),
-                 static_cast<unsigned>(result.failure_stage),
-                 static_cast<long>(result.decode_result),
-                 static_cast<unsigned long>(result.decoded_width),
-                 static_cast<unsigned long>(result.decoded_height),
-                 static_cast<unsigned long>(result.callbacks),
-                 static_cast<unsigned long>(result.pixels),
-                 static_cast<unsigned long>(result.read_bytes),
-                 static_cast<unsigned long>(result.elapsed_us));
 
         if (!result.ok)
         {
             return;
         }
+    }
+    else if (width_ > 0 && height_ > 0)
+    {
+        display.fillRect(x_, y_, width_, height_, TFT_BLACK);
     }
 
     if (mainText_)

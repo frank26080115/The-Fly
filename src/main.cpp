@@ -51,7 +51,7 @@ void setup()
         show_fatal_error_f(false, "Bluetooth host list load failed");
     }
 
-    //wifi_manager = new WifiManager();
+    wifi_manager = new WifiManager();
     if (wifi_manager && !wifi_manager->loadFromMicroSd())
     {
         show_fatal_error_f(false, "Wi-Fi configuration load failed: %s", wifi_manager->lastResultName());
