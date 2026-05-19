@@ -42,9 +42,8 @@ void test_pngdecode()
     auto cfg = M5.config();
     M5.begin(cfg);
 
-    gui = new FlyGui(M5.Display);
-    M5GFX& display = gui->display();
-    display.fillScreen(TFT_BLACK);
+    gui = new FlyGui();
+    thefly_display.fillScreen(TFT_BLACK);
 
     Serial.println();
     Serial.printf("%s: starting PNG decode test\n", TAG);
@@ -53,13 +52,12 @@ void test_pngdecode()
 
     while (true)
     {
-        display.fillScreen(TFT_BLACK);
+        thefly_display.fillScreen(TFT_BLACK);
 
-        const int32_t splash_x = (display.width() - static_cast<int32_t>(SPRIT_SPLASH_WIDTH)) / 2;
-        const int32_t splash_y = (display.height() - static_cast<int32_t>(SPRIT_SPLASH_HEIGHT)) / 2;
+        const int32_t splash_x = (thefly_display.width() - static_cast<int32_t>(SPRIT_SPLASH_WIDTH)) / 2;
+        const int32_t splash_y = (thefly_display.height() - static_cast<int32_t>(SPRIT_SPLASH_HEIGHT)) / 2;
         const SpriteDraw::DrawResult result =
-            SpriteDraw::drawPng(display,
-                                sprit_splash,
+            SpriteDraw::drawPng(sprit_splash,
                                 SPRIT_SPLASH_BYTES,
                                 splash_x,
                                 splash_y,
@@ -71,7 +69,7 @@ void test_pngdecode()
         report_draw_result(result);
 
         delay(3000);
-        display.fillScreen(TFT_BLACK);
+        thefly_display.fillScreen(TFT_BLACK);
         delay(3000);
 
         use_fast = !use_fast;

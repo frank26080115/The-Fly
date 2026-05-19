@@ -44,22 +44,21 @@ bool ErrorView::handleTouch(const FlyGuiTouchEvent& event)
     return true;
 }
 
-void ErrorView::redraw(M5GFX& display, bool forced)
+void ErrorView::redraw(bool forced)
 {
     if (!forced && !dirty())
     {
         return;
     }
 
-    display.fillScreen(TFT_BLACK);
+    thefly_display.fillScreen(TFT_BLACK);
     if (gui())
     {
         gui()->requestTopBarFullRedraw();
     }
 
-    const int16_t icon_x = static_cast<int16_t>((display.width() - static_cast<int32_t>(SPRIT_ERROR_LARGE_WIDTH)) / 2);
-    SpriteDraw::drawPng(display,
-                        sprit_error_large,
+    const int16_t icon_x = static_cast<int16_t>((thefly_display.width() - static_cast<int32_t>(SPRIT_ERROR_LARGE_WIDTH)) / 2);
+    SpriteDraw::drawPng(sprit_error_large,
                         SPRIT_ERROR_LARGE_BYTES,
                         icon_x,
                         kIconY,
@@ -68,22 +67,21 @@ void ErrorView::redraw(M5GFX& display, bool forced)
                         true,
                         nullptr);
 
-    display.setTextFont(kTextFont);
-    display.setTextSize(kTextSize);
-    display.setTextDatum(top_left);
-    display.setTextColor(TFT_WHITE, TFT_BLACK);
+    thefly_display.setTextFont(kTextFont);
+    thefly_display.setTextSize(kTextSize);
+    thefly_display.setTextDatum(top_left);
+    thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
 
-    const int16_t footer_y = static_cast<int16_t>(display.height() - kLineHeight - kTextPadding);
-    FlyGuiTextUtil::drawWrappedText(display,
-                                     message_,
+    const int16_t footer_y = static_cast<int16_t>(thefly_display.height() - kLineHeight - kTextPadding);
+    FlyGuiTextUtil::drawWrappedText(message_,
                                      kTextX,
                                      kTextY,
-                                     static_cast<int16_t>(display.width() - (kTextX * 2)),
+                                     static_cast<int16_t>(thefly_display.width() - (kTextX * 2)),
                                      static_cast<int16_t>(footer_y - kTextPadding),
                                      kLineHeight);
 
-    display.setTextColor(fatal_ ? TFT_RED : TFT_YELLOW, TFT_BLACK);
-    display.drawString(fatal_ ? "Fatal error. Restart required." : "Touch screen to continue.", kTextX, footer_y);
+    thefly_display.setTextColor(fatal_ ? TFT_RED : TFT_YELLOW, TFT_BLACK);
+    thefly_display.drawString(fatal_ ? "Fatal error. Restart required." : "Touch screen to continue.", kTextX, footer_y);
 
     markClean();
 }

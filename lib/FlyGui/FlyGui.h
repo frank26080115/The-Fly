@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <M5Unified.h>
+#include "Display.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -47,7 +48,7 @@ enum FlyGuiViewId : uint16_t
 class FlyGui
 {
 public:
-    explicit FlyGui(M5GFX& display = M5.Display);
+    FlyGui();
     ~FlyGui();
 
     static constexpr int16_t topBarHeight()
@@ -81,7 +82,7 @@ public:
 
     M5GFX& display()
     {
-        return display_;
+        return thefly_display;
     }
 
     void requestTopBarFullRedraw();
@@ -93,7 +94,6 @@ private:
     bool shouldRunScheduledPoll(FlyGuiPollMode mode, uint32_t now);
     void drawTopBar(bool forced);
 
-    M5GFX&          display_;
     FlyGuiView*     firstView_             = nullptr;
     FlyGuiView*     lastView_              = nullptr;
     FlyGuiView*     currentView_           = nullptr;
@@ -145,7 +145,7 @@ public:
     virtual void onUnload();
     virtual bool handleTouch(const FlyGuiTouchEvent& event);
     virtual bool handleButtonPress(Button& button);
-    virtual void redraw(M5GFX& display, bool forced);
+    virtual void redraw(bool forced);
 
     virtual void onPressLeft() {}
     virtual void onPressMid() {}
@@ -247,7 +247,7 @@ public:
     virtual void onUnload();
     virtual bool handleTouch(const FlyGuiTouchEvent& event);
     virtual bool handleButtonPress(Button& button);
-    virtual void redraw(M5GFX& display, bool forced);
+    virtual void redraw(bool forced);
 
 protected:
     void markClean()

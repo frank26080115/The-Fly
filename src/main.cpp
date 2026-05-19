@@ -9,6 +9,7 @@
 #include "BtHostList.h"
 #include "Hotel.h"
 #include "FlyGui.h"
+#include "Display.h"
 #include "MicroSdCard.h"
 #include "WifiManager.h"
 #include "esp_log.h"
@@ -24,7 +25,7 @@ TaskHandle_t loopTask_core0_Handle = NULL;
 static void  loopTask_core0(void* pvParameters);
 
 FlyGui* gui;
-M5GFX* gui_display;
+M5GFX& thefly_display = M5.Display;
 BtHostList* bt_host_list;
 WifiManager* wifi_manager;
 

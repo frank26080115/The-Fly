@@ -9,6 +9,7 @@
 
 #include "AudioManager.h"
 #include "BluetoothManager.h"
+#include "Display.h"
 #include "esp_bt_defs.h"
 #include "esp_err.h"
 #include "esp_gap_bt_api.h"
@@ -343,9 +344,9 @@ void choke_file_fifos()
 
 void init_display_and_buttons()
 {
-    M5.Display.setBrightness(255);
-    M5.Display.setColorDepth(16);
-    M5.Display.fillScreen(kColourGrey);
+    thefly_display.setBrightness(255);
+    thefly_display.setColorDepth(16);
+    thefly_display.fillScreen(kColourGrey);
     M5.update();
     M5.BtnA.setDebounceThresh(20);
     M5.BtnB.setDebounceThresh(20);
@@ -362,7 +363,7 @@ void apply_requested_colour(uint16_t& current_colour)
     if (requested_colour != current_colour)
     {
         current_colour = requested_colour;
-        M5.Display.fillScreen(current_colour);
+        thefly_display.fillScreen(current_colour);
     }
 }
 

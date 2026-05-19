@@ -4,6 +4,7 @@
 #include "AudioFileRecorder.h"
 #include "AudioManager.h"
 #include "ClockAgent.h"
+#include "Display.h"
 #include "utilfuncs.h"
 
 namespace
@@ -136,9 +137,9 @@ void test_micrec()
     M5.begin(cfg);
     Clock.syncToCompileTime();
 
-    M5.Display.setBrightness(255);
-    M5.Display.setColorDepth(16);
-    M5.Display.fillScreen(g_cur_colour);
+    thefly_display.setBrightness(255);
+    thefly_display.setColorDepth(16);
+    thefly_display.fillScreen(g_cur_colour);
 
     Serial.println();
     Serial.printf("%s: starting mic recording test\n", TAG);
@@ -184,7 +185,7 @@ void test_micrec()
     // indicates ready
     g_cur_colour = TFT_BLUE;
     g_next_colour = TFT_BLUE;
-    M5.Display.fillScreen(g_cur_colour);
+    thefly_display.fillScreen(g_cur_colour);
 
     g_stop_requested = false;
     const BaseType_t task_created = xTaskCreatePinnedToCore(micrec_core0_task,
@@ -207,7 +208,7 @@ void test_micrec()
     {
         if (g_cur_colour != g_next_colour) {
             g_cur_colour = g_next_colour;
-            M5.Display.fillScreen(g_cur_colour);
+            thefly_display.fillScreen(g_cur_colour);
         }
 
         AudioFileRecorder::pump();
@@ -231,7 +232,7 @@ void test_micrec()
         idle_forever();
     }
 
-    M5.Display.fillScreen(TFT_GREEN);
+    thefly_display.fillScreen(TFT_GREEN);
 
     Serial.printf("%s: recording complete: %s bytes=%llu\n",
                   TAG,

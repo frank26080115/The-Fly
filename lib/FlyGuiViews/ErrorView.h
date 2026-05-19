@@ -19,7 +19,7 @@ public:
 
     void onLoad() override;
     bool handleTouch(const FlyGuiTouchEvent& event) override;
-    void redraw(M5GFX& display, bool forced) override;
+    void redraw(bool forced) override;
 
 private:
     static constexpr size_t kMessageMax = 255;

@@ -42,7 +42,7 @@ void recalc_last_space(const char* line, size_t len, size_t& last_space)
     }
 }
 
-bool draw_line(M5GFX& display, char* line, size_t& len, int16_t x, int16_t& y, int16_t max_y, int16_t line_height)
+bool draw_line(char* line, size_t& len, int16_t x, int16_t& y, int16_t max_y, int16_t line_height)
 {
     trim_leading_spaces(line, len);
     while (len > 0 && line[len - 1] == ' ')
@@ -60,7 +60,7 @@ bool draw_line(M5GFX& display, char* line, size_t& len, int16_t x, int16_t& y, i
         return false;
     }
 
-    display.drawString(line, x, y);
+    thefly_display.drawString(line, x, y);
     y += line_height;
     len     = 0;
     line[0] = '\0';
@@ -68,7 +68,7 @@ bool draw_line(M5GFX& display, char* line, size_t& len, int16_t x, int16_t& y, i
 }
 } // namespace
 
-void drawWrappedText(M5GFX& display, const char* text, int16_t x, int16_t y, int16_t width, int16_t maxY, int16_t lineHeight)
+void drawWrappedText(const char* text, int16_t x, int16_t y, int16_t width, int16_t maxY, int16_t lineHeight)
 {
     if (!text || width <= 0 || lineHeight <= 0)
     {
@@ -90,14 +90,14 @@ void drawWrappedText(M5GFX& display, const char* text, int16_t x, int16_t y, int
 
         if (c == '\n')
         {
-            can_draw   = draw_line(display, line, len, x, y, maxY, lineHeight);
+            can_draw   = draw_line(line, len, x, y, maxY, lineHeight);
             last_space = kNoSpace;
             continue;
         }
 
         if (len + 1 >= sizeof(line))
         {
-            can_draw   = draw_line(display, line, len, x, y, maxY, lineHeight);
+            can_draw   = draw_line(line, len, x, y, maxY, lineHeight);
             last_space = kNoSpace;
             if (!can_draw)
             {
@@ -112,7 +112,7 @@ void drawWrappedText(M5GFX& display, const char* text, int16_t x, int16_t y, int
             last_space = len - 1;
         }
 
-        while (display.textWidth(line) > width && len > 0 && can_draw)
+        while (thefly_display.textWidth(line) > width && len > 0 && can_draw)
         {
             if (last_space != kNoSpace && last_space > 0)
             {
@@ -121,7 +121,7 @@ void drawWrappedText(M5GFX& display, const char* text, int16_t x, int16_t y, int
 
                 line[last_space] = '\0';
                 size_t draw_len  = last_space;
-                can_draw         = draw_line(display, line, draw_len, x, y, maxY, lineHeight);
+                can_draw         = draw_line(line, draw_len, x, y, maxY, lineHeight);
 
                 strncpy(line, remainder, sizeof(line) - 1);
                 line[sizeof(line) - 1] = '\0';
@@ -133,7 +133,7 @@ void drawWrappedText(M5GFX& display, const char* text, int16_t x, int16_t y, int
                 const char overflow = line[len - 1];
                 line[len - 1]       = '\0';
                 size_t draw_len     = len - 1;
-                can_draw            = draw_line(display, line, draw_len, x, y, maxY, lineHeight);
+                can_draw            = draw_line(line, draw_len, x, y, maxY, lineHeight);
 
                 line[0]    = overflow;
                 line[1]    = '\0';
@@ -142,7 +142,7 @@ void drawWrappedText(M5GFX& display, const char* text, int16_t x, int16_t y, int
             }
             else
             {
-                can_draw   = draw_line(display, line, len, x, y, maxY, lineHeight);
+                can_draw   = draw_line(line, len, x, y, maxY, lineHeight);
                 last_space = kNoSpace;
             }
         }
@@ -150,7 +150,7 @@ void drawWrappedText(M5GFX& display, const char* text, int16_t x, int16_t y, int
 
     if (can_draw && len > 0)
     {
-        draw_line(display, line, len, x, y, maxY, lineHeight);
+        draw_line(line, len, x, y, maxY, lineHeight);
     }
 }
 } // namespace FlyGuiTextUtil
@@ -191,22 +191,22 @@ bool FlyGuiText::setText(const char* text)
     return true;
 }
 
-void FlyGuiText::redraw(M5GFX& display, bool forced)
+void FlyGuiText::redraw(bool forced)
 {
     if (!visible() || (!forced && !dirty()))
     {
         return;
     }
 
-    display.setTextSize(fontSize_);
-    display.setTextFont(fontStyle_);
-    display.setTextColor(TFT_WHITE, TFT_BLACK);
-    display.setTextDatum(top_left);
+    thefly_display.setTextSize(fontSize_);
+    thefly_display.setTextFont(fontStyle_);
+    thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
+    thefly_display.setTextDatum(top_left);
 
     if (forced)
     {
-        display.fillRect(x(), y(), width(), height(), TFT_BLACK);
-        display.drawString(text_, x(), y());
+        thefly_display.fillRect(x(), y(), width(), height(), TFT_BLACK);
+        thefly_display.drawString(text_, x(), y());
         updateRememberedText();
         markClean();
         return;
@@ -236,7 +236,7 @@ void FlyGuiText::redraw(M5GFX& display, bool forced)
             ++end;
         }
 
-        drawTextRun(display, start, end);
+        drawTextRun(start, end);
         start = end;
     }
 
@@ -255,22 +255,22 @@ void FlyGuiText::updateRememberedText()
     drawnText_[maxLength_] = '\0';
 }
 
-void FlyGuiText::drawTextRun(M5GFX& display, size_t start, size_t end)
+void FlyGuiText::drawTextRun(size_t start, size_t end)
 {
-    const int32_t originX    = x() + textPrefixWidth(display, text_, start);
-    const int32_t eraseWidth = textPrefixWidth(display, drawnText_, end) - textPrefixWidth(display, drawnText_, start);
-    const int32_t drawWidth  = textPrefixWidth(display, text_, end) - textPrefixWidth(display, text_, start);
+    const int32_t originX    = x() + textPrefixWidth(text_, start);
+    const int32_t eraseWidth = textPrefixWidth(drawnText_, end) - textPrefixWidth(drawnText_, start);
+    const int32_t drawWidth  = textPrefixWidth(text_, end) - textPrefixWidth(text_, start);
     const int32_t clearWidth = eraseWidth > drawWidth ? eraseWidth : drawWidth;
 
-    display.fillRect(originX, y(), clearWidth + 2, textHeight(), TFT_BLACK);
+    thefly_display.fillRect(originX, y(), clearWidth + 2, textHeight(), TFT_BLACK);
 
     char saved = text_[end];
     text_[end] = '\0';
-    display.drawString(text_ + start, originX, y());
+    thefly_display.drawString(text_ + start, originX, y());
     text_[end] = saved;
 }
 
-int32_t FlyGuiText::textPrefixWidth(M5GFX& display, const char* text, size_t length) const
+int32_t FlyGuiText::textPrefixWidth(const char* text, size_t length) const
 {
     if (!text || length == 0)
     {
@@ -279,7 +279,7 @@ int32_t FlyGuiText::textPrefixWidth(M5GFX& display, const char* text, size_t len
 
     char saved                      = const_cast<char*>(text)[length];
     const_cast<char*>(text)[length] = '\0';
-    const int32_t width             = display.textWidth(text);
+    const int32_t width             = thefly_display.textWidth(text);
     const_cast<char*>(text)[length] = saved;
     return width;
 }
@@ -291,14 +291,14 @@ int32_t FlyGuiText::textHeight() const
 
 FlyGuiDateTime::FlyGuiDateTime(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle) : FlyGuiText(x, y, width, height, fontSize, fontStyle, 19) {}
 
-void FlyGuiDateTime::redraw(M5GFX& display, bool forced)
+void FlyGuiDateTime::redraw(bool forced)
 {
     // Design: FlyGuiDateTime always shows current date/time and keeps frequent draws quick.
     const m5::rtc_datetime_t now = Clock.getDateTime();
     char                     text[20];
     snprintf(text, sizeof(text), "%04u-%02u-%02u %02u:%02u:%02u", now.date.year, now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds);
     setText(text);
-    FlyGuiText::redraw(display, forced);
+    FlyGuiText::redraw(forced);
 }
 
 FlyGuiStopwatch::FlyGuiStopwatch(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle) : FlyGuiText(x, y, width, height, fontSize, fontStyle, 12), startMs_(millis()) {}
@@ -319,7 +319,7 @@ uint32_t FlyGuiStopwatch::elapsedMs() const
     return millis() - startMs_;
 }
 
-void FlyGuiStopwatch::redraw(M5GFX& display, bool forced)
+void FlyGuiStopwatch::redraw(bool forced)
 {
     // Design: FlyGuiStopwatch shows elapsed time since a starting time.
     const uint32_t elapsed = elapsedMs() / 1000;
@@ -330,5 +330,5 @@ void FlyGuiStopwatch::redraw(M5GFX& display, bool forced)
     char text[13];
     snprintf(text, sizeof(text), "%02lu:%02lu:%02lu", static_cast<unsigned long>(hours), static_cast<unsigned long>(minutes), static_cast<unsigned long>(seconds));
     setText(text);
-    FlyGuiText::redraw(display, forced);
+    FlyGuiText::redraw(forced);
 }

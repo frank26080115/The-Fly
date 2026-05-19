@@ -7,6 +7,7 @@
 #include <esp_sleep.h>
 #include <esp_timer.h>
 
+#include "Display.h"
 #include "../AudioFileRecorder/AudioFileRecorder.h"
 #include "../AudioManager/AudioManager.h"
 #include "../BluetoothManager/BluetoothManager.h"
@@ -28,6 +29,15 @@ constexpr uint64_t kFullBrightnessMs   = 60 * 1000ULL;
 constexpr uint64_t kShutdownMs         = 5 * 60 * 1000ULL;
 constexpr uint64_t kLightSleepWakeUs   = 50 * 1000ULL;
 constexpr uint32_t kSyncWindowMs       = 20;
+constexpr int      kHotelLocalLogLevel = static_cast<int>(LOG_LOCAL_LEVEL);
+#ifdef CORE_DEBUG_LEVEL
+constexpr int kHotelCoreLogLevel = CORE_DEBUG_LEVEL;
+#else
+constexpr int kHotelCoreLogLevel = static_cast<int>(ESP_LOG_NONE);
+#endif
+constexpr bool kFullShutdownAllowedByLogging =
+    kHotelLocalLogLevel <= static_cast<int>(ESP_LOG_ERROR) &&
+    kHotelCoreLogLevel <= static_cast<int>(ESP_LOG_ERROR);
 
 portMUX_TYPE g_lock = portMUX_INITIALIZER_UNLOCKED;
 
@@ -73,7 +83,7 @@ State desired_state(uint64_t now_ms, bool blocked)
     const uint64_t inactive_ms = now_ms - g_last_activity_ms;
     if (inactive_ms >= kShutdownMs)
     {
-        return State::Shutdown;
+        return kFullShutdownAllowedByLogging ? State::Shutdown : State::DimLightSleepReady;
     }
     if (inactive_ms >= kFullBrightnessMs)
     {
@@ -135,7 +145,7 @@ void apply_power_outputs(State previous, State next)
     {
         if (m5_ready())
         {
-            M5.Display.setBrightness(state_uses_full_brightness(next) ? kFullBrightness : kDimBrightness);
+            thefly_display.setBrightness(state_uses_full_brightness(next) ? kFullBrightness : kDimBrightness);
         }
     }
 }
@@ -145,7 +155,7 @@ void apply_initialized_outputs()
     setCpuFrequencyMhz(kCpuMaxMhz);
     if (m5_ready())
     {
-        M5.Display.setBrightness(kFullBrightness);
+        thefly_display.setBrightness(kFullBrightness);
     }
     ESP_LOGD(TAG, "initialized");
 }

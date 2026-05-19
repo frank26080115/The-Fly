@@ -8,7 +8,7 @@ public:
     SplashView();
 
     void onLoad() override;
-    void redraw(M5GFX& display, bool forced) override;
+    void redraw(bool forced) override;
 
 private:
     bool handedOff_ = false;

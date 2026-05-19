@@ -1,6 +1,5 @@
 #pragma once
 
-#include <M5Unified.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -32,8 +31,7 @@ struct DrawResult
 
 using DrawCallback = void (*)();
 
-DrawResult drawPng(M5GFX& display,
-                   const uint8_t* sprite,
+DrawResult drawPng(const uint8_t* sprite,
                    size_t sprite_bytes,
                    int32_t x,
                    int32_t y,
