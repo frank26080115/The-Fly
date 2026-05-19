@@ -31,6 +31,17 @@ struct DrawResult
 
 using DrawCallback = void (*)();
 
+enum PngBrightness : uint8_t
+{
+    PNG_BRTNESS_100 = 0,
+    PNG_BRTNESS_75,
+    PNG_BRTNESS_50,
+    PNG_BRTNESS_25,
+    PNG_BRTNESS_12,
+    PNG_BRTNESS_6,
+    PNG_DITHER_FLAG = 0x80,
+};
+
 DrawResult drawPng(const uint8_t* sprite,
                    size_t sprite_bytes,
                    int32_t x,
@@ -38,6 +49,7 @@ DrawResult drawPng(const uint8_t* sprite,
                    uint32_t width,
                    uint32_t height,
                    bool fast_mode,
+                   uint8_t brightness = PNG_BRTNESS_100,
                    DrawCallback callback = nullptr);
 
 } // namespace SpriteDraw

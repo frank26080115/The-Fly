@@ -64,8 +64,7 @@ void ErrorView::redraw(bool forced)
                         kIconY,
                         SPRIT_ERROR_LARGE_WIDTH,
                         SPRIT_ERROR_LARGE_HEIGHT,
-                        true,
-                        nullptr);
+                        true);
 
     thefly_display.setTextFont(kTextFont);
     thefly_display.setTextSize(kTextSize);

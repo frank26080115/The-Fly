@@ -27,60 +27,20 @@ struct PngDecodeContext
     uint32_t       callbacks  = 0;
     uint32_t       pixels     = 0;
     bool           fast_mode  = false;
+    uint8_t        brightness = PNG_BRTNESS_100;
     DrawCallback   callback   = nullptr;
 };
 
-void log_png_heap(const char* phase, const void* pngle)
+lgfx::rgb565_t argb_to_rgb565(const uint8_t* argb, uint8_t brightness);
+
+bool dither_pixel_enabled(int32_t x, int32_t y)
 {
-    ESP_LOGI(TAG,
-             "pngle heap %s pngle=%p free8=%u largest8=%u free_internal=%u largest_internal=%u min_free8=%u",
-             phase,
-             pngle,
-             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_8BIT)),
-             static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)),
-             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)),
-             static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)),
-             static_cast<unsigned>(heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT)));
+    return (x & 1) == (y & 1);
 }
 
-uint32_t read_png_bytes(void* user_data, uint8_t* buffer, uint32_t length)
+lgfx::rgb565_t black_pixel()
 {
-    auto* context = static_cast<PngDecodeContext*>(user_data);
-    if (context == nullptr || context->data == nullptr || context->read_index > context->data_size)
-    {
-        return 0;
-    }
-
-    const size_t remaining = context->data_size - context->read_index;
-    const size_t count     = length < remaining ? length : remaining;
-
-    if (buffer != nullptr)
-    {
-        for (size_t index = 0; index < count; ++index)
-        {
-            buffer[index] = pgm_read_byte(context->data + context->read_index + index);
-        }
-    }
-
-    context->read_index += count;
-    return static_cast<uint32_t>(count);
-}
-
-lgfx::rgb565_t argb_to_rgb565(const uint8_t* argb)
-{
-    const uint16_t alpha = argb[0];
-    uint16_t       red   = argb[1];
-    uint16_t       green = argb[2];
-    uint16_t       blue  = argb[3];
-
-    if (alpha != 255)
-    {
-        red   = static_cast<uint16_t>((red * alpha + 127) / 255);
-        green = static_cast<uint16_t>((green * alpha + 127) / 255);
-        blue  = static_cast<uint16_t>((blue * alpha + 127) / 255);
-    }
-
-    return lgfx::rgb565_t(static_cast<uint8_t>(red), static_cast<uint8_t>(green), static_cast<uint8_t>(blue));
+    return lgfx::rgb565_t(0, 0, 0);
 }
 
 void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, size_t length, const uint8_t* argb)
@@ -93,15 +53,19 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
 
     int32_t dst_x = context->origin_x + static_cast<int32_t>(x);
     int32_t dst_y = context->origin_y + static_cast<int32_t>(y);
+    const bool dither = (context->brightness & PNG_DITHER_FLAG) != 0;
 
     ++context->callbacks;
     context->pixels += static_cast<uint32_t>(length);
 
-    if (context->callback) {
+    if (context->callback)
+    {
         context->callback();
     }
-    else {
-        if (!context->fast_mode) {
+    else
+    {
+        if (!context->fast_mode)
+        {
             taskYIELD();
         }
     }
@@ -123,7 +87,10 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
             const int32_t pixel_x = dst_x + static_cast<int32_t>(index * div_x);
             if (pixel_x >= 0 && pixel_x < thefly_display.width())
             {
-                thefly_display.drawPixel(pixel_x, dst_y, argb_to_rgb565(argb));
+                const lgfx::rgb565_t color = !dither || dither_pixel_enabled(pixel_x, dst_y)
+                                               ? argb_to_rgb565(argb, context->brightness)
+                                               : black_pixel();
+                thefly_display.drawPixel(pixel_x, dst_y, color);
             }
             argb += 4;
         }
@@ -170,7 +137,10 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
         const size_t chunk = length < kMaxRunChunkPixels ? length : kMaxRunChunkPixels;
         for (size_t index = 0; index < chunk; ++index)
         {
-            line[index] = argb_to_rgb565(argb + index * 4);
+            const int32_t pixel_x = dst_x + static_cast<int32_t>(index);
+            line[index] = !dither || dither_pixel_enabled(pixel_x, dst_y)
+                              ? argb_to_rgb565(argb + index * 4, context->brightness)
+                              : black_pixel();
         }
 
         thefly_display.setAddrWindow(dst_x, dst_y, static_cast<int32_t>(chunk), 1);
@@ -187,6 +157,83 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
     }
 }
 
+uint32_t read_png_bytes(void* user_data, uint8_t* buffer, uint32_t length)
+{
+    auto* context = static_cast<PngDecodeContext*>(user_data);
+    if (context == nullptr || context->data == nullptr || context->read_index > context->data_size)
+    {
+        return 0;
+    }
+
+    const size_t remaining = context->data_size - context->read_index;
+    const size_t count     = length < remaining ? length : remaining;
+
+    if (buffer != nullptr)
+    {
+        for (size_t index = 0; index < count; ++index)
+        {
+            buffer[index] = pgm_read_byte(context->data + context->read_index + index);
+        }
+    }
+
+    context->read_index += count;
+    return static_cast<uint32_t>(count);
+}
+
+uint16_t apply_brightness(uint16_t value, uint8_t brightness)
+{
+    switch (brightness & ~PNG_DITHER_FLAG)
+    {
+    case PNG_BRTNESS_75:
+        return static_cast<uint16_t>((value * 3U + 2U) / 4U);
+    case PNG_BRTNESS_50:
+        return static_cast<uint16_t>(value >> 1);
+    case PNG_BRTNESS_25:
+        return static_cast<uint16_t>(value >> 2);
+    case PNG_BRTNESS_12:
+        return static_cast<uint16_t>(value >> 3);
+    case PNG_BRTNESS_6:
+        return static_cast<uint16_t>(value >> 4);
+    case PNG_BRTNESS_100:
+    default:
+        return value;
+    }
+}
+
+lgfx::rgb565_t argb_to_rgb565(const uint8_t* argb, uint8_t brightness)
+{
+    const uint16_t alpha = argb[0];
+    uint16_t       red   = argb[1];
+    uint16_t       green = argb[2];
+    uint16_t       blue  = argb[3];
+
+    if (alpha != 255)
+    {
+        red   = static_cast<uint16_t>((red * alpha + 127) / 255);
+        green = static_cast<uint16_t>((green * alpha + 127) / 255);
+        blue  = static_cast<uint16_t>((blue * alpha + 127) / 255);
+    }
+
+    red   = apply_brightness(red, brightness);
+    green = apply_brightness(green, brightness);
+    blue  = apply_brightness(blue, brightness);
+
+    return lgfx::rgb565_t(static_cast<uint8_t>(red), static_cast<uint8_t>(green), static_cast<uint8_t>(blue));
+}
+
+void log_png_heap(const char* phase, const void* pngle)
+{
+    ESP_LOGI(TAG,
+             "pngle heap %s pngle=%p free8=%u largest8=%u free_internal=%u largest_internal=%u min_free8=%u",
+             phase,
+             pngle,
+             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_8BIT)),
+             static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)),
+             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)),
+             static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)),
+             static_cast<unsigned>(heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT)));
+}
+
 } // namespace
 
 DrawResult drawPng(const uint8_t* sprite,
@@ -196,6 +243,7 @@ DrawResult drawPng(const uint8_t* sprite,
                    uint32_t width,
                    uint32_t height,
                    bool fast_mode,
+                   uint8_t brightness,
                    DrawCallback callback)
 {
     DrawResult result;
@@ -221,6 +269,7 @@ DrawResult drawPng(const uint8_t* sprite,
     context.origin_x  = x;
     context.origin_y  = y;
     context.fast_mode = fast_mode;
+    context.brightness = brightness;
     context.callback  = callback;
 
     if (lgfx_pngle_prepare(pngle, read_png_bytes, &context) < 0)
