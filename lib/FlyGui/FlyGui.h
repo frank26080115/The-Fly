@@ -44,6 +44,7 @@ enum FlyGuiViewId : uint16_t
     FLYGUI_VIEW_FILE_LIST,
     FLYGUI_VIEW_ERROR,
     FLYGUI_VIEW_CONN_WAITING,
+    FLYGUI_VIEW_SCROLL,
 };
 
 class FlyGui
