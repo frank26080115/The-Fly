@@ -184,12 +184,6 @@ float halReadBatteryVoltage()
 
 bool halReadUsbAvailable()
 {
-    const int16_t vbus_mv = M5.Power.getVBUSVoltage();
-    if (vbus_mv > 4000)
-    {
-        return true;
-    }
-
     return M5.Power.isCharging() == m5::Power_Class::is_charging;
 }
 }

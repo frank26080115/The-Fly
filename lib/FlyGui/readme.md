@@ -30,9 +30,9 @@ FlyGui will have a public function that will call into FlyGuiView to invoke the 
 
 FlyGuiItems will always have a visible or not visible flag that can be publicly changed, and it sets the dirty flag appropriately
 
-The on-load and on-unload functions are meant for loading PNG files into a RAM buffer, so an item can have an icon. This will be done by whatever inherits FlyGuiItem. Make sure FlyGuiItem can be constructed with an image file path and a main text that can be remembered.
+~The on-load and on-unload functions are meant for loading PNG files into a RAM buffer, so an item can have an icon. This will be done by whatever inherits FlyGuiItem. Make sure FlyGuiItem can be constructed with an image file path and a main text that can be remembered.~
 
-To make sure we don't have multiple items loading the same image into RAM redundantly, the FlyGuiItem can ask its owning FlyGuiView to look at all other sibling items for one that has loaded the same image file, and if it finds one, share the same buffer.
+~To make sure we don't have multiple items loading the same image into RAM redundantly, the FlyGuiItem can ask its owning FlyGuiView to look at all other sibling items for one that has loaded the same image file, and if it finds one, share the same buffer.~
 
 Add another class, that inherits FlyGuiItem, called FlyGuiText. It is constructed with a font size and font style and a maximum buffer length. There is a public function to set the text. If the text changes, the dirty flag is set, but more importantly, the draw function only draws over the characters that has been changed.
 

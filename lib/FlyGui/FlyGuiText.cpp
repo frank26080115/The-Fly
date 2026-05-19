@@ -5,7 +5,157 @@
 
 #include "ClockAgent.h"
 
-FlyGuiText::FlyGuiText(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle, size_t maxLength, const char* initialText) : FlyGuiItem(x, y, width, height, nullptr, initialText), fontSize_(fontSize), fontStyle_(fontStyle), maxLength_(maxLength)
+namespace FlyGuiTextUtil
+{
+namespace
+{
+constexpr size_t kLineMax = 128;
+constexpr size_t kNoSpace = static_cast<size_t>(-1);
+
+void trim_leading_spaces(char* line, size_t& len)
+{
+    size_t first = 0;
+    while (first < len && line[first] == ' ')
+    {
+        ++first;
+    }
+
+    if (first == 0)
+    {
+        return;
+    }
+
+    memmove(line, line + first, len - first);
+    len -= first;
+    line[len] = '\0';
+}
+
+void recalc_last_space(const char* line, size_t len, size_t& last_space)
+{
+    last_space = kNoSpace;
+    for (size_t i = 0; i < len; ++i)
+    {
+        if (line[i] == ' ')
+        {
+            last_space = i;
+        }
+    }
+}
+
+bool draw_line(M5GFX& display, char* line, size_t& len, int16_t x, int16_t& y, int16_t max_y, int16_t line_height)
+{
+    trim_leading_spaces(line, len);
+    while (len > 0 && line[len - 1] == ' ')
+    {
+        line[--len] = '\0';
+    }
+
+    if (len == 0)
+    {
+        return true;
+    }
+
+    if (y + line_height > max_y)
+    {
+        return false;
+    }
+
+    display.drawString(line, x, y);
+    y += line_height;
+    len     = 0;
+    line[0] = '\0';
+    return true;
+}
+} // namespace
+
+void drawWrappedText(M5GFX& display, const char* text, int16_t x, int16_t y, int16_t width, int16_t maxY, int16_t lineHeight)
+{
+    if (!text || width <= 0 || lineHeight <= 0)
+    {
+        return;
+    }
+
+    char   line[kLineMax] = {};
+    size_t len            = 0;
+    size_t last_space     = kNoSpace;
+    bool   can_draw       = true;
+
+    for (const char* p = text; *p && can_draw; ++p)
+    {
+        const char c = *p;
+        if (c == '\r')
+        {
+            continue;
+        }
+
+        if (c == '\n')
+        {
+            can_draw   = draw_line(display, line, len, x, y, maxY, lineHeight);
+            last_space = kNoSpace;
+            continue;
+        }
+
+        if (len + 1 >= sizeof(line))
+        {
+            can_draw   = draw_line(display, line, len, x, y, maxY, lineHeight);
+            last_space = kNoSpace;
+            if (!can_draw)
+            {
+                break;
+            }
+        }
+
+        line[len++] = c;
+        line[len]   = '\0';
+        if (c == ' ')
+        {
+            last_space = len - 1;
+        }
+
+        while (display.textWidth(line) > width && len > 0 && can_draw)
+        {
+            if (last_space != kNoSpace && last_space > 0)
+            {
+                char remainder[kLineMax] = {};
+                strncpy(remainder, line + last_space + 1, sizeof(remainder) - 1);
+
+                line[last_space] = '\0';
+                size_t draw_len  = last_space;
+                can_draw         = draw_line(display, line, draw_len, x, y, maxY, lineHeight);
+
+                strncpy(line, remainder, sizeof(line) - 1);
+                line[sizeof(line) - 1] = '\0';
+                len                    = strlen(line);
+                recalc_last_space(line, len, last_space);
+            }
+            else if (len > 1)
+            {
+                const char overflow = line[len - 1];
+                line[len - 1]       = '\0';
+                size_t draw_len     = len - 1;
+                can_draw            = draw_line(display, line, draw_len, x, y, maxY, lineHeight);
+
+                line[0]    = overflow;
+                line[1]    = '\0';
+                len        = 1;
+                last_space = overflow == ' ' ? 0 : kNoSpace;
+            }
+            else
+            {
+                can_draw   = draw_line(display, line, len, x, y, maxY, lineHeight);
+                last_space = kNoSpace;
+            }
+        }
+    }
+
+    if (can_draw && len > 0)
+    {
+        draw_line(display, line, len, x, y, maxY, lineHeight);
+    }
+}
+} // namespace FlyGuiTextUtil
+
+FlyGuiText::FlyGuiText(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle, size_t maxLength, const char* initialText) : FlyGuiItem(x, y, width, height, initialText), fontSize_(fontSize), fontStyle_(fontStyle), maxLength_(maxLength)
 {
     text_      = static_cast<char*>(calloc(maxLength_ + 1, sizeof(char)));
     drawnText_ = static_cast<char*>(calloc(maxLength_ + 1, sizeof(char)));

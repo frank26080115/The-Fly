@@ -2,12 +2,17 @@
 
 #include <Arduino.h>
 #include <M5Unified.h>
+#include <stddef.h>
 #include <stdint.h>
 
-class FlyGui;
-class FlyGuiView;
-class FlyGuiDateTime;
 class Button;
+class FlyGui;
+class FlyGuiDateTime;
+class FlyGuiItem;
+class FlyGuiModal;
+class FlyGuiView;
+
+using FlyGuiItemCallback = void (*)();
 
 struct FlyGuiTouchEvent
 {
@@ -36,122 +41,69 @@ enum FlyGuiViewId : uint16_t
     FLYGUI_VIEW_AP_MODE,
     FLYGUI_VIEW_UPLOAD_PROGRESS,
     FLYGUI_VIEW_FILE_LIST,
+    FLYGUI_VIEW_ERROR,
 };
 
-class FlyGuiItem
+class FlyGui
 {
 public:
-    FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* imagePath = nullptr, const char* mainText = nullptr, Button* button = nullptr);
-    virtual ~FlyGuiItem() = default;
+    explicit FlyGui(M5GFX& display = M5.Display);
+    ~FlyGui();
 
-    FlyGuiItem* next() const
+    static constexpr int16_t topBarHeight()
     {
-        return next_;
-    }
-    FlyGuiView* owner() const
-    {
-        return owner_;
+        return 10;
     }
 
-    int16_t x() const
+    void        addView(FlyGuiView& view);
+    bool        showView(uint16_t viewId);
+    FlyGuiView* currentView() const
     {
-        return x_;
-    }
-    int16_t y() const
-    {
-        return y_;
-    }
-    int16_t width() const
-    {
-        return width_;
-    }
-    int16_t height() const
-    {
-        return height_;
-    }
-    void relocate(int16_t x, int16_t y, int16_t width, int16_t height);
-
-    const char* imagePath() const
-    {
-        return imagePath_;
-    }
-    const char* mainText() const
-    {
-        return mainText_;
-    }
-    void setMainText(const char* text);
-
-    void setImageBuffer(void* buffer)
-    {
-        imageBuffer_ = buffer;
-    }
-    void* imageBuffer() const
-    {
-        return imageBuffer_;
-    }
-    size_t imageBufferSize() const
-    {
-        return imageBufferSize_;
-    }
-    void* findSiblingImageBuffer() const;
-
-    bool visible() const
-    {
-        return visible_;
-    }
-    void setVisible(bool visible);
-
-    bool dirty() const
-    {
-        return dirty_;
-    }
-    void setDirty(bool dirty = true)
-    {
-        dirty_ = dirty;
+        return currentView_;
     }
 
-    bool contains(int16_t x, int16_t y) const;
-    bool isPressed() const;
-
-    Button* button() const
+    void           setPollMode(FlyGuiPollMode mode);
+    FlyGuiPollMode pollMode() const
     {
-        return button_;
+        return pollMode_;
     }
-    void attachButton(Button* button)
+    void setAudioActive(bool active);
+
+    void poll();
+    void redraw(bool forced = false);
+
+    void         showModal(FlyGuiModal& modal);
+    void         removeModal(FlyGuiModal& modal);
+    FlyGuiModal* modal() const
     {
-        button_ = button;
+        return modal_;
     }
 
-    virtual void onLoad();
-    virtual void onUnload();
-    virtual bool handleTouch(const FlyGuiTouchEvent& event);
-    virtual bool handleButtonPress(Button& button);
-    virtual void redraw(M5GFX& display, bool forced);
-
-protected:
-    void markClean()
+    M5GFX& display()
     {
-        dirty_ = false;
+        return display_;
     }
+
+    void requestTopBarFullRedraw();
 
 private:
-    friend class FlyGuiView;
+    void appendView(FlyGuiView& view);
+    void dispatchButtons();
+    bool dispatchButtonToItem(Button& button);
+    bool shouldRunScheduledPoll(FlyGuiPollMode mode, uint32_t now);
+    void drawTopBar(bool forced);
 
-    FlyGuiItem* next_            = nullptr;
-    FlyGuiView* owner_           = nullptr;
-    Button*     button_          = nullptr;
-    int16_t     x_               = 0;
-    int16_t     y_               = 0;
-    int16_t     width_           = 0;
-    int16_t     height_          = 0;
-    const char* imagePath_       = nullptr;
-    const char* mainText_        = nullptr;
-    void*       imageBuffer_     = nullptr;
-    size_t      imageBufferSize_ = 0;
-    bool        ownsImageBuffer_ = false;
-    bool        visible_         = true;
-    bool        dirty_           = true;
-    bool        pressed_         = false;
+    M5GFX&          display_;
+    FlyGuiView*     firstView_             = nullptr;
+    FlyGuiView*     lastView_              = nullptr;
+    FlyGuiView*     currentView_           = nullptr;
+    FlyGuiModal*    modal_                 = nullptr;
+    FlyGuiPollMode  pollMode_              = FLYGUI_POLL_FAST;
+    bool            topBarNeedsFullRedraw_ = false;
+    uint32_t        lastScheduledPollMs_   = 0;
+    uint32_t        lastTopBarDrawMs_      = 0;
+    int32_t         topBarLastBattery_     = -2;
+    FlyGuiDateTime* topBarDateTime_        = nullptr;
 };
 
 class FlyGuiView
@@ -177,9 +129,8 @@ public:
         return firstItem_;
     }
 
-    void  addItem(FlyGuiItem& item);
-    void  removeAllItems();
-    void* findLoadedImageBuffer(const FlyGuiItem& requester, const char* imagePath) const;
+    void addItem(FlyGuiItem& item);
+    void removeAllItems();
 
     bool dirty() const
     {
@@ -217,62 +168,116 @@ private:
     bool        dirty_     = true;
 };
 
-class FlyGuiModal : public FlyGuiItem
+class FlyGuiItem
 {
 public:
-    FlyGuiModal(int16_t x, int16_t y, int16_t width, int16_t height, const char* imagePath = nullptr, const char* mainText = nullptr);
-};
+    FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* mainText = nullptr, Button* button = nullptr);
+    virtual ~FlyGuiItem() = default;
 
-class FlyGui
-{
-public:
-    explicit FlyGui(M5GFX& display = M5.Display);
-    ~FlyGui();
-
-    void        addView(FlyGuiView& view);
-    bool        showView(uint16_t viewId);
-    FlyGuiView* currentView() const
+    FlyGuiItem* next() const
     {
-        return currentView_;
+        return next_;
+    }
+    FlyGuiView* owner() const
+    {
+        return owner_;
     }
 
-    void           setPollMode(FlyGuiPollMode mode);
-    FlyGuiPollMode pollMode() const
+    int16_t x() const
     {
-        return pollMode_;
+        return x_;
     }
-    void setAudioActive(bool active);
-
-    void poll();
-    void redraw(bool forced = false);
-
-    void         showModal(FlyGuiModal& modal);
-    void         removeModal(FlyGuiModal& modal);
-    FlyGuiModal* modal() const
+    int16_t y() const
     {
-        return modal_;
+        return y_;
+    }
+    int16_t width() const
+    {
+        return width_;
+    }
+    int16_t height() const
+    {
+        return height_;
+    }
+    void relocate(int16_t x, int16_t y, int16_t width, int16_t height);
+
+    const char* mainText() const
+    {
+        return mainText_;
+    }
+    void setMainText(const char* text);
+
+    bool visible() const
+    {
+        return visible_;
+    }
+    void setVisible(bool visible);
+
+    bool dirty() const
+    {
+        return dirty_;
+    }
+    void setDirty(bool dirty = true)
+    {
+        dirty_ = dirty;
     }
 
-    M5GFX& display()
+    bool contains(int16_t x, int16_t y) const;
+    bool isPressed() const;
+
+    Button* button() const
     {
-        return display_;
+        return button_;
+    }
+    void attachButton(Button* button)
+    {
+        button_ = button;
+    }
+
+    void setCallback(FlyGuiItemCallback callback)
+    {
+        callback_ = callback;
+    }
+    bool trigger();
+
+    void setSprite(const uint8_t* data, uint32_t width, uint32_t height, size_t byte_cnt);
+    void clearSprite();
+
+    virtual void onLoad();
+    virtual void onUnload();
+    virtual bool handleTouch(const FlyGuiTouchEvent& event);
+    virtual bool handleButtonPress(Button& button);
+    virtual void redraw(M5GFX& display, bool forced);
+
+protected:
+    void markClean()
+    {
+        dirty_ = false;
     }
 
 private:
-    void drawTopBar(bool forced);
-    void dispatchButtons();
-    bool dispatchButtonToItem(Button& button);
-    bool shouldRunScheduledPoll(FlyGuiPollMode mode, uint32_t now);
-    void appendView(FlyGuiView& view);
+    friend class FlyGuiView;
 
-    M5GFX&          display_;
-    FlyGuiView*     firstView_           = nullptr;
-    FlyGuiView*     lastView_            = nullptr;
-    FlyGuiView*     currentView_         = nullptr;
-    FlyGuiModal*    modal_               = nullptr;
-    FlyGuiPollMode  pollMode_            = FLYGUI_POLL_FAST;
-    uint32_t        lastScheduledPollMs_ = 0;
-    uint32_t        lastTopBarDrawMs_    = 0;
-    int32_t         topBarLastBattery_   = -2;
-    FlyGuiDateTime* topBarDateTime_      = nullptr;
+    FlyGuiItem* next_     = nullptr;
+    FlyGuiView* owner_    = nullptr;
+    Button*     button_   = nullptr;
+    int16_t     x_        = 0;
+    int16_t     y_        = 0;
+    int16_t     width_    = 0;
+    int16_t     height_   = 0;
+    const char* mainText_ = nullptr;
+    const uint8_t* spriteData_ = nullptr;
+    uint32_t    spriteWidth_   = 0;
+    uint32_t    spriteHeight_  = 0;
+    size_t      spriteBytes_   = 0;
+    FlyGuiItemCallback callback_ = nullptr;
+    bool        visible_  = true;
+    bool        dirty_    = true;
+    bool        pressed_  = false;
+};
+
+class FlyGuiModal : public FlyGuiItem
+{
+public:
+    FlyGuiModal(int16_t x, int16_t y, int16_t width, int16_t height, const char* mainText = nullptr);
 };
