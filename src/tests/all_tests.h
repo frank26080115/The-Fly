@@ -17,3 +17,4 @@ extern void test_micfilterperformance();
 extern void test_micfilterresult();
 extern void test_imu();
 extern void test_bootreadfiles();
+extern void test_fonts();

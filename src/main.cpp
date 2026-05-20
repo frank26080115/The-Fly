@@ -8,6 +8,7 @@
 #include "BattTracker.h"
 #include "BluetoothManager.h"
 #include "BtHostList.h"
+#include "DiskStats.h"
 #include "Hotel.h"
 #include "FlyGui.h"
 #include "Display.h"
@@ -42,7 +43,6 @@ void onclick_wifi_show_info(int32_t value);
 
 TaskHandle_t loopTask_core0_Handle = NULL;
 static void  loopTask_core0(void* pvParameters);
-static void  format_bdaddr(const esp_bd_addr_t bdaddr, char* out, size_t out_size);
 static bool  show_info_dialog(const char* text, uint16_t next_view);
 static void  on_wifi_scan_finished(const wifi_item_t* item);
 
@@ -155,8 +155,57 @@ void onclick_main_bluetooth()
 void onclick_main_info()
 {
     ESP_LOGI(MAINTAG, "main screen info selected");
-    show_info_dialog("System Info\nDisk status: pending\nUnuploaded files: pending\nNetwork status: pending",
-                     FLYGUI_VIEW_MAIN);
+
+    // fade the screen really fast as a visual reaction, the analysis calls are slow
+    for (int16_t y = 10; y < thefly_display.height(); y += 3)
+    {
+        thefly_display.drawFastHLine(0, y, thefly_display.width(), TFT_BLACK);
+        thefly_display.drawFastHLine(0, y+1, thefly_display.width(), TFT_BLACK);
+    }
+
+    const bool disk_ok = DiskStats::refreshDiskSpace();
+    const bool rec_ok  = DiskStats::refreshRecordingUploadStats();
+
+    char free_text[20];
+    char total_text[20];
+    format_bytes(DiskStats::freeDiskSpace(), free_text, sizeof(free_text));
+    format_bytes(DiskStats::totalDiskSpace(), total_text, sizeof(total_text));
+
+    const char* last_upload = DiskStats::lastUploadDateTime();
+    const char* latest_file = DiskStats::latestRecordedFileName();
+    if (!last_upload || last_upload[0] == '\0')
+    {
+        last_upload = "never";
+    }
+    if (!latest_file || latest_file[0] == '\0')
+    {
+        latest_file = "none";
+    }
+
+    char text[192];
+    if (disk_ok && rec_ok)
+    {
+        snprintf(text,
+                 sizeof(text),
+                 "Disk: %s/%s free (%u%%)\nFiles: %lu total, %lu waiting\nLast upload: %s\nLatest: %s",
+                 free_text,
+                 total_text,
+                 static_cast<unsigned>(DiskStats::freeDiskSpacePercent()),
+                 static_cast<unsigned long>(DiskStats::totalRecFilesStored()),
+                 static_cast<unsigned long>(DiskStats::totalRecFilesNotUploaded()),
+                 last_upload,
+                 latest_file);
+    }
+    else
+    {
+        snprintf(text,
+                 sizeof(text),
+                 "System Info\nDisk: unavailable\nREC scan: unavailable\nLast upload: %s\nLatest: %s",
+                 last_upload,
+                 latest_file);
+    }
+
+    show_info_dialog(text, FLYGUI_VIEW_MAIN);
 }
 
 void onclick_main_wifi()
@@ -298,24 +347,6 @@ void onclick_wifi_show_info(int32_t value)
     }
 
     show_info_dialog(text, FLYGUI_VIEW_SCROLL);
-}
-
-static void format_bdaddr(const esp_bd_addr_t bdaddr, char* out, size_t out_size)
-{
-    if (!out || out_size == 0)
-    {
-        return;
-    }
-
-    snprintf(out,
-             out_size,
-             "%02X:%02X:%02X:%02X:%02X:%02X",
-             bdaddr[0],
-             bdaddr[1],
-             bdaddr[2],
-             bdaddr[3],
-             bdaddr[4],
-             bdaddr[5]);
 }
 
 static bool show_info_dialog(const char* text, uint16_t next_view)

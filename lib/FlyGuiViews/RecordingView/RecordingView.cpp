@@ -31,8 +31,12 @@ constexpr int16_t kElapsedTextY = 62;
 constexpr int16_t kInfoTextY    = 96;
 constexpr int16_t kTextWidth    = 240;
 constexpr int16_t kTextHeight   = 28;
-constexpr float   kTextSize     = 2.0f;
-constexpr float   kFileTextSize = 1.5f;
+constexpr float   kFileTextSize = 1.0f;
+constexpr uint8_t kFileTextFont = 2;
+constexpr float   kDurationTextSize = 1.0f;
+constexpr uint8_t kDurationTextFont = 4;
+constexpr float   kCallerInfoTextSize = 1.0f;
+constexpr uint8_t kCallerInfoTextFont = 2;
 constexpr uint32_t kCallerInfoCycleMs = 3000;
 
 const char* path_basename(const char* path)
@@ -66,9 +70,9 @@ RecordingView::RecordingView()
       bluetoothIcon_(kSideButtonX, kBluetoothY, SPRIT_BLUETOOTH_50_WIDTH, SPRIT_BLUETOOTH_50_HEIGHT),
       answerCallButton_(kSideButtonX, kSideButtonY),
       memoTypeButton_(kSideButtonX, kSideButtonY),
-      fileNameText_(kTextX, kFileTextY, kTextWidth, kTextHeight, kFileTextSize, 1, 64),
-      durationText_(kTextX, kElapsedTextY, kTextWidth, kTextHeight, kTextSize, 1),
-      callerInfoText_(kTextX, kInfoTextY, kTextWidth, kTextHeight, kTextSize, 1, 80)
+      fileNameText_(kTextX, kFileTextY, kTextWidth, kTextHeight, kFileTextSize, kFileTextFont, 64),
+      durationText_(kTextX, kElapsedTextY, kTextWidth, kTextHeight, kDurationTextSize, kDurationTextFont),
+      callerInfoText_(kTextX, kInfoTextY, kTextWidth, kTextHeight, kCallerInfoTextSize, kCallerInfoTextFont, 80)
 {
     activeInstance_ = this;
 

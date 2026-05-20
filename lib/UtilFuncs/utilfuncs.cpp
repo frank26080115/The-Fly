@@ -3,6 +3,7 @@
 #include "thefly_common.h"
 
 #include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -165,9 +166,66 @@ void log_bda(const char* label, const uint8_t bda[ESP_BD_ADDR_LEN])
     ESP_LOGI(TAG, "%s %02x:%02x:%02x:%02x:%02x:%02x", label, bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
 }
 
+void format_bdaddr(const uint8_t bdaddr[ESP_BD_ADDR_LEN], char* out, size_t out_size)
+{
+    if (!out || out_size == 0)
+    {
+        return;
+    }
+
+    if (!bdaddr)
+    {
+        out[0] = '\0';
+        return;
+    }
+
+    snprintf(out,
+             out_size,
+             "%02X:%02X:%02X:%02X:%02X:%02X",
+             bdaddr[0],
+             bdaddr[1],
+             bdaddr[2],
+             bdaddr[3],
+             bdaddr[4],
+             bdaddr[5]);
+}
+
 bool bda_equal(const uint8_t a[ESP_BD_ADDR_LEN], const uint8_t b[ESP_BD_ADDR_LEN])
 {
     return memcmp(a, b, ESP_BD_ADDR_LEN) == 0;
+}
+
+void format_bytes(uint64_t bytes, char* out, size_t out_size)
+{
+    if (!out || out_size == 0)
+    {
+        return;
+    }
+
+    constexpr uint64_t kKiB = 1024ULL;
+    constexpr uint64_t kMiB = kKiB * 1024ULL;
+    constexpr uint64_t kGiB = kMiB * 1024ULL;
+
+    const char* unit  = "B";
+    uint64_t    scale = 1;
+    if (bytes >= kGiB)
+    {
+        unit  = "G";
+        scale = kGiB;
+    }
+    else if (bytes >= kMiB)
+    {
+        unit  = "M";
+        scale = kMiB;
+    }
+    else if (bytes >= kKiB)
+    {
+        unit  = "K";
+        scale = kKiB;
+    }
+
+    const uint64_t value = scale == 1 ? bytes : (bytes + (scale / 2ULL)) / scale;
+    snprintf(out, out_size, "%llu%s", static_cast<unsigned long long>(value), unit);
 }
 
 bool parse_hex_byte(const char* text, uint8_t& value)
