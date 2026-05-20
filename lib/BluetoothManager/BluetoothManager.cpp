@@ -55,6 +55,7 @@ IncomingAudioCallback g_incoming_audio         = nullptr;
 OutgoingAudioCallback g_outgoing_audio         = nullptr;
 PairedCallback        g_paired_callback        = nullptr;
 StateChangedCallback  g_state_changed_callback = nullptr;
+char                  g_local_device_name[kDeviceNameMaxLength] = {};
 
 char g_legacy_pin[kLegacyPinMaxLength + 1] = { '0', '0', '0', '0', '\0' };
 // this is used during init and also when handling ESP_BT_GAP_PIN_REQ_EVT
@@ -859,10 +860,11 @@ bool init_bluetooth(const char* device_name, const char* pin_code)
     {
         format_device_name(formatted_device_name, sizeof(formatted_device_name));
     }
+    const char* selected_device_name = device_name ? device_name : formatted_device_name;
 
     if (   !strict_ok(esp_bt_sleep_disable(), "bt sleep disable")
         || !strict_ok(esp_bt_gap_register_callback(gap_event), "gap callback")
-        || !strict_ok(esp_bt_gap_set_device_name(device_name ? device_name : formatted_device_name), "bt name")
+        || !strict_ok(esp_bt_gap_set_device_name(selected_device_name), "bt name")
         || !strict_ok(esp_bt_gap_set_cod(handsfree_cod(), ESP_BT_INIT_COD), "bt class of device")
         || !strict_ok(esp_bt_gap_set_security_param(ESP_BT_SP_IOCAP_MODE, &iocap, sizeof(iocap)), "ssp iocap")
         || !strict_ok(esp_bt_gap_set_pin(ESP_BT_PIN_TYPE_FIXED, pin_length, pin), "legacy pin")
@@ -873,6 +875,7 @@ bool init_bluetooth(const char* device_name, const char* pin_code)
         return false;
     }
 
+    strlcpy(g_local_device_name, selected_device_name, sizeof(g_local_device_name));
     g_bt_ready = true;
     return true;
 }
@@ -1150,6 +1153,16 @@ bool isBonded(const char* mac)
 {
     esp_bd_addr_t parsed = {};
     return parse_mac(mac, parsed) && isBonded(parsed);
+}
+
+const char* localDeviceName()
+{
+    return g_local_device_name[0] != '\0' ? g_local_device_name : "The Fly";
+}
+
+bool localBdaddr(esp_bd_addr_t bdaddr)
+{
+    return bdaddr && esp_read_mac(bdaddr, ESP_MAC_BT) == ESP_OK;
 }
 
 const char* stateName(State value)

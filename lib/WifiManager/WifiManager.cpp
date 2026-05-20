@@ -847,6 +847,16 @@ void WifiManager::setOnScanFinished(ScanFinishedCallback callback)
     m_on_scan_finished = callback;
 }
 
+const wifi_item_t* WifiManager::activeWifi() const
+{
+    return m_active_wifi;
+}
+
+const wifi_item_t* WifiManager::connectedWifi() const
+{
+    return m_connected_wifi;
+}
+
 void WifiManager::notifyConnected(const wifi_item_t* item)
 {
     m_connected_wifi      = item;

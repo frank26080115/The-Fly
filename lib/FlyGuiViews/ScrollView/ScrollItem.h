@@ -1,0 +1,70 @@
+#pragma once
+
+#include "../../FlyGui/FlyGui.h"
+#include <stdint.h>
+
+enum ScrollItemKind : uint8_t
+{
+    SCROLL_ITEM_BLUETOOTH_HOST,
+    SCROLL_ITEM_BLUETOOTH_PAIRING,
+    SCROLL_ITEM_BLUETOOTH_SHOW_SELF_INFO,
+    SCROLL_ITEM_WIFI_SCAN_AND_CONNECT,
+    SCROLL_ITEM_WIFI_STATION,
+    SCROLL_ITEM_WIFI_AP,
+    SCROLL_ITEM_CLOUD_ENDPOINT,
+    SCROLL_ITEM_NTP_SYNC,
+    SCROLL_ITEM_WIFI_SHOW_SELF_INFO,
+};
+
+enum ScrollItemTask : int32_t
+{
+    SCROLL_TASK_BLUETOOTH_PAIRING        = -1,
+    SCROLL_TASK_BLUETOOTH_SHOW_SELF_INFO = -2,
+    SCROLL_TASK_NTP_SYNC                 = -3,
+    SCROLL_TASK_WIFI_SHOW_SELF_INFO      = -4,
+    SCROLL_TASK_WIFI_SCAN_AND_CONNECT    = -5,
+};
+
+class ScrollItem;
+using ScrollItemCallback = void (*)(ScrollItem& item, void* context);
+
+class ScrollItem : public FlyGuiItem
+{
+public:
+    ScrollItem();
+
+    void configure(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon);
+    void setScrollCallback(ScrollItemCallback callback, void* context);
+
+    ScrollItemKind kind() const
+    {
+        return kind_;
+    }
+
+    int32_t callbackValue() const
+    {
+        return callbackValue_;
+    }
+
+    uint8_t icon() const
+    {
+        return icon_;
+    }
+
+    const char* label() const
+    {
+        return label_;
+    }
+
+    bool trigger() override;
+
+private:
+    static constexpr size_t kLabelMax = 95;
+
+    ScrollItemKind     kind_          = SCROLL_ITEM_BLUETOOTH_HOST;
+    int32_t            callbackValue_ = 0;
+    uint8_t            icon_          = 0;
+    ScrollItemCallback scrollCallback_ = nullptr;
+    void*              callbackContext_ = nullptr;
+    char               label_[kLabelMax + 1] = {};
+};

@@ -87,6 +87,8 @@ public:
     void setOnConnectCallback(ConnectionCallback callback);
     void setOnDisconnectCallback(ConnectionCallback callback);
     void setOnScanFinished(ScanFinishedCallback callback);
+    const wifi_item_t* activeWifi() const;
+    const wifi_item_t* connectedWifi() const;
 
     size_t        cloudEndpointCount() const;
     cloud_item_t* cloudEndpoint(size_t index);

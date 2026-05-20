@@ -1,13 +1,17 @@
 #include "RecordingView.h"
 
 #include <Arduino.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "AudioFileRecorder.h"
 #include "AudioManager.h"
 #include "CallManager.h"
+#include "ModalDialog.h"
 #include "RecordingViewCallbacks.h"
 #include "sprites.h"
+
+extern ModalDialog* get_modal_dialog();
 
 namespace
 {
@@ -212,10 +216,31 @@ void RecordingView::handleSpeakerButton()
 
 void RecordingView::handleExitButton()
 {
+    char fileName[80] = {};
+    const char* name = path_basename(AudioFileRecorder::currentSdPath());
+    strncpy(fileName, name && name[0] != '\0' ? name : "Recording", sizeof(fileName) - 1);
+    fileName[sizeof(fileName) - 1] = '\0';
+
     RecordingViewCallbacks::stopRecording();
     if (gui())
     {
-        gui()->showView(FLYGUI_VIEW_MAIN);
+        ModalDialog* dialog = get_modal_dialog();
+        if (dialog)
+        {
+            char message[128];
+            snprintf(message, sizeof(message), "%s\nhas been recorded", fileName);
+            dialog->configure(sprit_thumbsup_100,
+                              SPRIT_THUMBSUP_100_BYTES,
+                              SPRIT_THUMBSUP_100_WIDTH,
+                              SPRIT_THUMBSUP_100_HEIGHT,
+                              message,
+                              FLYGUI_VIEW_MAIN);
+            gui()->showView(FLYGUI_VIEW_MODAL_DIALOG);
+        }
+        else
+        {
+            gui()->showView(FLYGUI_VIEW_MAIN);
+        }
     }
 }
 

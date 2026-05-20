@@ -31,6 +31,12 @@ constexpr IconName kIconNames[] = {
     { "wifi", ICON_WIFI },
     { "wi-fi", ICON_WIFI },
     { "icon_wifi", ICON_WIFI },
+    { "wifi_search", ICON_WIFI_SEARCH },
+    { "wifisearch", ICON_WIFI_SEARCH },
+    { "wifi-search", ICON_WIFI_SEARCH },
+    { "scan_wifi", ICON_WIFI_SEARCH },
+    { "wifi_scan", ICON_WIFI_SEARCH },
+    { "icon_wifi_search", ICON_WIFI_SEARCH },
     { "home", ICON_HOME },
     { "icon_home", ICON_HOME },
     { "wifiap", ICON_WIFIAP },
@@ -46,6 +52,19 @@ constexpr IconName kIconNames[] = {
     { "icon_cloud", ICON_CLOUD },
     { "ftp", ICON_FTP },
     { "icon_ftp", ICON_FTP },
+    { "ntp", ICON_NTP },
+    { "time", ICON_NTP },
+    { "sync_time", ICON_NTP },
+    { "time_sync", ICON_NTP },
+    { "icon_ntp", ICON_NTP },
+    { "info", ICON_INFO },
+    { "information", ICON_INFO },
+    { "icon_info", ICON_INFO },
+    { "btpairing", ICON_BTPAIRING },
+    { "bt_pairing", ICON_BTPAIRING },
+    { "bluetooth_pairing", ICON_BTPAIRING },
+    { "pairing", ICON_BTPAIRING },
+    { "icon_btpairing", ICON_BTPAIRING },
 };
 
 bool equal_ignore_case(const char* lhs, const char* rhs)
@@ -130,6 +149,8 @@ const char* toString(uint8_t icon)
         return "bluetooth";
     case ICON_WIFI:
         return "wifi";
+    case ICON_WIFI_SEARCH:
+        return "wifi_search";
     case ICON_HOME:
         return "home";
     case ICON_WIFIAP:
@@ -140,6 +161,12 @@ const char* toString(uint8_t icon)
         return "cloud";
     case ICON_FTP:
         return "ftp";
+    case ICON_NTP:
+        return "ntp";
+    case ICON_INFO:
+        return "info";
+    case ICON_BTPAIRING:
+        return "btpairing";
     case ICON_UNKNOWN:
     default:
         return "unknown";
@@ -166,6 +193,9 @@ bool getSprite(uint8_t icon, sprite_desc_t* sprite)
     case ICON_WIFI:
         assign_sprite(sprite, sprit_btn_wifi, SPRIT_BTN_WIFI_WIDTH, SPRIT_BTN_WIFI_HEIGHT, SPRIT_BTN_WIFI_BYTES);
         return true;
+    case ICON_WIFI_SEARCH:
+        assign_sprite(sprite, sprit_btn_wifisearch, SPRIT_BTN_WIFISEARCH_WIDTH, SPRIT_BTN_WIFISEARCH_HEIGHT, SPRIT_BTN_WIFISEARCH_BYTES);
+        return true;
     case ICON_HOME:
         assign_sprite(sprite, sprit_btn_wifihome, SPRIT_BTN_WIFIHOME_WIDTH, SPRIT_BTN_WIFIHOME_HEIGHT, SPRIT_BTN_WIFIHOME_BYTES);
         return true;
@@ -175,9 +205,19 @@ bool getSprite(uint8_t icon, sprite_desc_t* sprite)
     case ICON_WWW:
         break;
     case ICON_CLOUD:
-        break;
+        assign_sprite(sprite, sprit_btn_cloud, SPRIT_BTN_CLOUD_WIDTH, SPRIT_BTN_CLOUD_HEIGHT, SPRIT_BTN_CLOUD_BYTES);
+        return true;
     case ICON_FTP:
         break;
+    case ICON_NTP:
+        assign_sprite(sprite, sprit_btn_ntp, SPRIT_BTN_NTP_WIDTH, SPRIT_BTN_NTP_HEIGHT, SPRIT_BTN_NTP_BYTES);
+        return true;
+    case ICON_INFO:
+        assign_sprite(sprite, sprit_btn_info, SPRIT_BTN_INFO_WIDTH, SPRIT_BTN_INFO_HEIGHT, SPRIT_BTN_INFO_BYTES);
+        return true;
+    case ICON_BTPAIRING:
+        assign_sprite(sprite, sprit_btn_bluetooth_pairing, SPRIT_BTN_BLUETOOTH_PAIRING_WIDTH, SPRIT_BTN_BLUETOOTH_PAIRING_HEIGHT, SPRIT_BTN_BLUETOOTH_PAIRING_BYTES);
+        return true;
     case ICON_UNKNOWN:
     default:
         break;

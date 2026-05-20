@@ -45,6 +45,7 @@ enum FlyGuiViewId : uint16_t
     FLYGUI_VIEW_ERROR,
     FLYGUI_VIEW_CONN_WAITING,
     FLYGUI_VIEW_SCROLL,
+    FLYGUI_VIEW_MODAL_DIALOG,
 };
 
 class FlyGui
@@ -246,7 +247,7 @@ public:
     {
         callback_ = callback;
     }
-    bool trigger();
+    virtual bool trigger();
 
     void setSprite(const uint8_t* data, uint32_t width, uint32_t height, size_t byte_cnt);
     void clearSprite();
@@ -285,6 +286,9 @@ private:
     bool        faded_    = false;
 };
 
+// FlyGuiModal may seem redundant with ModalDialog
+// FlyGuiModal is only used if we absolutely must not exit out of the current view (which will cause unloading)
+// ModalDialog is used when a dialog is a part of a flow
 class FlyGuiModal : public FlyGuiItem
 {
 public:
