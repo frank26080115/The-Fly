@@ -8,13 +8,14 @@ namespace
 {
 constexpr int16_t kSpriteY        = FlyGui::topBarHeight();
 constexpr int16_t kTextX          = 16;
-constexpr int16_t kTextY          = 130;
 constexpr int16_t kTextWidth      = 288;
 constexpr int16_t kTextMaxY       = 212;
-constexpr int16_t kTextLineHeight = 16;
+constexpr int16_t kTextLineHeight = 17;
 constexpr int16_t kFooterY        = 224;
-constexpr float   kTextSize       = 1.5f;
-constexpr uint8_t kTextFont       = 1;
+constexpr float   kTextSize       = 1.0f;
+constexpr uint8_t kTextFont       = 2;
+constexpr float   kFooterTextSize = 1.0f;
+constexpr uint8_t kFooterTextFont = 2;
 } // namespace
 
 ModalDialog::ModalDialog() : FlyGuiView(FLYGUI_VIEW_MODAL_DIALOG)
@@ -141,15 +142,16 @@ void ModalDialog::drawText()
     thefly_display.setTextSize(kTextSize);
     thefly_display.setTextDatum(top_left);
     thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
-    FlyGuiTextUtil::drawWrappedText(text_, kTextX, kTextY, kTextWidth, kTextMaxY, kTextLineHeight);
+    const int16_t text_y = static_cast<int16_t>(kSpriteY + spriteHeight_);
+    FlyGuiTextUtil::drawWrappedText(text_, kTextX, text_y, kTextWidth, kTextMaxY, kTextLineHeight);
 }
 
 void ModalDialog::drawFooter()
 {
     static constexpr const char* kFooter = "press anywhere to continue";
 
-    thefly_display.setTextFont(1);
-    thefly_display.setTextSize(1.0f);
+    thefly_display.setTextFont(kFooterTextFont);
+    thefly_display.setTextSize(kFooterTextSize);
     thefly_display.setTextDatum(top_center);
     thefly_display.setTextColor(TFT_YELLOW, TFT_BLACK);
     thefly_display.drawString(kFooter, thefly_display.width() / 2, kFooterY);

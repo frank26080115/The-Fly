@@ -11,9 +11,12 @@ constexpr int16_t kIconY       = 24;
 constexpr int16_t kTextX       = 4;
 constexpr int16_t kTextY       = 140;
 constexpr int16_t kTextPadding = 4;
-constexpr int16_t kLineHeight  = 14;
-constexpr float   kTextSize    = 1.5f;
-constexpr uint8_t kTextFont    = 1;
+constexpr int16_t kTextLineHeight = 17;
+constexpr int16_t kFooterLineHeight = 14;
+constexpr float   kTextSize    = 1.0f;
+constexpr uint8_t kTextFont    = 2;
+constexpr float   kFooterTextSize = 1.5f;
+constexpr uint8_t kFooterTextFont = 1;
 } // namespace
 
 ErrorView::ErrorView() : FlyGuiView(FLYGUI_VIEW_ERROR) {}
@@ -71,14 +74,16 @@ void ErrorView::redraw(bool forced)
     thefly_display.setTextDatum(top_left);
     thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
 
-    const int16_t footer_y = static_cast<int16_t>(thefly_display.height() - kLineHeight - kTextPadding);
+    const int16_t footer_y = static_cast<int16_t>(thefly_display.height() - kFooterLineHeight - kTextPadding);
     FlyGuiTextUtil::drawWrappedText(message_,
                                      kTextX,
                                      kTextY,
                                      static_cast<int16_t>(thefly_display.width() - (kTextX * 2)),
                                      static_cast<int16_t>(footer_y - kTextPadding),
-                                     kLineHeight);
+                                     kTextLineHeight);
 
+    thefly_display.setTextFont(kFooterTextFont);
+    thefly_display.setTextSize(kFooterTextSize);
     thefly_display.setTextColor(fatal_ ? TFT_RED : TFT_YELLOW, TFT_BLACK);
     thefly_display.drawString(fatal_ ? "Fatal error. Restart required." : "Touch screen to continue.", kTextX, footer_y);
 

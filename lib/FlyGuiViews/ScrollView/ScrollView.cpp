@@ -14,11 +14,11 @@ constexpr int16_t kItemHeight     = 114;
 constexpr int16_t kItemY          = 20;
 constexpr int16_t kTextY          = 140;
 constexpr int16_t kTextMaxY       = 188;
-constexpr int16_t kTextLineHeight = 16;
+constexpr int16_t kTextLineHeight = 17;
 constexpr int16_t kExitSize       = 50;
 constexpr int16_t kExitY          = 190;
-constexpr float   kTextSize       = 1.5f;
-constexpr uint8_t kTextFont       = 1;
+constexpr float   kTextSize       = 1.0f;
+constexpr uint8_t kTextFont       = 2;
 
 int32_t list_callback_value(size_t index)
 {

@@ -16,7 +16,9 @@ constexpr int16_t  kTextX             = 64;
 constexpr int16_t  kTextY             = kBottomY;
 constexpr int16_t  kTextWidth         = 192;
 constexpr int16_t  kTextMaxY          = 238;
-constexpr int16_t  kTextLineHeight    = 14;
+constexpr int16_t  kTextLineHeight    = 17;
+constexpr float    kTextSize          = 1.0f;
+constexpr uint8_t  kTextFont          = 2;
 constexpr int16_t  kCancelX           = 260;
 constexpr int16_t  kHandshakeX        = 130;
 constexpr uint32_t kHourglassPeriodMs = 333;
@@ -160,8 +162,8 @@ void ConnWaitingView::drawBottomCenter()
     char text[128];
     snprintf(text, sizeof(text), "Connecting to:\n%s", targetName_);
 
-    thefly_display.setTextFont(1);
-    thefly_display.setTextSize(1.5f);
+    thefly_display.setTextFont(kTextFont);
+    thefly_display.setTextSize(kTextSize);
     thefly_display.setTextDatum(top_left);
     thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
     FlyGuiTextUtil::drawWrappedText(text, kTextX, kTextY, kTextWidth, kTextMaxY, kTextLineHeight);
