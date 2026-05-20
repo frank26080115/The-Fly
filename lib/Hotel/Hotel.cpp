@@ -38,6 +38,7 @@ constexpr int kHotelCoreLogLevel = static_cast<int>(ESP_LOG_NONE);
 constexpr bool kFullShutdownAllowedByLogging =
     kHotelLocalLogLevel <= static_cast<int>(ESP_LOG_ERROR) &&
     kHotelCoreLogLevel <= static_cast<int>(ESP_LOG_ERROR);
+constexpr bool kLightSleepAllowedByLogging = kFullShutdownAllowedByLogging;
 
 portMUX_TYPE g_lock = portMUX_INITIALIZER_UNLOCKED;
 
@@ -102,6 +103,10 @@ State desired_state(uint64_t now_ms, bool blocked)
 
 bool state_allows_light_sleep(State value)
 {
+    if (!kLightSleepAllowedByLogging)
+    {
+        return false;
+    }
     return value == State::LightSleepReady || value == State::DimLightSleepReady;
 }
 

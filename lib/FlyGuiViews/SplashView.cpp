@@ -9,7 +9,6 @@ SplashView::SplashView() : FlyGuiView(FLYGUI_VIEW_SPLASH) {}
 
 void SplashView::onLoad()
 {
-    handedOff_ = false;
     FlyGuiView::onLoad();
 }
 
@@ -28,14 +27,4 @@ void SplashView::redraw(bool forced)
     }
 
     markClean();
-
-    if (!handedOff_)
-    {
-        handedOff_ = true;
-        delay(kSplashDelayMs);
-        if (gui())
-        {
-            gui()->showView(FLYGUI_VIEW_MAIN);
-        }
-    }
 }

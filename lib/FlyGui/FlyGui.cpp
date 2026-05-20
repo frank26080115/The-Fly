@@ -546,7 +546,7 @@ void FlyGuiItem::redraw(bool forced)
 
     if (spriteData_ && spriteBytes_ > 0 && spriteWidth_ > 0 && spriteHeight_ > 0)
     {
-        const uint8_t brightness = faded_ ? (SpriteDraw::PNG_BRTNESS_50 | SpriteDraw::PNG_DITHER_FLAG) : SpriteDraw::PNG_BRTNESS_100;
+        const uint8_t brightness = faded_ ? (SpriteDraw::PNG_BRTNESS_25 | SpriteDraw::PNG_DITHER_FLAG) : SpriteDraw::PNG_BRTNESS_100;
         const SpriteDraw::DrawResult result = SpriteDraw::drawPng(spriteData_, spriteBytes_, x_, y_, spriteWidth_, spriteHeight_, true, brightness);
 
         if (!result.ok)

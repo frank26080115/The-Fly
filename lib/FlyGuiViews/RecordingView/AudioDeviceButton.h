@@ -1,0 +1,24 @@
+#pragma once
+
+#include "../../FlyGui/FlyGui.h"
+
+class AudioDeviceButton : public FlyGuiItem
+{
+public:
+    enum class Device
+    {
+        Mic,
+        Speaker,
+    };
+
+    AudioDeviceButton(Device device, int16_t x, int16_t y);
+
+    void setMicMode(bool micMode);
+    void setMutedOverlay(bool muted);
+    void drawAudioMeter();
+    void redraw(bool forced) override;
+
+private:
+    Device device_;
+    bool   mutedOverlay_ = false;
+};

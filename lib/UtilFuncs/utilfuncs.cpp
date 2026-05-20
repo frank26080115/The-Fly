@@ -109,6 +109,52 @@ void idle_forever()
     }
 }
 
+const char* trim_start(const char* text)
+{
+    while (text && *text && isspace(static_cast<unsigned char>(*text)))
+    {
+        ++text;
+    }
+
+    return text;
+}
+
+size_t trimmed_length(const char* text)
+{
+    if (!text)
+    {
+        return 0;
+    }
+
+    size_t len = strlen(text);
+    while (len > 0 && isspace(static_cast<unsigned char>(text[len - 1])))
+    {
+        --len;
+    }
+
+    return len;
+}
+
+char* clone_trimmed_string(const char* text)
+{
+    text             = trim_start(text);
+    const size_t len = trimmed_length(text);
+    if (len == 0)
+    {
+        return nullptr;
+    }
+
+    char* clone = static_cast<char*>(malloc(len + 1));
+    if (!clone)
+    {
+        return nullptr;
+    }
+
+    memcpy(clone, text, len);
+    clone[len] = '\0';
+    return clone;
+}
+
 void copy_bda(uint8_t dst[ESP_BD_ADDR_LEN], const uint8_t src[ESP_BD_ADDR_LEN])
 {
     memcpy(dst, src, ESP_BD_ADDR_LEN);
@@ -201,6 +247,25 @@ bool parse_datetime(const char* text, m5::rtc_datetime_t& out)
     out.time.minutes = static_cast<int8_t>(minutes);
     out.time.seconds = static_cast<int8_t>(seconds);
     return true;
+}
+
+const char* memo_type_to_string(MemoType type)
+{
+    switch (type)
+    {
+    case MemoType::Note:
+        return "note";
+    case MemoType::Todo:
+        return "todo";
+    case MemoType::Journal:
+        return "journal";
+    case MemoType::Idea:
+        return "idea";
+    case MemoType::Reminder:
+        return "reminder";
+    default:
+        return "unknown";
+    }
 }
 
 size_t upsample_s16_mono_2x_duplicate(const int16_t* src, size_t src_samples, int16_t* dst)

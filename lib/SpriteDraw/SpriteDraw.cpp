@@ -221,19 +221,6 @@ lgfx::rgb565_t argb_to_rgb565(const uint8_t* argb, uint8_t brightness)
     return lgfx::rgb565_t(static_cast<uint8_t>(red), static_cast<uint8_t>(green), static_cast<uint8_t>(blue));
 }
 
-void log_png_heap(const char* phase, const void* pngle)
-{
-    ESP_LOGI(TAG,
-             "pngle heap %s pngle=%p free8=%u largest8=%u free_internal=%u largest_internal=%u min_free8=%u",
-             phase,
-             pngle,
-             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_8BIT)),
-             static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)),
-             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)),
-             static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)),
-             static_cast<unsigned>(heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT)));
-}
-
 } // namespace
 
 DrawResult drawPng(const uint8_t* sprite,
@@ -254,9 +241,7 @@ DrawResult drawPng(const uint8_t* sprite,
         return result;
     }
 
-    log_png_heap("before-new", nullptr);
     pngle_t* pngle = lgfx_pngle_new();
-    log_png_heap("after-new", pngle);
     if (pngle == nullptr)
     {
         result.failure_stage = DRAW_FAILURE_ALLOC;

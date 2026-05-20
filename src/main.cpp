@@ -20,6 +20,8 @@ constexpr const char* MAINTAG = "main.cpp";
 
 extern void all_init();
 extern void show_splash();
+extern bool show_recording_view_bluetooth();
+extern bool show_recording_view_memo();
 
 TaskHandle_t loopTask_core0_Handle = NULL;
 static void  loopTask_core0(void* pvParameters);
@@ -101,34 +103,38 @@ static void loopTask_core0(void* pvParameters)
     }
 }
 
-void main_screen_bluetooth()
+void onclick_main_bluetooth()
 {
     ESP_LOGI(MAINTAG, "main screen bluetooth selected");
 }
 
-void main_screen_wifi()
+void onclick_main_wifi()
 {
     ESP_LOGI(MAINTAG, "main screen wifi selected");
 }
 
-void main_screen_memo()
+void onclick_main_memo()
 {
     ESP_LOGI(MAINTAG, "main screen memo selected");
+    if (!show_recording_view_memo())
+    {
+        ESP_LOGE(MAINTAG, "failed to start memo recording view");
+    }
 }
 
-void main_screen_smartphone()
+void onclick_main_smartphone()
 {
     ESP_LOGI(MAINTAG, "main screen smartphone selected");
 }
 
-void main_screen_laptop()
+void onclick_main_laptop()
 {
     ESP_LOGI(MAINTAG, "main screen laptop selected");
 }
 
-void main_screen_wifihome()
+void onclick_main_wifisearch()
 {
-    ESP_LOGI(MAINTAG, "main screen wifi home selected");
+    ESP_LOGI(MAINTAG, "main screen wifi search selected");
 }
 
 void conn_waiting_cancel()

@@ -118,11 +118,18 @@ void    volumeUp();
 void    volumeDown();
 uint8_t volume();
 
+bool setSpeakerMuted(bool muted);
+bool toggleSpeakerMuted();
+void muteSpeaker();
+void unmuteSpeaker();
+bool speakerMuted();
+
 void setMicMuted(bool muted);
 void muteMic();
 void unmuteMic();
 bool micMuted();
 uint8_t micPeakLevel();
 uint8_t micScaledPeakLevel();
+uint8_t speakerPeakLevel();
 
 } // namespace AudioManager

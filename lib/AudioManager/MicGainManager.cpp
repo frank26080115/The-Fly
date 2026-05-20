@@ -159,7 +159,7 @@ void decay_peak(uint16_t& peak, size_t frames)
     uint32_t decay = 1;
     if (frames > 0)
     {
-        decay = std::max<uint32_t>(decay, (static_cast<uint32_t>(kMaxSampleMagnitude) * static_cast<uint32_t>(frames)) / (kNominalSampleRateHz * 3U));
+        decay = std::max<uint32_t>(decay, (static_cast<uint32_t>(kMaxSampleMagnitude) * static_cast<uint32_t>(frames) * 2U) / (kNominalSampleRateHz * 3U));
     }
 
     peak = decay >= peak ? 0 : static_cast<uint16_t>(peak - decay);
