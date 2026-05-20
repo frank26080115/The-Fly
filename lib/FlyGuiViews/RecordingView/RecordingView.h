@@ -1,0 +1,73 @@
+#pragma once
+
+#include <stdint.h>
+
+#include "../../FlyGui/FlyGui.h"
+#include "../../FlyGui/FlyGuiText.h"
+#include "AnswerCallButton.h"
+#include "AudioDeviceButton.h"
+#include "MemoTypeButton.h"
+
+class RecordingView : public FlyGuiView
+{
+public:
+    enum class Mode
+    {
+        Bluetooth,
+        Memo,
+    };
+
+    RecordingView();
+
+    bool beginBluetoothRecording();
+    bool beginMemoRecording();
+    void configureBluetoothMode();
+    void configureMemoMode();
+
+    void onLoad() override;
+    void onUnload() override;
+    void redraw(bool forced) override;
+
+    void onPressLeft() override;
+    void onPressMid() override;
+    void onPressRight() override;
+
+    void handleMicButton();
+    void handleSpeakerButton();
+    void handleExitButton();
+    void handleAnswerCallButton();
+    void handleMemoTypeButton();
+
+private:
+    static void micThunk();
+    static void speakerThunk();
+    static void exitThunk();
+    static void answerCallThunk();
+    static void memoTypeThunk();
+
+    void syncModeVisibility();
+    void syncAudioButtons();
+    void syncAnswerCallButton();
+    void syncText();
+    void refreshRecordingFileName();
+    void drawFrame(bool forced);
+    void drawAudioMeters();
+
+    static RecordingView* activeInstance_;
+
+    Mode              mode_ = Mode::Bluetooth;
+    AudioDeviceButton micButton_;
+    AudioDeviceButton speakerButton_;
+    FlyGuiItem        exitButton_;
+    FlyGuiItem        bluetoothIcon_;
+    AnswerCallButton  answerCallButton_;
+    MemoTypeButton    memoTypeButton_;
+    FlyGuiText        fileNameText_;
+    FlyGuiStopwatch   durationText_;
+    FlyGuiText        callerInfoText_;
+    uint32_t          startedMs_            = 0;
+    uint32_t          lastDurationSecond_   = UINT32_MAX;
+    uint32_t          nextCallerInfoCycleMs_ = 0;
+    size_t            callerInfoIndex_      = 0;
+    bool              frameDirty_           = true;
+};

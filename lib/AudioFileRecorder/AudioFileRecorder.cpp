@@ -23,6 +23,7 @@ constexpr float    kWriteDurationAverageAlpha       = 0.05f;
 constexpr uint32_t kWriteDurationThresholdUs        = 10000;
 constexpr uint32_t kTimedFlushIntervalMs            = 2000;
 constexpr size_t   kMetaTextPayloadMaxBytes         = FILE_PACKET_PAYLOAD_MAX * sizeof(uint16_t);
+constexpr uint8_t  kMaxConsecutiveWriteFailures     = 3;
 
 AudioFifo* g_host_fifo = nullptr;
 AudioFifo* g_mic_fifo  = nullptr;
@@ -43,6 +44,8 @@ uint32_t   g_last_longwrite_ms                      = 0;
 bool       g_longwrite                              = false;
 bool       g_longwrite_latched                      = false;
 bool       g_next_source_toggle                     = true;
+uint8_t    g_consecutive_write_failures             = 0;
+bool       g_card_failure_reported                  = false;
 std::mutex g_recorder_mutex;
 std::mutex g_pump_mutex;
 
@@ -150,9 +153,31 @@ bool recording_file_ready()
     return recording_file_ready_locked();
 }
 
+void note_write_success_locked()
+{
+    g_consecutive_write_failures = 0;
+}
+
+bool note_write_failure_locked()
+{
+    if (g_consecutive_write_failures < kMaxConsecutiveWriteFailures)
+    {
+        ++g_consecutive_write_failures;
+    }
+
+    if (g_consecutive_write_failures < kMaxConsecutiveWriteFailures || g_card_failure_reported)
+    {
+        return false;
+    }
+
+    g_card_failure_reported = true;
+    g_recording             = false;
+    return true;
+}
+
 bool write_packet(AudioFifo& fifo, filepkt_src_e source)
 {
-    std::lock_guard<std::mutex> lock(g_recorder_mutex);
+    std::unique_lock<std::mutex> lock(g_recorder_mutex);
     if (!recording_file_ready_locked())
     {
         return false;
@@ -201,8 +226,15 @@ bool write_packet(AudioFifo& fifo, filepkt_src_e source)
     if (g_file.write(data_ptr, data_sz) != data_sz)
     {
         DBG_LOGE(TAG, "packet write failed");
+        const bool fatal_card_failure = note_write_failure_locked();
+        lock.unlock();
+        if (fatal_card_failure)
+        {
+            show_fatal_error_f(true, "microSD card failed");
+        }
         return false;
     }
+    note_write_success_locked();
 
     // assume automatic cache flushing will happen when required, do not call flush manually
 
@@ -374,6 +406,8 @@ bool startRecording(char typeCode)
         g_bytes_written  = 0;
         g_sequence_num   = 0;
         g_last_flush_ms  = millis();
+        g_consecutive_write_failures = 0;
+        g_card_failure_reported      = false;
         g_recording      = true;
         strncpy(started_path, g_sd_path, sizeof(started_path) - 1);
     }

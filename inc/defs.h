@@ -58,3 +58,14 @@ enum : uint8_t
     ICON_FTP,
     ICON_LAST
 };
+
+#ifdef __cplusplus
+enum class MemoType : uint8_t
+{
+    Note,
+    Todo,
+    Journal,
+    Idea,
+    Reminder,
+};
+#endif

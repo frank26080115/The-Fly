@@ -3,13 +3,13 @@
 #include "nvs_flash.h"
 #include "M5Unified.h"
 #include "FlyGui.h"
-#include "ActiveRecordingView.h"
 #include "ApModeView.h"
 #include "BluetoothDeviceView.h"
 #include "ConnWaitingView.h"
 #include "ErrorView.h"
 #include "FileListView.h"
 #include "MainScreenView.h"
+#include "RecordingView/RecordingView.h"
 #include "SplashView.h"
 #include "UploadProgressView.h"
 #include "WebActionView.h"
@@ -31,7 +31,7 @@ namespace
 SplashView          g_splash_view;
 MainScreenView      g_main_screen_view;
 BluetoothDeviceView g_bluetooth_device_view;
-ActiveRecordingView g_active_recording_view;
+RecordingView       g_recording_view;
 WifiChooserView     g_wifi_chooser_view;
 WebActionView       g_web_action_view;
 ApModeView          g_ap_mode_view;
@@ -111,7 +111,7 @@ void init_gui()
     gui->addView(g_splash_view);
     gui->addView(g_main_screen_view);
     gui->addView(g_bluetooth_device_view);
-    gui->addView(g_active_recording_view);
+    gui->addView(g_recording_view);
     gui->addView(g_wifi_chooser_view);
     gui->addView(g_web_action_view);
     gui->addView(g_ap_mode_view);
@@ -119,6 +119,28 @@ void init_gui()
     gui->addView(g_file_list_view);
     gui->addView(g_error_view);
     gui->addView(g_conn_waiting_view);
+}
+
+bool show_recording_view_bluetooth()
+{
+    if (!gui)
+    {
+        return false;
+    }
+
+    const bool started = g_recording_view.beginBluetoothRecording();
+    return started && gui->showView(FLYGUI_VIEW_RECORDING);
+}
+
+bool show_recording_view_memo()
+{
+    if (!gui)
+    {
+        return false;
+    }
+
+    const bool started = g_recording_view.beginMemoRecording();
+    return started && gui->showView(FLYGUI_VIEW_RECORDING);
 }
 
 void show_splash()

@@ -8,6 +8,7 @@
 
 #include "AudioFileRecorder.h"
 #include "MicGainManager.h"
+#include "SpeakerPeakActivity.h"
 #include "driver/i2s_pdm.h"
 #include "driver/i2s_std.h"
 #include "esp_heap_caps.h"
@@ -93,6 +94,8 @@ SpeakerPath       g_speaker_path           = SpeakerPath::None;
 i2s_chan_handle_t g_i2s_tx                 = nullptr;
 i2s_chan_handle_t g_i2s_rx                 = nullptr;
 uint8_t           g_volume                 = kMaxVolume;
+bool              g_speaker_muted          = false;
+uint8_t           g_speaker_restore_volume = kMaxVolume;
 bool              g_initialized            = false;
 bool              g_wire_started           = false;
 HfpCodec          g_hfp_codec              = HfpCodec::Msbc;
@@ -224,6 +227,7 @@ void queue_hfp_pcm(const uint8_t* buf, uint32_t len)
 
     const size_t samples = len / sizeof(int16_t);
     const auto*  pcm     = reinterpret_cast<const int16_t*>(buf);
+    SpeakerPeakActivity::process(pcm, samples);
     const size_t queued_spk  = g_fifo_bt2spk.queue(pcm, samples, g_hfp_rate_hz);
     const size_t queued_file = g_fifo_bt2file.queue(pcm, samples, g_hfp_rate_hz);
     HFP_AUDIO_DIAG([len, samples, queued_spk, queued_file](HfpAudioDiagnostics& diag) {
@@ -687,6 +691,7 @@ bool init(Hardware hardware)
     g_fifo_mic2bt.setMuted(false);
     g_fifo_mic2file.setMuted(false);
     MicGainManager::init();
+    SpeakerPeakActivity::init();
 
     if (!AudioFileRecorder::init(g_fifo_bt2file, g_fifo_mic2file))
     {
@@ -1022,6 +1027,7 @@ void hfp_incoming_audio(const uint8_t* buf, uint32_t len)
 
             const auto*  pcm     = reinterpret_cast<const int16_t*>(g_sbc_decode_pcm);
             const size_t samples = pcm_written / sizeof(int16_t);
+            SpeakerPeakActivity::process(pcm, samples);
             const size_t queued_spk  = g_fifo_bt2spk.queue(pcm, samples, g_hfp_rate_hz);
             const size_t queued_file = g_fifo_bt2file.queue(pcm, samples, g_hfp_rate_hz);
             HFP_AUDIO_DIAG([consumed, samples, queued_spk, queued_file](HfpAudioDiagnostics& diag) {
@@ -1224,7 +1230,19 @@ AudioFifo& micToFileFifo()
 
 void setVolume(uint8_t volume)
 {
-    g_volume = volume > kMaxVolume ? kMaxVolume : volume;
+    const uint8_t clamped = volume > kMaxVolume ? kMaxVolume : volume;
+    if (g_speaker_muted)
+    {
+        if (clamped > kMinVolume)
+        {
+            g_speaker_restore_volume = clamped;
+        }
+        g_volume = kMinVolume;
+    }
+    else
+    {
+        g_volume = clamped;
+    }
     update_hardware_volume();
 }
 
@@ -1241,6 +1259,49 @@ void volumeDown()
 uint8_t volume()
 {
     return g_volume;
+}
+
+bool setSpeakerMuted(bool muted)
+{
+    if (g_speaker_muted == muted)
+    {
+        return true;
+    }
+
+    if (muted)
+    {
+        g_speaker_restore_volume = g_volume > kMinVolume ? g_volume : kMaxVolume;
+        g_speaker_muted          = true;
+        g_volume                 = kMinVolume;
+    }
+    else
+    {
+        g_speaker_muted = false;
+        g_volume        = g_speaker_restore_volume;
+    }
+
+    update_hardware_volume();
+    return true;
+}
+
+bool toggleSpeakerMuted()
+{
+    return setSpeakerMuted(!g_speaker_muted);
+}
+
+void muteSpeaker()
+{
+    setSpeakerMuted(true);
+}
+
+void unmuteSpeaker()
+{
+    setSpeakerMuted(false);
+}
+
+bool speakerMuted()
+{
+    return g_speaker_muted;
 }
 
 void setMicMuted(bool muted)
@@ -1272,6 +1333,11 @@ uint8_t micPeakLevel()
 uint8_t micScaledPeakLevel()
 {
     return MicGainManager::scaledPeakLevel();
+}
+
+uint8_t speakerPeakLevel()
+{
+    return SpeakerPeakActivity::rawPeakLevel();
 }
 
 } // namespace AudioManager

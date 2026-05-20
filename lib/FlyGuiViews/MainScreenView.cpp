@@ -1,13 +1,16 @@
 #include "MainScreenView.h"
 
+#include "BtHostList.h"
 #include "sprites.h"
 
-extern void main_screen_bluetooth();
-extern void main_screen_wifi();
-extern void main_screen_memo();
-extern void main_screen_smartphone();
-extern void main_screen_laptop();
-extern void main_screen_wifihome();
+extern BtHostList* bt_host_list;
+
+extern void onclick_main_bluetooth();
+extern void onclick_main_wifi();
+extern void onclick_main_memo();
+extern void onclick_main_smartphone();
+extern void onclick_main_laptop();
+extern void onclick_main_wifisearch();
 
 namespace
 {
@@ -30,31 +33,45 @@ MainScreenView::MainScreenView()
       memoItem_(kCol2, kRow0, kButtonWidth, kButtonHeight),
       smartphoneItem_(kCol0, kRow1, kButtonWidth, kButtonHeight),
       laptopItem_(kCol1, kRow1, kButtonWidth, kButtonHeight),
-      wifiHomeItem_(kCol2, kRow1, kButtonWidth, kButtonHeight)
+      wifiSearchItem_(kCol2, kRow1, kButtonWidth, kButtonHeight)
 {
     bluetoothItem_.setSprite(sprit_btn_bluetooth, SPRIT_BTN_BLUETOOTH_WIDTH, SPRIT_BTN_BLUETOOTH_HEIGHT, SPRIT_BTN_BLUETOOTH_BYTES);
-    bluetoothItem_.setCallback(main_screen_bluetooth);
+    bluetoothItem_.setCallback(onclick_main_bluetooth);
     addItem(bluetoothItem_);
 
     wifiItem_.setSprite(sprit_btn_wifi, SPRIT_BTN_WIFI_WIDTH, SPRIT_BTN_WIFI_HEIGHT, SPRIT_BTN_WIFI_BYTES);
-    wifiItem_.setCallback(main_screen_wifi);
+    wifiItem_.setCallback(onclick_main_wifi);
     addItem(wifiItem_);
 
     memoItem_.setSprite(sprit_btn_memo, SPRIT_BTN_MEMO_WIDTH, SPRIT_BTN_MEMO_HEIGHT, SPRIT_BTN_MEMO_BYTES);
-    memoItem_.setCallback(main_screen_memo);
+    memoItem_.setCallback(onclick_main_memo);
     addItem(memoItem_);
 
     smartphoneItem_.setSprite(sprit_btn_smartphone, SPRIT_BTN_SMARTPHONE_WIDTH, SPRIT_BTN_SMARTPHONE_HEIGHT, SPRIT_BTN_SMARTPHONE_BYTES);
-    smartphoneItem_.setCallback(main_screen_smartphone);
+    smartphoneItem_.setCallback(onclick_main_smartphone);
     addItem(smartphoneItem_);
 
     laptopItem_.setSprite(sprit_btn_laptop, SPRIT_BTN_LAPTOP_WIDTH, SPRIT_BTN_LAPTOP_HEIGHT, SPRIT_BTN_LAPTOP_BYTES);
-    laptopItem_.setCallback(main_screen_laptop);
+    laptopItem_.setCallback(onclick_main_laptop);
     addItem(laptopItem_);
 
-    wifiHomeItem_.setSprite(sprit_btn_wifihome, SPRIT_BTN_WIFIHOME_WIDTH, SPRIT_BTN_WIFIHOME_HEIGHT, SPRIT_BTN_WIFIHOME_BYTES);
-    wifiHomeItem_.setCallback(main_screen_wifihome);
-    addItem(wifiHomeItem_);
+    wifiSearchItem_.setSprite(sprit_btn_wifisearch, SPRIT_BTN_WIFISEARCH_WIDTH, SPRIT_BTN_WIFISEARCH_HEIGHT, SPRIT_BTN_WIFISEARCH_BYTES);
+    wifiSearchItem_.setCallback(onclick_main_wifisearch);
+    addItem(wifiSearchItem_);
+
+    syncBluetoothHostButtonFades();
+}
+
+void MainScreenView::onLoad()
+{
+    syncBluetoothHostButtonFades();
+    FlyGuiView::onLoad();
+}
+
+void MainScreenView::redraw(bool forced)
+{
+    syncBluetoothHostButtonFades();
+    FlyGuiView::redraw(forced);
 }
 
 void MainScreenView::onPressLeft()
@@ -69,5 +86,23 @@ void MainScreenView::onPressMid()
 
 void MainScreenView::onPressRight()
 {
-    wifiHomeItem_.trigger();
+    wifiSearchItem_.trigger();
+}
+
+void MainScreenView::syncBluetoothHostButtonFades()
+{
+    const bool phoneMissing  = !bt_host_list || bt_host_list->getFirstPhone() == nullptr;
+    const bool laptopMissing = !bt_host_list || bt_host_list->getFirstLaptop() == nullptr;
+
+    if (smartphoneItem_.faded() != phoneMissing)
+    {
+        smartphoneItem_.setFaded(phoneMissing);
+        setDirty();
+    }
+
+    if (laptopItem_.faded() != laptopMissing)
+    {
+        laptopItem_.setFaded(laptopMissing);
+        setDirty();
+    }
 }

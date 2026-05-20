@@ -11,5 +11,4 @@ public:
     void redraw(bool forced) override;
 
 private:
-    bool handedOff_ = false;
 };

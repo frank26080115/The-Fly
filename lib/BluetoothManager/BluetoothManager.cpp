@@ -14,6 +14,7 @@
 #include "freertos/task.h"
 #include "AudioManager.h"
 #include "BtHostList.h"
+#include "CallManager.h"
 #include "utilfuncs.h"
 
 namespace BtManager
@@ -471,6 +472,31 @@ void start_audio_connect_retries()
     }
 }
 
+const char* connected_host_name(const esp_bd_addr_t mac)
+{
+    for (size_t i = 0; i < g_host_list.size(); ++i)
+    {
+        const bt_host_item_t* item = g_host_list.get(i);
+        if (item && item->name && item->name[0] != '\0' && bda_equal(item->bdaddr, mac))
+        {
+            return item->name;
+        }
+    }
+
+    if (g_has_last_paired_device && g_last_paired_device.name[0] != '\0' && bda_equal(g_last_paired_device.mac, mac))
+    {
+        return g_last_paired_device.name;
+    }
+
+    return nullptr;
+}
+
+void query_call_metadata(const char* reason)
+{
+    ESP_LOGI(TAG, "querying HFP call metadata: %s", reason);
+    ok(esp_hf_client_query_current_calls(), "hfp query current calls");
+}
+
 void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param)
 {
     switch (event)
@@ -584,6 +610,8 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             g_hfp_call_setup_active = false;
             g_hfp_answer_requested = false;
             g_hfp_audio_connect_started_ms = 0;
+            CallManager::onBluetoothConnectionEstablished(connected_host_name(g_connected_mac));
+            ok(esp_hf_client_retrieve_subscriber_info(), "hfp retrieve subscriber info");
             close_pairing_window();
             set_state(State::Connected);
             break;
@@ -601,6 +629,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             g_hfp_call_setup_active = false;
             g_hfp_answer_requested = false;
             g_hfp_audio_connect_started_ms = 0;
+            CallManager::onBluetoothDisconnected();
             if (g_disconnect_requested || g_state == State::Pairing)
             {
                 g_disconnect_requested = false;
@@ -635,6 +664,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             g_hfp_audio_connect_started_ms = 0;
             AudioManager::setHfpAudioFormat(AudioManager::HfpCodec::Cvsd, 8000);
             g_hfp_audio_connected = true;
+            CallManager::setScoAudioConnected(true);
             set_state(State::AudioAvailable);
             ESP_LOGI(TAG, "HFP CVSD/narrowband audio connected");
         }
@@ -645,6 +675,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             g_hfp_audio_connect_started_ms = 0;
             AudioManager::setHfpAudioFormat(AudioManager::HfpCodec::Msbc, AudioManager::kSampleRateHz);
             g_hfp_audio_connected = true;
+            CallManager::setScoAudioConnected(true);
             set_state(State::AudioAvailable);
             ESP_LOGI(TAG, "HFP mSBC/wideband audio connected");
         }
@@ -654,20 +685,24 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             g_hfp_audio_connected = false;
             g_hfp_audio_connect_started_ms = 0;
             AudioManager::setHfpAudioFormat(AudioManager::HfpCodec::Cvsd, 8000);
+            CallManager::setScoAudioConnected(false);
             set_state(State::Connected);
         }
         break;
 
     case ESP_HF_CLIENT_CIND_CALL_EVT:
         ESP_LOGI(TAG, "hfp call status: %d", static_cast<int>(param->call.status));
+        CallManager::setCallStatus(static_cast<int>(param->call.status));
         g_hfp_call_active = param->call.status != 0;
         if (!g_hfp_call_active)
         {
             g_hfp_call_setup_active = false;
             g_hfp_answer_requested = false;
+            CallManager::setCallSetupStatus(0);
         }
         if (param->call.status && !g_hfp_audio_connected)
         {
+            query_call_metadata("call active");
             connect_hfp_audio_once("call active");
             start_audio_connect_retries();
         }
@@ -675,15 +710,22 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
 
     case ESP_HF_CLIENT_CIND_CALL_SETUP_EVT:
         ESP_LOGI(TAG, "hfp call setup status: %d", static_cast<int>(param->call_setup.status));
+        CallManager::setCallSetupStatus(static_cast<int>(param->call_setup.status));
         g_hfp_call_setup_active = param->call_setup.status != 0;
         if (param->call_setup.status == ESP_HF_CALL_SETUP_STATUS_INCOMING)
         {
+            query_call_metadata("incoming call setup");
             answer_incoming_call_once("incoming call setup");
+        }
+        else if (param->call_setup.status != ESP_HF_CALL_SETUP_STATUS_IDLE)
+        {
+            query_call_metadata("call setup");
         }
         break;
 
     case ESP_HF_CLIENT_CIND_CALL_HELD_EVT:
         ESP_LOGI(TAG, "hfp call held status: %d", static_cast<int>(param->call_held.status));
+        CallManager::setCallHeldStatus(static_cast<int>(param->call_held.status));
         break;
 
     case ESP_HF_CLIENT_AT_RESPONSE_EVT:
@@ -692,10 +734,12 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
 
     case ESP_HF_CLIENT_CLIP_EVT:
         ESP_LOGI(TAG, "hfp caller id: %s", param->clip.number ? param->clip.number : "(null)");
+        CallManager::addCallerInfo(param->clip.number);
         break;
 
     case ESP_HF_CLIENT_CCWA_EVT:
         ESP_LOGI(TAG, "hfp call waiting: %s", param->ccwa.number ? param->ccwa.number : "(null)");
+        CallManager::addCallerInfo(param->ccwa.number);
         break;
 
     case ESP_HF_CLIENT_CLCC_EVT:
@@ -706,6 +750,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
                  static_cast<int>(param->clcc.status),
                  static_cast<int>(param->clcc.mpty),
                  param->clcc.number ? param->clcc.number : "(null)");
+        CallManager::addCallerInfo(param->clcc.number);
         break;
 
     case ESP_HF_CLIENT_CIND_SERVICE_AVAILABILITY_EVT:
@@ -738,6 +783,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
 
     case ESP_HF_CLIENT_CNUM_EVT:
         ESP_LOGI(TAG, "hfp subscriber number: %s type=%d", param->cnum.number ? param->cnum.number : "(null)", static_cast<int>(param->cnum.type));
+        CallManager::addCallerInfo(param->cnum.number);
         break;
 
     case ESP_HF_CLIENT_BSIR_EVT:
@@ -746,11 +792,14 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
 
     case ESP_HF_CLIENT_BINP_EVT:
         ESP_LOGI(TAG, "hfp voice tag number: %s", param->binp.number ? param->binp.number : "(null)");
+        CallManager::addCallerInfo(param->binp.number);
         break;
 
     case ESP_HF_CLIENT_RING_IND_EVT:
         ESP_LOGI(TAG, "hfp ring indication");
         g_hfp_call_setup_active = true;
+        CallManager::setCallSetupStatus(ESP_HF_CALL_SETUP_STATUS_INCOMING);
+        query_call_metadata("ring indication");
         answer_incoming_call_once("ring indication");
         break;
 
