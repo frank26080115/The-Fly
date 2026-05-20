@@ -9,7 +9,9 @@
 #include "ErrorView.h"
 #include "FileListView.h"
 #include "MainScreenView.h"
+#include "ModalDialog.h"
 #include "RecordingView/RecordingView.h"
+#include "ScrollView/ScrollView.h"
 #include "SplashView.h"
 #include "UploadProgressView.h"
 #include "WebActionView.h"
@@ -25,6 +27,7 @@ bool reset_was_magic = false;
 
 extern FlyGui* gui;
 extern void conn_waiting_cancel();
+extern void onclick_scroll_exit();
 
 namespace
 {
@@ -38,7 +41,9 @@ ApModeView          g_ap_mode_view;
 UploadProgressView  g_upload_progress_view;
 FileListView        g_file_list_view;
 ErrorView           g_error_view;
+ModalDialog         g_modal_dialog;
 ConnWaitingView     g_conn_waiting_view(CONN_WAITING_BLUETOOTH_CONNECTING, "", conn_waiting_cancel);
+ScrollView          g_scroll_view(FLYGUI_VIEW_SCROLL, onclick_scroll_exit);
 } // namespace
 
 bool init_nvs();
@@ -118,7 +123,19 @@ void init_gui()
     gui->addView(g_upload_progress_view);
     gui->addView(g_file_list_view);
     gui->addView(g_error_view);
+    gui->addView(g_modal_dialog);
     gui->addView(g_conn_waiting_view);
+    gui->addView(g_scroll_view);
+}
+
+ScrollView* get_scroll_view()
+{
+    return &g_scroll_view;
+}
+
+ModalDialog* get_modal_dialog()
+{
+    return &g_modal_dialog;
 }
 
 bool show_recording_view_bluetooth()

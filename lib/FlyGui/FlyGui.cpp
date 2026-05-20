@@ -416,6 +416,11 @@ void FlyGuiItem::setVisible(bool visible)
 
 void FlyGuiItem::setFaded(bool faded)
 {
+    if (faded_ == faded)
+    {
+        return;
+    }
+
     faded_ = faded;
     setDirty();
 }

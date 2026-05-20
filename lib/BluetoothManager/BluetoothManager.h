@@ -70,6 +70,8 @@ const PairedDevice&  lastPairedDevice();
 bool                 hasLastPairedDevice();
 bool                 isBonded(const esp_bd_addr_t mac);
 bool                 isBonded(const char* mac);
+const char*          localDeviceName();
+bool                 localBdaddr(esp_bd_addr_t bdaddr);
 
 const char* stateName(State value);
 const char* resultName(Result value);

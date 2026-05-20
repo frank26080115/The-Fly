@@ -36,9 +36,19 @@ typedef struct __attribute__((packed))
     uint8_t  flags;          // indicates any warnings from the FIFO
     uint32_t ms_timestamp;   // millis() when written to file
     uint32_t sequence_num;   // per whole file, not per channel/FIFO
+    #ifdef BUILD_WITH_SECURITY
+    // we want 12 bytes of nonce, the timestamp and seq-num takes care of 8 of them, we can do another 8 for 16 bytes of uniqueness
+    uint32_t nonce_1;        // random
+    uint32_t nonce_2;        // random
+    #endif
     uint32_t fifo_cnt;       // count before dequeue
     uint16_t payload_length; // length of payload, up to the max allowed
     uint16_t payload[FILE_PACKET_PAYLOAD_MAX];
+
+    #ifdef BUILD_WITH_SECURITY_AUTHENTICATE
+    // authentication signature
+    uint8_t auth_tag[SECURITY_AUTH_TAG_SIZE];
+    #endif
 }
 file_packet_t;
 
@@ -51,11 +61,15 @@ enum : uint8_t
     ICON_TABLET,
     ICON_BLUETOOTH,
     ICON_WIFI,
+    ICON_WIFI_SEARCH, // sprite_btn_wifisearch
     ICON_HOME,
     ICON_WIFIAP,
     ICON_WWW,
-    ICON_CLOUD,
+    ICON_CLOUD,     // sprit_btn_cloud
     ICON_FTP,
+    ICON_NTP,       // sprit_btn_ntp
+    ICON_INFO,      // sprit_btn_info
+    ICON_BTPAIRING, // sprit_btn_bluetooth_pairing
     ICON_LAST
 };
 

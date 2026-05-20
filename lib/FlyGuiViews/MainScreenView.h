@@ -18,9 +18,9 @@ private:
     void syncBluetoothHostButtonFades();
 
     FlyGuiItem bluetoothItem_;
-    FlyGuiItem wifiItem_;
+    FlyGuiItem infoItem_;
     FlyGuiItem memoItem_;
     FlyGuiItem smartphoneItem_;
     FlyGuiItem laptopItem_;
-    FlyGuiItem wifiSearchItem_;
+    FlyGuiItem wifiItem_;
 };

@@ -202,6 +202,11 @@ bool write_packet(AudioFifo& fifo, filepkt_src_e source)
     packet.sequence_num  = g_sequence_num++;
     packet.fifo_cnt      = static_cast<uint32_t>(available);
 
+    #ifdef BUILD_WITH_SECURITY
+    // TODO: `packet.nonce_1` set with a secure RNG
+    // TODO: `packet.nonce_2` set with a secure RNG
+    #endif
+
     // FILE_PACKET_PAYLOAD_MAX needs to be be about the same size as each fragment expected from the audio interface callbacks
     // otherwise we can adjust the FIFO watermark, or kPumpTargetFillPercentage
     // we don't want to under-utilize the packet payload buffer
@@ -222,6 +227,20 @@ bool write_packet(AudioFifo& fifo, filepkt_src_e source)
 
     const uint8_t* data_ptr = g_pure_pcm_mode ? reinterpret_cast<const uint8_t*>(packet.payload) : reinterpret_cast<const uint8_t*>(&packet);
     const size_t   data_sz  = g_pure_pcm_mode ? samples_read * sizeof(samples[0]) : sizeof(packet);
+
+    #ifdef BUILD_WITH_SECURITY
+    if (!g_pure_pcm_mode) // g_pure_pcm_mode is only for testing
+    {
+        // TODO: encrypt the payload
+        // DO NOT ENCRYPT THE HEADER
+        // it's much harder for an attacker to see if they've decrypted just the payload correctly
+        // as it is easy to spot a correctly decrypted header
+    }
+    #endif
+
+    #ifdef BUILD_WITH_SECURITY_AUTHENTICATE
+    // TODO: compute `packet.auth_tag`
+    #endif
 
     if (g_file.write(data_ptr, data_sz) != data_sz)
     {

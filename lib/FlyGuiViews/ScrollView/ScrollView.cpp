@@ -1,7 +1,10 @@
 #include "ScrollView.h"
 
-#include "FlyGuiText.h"
+#include "../../BluetoothManager/BtHostList.h"
+#include "../../FlyGui/FlyGuiText.h"
+#include "../../WifiManager/WifiManager.h"
 #include "sprites.h"
+#include <new>
 #include <string.h>
 
 namespace
@@ -16,6 +19,11 @@ constexpr int16_t kExitSize       = 50;
 constexpr int16_t kExitY          = 190;
 constexpr float   kTextSize       = 1.5f;
 constexpr uint8_t kTextFont       = 1;
+
+int32_t list_callback_value(size_t index)
+{
+    return static_cast<int32_t>(index + 1);
+}
 
 int16_t slot_x(int slot)
 {
@@ -156,6 +164,11 @@ ScrollView::ScrollView(uint16_t viewId, FlyGuiItemCallback exitCallback)
     exitItem_.setCallback(exitCallback_);
 }
 
+ScrollView::~ScrollView()
+{
+    clearGeneratedItems();
+}
+
 void ScrollView::addItem(FlyGuiItem& item)
 {
     FlyGuiView::addItem(item);
@@ -165,10 +178,150 @@ void ScrollView::addItem(FlyGuiItem& item)
 
 void ScrollView::removeAllItems()
 {
-    FlyGuiView::removeAllItems();
-    itemCount_     = 0;
-    selectedIndex_ = 0;
-    setDirty();
+    clearGeneratedItems();
+}
+
+bool ScrollView::populateBluetooth(const BtHostList* hostList)
+{
+    clearGeneratedItems();
+
+    bool ok = appendScrollItem(SCROLL_ITEM_BLUETOOTH_SHOW_SELF_INFO,
+                               SCROLL_TASK_BLUETOOTH_SHOW_SELF_INFO,
+                               "Bluetooth Info",
+                               ICON_INFO);
+
+    if (hostList)
+    {
+        for (size_t i = 0; i < hostList->size(); ++i)
+        {
+            const bt_host_item_t* host = hostList->get(i);
+            if (!host)
+            {
+                continue;
+            }
+
+            const uint8_t icon = host->icon == ICON_UNKNOWN ? ICON_BLUETOOTH : host->icon;
+            ok = appendScrollItem(SCROLL_ITEM_BLUETOOTH_HOST, list_callback_value(i), host->name, icon) && ok;
+        }
+    }
+
+    ok = appendScrollItem(SCROLL_ITEM_BLUETOOTH_PAIRING,
+                          SCROLL_TASK_BLUETOOTH_PAIRING,
+                          "Pair New Device",
+                          ICON_BTPAIRING) && ok;
+    return ok;
+}
+
+bool ScrollView::populateWifi(const WifiManager* wifiManager)
+{
+    clearGeneratedItems();
+
+    bool ok = appendScrollItem(SCROLL_ITEM_WIFI_SCAN_AND_CONNECT,
+                               SCROLL_TASK_WIFI_SCAN_AND_CONNECT,
+                               "Scan and Connect",
+                               ICON_WIFI_SEARCH);
+
+    if (wifiManager)
+    {
+        for (size_t i = 0; i < wifiManager->stationCount(); ++i)
+        {
+            const wifi_item_t* station = wifiManager->station(i);
+            if (!station)
+            {
+                continue;
+            }
+
+            const uint8_t icon = station->icon == ICON_UNKNOWN ? ICON_WIFI : station->icon;
+            ok = appendScrollItem(SCROLL_ITEM_WIFI_STATION, list_callback_value(i), station->ssid, icon) && ok;
+        }
+
+        for (size_t i = 0; i < wifiManager->accessPointCount(); ++i)
+        {
+            const wifi_item_t* accessPoint = wifiManager->accessPoint(i);
+            if (!accessPoint)
+            {
+                continue;
+            }
+
+            const uint8_t icon = accessPoint->icon == ICON_UNKNOWN ? ICON_WIFIAP : accessPoint->icon;
+            ok = appendScrollItem(SCROLL_ITEM_WIFI_AP, list_callback_value(i), accessPoint->ssid, icon) && ok;
+        }
+    }
+
+    return ok;
+}
+
+bool ScrollView::populateCloud(const WifiManager* wifiManager)
+{
+    clearGeneratedItems();
+
+    bool ok = appendScrollItem(SCROLL_ITEM_WIFI_SHOW_SELF_INFO,
+                               SCROLL_TASK_WIFI_SHOW_SELF_INFO,
+                               "Wi-Fi Info",
+                               ICON_WIFI);
+
+    if (wifiManager)
+    {
+        for (size_t i = 0; i < wifiManager->cloudEndpointCount(); ++i)
+        {
+            const cloud_item_t* endpoint = wifiManager->cloudEndpoint(i);
+            if (!endpoint)
+            {
+                continue;
+            }
+
+            const uint8_t icon = endpoint->icon == ICON_UNKNOWN ? ICON_CLOUD : endpoint->icon;
+            ok = appendScrollItem(SCROLL_ITEM_CLOUD_ENDPOINT, list_callback_value(i), endpoint->name, icon) && ok;
+        }
+    }
+
+    ok = appendScrollItem(SCROLL_ITEM_NTP_SYNC, SCROLL_TASK_NTP_SYNC, "Sync Time", ICON_NTP) && ok;
+    return ok;
+}
+
+void ScrollView::setOnClickBluetoothHost(ScrollViewClickCallback callback)
+{
+    onBluetoothHost_ = callback;
+}
+
+void ScrollView::setOnClickBluetoothPair(ScrollViewClickCallback callback)
+{
+    onBluetoothPair_ = callback;
+}
+
+void ScrollView::setOnClickWifiScanAndConnect(ScrollViewClickCallback callback)
+{
+    onWifiScanAndConnect_ = callback;
+}
+
+void ScrollView::setOnClickWifiStation(ScrollViewClickCallback callback)
+{
+    onWifiStation_ = callback;
+}
+
+void ScrollView::setOnClickWifiAp(ScrollViewClickCallback callback)
+{
+    onWifiAp_ = callback;
+}
+
+void ScrollView::setOnClickCloudUpload(ScrollViewClickCallback callback)
+{
+    onCloudUpload_ = callback;
+}
+
+void ScrollView::setOnClickNtpSync(ScrollViewClickCallback callback)
+{
+    onNtpSync_ = callback;
+}
+
+void ScrollView::setOnClickBtShowInfo(ScrollViewClickCallback callback)
+{
+    onBtShowInfo_ = callback;
+}
+
+void ScrollView::setOnClickWifiShowInfo(ScrollViewClickCallback callback)
+{
+    onWifiShowInfo_ = callback;
 }
 
 FlyGuiItem* ScrollView::selectedItem() const
@@ -262,13 +415,7 @@ bool ScrollView::handleTouch(const FlyGuiTouchEvent& event)
 
 void ScrollView::redraw(bool forced)
 {
-    bool itemDirty = exitItem_.dirty();
-    for (FlyGuiItem* item = firstItem(); item && !itemDirty; item = item->next())
-    {
-        itemDirty = item->dirty();
-    }
-
-    if (!forced && !dirty() && !itemDirty)
+    if (!forced && !dirty() && !exitItem_.dirty())
     {
         return;
     }
@@ -320,6 +467,19 @@ FlyGuiItem* ScrollView::itemAtWrapped(int32_t index) const
     }
 
     return itemAt(static_cast<size_t>(index) % itemCount_);
+}
+
+const ScrollItem* ScrollView::generatedScrollItemFor(const FlyGuiItem* item) const
+{
+    for (GeneratedItemNode* node = generatedHead_; node; node = node->next)
+    {
+        if (node->item == item)
+        {
+            return node->item;
+        }
+    }
+
+    return nullptr;
 }
 
 bool ScrollView::containsSlot(Slot slot, int16_t x, int16_t y) const
@@ -384,7 +544,8 @@ void ScrollView::drawItemInSlot(FlyGuiItem& item, Slot slot, bool faded)
 void ScrollView::drawSelectedText()
 {
     const FlyGuiItem* item = selectedItem();
-    const char*       text = item ? item->mainText() : nullptr;
+    const ScrollItem* scrollItem = generatedScrollItemFor(item);
+    const char*       text = scrollItem ? scrollItem->label() : (item ? item->mainText() : nullptr);
     if (!text || text[0] == '\0')
     {
         return;
@@ -402,4 +563,131 @@ void ScrollView::drawExitButton()
 {
     exitItem_.relocate(exit_x(), kExitY, kExitSize, kExitSize);
     exitItem_.redraw(true);
+}
+
+bool ScrollView::appendScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon)
+{
+    ScrollItem* item = new (std::nothrow) ScrollItem();
+    if (!item)
+    {
+        return false;
+    }
+
+    GeneratedItemNode* node = new (std::nothrow) GeneratedItemNode();
+    if (!node)
+    {
+        delete item;
+        return false;
+    }
+
+    item->configure(kind, callbackValue, label, icon);
+    item->setScrollCallback(onScrollItemTriggered, this);
+
+    node->item = item;
+    node->next = nullptr;
+    if (generatedTail_)
+    {
+        generatedTail_->next = node;
+    }
+    else
+    {
+        generatedHead_ = node;
+    }
+    generatedTail_ = node;
+
+    addItem(*item);
+    return true;
+}
+
+void ScrollView::clearGeneratedItems()
+{
+    FlyGuiView::removeAllItems();
+
+    GeneratedItemNode* node = generatedHead_;
+    while (node)
+    {
+        GeneratedItemNode* next = node->next;
+        delete node->item;
+        delete node;
+        node = next;
+    }
+
+    generatedHead_ = nullptr;
+    generatedTail_ = nullptr;
+    itemCount_     = 0;
+    selectedIndex_ = 0;
+    setDirty();
+}
+
+void ScrollView::handleScrollItem(ScrollItem& item)
+{
+    const int32_t value = item.callbackValue();
+
+    switch (item.kind())
+    {
+    case SCROLL_ITEM_BLUETOOTH_HOST:
+        if (onBluetoothHost_)
+        {
+            onBluetoothHost_(value);
+        }
+        break;
+    case SCROLL_ITEM_BLUETOOTH_PAIRING:
+        if (onBluetoothPair_)
+        {
+            onBluetoothPair_(value);
+        }
+        break;
+    case SCROLL_ITEM_BLUETOOTH_SHOW_SELF_INFO:
+        if (onBtShowInfo_)
+        {
+            onBtShowInfo_(value);
+        }
+        break;
+    case SCROLL_ITEM_WIFI_SCAN_AND_CONNECT:
+        if (onWifiScanAndConnect_)
+        {
+            onWifiScanAndConnect_(value);
+        }
+        break;
+    case SCROLL_ITEM_WIFI_STATION:
+        if (onWifiStation_)
+        {
+            onWifiStation_(value);
+        }
+        break;
+    case SCROLL_ITEM_WIFI_AP:
+        if (onWifiAp_)
+        {
+            onWifiAp_(value);
+        }
+        break;
+    case SCROLL_ITEM_CLOUD_ENDPOINT:
+        if (onCloudUpload_)
+        {
+            onCloudUpload_(value);
+        }
+        break;
+    case SCROLL_ITEM_NTP_SYNC:
+        if (onNtpSync_)
+        {
+            onNtpSync_(value);
+        }
+        break;
+    case SCROLL_ITEM_WIFI_SHOW_SELF_INFO:
+        if (onWifiShowInfo_)
+        {
+            onWifiShowInfo_(value);
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+void ScrollView::onScrollItemTriggered(ScrollItem& item, void* context)
+{
+    if (context)
+    {
+        static_cast<ScrollView*>(context)->handleScrollItem(item);
+    }
 }
