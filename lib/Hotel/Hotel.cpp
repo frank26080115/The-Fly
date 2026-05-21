@@ -147,7 +147,9 @@ void apply_power_outputs(State previous, State next)
 {
     if (state_uses_max_cpu(previous) != state_uses_max_cpu(next))
     {
+        #ifdef ENABLE_HOTEL
         setCpuFrequencyMhz(state_uses_max_cpu(next) ? kCpuMaxMhz : kCpuMinMhz);
+        #endif
     }
 
     if (state_uses_full_brightness(previous) != state_uses_full_brightness(next))
@@ -161,7 +163,9 @@ void apply_power_outputs(State previous, State next)
 
 void apply_initialized_outputs()
 {
+    #ifdef ENABLE_HOTEL
     setCpuFrequencyMhz(kCpuMaxMhz);
+    #endif
     if (m5_ready())
     {
         thefly_display.setBrightness(kFullBrightness);
@@ -171,6 +175,7 @@ void apply_initialized_outputs()
 
 void enter_light_sleep()
 {
+    #ifdef ENABLE_HOTEL
     if (m5_ready())
     {
         M5.Power.lightSleep(kLightSleepWakeUs, true);
@@ -180,6 +185,7 @@ void enter_light_sleep()
     esp_sleep_enable_timer_wakeup(kLightSleepWakeUs);
     esp_light_sleep_start();
     esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_TIMER);
+    #endif
 }
 
 void poll_core(uint8_t core)
