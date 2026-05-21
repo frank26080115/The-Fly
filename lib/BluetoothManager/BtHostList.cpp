@@ -393,7 +393,7 @@ bool BtHostList::insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t ic
     bt_host_item_t* existing = find_host(m_head, bdaddr);
     if (existing)
     {
-        existing->bonded = BtManager::isBonded(existing->bdaddr);
+        existing->bonded = true;
 
         if ((!existing->name || existing->name[0] == '\0') && name && name[0] != '\0')
         {
@@ -419,6 +419,8 @@ bool BtHostList::insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t ic
         ESP_LOGW(TAG, "could not allocate bluetooth host item");
         return false;
     }
+
+    item->bonded = true;
 
     if (m_tail)
     {

@@ -14,4 +14,5 @@ void run_test()
     //test_imu();
     //test_bootreadfiles();
     //test_fonts();
+    //test_pmic();
 }

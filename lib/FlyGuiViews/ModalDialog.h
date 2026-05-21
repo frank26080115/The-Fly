@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+using ModalDialogDismissCallback = void (*)();
+
 // ModalDialog may seem redundant with FlyGuiModal
 // FlyGuiModal is only used if we absolutely must not exit out of the current view (which will cause unloading)
 // ModalDialog is used when a dialog is a part of a flow
@@ -17,7 +19,8 @@ public:
                    uint32_t spriteWidth,
                    uint32_t spriteHeight,
                    const char* text,
-                   uint16_t nextViewId);
+                   uint16_t nextViewId,
+                   ModalDialogDismissCallback dismissCallback = nullptr);
 
     bool configured() const
     {
@@ -47,5 +50,6 @@ private:
     uint32_t       spriteHeight_ = 0;
     char           text_[kTextMax + 1] = {};
     uint16_t       nextViewId_ = FLYGUI_VIEW_MAIN;
+    ModalDialogDismissCallback dismissCallback_ = nullptr;
     bool           configured_ = false;
 };

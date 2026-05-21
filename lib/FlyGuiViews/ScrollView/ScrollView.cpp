@@ -22,7 +22,7 @@ constexpr uint8_t kTextFont       = 2;
 
 int32_t list_callback_value(size_t index)
 {
-    return static_cast<int32_t>(index + 1);
+    return static_cast<int32_t>(index);
 }
 
 int16_t slot_x(int slot)
@@ -196,6 +196,11 @@ bool ScrollView::populateBluetooth(const BtHostList* hostList)
         {
             const bt_host_item_t* host = hostList->get(i);
             if (!host)
+            {
+                continue;
+            }
+
+            if (!host->bonded)
             {
                 continue;
             }

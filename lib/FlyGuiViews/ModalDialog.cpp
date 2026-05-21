@@ -27,14 +27,16 @@ void ModalDialog::configure(const uint8_t* spriteData,
                             uint32_t spriteWidth,
                             uint32_t spriteHeight,
                             const char* text,
-                            uint16_t nextViewId)
+                            uint16_t nextViewId,
+                            ModalDialogDismissCallback dismissCallback)
 {
-    spriteData_   = spriteData;
-    spriteBytes_  = spriteBytes;
-    spriteWidth_  = spriteWidth;
-    spriteHeight_ = spriteHeight;
-    nextViewId_   = nextViewId;
-    configured_   = true;
+    spriteData_       = spriteData;
+    spriteBytes_      = spriteBytes;
+    spriteWidth_      = spriteWidth;
+    spriteHeight_     = spriteHeight;
+    nextViewId_       = nextViewId;
+    dismissCallback_  = dismissCallback;
+    configured_       = true;
 
     strncpy(text_, text ? text : "", sizeof(text_) - 1);
     text_[sizeof(text_) - 1] = '\0';
@@ -106,18 +108,24 @@ void ModalDialog::dismiss()
     }
 
     const uint16_t nextViewId = nextViewId_;
+    ModalDialogDismissCallback dismissCallback = dismissCallback_;
     owner->showView(nextViewId);
+    if (dismissCallback)
+    {
+        dismissCallback();
+    }
 }
 
 void ModalDialog::clearConfiguration()
 {
-    spriteData_   = nullptr;
-    spriteBytes_  = 0;
-    spriteWidth_  = 0;
-    spriteHeight_ = 0;
-    text_[0]      = '\0';
-    nextViewId_   = FLYGUI_VIEW_MAIN;
-    configured_   = false;
+    spriteData_      = nullptr;
+    spriteBytes_     = 0;
+    spriteWidth_     = 0;
+    spriteHeight_    = 0;
+    text_[0]         = '\0';
+    nextViewId_      = FLYGUI_VIEW_MAIN;
+    dismissCallback_ = nullptr;
+    configured_      = false;
     setDirty();
 }
 

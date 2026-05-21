@@ -53,6 +53,7 @@ ErrorView           g_error_view;
 ModalDialog         g_modal_dialog;
 ConnWaitingView     g_conn_waiting_view(CONN_WAITING_BLUETOOTH_CONNECTING, "", conn_waiting_cancel);
 ScrollView          g_scroll_view(FLYGUI_VIEW_SCROLL, onclick_scroll_exit);
+uint16_t            g_conn_waiting_return_view_id = FLYGUI_VIEW_MAIN;
 } // namespace
 
 bool init_nvs();
@@ -155,6 +156,48 @@ ScrollView* get_scroll_view()
 ModalDialog* get_modal_dialog()
 {
     return &g_modal_dialog;
+}
+
+uint16_t conn_waiting_return_view_id()
+{
+    return g_conn_waiting_return_view_id;
+}
+
+void remember_conn_waiting_return_view()
+{
+    if (!gui || !gui->currentView() || gui->currentView()->id() == FLYGUI_VIEW_CONN_WAITING)
+    {
+        g_conn_waiting_return_view_id = FLYGUI_VIEW_MAIN;
+        return;
+    }
+
+    g_conn_waiting_return_view_id = gui->currentView()->id();
+}
+
+bool show_conn_waiting_bluetooth(const char* targetName)
+{
+    if (!gui)
+    {
+        return false;
+    }
+
+    remember_conn_waiting_return_view();
+    g_conn_waiting_view.configure(CONN_WAITING_BLUETOOTH_CONNECTING, targetName);
+    g_conn_waiting_view.setCancelCallback(conn_waiting_cancel);
+    return gui->showView(FLYGUI_VIEW_CONN_WAITING);
+}
+
+bool show_conn_waiting_bluetooth_pairing()
+{
+    if (!gui)
+    {
+        return false;
+    }
+
+    remember_conn_waiting_return_view();
+    g_conn_waiting_view.configure(CONN_WAITING_BLUETOOTH_PAIRING, "");
+    g_conn_waiting_view.setCancelCallback(conn_waiting_cancel);
+    return gui->showView(FLYGUI_VIEW_CONN_WAITING);
 }
 
 bool show_recording_view_bluetooth()

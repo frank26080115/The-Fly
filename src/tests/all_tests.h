@@ -18,3 +18,4 @@ extern void test_micfilterresult();
 extern void test_imu();
 extern void test_bootreadfiles();
 extern void test_fonts();
+extern void test_pmic();
