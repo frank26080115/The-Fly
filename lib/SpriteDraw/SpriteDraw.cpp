@@ -43,6 +43,11 @@ lgfx::rgb565_t black_pixel()
     return lgfx::rgb565_t(0, 0, 0);
 }
 
+bool fully_transparent_pixel(const uint8_t* argb)
+{
+    return argb[0] == 0;
+}
+
 void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, size_t length, const uint8_t* argb)
 {
     auto* context = static_cast<PngDecodeContext*>(user_data);
@@ -85,7 +90,7 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
         for (size_t index = 0; index < length; ++index)
         {
             const int32_t pixel_x = dst_x + static_cast<int32_t>(index * div_x);
-            if (pixel_x >= 0 && pixel_x < thefly_display.width())
+            if (!fully_transparent_pixel(argb) && pixel_x >= 0 && pixel_x < thefly_display.width())
             {
                 const lgfx::rgb565_t color = !dither || dither_pixel_enabled(pixel_x, dst_y)
                                                ? argb_to_rgb565(argb, context->brightness)
@@ -135,16 +140,33 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
     while (length > 0)
     {
         const size_t chunk = length < kMaxRunChunkPixels ? length : kMaxRunChunkPixels;
-        for (size_t index = 0; index < chunk; ++index)
+        size_t       index = 0;
+        while (index < chunk)
         {
-            const int32_t pixel_x = dst_x + static_cast<int32_t>(index);
-            line[index] = !dither || dither_pixel_enabled(pixel_x, dst_y)
-                              ? argb_to_rgb565(argb + index * 4, context->brightness)
-                              : black_pixel();
-        }
+            while (index < chunk && fully_transparent_pixel(argb + index * 4))
+            {
+                ++index;
+            }
 
-        thefly_display.setAddrWindow(dst_x, dst_y, static_cast<int32_t>(chunk), 1);
-        thefly_display.writePixels(line, static_cast<int32_t>(chunk));
+            if (index >= chunk)
+            {
+                break;
+            }
+
+            const size_t span_start = index;
+            size_t       span_len   = 0;
+            while (index < chunk && !fully_transparent_pixel(argb + index * 4))
+            {
+                const int32_t pixel_x = dst_x + static_cast<int32_t>(index);
+                line[span_len++] = !dither || dither_pixel_enabled(pixel_x, dst_y)
+                                       ? argb_to_rgb565(argb + index * 4, context->brightness)
+                                       : black_pixel();
+                ++index;
+            }
+
+            thefly_display.setAddrWindow(dst_x + static_cast<int32_t>(span_start), dst_y, static_cast<int32_t>(span_len), 1);
+            thefly_display.writePixels(line, static_cast<int32_t>(span_len));
+        }
 
         dst_x += static_cast<int32_t>(chunk);
         argb += chunk * 4;
