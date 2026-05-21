@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "ClockAgent.h"
+#include "DiskStats.h"
 #include "MicroSdCard.h"
 #include "dbg_log.h"
 #include "freertos/FreeRTOS.h"
@@ -477,6 +478,7 @@ bool stopRecording(bool estop)
     bool     ok = true;
     char     stopped_path[sizeof(g_sd_path)] = {};
     uint64_t stopped_bytes = 0;
+    bool     closed_file = false;
     std::lock_guard<std::mutex> pump_lock(g_pump_mutex);
     if (!estop)
     {
@@ -515,7 +517,13 @@ bool stopRecording(bool estop)
             }
 
             g_file.close();
+            closed_file = true;
         }
+    }
+
+    if (closed_file)
+    {
+        DiskStats::refreshDiskSpace();
     }
 
     if (!ok)

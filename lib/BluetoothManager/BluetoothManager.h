@@ -47,6 +47,7 @@ using StateChangedCallback  = void (*)(State state);
 
 bool init(const char* deviceName = "The Fly", IncomingAudioCallback incomingAudio = AudioManager::hfp_incoming_audio, OutgoingAudioCallback outgoingAudio = AudioManager::hfp_outgoing_audio, const char* pin = nullptr);
 void setAudioCallbacks(IncomingAudioCallback incomingAudio = AudioManager::hfp_incoming_audio, OutgoingAudioCallback outgoingAudio = AudioManager::hfp_outgoing_audio);
+void poll();
 
 bool        generateLegacyPinFromMac();
 const char* generatedLegacyPin();

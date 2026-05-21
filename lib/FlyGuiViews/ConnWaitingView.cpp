@@ -8,7 +8,7 @@
 
 namespace
 {
-constexpr int16_t  kContentY          = FlyGui::topBarHeight();
+constexpr int16_t  kContentY          = FlyGui::kTopBarHeight;
 constexpr int16_t  kBottomSpriteSize  = 60;
 constexpr int16_t  kBottomY           = 180;
 constexpr int16_t  kHourglassX        = 0;

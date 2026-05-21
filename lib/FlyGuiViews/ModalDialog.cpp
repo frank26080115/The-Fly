@@ -6,7 +6,7 @@
 
 namespace
 {
-constexpr int16_t kSpriteY        = FlyGui::topBarHeight();
+constexpr int16_t kSpriteY        = FlyGui::kTopBarHeight;
 constexpr int16_t kTextX          = 16;
 constexpr int16_t kTextWidth      = 288;
 constexpr int16_t kTextMaxY       = 212;
@@ -49,6 +49,7 @@ void ModalDialog::onLoad()
 
 void ModalDialog::onUnload()
 {
+    thefly_display.fillRect(0, FlyGui::kTopBarHeight, thefly_display.width(), thefly_display.height() - FlyGui::kTopBarHeight, TFT_BLACK);
     clearConfiguration();
     FlyGuiView::onUnload();
 }
@@ -71,9 +72,9 @@ void ModalDialog::redraw(bool forced)
     }
 
     thefly_display.fillRect(0,
-                            FlyGui::topBarHeight(),
+                            FlyGui::kTopBarHeight,
                             thefly_display.width(),
-                            static_cast<int16_t>(thefly_display.height() - FlyGui::topBarHeight()),
+                            static_cast<int16_t>(thefly_display.height() - FlyGui::kTopBarHeight),
                             TFT_BLACK);
     drawSprite();
     drawText();

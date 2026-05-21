@@ -6,6 +6,7 @@
 
 #include "AudioFileRecorder.h"
 #include "AudioManager.h"
+#include "BluetoothManager.h"
 #include "CallManager.h"
 #include "ModalDialog.h"
 #include "RecordingViewCallbacks.h"
@@ -16,14 +17,14 @@ extern ModalDialog* get_modal_dialog();
 namespace
 {
 constexpr int16_t kBorderX      = 0;
-constexpr int16_t kBorderY      = FlyGui::topBarHeight();
+constexpr int16_t kBorderY      = FlyGui::kTopBarHeight;
 constexpr int16_t kBorderSize   = 10;
 constexpr int16_t kButtonY      = 130;
 constexpr int16_t kMicButtonX   = 10;
 constexpr int16_t kMidButtonX   = 110;
 constexpr int16_t kExitButtonX  = 210;
 constexpr int16_t kSideButtonX  = 260;
-constexpr int16_t kBluetoothY   = 20;
+constexpr int16_t kBluetoothY   = FlyGui::kTopBarHeight + 10;
 constexpr int16_t kSideButtonY  = 70;
 constexpr int16_t kTextX        = 16;
 constexpr int16_t kFileTextY    = 28;
@@ -102,18 +103,6 @@ RecordingView::RecordingView()
     syncModeVisibility();
 }
 
-bool RecordingView::beginBluetoothRecording()
-{
-    configureBluetoothMode();
-    startedMs_ = millis();
-    durationText_.reset(startedMs_);
-    lastDurationSecond_ = UINT32_MAX;
-    const bool ok = RecordingViewCallbacks::beginBluetoothRecording('C');
-    refreshRecordingFileName();
-    setDirty();
-    return ok;
-}
-
 bool RecordingView::beginMemoRecording()
 {
     configureMemoMode();
@@ -131,6 +120,7 @@ void RecordingView::configureBluetoothMode()
     mode_ = Mode::Bluetooth;
     frameDirty_ = true;
     syncModeVisibility();
+    syncBluetoothIcon();
     setDirty();
 }
 
@@ -150,6 +140,7 @@ void RecordingView::onLoad()
     callerInfoIndex_ = 0;
     refreshRecordingFileName();
     syncModeVisibility();
+    syncBluetoothIcon();
     syncAudioButtons();
     syncAnswerCallButton();
     frameDirty_ = true;
@@ -158,12 +149,13 @@ void RecordingView::onLoad()
 
 void RecordingView::onUnload()
 {
-    thefly_display.fillRect(0, FlyGui::topBarHeight(), thefly_display.width(), thefly_display.height() - FlyGui::topBarHeight(), TFT_BLACK);
+    thefly_display.fillRect(0, FlyGui::kTopBarHeight, thefly_display.width(), thefly_display.height() - FlyGui::kTopBarHeight, TFT_BLACK);
     FlyGuiView::onUnload();
 }
 
 void RecordingView::redraw(bool forced)
 {
+    syncBluetoothIcon();
     syncAudioButtons();
     syncAnswerCallButton();
     syncText();
@@ -220,6 +212,8 @@ void RecordingView::handleSpeakerButton()
 
 void RecordingView::handleExitButton()
 {
+    FlyGui::quickScreenFade();
+
     char fileName[80] = {};
     const char* name = path_basename(AudioFileRecorder::currentSdPath());
     strncpy(fileName, name && name[0] != '\0' ? name : "Recording", sizeof(fileName) - 1);
@@ -313,6 +307,31 @@ void RecordingView::syncModeVisibility()
     bluetoothIcon_.setVisible(bluetoothMode);
     answerCallButton_.setVisible(bluetoothMode);
     memoTypeButton_.setVisible(!bluetoothMode);
+}
+
+void RecordingView::syncBluetoothIcon()
+{
+    if (mode_ != Mode::Bluetooth)
+    {
+        return;
+    }
+
+    const BtManager::State btState = BtManager::state();
+    const bool connected = btState == BtManager::State::Connected || btState == BtManager::State::AudioAvailable;
+    if (bluetoothIconConnected_ == connected)
+    {
+        return;
+    }
+
+    bluetoothIconConnected_ = connected;
+    if (connected)
+    {
+        bluetoothIcon_.setSprite(sprit_bluetooth_50, SPRIT_BLUETOOTH_50_WIDTH, SPRIT_BLUETOOTH_50_HEIGHT, SPRIT_BLUETOOTH_50_BYTES);
+    }
+    else
+    {
+        bluetoothIcon_.setSprite(sprit_bluetooth_x_50, SPRIT_BLUETOOTH_X_50_WIDTH, SPRIT_BLUETOOTH_X_50_HEIGHT, SPRIT_BLUETOOTH_X_50_BYTES);
+    }
 }
 
 void RecordingView::syncAudioButtons()

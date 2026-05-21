@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "Display.h"
+#include "FlyGui.h"
 #include "MicroSdCard.h"
 
 namespace DiskStats
@@ -20,6 +22,12 @@ constexpr size_t      kPathMaxLength    = 192;
 constexpr size_t      kFileNameMaxLength = 64;
 constexpr size_t      kDateTimeMaxLength = 24;
 constexpr size_t      kHistoryLineMaxLength = kPathMaxLength + kDateTimeMaxLength + 8;
+constexpr uint64_t    kBytesPerGiB      = 1024ULL * 1024ULL * 1024ULL;
+constexpr uint64_t    kLowDiskBytes     = 4ULL * kBytesPerGiB;
+constexpr uint64_t    kFullDiskBytes    = 2ULL * kBytesPerGiB;
+constexpr int16_t     kDiskWarningX     = 160;
+constexpr int16_t     kDiskWarningY     = 1;
+constexpr int16_t     kDiskWarningWidth = 72;
 
 struct UploadedPathNode
 {
@@ -38,6 +46,7 @@ struct RecordingStats
 std::mutex g_mutex;
 uint64_t   g_total_disk_space = 0;
 uint64_t   g_free_disk_space  = 0;
+bool       g_disk_space_valid = false;
 uint32_t   g_total_rec_files  = 0;
 uint32_t   g_total_rec_files_not_uploaded = 0;
 char       g_last_upload_datetime[kDateTimeMaxLength] = {};
@@ -378,6 +387,22 @@ uint8_t percent_u8(uint64_t numerator, uint64_t denominator)
     return static_cast<uint8_t>(value);
 }
 
+void draw_disk_space_warning(bool valid, uint64_t free_bytes)
+{
+    thefly_display.fillRect(kDiskWarningX, 0, kDiskWarningWidth, FlyGui::kTopBarHeight, TFT_BLACK);
+
+    if (!valid || free_bytes >= kLowDiskBytes)
+    {
+        return;
+    }
+
+    thefly_display.setTextFont(1);
+    thefly_display.setTextSize(1.0f);
+    thefly_display.setTextDatum(top_left);
+    thefly_display.setTextColor(free_bytes < kFullDiskBytes ? TFT_RED : TFT_YELLOW, TFT_BLACK);
+    thefly_display.drawString(free_bytes < kFullDiskBytes ? "MEM FULL" : "MEM", kDiskWarningX, kDiskWarningY);
+}
+
 } // namespace
 
 bool refreshDiskSpace()
@@ -394,7 +419,15 @@ bool refreshDiskSpace()
     std::lock_guard<std::mutex> lock(g_mutex);
     g_total_disk_space = total;
     g_free_disk_space  = free;
+    g_disk_space_valid = ok;
+    draw_disk_space_warning(g_disk_space_valid, g_free_disk_space);
     return ok;
+}
+
+void drawDiskSpaceWarning()
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+    draw_disk_space_warning(g_disk_space_valid, g_free_disk_space);
 }
 
 bool refreshRecordingUploadStats()

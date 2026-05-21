@@ -7,16 +7,16 @@
 
 namespace
 {
-constexpr int16_t kIconY       = 24;
+constexpr int16_t kIconY       = FlyGui::kTopBarHeight + 14;
 constexpr int16_t kTextX       = 4;
-constexpr int16_t kTextY       = 140;
+constexpr int16_t kTextY       = FlyGui::kTopBarHeight + 130;
 constexpr int16_t kTextPadding = 4;
 constexpr int16_t kTextLineHeight = 17;
 constexpr int16_t kFooterLineHeight = 14;
 constexpr float   kTextSize    = 1.0f;
 constexpr uint8_t kTextFont    = 2;
-constexpr float   kFooterTextSize = 1.5f;
-constexpr uint8_t kFooterTextFont = 1;
+constexpr float   kFooterTextSize = 1.0f;
+constexpr uint8_t kFooterTextFont = 2;
 } // namespace
 
 ErrorView::ErrorView() : FlyGuiView(FLYGUI_VIEW_ERROR) {}

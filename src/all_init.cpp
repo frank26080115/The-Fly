@@ -28,6 +28,15 @@ bool reset_was_magic = false;
 extern FlyGui* gui;
 extern void conn_waiting_cancel();
 extern void onclick_scroll_exit();
+extern void onclick_bluetooth_host(int32_t value);
+extern void onclick_bluetooth_pair(int32_t value);
+extern void onclick_wifi_scan_and_connect(int32_t value);
+extern void onclick_wifi_station(int32_t value);
+extern void onclick_wifi_ap(int32_t value);
+extern void onclick_cloud_upload(int32_t value);
+extern void onclick_ntp_sync(int32_t value);
+extern void onclick_bt_show_info(int32_t value);
+extern void onclick_wifi_show_info(int32_t value);
 
 namespace
 {
@@ -126,6 +135,16 @@ void init_gui()
     gui->addView(g_modal_dialog);
     gui->addView(g_conn_waiting_view);
     gui->addView(g_scroll_view);
+
+    g_scroll_view.setOnClickBluetoothHost(onclick_bluetooth_host);
+    g_scroll_view.setOnClickBluetoothPair(onclick_bluetooth_pair);
+    g_scroll_view.setOnClickWifiScanAndConnect(onclick_wifi_scan_and_connect);
+    g_scroll_view.setOnClickWifiStation(onclick_wifi_station);
+    g_scroll_view.setOnClickWifiAp(onclick_wifi_ap);
+    g_scroll_view.setOnClickCloudUpload(onclick_cloud_upload);
+    g_scroll_view.setOnClickNtpSync(onclick_ntp_sync);
+    g_scroll_view.setOnClickBtShowInfo(onclick_bt_show_info);
+    g_scroll_view.setOnClickWifiShowInfo(onclick_wifi_show_info);
 }
 
 ScrollView* get_scroll_view()
@@ -145,8 +164,8 @@ bool show_recording_view_bluetooth()
         return false;
     }
 
-    const bool started = g_recording_view.beginBluetoothRecording();
-    return started && gui->showView(FLYGUI_VIEW_RECORDING);
+    g_recording_view.configureBluetoothMode();
+    return gui->showView(FLYGUI_VIEW_RECORDING);
 }
 
 bool show_recording_view_memo()

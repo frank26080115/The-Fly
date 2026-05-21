@@ -44,6 +44,7 @@ void ScrollItem::setScrollCallback(ScrollItemCallback callback, void* context)
 {
     scrollCallback_  = callback;
     callbackContext_ = context;
+    setTouchable(scrollCallback_ != nullptr);
 }
 
 bool ScrollItem::trigger()

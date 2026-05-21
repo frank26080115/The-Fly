@@ -54,10 +54,14 @@ public:
     FlyGui();
     ~FlyGui();
 
+    static constexpr int16_t kTopBarHeight = 10;
+
     static constexpr int16_t topBarHeight()
     {
-        return 10;
+        return kTopBarHeight;
     }
+
+    static void quickScreenFade();
 
     void        addView(FlyGuiView& view);
     bool        showView(uint16_t viewId);
@@ -241,11 +245,22 @@ public:
     void attachButton(Button* button)
     {
         button_ = button;
+        touchable_ = button_ != nullptr || callback_ != nullptr;
+    }
+
+    bool touchable() const
+    {
+        return touchable_;
+    }
+    void setTouchable(bool touchable)
+    {
+        touchable_ = touchable;
     }
 
     void setCallback(FlyGuiItemCallback callback)
     {
         callback_ = callback;
+        touchable_ = button_ != nullptr || callback_ != nullptr;
     }
     virtual bool trigger();
 
@@ -284,6 +299,7 @@ private:
     bool        dirty_    = true;
     bool        pressed_  = false;
     bool        faded_    = false;
+    bool        touchable_ = false;
 };
 
 // FlyGuiModal may seem redundant with ModalDialog

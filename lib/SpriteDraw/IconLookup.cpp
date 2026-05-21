@@ -20,6 +20,11 @@ constexpr IconName kIconNames[] = {
     { "icon_unknown", ICON_UNKNOWN },
     { "phone", ICON_PHONE },
     { "icon_phone", ICON_PHONE },
+    { "phone_ap", ICON_PHONE_AP },
+    { "phone-ap", ICON_PHONE_AP },
+    { "smartphone_ap", ICON_PHONE_AP },
+    { "smartphone-ap", ICON_PHONE_AP },
+    { "icon_phone_ap", ICON_PHONE_AP },
     { "laptop", ICON_LAPTOP },
     { "computer", ICON_LAPTOP },
     { "icon_laptop", ICON_LAPTOP },
@@ -141,6 +146,8 @@ const char* toString(uint8_t icon)
     {
     case ICON_PHONE:
         return "phone";
+    case ICON_PHONE_AP:
+        return "phone_ap";
     case ICON_LAPTOP:
         return "laptop";
     case ICON_TABLET:
@@ -181,6 +188,9 @@ bool getSprite(uint8_t icon, sprite_desc_t* sprite)
     {
     case ICON_PHONE:
         assign_sprite(sprite, sprit_btn_smartphone, SPRIT_BTN_SMARTPHONE_WIDTH, SPRIT_BTN_SMARTPHONE_HEIGHT, SPRIT_BTN_SMARTPHONE_BYTES);
+        return true;
+    case ICON_PHONE_AP:
+        assign_sprite(sprite, sprit_btn_smartphone_ap, SPRIT_BTN_SMARTPHONE_AP_WIDTH, SPRIT_BTN_SMARTPHONE_AP_HEIGHT, SPRIT_BTN_SMARTPHONE_AP_BYTES);
         return true;
     case ICON_LAPTOP:
         assign_sprite(sprite, sprit_btn_laptop, SPRIT_BTN_LAPTOP_WIDTH, SPRIT_BTN_LAPTOP_HEIGHT, SPRIT_BTN_LAPTOP_BYTES);

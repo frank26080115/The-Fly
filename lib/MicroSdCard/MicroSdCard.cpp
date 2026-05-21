@@ -4,6 +4,7 @@
 #include <SPI.h>
 
 #include "ClockAgent.h"
+#include "DiskStats.h"
 #include "esp_log.h"
 
 namespace MicroSdCard
@@ -103,6 +104,8 @@ bool begin()
             return true;
         }
     }
+
+    DiskStats::refreshDiskSpace();
 
     ESP_LOGE(TAG, "microSD init failed");
     return false;
