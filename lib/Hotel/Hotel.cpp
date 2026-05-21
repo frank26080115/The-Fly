@@ -38,11 +38,18 @@ constexpr int kHotelCoreLogLevel = static_cast<int>(ESP_LOG_NONE);
 constexpr bool kFullShutdownAllowedByLogging =
     kHotelLocalLogLevel <= static_cast<int>(ESP_LOG_ERROR) &&
     kHotelCoreLogLevel <= static_cast<int>(ESP_LOG_ERROR);
-// Core2/M5Unified light sleep is currently causing RTCWDT resets after idle.
-// Keep Hotel's dim/CPU-scaling states, but do not enter light sleep until the
-// wake/watchdog path is proven stable on the hardware.
+#if defined(ENABLE_HOTEL_DEEP_POWER_SAVE)
+constexpr bool kDeepPowerSaveEnabled = true;
+#else
+constexpr bool kDeepPowerSaveEnabled = false;
+#endif
+// Deep power save is intentionally compile-time gated. CPU frequency changes
+// have broken Bluetooth HFP setup, and Core2/M5Unified light sleep has caused
+// RTCWDT resets after idle. Leave ENABLE_HOTEL_DEEP_POWER_SAVE undefined for
+// normal firmware builds.
 constexpr bool kLightSleepSupported = false;
-constexpr bool kLightSleepAllowedByLogging = kLightSleepSupported && kFullShutdownAllowedByLogging;
+constexpr bool kCpuFrequencyScalingAllowed = kDeepPowerSaveEnabled;
+constexpr bool kLightSleepAllowedByLogging = kDeepPowerSaveEnabled && kLightSleepSupported && kFullShutdownAllowedByLogging;
 
 portMUX_TYPE g_lock = portMUX_INITIALIZER_UNLOCKED;
 
@@ -145,11 +152,9 @@ bool ensure_initialized_locked(uint64_t now_ms)
 
 void apply_power_outputs(State previous, State next)
 {
-    if (state_uses_max_cpu(previous) != state_uses_max_cpu(next))
+    if (kCpuFrequencyScalingAllowed && state_uses_max_cpu(previous) != state_uses_max_cpu(next))
     {
-        #ifdef ENABLE_HOTEL
         setCpuFrequencyMhz(state_uses_max_cpu(next) ? kCpuMaxMhz : kCpuMinMhz);
-        #endif
     }
 
     if (state_uses_full_brightness(previous) != state_uses_full_brightness(next))
@@ -163,9 +168,10 @@ void apply_power_outputs(State previous, State next)
 
 void apply_initialized_outputs()
 {
-    #ifdef ENABLE_HOTEL
-    setCpuFrequencyMhz(kCpuMaxMhz);
-    #endif
+    if (kCpuFrequencyScalingAllowed)
+    {
+        setCpuFrequencyMhz(kCpuMaxMhz);
+    }
     if (m5_ready())
     {
         thefly_display.setBrightness(kFullBrightness);
@@ -175,7 +181,11 @@ void apply_initialized_outputs()
 
 void enter_light_sleep()
 {
-    #ifdef ENABLE_HOTEL
+    if (!kDeepPowerSaveEnabled)
+    {
+        return;
+    }
+
     if (m5_ready())
     {
         M5.Power.lightSleep(kLightSleepWakeUs, true);
@@ -185,7 +195,6 @@ void enter_light_sleep()
     esp_sleep_enable_timer_wakeup(kLightSleepWakeUs);
     esp_light_sleep_start();
     esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_TIMER);
-    #endif
 }
 
 void poll_core(uint8_t core)

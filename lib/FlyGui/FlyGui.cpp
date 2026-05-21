@@ -4,6 +4,7 @@
 #include "../Hotel/Hotel.h"
 #include "DiskStats.h"
 #include "FlyGuiText.h"
+#include "Display.h"
 #include "SpriteDraw.h"
 #include "sprites.h"
 #include "esp_log.h"
@@ -322,6 +323,9 @@ void FlyGuiView::onUnload()
     {
         item->onUnload();
     }
+
+    thefly_display.fillRect(0, FlyGui::kTopBarHeight, thefly_display.width(), thefly_display.height() - FlyGui::kTopBarHeight, TFT_BLACK);
+    //FlyGui::requestTopBarFullRedraw(); // optional, keep this here as a reminder
 }
 
 bool FlyGuiView::handleTouch(const FlyGuiTouchEvent& event)
@@ -445,16 +449,18 @@ bool FlyGuiItem::isPressed() const
     return pressed_ || (button_ && const_cast<Button*>(button_)->isPressed());
 }
 
-bool FlyGuiItem::trigger()
+bool FlyGuiItem::trigger(uint32_t pressDurationMs)
 {
     if (!visible_ || !touchable_)
     {
         return false;
     }
 
+    lastPressDurationMs_ = pressDurationMs;
+
     if (callback_)
     {
-        callback_();
+        callback_(pressDurationMs);
     }
 
     return true;
@@ -487,6 +493,13 @@ bool FlyGuiItem::handleTouch(const FlyGuiTouchEvent& event)
 
     const bool hit = contains(event.x, event.y);
     const bool wasPressed = pressed_;
+    const uint32_t now = millis();
+
+    if (hit && event.justPressed)
+    {
+        pressStartedMs_ = now;
+        lastPressDurationMs_ = 0;
+    }
 
     if (event.justReleased || !event.pressed)
     {
@@ -509,16 +522,22 @@ bool FlyGuiItem::handleTouch(const FlyGuiTouchEvent& event)
 
     if (event.justReleased && wasPressed)
     {
+        const uint32_t pressDurationMs = now - pressStartedMs_;
         setDirty();
         if (owner_)
         {
             owner_->setDirty();
         }
-        return trigger();
+        return trigger(pressDurationMs);
     }
 
     if (event.pressed || event.justPressed)
     {
+        if (!wasPressed)
+        {
+            pressStartedMs_ = now;
+            lastPressDurationMs_ = 0;
+        }
         pressed_ = true;
         if (width_ > 0 && height_ > 0)
         {
@@ -552,7 +571,7 @@ bool FlyGuiItem::handleButtonPress(Button& button)
 
     const bool handled = handleTouch(event);
     pressed_           = button.isPressed();
-    trigger();
+    trigger(0);
     return handled;
 }
 

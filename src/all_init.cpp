@@ -26,17 +26,17 @@ RTC_DATA_ATTR uint32_t reset_magic = 0;
 bool reset_was_magic = false;
 
 extern FlyGui* gui;
-extern void conn_waiting_cancel();
-extern void onclick_scroll_exit();
-extern void onclick_bluetooth_host(int32_t value);
-extern void onclick_bluetooth_pair(int32_t value);
-extern void onclick_wifi_scan_and_connect(int32_t value);
-extern void onclick_wifi_station(int32_t value);
-extern void onclick_wifi_ap(int32_t value);
-extern void onclick_cloud_upload(int32_t value);
-extern void onclick_ntp_sync(int32_t value);
-extern void onclick_bt_show_info(int32_t value);
-extern void onclick_wifi_show_info(int32_t value);
+extern void conn_waiting_cancel(uint32_t pressDurationMs);
+extern void onclick_scroll_exit(uint32_t pressDurationMs);
+extern void onclick_bluetooth_host(int32_t value, uint32_t pressDurationMs);
+extern void onclick_bluetooth_pair(int32_t value, uint32_t pressDurationMs);
+extern void onclick_wifi_scan_and_connect(int32_t value, uint32_t pressDurationMs);
+extern void onclick_wifi_station(int32_t value, uint32_t pressDurationMs);
+extern void onclick_wifi_ap(int32_t value, uint32_t pressDurationMs);
+extern void onclick_cloud_upload(int32_t value, uint32_t pressDurationMs);
+extern void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs);
+extern void onclick_bt_show_info(int32_t value, uint32_t pressDurationMs);
+extern void onclick_wifi_show_info(int32_t value, uint32_t pressDurationMs);
 
 namespace
 {

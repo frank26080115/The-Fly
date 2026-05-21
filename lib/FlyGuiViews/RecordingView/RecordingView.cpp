@@ -150,7 +150,6 @@ void RecordingView::onLoad()
 
 void RecordingView::onUnload()
 {
-    thefly_display.fillRect(0, FlyGui::kTopBarHeight, thefly_display.width(), thefly_display.height() - FlyGui::kTopBarHeight, TFT_BLACK);
     FlyGuiView::onUnload();
 }
 
@@ -261,40 +260,45 @@ void RecordingView::handleMemoTypeButton()
     memoTypeButton_.cycleNext();
 }
 
-void RecordingView::micThunk()
+void RecordingView::micThunk(uint32_t pressDurationMs)
 {
+    (void)pressDurationMs;
     if (activeInstance_)
     {
         activeInstance_->handleMicButton();
     }
 }
 
-void RecordingView::speakerThunk()
+void RecordingView::speakerThunk(uint32_t pressDurationMs)
 {
+    (void)pressDurationMs;
     if (activeInstance_)
     {
         activeInstance_->handleSpeakerButton();
     }
 }
 
-void RecordingView::exitThunk()
+void RecordingView::exitThunk(uint32_t pressDurationMs)
 {
+    (void)pressDurationMs;
     if (activeInstance_)
     {
         activeInstance_->handleExitButton();
     }
 }
 
-void RecordingView::answerCallThunk()
+void RecordingView::answerCallThunk(uint32_t pressDurationMs)
 {
+    (void)pressDurationMs;
     if (activeInstance_)
     {
         activeInstance_->handleAnswerCallButton();
     }
 }
 
-void RecordingView::memoTypeThunk()
+void RecordingView::memoTypeThunk(uint32_t pressDurationMs)
 {
+    (void)pressDurationMs;
     if (activeInstance_)
     {
         activeInstance_->handleMemoTypeButton();

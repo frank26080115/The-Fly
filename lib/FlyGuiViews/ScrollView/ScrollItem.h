@@ -26,7 +26,7 @@ enum ScrollItemTask : int32_t
 };
 
 class ScrollItem;
-using ScrollItemCallback = void (*)(ScrollItem& item, void* context);
+using ScrollItemCallback = void (*)(ScrollItem& item, void* context, uint32_t pressDurationMs);
 
 class ScrollItem : public FlyGuiItem
 {
@@ -56,7 +56,7 @@ public:
         return label_;
     }
 
-    bool trigger() override;
+    bool trigger(uint32_t pressDurationMs = 0) override;
 
 private:
     static constexpr size_t kLabelMax = 95;

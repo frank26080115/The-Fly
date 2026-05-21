@@ -47,16 +47,18 @@ void ScrollItem::setScrollCallback(ScrollItemCallback callback, void* context)
     setTouchable(scrollCallback_ != nullptr);
 }
 
-bool ScrollItem::trigger()
+bool ScrollItem::trigger(uint32_t pressDurationMs)
 {
     if (!visible())
     {
         return false;
     }
 
+    FlyGuiItem::trigger(pressDurationMs);
+
     if (scrollCallback_)
     {
-        scrollCallback_(*this, callbackContext_);
+        scrollCallback_(*this, callbackContext_, pressDurationMs);
     }
 
     return true;

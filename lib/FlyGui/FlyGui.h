@@ -13,7 +13,7 @@ class FlyGuiItem;
 class FlyGuiModal;
 class FlyGuiView;
 
-using FlyGuiItemCallback = void (*)();
+using FlyGuiItemCallback = void (*)(uint32_t pressDurationMs);
 
 struct FlyGuiTouchEvent
 {
@@ -237,6 +237,10 @@ public:
 
     bool contains(int16_t x, int16_t y) const;
     bool isPressed() const;
+    uint32_t lastPressDurationMs() const
+    {
+        return lastPressDurationMs_;
+    }
 
     Button* button() const
     {
@@ -262,7 +266,7 @@ public:
         callback_ = callback;
         touchable_ = button_ != nullptr || callback_ != nullptr;
     }
-    virtual bool trigger();
+    virtual bool trigger(uint32_t pressDurationMs = 0);
 
     void setSprite(const uint8_t* data, uint32_t width, uint32_t height, size_t byte_cnt);
     void clearSprite();
@@ -300,6 +304,8 @@ private:
     bool        pressed_  = false;
     bool        faded_    = false;
     bool        touchable_ = false;
+    uint32_t    pressStartedMs_ = 0;
+    uint32_t    lastPressDurationMs_ = 0;
 };
 
 // FlyGuiModal may seem redundant with ModalDialog

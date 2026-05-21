@@ -7,7 +7,7 @@
 class BtHostList;
 class WifiManager;
 
-using ScrollViewClickCallback = void (*)(int32_t value);
+using ScrollViewClickCallback = void (*)(int32_t value, uint32_t pressDurationMs);
 
 class ScrollView : public FlyGuiView
 {
@@ -22,7 +22,7 @@ public:
     // append endpoint/NTP/info actions.
     void addItem(FlyGuiItem& item);
     void removeAllItems();
-    bool populateBluetooth(const BtHostList* hostList);
+    bool populateBluetooth(BtHostList* hostList);
     bool populateWifi(const WifiManager* wifiManager);
     bool populateCloud(const WifiManager* wifiManager);
 
@@ -60,6 +60,14 @@ public:
     void onPressRight() override;
 
 private:
+    enum Context
+    {
+        CONTEXT_NONE,
+        CONTEXT_BLUETOOTH,
+        CONTEXT_WIFI,
+        CONTEXT_CLOUD,
+    };
+
     enum Slot
     {
         SLOT_LEFT,
@@ -71,14 +79,21 @@ private:
     FlyGuiItem* itemAtWrapped(int32_t index) const;
     const ScrollItem* generatedScrollItemFor(const FlyGuiItem* item) const;
     bool        containsSlot(Slot slot, int16_t x, int16_t y) const;
+    bool        containsDeleteButton(int16_t x, int16_t y) const;
     void        drawContent();
     void        drawItemInSlot(FlyGuiItem& item, Slot slot, bool faded);
     void        drawSelectedText();
     void        drawExitButton();
+    void        drawDeleteButton();
     bool        appendScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon);
     void        clearGeneratedItems();
-    void        handleScrollItem(ScrollItem& item);
-    static void onScrollItemTriggered(ScrollItem& item, void* context);
+    void        enterBluetoothDeleteMode(int32_t hostIndex);
+    void        exitDeleteMode();
+    bool        deleteArmedBluetoothHost();
+    void        handleScrollItem(ScrollItem& item, uint32_t pressDurationMs);
+    static void onScrollItemTriggered(ScrollItem& item, void* context, uint32_t pressDurationMs);
+    static void onDeleteButtonTriggered(uint32_t pressDurationMs);
+    static void onBluetoothDeleteDialogDismissed();
 
     struct GeneratedItemNode
     {
@@ -87,9 +102,14 @@ private:
     };
 
     FlyGuiItem      exitItem_;
+    FlyGuiItem      deleteItem_;
     FlyGuiItemCallback exitCallback_ = nullptr;
+    Context         context_         = CONTEXT_NONE;
+    BtHostList*     bluetoothHostList_ = nullptr;
     size_t          itemCount_       = 0;
     size_t          selectedIndex_   = 0;
+    bool            deleteMode_      = false;
+    int32_t         deleteHostIndex_ = -1;
     GeneratedItemNode* generatedHead_ = nullptr;
     GeneratedItemNode* generatedTail_ = nullptr;
     ScrollViewClickCallback onBluetoothHost_    = nullptr;
@@ -101,4 +121,5 @@ private:
     ScrollViewClickCallback onNtpSync_          = nullptr;
     ScrollViewClickCallback onBtShowInfo_       = nullptr;
     ScrollViewClickCallback onWifiShowInfo_     = nullptr;
+    static ScrollView* activeDeleteView_;
 };

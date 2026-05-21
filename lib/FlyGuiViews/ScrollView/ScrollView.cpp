@@ -3,9 +3,12 @@
 #include "../../BluetoothManager/BtHostList.h"
 #include "../../FlyGui/FlyGuiText.h"
 #include "../../WifiManager/WifiManager.h"
+#include "../ModalDialog.h"
 #include "sprites.h"
 #include <new>
 #include <string.h>
+
+extern ModalDialog* get_modal_dialog();
 
 namespace
 {
@@ -19,6 +22,7 @@ constexpr int16_t kExitSize       = 50;
 constexpr int16_t kExitY          = 190;
 constexpr float   kTextSize       = 1.0f;
 constexpr uint8_t kTextFont       = 2;
+constexpr uint32_t kBluetoothDeleteLongPressMs = 3000;
 
 int32_t list_callback_value(size_t index)
 {
@@ -42,6 +46,11 @@ int16_t slot_x(int slot)
 int16_t exit_x()
 {
     return static_cast<int16_t>((thefly_display.width() - kExitSize) / 2);
+}
+
+int16_t delete_x()
+{
+    return static_cast<int16_t>(thefly_display.width() - kExitSize);
 }
 
 void draw_centered_line(char* line, size_t& len, int16_t& y)
@@ -155,13 +164,20 @@ void draw_centered_wrapped_text(const char* text)
 }
 } // namespace
 
+ScrollView* ScrollView::activeDeleteView_ = nullptr;
+
 ScrollView::ScrollView(uint16_t viewId, FlyGuiItemCallback exitCallback)
     : FlyGuiView(viewId),
       exitItem_(exit_x(), kExitY, kExitSize, kExitSize),
+      deleteItem_(delete_x(), kExitY, kExitSize, kExitSize),
       exitCallback_(exitCallback)
 {
+    activeDeleteView_ = this;
     exitItem_.setSprite(sprit_canceldoor_50, SPRIT_CANCELDOOR_50_WIDTH, SPRIT_CANCELDOOR_50_HEIGHT, SPRIT_CANCELDOOR_50_BYTES);
     exitItem_.setCallback(exitCallback_);
+
+    deleteItem_.setSprite(sprit_trash_50, SPRIT_TRASH_50_WIDTH, SPRIT_TRASH_50_HEIGHT, SPRIT_TRASH_50_BYTES);
+    deleteItem_.setCallback(onDeleteButtonTriggered);
 }
 
 ScrollView::~ScrollView()
@@ -183,16 +199,15 @@ void ScrollView::removeAllItems()
 
 void ScrollView::onUnload()
 {
-    thefly_display.fillRect(0,
-                            FlyGui::kTopBarHeight,
-                            thefly_display.width(),
-                            static_cast<int16_t>(thefly_display.height() - FlyGui::kTopBarHeight),
-                            TFT_BLACK);
+    exitDeleteMode();
     FlyGuiView::onUnload();
 }
 
-bool ScrollView::populateBluetooth(const BtHostList* hostList)
+bool ScrollView::populateBluetooth(BtHostList* hostList)
 {
+    context_           = CONTEXT_BLUETOOTH;
+    bluetoothHostList_ = hostList;
+    exitDeleteMode();
     clearGeneratedItems();
 
     bool ok = appendScrollItem(SCROLL_ITEM_BLUETOOTH_SHOW_SELF_INFO,
@@ -229,6 +244,9 @@ bool ScrollView::populateBluetooth(const BtHostList* hostList)
 
 bool ScrollView::populateWifi(const WifiManager* wifiManager)
 {
+    context_           = CONTEXT_WIFI;
+    bluetoothHostList_ = nullptr;
+    exitDeleteMode();
     clearGeneratedItems();
 
     bool ok = appendScrollItem(SCROLL_ITEM_WIFI_SCAN_AND_CONNECT,
@@ -268,6 +286,9 @@ bool ScrollView::populateWifi(const WifiManager* wifiManager)
 
 bool ScrollView::populateCloud(const WifiManager* wifiManager)
 {
+    context_           = CONTEXT_CLOUD;
+    bluetoothHostList_ = nullptr;
+    exitDeleteMode();
     clearGeneratedItems();
 
     bool ok = appendScrollItem(SCROLL_ITEM_WIFI_SHOW_SELF_INFO,
@@ -352,6 +373,7 @@ void ScrollView::setExitCallback(FlyGuiItemCallback exitCallback)
 
 void ScrollView::selectIndex(size_t index)
 {
+    exitDeleteMode();
     if (itemCount_ == 0)
     {
         selectedIndex_ = 0;
@@ -374,6 +396,7 @@ void ScrollView::scrollLeft()
         return;
     }
 
+    exitDeleteMode();
     selectedIndex_ = selectedIndex_ == 0 ? itemCount_ - 1 : selectedIndex_ - 1;
     setDirty();
 }
@@ -385,6 +408,7 @@ void ScrollView::scrollRight()
         return;
     }
 
+    exitDeleteMode();
     selectedIndex_ = (selectedIndex_ + 1) % itemCount_;
     setDirty();
 }
@@ -402,6 +426,11 @@ void ScrollView::onLoad()
 
 bool ScrollView::handleTouch(const FlyGuiTouchEvent& event)
 {
+    if (deleteMode_ && (containsDeleteButton(event.x, event.y) || deleteItem_.isPressed()))
+    {
+        return deleteItem_.handleTouch(event);
+    }
+
     if (exitItem_.contains(event.x, event.y) || exitItem_.isPressed())
     {
         return exitItem_.handleTouch(event);
@@ -430,7 +459,7 @@ bool ScrollView::handleTouch(const FlyGuiTouchEvent& event)
 
 void ScrollView::redraw(bool forced)
 {
-    if (!forced && !dirty() && !exitItem_.dirty())
+    if (!forced && !dirty() && !exitItem_.dirty() && !deleteItem_.dirty())
     {
         return;
     }
@@ -451,6 +480,12 @@ void ScrollView::onPressMid()
 
 void ScrollView::onPressRight()
 {
+    if (deleteMode_)
+    {
+        deleteItem_.trigger();
+        return;
+    }
+
     scrollRight();
 }
 
@@ -503,6 +538,11 @@ bool ScrollView::containsSlot(Slot slot, int16_t x, int16_t y) const
     return x >= sx && y >= kItemY && x < sx + kItemWidth && y < kItemY + kItemHeight;
 }
 
+bool ScrollView::containsDeleteButton(int16_t x, int16_t y) const
+{
+    return x >= delete_x() && y >= kExitY && x < delete_x() + kExitSize && y < kExitY + kExitSize;
+}
+
 void ScrollView::drawContent()
 {
     thefly_display.fillRect(0,
@@ -547,6 +587,7 @@ void ScrollView::drawContent()
     }
 
     drawExitButton();
+    drawDeleteButton();
 }
 
 void ScrollView::drawItemInSlot(FlyGuiItem& item, Slot slot, bool faded)
@@ -578,6 +619,17 @@ void ScrollView::drawExitButton()
 {
     exitItem_.relocate(exit_x(), kExitY, kExitSize, kExitSize);
     exitItem_.redraw(true);
+}
+
+void ScrollView::drawDeleteButton()
+{
+    if (!deleteMode_)
+    {
+        return;
+    }
+
+    deleteItem_.relocate(delete_x(), kExitY, kExitSize, kExitSize);
+    deleteItem_.redraw(true);
 }
 
 bool ScrollView::appendScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon)
@@ -639,64 +691,164 @@ void ScrollView::clearGeneratedItems()
     setDirty();
 }
 
-void ScrollView::handleScrollItem(ScrollItem& item)
+void ScrollView::enterBluetoothDeleteMode(int32_t hostIndex)
+{
+    if (context_ != CONTEXT_BLUETOOTH || hostIndex < 0)
+    {
+        return;
+    }
+
+    deleteMode_      = true;
+    deleteHostIndex_ = hostIndex;
+    deleteItem_.setDirty();
+    setDirty();
+}
+
+void ScrollView::exitDeleteMode()
+{
+    if (!deleteMode_ && deleteHostIndex_ < 0)
+    {
+        return;
+    }
+
+    deleteMode_      = false;
+    deleteHostIndex_ = -1;
+    deleteItem_.setDirty();
+    setDirty();
+}
+
+bool ScrollView::deleteArmedBluetoothHost()
+{
+    if (context_ != CONTEXT_BLUETOOTH || !deleteMode_ || deleteHostIndex_ < 0 || !bluetoothHostList_)
+    {
+        return false;
+    }
+
+    const size_t hostIndex = static_cast<size_t>(deleteHostIndex_);
+    const bt_host_item_t* host = bluetoothHostList_->get(hostIndex);
+    char hostName[96] = {};
+    strncpy(hostName, host && host->name ? host->name : "Bluetooth host", sizeof(hostName) - 1);
+    hostName[sizeof(hostName) - 1] = '\0';
+
+    const bool removed = bluetoothHostList_->remove(hostIndex, true);
+    bool       ok      = removed;
+    if (removed)
+    {
+        ok = bluetoothHostList_->saveToMicroSd(true);
+    }
+
+    exitDeleteMode();
+
+    if (removed)
+    {
+        populateBluetooth(bluetoothHostList_);
+    }
+
+    ModalDialog* dialog = get_modal_dialog();
+    FlyGui*      owner  = gui();
+    if (dialog && owner)
+    {
+        char message[160];
+        if (ok)
+        {
+            snprintf(message, sizeof(message), "%s\nhas been deleted", hostName);
+            activeDeleteView_ = this;
+            dialog->configure(sprit_thumbsup_100,
+                              SPRIT_THUMBSUP_100_BYTES,
+                              SPRIT_THUMBSUP_100_WIDTH,
+                              SPRIT_THUMBSUP_100_HEIGHT,
+                              message,
+                              FLYGUI_VIEW_SCROLL,
+                              onBluetoothDeleteDialogDismissed);
+        }
+        else
+        {
+            snprintf(message,
+                     sizeof(message),
+                     "Bluetooth delete failed\n%s",
+                     bluetoothHostList_ ? bluetoothHostList_->lastResultName() : "No host list");
+            dialog->configure(sprit_warning_100,
+                              SPRIT_WARNING_100_BYTES,
+                              SPRIT_WARNING_100_WIDTH,
+                              SPRIT_WARNING_100_HEIGHT,
+                              message,
+                              FLYGUI_VIEW_SCROLL);
+        }
+        owner->showView(FLYGUI_VIEW_MODAL_DIALOG);
+    }
+
+    return ok;
+}
+
+void ScrollView::handleScrollItem(ScrollItem& item, uint32_t pressDurationMs)
 {
     const int32_t value = item.callbackValue();
+
+    if (item.kind() == SCROLL_ITEM_BLUETOOTH_HOST && pressDurationMs >= kBluetoothDeleteLongPressMs)
+    {
+        enterBluetoothDeleteMode(value);
+        return;
+    }
+
+    if (deleteMode_)
+    {
+        exitDeleteMode();
+    }
 
     switch (item.kind())
     {
     case SCROLL_ITEM_BLUETOOTH_HOST:
         if (onBluetoothHost_)
         {
-            onBluetoothHost_(value);
+            onBluetoothHost_(value, pressDurationMs);
         }
         break;
     case SCROLL_ITEM_BLUETOOTH_PAIRING:
         if (onBluetoothPair_)
         {
-            onBluetoothPair_(value);
+            onBluetoothPair_(value, pressDurationMs);
         }
         break;
     case SCROLL_ITEM_BLUETOOTH_SHOW_SELF_INFO:
         if (onBtShowInfo_)
         {
-            onBtShowInfo_(value);
+            onBtShowInfo_(value, pressDurationMs);
         }
         break;
     case SCROLL_ITEM_WIFI_SCAN_AND_CONNECT:
         if (onWifiScanAndConnect_)
         {
-            onWifiScanAndConnect_(value);
+            onWifiScanAndConnect_(value, pressDurationMs);
         }
         break;
     case SCROLL_ITEM_WIFI_STATION:
         if (onWifiStation_)
         {
-            onWifiStation_(value);
+            onWifiStation_(value, pressDurationMs);
         }
         break;
     case SCROLL_ITEM_WIFI_AP:
         if (onWifiAp_)
         {
-            onWifiAp_(value);
+            onWifiAp_(value, pressDurationMs);
         }
         break;
     case SCROLL_ITEM_CLOUD_ENDPOINT:
         if (onCloudUpload_)
         {
-            onCloudUpload_(value);
+            onCloudUpload_(value, pressDurationMs);
         }
         break;
     case SCROLL_ITEM_NTP_SYNC:
         if (onNtpSync_)
         {
-            onNtpSync_(value);
+            onNtpSync_(value, pressDurationMs);
         }
         break;
     case SCROLL_ITEM_WIFI_SHOW_SELF_INFO:
         if (onWifiShowInfo_)
         {
-            onWifiShowInfo_(value);
+            onWifiShowInfo_(value, pressDurationMs);
         }
         break;
     default:
@@ -704,10 +856,27 @@ void ScrollView::handleScrollItem(ScrollItem& item)
     }
 }
 
-void ScrollView::onScrollItemTriggered(ScrollItem& item, void* context)
+void ScrollView::onScrollItemTriggered(ScrollItem& item, void* context, uint32_t pressDurationMs)
 {
     if (context)
     {
-        static_cast<ScrollView*>(context)->handleScrollItem(item);
+        static_cast<ScrollView*>(context)->handleScrollItem(item, pressDurationMs);
+    }
+}
+
+void ScrollView::onDeleteButtonTriggered(uint32_t pressDurationMs)
+{
+    (void)pressDurationMs;
+    if (activeDeleteView_)
+    {
+        activeDeleteView_->deleteArmedBluetoothHost();
+    }
+}
+
+void ScrollView::onBluetoothDeleteDialogDismissed()
+{
+    if (activeDeleteView_ && activeDeleteView_->context_ == CONTEXT_BLUETOOTH)
+    {
+        activeDeleteView_->populateBluetooth(activeDeleteView_->bluetoothHostList_);
     }
 }

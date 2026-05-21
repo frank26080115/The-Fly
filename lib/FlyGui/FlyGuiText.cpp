@@ -4,6 +4,22 @@
 #include <string.h>
 
 #include "ClockAgent.h"
+#include "esp_log.h"
+
+namespace
+{
+
+#if defined(CORE_DEBUG_LEVEL)
+constexpr int kFlyGuiCoreDebugLevel = CORE_DEBUG_LEVEL;
+#else
+constexpr int kFlyGuiCoreDebugLevel = static_cast<int>(ESP_LOG_NONE);
+#endif
+
+constexpr bool kFlyGuiDebugClock =
+    static_cast<int>(LOG_LOCAL_LEVEL) > static_cast<int>(ESP_LOG_ERROR) ||
+    kFlyGuiCoreDebugLevel > static_cast<int>(ESP_LOG_ERROR);
+
+} // namespace
 
 namespace FlyGuiTextUtil
 {
@@ -295,14 +311,21 @@ int32_t FlyGuiText::textHeight() const
     return height() > 0 ? height() : static_cast<int32_t>(fontSize_ * 8.0f) + 4;
 }
 
-FlyGuiDateTime::FlyGuiDateTime(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle) : FlyGuiText(x, y, width, height, fontSize, fontStyle, 19) {}
+FlyGuiDateTime::FlyGuiDateTime(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle) : FlyGuiText(x, y, width, height, fontSize, fontStyle, 20) {}
 
 void FlyGuiDateTime::redraw(bool forced)
 {
     // Design: FlyGuiDateTime always shows current date/time and keeps frequent draws quick.
     const m5::rtc_datetime_t now = Clock.getDateTime();
-    char                     text[20];
-    snprintf(text, sizeof(text), "%04u-%02u-%02u %02u:%02u:%02u", now.date.year, now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds);
+    char                     text[21];
+    if (kFlyGuiDebugClock)
+    {
+        snprintf(text, sizeof(text), "DEBUG-%02u-%02u %02u:%02u:%02u", now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds);
+    }
+    else
+    {
+        snprintf(text, sizeof(text), "%04u-%02u-%02u %02u:%02u:%02u", now.date.year, now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds);
+    }
     setText(text);
     FlyGuiText::redraw(forced);
 }

@@ -266,7 +266,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
     return true;
 }
 
-bool BtHostList::saveToMicroSd()
+bool BtHostList::saveToMicroSd(bool allowEmpty)
 {
     m_last_result = LoadResult::Ok;
 
@@ -277,7 +277,7 @@ bool BtHostList::saveToMicroSd()
         return false;
     }
 
-    if (m_size == 0)
+    if (m_size == 0 && !allowEmpty)
     {
         m_last_result = LoadResult::EmptyList;
         ESP_LOGW(TAG, "not saving empty bluetooth host list");
@@ -433,6 +433,69 @@ bool BtHostList::insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t ic
 
     m_tail = item;
     ++m_size;
+    return true;
+}
+
+bool BtHostList::remove(size_t index, bool removeBond)
+{
+    m_last_result = LoadResult::Ok;
+
+    if (m_destroyed)
+    {
+        m_last_result = LoadResult::Destroyed;
+        ESP_LOGW(TAG, "not removing bluetooth host after destructor");
+        return false;
+    }
+
+    bt_host_item_t* previous = nullptr;
+    bt_host_item_t* item     = m_head;
+    size_t          current  = 0;
+    while (item && current < index)
+    {
+        previous = item;
+        item     = static_cast<bt_host_item_t*>(item->next_node);
+        ++current;
+    }
+
+    if (!item)
+    {
+        m_last_result = LoadResult::InvalidHost;
+        ESP_LOGW(TAG, "could not remove bluetooth host at index %u", static_cast<unsigned>(index));
+        return false;
+    }
+
+    char mac[18];
+    format_mac(item->bdaddr, mac, sizeof(mac));
+
+    if (removeBond && item->bonded)
+    {
+        const esp_err_t remove_err = esp_bt_gap_remove_bond_device(item->bdaddr);
+        if (remove_err != ESP_OK)
+        {
+            ESP_LOGW(TAG, "could not remove bluetooth bond %s: %s", mac, esp_err_to_name(remove_err));
+        }
+    }
+
+    bt_host_item_t* next = static_cast<bt_host_item_t*>(item->next_node);
+    if (previous)
+    {
+        previous->next_node = next;
+    }
+    else
+    {
+        m_head = next;
+    }
+
+    if (m_tail == item)
+    {
+        m_tail = previous;
+    }
+
+    free(item->name);
+    free(item);
+    --m_size;
+
+    ESP_LOGI(TAG, "removed bluetooth host %s", mac);
     return true;
 }
 

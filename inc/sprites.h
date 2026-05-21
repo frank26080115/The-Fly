@@ -226,6 +226,16 @@ extern const uint8_t sprit_tablet_bt_100[];
 #define SPRIT_THUMBSUP_100_BYTES 13906u
 extern const uint8_t sprit_thumbsup_100[];
 
+#define SPRIT_TRASH_100_WIDTH 100u
+#define SPRIT_TRASH_100_HEIGHT 100u
+#define SPRIT_TRASH_100_BYTES 12067u
+extern const uint8_t sprit_trash_100[];
+
+#define SPRIT_TRASH_50_WIDTH 50u
+#define SPRIT_TRASH_50_HEIGHT 50u
+#define SPRIT_TRASH_50_BYTES 3604u
+extern const uint8_t sprit_trash_50[];
+
 #define SPRIT_WARNING_100_WIDTH 100u
 #define SPRIT_WARNING_100_HEIGHT 100u
 #define SPRIT_WARNING_100_BYTES 12579u

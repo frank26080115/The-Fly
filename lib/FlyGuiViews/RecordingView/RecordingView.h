@@ -38,11 +38,11 @@ public:
     void handleMemoTypeButton();
 
 private:
-    static void micThunk();
-    static void speakerThunk();
-    static void exitThunk();
-    static void answerCallThunk();
-    static void memoTypeThunk();
+    static void micThunk(uint32_t pressDurationMs);
+    static void speakerThunk(uint32_t pressDurationMs);
+    static void exitThunk(uint32_t pressDurationMs);
+    static void answerCallThunk(uint32_t pressDurationMs);
+    static void memoTypeThunk(uint32_t pressDurationMs);
 
     void syncModeVisibility();
     void syncBluetoothIcon();
