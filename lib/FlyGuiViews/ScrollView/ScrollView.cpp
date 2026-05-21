@@ -50,7 +50,7 @@ int16_t exit_x()
 
 int16_t delete_x()
 {
-    return static_cast<int16_t>(thefly_display.width() - kExitSize);
+    return static_cast<int16_t>((thefly_display.width() * 5 / 6) - (kExitSize / 2));
 }
 
 void draw_centered_line(char* line, size_t& len, int16_t& y)
@@ -459,7 +459,8 @@ bool ScrollView::handleTouch(const FlyGuiTouchEvent& event)
 
 void ScrollView::redraw(bool forced)
 {
-    if (!forced && !dirty() && !exitItem_.dirty() && !deleteItem_.dirty())
+    const bool visibleDeleteItemDirty = deleteMode_ && deleteItem_.dirty();
+    if (!forced && !dirty() && !exitItem_.dirty() && !visibleDeleteItemDirty)
     {
         return;
     }
@@ -625,6 +626,7 @@ void ScrollView::drawDeleteButton()
 {
     if (!deleteMode_)
     {
+        deleteItem_.setDirty(false);
         return;
     }
 
@@ -751,7 +753,7 @@ bool ScrollView::deleteArmedBluetoothHost()
         char message[160];
         if (ok)
         {
-            snprintf(message, sizeof(message), "%s\nhas been deleted", hostName);
+            snprintf(message, sizeof(message), "%s\nhas been deleted and un-paired", hostName);
             activeDeleteView_ = this;
             dialog->configure(sprit_thumbsup_100,
                               SPRIT_THUMBSUP_100_BYTES,
