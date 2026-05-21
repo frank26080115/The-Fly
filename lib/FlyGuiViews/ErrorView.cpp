@@ -7,9 +7,9 @@
 
 namespace
 {
-constexpr int16_t kIconY       = FlyGui::kTopBarHeight + 14;
+constexpr int16_t kIconY       = FlyGui::kTopBarHeight + 20;
 constexpr int16_t kTextX       = 4;
-constexpr int16_t kTextY       = FlyGui::kTopBarHeight + 130;
+constexpr int16_t kTextGap     = 5;
 constexpr int16_t kTextPadding = 4;
 constexpr int16_t kTextLineHeight = 17;
 constexpr int16_t kFooterLineHeight = 14;
@@ -60,13 +60,13 @@ void ErrorView::redraw(bool forced)
         gui()->requestTopBarFullRedraw();
     }
 
-    const int16_t icon_x = static_cast<int16_t>((thefly_display.width() - static_cast<int32_t>(SPRIT_ERROR_LARGE_WIDTH)) / 2);
-    SpriteDraw::drawPng(sprit_error_large,
-                        SPRIT_ERROR_LARGE_BYTES,
+    const int16_t icon_x = static_cast<int16_t>((thefly_display.width() - static_cast<int32_t>(SPRIT_WARNING_100_WIDTH)) / 2);
+    SpriteDraw::drawPng(sprit_warning_100,
+                        SPRIT_WARNING_100_BYTES,
                         icon_x,
                         kIconY,
-                        SPRIT_ERROR_LARGE_WIDTH,
-                        SPRIT_ERROR_LARGE_HEIGHT,
+                        SPRIT_WARNING_100_WIDTH,
+                        SPRIT_WARNING_100_HEIGHT,
                         true);
 
     thefly_display.setTextFont(kTextFont);
@@ -74,10 +74,11 @@ void ErrorView::redraw(bool forced)
     thefly_display.setTextDatum(top_left);
     thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
 
+    const int16_t text_y = static_cast<int16_t>(kIconY + SPRIT_WARNING_100_HEIGHT + kTextGap);
     const int16_t footer_y = static_cast<int16_t>(thefly_display.height() - kFooterLineHeight - kTextPadding);
     FlyGuiTextUtil::drawWrappedText(message_,
                                      kTextX,
-                                     kTextY,
+                                     text_y,
                                      static_cast<int16_t>(thefly_display.width() - (kTextX * 2)),
                                      static_cast<int16_t>(footer_y - kTextPadding),
                                      kTextLineHeight);

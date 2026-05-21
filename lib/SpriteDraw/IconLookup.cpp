@@ -187,46 +187,47 @@ bool getSprite(uint8_t icon, sprite_desc_t* sprite)
     switch (icon)
     {
     case ICON_PHONE:
-        assign_sprite(sprite, sprit_btn_smartphone, SPRIT_BTN_SMARTPHONE_WIDTH, SPRIT_BTN_SMARTPHONE_HEIGHT, SPRIT_BTN_SMARTPHONE_BYTES);
+        assign_sprite(sprite, sprit_smartphone_100, SPRIT_SMARTPHONE_100_WIDTH, SPRIT_SMARTPHONE_100_HEIGHT, SPRIT_SMARTPHONE_100_BYTES);
         return true;
     case ICON_PHONE_AP:
-        assign_sprite(sprite, sprit_btn_smartphone_ap, SPRIT_BTN_SMARTPHONE_AP_WIDTH, SPRIT_BTN_SMARTPHONE_AP_HEIGHT, SPRIT_BTN_SMARTPHONE_AP_BYTES);
+        assign_sprite(sprite, sprit_smartphone_ap_100, SPRIT_SMARTPHONE_AP_100_WIDTH, SPRIT_SMARTPHONE_AP_100_HEIGHT, SPRIT_SMARTPHONE_AP_100_BYTES);
         return true;
     case ICON_LAPTOP:
-        assign_sprite(sprite, sprit_btn_laptop, SPRIT_BTN_LAPTOP_WIDTH, SPRIT_BTN_LAPTOP_HEIGHT, SPRIT_BTN_LAPTOP_BYTES);
+        assign_sprite(sprite, sprit_laptop_100, SPRIT_LAPTOP_100_WIDTH, SPRIT_LAPTOP_100_HEIGHT, SPRIT_LAPTOP_100_BYTES);
         return true;
     case ICON_TABLET:
-        break;
+        assign_sprite(sprite, sprit_tablet_100, SPRIT_TABLET_100_WIDTH, SPRIT_TABLET_100_HEIGHT, SPRIT_TABLET_100_BYTES);
+        return true;
     case ICON_BLUETOOTH:
-        assign_sprite(sprite, sprit_btn_bluetooth, SPRIT_BTN_BLUETOOTH_WIDTH, SPRIT_BTN_BLUETOOTH_HEIGHT, SPRIT_BTN_BLUETOOTH_BYTES);
+        assign_sprite(sprite, sprit_bluetooth_100, SPRIT_BLUETOOTH_100_WIDTH, SPRIT_BLUETOOTH_100_HEIGHT, SPRIT_BLUETOOTH_100_BYTES);
         return true;
     case ICON_WIFI:
-        assign_sprite(sprite, sprit_btn_wifi, SPRIT_BTN_WIFI_WIDTH, SPRIT_BTN_WIFI_HEIGHT, SPRIT_BTN_WIFI_BYTES);
+        assign_sprite(sprite, sprit_wifi_100, SPRIT_WIFI_100_WIDTH, SPRIT_WIFI_100_HEIGHT, SPRIT_WIFI_100_BYTES);
         return true;
     case ICON_WIFI_SEARCH:
-        assign_sprite(sprite, sprit_btn_wifisearch, SPRIT_BTN_WIFISEARCH_WIDTH, SPRIT_BTN_WIFISEARCH_HEIGHT, SPRIT_BTN_WIFISEARCH_BYTES);
+        assign_sprite(sprite, sprit_wifisearch_100, SPRIT_WIFISEARCH_100_WIDTH, SPRIT_WIFISEARCH_100_HEIGHT, SPRIT_WIFISEARCH_100_BYTES);
         return true;
     case ICON_HOME:
-        assign_sprite(sprite, sprit_btn_wifihome, SPRIT_BTN_WIFIHOME_WIDTH, SPRIT_BTN_WIFIHOME_HEIGHT, SPRIT_BTN_WIFIHOME_BYTES);
+        assign_sprite(sprite, sprit_home_100, SPRIT_HOME_100_WIDTH, SPRIT_HOME_100_HEIGHT, SPRIT_HOME_100_BYTES);
         return true;
     case ICON_WIFIAP:
-        assign_sprite(sprite, sprit_btn_wifi, SPRIT_BTN_WIFI_WIDTH, SPRIT_BTN_WIFI_HEIGHT, SPRIT_BTN_WIFI_BYTES);
+        assign_sprite(sprite, sprit_home_wifi_100, SPRIT_HOME_WIFI_100_WIDTH, SPRIT_HOME_WIFI_100_HEIGHT, SPRIT_HOME_WIFI_100_BYTES);
         return true;
     case ICON_WWW:
         break;
     case ICON_CLOUD:
-        assign_sprite(sprite, sprit_btn_cloud, SPRIT_BTN_CLOUD_WIDTH, SPRIT_BTN_CLOUD_HEIGHT, SPRIT_BTN_CLOUD_BYTES);
+        assign_sprite(sprite, sprit_cloudupload_100, SPRIT_CLOUDUPLOAD_100_WIDTH, SPRIT_CLOUDUPLOAD_100_HEIGHT, SPRIT_CLOUDUPLOAD_100_BYTES);
         return true;
     case ICON_FTP:
         break;
     case ICON_NTP:
-        assign_sprite(sprite, sprit_btn_ntp, SPRIT_BTN_NTP_WIDTH, SPRIT_BTN_NTP_HEIGHT, SPRIT_BTN_NTP_BYTES);
+        assign_sprite(sprite, sprit_ntpsync_100, SPRIT_NTPSYNC_100_WIDTH, SPRIT_NTPSYNC_100_HEIGHT, SPRIT_NTPSYNC_100_BYTES);
         return true;
     case ICON_INFO:
-        assign_sprite(sprite, sprit_btn_info, SPRIT_BTN_INFO_WIDTH, SPRIT_BTN_INFO_HEIGHT, SPRIT_BTN_INFO_BYTES);
+        assign_sprite(sprite, sprit_info_100, SPRIT_INFO_100_WIDTH, SPRIT_INFO_100_HEIGHT, SPRIT_INFO_100_BYTES);
         return true;
     case ICON_BTPAIRING:
-        assign_sprite(sprite, sprit_btn_bluetooth_pairing, SPRIT_BTN_BLUETOOTH_PAIRING_WIDTH, SPRIT_BTN_BLUETOOTH_PAIRING_HEIGHT, SPRIT_BTN_BLUETOOTH_PAIRING_BYTES);
+        assign_sprite(sprite, sprit_btpairing_100, SPRIT_BTPAIRING_100_WIDTH, SPRIT_BTPAIRING_100_HEIGHT, SPRIT_BTPAIRING_100_BYTES);
         return true;
     case ICON_UNKNOWN:
     default:

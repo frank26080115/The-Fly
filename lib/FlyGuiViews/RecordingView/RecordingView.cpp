@@ -67,7 +67,7 @@ RecordingView::RecordingView()
     : FlyGuiView(FLYGUI_VIEW_RECORDING),
       micButton_(AudioDeviceButton::Device::Mic, kMicButtonX, kButtonY),
       speakerButton_(AudioDeviceButton::Device::Speaker, kMidButtonX, kButtonY),
-      exitButton_(kExitButtonX, kButtonY, SPRIT_BTN_END_WIDTH, SPRIT_BTN_END_HEIGHT),
+      exitButton_(kExitButtonX, kButtonY, SPRIT_XCIRCLE_100_WIDTH, SPRIT_XCIRCLE_100_HEIGHT),
       bluetoothIcon_(kSideButtonX, kBluetoothY, SPRIT_BLUETOOTH_50_WIDTH, SPRIT_BLUETOOTH_50_HEIGHT),
       answerCallButton_(kSideButtonX, kSideButtonY),
       memoTypeButton_(kSideButtonX, kSideButtonY),
@@ -83,7 +83,7 @@ RecordingView::RecordingView()
     speakerButton_.setCallback(speakerThunk);
     addItem(speakerButton_);
 
-    exitButton_.setSprite(sprit_btn_end, SPRIT_BTN_END_WIDTH, SPRIT_BTN_END_HEIGHT, SPRIT_BTN_END_BYTES);
+    exitButton_.setSprite(sprit_xcircle_100, SPRIT_XCIRCLE_100_WIDTH, SPRIT_XCIRCLE_100_HEIGHT, SPRIT_XCIRCLE_100_BYTES);
     exitButton_.setCallback(exitThunk);
     addItem(exitButton_);
 

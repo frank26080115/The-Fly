@@ -9,6 +9,7 @@
 namespace
 {
 constexpr int16_t  kContentY          = FlyGui::kTopBarHeight;
+constexpr int16_t  kMainSpriteCenterY = FlyGui::kTopBarHeight + 75;
 constexpr int16_t  kBottomSpriteSize  = 60;
 constexpr int16_t  kBottomY           = 180;
 constexpr int16_t  kHourglassX        = 0;
@@ -20,7 +21,6 @@ constexpr int16_t  kTextLineHeight    = 17;
 constexpr float    kTextSize          = 1.0f;
 constexpr uint8_t  kTextFont          = 2;
 constexpr int16_t  kCancelX           = 260;
-constexpr int16_t  kHandshakeX        = 130;
 constexpr uint32_t kHourglassPeriodMs = 333;
 
 struct SpriteRef
@@ -36,14 +36,15 @@ SpriteRef main_sprite_for_mode(ConnWaitingMode mode)
     switch (mode)
     {
     case CONN_WAITING_BLUETOOTH_CONNECTING:
+        return { sprit_bluetooth_100, SPRIT_BLUETOOTH_100_WIDTH, SPRIT_BLUETOOTH_100_HEIGHT, SPRIT_BLUETOOTH_100_BYTES };
     case CONN_WAITING_BLUETOOTH_PAIRING:
-        return { sprit_bluetooth_180x150, SPRIT_BLUETOOTH_180X150_WIDTH, SPRIT_BLUETOOTH_180X150_HEIGHT, SPRIT_BLUETOOTH_180X150_BYTES };
+        return { sprit_btpairing_100, SPRIT_BTPAIRING_100_WIDTH, SPRIT_BTPAIRING_100_HEIGHT, SPRIT_BTPAIRING_100_BYTES };
     case CONN_WAITING_WIFI:
-        return { sprit_wifi_180x150, SPRIT_WIFI_180X150_WIDTH, SPRIT_WIFI_180X150_HEIGHT, SPRIT_WIFI_180X150_BYTES };
+        return { sprit_wifi_100, SPRIT_WIFI_100_WIDTH, SPRIT_WIFI_100_HEIGHT, SPRIT_WIFI_100_BYTES };
     case CONN_WAITING_CLOUD:
-        return { sprit_cloud_180x150, SPRIT_CLOUD_180X150_WIDTH, SPRIT_CLOUD_180X150_HEIGHT, SPRIT_CLOUD_180X150_BYTES };
+        return { sprit_cloudupload_100, SPRIT_CLOUDUPLOAD_100_WIDTH, SPRIT_CLOUDUPLOAD_100_HEIGHT, SPRIT_CLOUDUPLOAD_100_BYTES };
     case CONN_WAITING_NTP_SYNC:
-        return { sprit_ntp_180x150, SPRIT_NTP_180X150_WIDTH, SPRIT_NTP_180X150_HEIGHT, SPRIT_NTP_180X150_BYTES };
+        return { sprit_ntpsync_100, SPRIT_NTPSYNC_100_WIDTH, SPRIT_NTPSYNC_100_HEIGHT, SPRIT_NTPSYNC_100_BYTES };
     default:
         return {};
     }
@@ -140,7 +141,8 @@ void ConnWaitingView::drawMainSprite()
     }
 
     const int32_t x = (thefly_display.width() - static_cast<int32_t>(sprite.width)) / 2;
-    SpriteDraw::drawPng(sprite.data, sprite.bytes, x, kContentY, sprite.width, sprite.height, true);
+    const int32_t y = kMainSpriteCenterY - static_cast<int32_t>(sprite.height) / 2;
+    SpriteDraw::drawPng(sprite.data, sprite.bytes, x, y, sprite.width, sprite.height, true);
 }
 
 void ConnWaitingView::drawBottomCenter()
@@ -149,13 +151,11 @@ void ConnWaitingView::drawBottomCenter()
 
     if (mode_ == CONN_WAITING_BLUETOOTH_PAIRING)
     {
-        SpriteDraw::drawPng(sprit_handshake_60,
-                            SPRIT_HANDSHAKE_60_BYTES,
-                            kHandshakeX,
-                            kBottomY,
-                            SPRIT_HANDSHAKE_60_WIDTH,
-                            SPRIT_HANDSHAKE_60_HEIGHT,
-                            true);
+        thefly_display.setTextFont(kTextFont);
+        thefly_display.setTextSize(kTextSize);
+        thefly_display.setTextDatum(top_left);
+        thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
+        FlyGuiTextUtil::drawWrappedText("Pairing...", kTextX, kTextY, kTextWidth, kTextMaxY, kTextLineHeight);
         return;
     }
 

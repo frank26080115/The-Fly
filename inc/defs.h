@@ -61,16 +61,16 @@ enum : uint8_t
     ICON_TABLET,
     ICON_BLUETOOTH,
     ICON_WIFI,
-    ICON_WIFI_SEARCH, // sprite_btn_wifisearch
+    ICON_WIFI_SEARCH,
     ICON_HOME,
     ICON_WIFIAP,
     ICON_WWW,
-    ICON_CLOUD,     // sprit_btn_cloud
+    ICON_CLOUD,
     ICON_FTP,
-    ICON_NTP,       // sprit_btn_ntp
-    ICON_INFO,      // sprit_btn_info
-    ICON_BTPAIRING, // sprit_btn_bluetooth_pairing
-    ICON_PHONE_AP,  // sprit_btn_smartphone_ap
+    ICON_NTP,
+    ICON_INFO,
+    ICON_BTPAIRING,
+    ICON_PHONE_AP,
     ICON_LAST
 };
 

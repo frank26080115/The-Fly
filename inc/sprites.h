@@ -41,135 +41,55 @@ extern const uint8_t sprit_batt_medium[];
 #define SPRIT_BATT_MEDIUM_CHARGING_BYTES 178u
 extern const uint8_t sprit_batt_medium_charging[];
 
-#define SPRIT_BLUETOOTH_180X150_WIDTH 180u
-#define SPRIT_BLUETOOTH_180X150_HEIGHT 150u
-#define SPRIT_BLUETOOTH_180X150_BYTES 37039u
-extern const uint8_t sprit_bluetooth_180x150[];
+#define SPRIT_BLUETOOTH_100_WIDTH 100u
+#define SPRIT_BLUETOOTH_100_HEIGHT 100u
+#define SPRIT_BLUETOOTH_100_BYTES 12580u
+extern const uint8_t sprit_bluetooth_100[];
 
 #define SPRIT_BLUETOOTH_50_WIDTH 50u
 #define SPRIT_BLUETOOTH_50_HEIGHT 50u
-#define SPRIT_BLUETOOTH_50_BYTES 3352u
+#define SPRIT_BLUETOOTH_50_BYTES 3819u
 extern const uint8_t sprit_bluetooth_50[];
 
 #define SPRIT_BLUETOOTH_X_50_WIDTH 50u
 #define SPRIT_BLUETOOTH_X_50_HEIGHT 50u
-#define SPRIT_BLUETOOTH_X_50_BYTES 3622u
+#define SPRIT_BLUETOOTH_X_50_BYTES 4027u
 extern const uint8_t sprit_bluetooth_x_50[];
 
-#define SPRIT_BTN_BLUETOOTH_WIDTH 106u
-#define SPRIT_BTN_BLUETOOTH_HEIGHT 114u
-#define SPRIT_BTN_BLUETOOTH_BYTES 11686u
-extern const uint8_t sprit_btn_bluetooth[];
-
-#define SPRIT_BTN_BLUETOOTH_PAIRING_WIDTH 106u
-#define SPRIT_BTN_BLUETOOTH_PAIRING_HEIGHT 114u
-#define SPRIT_BTN_BLUETOOTH_PAIRING_BYTES 15400u
-extern const uint8_t sprit_btn_bluetooth_pairing[];
-
-#define SPRIT_BTN_CLOUD_WIDTH 106u
-#define SPRIT_BTN_CLOUD_HEIGHT 114u
-#define SPRIT_BTN_CLOUD_BYTES 10253u
-extern const uint8_t sprit_btn_cloud[];
-
-#define SPRIT_BTN_END_WIDTH 100u
-#define SPRIT_BTN_END_HEIGHT 100u
-#define SPRIT_BTN_END_BYTES 13949u
-extern const uint8_t sprit_btn_end[];
-
-#define SPRIT_BTN_INFO_WIDTH 106u
-#define SPRIT_BTN_INFO_HEIGHT 114u
-#define SPRIT_BTN_INFO_BYTES 12569u
-extern const uint8_t sprit_btn_info[];
-
-#define SPRIT_BTN_LAPTOP_WIDTH 106u
-#define SPRIT_BTN_LAPTOP_HEIGHT 114u
-#define SPRIT_BTN_LAPTOP_BYTES 9512u
-extern const uint8_t sprit_btn_laptop[];
-
-#define SPRIT_BTN_MEMO_WIDTH 106u
-#define SPRIT_BTN_MEMO_HEIGHT 114u
-#define SPRIT_BTN_MEMO_BYTES 15538u
-extern const uint8_t sprit_btn_memo[];
-
-#define SPRIT_BTN_MIC_WIDTH 100u
-#define SPRIT_BTN_MIC_HEIGHT 100u
-#define SPRIT_BTN_MIC_BYTES 10530u
-extern const uint8_t sprit_btn_mic[];
-
-#define SPRIT_BTN_NTP_WIDTH 106u
-#define SPRIT_BTN_NTP_HEIGHT 114u
-#define SPRIT_BTN_NTP_BYTES 11234u
-extern const uint8_t sprit_btn_ntp[];
-
-#define SPRIT_BTN_QUESTIONMARK_WIDTH 106u
-#define SPRIT_BTN_QUESTIONMARK_HEIGHT 114u
-#define SPRIT_BTN_QUESTIONMARK_BYTES 2276u
-extern const uint8_t sprit_btn_questionmark[];
-
-#define SPRIT_BTN_SMARTPHONE_WIDTH 106u
-#define SPRIT_BTN_SMARTPHONE_HEIGHT 114u
-#define SPRIT_BTN_SMARTPHONE_BYTES 13009u
-extern const uint8_t sprit_btn_smartphone[];
-
-#define SPRIT_BTN_SMARTPHONE_AP_WIDTH 106u
-#define SPRIT_BTN_SMARTPHONE_AP_HEIGHT 114u
-#define SPRIT_BTN_SMARTPHONE_AP_BYTES 13146u
-extern const uint8_t sprit_btn_smartphone_ap[];
-
-#define SPRIT_BTN_SPEAKER_WIDTH 100u
-#define SPRIT_BTN_SPEAKER_HEIGHT 100u
-#define SPRIT_BTN_SPEAKER_BYTES 9662u
-extern const uint8_t sprit_btn_speaker[];
-
-#define SPRIT_BTN_WIFI_WIDTH 106u
-#define SPRIT_BTN_WIFI_HEIGHT 114u
-#define SPRIT_BTN_WIFI_BYTES 9133u
-extern const uint8_t sprit_btn_wifi[];
-
-#define SPRIT_BTN_WIFIHOME_WIDTH 106u
-#define SPRIT_BTN_WIFIHOME_HEIGHT 114u
-#define SPRIT_BTN_WIFIHOME_BYTES 12754u
-extern const uint8_t sprit_btn_wifihome[];
-
-#define SPRIT_BTN_WIFISEARCH_WIDTH 106u
-#define SPRIT_BTN_WIFISEARCH_HEIGHT 114u
-#define SPRIT_BTN_WIFISEARCH_BYTES 10038u
-extern const uint8_t sprit_btn_wifisearch[];
+#define SPRIT_BTPAIRING_100_WIDTH 100u
+#define SPRIT_BTPAIRING_100_HEIGHT 100u
+#define SPRIT_BTPAIRING_100_BYTES 12906u
+extern const uint8_t sprit_btpairing_100[];
 
 #define SPRIT_CANCEL_60_WIDTH 60u
 #define SPRIT_CANCEL_60_HEIGHT 60u
 #define SPRIT_CANCEL_60_BYTES 6323u
 extern const uint8_t sprit_cancel_60[];
 
-#define SPRIT_CHECKMARK_100_WIDTH 100u
-#define SPRIT_CHECKMARK_100_HEIGHT 100u
-#define SPRIT_CHECKMARK_100_BYTES 6602u
-extern const uint8_t sprit_checkmark_100[];
+#define SPRIT_CANCELDOOR_50_WIDTH 50u
+#define SPRIT_CANCELDOOR_50_HEIGHT 50u
+#define SPRIT_CANCELDOOR_50_BYTES 4390u
+extern const uint8_t sprit_canceldoor_50[];
 
-#define SPRIT_CLOUD_180X150_WIDTH 180u
-#define SPRIT_CLOUD_180X150_HEIGHT 150u
-#define SPRIT_CLOUD_180X150_BYTES 25149u
-extern const uint8_t sprit_cloud_180x150[];
+#define SPRIT_CLOUDUPLOAD_100_WIDTH 100u
+#define SPRIT_CLOUDUPLOAD_100_HEIGHT 100u
+#define SPRIT_CLOUDUPLOAD_100_BYTES 11111u
+extern const uint8_t sprit_cloudupload_100[];
 
-#define SPRIT_CONNECT_50_WIDTH 50u
-#define SPRIT_CONNECT_50_HEIGHT 50u
-#define SPRIT_CONNECT_50_BYTES 2504u
-extern const uint8_t sprit_connect_50[];
+#define SPRIT_GREENCHECKMARK_100_WIDTH 100u
+#define SPRIT_GREENCHECKMARK_100_HEIGHT 100u
+#define SPRIT_GREENCHECKMARK_100_BYTES 8216u
+extern const uint8_t sprit_greencheckmark_100[];
 
-#define SPRIT_ERROR_LARGE_WIDTH 116u
-#define SPRIT_ERROR_LARGE_HEIGHT 111u
-#define SPRIT_ERROR_LARGE_BYTES 22584u
-extern const uint8_t sprit_error_large[];
+#define SPRIT_HOME_100_WIDTH 100u
+#define SPRIT_HOME_100_HEIGHT 100u
+#define SPRIT_HOME_100_BYTES 13241u
+extern const uint8_t sprit_home_100[];
 
-#define SPRIT_EXIT_50_WIDTH 50u
-#define SPRIT_EXIT_50_HEIGHT 50u
-#define SPRIT_EXIT_50_BYTES 4597u
-extern const uint8_t sprit_exit_50[];
-
-#define SPRIT_HANDSHAKE_60_WIDTH 60u
-#define SPRIT_HANDSHAKE_60_HEIGHT 60u
-#define SPRIT_HANDSHAKE_60_BYTES 3807u
-extern const uint8_t sprit_handshake_60[];
+#define SPRIT_HOME_WIFI_100_WIDTH 100u
+#define SPRIT_HOME_WIFI_100_HEIGHT 100u
+#define SPRIT_HOME_WIFI_100_BYTES 14471u
+extern const uint8_t sprit_home_wifi_100[];
 
 #define SPRIT_HOURGLASS_60_1_WIDTH 60u
 #define SPRIT_HOURGLASS_60_1_HEIGHT 60u
@@ -188,8 +108,28 @@ extern const uint8_t sprit_hourglass_60_3[];
 
 #define SPRIT_INFO_100_WIDTH 100u
 #define SPRIT_INFO_100_HEIGHT 100u
-#define SPRIT_INFO_100_BYTES 12502u
+#define SPRIT_INFO_100_BYTES 16257u
 extern const uint8_t sprit_info_100[];
+
+#define SPRIT_LAPTOP_100_WIDTH 100u
+#define SPRIT_LAPTOP_100_HEIGHT 100u
+#define SPRIT_LAPTOP_100_BYTES 9336u
+extern const uint8_t sprit_laptop_100[];
+
+#define SPRIT_LAPTOP_BT_100_WIDTH 100u
+#define SPRIT_LAPTOP_BT_100_HEIGHT 100u
+#define SPRIT_LAPTOP_BT_100_BYTES 10462u
+extern const uint8_t sprit_laptop_bt_100[];
+
+#define SPRIT_LOWBATT_100_WIDTH 100u
+#define SPRIT_LOWBATT_100_HEIGHT 100u
+#define SPRIT_LOWBATT_100_BYTES 8044u
+extern const uint8_t sprit_lowbatt_100[];
+
+#define SPRIT_MEMO_100_WIDTH 100u
+#define SPRIT_MEMO_100_HEIGHT 100u
+#define SPRIT_MEMO_100_BYTES 14449u
+extern const uint8_t sprit_memo_100[];
 
 #define SPRIT_MEMOTYPE_IDEA_WIDTH 50u
 #define SPRIT_MEMOTYPE_IDEA_HEIGHT 50u
@@ -216,15 +156,20 @@ extern const uint8_t sprit_memotype_reminder[];
 #define SPRIT_MEMOTYPE_TODO_BYTES 3811u
 extern const uint8_t sprit_memotype_todo[];
 
+#define SPRIT_MIC_100_WIDTH 100u
+#define SPRIT_MIC_100_HEIGHT 100u
+#define SPRIT_MIC_100_BYTES 10530u
+extern const uint8_t sprit_mic_100[];
+
 #define SPRIT_MUTED_X_WIDTH 40u
 #define SPRIT_MUTED_X_HEIGHT 40u
 #define SPRIT_MUTED_X_BYTES 2315u
 extern const uint8_t sprit_muted_x[];
 
-#define SPRIT_NTP_180X150_WIDTH 180u
-#define SPRIT_NTP_180X150_HEIGHT 150u
-#define SPRIT_NTP_180X150_BYTES 29745u
-extern const uint8_t sprit_ntp_180x150[];
+#define SPRIT_NTPSYNC_100_WIDTH 100u
+#define SPRIT_NTPSYNC_100_HEIGHT 100u
+#define SPRIT_NTPSYNC_100_BYTES 11983u
+extern const uint8_t sprit_ntpsync_100[];
 
 #define SPRIT_PICKUP_WIDTH 50u
 #define SPRIT_PICKUP_HEIGHT 50u
@@ -236,17 +181,67 @@ extern const uint8_t sprit_pickup[];
 #define SPRIT_PICKUPDOWN_BYTES 2727u
 extern const uint8_t sprit_pickupdown[];
 
+#define SPRIT_SLEEP_100_WIDTH 100u
+#define SPRIT_SLEEP_100_HEIGHT 100u
+#define SPRIT_SLEEP_100_BYTES 12460u
+extern const uint8_t sprit_sleep_100[];
+
+#define SPRIT_SMARTPHONE_100_WIDTH 100u
+#define SPRIT_SMARTPHONE_100_HEIGHT 100u
+#define SPRIT_SMARTPHONE_100_BYTES 10922u
+extern const uint8_t sprit_smartphone_100[];
+
+#define SPRIT_SMARTPHONE_AP_100_WIDTH 100u
+#define SPRIT_SMARTPHONE_AP_100_HEIGHT 100u
+#define SPRIT_SMARTPHONE_AP_100_BYTES 12364u
+extern const uint8_t sprit_smartphone_ap_100[];
+
+#define SPRIT_SMARTPHONE_BT_100_WIDTH 100u
+#define SPRIT_SMARTPHONE_BT_100_HEIGHT 100u
+#define SPRIT_SMARTPHONE_BT_100_BYTES 12393u
+extern const uint8_t sprit_smartphone_bt_100[];
+
+#define SPRIT_SPEAKER_100_WIDTH 100u
+#define SPRIT_SPEAKER_100_HEIGHT 100u
+#define SPRIT_SPEAKER_100_BYTES 11664u
+extern const uint8_t sprit_speaker_100[];
+
 #define SPRIT_SPLASH_WIDTH 320u
 #define SPRIT_SPLASH_HEIGHT 240u
 #define SPRIT_SPLASH_BYTES 33837u
 extern const uint8_t sprit_splash[];
 
+#define SPRIT_TABLET_100_WIDTH 100u
+#define SPRIT_TABLET_100_HEIGHT 100u
+#define SPRIT_TABLET_100_BYTES 10864u
+extern const uint8_t sprit_tablet_100[];
+
+#define SPRIT_TABLET_BT_100_WIDTH 100u
+#define SPRIT_TABLET_BT_100_HEIGHT 100u
+#define SPRIT_TABLET_BT_100_BYTES 12365u
+extern const uint8_t sprit_tablet_bt_100[];
+
 #define SPRIT_THUMBSUP_100_WIDTH 100u
 #define SPRIT_THUMBSUP_100_HEIGHT 100u
-#define SPRIT_THUMBSUP_100_BYTES 11634u
+#define SPRIT_THUMBSUP_100_BYTES 13906u
 extern const uint8_t sprit_thumbsup_100[];
 
-#define SPRIT_WIFI_180X150_WIDTH 180u
-#define SPRIT_WIFI_180X150_HEIGHT 150u
-#define SPRIT_WIFI_180X150_BYTES 28105u
-extern const uint8_t sprit_wifi_180x150[];
+#define SPRIT_WARNING_100_WIDTH 100u
+#define SPRIT_WARNING_100_HEIGHT 100u
+#define SPRIT_WARNING_100_BYTES 12579u
+extern const uint8_t sprit_warning_100[];
+
+#define SPRIT_WIFI_100_WIDTH 100u
+#define SPRIT_WIFI_100_HEIGHT 100u
+#define SPRIT_WIFI_100_BYTES 10195u
+extern const uint8_t sprit_wifi_100[];
+
+#define SPRIT_WIFISEARCH_100_WIDTH 100u
+#define SPRIT_WIFISEARCH_100_HEIGHT 100u
+#define SPRIT_WIFISEARCH_100_BYTES 12084u
+extern const uint8_t sprit_wifisearch_100[];
+
+#define SPRIT_XCIRCLE_100_WIDTH 100u
+#define SPRIT_XCIRCLE_100_HEIGHT 100u
+#define SPRIT_XCIRCLE_100_BYTES 16739u
+extern const uint8_t sprit_xcircle_100[];
