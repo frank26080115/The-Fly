@@ -98,6 +98,7 @@ RecordingView::RecordingView()
 
     addItem(fileNameText_);
     addItem(durationText_);
+    callerInfoText_.setClearOnUpdate(true);
     addItem(callerInfoText_);
 
     syncModeVisibility();
@@ -219,7 +220,7 @@ void RecordingView::handleExitButton()
     strncpy(fileName, name && name[0] != '\0' ? name : "Recording", sizeof(fileName) - 1);
     fileName[sizeof(fileName) - 1] = '\0';
 
-    RecordingViewCallbacks::stopRecording();
+    RecordingViewCallbacks::stopRecording(mode_ == Mode::Bluetooth);
     if (gui())
     {
         ModalDialog* dialog = get_modal_dialog();

@@ -656,6 +656,13 @@ void FlyGui::drawTopBar(bool forced)
 
 static bool isBatteryCharging()
 {
+#if !defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(CONFIG_IDF_TARGET_ESP32C3) && !defined(CONFIG_IDF_TARGET_ESP32C6) && !defined(CONFIG_IDF_TARGET_ESP32P4)
+    if (M5.Power.getType() == m5::Power_Class::pmic_axp192 && M5.Power.Axp192.isACIN())
+    {
+        return true;
+    }
+#endif
+
     return M5.Power.isCharging() == m5::Power_Class::is_charging;
 }
 

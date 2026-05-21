@@ -45,7 +45,7 @@ using OutgoingAudioCallback = esp_hf_client_outgoing_data_cb_t;
 using PairedCallback        = void (*)(const PairedDevice& device);
 using StateChangedCallback  = void (*)(State state);
 
-bool init(const char* deviceName = "The Fly", IncomingAudioCallback incomingAudio = AudioManager::hfp_incoming_audio, OutgoingAudioCallback outgoingAudio = AudioManager::hfp_outgoing_audio, const char* pin = nullptr);
+bool init(const char* deviceName = nullptr, IncomingAudioCallback incomingAudio = AudioManager::hfp_incoming_audio, OutgoingAudioCallback outgoingAudio = AudioManager::hfp_outgoing_audio, const char* pin = nullptr);
 void setAudioCallbacks(IncomingAudioCallback incomingAudio = AudioManager::hfp_incoming_audio, OutgoingAudioCallback outgoingAudio = AudioManager::hfp_outgoing_audio);
 void poll();
 
@@ -61,6 +61,8 @@ Result connectToMac(const esp_bd_addr_t mac);
 Result startPairing();
 Result disconnect();
 Result shutdown();
+Result setConnectableNonDiscoverable();
+Result setNonConnectableNonDiscoverable();
 Result pickupPhone();
 bool   canNotifyOutgoingAudioReady();
 void   notifyOutgoingAudioReady();

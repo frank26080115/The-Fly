@@ -38,7 +38,11 @@ constexpr int kHotelCoreLogLevel = static_cast<int>(ESP_LOG_NONE);
 constexpr bool kFullShutdownAllowedByLogging =
     kHotelLocalLogLevel <= static_cast<int>(ESP_LOG_ERROR) &&
     kHotelCoreLogLevel <= static_cast<int>(ESP_LOG_ERROR);
-constexpr bool kLightSleepAllowedByLogging = kFullShutdownAllowedByLogging;
+// Core2/M5Unified light sleep is currently causing RTCWDT resets after idle.
+// Keep Hotel's dim/CPU-scaling states, but do not enter light sleep until the
+// wake/watchdog path is proven stable on the hardware.
+constexpr bool kLightSleepSupported = false;
+constexpr bool kLightSleepAllowedByLogging = kLightSleepSupported && kFullShutdownAllowedByLogging;
 
 portMUX_TYPE g_lock = portMUX_INITIALIZER_UNLOCKED;
 

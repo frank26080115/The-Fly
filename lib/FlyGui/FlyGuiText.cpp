@@ -191,6 +191,12 @@ bool FlyGuiText::setText(const char* text)
     return true;
 }
 
+void FlyGuiText::setClearOnUpdate(bool clearOnUpdate)
+{
+    clearOnUpdate_ = clearOnUpdate;
+    setDirty();
+}
+
 void FlyGuiText::redraw(bool forced)
 {
     if (!visible() || (!forced && !dirty()))
@@ -203,7 +209,7 @@ void FlyGuiText::redraw(bool forced)
     thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
     thefly_display.setTextDatum(top_left);
 
-    if (forced)
+    if (forced || clearOnUpdate_)
     {
         thefly_display.fillRect(x(), y(), width(), height(), TFT_BLACK);
         thefly_display.drawString(text_, x(), y());

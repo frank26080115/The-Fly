@@ -20,6 +20,7 @@ public:
     {
         return text_;
     }
+    void setClearOnUpdate(bool clearOnUpdate);
 
     void redraw(bool forced) override;
 
@@ -40,6 +41,7 @@ private:
     size_t  maxLength_ = 0;
     char*   text_      = nullptr;
     char*   drawnText_ = nullptr;
+    bool    clearOnUpdate_ = false;
 };
 
 class FlyGuiDateTime : public FlyGuiText

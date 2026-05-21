@@ -7,7 +7,7 @@ namespace RecordingViewCallbacks
 
 bool beginBluetoothRecording(char typeCode);
 bool beginMemoRecording(char typeCode);
-bool stopRecording();
+bool stopRecording(bool disconnectBluetooth = false);
 
 bool enableMicMode();
 bool enableSpeakerMode();
