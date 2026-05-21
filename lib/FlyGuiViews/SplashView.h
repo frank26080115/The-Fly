@@ -8,6 +8,7 @@ public:
     SplashView();
 
     void onLoad() override;
+    void onUnload() override;
     void redraw(bool forced) override;
 
 private:

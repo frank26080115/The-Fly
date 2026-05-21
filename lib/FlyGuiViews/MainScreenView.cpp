@@ -18,44 +18,47 @@ constexpr int16_t kButtonWidth  = 106;
 constexpr int16_t kButtonHeight = 114;
 constexpr int16_t kGridX        = 1;
 constexpr int16_t kGridY        = FlyGui::kTopBarHeight;
-constexpr int16_t kCol0         = kGridX;
-constexpr int16_t kCol1         = kGridX + kButtonWidth;
-constexpr int16_t kCol2         = kGridX + kButtonWidth * 2;
-constexpr int16_t kRow0         = kGridY;
-constexpr int16_t kRow1         = kGridY + kButtonHeight;
+constexpr int16_t kSpriteSize   = 100;
+constexpr int16_t kSpriteXInset = (kButtonWidth - kSpriteSize) / 2;
+constexpr int16_t kSpriteYInset = (kButtonHeight - kSpriteSize) / 2;
+constexpr int16_t kCol0         = kGridX + kSpriteXInset;
+constexpr int16_t kCol1         = kGridX + kButtonWidth + kSpriteXInset;
+constexpr int16_t kCol2         = kGridX + kButtonWidth * 2 + kSpriteXInset;
+constexpr int16_t kRow0         = kGridY + kSpriteYInset;
+constexpr int16_t kRow1         = kGridY + kButtonHeight + kSpriteYInset;
 } // namespace
 
 MainScreenView::MainScreenView()
     : // Design: main screen lets the user choose bluetooth, info, memo, or files.
       FlyGuiView(FLYGUI_VIEW_MAIN),
-      bluetoothItem_(kCol0, kRow0, kButtonWidth, kButtonHeight),
-      infoItem_(kCol1, kRow0, kButtonWidth, kButtonHeight),
-      memoItem_(kCol2, kRow0, kButtonWidth, kButtonHeight),
-      smartphoneItem_(kCol0, kRow1, kButtonWidth, kButtonHeight),
-      laptopItem_(kCol1, kRow1, kButtonWidth, kButtonHeight),
-      wifiItem_(kCol2, kRow1, kButtonWidth, kButtonHeight)
+      bluetoothItem_(kCol0, kRow0, kSpriteSize, kSpriteSize),
+      infoItem_(kCol1, kRow0, kSpriteSize, kSpriteSize),
+      memoItem_(kCol2, kRow0, kSpriteSize, kSpriteSize),
+      smartphoneItem_(kCol0, kRow1, kSpriteSize, kSpriteSize),
+      laptopItem_(kCol1, kRow1, kSpriteSize, kSpriteSize),
+      wifiItem_(kCol2, kRow1, kSpriteSize, kSpriteSize)
 {
-    bluetoothItem_.setSprite(sprit_btn_bluetooth, SPRIT_BTN_BLUETOOTH_WIDTH, SPRIT_BTN_BLUETOOTH_HEIGHT, SPRIT_BTN_BLUETOOTH_BYTES);
+    bluetoothItem_.setSprite(sprit_bluetooth_100, SPRIT_BLUETOOTH_100_WIDTH, SPRIT_BLUETOOTH_100_HEIGHT, SPRIT_BLUETOOTH_100_BYTES);
     bluetoothItem_.setCallback(onclick_main_bluetooth);
     addItem(bluetoothItem_);
 
-    infoItem_.setSprite(sprit_btn_info, SPRIT_BTN_INFO_WIDTH, SPRIT_BTN_INFO_HEIGHT, SPRIT_BTN_INFO_BYTES);
+    infoItem_.setSprite(sprit_info_100, SPRIT_INFO_100_WIDTH, SPRIT_INFO_100_HEIGHT, SPRIT_INFO_100_BYTES);
     infoItem_.setCallback(onclick_main_info);
     addItem(infoItem_);
 
-    memoItem_.setSprite(sprit_btn_memo, SPRIT_BTN_MEMO_WIDTH, SPRIT_BTN_MEMO_HEIGHT, SPRIT_BTN_MEMO_BYTES);
+    memoItem_.setSprite(sprit_memo_100, SPRIT_MEMO_100_WIDTH, SPRIT_MEMO_100_HEIGHT, SPRIT_MEMO_100_BYTES);
     memoItem_.setCallback(onclick_main_memo);
     addItem(memoItem_);
 
-    smartphoneItem_.setSprite(sprit_btn_smartphone, SPRIT_BTN_SMARTPHONE_WIDTH, SPRIT_BTN_SMARTPHONE_HEIGHT, SPRIT_BTN_SMARTPHONE_BYTES);
+    smartphoneItem_.setSprite(sprit_smartphone_100, SPRIT_SMARTPHONE_100_WIDTH, SPRIT_SMARTPHONE_100_HEIGHT, SPRIT_SMARTPHONE_100_BYTES);
     smartphoneItem_.setCallback(onclick_main_smartphone);
     addItem(smartphoneItem_);
 
-    laptopItem_.setSprite(sprit_btn_laptop, SPRIT_BTN_LAPTOP_WIDTH, SPRIT_BTN_LAPTOP_HEIGHT, SPRIT_BTN_LAPTOP_BYTES);
+    laptopItem_.setSprite(sprit_laptop_100, SPRIT_LAPTOP_100_WIDTH, SPRIT_LAPTOP_100_HEIGHT, SPRIT_LAPTOP_100_BYTES);
     laptopItem_.setCallback(onclick_main_laptop);
     addItem(laptopItem_);
 
-    wifiItem_.setSprite(sprit_btn_wifi, SPRIT_BTN_WIFI_WIDTH, SPRIT_BTN_WIFI_HEIGHT, SPRIT_BTN_WIFI_BYTES);
+    wifiItem_.setSprite(sprit_wifi_100, SPRIT_WIFI_100_WIDTH, SPRIT_WIFI_100_HEIGHT, SPRIT_WIFI_100_BYTES);
     wifiItem_.setCallback(onclick_main_wifi);
     addItem(wifiItem_);
 }

@@ -39,11 +39,11 @@ AudioDeviceButton::AudioDeviceButton(Device device, int16_t x, int16_t y)
 {
     if (device_ == Device::Mic)
     {
-        setSprite(sprit_btn_mic, SPRIT_BTN_MIC_WIDTH, SPRIT_BTN_MIC_HEIGHT, SPRIT_BTN_MIC_BYTES);
+        setSprite(sprit_mic_100, SPRIT_MIC_100_WIDTH, SPRIT_MIC_100_HEIGHT, SPRIT_MIC_100_BYTES);
     }
     else
     {
-        setSprite(sprit_btn_speaker, SPRIT_BTN_SPEAKER_WIDTH, SPRIT_BTN_SPEAKER_HEIGHT, SPRIT_BTN_SPEAKER_BYTES);
+        setSprite(sprit_speaker_100, SPRIT_SPEAKER_100_WIDTH, SPRIT_SPEAKER_100_HEIGHT, SPRIT_SPEAKER_100_BYTES);
     }
 }
 

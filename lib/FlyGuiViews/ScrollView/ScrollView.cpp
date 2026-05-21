@@ -160,7 +160,7 @@ ScrollView::ScrollView(uint16_t viewId, FlyGuiItemCallback exitCallback)
       exitItem_(exit_x(), kExitY, kExitSize, kExitSize),
       exitCallback_(exitCallback)
 {
-    exitItem_.setSprite(sprit_exit_50, SPRIT_EXIT_50_WIDTH, SPRIT_EXIT_50_HEIGHT, SPRIT_EXIT_50_BYTES);
+    exitItem_.setSprite(sprit_canceldoor_50, SPRIT_CANCELDOOR_50_WIDTH, SPRIT_CANCELDOOR_50_HEIGHT, SPRIT_CANCELDOOR_50_BYTES);
     exitItem_.setCallback(exitCallback_);
 }
 
@@ -179,6 +179,16 @@ void ScrollView::addItem(FlyGuiItem& item)
 void ScrollView::removeAllItems()
 {
     clearGeneratedItems();
+}
+
+void ScrollView::onUnload()
+{
+    thefly_display.fillRect(0,
+                            FlyGui::kTopBarHeight,
+                            thefly_display.width(),
+                            static_cast<int16_t>(thefly_display.height() - FlyGui::kTopBarHeight),
+                            TFT_BLACK);
+    FlyGuiView::onUnload();
 }
 
 bool ScrollView::populateBluetooth(const BtHostList* hostList)

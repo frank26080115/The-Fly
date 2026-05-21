@@ -12,6 +12,16 @@ void SplashView::onLoad()
     FlyGuiView::onLoad();
 }
 
+void SplashView::onUnload()
+{
+    thefly_display.fillScreen(TFT_BLACK);
+    if (gui())
+    {
+        gui()->requestTopBarFullRedraw();
+    }
+    FlyGuiView::onUnload();
+}
+
 void SplashView::redraw(bool forced)
 {
     if (!forced && !dirty())

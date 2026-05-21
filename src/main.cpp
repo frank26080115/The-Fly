@@ -613,10 +613,10 @@ static bool show_error_dialog(const char* text, uint16_t next_view)
         return false;
     }
 
-    dialog->configure(sprit_error_large,
-                      SPRIT_ERROR_LARGE_BYTES,
-                      SPRIT_ERROR_LARGE_WIDTH,
-                      SPRIT_ERROR_LARGE_HEIGHT,
+    dialog->configure(sprit_warning_100,
+                      SPRIT_WARNING_100_BYTES,
+                      SPRIT_WARNING_100_WIDTH,
+                      SPRIT_WARNING_100_HEIGHT,
                       text,
                       next_view);
     return gui->showView(FLYGUI_VIEW_MODAL_DIALOG);
