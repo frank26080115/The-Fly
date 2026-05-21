@@ -1302,13 +1302,13 @@ Result connectToMac(const esp_bd_addr_t mac)
         return Result::Busy;
     }
 
-    close_pairing_window();
     copy_bda(g_target_mac, mac);
     remember_reconnect_target(g_target_mac);
     clear_reconnect_schedule(false);
     g_hfp_slc_connected = false;
     g_disconnect_requested = false;
     set_state(State::Connecting);
+    make_bluetooth_non_connectable();
     return result_from_esp(esp_hf_client_connect(g_target_mac), "hfp connect");
 }
 
