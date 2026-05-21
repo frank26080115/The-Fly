@@ -17,7 +17,7 @@ namespace
 constexpr int16_t kButtonWidth  = 106;
 constexpr int16_t kButtonHeight = 114;
 constexpr int16_t kGridX        = 1;
-constexpr int16_t kGridY        = FlyGui::topBarHeight();
+constexpr int16_t kGridY        = FlyGui::kTopBarHeight;
 constexpr int16_t kCol0         = kGridX;
 constexpr int16_t kCol1         = kGridX + kButtonWidth;
 constexpr int16_t kCol2         = kGridX + kButtonWidth * 2;

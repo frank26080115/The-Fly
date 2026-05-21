@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "ClockAgent.h"
+#include "DiskStats.h"
 #include "MicroSdCard.h"
 #include "dbg_log.h"
 #include "freertos/FreeRTOS.h"
@@ -170,6 +171,8 @@ void finish_prune_history(PruneHistoryState state, PruneHistoryError error)
                  static_cast<unsigned long>(status.messages_pruned),
                  static_cast<unsigned long>(status.delete_failures));
     }
+
+    DiskStats::refreshDiskSpace();
 
     if (callback)
     {

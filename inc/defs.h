@@ -70,6 +70,7 @@ enum : uint8_t
     ICON_NTP,       // sprit_btn_ntp
     ICON_INFO,      // sprit_btn_info
     ICON_BTPAIRING, // sprit_btn_bluetooth_pairing
+    ICON_PHONE_AP,  // sprit_btn_smartphone_ap
     ICON_LAST
 };
 

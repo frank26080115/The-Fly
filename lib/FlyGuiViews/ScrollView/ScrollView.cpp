@@ -491,9 +491,9 @@ bool ScrollView::containsSlot(Slot slot, int16_t x, int16_t y) const
 void ScrollView::drawContent()
 {
     thefly_display.fillRect(0,
-                            FlyGui::topBarHeight(),
+                            FlyGui::kTopBarHeight,
                             thefly_display.width(),
-                            static_cast<int16_t>(thefly_display.height() - FlyGui::topBarHeight()),
+                            static_cast<int16_t>(thefly_display.height() - FlyGui::kTopBarHeight),
                             TFT_BLACK);
 
     if (itemCount_ > 0)
@@ -578,6 +578,11 @@ bool ScrollView::appendScrollItem(ScrollItemKind kind, int32_t callbackValue, co
     {
         delete item;
         return false;
+    }
+
+    if ((kind == SCROLL_ITEM_WIFI_STATION || kind == SCROLL_ITEM_WIFI_AP) && icon == ICON_PHONE)
+    {
+        icon = ICON_PHONE_AP;
     }
 
     item->configure(kind, callbackValue, label, icon);

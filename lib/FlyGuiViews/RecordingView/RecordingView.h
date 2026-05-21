@@ -19,7 +19,6 @@ public:
 
     RecordingView();
 
-    bool beginBluetoothRecording();
     bool beginMemoRecording();
     void configureBluetoothMode();
     void configureMemoMode();
@@ -46,6 +45,7 @@ private:
     static void memoTypeThunk();
 
     void syncModeVisibility();
+    void syncBluetoothIcon();
     void syncAudioButtons();
     void syncAnswerCallButton();
     void syncText();
@@ -69,5 +69,6 @@ private:
     uint32_t          lastDurationSecond_   = UINT32_MAX;
     uint32_t          nextCallerInfoCycleMs_ = 0;
     size_t            callerInfoIndex_      = 0;
+    bool              bluetoothIconConnected_ = true;
     bool              frameDirty_           = true;
 };

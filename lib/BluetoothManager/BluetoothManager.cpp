@@ -32,13 +32,16 @@ constexpr uint32_t    kAudioConnectTimeoutMs = 3000;
 constexpr uint32_t    kAudioConnectTaskStack = 4096;
 constexpr UBaseType_t kAudioConnectTaskPriority = 1;
 constexpr uint32_t    kShutdownDisconnectWaitMs = 1500;
+constexpr uint32_t    kReconnectAttemptIntervalMs = 2000;
 
 State                 g_state                  = State::Idle;
 esp_bd_addr_t         g_target_mac             = {};
 esp_bd_addr_t         g_connected_mac          = {};
+esp_bd_addr_t         g_reconnect_target_mac   = {};
 PairedDevice          g_last_paired_device     = {};
 BtHostList            g_host_list;
 bool                  g_has_connected_mac      = false;
+bool                  g_has_reconnect_target   = false;
 bool                  g_has_last_paired_device = false;
 bool                  g_bt_ready               = false;
 bool                  g_hfp_ready              = false;
@@ -50,6 +53,8 @@ volatile bool         g_hfp_call_active        = false;
 volatile bool         g_hfp_call_setup_active  = false;
 volatile bool         g_hfp_answer_requested   = false;
 uint32_t              g_hfp_audio_connect_started_ms = 0;
+uint32_t              g_next_reconnect_attempt_ms = 0;
+uint32_t              g_reconnect_attempt_count = 0;
 TaskHandle_t          g_audio_connect_task     = nullptr;
 IncomingAudioCallback g_incoming_audio         = nullptr;
 OutgoingAudioCallback g_outgoing_audio         = nullptr;
@@ -81,6 +86,28 @@ void set_state(State next)
 bool hfp_control_connected()
 {
     return g_state == State::Connected || g_state == State::AudioAvailable;
+}
+
+void remember_reconnect_target(const esp_bd_addr_t mac)
+{
+    copy_bda(g_reconnect_target_mac, mac);
+    g_has_reconnect_target = true;
+}
+
+void clear_reconnect_schedule(bool clear_target)
+{
+    g_next_reconnect_attempt_ms = 0;
+    g_reconnect_attempt_count = 0;
+    if (clear_target)
+    {
+        g_has_reconnect_target = false;
+        memset(g_reconnect_target_mac, 0, sizeof(g_reconnect_target_mac));
+    }
+}
+
+void schedule_reconnect_attempt(uint32_t delay_ms)
+{
+    g_next_reconnect_attempt_ms = millis() + delay_ms;
 }
 
 void close_pairing_window()
@@ -599,12 +626,16 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
 
         case ESP_HF_CLIENT_CONNECTION_STATE_CONNECTED:
             copy_bda(g_connected_mac, param->conn_stat.remote_bda);
+            remember_reconnect_target(g_connected_mac);
             g_has_connected_mac = true;
+            clear_reconnect_schedule(false);
             break;
 
         case ESP_HF_CLIENT_CONNECTION_STATE_SLC_CONNECTED:
             copy_bda(g_connected_mac, param->conn_stat.remote_bda);
+            remember_reconnect_target(g_connected_mac);
             g_has_connected_mac = true;
+            clear_reconnect_schedule(false);
             g_hfp_audio_connecting = false;
             g_hfp_audio_connected = false;
             g_hfp_call_active = false;
@@ -623,6 +654,10 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
 
         case ESP_HF_CLIENT_CONNECTION_STATE_DISCONNECTED:
         default:
+            if (!g_disconnect_requested && g_state != State::Pairing && g_has_connected_mac)
+            {
+                remember_reconnect_target(g_connected_mac);
+            }
             g_has_connected_mac = false;
             g_hfp_audio_connecting = false;
             g_hfp_audio_connected = false;
@@ -634,10 +669,12 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             if (g_disconnect_requested || g_state == State::Pairing)
             {
                 g_disconnect_requested = false;
+                clear_reconnect_schedule(false);
                 set_state(State::Idle);
             }
             else if (hfp_control_connected() || g_state == State::Connecting || g_state == State::Reconnecting)
             {
+                schedule_reconnect_attempt(kReconnectAttemptIntervalMs);
                 set_state(State::Reconnecting);
             }
             break;
@@ -915,6 +952,35 @@ void setAudioCallbacks(IncomingAudioCallback incomingAudio, OutgoingAudioCallbac
     register_data_callbacks_if_ready();
 }
 
+void poll()
+{
+    if (g_state != State::Reconnecting || g_disconnect_requested || g_has_connected_mac || !g_bt_ready || !g_hfp_ready || !g_has_reconnect_target)
+    {
+        return;
+    }
+
+    const uint32_t now = millis();
+    if (g_next_reconnect_attempt_ms != 0 && static_cast<int32_t>(now - g_next_reconnect_attempt_ms) < 0)
+    {
+        return;
+    }
+
+    g_next_reconnect_attempt_ms = now + kReconnectAttemptIntervalMs;
+    ++g_reconnect_attempt_count;
+    ESP_LOGI(TAG, "automatic HFP reconnect attempt %" PRIu32, g_reconnect_attempt_count);
+    log_bda("reconnecting HFP to", g_reconnect_target_mac);
+
+    const esp_err_t err = esp_hf_client_connect(g_reconnect_target_mac);
+    if (err == ESP_OK)
+    {
+        set_state(State::Connecting);
+    }
+    else
+    {
+        ESP_LOGW(TAG, "automatic HFP reconnect attempt returned: %s", esp_err_to_name(err));
+    }
+}
+
 bool generateLegacyPinFromMac()
 {
     esp_bd_addr_t mac = {};
@@ -987,6 +1053,8 @@ Result connectToMac(const esp_bd_addr_t mac)
 
     close_pairing_window();
     copy_bda(g_target_mac, mac);
+    remember_reconnect_target(g_target_mac);
+    clear_reconnect_schedule(false);
     g_disconnect_requested = false;
     set_state(State::Connecting);
     return result_from_esp(esp_hf_client_connect(g_target_mac), "hfp connect");
@@ -1006,6 +1074,7 @@ Result startPairing()
 
     g_disconnect_requested   = false;
     g_has_last_paired_device = false;
+    clear_reconnect_schedule(false);
     set_state(State::Pairing);
     return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE), "open pairing window");
 }
@@ -1014,6 +1083,7 @@ Result disconnect()
 {
     if (!g_bt_ready)
     {
+        clear_reconnect_schedule(false);
         set_state(State::Idle);
         return Result::Ok;
     }
@@ -1028,6 +1098,7 @@ Result disconnect()
     }
     else
     {
+        clear_reconnect_schedule(false);
         set_state(State::Idle);
         g_disconnect_requested = false;
     }
@@ -1081,6 +1152,7 @@ Result shutdown()
     }
 
     g_has_connected_mac = false;
+    clear_reconnect_schedule(false);
     g_hfp_audio_connecting = false;
     g_hfp_audio_connected = false;
     g_hfp_call_active = false;

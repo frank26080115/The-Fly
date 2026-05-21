@@ -14,6 +14,7 @@
 #include "Display.h"
 #include "MicroSdCard.h"
 #include "ModalDialog.h"
+#include "RecordingView/RecordingViewCallbacks.h"
 #include "ScrollView/ScrollView.h"
 #include "WifiManager.h"
 #include "esp_log.h"
@@ -44,12 +45,16 @@ void onclick_wifi_show_info(int32_t value);
 TaskHandle_t loopTask_core0_Handle = NULL;
 static void  loopTask_core0(void* pvParameters);
 static bool  show_info_dialog(const char* text, uint16_t next_view);
+static bool  bluetooth_recording_state(BtManager::State state);
+static void  on_bluetooth_state_changed(BtManager::State state);
+static void  handle_pending_bluetooth_recording();
 static void  on_wifi_scan_finished(const wifi_item_t* item);
 
 FlyGui* gui;
 M5GFX& thefly_display = M5.Display;
 BtHostList* bt_host_list;
 WifiManager* wifi_manager;
+static volatile bool g_pending_bluetooth_recording = false;
 
 void setup()
 {
@@ -58,20 +63,6 @@ void setup()
     #endif
 
     all_init();
-
-    ScrollView* scroll_view = get_scroll_view();
-    if (scroll_view)
-    {
-        scroll_view->setOnClickBluetoothHost(onclick_bluetooth_host);
-        scroll_view->setOnClickBluetoothPair(onclick_bluetooth_pair);
-        scroll_view->setOnClickWifiScanAndConnect(onclick_wifi_scan_and_connect);
-        scroll_view->setOnClickWifiStation(onclick_wifi_station);
-        scroll_view->setOnClickWifiAp(onclick_wifi_ap);
-        scroll_view->setOnClickCloudUpload(onclick_cloud_upload);
-        scroll_view->setOnClickNtpSync(onclick_ntp_sync);
-        scroll_view->setOnClickBtShowInfo(onclick_bt_show_info);
-        scroll_view->setOnClickWifiShowInfo(onclick_wifi_show_info);
-    }
 
     if (reset_was_magic == false) {
         show_splash();
@@ -103,6 +94,7 @@ void setup()
         show_fatal_error_f(true, "AudioManager init failed");
     }
 
+    BtManager::setStateChangedCallback(on_bluetooth_state_changed);
     if (!BtManager::init())
     {
         show_fatal_error_f(true, "BluetoothManager init failed");
@@ -121,6 +113,7 @@ void setup()
 void loop()
 {
     // this is running on core 1
+    handle_pending_bluetooth_recording();
     gui->poll();
     AudioFileRecorder::pump();
     if (wifi_manager) {
@@ -135,9 +128,57 @@ static void loopTask_core0(void* pvParameters)
     // this is running on core 0
     while (true)
     {
+        BtManager::poll();
         AudioManager::pump_task();
         Hotel::pollCore0();
         vTaskDelay(pdMS_TO_TICKS(1));
+    }
+}
+
+static bool bluetooth_recording_state(BtManager::State state)
+{
+    return state == BtManager::State::Connected || state == BtManager::State::AudioAvailable;
+}
+
+static void on_bluetooth_state_changed(BtManager::State state)
+{
+    if (bluetooth_recording_state(state))
+    {
+        g_pending_bluetooth_recording = true;
+    }
+}
+
+static void handle_pending_bluetooth_recording()
+{
+    if (!g_pending_bluetooth_recording)
+    {
+        return;
+    }
+    g_pending_bluetooth_recording = false;
+
+    if (!bluetooth_recording_state(BtManager::state()))
+    {
+        return;
+    }
+
+    if (AudioFileRecorder::isRecording())
+    {
+        return;
+    }
+
+    ESP_LOGI(MAINTAG, "Bluetooth host connection detected, starting call recording");
+    if (!RecordingViewCallbacks::beginBluetoothRecording('C'))
+    {
+        ESP_LOGE(MAINTAG, "failed to start Bluetooth recording");
+        show_fatal_error_f(false, "Bluetooth recording start failed");
+        return;
+    }
+
+    if (!show_recording_view_bluetooth())
+    {
+        ESP_LOGE(MAINTAG, "failed to show Bluetooth recording view");
+        RecordingViewCallbacks::stopRecording();
+        show_fatal_error_f(false, "Bluetooth recording view failed");
     }
 }
 
@@ -157,11 +198,7 @@ void onclick_main_info()
     ESP_LOGI(MAINTAG, "main screen info selected");
 
     // fade the screen really fast as a visual reaction, the analysis calls are slow
-    for (int16_t y = 10; y < thefly_display.height(); y += 3)
-    {
-        thefly_display.drawFastHLine(0, y, thefly_display.width(), TFT_BLACK);
-        thefly_display.drawFastHLine(0, y+1, thefly_display.width(), TFT_BLACK);
-    }
+    FlyGui::quickScreenFade();
 
     const bool disk_ok = DiskStats::refreshDiskSpace();
     const bool rec_ok  = DiskStats::refreshRecordingUploadStats();

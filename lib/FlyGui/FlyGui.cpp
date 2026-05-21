@@ -2,6 +2,7 @@
 
 #include "../Buttons/Buttons.h"
 #include "../Hotel/Hotel.h"
+#include "DiskStats.h"
 #include "FlyGuiText.h"
 #include "SpriteDraw.h"
 #include "sprites.h"
@@ -37,6 +38,15 @@ FlyGui::FlyGui() : topBarDateTime_(new FlyGuiDateTime(kTopBarDateTimeX, kTopBarD
 FlyGui::~FlyGui()
 {
     delete topBarDateTime_;
+}
+
+void FlyGui::quickScreenFade()
+{
+    for (int16_t y = kTopBarHeight; y < thefly_display.height(); y += 3)
+    {
+        thefly_display.drawFastHLine(0, y, thefly_display.width(), TFT_BLACK);
+        thefly_display.drawFastHLine(0, y + 1, thefly_display.width(), TFT_BLACK);
+    }
 }
 
 void FlyGui::addView(FlyGuiView& view)
@@ -361,7 +371,7 @@ void FlyGuiView::redraw(bool forced)
     markClean();
 }
 
-FlyGuiItem::FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* mainText, Button* button) : button_(button), x_(x), y_(y), width_(width), height_(height), mainText_(mainText) {}
+FlyGuiItem::FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* mainText, Button* button) : button_(button), x_(x), y_(y), width_(width), height_(height), mainText_(mainText), touchable_(button != nullptr) {}
 
 void FlyGuiItem::relocate(int16_t x, int16_t y, int16_t width, int16_t height)
 {
@@ -437,7 +447,7 @@ bool FlyGuiItem::isPressed() const
 
 bool FlyGuiItem::trigger()
 {
-    if (!visible_)
+    if (!visible_ || !touchable_)
     {
         return false;
     }
@@ -470,6 +480,11 @@ void FlyGuiItem::clearSprite()
 
 bool FlyGuiItem::handleTouch(const FlyGuiTouchEvent& event)
 {
+    if (!visible_ || !touchable_)
+    {
+        return false;
+    }
+
     const bool hit = contains(event.x, event.y);
     const bool wasPressed = pressed_;
 
@@ -524,7 +539,7 @@ bool FlyGuiItem::handleTouch(const FlyGuiTouchEvent& event)
 
 bool FlyGuiItem::handleButtonPress(Button& button)
 {
-    if (&button != button_ || !visible_)
+    if (&button != button_ || !visible_ || !touchable_)
     {
         return false;
     }
@@ -609,7 +624,7 @@ void FlyGui::drawTopBar(bool forced)
     // Design: FlyGui is responsible for drawing the top bar with date/time and battery status.
     if (fullRedraw)
     {
-        thefly_display.fillRect(0, 0, thefly_display.width(), FlyGui::topBarHeight(), TFT_BLACK);
+        thefly_display.fillRect(0, 0, thefly_display.width(), FlyGui::kTopBarHeight, TFT_BLACK);
     }
 
     if (topBarDateTime_)
@@ -621,16 +636,18 @@ void FlyGui::drawTopBar(bool forced)
     if (fullRedraw || battery != topBarLastBattery_)
     {
         const int32_t batteryX = thefly_display.width() - kTopBarBatteryWidth;
-        thefly_display.fillRect(batteryX, 0, kTopBarBatteryWidth, FlyGui::topBarHeight(), TFT_BLACK);
+        thefly_display.fillRect(batteryX, 0, kTopBarBatteryWidth, FlyGui::kTopBarHeight, TFT_BLACK);
 
         const BatterySprite sprite = batterySpriteForStatus(battery);
         if (sprite.data && sprite.byte_cnt > 0 && sprite.width > 0 && sprite.height > 0)
         {
             const int32_t x = thefly_display.width() - 4 - static_cast<int32_t>(sprite.width);
-            const int32_t y = (FlyGui::topBarHeight() - static_cast<int32_t>(sprite.height)) / 2;
+            const int32_t y = (FlyGui::kTopBarHeight - static_cast<int32_t>(sprite.height)) / 2;
             SpriteDraw::drawPng(sprite.data, sprite.byte_cnt, x, y, sprite.width, sprite.height, true);
         }
     }
+
+    DiskStats::drawDiskSpaceWarning();
 
     topBarLastBattery_     = battery;
     lastTopBarDrawMs_      = currentMs;

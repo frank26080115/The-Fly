@@ -7,6 +7,7 @@ namespace DiskStats
 
 bool refreshDiskSpace();
 bool refreshRecordingUploadStats();
+void drawDiskSpaceWarning();
 
 uint64_t totalDiskSpace();
 uint64_t freeDiskSpace();
