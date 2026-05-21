@@ -1,0 +1,27 @@
+# ESP32 rev 3 does not need the full PSRAM cache workaround, but some ESP-IDF
+# flash/cache-disabled paths still assume these libc routines are callable while
+# flash is unavailable. Keep this narrow set in IRAM without enabling the full
+# workaround library placement.
+[mapping:thefly_libc_noflash]
+archive:
+    if NEWLIB_NANO_FORMAT = y:
+        libc_nano.a
+    else:
+        libc.a
+entries:
+    if IDF_TOOLCHAIN = "gcc":
+        libc_a-itoa (noflash)
+        libc_a-memcmp (noflash)
+        libc_a-memcpy (noflash)
+        libc_a-memset (noflash)
+        libc_a-strcat (noflash)
+        libc_a-strcmp (noflash)
+        libc_a-strlen (noflash)
+    else:
+        lib_a-itoa (noflash)
+        lib_a-memcmp (noflash)
+        lib_a-memcpy (noflash)
+        lib_a-memset (noflash)
+        lib_a-strcat (noflash)
+        lib_a-strcmp (noflash)
+        lib_a-strlen (noflash)
