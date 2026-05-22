@@ -2,6 +2,7 @@
 #include <M5Unified.h>
 #include <WiFi.h>
 
+#include "FtpServer.h"
 #include "MicroSdCard.h"
 #include "WebServer.h"
 #include "WifiManager.h"
@@ -10,12 +11,15 @@ namespace
 {
 
 constexpr const char* TAG = "test_webserver";
+constexpr const char* FTP_USER = "thefly";
+constexpr const char* FTP_PASSWORD = "replace-me";
 
 void idle_forever()
 {
     while (true)
     {
-        delay(1000);
+        FtpServer::poll();
+        delay(10);
     }
 }
 
@@ -56,6 +60,15 @@ void test_webserver()
         idle_forever();
     }
 
-    Serial.printf("%s: web server ready, spinning forever\n", TAG);
+    // These credentials are only a login gate for plain FTP. Replace them
+    // with device/user-specific credentials before exposing FTP. This library
+    // is not SFTP and does not encrypt control, credentials, or file data.
+    if (!FtpServer::start(MicroSdCard::fs(), FTP_USER, FTP_PASSWORD))
+    {
+        Serial.printf("%s: FTP server init failed\n", TAG);
+        idle_forever();
+    }
+
+    Serial.printf("%s: HTTP and FTP servers ready, FTP user=\"%s\", spinning forever\n", TAG, FTP_USER);
     idle_forever();
 }

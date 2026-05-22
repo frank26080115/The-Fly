@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 #include <SPI.h>
+#include <SdFat.h>
 
 #include "ClockAgent.h"
 #include "DiskStats.h"
