@@ -336,7 +336,7 @@ def asset_array_lines(asset: Asset) -> list[str]:
     lines = [
         f"#define {asset.macro_name}_CSIZE {len(asset.gzip_payload)}",
         f"#define {asset.macro_name}_USIZE {len(asset.raw_payload)}",
-        f"static const uint8_t {asset.array_name}[{asset.macro_name}_CSIZE] = {{",
+        f"static const uint8_t {asset.array_name}[{asset.macro_name}_CSIZE] = PROGMEM {{",
     ]
     lines.extend(byte_lines(asset.gzip_payload))
     lines.extend(("};", ""))
@@ -358,7 +358,7 @@ def header_text(assets: list[Asset]) -> str:
     lines.extend(
         (
             f"#define WEB_ASSETS_CNT {len(assets)}",
-            "static const web_asset_desc_t web_assets_list[WEB_ASSETS_CNT] = {",
+            "static const web_asset_desc_t web_assets_list[WEB_ASSETS_CNT] PROGMEM = {",
         )
     )
 
