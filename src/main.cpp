@@ -33,6 +33,7 @@ extern bool show_recording_view_bluetooth();
 extern bool show_recording_view_memo();
 extern ScrollView* get_scroll_view();
 extern ModalDialog* get_modal_dialog();
+extern void show_main_memo_starting_feedback();
 
 void onclick_scroll_exit(uint32_t pressDurationMs);
 void onclick_bluetooth_host(int32_t value, uint32_t pressDurationMs);
@@ -422,6 +423,7 @@ void onclick_main_memo(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     ESP_LOGI(MAINTAG, "main screen memo selected");
+    show_main_memo_starting_feedback();
     if (!show_recording_view_memo())
     {
         ESP_LOGE(MAINTAG, "failed to start memo recording view");

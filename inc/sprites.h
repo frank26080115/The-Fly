@@ -91,6 +91,11 @@ extern const uint8_t sprit_home_100[];
 #define SPRIT_HOME_WIFI_100_BYTES 14471u
 extern const uint8_t sprit_home_wifi_100[];
 
+#define SPRIT_HOURGLASS_30_OVERLAY_WIDTH 30u
+#define SPRIT_HOURGLASS_30_OVERLAY_HEIGHT 30u
+#define SPRIT_HOURGLASS_30_OVERLAY_BYTES 2259u
+extern const uint8_t sprit_hourglass_30_overlay[];
+
 #define SPRIT_HOURGLASS_60_1_WIDTH 60u
 #define SPRIT_HOURGLASS_60_1_HEIGHT 60u
 #define SPRIT_HOURGLASS_60_1_BYTES 4260u

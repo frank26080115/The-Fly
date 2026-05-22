@@ -26,6 +26,7 @@ constexpr int16_t kExitButtonX  = 210;
 constexpr int16_t kSideButtonX  = 260;
 constexpr int16_t kBluetoothY   = FlyGui::kTopBarHeight + 10;
 constexpr int16_t kSideButtonY  = 70;
+constexpr int16_t kSideTouchSize = 100;
 constexpr int16_t kTextX        = 16;
 constexpr int16_t kFileTextY    = 28;
 constexpr int16_t kElapsedTextY = 62;
@@ -151,6 +152,31 @@ void RecordingView::onLoad()
 void RecordingView::onUnload()
 {
     FlyGuiView::onUnload();
+}
+
+bool RecordingView::handleTouch(const FlyGuiTouchEvent& event)
+{
+    const int16_t sideTouchX = thefly_display.width() - kSideTouchSize;
+    const bool sideTouchHit = event.x >= sideTouchX &&
+                              event.x < thefly_display.width() &&
+                              event.y >= 0 &&
+                              event.y < kSideTouchSize;
+
+    if (sideTouchHit)
+    {
+        FlyGuiItem& sideButton = mode_ == Mode::Bluetooth
+                                     ? static_cast<FlyGuiItem&>(answerCallButton_)
+                                     : static_cast<FlyGuiItem&>(memoTypeButton_);
+        FlyGuiTouchEvent sideEvent = event;
+        sideEvent.x = sideButton.x() + sideButton.width() / 2;
+        sideEvent.y = sideButton.y() + sideButton.height() / 2;
+        if (sideButton.handleTouch(sideEvent))
+        {
+            return true;
+        }
+    }
+
+    return FlyGuiView::handleTouch(event);
 }
 
 void RecordingView::redraw(bool forced)

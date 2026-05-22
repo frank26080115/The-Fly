@@ -1,6 +1,7 @@
 #include "MainScreenView.h"
 
 #include "BtHostList.h"
+#include "SpriteDraw.h"
 #include "sprites.h"
 
 extern BtHostList* bt_host_list;
@@ -88,6 +89,23 @@ void MainScreenView::onPressMid()
 void MainScreenView::onPressRight()
 {
     wifiItem_.trigger();
+}
+
+void MainScreenView::showMemoStartingFeedback()
+{
+    FlyGui::quickScreenFade();
+
+    const int16_t hourglassX = memoItem_.x() +
+                               static_cast<int16_t>((memoItem_.width() - static_cast<int32_t>(SPRIT_HOURGLASS_30_OVERLAY_WIDTH)) / 2);
+    const int16_t hourglassY = memoItem_.y() +
+                               static_cast<int16_t>((memoItem_.height() - static_cast<int32_t>(SPRIT_HOURGLASS_30_OVERLAY_HEIGHT)) / 2);
+    SpriteDraw::drawPng(sprit_hourglass_30_overlay,
+                        SPRIT_HOURGLASS_30_OVERLAY_BYTES,
+                        hourglassX,
+                        hourglassY,
+                        SPRIT_HOURGLASS_30_OVERLAY_WIDTH,
+                        SPRIT_HOURGLASS_30_OVERLAY_HEIGHT,
+                        true);
 }
 
 void MainScreenView::syncBluetoothHostButtonFades()

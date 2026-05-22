@@ -10,8 +10,18 @@ and then some existing functionality needs to be re-implemented during the migra
 namespace MicroSdCard
 {
 
+enum class Health
+{
+    Ready,
+    NotReady,
+    MissingOrUnreadable,
+    Full,
+};
+
 bool begin();
 bool isReady();
+Health health();
+const char* healthName(Health health);
 
 SdFs& fs();
 

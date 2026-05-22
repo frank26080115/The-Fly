@@ -14,6 +14,8 @@ public:
     void onPressMid() override;
     void onPressRight() override;
 
+    void showMemoStartingFeedback();
+
 private:
     void syncBluetoothHostButtonFades();
 

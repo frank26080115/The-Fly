@@ -100,6 +100,30 @@ void reset_fifo_flags(AudioFifo& fifo)
 
 bool recording_file_ready_locked();
 
+void fatal_recording_storage_failure(const char* context, const char* readyMessage)
+{
+    const MicroSdCard::Health health = MicroSdCard::health();
+    DBG_LOGE(TAG,
+             "microSD recording storage failure while %s: health=%s",
+             context ? context : "starting recording",
+             MicroSdCard::healthName(health));
+
+    switch (health)
+    {
+    case MicroSdCard::Health::NotReady:
+    case MicroSdCard::Health::MissingOrUnreadable:
+        show_fatal_error_f(true, "microSD card is missing or unreadable");
+        break;
+    case MicroSdCard::Health::Full:
+        show_fatal_error_f(true, "microSD card is full");
+        break;
+    case MicroSdCard::Health::Ready:
+    default:
+        show_fatal_error_f(true, "%s", readyMessage ? readyMessage : "microSD recording storage failed");
+        break;
+    }
+}
+
 void update_write_duration_stats(uint32_t duration_us)
 {
     const bool exceeded_threshold = duration_us > kWriteDurationThresholdUs;
@@ -247,7 +271,7 @@ bool write_packet(AudioFifo& fifo, filepkt_src_e source)
         lock.unlock();
         if (fatal_card_failure)
         {
-            show_fatal_error_f(true, "microSD card failed");
+            fatal_recording_storage_failure("writing recording packet", "microSD recording write failed");
         }
         return false;
     }
@@ -391,6 +415,7 @@ bool startRecording(char typeCode)
     if (!MicroSdCard::isReady())
     {
         DBG_LOGE(TAG, "microSD card is not ready");
+        show_fatal_error_f(true, "microSD card is missing or unreadable");
         return false;
     }
 
@@ -400,6 +425,7 @@ bool startRecording(char typeCode)
     g_mic_fifo ->clear();
 
     char started_path[sizeof(g_sd_path)] = {};
+    bool recording_file_opened = false;
     {
         std::lock_guard<std::mutex> pump_lock(g_pump_mutex);
         g_next_source_toggle = true;
@@ -412,21 +438,28 @@ bool startRecording(char typeCode)
         if (!g_file.open(g_sd_path, O_RDWR | O_CREAT | O_TRUNC))
         {
             DBG_LOGE(TAG, "open failed: %s", g_sd_path);
-            return false;
         }
-
+        else
+        {
 #ifdef ENABLE_FILE_PREALLOCATION
-    // preallocate file space to avoid unexpected latency for editing file table entry
-        grow_file(g_file, max_prealloc_size());
+            // preallocate file space to avoid unexpected latency for editing file table entry
+            grow_file(g_file, max_prealloc_size());
 #endif
 
-        g_bytes_written  = 0;
-        g_sequence_num   = 0;
-        g_last_flush_ms  = millis();
-        g_consecutive_write_failures = 0;
-        g_card_failure_reported      = false;
-        g_recording      = true;
-        strncpy(started_path, g_sd_path, sizeof(started_path) - 1);
+            g_bytes_written  = 0;
+            g_sequence_num   = 0;
+            g_last_flush_ms  = millis();
+            g_consecutive_write_failures = 0;
+            g_card_failure_reported      = false;
+            g_recording      = true;
+            recording_file_opened = true;
+            strncpy(started_path, g_sd_path, sizeof(started_path) - 1);
+        }
+    }
+    if (!recording_file_opened)
+    {
+        fatal_recording_storage_failure("opening recording file", "microSD recording file open failed");
+        return false;
     }
     set_queue_enabled(true); // actually start recording
     DBG_LOGI(TAG, "recording started: %s", started_path);

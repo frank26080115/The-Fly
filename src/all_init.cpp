@@ -158,6 +158,11 @@ ModalDialog* get_modal_dialog()
     return &g_modal_dialog;
 }
 
+void show_main_memo_starting_feedback()
+{
+    g_main_screen_view.showMemoStartingFeedback();
+}
+
 uint16_t conn_waiting_return_view_id()
 {
     return g_conn_waiting_return_view_id;

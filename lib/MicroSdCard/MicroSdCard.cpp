@@ -117,6 +117,45 @@ bool isReady()
     return g_ready;
 }
 
+Health health()
+{
+    if (!g_ready || !g_sd.card())
+    {
+        return Health::NotReady;
+    }
+
+    cid_t cid = {};
+    if (!g_sd.card()->readCID(&cid))
+    {
+        ESP_LOGE(TAG, "microSD card probe failed: error=0x%02X data=0x%02X", g_sd.sdErrorCode(), g_sd.sdErrorData());
+        return Health::MissingOrUnreadable;
+    }
+
+    if (freeBytes() == 0)
+    {
+        return Health::Full;
+    }
+
+    return Health::Ready;
+}
+
+const char* healthName(Health health)
+{
+    switch (health)
+    {
+    case Health::Ready:
+        return "Ready";
+    case Health::NotReady:
+        return "NotReady";
+    case Health::MissingOrUnreadable:
+        return "MissingOrUnreadable";
+    case Health::Full:
+        return "Full";
+    default:
+        return "Unknown";
+    }
+}
+
 SdFs& fs()
 {
     return g_sd;
