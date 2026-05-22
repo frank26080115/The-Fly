@@ -82,13 +82,15 @@ If Stolen Recommended Action: unpair the old device from all Bluetooth hosts.
 
 ## Cloud Server
 
-The cloud server is a privately held virtual private server. It relies on its own security.
+The cloud server is a privately held virtual private server. It relies on its own security (such as user authentication, disk encryption, etc).
 
 The master-key will need to be stored on it. If the server is compromised, the master-key is considered compromised.
 
 The software should use a key-file, and if it is missing, ask the user for a password as a first time setup procedure.
 
 There will be unencrypted "*.wav" files stored on the server, and they will need to be transcribed by either a local AI or a cloud AI service. The transcription will need to be further analyzed by either a local AI or cloud AI service.
+
+The server implementation present in this repository is considered only demonstrative. It is up to the user how the server is setup in terms of user access and networking. It is up to the user how the unecrypted data is stored. The user may want to stream unecrypted data instead of ever letting it be saved to disk. This is outside the scope of this project.
 
 If Compromised: if the attacker actually gets the login credentials, this is bad, it's a complete compromise of the master-key and all encrypted files
 
