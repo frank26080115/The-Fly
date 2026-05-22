@@ -15,4 +15,5 @@ void run_test()
     //test_bootreadfiles();
     //test_fonts();
     //test_pmic();
+    test_webserver();
 }

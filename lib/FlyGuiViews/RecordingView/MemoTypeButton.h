@@ -17,5 +17,5 @@ public:
     char typeCode() const;
 
 private:
-    MemoType type_ = MemoType::Note;
+    MemoType type_ = MEMO_TYPE_NOTE;
 };

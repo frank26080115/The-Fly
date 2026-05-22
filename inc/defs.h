@@ -74,13 +74,24 @@ enum : uint8_t
     ICON_LAST
 };
 
-#ifdef __cplusplus
-enum class MemoType : uint8_t
+typedef enum
 {
-    Note,
-    Todo,
-    Journal,
-    Idea,
-    Reminder,
-};
-#endif
+    MEMO_TYPE_NOTE = 0,
+    MEMO_TYPE_TODO,
+    MEMO_TYPE_JOURNAL,
+    MEMO_TYPE_IDEA,
+    MEMO_TYPE_REMINDER,
+} MemoType;
+
+#define WEBASSET_FILENAME_LEN 64
+#define WEBASSET_MIMETYPE_LEN 64
+
+typedef struct
+{
+    char file_name[WEBASSET_FILENAME_LEN];
+    char mime_type[WEBASSET_MIMETYPE_LEN];
+    uint32_t uncompressed_size;
+    uint32_t compressed_size;
+    const uint8_t* ptr_payload;
+}
+web_asset_desc_t;

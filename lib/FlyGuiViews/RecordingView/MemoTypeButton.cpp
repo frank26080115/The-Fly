@@ -5,7 +5,7 @@
 MemoTypeButton::MemoTypeButton(int16_t x, int16_t y)
     : FlyGuiItem(x, y, SPRIT_MEMOTYPE_NOTE_WIDTH, SPRIT_MEMOTYPE_NOTE_HEIGHT)
 {
-    setMemoType(MemoType::Note);
+    setMemoType(MEMO_TYPE_NOTE);
 }
 
 void MemoTypeButton::setMemoType(MemoType type)
@@ -18,19 +18,19 @@ void MemoTypeButton::setMemoType(MemoType type)
     type_ = type;
     switch (type_)
     {
-    case MemoType::Todo:
+    case MEMO_TYPE_TODO:
         setSprite(sprit_memotype_todo, SPRIT_MEMOTYPE_TODO_WIDTH, SPRIT_MEMOTYPE_TODO_HEIGHT, SPRIT_MEMOTYPE_TODO_BYTES);
         break;
-    case MemoType::Journal:
+    case MEMO_TYPE_JOURNAL:
         setSprite(sprit_memotype_journal, SPRIT_MEMOTYPE_JOURNAL_WIDTH, SPRIT_MEMOTYPE_JOURNAL_HEIGHT, SPRIT_MEMOTYPE_JOURNAL_BYTES);
         break;
-    case MemoType::Idea:
+    case MEMO_TYPE_IDEA:
         setSprite(sprit_memotype_idea, SPRIT_MEMOTYPE_IDEA_WIDTH, SPRIT_MEMOTYPE_IDEA_HEIGHT, SPRIT_MEMOTYPE_IDEA_BYTES);
         break;
-    case MemoType::Reminder:
+    case MEMO_TYPE_REMINDER:
         setSprite(sprit_memotype_reminder, SPRIT_MEMOTYPE_REMINDER_WIDTH, SPRIT_MEMOTYPE_REMINDER_HEIGHT, SPRIT_MEMOTYPE_REMINDER_BYTES);
         break;
-    case MemoType::Note:
+    case MEMO_TYPE_NOTE:
     default:
         setSprite(sprit_memotype_note, SPRIT_MEMOTYPE_NOTE_WIDTH, SPRIT_MEMOTYPE_NOTE_HEIGHT, SPRIT_MEMOTYPE_NOTE_BYTES);
         break;
@@ -41,21 +41,21 @@ void MemoTypeButton::cycleNext()
 {
     switch (type_)
     {
-    case MemoType::Note:
-        setMemoType(MemoType::Todo);
+    case MEMO_TYPE_NOTE:
+        setMemoType(MEMO_TYPE_TODO);
         break;
-    case MemoType::Todo:
-        setMemoType(MemoType::Journal);
+    case MEMO_TYPE_TODO:
+        setMemoType(MEMO_TYPE_JOURNAL);
         break;
-    case MemoType::Journal:
-        setMemoType(MemoType::Idea);
+    case MEMO_TYPE_JOURNAL:
+        setMemoType(MEMO_TYPE_IDEA);
         break;
-    case MemoType::Idea:
-        setMemoType(MemoType::Reminder);
+    case MEMO_TYPE_IDEA:
+        setMemoType(MEMO_TYPE_REMINDER);
         break;
-    case MemoType::Reminder:
+    case MEMO_TYPE_REMINDER:
     default:
-        setMemoType(MemoType::Note);
+        setMemoType(MEMO_TYPE_NOTE);
         break;
     }
 }
@@ -64,15 +64,15 @@ char MemoTypeButton::typeCode() const
 {
     switch (type_)
     {
-    case MemoType::Todo:
+    case MEMO_TYPE_TODO:
         return 'T';
-    case MemoType::Journal:
+    case MEMO_TYPE_JOURNAL:
         return 'J';
-    case MemoType::Idea:
+    case MEMO_TYPE_IDEA:
         return 'I';
-    case MemoType::Reminder:
+    case MEMO_TYPE_REMINDER:
         return 'R';
-    case MemoType::Note:
+    case MEMO_TYPE_NOTE:
     default:
         return 'M';
     }

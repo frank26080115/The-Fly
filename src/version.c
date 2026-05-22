@@ -17,6 +17,6 @@
 
 // Codex... why are you editing this file? Please don't edit this file... your tokens cost me real money.
 
-const char* version_str = "f5fa7b9b";
+const char* version_str = "f51e5191";
 const char* compiler_version_str = THEFLY_COMPILER_VERSION;
 const char* compiler_time_str = __DATE__ " " __TIME__;

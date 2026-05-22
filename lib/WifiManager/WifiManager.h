@@ -27,7 +27,9 @@ cloud_item_t;
 class WifiManager
 {
 public:
-    static constexpr size_t kNtpServerCount = 3;
+    static constexpr size_t kNtpServerCount             = 3;
+    static constexpr size_t kGeneratedSoftApSsidLength = 12;
+    static constexpr size_t kGeneratedSoftApPasswordLength = 12;
 
     enum class LoadResult
     {
@@ -79,6 +81,7 @@ public:
 
     bool connectToHotspot(const wifi_item_t* hotspot);
     bool startSoftAp(const wifi_item_t* access_point);
+    bool startGeneratedSoftAp();
     bool scanAndConnect();
     bool disconnect();
     void poll();
@@ -89,6 +92,8 @@ public:
     void setOnScanFinished(ScanFinishedCallback callback);
     const wifi_item_t* activeWifi() const;
     const wifi_item_t* connectedWifi() const;
+    const char* generatedSoftApSsid() const;
+    const char* softApPassword() const;
 
     size_t        cloudEndpointCount() const;
     cloud_item_t* cloudEndpoint(size_t index);
@@ -122,4 +127,7 @@ private:
     ConnectionCallback m_on_connect                = nullptr;
     ConnectionCallback m_on_disconnect             = nullptr;
     ScanFinishedCallback m_on_scan_finished        = nullptr;
+    char          m_generated_soft_ap_ssid[kGeneratedSoftApSsidLength + 1] = {};
+    char          m_generated_soft_ap_password[kGeneratedSoftApPasswordLength + 1] = {};
+    wifi_item_t   m_generated_soft_ap              = {};
 };

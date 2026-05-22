@@ -13,6 +13,8 @@
 #include "IconLookup.h"
 #include "MicroSdCard.h"
 #include "esp_log.h"
+#include "esp_mac.h"
+#include "esp_random.h"
 
 namespace
 {
@@ -26,6 +28,17 @@ constexpr const char* kDefaultNtpServers[] = {
     "time.nist.gov",
     "time.google.com",
 };
+constexpr char kGeneratedSoftApPasswordAlphabet[] = "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+#if defined(CORE_DEBUG_LEVEL)
+constexpr int kWifiCoreDebugLevel = CORE_DEBUG_LEVEL;
+#else
+constexpr int kWifiCoreDebugLevel = static_cast<int>(ESP_LOG_NONE);
+#endif
+
+constexpr bool kWifiDebugBuild =
+    static_cast<int>(LOG_LOCAL_LEVEL) > static_cast<int>(ESP_LOG_ERROR) ||
+    kWifiCoreDebugLevel > static_cast<int>(ESP_LOG_ERROR);
 
 const char* result_name(WifiManager::LoadResult result)
 {
@@ -288,6 +301,43 @@ void shutdown_for_wifi_activation()
     {
         ESP_LOGW(TAG, "audio file recorder did not stop cleanly before Wi-Fi activation");
     }
+}
+
+void format_generated_soft_ap_ssid(char* ssid, size_t ssid_size)
+{
+    uint8_t mac[6] = {};
+    if (esp_read_mac(mac, ESP_MAC_BT) != ESP_OK)
+    {
+        snprintf(ssid, ssid_size, "The-Fly-0000");
+        return;
+    }
+
+    snprintf(ssid, ssid_size, "The-Fly-%02X%02X", mac[4], mac[5]);
+}
+
+void format_generated_soft_ap_password(char* password, size_t password_size)
+{
+    if (!password || password_size == 0)
+    {
+        return;
+    }
+
+    if (kWifiDebugBuild)
+    {
+        strlcpy(password, "12345678", password_size);
+        return;
+    }
+
+    const size_t output_size = password_size - 1;
+    uint8_t random_bytes[WifiManager::kGeneratedSoftApPasswordLength] = {};
+    esp_fill_random(random_bytes, sizeof(random_bytes));
+
+    const size_t alphabet_size = sizeof(kGeneratedSoftApPasswordAlphabet) - 1;
+    for (size_t i = 0; i < output_size; ++i)
+    {
+        password[i] = kGeneratedSoftApPasswordAlphabet[random_bytes[i % sizeof(random_bytes)] % alphabet_size];
+    }
+    password[output_size] = '\0';
 }
 
 } // namespace
@@ -667,6 +717,18 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     return true;
 }
 
+bool WifiManager::startGeneratedSoftAp()
+{
+    format_generated_soft_ap_ssid(m_generated_soft_ap_ssid, sizeof(m_generated_soft_ap_ssid));
+    format_generated_soft_ap_password(m_generated_soft_ap_password, sizeof(m_generated_soft_ap_password));
+
+    m_generated_soft_ap.ssid      = m_generated_soft_ap_ssid;
+    m_generated_soft_ap.password  = m_generated_soft_ap_password;
+    m_generated_soft_ap.icon      = ICON_WIFIAP;
+    m_generated_soft_ap.next_node = nullptr;
+    return startSoftAp(&m_generated_soft_ap);
+}
+
 bool WifiManager::scanAndConnect()
 {
     if (m_status == Status::StationScanning)
@@ -855,6 +917,21 @@ const wifi_item_t* WifiManager::activeWifi() const
 const wifi_item_t* WifiManager::connectedWifi() const
 {
     return m_connected_wifi;
+}
+
+const char* WifiManager::generatedSoftApSsid() const
+{
+    return m_generated_soft_ap_ssid[0] != '\0' ? m_generated_soft_ap_ssid : nullptr;
+}
+
+const char* WifiManager::softApPassword() const
+{
+    if (status() != Status::AccessPoint || !m_active_wifi || !m_active_wifi->password || m_active_wifi->password[0] == '\0')
+    {
+        return nullptr;
+    }
+
+    return m_active_wifi->password;
 }
 
 void WifiManager::notifyConnected(const wifi_item_t* item)

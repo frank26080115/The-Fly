@@ -19,3 +19,4 @@ extern void test_imu();
 extern void test_bootreadfiles();
 extern void test_fonts();
 extern void test_pmic();
+extern void test_webserver();

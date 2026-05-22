@@ -311,15 +311,15 @@ const char* memo_type_to_string(MemoType type)
 {
     switch (type)
     {
-    case MemoType::Note:
+    case MEMO_TYPE_NOTE:
         return "note";
-    case MemoType::Todo:
+    case MEMO_TYPE_TODO:
         return "todo";
-    case MemoType::Journal:
+    case MEMO_TYPE_JOURNAL:
         return "journal";
-    case MemoType::Idea:
+    case MEMO_TYPE_IDEA:
         return "idea";
-    case MemoType::Reminder:
+    case MEMO_TYPE_REMINDER:
         return "reminder";
     default:
         return "unknown";
