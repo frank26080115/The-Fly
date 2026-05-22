@@ -41,7 +41,7 @@ constexpr bool kWifiDebugBuild =
     static_cast<int>(LOG_LOCAL_LEVEL) > static_cast<int>(ESP_LOG_ERROR) ||
     kWifiCoreDebugLevel > static_cast<int>(ESP_LOG_ERROR);
 
-const char* result_name(WifiManager::LoadResult result)
+const char* load_result_tostring(WifiManager::LoadResult result)
 {
     switch (result)
     {
@@ -91,20 +91,6 @@ const char* status_name(WifiManager::Status status)
     default:
         return "Unknown";
     }
-}
-
-char* clone_string(const char* value)
-{
-    const char* safe_value = value ? value : "";
-    const size_t length    = strlen(safe_value);
-    char*        clone     = static_cast<char*>(malloc(length + 1));
-    if (!clone)
-    {
-        return nullptr;
-    }
-
-    memcpy(clone, safe_value, length + 1);
-    return clone;
 }
 
 bool replace_string(char*& dst, const char* value)
@@ -982,5 +968,5 @@ WifiManager::LoadResult WifiManager::lastResult() const
 
 const char* WifiManager::lastResultName() const
 {
-    return result_name(m_last_result);
+    return load_result_tostring(m_last_result);
 }

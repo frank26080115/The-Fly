@@ -260,10 +260,6 @@ bool write_packet(AudioFifo& fifo, filepkt_src_e source)
     }
     #endif
 
-    #ifdef BUILD_WITH_SECURITY_AUTHENTICATE
-    // TODO: compute `packet.auth_tag`
-    #endif
-
     if (g_file.write(data_ptr, data_sz) != data_sz)
     {
         DBG_LOGE(TAG, "packet write failed");

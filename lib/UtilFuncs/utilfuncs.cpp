@@ -137,6 +137,20 @@ size_t trimmed_length(const char* text)
     return len;
 }
 
+char* clone_string(const char* text)
+{
+    const char* safe_text = text ? text : "";
+    const size_t len      = strlen(safe_text);
+    char*        clone    = static_cast<char*>(malloc(len + 1));
+    if (!clone)
+    {
+        return nullptr;
+    }
+
+    memcpy(clone, safe_text, len + 1);
+    return clone;
+}
+
 char* clone_trimmed_string(const char* text)
 {
     text             = trim_start(text);
@@ -227,6 +241,42 @@ void format_bytes(uint64_t bytes, char* out, size_t out_size)
 
     const uint64_t value = scale == 1 ? bytes : (bytes + (scale / 2ULL)) / scale;
     snprintf(out, out_size, "%llu%s", static_cast<unsigned long long>(value), unit);
+}
+
+void format_uint64_alphanumeric(uint64_t value, bool allow_lowercase, size_t min_length, char* out, size_t out_size)
+{
+    if (!out || out_size == 0)
+    {
+        return;
+    }
+
+    constexpr char kUppercaseDigits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    constexpr char kMixedCaseDigits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    const char*    digits              = allow_lowercase ? kMixedCaseDigits : kUppercaseDigits;
+    const uint64_t base                = allow_lowercase ? sizeof(kMixedCaseDigits) - 1 : sizeof(kUppercaseDigits) - 1;
+
+    char   reversed[sizeof(uint64_t) * 8 + 1];
+    size_t digit_count = 0;
+    do
+    {
+        reversed[digit_count++] = digits[value % base];
+        value /= base;
+    } while (value != 0);
+
+    const size_t pad_count   = digit_count < min_length ? min_length - digit_count : 0;
+    const size_t write_limit = out_size - 1;
+    size_t       written     = 0;
+    while (written < pad_count && written < write_limit)
+    {
+        out[written++] = '0';
+    }
+
+    for (size_t i = digit_count; i > 0 && written < write_limit; --i)
+    {
+        out[written++] = reversed[i - 1];
+    }
+
+    out[written] = '\0';
 }
 
 bool parse_hex_byte(const char* text, uint8_t& value)

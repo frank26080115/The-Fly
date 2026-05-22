@@ -20,7 +20,7 @@ constexpr const char* TAG              = "BtHostList";
 constexpr const char* kDefaultPath     = "/bluetooth.json";
 constexpr size_t      kMaxJsonFileSize = 16 * 1024;
 
-const char* result_name(BtHostList::LoadResult result)
+const char* load_result_tostring(BtHostList::LoadResult result)
 {
     switch (result)
     {
@@ -53,21 +53,9 @@ const char* result_name(BtHostList::LoadResult result)
     }
 }
 
-char* clone_string(const char* value)
-{
-    const char* safe_value = value ? value : "";
-    const size_t length    = strlen(safe_value);
-    char*        clone     = static_cast<char*>(malloc(length + 1));
-    if (!clone)
-    {
-        return nullptr;
-    }
-    memcpy(clone, safe_value, length + 1);
-    return clone;
-}
-
 bt_host_item_t* create_host(const char* name, const esp_bd_addr_t bdaddr, uint8_t icon)
 {
+    #ifndef BUILD_WITH_SECURITY
     bt_host_item_t* item = static_cast<bt_host_item_t*>(calloc(1, sizeof(bt_host_item_t)));
     if (!item)
     {
@@ -86,10 +74,14 @@ bt_host_item_t* create_host(const char* name, const esp_bd_addr_t bdaddr, uint8_
     item->icon      = icon;
     item->next_node = nullptr;
     return item;
+    #else
+    return NULL;
+    #endif
 }
 
 bt_host_item_t* find_host(bt_host_item_t* head, const esp_bd_addr_t bdaddr)
 {
+    #ifndef BUILD_WITH_SECURITY
     bt_host_item_t* item = head;
     while (item)
     {
@@ -99,11 +91,14 @@ bt_host_item_t* find_host(bt_host_item_t* head, const esp_bd_addr_t bdaddr)
         }
         item = static_cast<bt_host_item_t*>(item->next_node);
     }
+    #else // BUILD_WITH_SECURITY
+    #endif
     return nullptr;
 }
 
 const bt_host_item_t* find_host_by_icon(const bt_host_item_t* head, uint8_t icon)
 {
+    #ifndef BUILD_WITH_SECURITY
     const bt_host_item_t* item = head;
     while (item)
     {
@@ -113,6 +108,8 @@ const bt_host_item_t* find_host_by_icon(const bt_host_item_t* head, uint8_t icon
         }
         item = static_cast<bt_host_item_t*>(item->next_node);
     }
+    #else // BUILD_WITH_SECURITY
+    #endif
     return nullptr;
 }
 
@@ -142,6 +139,7 @@ BtHostList::~BtHostList()
     clear();
 }
 
+#ifndef BUILD_WITH_SECURITY
 bool BtHostList::loadFromMicroSd(const char* path)
 {
     clear();
@@ -324,9 +322,11 @@ bool BtHostList::saveToMicroSd(bool allowEmpty)
     ESP_LOGI(TAG, "saved %u bluetooth hosts to %s", static_cast<unsigned>(m_size), m_path);
     return true;
 }
+#endif
 
 bool BtHostList::pruneBonds()
 {
+    #ifndef BUILD_WITH_SECURITY
     const int bonded_count = esp_bt_gap_get_bond_device_num();
     if (bonded_count == ESP_ERR_INVALID_STATE)
     {
@@ -384,10 +384,14 @@ bool BtHostList::pruneBonds()
 
     ESP_LOGI(TAG, "pruned %d bluetooth bonds", pruned);
     return ok;
+    #else // BUILD_WITH_SECURITY
+    return false;
+    #endif
 }
 
 bool BtHostList::insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t icon)
 {
+    #ifndef BUILD_WITH_SECURITY
     m_last_result = LoadResult::Ok;
 
     bt_host_item_t* existing = find_host(m_head, bdaddr);
@@ -434,10 +438,15 @@ bool BtHostList::insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t ic
     m_tail = item;
     ++m_size;
     return true;
+
+    #else // BUILD_WITH_SECURITY
+    return false;
+    #endif
 }
 
 bool BtHostList::remove(size_t index, bool removeBond)
 {
+    #ifndef BUILD_WITH_SECURITY
     m_last_result = LoadResult::Ok;
 
     if (m_destroyed)
@@ -497,10 +506,14 @@ bool BtHostList::remove(size_t index, bool removeBond)
 
     ESP_LOGI(TAG, "removed bluetooth host %s", mac);
     return true;
+    #else
+    return false;
+    #endif
 }
 
 void BtHostList::clear()
 {
+    #ifndef BUILD_WITH_SECURITY
     bt_host_item_t* item = m_head;
     while (item)
     {
@@ -513,15 +526,23 @@ void BtHostList::clear()
     m_head = nullptr;
     m_tail = nullptr;
     m_size = 0;
+    #else // BUILD_WITH_SECURITY
+
+    #endif
 }
 
 size_t BtHostList::size() const
 {
+    #ifndef BUILD_WITH_SECURITY
     return m_size;
+    #else // BUILD_WITH_SECURITY
+    return 0;
+    #endif
 }
 
 bt_host_item_t* BtHostList::get(size_t index)
 {
+    #ifndef BUILD_WITH_SECURITY
     bt_host_item_t* item = m_head;
     while (item && index > 0)
     {
@@ -529,10 +550,14 @@ bt_host_item_t* BtHostList::get(size_t index)
         --index;
     }
     return item;
+    #else
+    return NULL;
+    #endif
 }
 
 const bt_host_item_t* BtHostList::get(size_t index) const
 {
+    #ifndef BUILD_WITH_SECURITY
     const bt_host_item_t* item = m_head;
     while (item && index > 0)
     {
@@ -540,6 +565,9 @@ const bt_host_item_t* BtHostList::get(size_t index) const
         --index;
     }
     return item;
+    #else // BUILD_WITH_SECURITY
+    return NULL;
+    #endif
 }
 
 bt_host_item_t* BtHostList::getFirstPhone()
@@ -569,5 +597,5 @@ BtHostList::LoadResult BtHostList::lastResult() const
 
 const char* BtHostList::lastResultName() const
 {
-    return result_name(m_last_result);
+    return load_result_tostring(m_last_result);
 }
