@@ -1,23 +1,13 @@
-There shall be a `wifi.json` file on the microSD card.
+Wi-Fi is used for administration, for uploading recordings to the cloud, and for using NTP to sync the clock
 
- * a timezone is specified as a TZ string
- * three NTP servers listed
- * a list of station SSIDs and passwords
- * a SSID and password to use if enabling access point mode
- * a list of cloud upload URLs and associated username and password
+The user first chooses how to connect: automatic (scan for known SSIDs and automatically connect), connect to specific known SSID, and use a built-in soft-AP.
 
-If the user chooses to launch the access point mode, then only FTP is enabled, as there is no internet to do much else anyways.
+After the Wi-Fi connection is established, then the user can select an action, such as upload to cloud, and sync with NTP.
 
-Otherwise, the user can choose any one of the Wi-Fi routers to connect to. When successful, the FTP server starts to run, and also, the user is presented with the option to sync time with NTP, and to pick a cloud upload destination (up to 2).
+The web server for administration and file download is always running in the background.
 
-Starting any Wi-Fi mode first stops audio, closes any active recording, disconnects Bluetooth, and shuts down the Bluetooth stack. Bluetooth and recording stay inactive while Wi-Fi is active.
+Cloud upload procedure is to be described in another document.
 
-A file named `upload-history.txt` tracks which files have been uploaded, one file name per line. Do not upload any files that have been uploaded already. Only add a file to the list after completion of upload.
+A file named `cloud_history.txt` tracks which files have been uploaded, one file name per line. Do not upload any files that have been uploaded already. Only add a file to the list after completion of upload.
 
-The upload is a simple HTTPS form submission, it includes the file, and another field for the file name itself (even if it is redundant), the username, and a hash.
-
-The password is never sent as plaintext. The hash is a SHA-1 hash over the combination of the username and file name.
-
-(the username is used more like an identifier of this particular The Fly device)
-
-while uploading, show the uploading file name, and then two progress bars. The first progress bar is the upload progress of the current file. The second progress bar is the overall progress for all files.
+When Wi-Fi is shutdown by the user, the whole device simply reboots.

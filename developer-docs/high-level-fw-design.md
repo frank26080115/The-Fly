@@ -28,7 +28,7 @@ The Bluetooth audio path is HFP and negotiates one of two audio modes: CVSD/narr
 
 For the local audio pipeline and recording format, both modes become signed 16-bit little-endian mono PCM.
 
-When using CVSD, the local PCM sample rate is 8 kHz.
+When using CVSD, the local PCM sample rate is 8 kHz but it is upsampled to 16 kHz immediately.
 
 When using mSBC, the Bluetooth stack being used already handles encoding and decoding, local PCM sample rate is 16 kHz.
 

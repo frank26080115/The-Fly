@@ -1,4 +1,4 @@
-There is a JSON file called `bluetooth.json` on the microSD card. This file contains multiple hosts. Each host is described by a friendly name and a MAC address.
+The device has an internally known list of Bluetooth hosts, along with their friendly names.
 
 The GUI is populated with this list, the user can choose one of these hosts to connect to, or enable pairing mode.
 
@@ -8,7 +8,7 @@ Pairing mode temporarily makes the device discoverable as well as connectable. A
 
 If a connection is established, then proceed.
 
-If pairing is established, this JSON file is updated with the new entry. If the host's name is not available, the user can always edit the JSON file later. The name in the JSON file takes priority.
+If pairing is established, the internal memory is updated. If the device has no known name internally and the name can be retrieved, then the name is saved. If the name has been edited by the user already, the name is not overwritten by pairing.
 
 After connecting, a new audio file recording is started. The file name follows our naming convention.
 
@@ -22,8 +22,7 @@ During recording, the GUI is showing
  * current date and time
  * battery status
  * current recording length
- * connected bluetooth device name
+ * context information (maybe it's the BT name, the caller name if available, etc)
  * mute/unmute status
  * output volume
  * mic level peaking meter
- * hints to what each button does

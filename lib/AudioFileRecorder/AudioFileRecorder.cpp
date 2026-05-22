@@ -232,10 +232,7 @@ bool write_packet(AudioFifo& fifo, filepkt_src_e source)
     #ifdef BUILD_WITH_SECURITY
     if (!g_pure_pcm_mode) // g_pure_pcm_mode is only for testing
     {
-        // TODO: encrypt the payload
-        // DO NOT ENCRYPT THE HEADER
-        // it's much harder for an attacker to see if they've decrypted just the payload correctly
-        // as it is easy to spot a correctly decrypted header
+        // TODO: encrypt the entire packet
     }
     #endif
 

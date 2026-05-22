@@ -44,11 +44,6 @@ typedef struct __attribute__((packed))
     uint32_t fifo_cnt;       // count before dequeue
     uint16_t payload_length; // length of payload, up to the max allowed
     uint16_t payload[FILE_PACKET_PAYLOAD_MAX];
-
-    #ifdef BUILD_WITH_SECURITY_AUTHENTICATE
-    // authentication signature
-    uint8_t auth_tag[SECURITY_AUTH_TAG_SIZE];
-    #endif
 }
 file_packet_t;
 
