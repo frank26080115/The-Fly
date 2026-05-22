@@ -5,6 +5,9 @@
 #include <memory>
 #include <string.h>
 
+#ifdef BUILD_FTP_SERVER
+#include "FtpServer.h"
+#endif
 #include "MicroSdCard.h"
 #include "esp_log.h"
 #include "web_assets.h"
@@ -14,6 +17,13 @@ namespace
 
 constexpr const char* TAG = "WebServer";
 constexpr size_t      kFileNameBufferSize = 256;
+
+#ifdef BUILD_FTP_SERVER
+// This is only a login gate for plain FTP. Replace these credentials before
+// exposing FTP; this library is not SFTP and does not encrypt its traffic.
+constexpr const char* kFtpUser     = "thefly";
+constexpr const char* kFtpPassword = "replace-me";
+#endif
 
 AsyncWebServer g_server(80);
 bool           g_initialized = false;
@@ -402,8 +412,19 @@ bool WebServer::init()
     g_server.on(AsyncURIMatcher::exact("/list_files.json"), HTTP_GET, send_micro_sd_file_list);
     ESP_LOGI(TAG, "registered microSD file list GET /list_files.json");
 
+#ifdef BUILD_FTP_SERVER
+    if (!FtpServer::start(MicroSdCard::fs(), kFtpUser, kFtpPassword))
+    {
+        ESP_LOGE(TAG, "FTP server start failed");
+        return false;
+    }
+
+    ESP_LOGI(TAG, "FTP server started");
+#endif
+
     g_server.begin();
     g_initialized = true;
     ESP_LOGI(TAG, "web server started");
+
     return true;
 }

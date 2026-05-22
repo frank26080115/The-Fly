@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "esp_log.h"
+#include "esp_random.h"
 
 namespace
 {
@@ -399,4 +400,29 @@ void requestRebootWithFlag(uint32_t flag)
 
     delay(10);     // let stores settle; tiny paranoia tax
     ESP.restart(); // whole-chip software reset
+}
+
+uint32_t generate_8_digit_nounce()
+{
+    while (true)
+    {
+        uint32_t x = esp_random();
+        x %= 100000000;
+
+        uint32_t hash_input = x >> 8;
+        uint8_t  hash       = 0xA5;
+        for (uint8_t i = 0; i < 3; ++i)
+        {
+            hash ^= static_cast<uint8_t>(hash_input);
+            hash = static_cast<uint8_t>((hash * 33U) ^ (hash >> 3));
+            hash_input >>= 8;
+        }
+
+        x &= 0xFFFFFF00;
+        x |= hash;
+        if (x < 100000000)
+        {
+            return x;
+        }
+    }
 }

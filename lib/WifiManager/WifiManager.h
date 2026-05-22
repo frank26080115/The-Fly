@@ -29,7 +29,7 @@ class WifiManager
 public:
     static constexpr size_t kNtpServerCount             = 3;
     static constexpr size_t kGeneratedSoftApSsidLength = 12;
-    static constexpr size_t kGeneratedSoftApPasswordLength = 12;
+    static constexpr size_t kGeneratedSoftApPasswordLength = 8;
 
     enum class LoadResult
     {

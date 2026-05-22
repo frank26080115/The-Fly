@@ -10,11 +10,14 @@
 #include "AudioFileRecorder.h"
 #include "AudioManager.h"
 #include "BluetoothManager.h"
+#ifdef BUILD_FTP_SERVER
+#include "FtpServer.h"
+#endif
 #include "IconLookup.h"
 #include "MicroSdCard.h"
 #include "esp_log.h"
 #include "esp_mac.h"
-#include "esp_random.h"
+#include "utilfuncs.h"
 
 namespace
 {
@@ -28,8 +31,6 @@ constexpr const char* kDefaultNtpServers[] = {
     "time.nist.gov",
     "time.google.com",
 };
-constexpr char kGeneratedSoftApPasswordAlphabet[] = "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-
 #if defined(CORE_DEBUG_LEVEL)
 constexpr int kWifiCoreDebugLevel = CORE_DEBUG_LEVEL;
 #else
@@ -328,16 +329,7 @@ void format_generated_soft_ap_password(char* password, size_t password_size)
         return;
     }
 
-    const size_t output_size = password_size - 1;
-    uint8_t random_bytes[WifiManager::kGeneratedSoftApPasswordLength] = {};
-    esp_fill_random(random_bytes, sizeof(random_bytes));
-
-    const size_t alphabet_size = sizeof(kGeneratedSoftApPasswordAlphabet) - 1;
-    for (size_t i = 0; i < output_size; ++i)
-    {
-        password[i] = kGeneratedSoftApPasswordAlphabet[random_bytes[i % sizeof(random_bytes)] % alphabet_size];
-    }
-    password[output_size] = '\0';
+    snprintf(password, password_size, "%08lu", static_cast<unsigned long>(generate_8_digit_nounce()));
 }
 
 } // namespace
@@ -796,6 +788,10 @@ bool WifiManager::disconnect()
 
 void WifiManager::poll()
 {
+#ifdef BUILD_FTP_SERVER
+    FtpServer::poll();
+#endif
+
     if (m_status == Status::StationScanning)
     {
         const int network_count = WiFi.scanComplete();
