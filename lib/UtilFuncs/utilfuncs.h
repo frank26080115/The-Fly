@@ -40,4 +40,4 @@ size_t upsample_s16_mono_2x_duplicate(const int16_t* src, size_t src_samples, in
 size_t upsample_s16_mono_2x_linear(const int16_t* src, size_t src_samples, int16_t* dst, Upsample2xLinearState& state);
 void   reset_upsample_2x_linear_state(Upsample2xLinearState& state);
 size_t mono_s16_to_stereo_s16(const int16_t* src, size_t src_samples, int16_t* dst);
-uint32_t generate_8_digit_nounce();
+uint32_t generate_8_digit_nonce();

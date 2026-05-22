@@ -428,11 +428,12 @@ bool parse_url(const char* url, UrlParts& out)
     return true;
 }
 
-String sha1_filename_hash(const char* filename, const char* password)
+String sha1_filename_hash(const char* filename, const char* datetime, const char* password)
 {
     SHA1Builder sha1;
     sha1.begin();
     sha1.add(filename ? filename : "");
+    sha1.add(datetime ? datetime : "");
     sha1.add(password ? password : "");
     sha1.calculate();
     return sha1.toString();
@@ -914,15 +915,37 @@ void CloudUpload::taskMain()
                 continue;
             }
 
-            const String hash = sha1_filename_hash(item->path, m_destination_password);
+            m5::rtc_datetime_t upload_datetime = {};
+            if (!Clock.getDateTime(&upload_datetime))
+            {
+                client->stop();
+                file.close();
+                copy_text(last_message, sizeof(last_message), "clock is not ready for cloud upload");
+                break;
+            }
+
+            char upload_timestamp[24];
+            snprintf(upload_timestamp,
+                     sizeof(upload_timestamp),
+                     "%04d-%02d-%02d-%02d:%02d:%02d",
+                     upload_datetime.date.year,
+                     upload_datetime.date.month,
+                     upload_datetime.date.date,
+                     upload_datetime.time.hours,
+                     upload_datetime.time.minutes,
+                     upload_datetime.time.seconds);
+
+            const String hash = sha1_filename_hash(item->path, upload_timestamp, m_destination_password);
             const String source_mac = WiFi.macAddress();
             const char* boundary = "----TheFlyCloudUploadBoundary";
 
             char part_filename[CloudUpload::kPathMaxLength + 128];
+            char part_timestamp[128];
             char part_hash[128];
             char part_source[128];
             char part_payload[CloudUpload::kPathMaxLength + 160];
             snprintf(part_filename, sizeof(part_filename), "--%s\r\nContent-Disposition: form-data; name=\"filename\"\r\n\r\n%s\r\n", boundary, item->path);
+            snprintf(part_timestamp, sizeof(part_timestamp), "--%s\r\nContent-Disposition: form-data; name=\"timestamp\"\r\n\r\n%s\r\n", boundary, upload_timestamp);
             snprintf(part_hash, sizeof(part_hash), "--%s\r\nContent-Disposition: form-data; name=\"hash\"\r\n\r\n%s\r\n", boundary, hash.c_str());
             snprintf(part_source, sizeof(part_source), "--%s\r\nContent-Disposition: form-data; name=\"source_mac\"\r\n\r\n%s\r\n", boundary, source_mac.c_str());
             snprintf(part_payload,
@@ -934,7 +957,7 @@ void CloudUpload::taskMain()
             char end_boundary[48];
             snprintf(end_boundary, sizeof(end_boundary), "\r\n--%s--\r\n", boundary);
 
-            const uint64_t content_length = strlen(part_filename) + strlen(part_hash) + strlen(part_source) + strlen(part_payload) + item->size + strlen(end_boundary);
+            const uint64_t content_length = strlen(part_filename) + strlen(part_timestamp) + strlen(part_hash) + strlen(part_source) + strlen(part_payload) + item->size + strlen(end_boundary);
 
             char header[512];
             snprintf(header,
@@ -947,6 +970,7 @@ void CloudUpload::taskMain()
 
             bool ok = send_all(*client, header) &&
                       send_all(*client, part_filename) &&
+                      send_all(*client, part_timestamp) &&
                       send_all(*client, part_hash) &&
                       send_all(*client, part_source) &&
                       send_all(*client, part_payload);

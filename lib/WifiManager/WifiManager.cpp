@@ -329,7 +329,7 @@ void format_generated_soft_ap_password(char* password, size_t password_size)
         return;
     }
 
-    snprintf(password, password_size, "%08lu", static_cast<unsigned long>(generate_8_digit_nounce()));
+    snprintf(password, password_size, "%08lu", static_cast<unsigned long>(generate_8_digit_nonce()));
 }
 
 } // namespace

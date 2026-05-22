@@ -402,7 +402,7 @@ void requestRebootWithFlag(uint32_t flag)
     ESP.restart(); // whole-chip software reset
 }
 
-uint32_t generate_8_digit_nounce()
+uint32_t generate_8_digit_nonce()
 {
     while (true)
     {
