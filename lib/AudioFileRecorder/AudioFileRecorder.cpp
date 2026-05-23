@@ -228,8 +228,8 @@ bool write_packet(AudioFifo& fifo, filepkt_src_e source)
     packet.fifo_cnt      = static_cast<uint32_t>(available);
 
     #ifdef BUILD_WITH_SECURITY
-    // TODO: `packet.nonce_1` set with a secure RNG
-    // TODO: `packet.nonce_2` set with a secure RNG
+    packet.nonce_1 = esp_random();
+    packet.nonce_2 = esp_random();
     #endif
 
     // FILE_PACKET_PAYLOAD_MAX needs to be be about the same size as each fragment expected from the audio interface callbacks
@@ -307,6 +307,12 @@ bool write_queued_meta_text_locked()
     packet.fifo_cnt      = 0;
     packet.payload_length = static_cast<uint16_t>(g_queued_meta_text_length);
     memcpy(reinterpret_cast<uint8_t*>(packet.payload), g_queued_meta_text, g_queued_meta_text_length);
+
+    #ifdef BUILD_WITH_SECURITY
+    packet.nonce_1 = esp_random();
+    packet.nonce_2 = esp_random();
+    // TODO: encrypt entire packet
+    #endif
 
     if (g_file.write(reinterpret_cast<const uint8_t*>(&packet), sizeof(packet)) != sizeof(packet))
     {
@@ -457,6 +463,11 @@ bool startRecording(char typeCode)
         fatal_recording_storage_failure("opening recording file", "microSD recording file open failed");
         return false;
     }
+
+    #ifdef BUILD_WITH_SECURITY
+    // TODO: initialize encryption
+    #endif
+
     set_queue_enabled(true); // actually start recording
     DBG_LOGI(TAG, "recording started: %s", started_path);
     return true;
@@ -533,6 +544,10 @@ bool stopRecording(bool estop)
 
         if (g_file)
         {
+            #ifdef BUILD_WITH_SECURITY
+            // TODO: clean up encryption related items
+            #endif
+
             g_file.flush(); // this makes sure the buffer actually makes it onto the card
             g_last_flush_ms = millis();
 

@@ -83,7 +83,7 @@ The local device runs a web server, which can be used to administer the device (
 
 The local device can use mDNS and service discovery and other broadcast methods to signal to a local network that it is available. This allows for easier automated workflows on local networks.
 
-When a local soft-AP is used, it only allows for one client.
+When a local soft-AP is used, it only allows for one client, and enforces WPA3 PSK security. The password is randomize each time as one of the measures to prevent an impersonation phishing attack. MAC address verification is not strong enough for phishing prevention, as it can be spoofed.
 
 The Bluetooth functionality of the local device is always in a connectable-but-not-discoverable state, unless BT pairing mode is active.
 
@@ -181,7 +181,7 @@ The temp-long-key is derived from the temp-short-key, and is used to encrypt mes
 
 The temp-long-key is a 32 byte array. It is never transmitted in any form.
 
-If Stolen: attacker can potentially capture a new master-key if the user is setting up a new master-key.
+If Stolen (seen by eye): attacker can potentially capture a new master-key if the user is setting up a new master-key, through a phishing attack or monitoring HTTP traffic
 
 ## Encryption and Hask Functions
 
