@@ -15,7 +15,7 @@ Use argparse, allow the user to specify an input file (ideally it should be `.re
 
 The output wav file is 16 KHz sample rate, 16 bit PCM, stereo. The input format is determined by the headers detected in the input file.
 
-The input format is described by `file_packet_t` in `inc\defs.h`. The way it is recorded is shown in `lib\AudioFileRecorder\AudioFileRecorder.cpp` function `AudioFileRecorder::write_packet`.
+The input format is described by `file_packet_t` in `inc\\defs.h`. The way it is recorded is shown in `lib\\AudioFileRecorder\\AudioFileRecorder.cpp` function `AudioFileRecorder::write_packet`.
 
 The WAV file is stereo, and `file_packet_t` has a field `src`. If `src` is an odd number, the data goes into the left channel, if `src` is an even number, the data goes into the right channel. If `src` is 0 or 1, the format is 16 kHz 16 bit PCM mono...
 
@@ -64,6 +64,7 @@ OUTPUT_SAMPLE_RATE_HZ = 16000
 OUTPUT_CHANNELS = 2
 SAMPLE_WIDTH_BYTES = 2
 FIFO_BACKLOG_SPIKE_WARNING_THRESHOLD_SAMPLES = 3072
+SEQUENCE_GAP_WITHOUT_PADDING_WARNING_DELTA = 16
 
 PACKET_FLAG_FIFO_OVERFLOW = 1 << 0
 PACKET_FLAG_FIFO_UNDERFLOW = 1 << 1
@@ -422,10 +423,11 @@ def maybe_insert_gap(
     elif sequence_gap:
         # No other channel is ahead and the timestamp does not show a large
         # wall-clock gap. Avoid inventing timeline from sequence numbers alone.
-        warn(
-            f"sequence gap without padding: {state.name} src={packet.src} "
-            f"seq={packet.sequence_num} delta={sequence_delta} at byte {packet.offset}"
-        )
+        if sequence_delta >= SEQUENCE_GAP_WITHOUT_PADDING_WARNING_DELTA:
+            warn(
+                f"large sequence gap without padding: {state.name} src={packet.src} "
+                f"seq={packet.sequence_num} delta={sequence_delta} at byte {packet.offset}"
+            )
 
     if pad_samples > 0:
         if pad_samples < threshold_samples and sequence_gap:
