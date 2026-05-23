@@ -1,9 +1,19 @@
 #pragma once
 
+#include "thefly_common.h"
+
 #include <stddef.h>
 #include <stdint.h>
 
-#include "defs.h"
+static constexpr size_t kNetworkConfigMaxEntries          = 8;
+static constexpr size_t kNetworkConfigNtpServerCount      = 3;
+static constexpr size_t kNetworkConfigSsidMaxLength       = 33;  // 32-byte 802.11 SSID plus NUL
+static constexpr size_t kNetworkConfigPasswordMaxLength   = 64;  // 63-byte WPA/WPA2/WPA3 passphrase plus NUL
+static constexpr size_t kNetworkConfigTimezoneMaxLength   = 64;
+static constexpr size_t kNetworkConfigNtpServerMaxLength  = 254; // DNS name max length plus NUL
+static constexpr size_t kNetworkConfigCloudNameMaxLength  = 64;
+static constexpr size_t kNetworkConfigCloudUrlMaxLength   = 256;
+static constexpr size_t kNetworkConfigCloudPasswordMaxLength = 96;
 
 #ifndef BUILD_WITH_SECURITY
 typedef struct
@@ -27,27 +37,35 @@ cloud_item_t;
 #else
 typedef struct
 {
-    char    ssid[64];
-    char    password[64];
+    char    ssid[kNetworkConfigSsidMaxLength];
+    char    password[kNetworkConfigPasswordMaxLength];
     uint8_t icon;      // one of the ICON_* enums
+    void*   next_node; // unused in secure fixed-slot storage, kept for callers that inspect it
 }
 wifi_item_t;
 
 typedef struct
 {
-    char    name[32];
-    char    url[256];
+    char    name[kNetworkConfigCloudNameMaxLength];
+    char    url[kNetworkConfigCloudUrlMaxLength];
+    char    password[kNetworkConfigCloudPasswordMaxLength]; // this is a hash salt, never actually send it
     uint8_t icon;      // one of the ICON_* enums
+    void*   next_node; // unused in secure fixed-slot storage, kept for callers that inspect it
 }
 cloud_item_t;
 
 typedef struct
 {
-    char timezone[16];
-    char ntp_server[3][32];
-    wifi_item_t wifi[8];
-    wifi_item_t ap;
-    cloud_item_t cloud[8];
+    uint32_t magic;
+    uint32_t version;
+    char     timezone[kNetworkConfigTimezoneMaxLength];
+    char     ntp_server[kNetworkConfigNtpServerCount][kNetworkConfigNtpServerMaxLength];
+    uint8_t  station_count;
+    uint8_t  access_point_count;
+    uint8_t  cloud_endpoint_count;
+    wifi_item_t  station[kNetworkConfigMaxEntries];
+    wifi_item_t  access_point[kNetworkConfigMaxEntries];
+    cloud_item_t cloud[kNetworkConfigMaxEntries];
 }
 network_cfg_t;
 #endif
@@ -55,7 +73,7 @@ network_cfg_t;
 class WifiManager
 {
 public:
-    static constexpr size_t kNtpServerCount             = 3;
+    static constexpr size_t kNtpServerCount             = kNetworkConfigNtpServerCount;
     static constexpr size_t kGeneratedSoftApSsidLength = 12;
     static constexpr size_t kGeneratedSoftApPasswordLength = 8;
 
@@ -66,6 +84,7 @@ public:
         FileOpenFailed,
         FileTooLarge,
         FileReadFailed,
+        FileWriteFailed,
         JsonParseFailed,
         AllocationFailed,
         InvalidItem,
@@ -93,9 +112,8 @@ public:
     WifiManager(const WifiManager&)            = delete;
     WifiManager& operator=(const WifiManager&) = delete;
 
-    #ifndef BUILD_WITH_SECURITY
     bool loadFromMicroSd(const char* path = "/wifi.json");
-    #else
+    #ifdef BUILD_WITH_SECURITY
     bool loadFromNvs();
     bool saveToNvs();
     #endif
@@ -141,16 +159,20 @@ private:
     void notifyDisconnected(const wifi_item_t* item);
     void notifyScanFinished(const wifi_item_t* item);
 
+    #ifndef BUILD_WITH_SECURITY
     char*         m_timezone                       = nullptr;
     char*         m_ntp_servers[kNtpServerCount]   = {};
     wifi_item_t*  m_station_head                   = nullptr;
     wifi_item_t*  m_station_tail                   = nullptr;
-    size_t        m_station_count                  = 0;
     wifi_item_t*  m_access_point_head              = nullptr;
     wifi_item_t*  m_access_point_tail              = nullptr;
-    size_t        m_access_point_count             = 0;
     cloud_item_t* m_cloud_endpoint_head            = nullptr;
     cloud_item_t* m_cloud_endpoint_tail            = nullptr;
+    #else
+    network_cfg_t m_network_cfg                    = {};
+    #endif
+    size_t        m_station_count                  = 0;
+    size_t        m_access_point_count             = 0;
     size_t        m_cloud_endpoint_count           = 0;
     LoadResult    m_last_load_result               = LoadResult::Ok;
     Status        m_status                         = Status::Idle;

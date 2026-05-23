@@ -15,6 +15,9 @@
 
 #include "ClockAgent.h"
 #include "MicroSdCard.h"
+#ifdef BUILD_WITH_SECURITY
+#include "Aegis.h"
+#endif
 #include "esp_log.h"
 
 namespace
@@ -428,6 +431,7 @@ bool parse_url(const char* url, UrlParts& out)
     return true;
 }
 
+#ifndef BUILD_WITH_SECURITY
 String sha1_filename_hash(const char* filename, const char* datetime, const char* password)
 {
     SHA1Builder sha1;
@@ -438,6 +442,52 @@ String sha1_filename_hash(const char* filename, const char* datetime, const char
     sha1.calculate();
     return sha1.toString();
 }
+#else
+String hmacsha_filename_hash(const char* filename, const char* datetime)
+{
+    if (!Aegis::isInitialized())
+    {
+        return "";
+    }
+
+    const uint8_t* master_key = Aegis::getMasterKey();
+    if (!master_key)
+    {
+        return "";
+    }
+
+    const char* safe_filename = filename ? filename : "";
+    const char* safe_datetime = datetime ? datetime : "";
+
+    String input;
+    if (!input.reserve(strlen(safe_filename) + strlen(safe_datetime)))
+    {
+        return "";
+    }
+    input += safe_filename;
+    input += safe_datetime;
+
+    uint8_t digest[Aegis::kSha256Size] = {};
+    if (!Aegis::hmacSha256(master_key,
+                           Aegis::kMasterKeySize,
+                           reinterpret_cast<const uint8_t*>(input.c_str()),
+                           input.length(),
+                           digest))
+    {
+        return "";
+    }
+
+    static constexpr char kHex[] = "0123456789abcdef";
+    char                  hex[(Aegis::kSha256Size * 2) + 1] = {};
+    for (size_t i = 0; i < Aegis::kSha256Size; ++i)
+    {
+        hex[i * 2]       = kHex[digest[i] >> 4];
+        hex[(i * 2) + 1] = kHex[digest[i] & 0x0F];
+    }
+
+    return String(hex);
+}
+#endif
 
 bool send_all(Client& client, const uint8_t* data, size_t size)
 {
@@ -935,7 +985,19 @@ void CloudUpload::taskMain()
                      upload_datetime.time.minutes,
                      upload_datetime.time.seconds);
 
+#ifndef BUILD_WITH_SECURITY
             const String hash = sha1_filename_hash(item->path, upload_timestamp, m_destination_password);
+#else
+            const String hash = hmacsha_filename_hash(item->path, upload_timestamp);
+#endif
+            if (hash.length() == 0)
+            {
+                client->stop();
+                file.close();
+                copy_text(last_message, sizeof(last_message), "cloud upload authentication hash failed");
+                break;
+            }
+
             const String source_mac = WiFi.macAddress();
             const char* boundary = "----TheFlyCloudUploadBoundary";
 

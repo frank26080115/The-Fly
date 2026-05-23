@@ -15,9 +15,13 @@
 #endif
 #include "IconLookup.h"
 #include "MicroSdCard.h"
+#include "esp_err.h"
 #include "esp_log.h"
 #include "esp_mac.h"
 #include "esp_wifi.h"
+#ifdef BUILD_WITH_SECURITY
+#include "nvs.h"
+#endif
 #include "utilfuncs.h"
 
 namespace
@@ -44,6 +48,12 @@ constexpr bool kWifiDebugBuild =
 constexpr int kSoftApChannel       = 1;
 constexpr int kSoftApSsidHidden    = 0;
 constexpr int kSoftApMaxConnection = 1;
+#ifdef BUILD_WITH_SECURITY
+constexpr uint32_t    kNetworkConfigMagic   = 0x54465749; // "TFWI"
+constexpr uint32_t    kNetworkConfigVersion = 1;
+constexpr const char* kNetworkNvsNamespace  = "wifi_cfg";
+constexpr const char* kNetworkNvsBlobName   = "network";
+#endif
 
 const char* load_result_tostring(WifiManager::LoadResult result)
 {
@@ -59,6 +69,8 @@ const char* load_result_tostring(WifiManager::LoadResult result)
         return "FileTooLarge";
     case WifiManager::LoadResult::FileReadFailed:
         return "FileReadFailed";
+    case WifiManager::LoadResult::FileWriteFailed:
+        return "FileWriteFailed";
     case WifiManager::LoadResult::JsonParseFailed:
         return "JsonParseFailed";
     case WifiManager::LoadResult::AllocationFailed:
@@ -110,6 +122,17 @@ bool replace_string(char*& dst, const char* value)
     return true;
 }
 
+uint8_t parse_icon_or_default(const char* icon, uint8_t default_icon)
+{
+    if (!icon || icon[0] == '\0')
+    {
+        return default_icon;
+    }
+
+    const uint8_t parsed = IconLookup::fromString(icon);
+    return parsed == ICON_UNKNOWN ? default_icon : parsed;
+}
+
 #ifndef BUILD_WITH_SECURITY
 
 void free_wifi_list(wifi_item_t*& head, wifi_item_t*& tail, size_t& count)
@@ -145,17 +168,6 @@ void free_cloud_list(cloud_item_t*& head, cloud_item_t*& tail, size_t& count)
     head  = nullptr;
     tail  = nullptr;
     count = 0;
-}
-
-uint8_t parse_icon_or_default(const char* icon, uint8_t default_icon)
-{
-    if (!icon || icon[0] == '\0')
-    {
-        return default_icon;
-    }
-
-    const uint8_t parsed = IconLookup::fromString(icon);
-    return parsed == ICON_UNKNOWN ? default_icon : parsed;
 }
 
 wifi_item_t* create_wifi_item(const char* ssid, const char* password, uint8_t icon)
@@ -234,6 +246,200 @@ void append_cloud_item(cloud_item_t*& head, cloud_item_t*& tail, size_t& count, 
 
     tail = item;
     ++count;
+}
+
+#else
+
+bool copy_config_text(char* dst, size_t dst_size, const char* value, bool required)
+{
+    if (!dst || dst_size == 0)
+    {
+        return false;
+    }
+
+    if (!value)
+    {
+        value = "";
+    }
+    if (required && value[0] == '\0')
+    {
+        return false;
+    }
+
+    return strlcpy(dst, value, dst_size) < dst_size;
+}
+
+void init_network_config_defaults(network_cfg_t& cfg)
+{
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.magic   = kNetworkConfigMagic;
+    cfg.version = kNetworkConfigVersion;
+    strlcpy(cfg.timezone, kDefaultTimezone, sizeof(cfg.timezone));
+    for (size_t i = 0; i < kNetworkConfigNtpServerCount; ++i)
+    {
+        strlcpy(cfg.ntp_server[i], kDefaultNtpServers[i], sizeof(cfg.ntp_server[i]));
+    }
+}
+
+void sanitize_network_config(network_cfg_t& cfg)
+{
+    cfg.magic   = kNetworkConfigMagic;
+    cfg.version = kNetworkConfigVersion;
+    cfg.timezone[sizeof(cfg.timezone) - 1] = '\0';
+    if (cfg.timezone[0] == '\0')
+    {
+        strlcpy(cfg.timezone, kDefaultTimezone, sizeof(cfg.timezone));
+    }
+
+    for (size_t i = 0; i < kNetworkConfigNtpServerCount; ++i)
+    {
+        cfg.ntp_server[i][sizeof(cfg.ntp_server[i]) - 1] = '\0';
+        if (cfg.ntp_server[i][0] == '\0')
+        {
+            strlcpy(cfg.ntp_server[i], kDefaultNtpServers[i], sizeof(cfg.ntp_server[i]));
+        }
+    }
+
+    cfg.station_count = cfg.station_count > kNetworkConfigMaxEntries ? static_cast<uint8_t>(kNetworkConfigMaxEntries) : cfg.station_count;
+    cfg.access_point_count = cfg.access_point_count > kNetworkConfigMaxEntries ? static_cast<uint8_t>(kNetworkConfigMaxEntries) : cfg.access_point_count;
+    cfg.cloud_endpoint_count = cfg.cloud_endpoint_count > kNetworkConfigMaxEntries ? static_cast<uint8_t>(kNetworkConfigMaxEntries) : cfg.cloud_endpoint_count;
+
+    for (size_t i = 0; i < kNetworkConfigMaxEntries; ++i)
+    {
+        cfg.station[i].ssid[sizeof(cfg.station[i].ssid) - 1] = '\0';
+        cfg.station[i].password[sizeof(cfg.station[i].password) - 1] = '\0';
+        cfg.station[i].next_node = nullptr;
+
+        cfg.access_point[i].ssid[sizeof(cfg.access_point[i].ssid) - 1] = '\0';
+        cfg.access_point[i].password[sizeof(cfg.access_point[i].password) - 1] = '\0';
+        cfg.access_point[i].next_node = nullptr;
+
+        cfg.cloud[i].name[sizeof(cfg.cloud[i].name) - 1] = '\0';
+        cfg.cloud[i].url[sizeof(cfg.cloud[i].url) - 1] = '\0';
+        cfg.cloud[i].password[sizeof(cfg.cloud[i].password) - 1] = '\0';
+        cfg.cloud[i].next_node = nullptr;
+    }
+}
+
+bool parse_network_wifi_array(JsonDocument& doc,
+                              const char* key,
+                              wifi_item_t* items,
+                              uint8_t& count,
+                              uint8_t default_icon,
+                              size_t& skipped)
+{
+    count = 0;
+    JsonArray array = doc[key].as<JsonArray>();
+    if (array.isNull())
+    {
+        return true;
+    }
+
+    for (JsonVariant value : array)
+    {
+        if (count >= kNetworkConfigMaxEntries)
+        {
+            ++skipped;
+            continue;
+        }
+
+        JsonObject item_json = value.as<JsonObject>();
+        const char* ssid     = item_json["ssid"].as<const char*>();
+        const char* password = item_json["password"].as<const char*>();
+        const char* icon     = item_json["icon"].as<const char*>();
+        if (item_json.isNull() ||
+            !copy_config_text(items[count].ssid, sizeof(items[count].ssid), ssid, true) ||
+            !copy_config_text(items[count].password, sizeof(items[count].password), password, false))
+        {
+            ++skipped;
+            continue;
+        }
+
+        items[count].icon      = parse_icon_or_default(icon, default_icon);
+        items[count].next_node = nullptr;
+        ++count;
+    }
+
+    return true;
+}
+
+bool parse_network_cloud_array(JsonDocument& doc, cloud_item_t* items, uint8_t& count, size_t& skipped)
+{
+    count = 0;
+    JsonArray array = doc["cloud_uploads"].as<JsonArray>();
+    if (array.isNull())
+    {
+        return true;
+    }
+
+    for (JsonVariant value : array)
+    {
+        if (count >= kNetworkConfigMaxEntries)
+        {
+            ++skipped;
+            continue;
+        }
+
+        JsonObject item_json = value.as<JsonObject>();
+        const char* name     = item_json["name"].as<const char*>();
+        const char* url      = item_json["url"].as<const char*>();
+        const char* password = item_json["password"].as<const char*>();
+        const char* icon     = item_json["icon"].as<const char*>();
+        if (item_json.isNull() ||
+            !copy_config_text(items[count].name, sizeof(items[count].name), name, true) ||
+            !copy_config_text(items[count].url, sizeof(items[count].url), url, true) ||
+            !copy_config_text(items[count].password, sizeof(items[count].password), password, false))
+        {
+            ++skipped;
+            continue;
+        }
+
+        items[count].icon      = parse_icon_or_default(icon, ICON_CLOUD);
+        items[count].next_node = nullptr;
+        ++count;
+    }
+
+    return true;
+}
+
+bool parse_network_config_json(JsonDocument& doc, network_cfg_t& cfg, size_t& skipped)
+{
+    init_network_config_defaults(cfg);
+    skipped = 0;
+
+    const char* timezone = doc["timezone"].as<const char*>();
+    if (timezone && !copy_config_text(cfg.timezone, sizeof(cfg.timezone), timezone, true))
+    {
+        ++skipped;
+    }
+
+    JsonArray ntp_servers = doc["ntp_servers"].as<JsonArray>();
+    if (!ntp_servers.isNull())
+    {
+        size_t index = 0;
+        for (JsonVariant value : ntp_servers)
+        {
+            if (index >= kNetworkConfigNtpServerCount)
+            {
+                ++skipped;
+                continue;
+            }
+
+            const char* server = value.as<const char*>();
+            if (!copy_config_text(cfg.ntp_server[index], sizeof(cfg.ntp_server[index]), server, true))
+            {
+                ++skipped;
+                continue;
+            }
+            ++index;
+        }
+    }
+
+    parse_network_wifi_array(doc, "stations", cfg.station, cfg.station_count, ICON_WIFI, skipped);
+    parse_network_wifi_array(doc, "access_points", cfg.access_point, cfg.access_point_count, ICON_WIFIAP, skipped);
+    parse_network_cloud_array(doc, cfg.cloud, cfg.cloud_endpoint_count, skipped);
+    sanitize_network_config(cfg);
+    return skipped == 0;
 }
 
 #endif
@@ -340,9 +546,7 @@ bool enforce_soft_ap_security()
 
 WifiManager::WifiManager()
 {
-    #ifndef BUILD_WITH_SECURITY
     clear();
-    #endif
 }
 
 WifiManager::~WifiManager()
@@ -558,13 +762,184 @@ bool WifiManager::loadFromMicroSd(const char* path)
              static_cast<unsigned>(m_cloud_endpoint_count));
     return true;
     #else
-    return false;
+    if (!loadFromNvs())
+    {
+        return false;
+    }
+
+    const char* import_path = path ? path : "/wifi.json";
+    if (!MicroSdCard::isReady())
+    {
+        ESP_LOGI(TAG, "microSD is not ready; keeping Wi-Fi config from NVS");
+        return true;
+    }
+
+    FsFile file;
+    if (!file.open(import_path, O_RDONLY))
+    {
+        ESP_LOGI(TAG, "no Wi-Fi JSON import found at %s; keeping Wi-Fi config from NVS", import_path);
+        return true;
+    }
+
+    const uint64_t file_size = file.fileSize();
+    if (file_size > kMaxJsonFileSize)
+    {
+        file.close();
+        m_last_load_result = LoadResult::FileTooLarge;
+        ESP_LOGW(TAG, "Wi-Fi config import is too large: %llu bytes", static_cast<unsigned long long>(file_size));
+        return false;
+    }
+
+    char* buffer = static_cast<char*>(malloc(static_cast<size_t>(file_size) + 1));
+    if (!buffer)
+    {
+        file.close();
+        m_last_load_result = LoadResult::AllocationFailed;
+        ESP_LOGW(TAG, "could not allocate Wi-Fi config import buffer");
+        return false;
+    }
+
+    const int bytes_read = file.read(buffer, static_cast<size_t>(file_size));
+    file.close();
+
+    if (bytes_read < 0 || static_cast<uint64_t>(bytes_read) != file_size)
+    {
+        free(buffer);
+        m_last_load_result = LoadResult::FileReadFailed;
+        ESP_LOGW(TAG, "could not read Wi-Fi config import");
+        return false;
+    }
+    buffer[file_size] = '\0';
+
+    JsonDocument doc;
+    const DeserializationError error = deserializeJson(doc, buffer);
+    free(buffer);
+    if (error)
+    {
+        m_last_load_result = LoadResult::JsonParseFailed;
+        ESP_LOGW(TAG, "could not parse Wi-Fi config import: %s", error.c_str());
+        return false;
+    }
+
+    network_cfg_t imported = {};
+    size_t skipped = 0;
+    if (!parse_network_config_json(doc, imported, skipped))
+    {
+        m_last_load_result = LoadResult::InvalidItem;
+        ESP_LOGW(TAG, "Wi-Fi config import has %u invalid item(s)", static_cast<unsigned>(skipped));
+        return false;
+    }
+
+    m_network_cfg = imported;
+    m_station_count = m_network_cfg.station_count;
+    m_access_point_count = m_network_cfg.access_point_count;
+    m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
+
+    if (!saveToNvs())
+    {
+        return false;
+    }
+
+    m_last_load_result = LoadResult::Ok;
+    ESP_LOGI(TAG,
+             "imported Wi-Fi config into NVS: stations=%u access_points=%u cloud_endpoints=%u",
+             static_cast<unsigned>(m_station_count),
+             static_cast<unsigned>(m_access_point_count),
+             static_cast<unsigned>(m_cloud_endpoint_count));
+    return true;
     #endif
 }
 
-#ifndef BUILD_WITH_SECURITY
+#ifdef BUILD_WITH_SECURITY
+bool WifiManager::loadFromNvs()
+{
+    clear();
+
+    nvs_handle_t handle = 0;
+    esp_err_t err = nvs_open(kNetworkNvsNamespace, NVS_READWRITE, &handle);
+    if (err != ESP_OK)
+    {
+        m_last_load_result = LoadResult::FileOpenFailed;
+        ESP_LOGW(TAG, "could not open Wi-Fi NVS namespace: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    network_cfg_t cfg = {};
+    size_t cfg_size = sizeof(cfg);
+    err = nvs_get_blob(handle, kNetworkNvsBlobName, &cfg, &cfg_size);
+    nvs_close(handle);
+
+    if (err == ESP_ERR_NVS_NOT_FOUND)
+    {
+        m_last_load_result = LoadResult::Ok;
+        ESP_LOGI(TAG, "no Wi-Fi config in NVS; using defaults");
+        return true;
+    }
+    if (err != ESP_OK || cfg_size != sizeof(cfg))
+    {
+        m_last_load_result = LoadResult::FileReadFailed;
+        ESP_LOGW(TAG, "could not load Wi-Fi config from NVS: %s size=%u", esp_err_to_name(err), static_cast<unsigned>(cfg_size));
+        return false;
+    }
+    if (cfg.magic != kNetworkConfigMagic || cfg.version != kNetworkConfigVersion)
+    {
+        m_last_load_result = LoadResult::Ok;
+        ESP_LOGW(TAG, "ignoring incompatible Wi-Fi config in NVS");
+        return true;
+    }
+
+    sanitize_network_config(cfg);
+    m_network_cfg = cfg;
+    m_station_count = m_network_cfg.station_count;
+    m_access_point_count = m_network_cfg.access_point_count;
+    m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
+    m_last_load_result = LoadResult::Ok;
+    ESP_LOGI(TAG,
+             "loaded Wi-Fi config from NVS: stations=%u access_points=%u cloud_endpoints=%u",
+             static_cast<unsigned>(m_station_count),
+             static_cast<unsigned>(m_access_point_count),
+             static_cast<unsigned>(m_cloud_endpoint_count));
+    return true;
+}
+
+bool WifiManager::saveToNvs()
+{
+    sanitize_network_config(m_network_cfg);
+    m_network_cfg.station_count = static_cast<uint8_t>(m_station_count);
+    m_network_cfg.access_point_count = static_cast<uint8_t>(m_access_point_count);
+    m_network_cfg.cloud_endpoint_count = static_cast<uint8_t>(m_cloud_endpoint_count);
+
+    nvs_handle_t handle = 0;
+    esp_err_t err = nvs_open(kNetworkNvsNamespace, NVS_READWRITE, &handle);
+    if (err != ESP_OK)
+    {
+        m_last_load_result = LoadResult::FileOpenFailed;
+        ESP_LOGW(TAG, "could not open Wi-Fi NVS namespace for write: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    err = nvs_set_blob(handle, kNetworkNvsBlobName, &m_network_cfg, sizeof(m_network_cfg));
+    if (err == ESP_OK)
+    {
+        err = nvs_commit(handle);
+    }
+    nvs_close(handle);
+
+    if (err != ESP_OK)
+    {
+        m_last_load_result = LoadResult::FileWriteFailed;
+        ESP_LOGW(TAG, "could not save Wi-Fi config to NVS: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    m_last_load_result = LoadResult::Ok;
+    return true;
+}
+#endif
+
 void WifiManager::clear()
 {
+    #ifndef BUILD_WITH_SECURITY
     free_wifi_list(m_station_head, m_station_tail, m_station_count);
     free_wifi_list(m_access_point_head, m_access_point_tail, m_access_point_count);
     free_cloud_list(m_cloud_endpoint_head, m_cloud_endpoint_tail, m_cloud_endpoint_count);
@@ -590,12 +965,25 @@ void WifiManager::clear()
     }
 
     m_last_load_result = LoadResult::Ok;
+    #else
+    init_network_config_defaults(m_network_cfg);
+    m_station_count = 0;
+    m_access_point_count = 0;
+    m_cloud_endpoint_count = 0;
+    m_active_wifi = nullptr;
+    m_connected_wifi = nullptr;
+    m_reported_connected = false;
+    m_last_load_result = LoadResult::Ok;
+    #endif
 }
-#endif
 
 const char* WifiManager::timezone() const
 {
+    #ifndef BUILD_WITH_SECURITY
     return m_timezone ? m_timezone : kDefaultTimezone;
+    #else
+    return m_network_cfg.timezone[0] != '\0' ? m_network_cfg.timezone : kDefaultTimezone;
+    #endif
 }
 
 const char* WifiManager::ntpServer(size_t index) const
@@ -604,7 +992,11 @@ const char* WifiManager::ntpServer(size_t index) const
     {
         return nullptr;
     }
+    #ifndef BUILD_WITH_SECURITY
     return m_ntp_servers[index] ? m_ntp_servers[index] : kDefaultNtpServers[index];
+    #else
+    return m_network_cfg.ntp_server[index][0] != '\0' ? m_network_cfg.ntp_server[index] : kDefaultNtpServers[index];
+    #endif
 }
 
 size_t WifiManager::stationCount() const
@@ -628,7 +1020,7 @@ const wifi_item_t* WifiManager::station(size_t index) const
     }
     return item;
     #else
-    return NULL;
+    return index < m_station_count ? &m_network_cfg.station[index] : nullptr;
     #endif
 }
 
@@ -653,7 +1045,7 @@ const wifi_item_t* WifiManager::accessPoint(size_t index) const
     }
     return item;
     #else
-    return NULL;
+    return index < m_access_point_count ? &m_network_cfg.access_point[index] : nullptr;
     #endif
 }
 
@@ -764,8 +1156,13 @@ bool WifiManager::startGeneratedSoftAp()
     format_generated_soft_ap_ssid(m_generated_soft_ap_ssid, sizeof(m_generated_soft_ap_ssid));
     format_generated_soft_ap_password(m_generated_soft_ap_password, sizeof(m_generated_soft_ap_password));
 
+    #ifndef BUILD_WITH_SECURITY
     m_generated_soft_ap.ssid      = m_generated_soft_ap_ssid;
     m_generated_soft_ap.password  = m_generated_soft_ap_password;
+    #else
+    strlcpy(m_generated_soft_ap.ssid, m_generated_soft_ap_ssid, sizeof(m_generated_soft_ap.ssid));
+    strlcpy(m_generated_soft_ap.password, m_generated_soft_ap_password, sizeof(m_generated_soft_ap.password));
+    #endif
     m_generated_soft_ap.icon      = ICON_WIFIAP;
     m_generated_soft_ap.next_node = nullptr;
     return startSoftAp(&m_generated_soft_ap);
@@ -860,9 +1257,10 @@ void WifiManager::poll()
         }
 
         const wifi_item_t* found_item = nullptr;
-        for (wifi_item_t* item = m_station_head; item; item = static_cast<wifi_item_t*>(item->next_node))
+        for (size_t i = 0; i < m_station_count; ++i)
         {
-            if (scan_has_ssid(network_count, item->ssid))
+            const wifi_item_t* item = station(i);
+            if (item && scan_has_ssid(network_count, item->ssid))
             {
                 ESP_LOGI(TAG, "found configured Wi-Fi network \"%s\"", item->ssid);
                 found_item = item;
@@ -1031,7 +1429,7 @@ const cloud_item_t* WifiManager::cloudEndpoint(size_t index) const
     }
     return item;
     #else
-    return NULL;
+    return index < m_cloud_endpoint_count ? &m_network_cfg.cloud[index] : nullptr;
     #endif
 }
 
