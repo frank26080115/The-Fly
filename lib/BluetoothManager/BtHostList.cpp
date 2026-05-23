@@ -143,12 +143,12 @@ BtHostList::~BtHostList()
 bool BtHostList::loadFromMicroSd(const char* path)
 {
     clear();
-    m_last_result = LoadResult::Ok;
+    m_last_load_result = LoadResult::Ok;
     strlcpy(m_path, path ? path : kDefaultPath, sizeof(m_path));
 
     if (!MicroSdCard::isReady())
     {
-        m_last_result = LoadResult::SdNotReady;
+        m_last_load_result = LoadResult::SdNotReady;
         ESP_LOGW(TAG, "microSD is not ready while loading bluetooth hosts");
         return false;
     }
@@ -156,7 +156,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
     FsFile file;
     if (!file.open(m_path, O_RDONLY))
     {
-        m_last_result = LoadResult::FileOpenFailed;
+        m_last_load_result = LoadResult::FileOpenFailed;
         ESP_LOGW(TAG, "could not open bluetooth host list: %s", m_path);
         return false;
     }
@@ -165,7 +165,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
     if (file_size > kMaxJsonFileSize)
     {
         file.close();
-        m_last_result = LoadResult::FileTooLarge;
+        m_last_load_result = LoadResult::FileTooLarge;
         ESP_LOGW(TAG, "bluetooth host list is too large: %llu bytes", static_cast<unsigned long long>(file_size));
         return false;
     }
@@ -174,7 +174,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
     if (!buffer)
     {
         file.close();
-        m_last_result = LoadResult::AllocationFailed;
+        m_last_load_result = LoadResult::AllocationFailed;
         ESP_LOGW(TAG, "could not allocate bluetooth host list buffer");
         return false;
     }
@@ -185,7 +185,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
     if (bytes_read < 0 || static_cast<uint64_t>(bytes_read) != file_size)
     {
         free(buffer);
-        m_last_result = LoadResult::FileReadFailed;
+        m_last_load_result = LoadResult::FileReadFailed;
         ESP_LOGW(TAG, "could not read bluetooth host list");
         return false;
     }
@@ -197,7 +197,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
 
     if (error)
     {
-        m_last_result = LoadResult::JsonParseFailed;
+        m_last_load_result = LoadResult::JsonParseFailed;
         ESP_LOGW(TAG, "could not parse bluetooth host list: %s", error.c_str());
         return false;
     }
@@ -205,7 +205,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
     JsonArray hosts = doc["hosts"].as<JsonArray>();
     if (hosts.isNull())
     {
-        m_last_result = LoadResult::MissingHosts;
+        m_last_load_result = LoadResult::MissingHosts;
         ESP_LOGW(TAG, "bluetooth host list is missing hosts array");
         return false;
     }
@@ -235,7 +235,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
         if (!item)
         {
             clear();
-            m_last_result = LoadResult::AllocationFailed;
+            m_last_load_result = LoadResult::AllocationFailed;
             ESP_LOGW(TAG, "could not allocate bluetooth host item");
             return false;
         }
@@ -255,7 +255,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
 
     if (skipped > 0)
     {
-        m_last_result = LoadResult::InvalidHost;
+        m_last_load_result = LoadResult::InvalidHost;
         ESP_LOGW(TAG, "loaded %u bluetooth hosts, skipped %u invalid entries", static_cast<unsigned>(m_size), static_cast<unsigned>(skipped));
         return false;
     }
@@ -266,18 +266,18 @@ bool BtHostList::loadFromMicroSd(const char* path)
 
 bool BtHostList::saveToMicroSd(bool allowEmpty)
 {
-    m_last_result = LoadResult::Ok;
+    m_last_load_result = LoadResult::Ok;
 
     if (m_destroyed)
     {
-        m_last_result = LoadResult::Destroyed;
+        m_last_load_result = LoadResult::Destroyed;
         ESP_LOGW(TAG, "not saving bluetooth host list after destructor");
         return false;
     }
 
     if (m_size == 0 && !allowEmpty)
     {
-        m_last_result = LoadResult::EmptyList;
+        m_last_load_result = LoadResult::EmptyList;
         ESP_LOGW(TAG, "not saving empty bluetooth host list");
         return false;
     }
@@ -302,7 +302,7 @@ bool BtHostList::saveToMicroSd(bool allowEmpty)
     FsFile file;
     if (!file.open(m_path, O_WRONLY | O_CREAT | O_TRUNC))
     {
-        m_last_result = LoadResult::FileOpenFailed;
+        m_last_load_result = LoadResult::FileOpenFailed;
         ESP_LOGW(TAG, "could not open bluetooth host list for write: %s", m_path);
         return false;
     }
@@ -314,7 +314,7 @@ bool BtHostList::saveToMicroSd(bool allowEmpty)
 
     if (bytes_written == 0 || !synced)
     {
-        m_last_result = LoadResult::FileWriteFailed;
+        m_last_load_result = LoadResult::FileWriteFailed;
         ESP_LOGW(TAG, "could not write bluetooth host list: %s", m_path);
         return false;
     }
@@ -392,7 +392,7 @@ bool BtHostList::pruneBonds()
 bool BtHostList::insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t icon)
 {
     #ifndef BUILD_WITH_SECURITY
-    m_last_result = LoadResult::Ok;
+    m_last_load_result = LoadResult::Ok;
 
     bt_host_item_t* existing = find_host(m_head, bdaddr);
     if (existing)
@@ -404,7 +404,7 @@ bool BtHostList::insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t ic
             char* replacement = clone_string(name);
             if (!replacement)
             {
-                m_last_result = LoadResult::AllocationFailed;
+                m_last_load_result = LoadResult::AllocationFailed;
                 ESP_LOGW(TAG, "could not allocate bluetooth host name");
                 return false;
             }
@@ -419,7 +419,7 @@ bool BtHostList::insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t ic
     bt_host_item_t* item = create_host(name, bdaddr, icon);
     if (!item)
     {
-        m_last_result = LoadResult::AllocationFailed;
+        m_last_load_result = LoadResult::AllocationFailed;
         ESP_LOGW(TAG, "could not allocate bluetooth host item");
         return false;
     }
@@ -447,11 +447,11 @@ bool BtHostList::insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t ic
 bool BtHostList::remove(size_t index, bool removeBond)
 {
     #ifndef BUILD_WITH_SECURITY
-    m_last_result = LoadResult::Ok;
+    m_last_load_result = LoadResult::Ok;
 
     if (m_destroyed)
     {
-        m_last_result = LoadResult::Destroyed;
+        m_last_load_result = LoadResult::Destroyed;
         ESP_LOGW(TAG, "not removing bluetooth host after destructor");
         return false;
     }
@@ -468,7 +468,7 @@ bool BtHostList::remove(size_t index, bool removeBond)
 
     if (!item)
     {
-        m_last_result = LoadResult::InvalidHost;
+        m_last_load_result = LoadResult::InvalidHost;
         ESP_LOGW(TAG, "could not remove bluetooth host at index %u", static_cast<unsigned>(index));
         return false;
     }
@@ -542,17 +542,7 @@ size_t BtHostList::size() const
 
 bt_host_item_t* BtHostList::get(size_t index)
 {
-    #ifndef BUILD_WITH_SECURITY
-    bt_host_item_t* item = m_head;
-    while (item && index > 0)
-    {
-        item = static_cast<bt_host_item_t*>(item->next_node);
-        --index;
-    }
-    return item;
-    #else
-    return NULL;
-    #endif
+    return const_cast<bt_host_item_t*>(static_cast<const BtHostList*>(this)->get(index));
 }
 
 const bt_host_item_t* BtHostList::get(size_t index) const
@@ -590,12 +580,12 @@ const bt_host_item_t* BtHostList::getFirstLaptop() const
     return find_host_by_icon(m_head, ICON_LAPTOP);
 }
 
-BtHostList::LoadResult BtHostList::lastResult() const
+BtHostList::LoadResult BtHostList::lastLoadResult() const
 {
-    return m_last_result;
+    return m_last_load_result;
 }
 
-const char* BtHostList::lastResultName() const
+const char* BtHostList::lastLoadResultName() const
 {
-    return load_result_tostring(m_last_result);
+    return load_result_tostring(m_last_load_result);
 }

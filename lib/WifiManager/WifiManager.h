@@ -5,6 +5,7 @@
 
 #include "defs.h"
 
+#ifndef BUILD_WITH_SECURITY
 typedef struct
 {
     char*   ssid;      // allocate on creation, free on destructor
@@ -18,11 +19,38 @@ typedef struct
 {
     char*   name;      // allocate on creation, free on destructor
     char*   url;       // allocate on creation, free on destructor
-    char*   password;  // this is a hash salt, never actually send it, allocate on creation, free on destructor
     uint8_t icon;      // one of the ICON_* enums
+    char*   password;  // this is a hash salt, never actually send it, allocate on creation, free on destructor
     void*   next_node; // linked list next node
 }
 cloud_item_t;
+#else
+typedef struct
+{
+    char    ssid[64];
+    char    password[64];
+    uint8_t icon;      // one of the ICON_* enums
+}
+wifi_item_t;
+
+typedef struct
+{
+    char    name[32];
+    char    url[256];
+    uint8_t icon;      // one of the ICON_* enums
+}
+cloud_item_t;
+
+typedef struct
+{
+    char timezone[16];
+    char ntp_server[3][32];
+    wifi_item_t wifi[8];
+    wifi_item_t ap;
+    cloud_item_t cloud[8];
+}
+network_cfg_t;
+#endif
 
 class WifiManager
 {
@@ -65,7 +93,12 @@ public:
     WifiManager(const WifiManager&)            = delete;
     WifiManager& operator=(const WifiManager&) = delete;
 
+    #ifndef BUILD_WITH_SECURITY
     bool loadFromMicroSd(const char* path = "/wifi.json");
+    #else
+    bool loadFromNvs();
+    bool saveToNvs();
+    #endif
     void clear();
 
     const char* timezone() const;
@@ -99,8 +132,8 @@ public:
     cloud_item_t* cloudEndpoint(size_t index);
     const cloud_item_t* cloudEndpoint(size_t index) const;
 
-    LoadResult lastResult() const;
-    const char* lastResultName() const;
+    LoadResult lastLoadResult() const;
+    const char* lastLoadResultName() const;
 
 private:
     bool connectToHotspot(const wifi_item_t* hotspot, bool shutdown_first);
@@ -119,7 +152,7 @@ private:
     cloud_item_t* m_cloud_endpoint_head            = nullptr;
     cloud_item_t* m_cloud_endpoint_tail            = nullptr;
     size_t        m_cloud_endpoint_count           = 0;
-    LoadResult    m_last_result                    = LoadResult::Ok;
+    LoadResult    m_last_load_result               = LoadResult::Ok;
     Status        m_status                         = Status::Idle;
     const wifi_item_t* m_active_wifi               = nullptr;
     const wifi_item_t* m_connected_wifi            = nullptr;

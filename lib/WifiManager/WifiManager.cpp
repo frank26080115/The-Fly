@@ -17,6 +17,7 @@
 #include "MicroSdCard.h"
 #include "esp_log.h"
 #include "esp_mac.h"
+#include "esp_wifi.h"
 #include "utilfuncs.h"
 
 namespace
@@ -40,6 +41,9 @@ constexpr int kWifiCoreDebugLevel = static_cast<int>(ESP_LOG_NONE);
 constexpr bool kWifiDebugBuild =
     static_cast<int>(LOG_LOCAL_LEVEL) > static_cast<int>(ESP_LOG_ERROR) ||
     kWifiCoreDebugLevel > static_cast<int>(ESP_LOG_ERROR);
+constexpr int kSoftApChannel       = 1;
+constexpr int kSoftApSsidHidden    = 0;
+constexpr int kSoftApMaxConnection = 1;
 
 const char* load_result_tostring(WifiManager::LoadResult result)
 {
@@ -105,6 +109,8 @@ bool replace_string(char*& dst, const char* value)
     dst = replacement;
     return true;
 }
+
+#ifndef BUILD_WITH_SECURITY
 
 void free_wifi_list(wifi_item_t*& head, wifi_item_t*& tail, size_t& count)
 {
@@ -230,27 +236,7 @@ void append_cloud_item(cloud_item_t*& head, cloud_item_t*& tail, size_t& count, 
     ++count;
 }
 
-wifi_item_t* get_wifi_item(wifi_item_t* head, size_t index)
-{
-    wifi_item_t* item = head;
-    while (item && index > 0)
-    {
-        item = static_cast<wifi_item_t*>(item->next_node);
-        --index;
-    }
-    return item;
-}
-
-cloud_item_t* get_cloud_item(cloud_item_t* head, size_t index)
-{
-    cloud_item_t* item = head;
-    while (item && index > 0)
-    {
-        item = static_cast<cloud_item_t*>(item->next_node);
-        --index;
-    }
-    return item;
-}
+#endif
 
 bool scan_has_ssid(int network_count, const char* ssid)
 {
@@ -318,15 +304,50 @@ void format_generated_soft_ap_password(char* password, size_t password_size)
     snprintf(password, password_size, "%08lu", static_cast<unsigned long>(generate_8_digit_nonce()));
 }
 
+bool enforce_soft_ap_security()
+{
+    wifi_config_t config = {};
+    esp_err_t err = esp_wifi_get_config(WIFI_IF_AP, &config);
+    if (err != ESP_OK)
+    {
+        ESP_LOGW(TAG, "could not read SoftAP config for security enforcement: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    config.ap.authmode       = WIFI_AUTH_WPA3_PSK;
+    config.ap.max_connection = kSoftApMaxConnection;
+    config.ap.pmf_cfg.capable = true;
+    config.ap.pmf_cfg.required = true;
+#if defined(WIFI_CIPHER_TYPE_CCMP)
+    config.ap.pairwise_cipher = WIFI_CIPHER_TYPE_CCMP; // if not set, WPA3 should still require modern cipher behavior
+#endif
+#if defined(WPA3_SAE_PWE_BOTH)
+    config.ap.sae_pwe_h2e = WPA3_SAE_PWE_BOTH; // if missing, possible client compatibility issue, not obvious insecurity
+#endif
+    // security review of these optional settings: all 4 configurations are safe
+
+    err = esp_wifi_set_config(WIFI_IF_AP, &config);
+    if (err != ESP_OK)
+    {
+        ESP_LOGW(TAG, "could not enforce WPA3-only SoftAP config: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    return true;
+}
+
 } // namespace
 
 WifiManager::WifiManager()
 {
+    #ifndef BUILD_WITH_SECURITY
     clear();
+    #endif
 }
 
 WifiManager::~WifiManager()
 {
+    #ifndef BUILD_WITH_SECURITY
     free_wifi_list(m_station_head, m_station_tail, m_station_count);
     free_wifi_list(m_access_point_head, m_access_point_tail, m_access_point_count);
     free_cloud_list(m_cloud_endpoint_head, m_cloud_endpoint_tail, m_cloud_endpoint_count);
@@ -339,15 +360,17 @@ WifiManager::~WifiManager()
         free(m_ntp_servers[i]);
         m_ntp_servers[i] = nullptr;
     }
+    #endif
 }
 
 bool WifiManager::loadFromMicroSd(const char* path)
 {
+    #ifndef BUILD_WITH_SECURITY
     clear();
 
     if (!MicroSdCard::isReady())
     {
-        m_last_result = LoadResult::SdNotReady;
+        m_last_load_result = LoadResult::SdNotReady;
         ESP_LOGW(TAG, "microSD is not ready while loading Wi-Fi config");
         return false;
     }
@@ -355,7 +378,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
     FsFile file;
     if (!file.open(path ? path : "/wifi.json", O_RDONLY))
     {
-        m_last_result = LoadResult::FileOpenFailed;
+        m_last_load_result = LoadResult::FileOpenFailed;
         ESP_LOGW(TAG, "could not open Wi-Fi config: %s", path ? path : "/wifi.json");
         return false;
     }
@@ -364,7 +387,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
     if (file_size > kMaxJsonFileSize)
     {
         file.close();
-        m_last_result = LoadResult::FileTooLarge;
+        m_last_load_result = LoadResult::FileTooLarge;
         ESP_LOGW(TAG, "Wi-Fi config is too large: %llu bytes", static_cast<unsigned long long>(file_size));
         return false;
     }
@@ -373,7 +396,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
     if (!buffer)
     {
         file.close();
-        m_last_result = LoadResult::AllocationFailed;
+        m_last_load_result = LoadResult::AllocationFailed;
         ESP_LOGW(TAG, "could not allocate Wi-Fi config buffer");
         return false;
     }
@@ -384,7 +407,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
     if (bytes_read < 0 || static_cast<uint64_t>(bytes_read) != file_size)
     {
         free(buffer);
-        m_last_result = LoadResult::FileReadFailed;
+        m_last_load_result = LoadResult::FileReadFailed;
         ESP_LOGW(TAG, "could not read Wi-Fi config");
         return false;
     }
@@ -396,7 +419,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
 
     if (error)
     {
-        m_last_result = LoadResult::JsonParseFailed;
+        m_last_load_result = LoadResult::JsonParseFailed;
         ESP_LOGW(TAG, "could not parse Wi-Fi config: %s", error.c_str());
         return false;
     }
@@ -405,7 +428,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
     if (timezone && !replace_string(m_timezone, timezone))
     {
         clear();
-        m_last_result = LoadResult::AllocationFailed;
+        m_last_load_result = LoadResult::AllocationFailed;
         ESP_LOGW(TAG, "could not allocate timezone");
         return false;
     }
@@ -425,7 +448,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
             if (server && !replace_string(m_ntp_servers[index], server))
             {
                 clear();
-                m_last_result = LoadResult::AllocationFailed;
+                m_last_load_result = LoadResult::AllocationFailed;
                 ESP_LOGW(TAG, "could not allocate NTP server");
                 return false;
             }
@@ -454,7 +477,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
             if (!item)
             {
                 clear();
-                m_last_result = LoadResult::AllocationFailed;
+                m_last_load_result = LoadResult::AllocationFailed;
                 ESP_LOGW(TAG, "could not allocate Wi-Fi station item");
                 return false;
             }
@@ -482,7 +505,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
             if (!item)
             {
                 clear();
-                m_last_result = LoadResult::AllocationFailed;
+                m_last_load_result = LoadResult::AllocationFailed;
                 ESP_LOGW(TAG, "could not allocate Wi-Fi access point item");
                 return false;
             }
@@ -511,7 +534,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
             if (!item)
             {
                 clear();
-                m_last_result = LoadResult::AllocationFailed;
+                m_last_load_result = LoadResult::AllocationFailed;
                 ESP_LOGW(TAG, "could not allocate cloud endpoint item");
                 return false;
             }
@@ -522,20 +545,24 @@ bool WifiManager::loadFromMicroSd(const char* path)
 
     if (skipped > 0)
     {
-        m_last_result = LoadResult::InvalidItem;
+        m_last_load_result = LoadResult::InvalidItem;
         ESP_LOGW(TAG, "loaded Wi-Fi config with %u invalid item(s) skipped", static_cast<unsigned>(skipped));
         return false;
     }
 
-    m_last_result = LoadResult::Ok;
+    m_last_load_result = LoadResult::Ok;
     ESP_LOGI(TAG,
              "loaded Wi-Fi config: stations=%u access_points=%u cloud_endpoints=%u",
              static_cast<unsigned>(m_station_count),
              static_cast<unsigned>(m_access_point_count),
              static_cast<unsigned>(m_cloud_endpoint_count));
     return true;
+    #else
+    return false;
+    #endif
 }
 
+#ifndef BUILD_WITH_SECURITY
 void WifiManager::clear()
 {
     free_wifi_list(m_station_head, m_station_tail, m_station_count);
@@ -547,7 +574,7 @@ void WifiManager::clear()
 
     if (!replace_string(m_timezone, kDefaultTimezone))
     {
-        m_last_result = LoadResult::AllocationFailed;
+        m_last_load_result = LoadResult::AllocationFailed;
         ESP_LOGW(TAG, "could not allocate default timezone");
         return;
     }
@@ -556,14 +583,15 @@ void WifiManager::clear()
     {
         if (!replace_string(m_ntp_servers[i], kDefaultNtpServers[i]))
         {
-            m_last_result = LoadResult::AllocationFailed;
+            m_last_load_result = LoadResult::AllocationFailed;
             ESP_LOGW(TAG, "could not allocate default NTP server");
             return;
         }
     }
 
-    m_last_result = LoadResult::Ok;
+    m_last_load_result = LoadResult::Ok;
 }
+#endif
 
 const char* WifiManager::timezone() const
 {
@@ -586,12 +614,22 @@ size_t WifiManager::stationCount() const
 
 wifi_item_t* WifiManager::station(size_t index)
 {
-    return get_wifi_item(m_station_head, index);
+    return const_cast<wifi_item_t*>(static_cast<const WifiManager*>(this)->station(index));
 }
 
 const wifi_item_t* WifiManager::station(size_t index) const
 {
-    return get_wifi_item(m_station_head, index);
+    #ifndef BUILD_WITH_SECURITY
+    const wifi_item_t* item = m_station_head;
+    while (item && index > 0)
+    {
+        item = static_cast<const wifi_item_t*>(item->next_node);
+        --index;
+    }
+    return item;
+    #else
+    return NULL;
+    #endif
 }
 
 size_t WifiManager::accessPointCount() const
@@ -601,12 +639,22 @@ size_t WifiManager::accessPointCount() const
 
 wifi_item_t* WifiManager::accessPoint(size_t index)
 {
-    return get_wifi_item(m_access_point_head, index);
+    return const_cast<wifi_item_t*>(static_cast<const WifiManager*>(this)->accessPoint(index));
 }
 
 const wifi_item_t* WifiManager::accessPoint(size_t index) const
 {
-    return get_wifi_item(m_access_point_head, index);
+    #ifndef BUILD_WITH_SECURITY
+    const wifi_item_t* item = m_access_point_head;
+    while (item && index > 0)
+    {
+        item = static_cast<const wifi_item_t*>(item->next_node);
+        --index;
+    }
+    return item;
+    #else
+    return NULL;
+    #endif
 }
 
 bool WifiManager::connectToHotspot(const wifi_item_t* hotspot)
@@ -679,12 +727,28 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     }
 
     const char* password = access_point->password && access_point->password[0] != '\0' ? access_point->password : nullptr;
-    const bool  started  = password ? WiFi.softAP(access_point->ssid, password) : WiFi.softAP(access_point->ssid);
+    if (!password || strlen(password) < 8)
+    {
+        m_status      = Status::AccessPointFailed;
+        m_active_wifi = nullptr;
+        ESP_LOGW(TAG, "cannot start WPA3-only Wi-Fi access point \"%s\" without an 8+ character password", access_point->ssid);
+        return false;
+    }
+
+    const bool started = WiFi.softAP(access_point->ssid, password, kSoftApChannel, kSoftApSsidHidden, kSoftApMaxConnection);
     if (!started)
     {
         m_status      = Status::AccessPointFailed;
         m_active_wifi = nullptr;
         ESP_LOGW(TAG, "could not start Wi-Fi access point \"%s\"", access_point->ssid);
+        return false;
+    }
+    if (!enforce_soft_ap_security())
+    {
+        WiFi.softAPdisconnect(true);
+        m_status      = Status::AccessPointFailed;
+        m_active_wifi = nullptr;
+        ESP_LOGW(TAG, "stopped Wi-Fi access point \"%s\" because WPA3-only security could not be enforced", access_point->ssid);
         return false;
     }
 
@@ -953,20 +1017,30 @@ size_t WifiManager::cloudEndpointCount() const
 
 cloud_item_t* WifiManager::cloudEndpoint(size_t index)
 {
-    return get_cloud_item(m_cloud_endpoint_head, index);
+    return const_cast<cloud_item_t*>(static_cast<const WifiManager*>(this)->cloudEndpoint(index));
 }
 
 const cloud_item_t* WifiManager::cloudEndpoint(size_t index) const
 {
-    return get_cloud_item(m_cloud_endpoint_head, index);
+    #ifndef BUILD_WITH_SECURITY
+    const cloud_item_t* item = m_cloud_endpoint_head;
+    while (item && index > 0)
+    {
+        item = static_cast<const cloud_item_t*>(item->next_node);
+        --index;
+    }
+    return item;
+    #else
+    return NULL;
+    #endif
 }
 
-WifiManager::LoadResult WifiManager::lastResult() const
+WifiManager::LoadResult WifiManager::lastLoadResult() const
 {
-    return m_last_result;
+    return m_last_load_result;
 }
 
-const char* WifiManager::lastResultName() const
+const char* WifiManager::lastLoadResultName() const
 {
-    return load_result_tostring(m_last_result);
+    return load_result_tostring(m_last_load_result);
 }
