@@ -29,7 +29,7 @@ The uploading and transcription of the recorded audio files should be nearly sea
  * password
  * master-key
  * link-key
- * Wi-Fi crediential
+ * Wi-Fi credentials
  * session identifier
  * temporary short key
  * temporary long key
@@ -37,6 +37,19 @@ The uploading and transcription of the recorded audio files should be nearly sea
  * session response
  * the recording files
  * audio/sound
+
+# Identities
+
+ * Bluetooth Device Address, aka BDADDR
+ * Bluetooth Names
+ * Wi-Fi MAC Address
+ * SSIDs
+
+All of these are easily seen or captured, and are not considered secure or require security when transported.
+
+Spoofing SSID or Bluetooth name is considered a social engineering attack and is protected against with underlying security mechanisms.
+
+Spoofing of the BDADDR is not useful without a correct link-key
 
 # Threats
 
@@ -90,9 +103,13 @@ The software should use a key-file, and if it is missing, ask the user for a pas
 
 There will be unencrypted "*.wav" files stored on the server, and they will need to be transcribed by either a local AI or a cloud AI service. The transcription will need to be further analyzed by either a local AI or cloud AI service.
 
-The server implementation present in this repository is considered only demonstrative. It is up to the user how the server is setup in terms of user access and networking. It is up to the user how the unecrypted data is stored. The user may want to stream unecrypted data instead of ever letting it be saved to disk. This is outside the scope of this project.
+Uploads are authenticated via request header data. Unauthenticated uploads are not stored. This prevents both denial-of-service attacks and also gaslighting.
+
+The server implementation present in this repository is considered only demonstrative. It is up to the user how the server is setup in terms of user access and networking. It is up to the user how the unencrypted data is stored. The user may want to stream unencrypted data instead of ever letting it be saved to disk. This is outside the scope of this project.
 
 If Compromised: if the attacker actually gets the login credentials, this is bad, it's a complete compromise of the master-key and all encrypted files
+
+If Spoofed: the spoof server can get a copy of the file but will not be able to decrypt it; the spoof server can get samples of encrypted timestamps to attempt cryptanalysis with
 
 ## Local Network PC
 
@@ -110,7 +127,7 @@ If Compromised: if the attacker actually gets the login credentials, this is bad
 
 Similar to a Local Network PC, but there is no permanent storage for a master-key. Any functionality involving the master-key will need to require the human to input the password. The password is never transmitted in any form. Any secret is never transmitted in plain-text.
 
-Transmission of secrets will use temporary keys to assist in the encrpyted transport.
+Transmission of secrets will use temporary keys to assist in the encrypted transport.
 
 If Compromised: if there is malware that can peak at the session memory, then there is the chance of compromising some keys when they are in memory
 
@@ -126,7 +143,7 @@ If Stolen: attacker can generate the Master-Key
 
 The user can choose to reset the master-key on the device at any time, but doing so will cause NVS to be erased. The new master-key is to be transmitted while encrypted by a temporary key.
 
-If Stolen: attacker can decrypt all files, attacker can authenticate to servers
+If Stolen: attacker can decrypt all files; attacker can authenticate to servers; attacker can derive other keys; attacker cannot extract Bluetooth link-keys
 
 ## Link-Key
 
@@ -142,7 +159,7 @@ If Stolen: attacker can intercept Bluetooth audio, and impersonate the device
 
 The SSID and passwords of Wi-Fi stations are stored in NVS memory.
 
-These can be set by the web browser front-end, and when doing so, it is transported while encryted.
+These can be set by the web browser front-end, and when doing so, it is transported while encrypted.
 
 Wi-Fi SSIDs are transmitted from internal server to browser but not the passwords. SSID passwords are considered write only and never read out by the front-end.
 
@@ -182,11 +199,7 @@ The packet header has some static features like a magic and source identifier, s
 
 ## Authentication Over HTTP/HTTPS Request Headers
 
-For ESP32 (as client) <-> server communication, the key used is the master-key
-
-For ESP32 (as server) <-> direct web browser, the key used is the temporary-long-key
-
-For all requests, the current time (UTC) is to be included, and a hash of that time is to be included. The server can verify that the time is in-sync within +/- 2 minutes and that the key is correct.
+For all requests, the current time (UTC) is to be included, and a hash of that time (with the master-key) is to be included. The server can verify that the time is in-sync within +/- 2 minutes, and infer that the master-key is correct.
 
 It is critical that the time is correct on all parties involved.
 
@@ -228,6 +241,12 @@ The update mechanism also checks to see if the firmware version is equal or newe
 
 The firmware does not need to be encrypted.
 
-The firmware file will be publicly available to download, and loaded on to the microSD card. While on the card, the currently running firmware can run checks on it before passing it on to the bootloading mechanism, which will have more security checks on it before finally flashing.
+The firmware file will be publicly available to download, and loaded on to the device's memory (either microSD card or an dedicated OTA staging memory). While on the device, the currently running firmware can run checks on it before passing it on to the bootloading mechanism, which will have more security checks on it before finally flashing.
+
+See `lib\Security\firmware-authentication.md` for more details.
 
 Implementation details are not yet fully established.
+
+## Random Number Generation
+
+`esp_random()` and `esp_fill_random()` shall be used, never use `rand()`. The `esp_` RNG functions are using hardware RNG which works better if Bluetooth or Wi-Fi is currently enabled. It is policy that random numbers are only generated if the wireless subsystems are active. By current design, Bluetooth is always on and connectable with very rare exceptions, and Wi-Fi might shutdown Bluetooth but the time window when both are off will not be used for RNG.
