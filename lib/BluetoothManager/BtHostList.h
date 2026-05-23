@@ -1,9 +1,15 @@
 #pragma once
 
-#include <stddef.h>
+#include "thefly_common.h"
 
-#include "defs.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <time.h>
+
 #include "esp_gap_bt_api.h"
+
+static constexpr size_t kBtHostListMaxEntries = 8;
+static constexpr size_t kBtHostNameMaxLength  = 32; // true max is ESP_BT_GAP_MAX_BDNAME_LEN + 1; but we only need to display it on a small LCD screen
 
 #ifndef BUILD_WITH_SECURITY
 typedef struct 
@@ -18,18 +24,23 @@ bt_host_item_t;
 #else
 typedef struct 
 {
-    esp_bd_addr_t bdaddr;
-    char          name_custom[32];   // written through user admin interface
-    char          name_reported[32]; // written only when pairing
-    bool          bonded;            // use `bonded_mac_matches` to check
-    time_t        last_used;         // we have a fixed number of entries, if we are full and a pair happens, used the oldest
+    esp_bd_addr_t bdaddr;            // all zeros indicate slot is empty
+    char          name[kBtHostNameMaxLength];          // runtime display name, rebuilt from custom/reported names
+    char          name_custom[kBtHostNameMaxLength];   // written through user admin interface, this has priority
+    char          name_reported[kBtHostNameMaxLength]; // written only when pairing
+    bool          bonded;            // use `bonded_mac_matches` to check, do not trust the value straight out of storage
+    time_t        last_used;         // we have a fixed number of entries, if we are full and a pair happens, overwrite the oldest
     uint8_t       icon;              // one of `ICON_*`
+    void*         next_node;         // runtime compatibility with linked-list callers; always null in fixed storage
 }
 bt_host_item_t;
 
 typedef struct
 {
-    bt_host_item_t host[8];
+    uint32_t       magic;
+    uint32_t       version;
+    uint8_t        count;
+    bt_host_item_t host[kBtHostListMaxEntries];
 }
 bt_host_list_t;
 #endif
@@ -59,10 +70,9 @@ public:
     BtHostList(const BtHostList&)            = delete;
     BtHostList& operator=(const BtHostList&) = delete;
 
-    #ifndef BUILD_WITH_SECURITY
     bool loadFromMicroSd(const char* path = "/bluetooth.json");
     bool saveToMicroSd(bool allowEmpty = false);
-    #else
+    #ifdef BUILD_WITH_SECURITY
     bool loadFromNvs();
     bool saveToNvs();
     #endif
@@ -87,6 +97,9 @@ private:
     char            m_path[kMaxPathLength];
     bt_host_item_t* m_head        = nullptr;
     bt_host_item_t* m_tail        = nullptr;
+    size_t          m_size        = 0;
+    #else
+    bt_host_list_t  m_hosts       = {};
     size_t          m_size        = 0;
     #endif
     LoadResult      m_last_load_result = LoadResult::Ok;

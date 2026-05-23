@@ -4,6 +4,12 @@
 #include <mutex>
 #include <string.h>
 
+#ifdef BUILD_WITH_SECURITY
+#include "../Security/Aegis.h"
+#include "esp_random.h"
+#include "mbedtls/gcm.h"
+#endif
+
 #include "ClockAgent.h"
 #include "DiskStats.h"
 #include "MicroSdCard.h"
@@ -26,6 +32,21 @@ constexpr uint32_t kTimedFlushIntervalMs            = 2000;
 constexpr size_t   kMetaTextPayloadMaxBytes         = FILE_PACKET_PAYLOAD_MAX * sizeof(uint16_t);
 constexpr uint8_t  kMaxConsecutiveWriteFailures     = 3;
 
+#ifdef BUILD_WITH_SECURITY
+constexpr size_t kGcmNonceSize = 12;
+constexpr size_t kGcmTagSize   = 16;
+
+struct encrypted_file_packet_t
+{
+    uint8_t nonce[kGcmNonceSize];
+    uint8_t ciphertext[sizeof(file_packet_t)];
+    uint8_t tag[kGcmTagSize];
+};
+
+static_assert(sizeof(encrypted_file_packet_t) == kGcmNonceSize + sizeof(file_packet_t) + kGcmTagSize,
+              "encrypted file packet must not contain padding");
+#endif
+
 AudioFifo* g_host_fifo = nullptr;
 AudioFifo* g_mic_fifo  = nullptr;
 FsFile     g_file;
@@ -47,6 +68,10 @@ bool       g_longwrite_latched                      = false;
 bool       g_next_source_toggle                     = true;
 uint8_t    g_consecutive_write_failures             = 0;
 bool       g_card_failure_reported                  = false;
+#ifdef BUILD_WITH_SECURITY
+mbedtls_gcm_context g_packet_gcm;
+bool                g_packet_gcm_ready              = false;
+#endif
 std::mutex g_recorder_mutex;
 std::mutex g_pump_mutex;
 
@@ -99,6 +124,90 @@ void reset_fifo_flags(AudioFifo& fifo)
 }
 
 bool recording_file_ready_locked();
+
+#ifdef BUILD_WITH_SECURITY
+void store_u32_be(uint8_t* dst, uint32_t value)
+{
+    dst[0] = static_cast<uint8_t>((value >> 24) & 0xFF);
+    dst[1] = static_cast<uint8_t>((value >> 16) & 0xFF);
+    dst[2] = static_cast<uint8_t>((value >> 8) & 0xFF);
+    dst[3] = static_cast<uint8_t>(value & 0xFF);
+}
+
+void stop_recording_encryption_locked()
+{
+    if (g_packet_gcm_ready)
+    {
+        mbedtls_gcm_free(&g_packet_gcm);
+        g_packet_gcm_ready = false;
+    }
+}
+
+bool start_recording_encryption_locked()
+{
+    stop_recording_encryption_locked();
+
+    if (g_pure_pcm_mode)
+    {
+        return true;
+    }
+
+    if (!Aegis::isInitialized())
+    {
+        DBG_LOGE(TAG, "Aegis init failed");
+        return false;
+    }
+
+    const uint8_t* master_key = Aegis::getMasterKey();
+    if (!master_key)
+    {
+        DBG_LOGE(TAG, "Aegis master key is not available");
+        return false;
+    }
+
+    mbedtls_gcm_init(&g_packet_gcm);
+    if (mbedtls_gcm_setkey(&g_packet_gcm, MBEDTLS_CIPHER_ID_AES, master_key, Aegis::kMasterKeySize * 8) != 0)
+    {
+        mbedtls_gcm_free(&g_packet_gcm);
+        DBG_LOGE(TAG, "recording AES-GCM setup failed");
+        return false;
+    }
+
+    g_packet_gcm_ready = true;
+    return true;
+}
+
+// AES-GCM needs a unique 12-byte nonce for every packet encrypted with the same key.
+// The random nonce fields provide most of it, and sequence_num makes the nonce stable
+// for this packet while still changing monotonically across the recording.
+void packet_nonce(const file_packet_t& packet, uint8_t nonce[kGcmNonceSize])
+{
+    store_u32_be(nonce, packet.nonce_1);
+    store_u32_be(nonce + 4, packet.nonce_2);
+    store_u32_be(nonce + 8, packet.sequence_num);
+}
+
+bool encrypt_file_packet_locked(const file_packet_t& packet, encrypted_file_packet_t& encrypted)
+{
+    if (!g_packet_gcm_ready)
+    {
+        return false;
+    }
+
+    packet_nonce(packet, encrypted.nonce);
+    return mbedtls_gcm_crypt_and_tag(&g_packet_gcm,
+                                     MBEDTLS_GCM_ENCRYPT,
+                                     sizeof(packet),
+                                     encrypted.nonce,
+                                     sizeof(encrypted.nonce),
+                                     nullptr,
+                                     0,
+                                     reinterpret_cast<const uint8_t*>(&packet),
+                                     encrypted.ciphertext,
+                                     sizeof(encrypted.tag),
+                                     encrypted.tag) == 0;
+}
+#endif
 
 void fatal_recording_storage_failure(const char* context, const char* readyMessage)
 {
@@ -251,12 +360,23 @@ bool write_packet(AudioFifo& fifo, filepkt_src_e source)
     memcpy(packet.payload, samples, samples_read * sizeof(samples[0]));
 
     const uint8_t* data_ptr = g_pure_pcm_mode ? reinterpret_cast<const uint8_t*>(packet.payload) : reinterpret_cast<const uint8_t*>(&packet);
-    const size_t   data_sz  = g_pure_pcm_mode ? samples_read * sizeof(samples[0]) : sizeof(packet);
+    size_t         data_sz  = g_pure_pcm_mode ? samples_read * sizeof(samples[0]) : sizeof(packet);
 
     #ifdef BUILD_WITH_SECURITY
+    encrypted_file_packet_t encrypted_packet = {};
     if (!g_pure_pcm_mode) // g_pure_pcm_mode is only for testing
     {
-        // TODO: encrypt the entire packet
+        if (!encrypt_file_packet_locked(packet, encrypted_packet))
+        {
+            DBG_LOGE(TAG, "packet encryption failed");
+            g_recording = false;
+            lock.unlock();
+            show_fatal_error_f(true, "recording encryption failed");
+            return false;
+        }
+
+        data_ptr = reinterpret_cast<const uint8_t*>(&encrypted_packet);
+        data_sz  = sizeof(encrypted_packet);
     }
     #endif
 
@@ -311,16 +431,26 @@ bool write_queued_meta_text_locked()
     #ifdef BUILD_WITH_SECURITY
     packet.nonce_1 = esp_random();
     packet.nonce_2 = esp_random();
-    // TODO: encrypt entire packet
+    encrypted_file_packet_t encrypted_packet = {};
+    if (!encrypt_file_packet_locked(packet, encrypted_packet))
+    {
+        DBG_LOGE(TAG, "metadata text packet encryption failed");
+        return false;
+    }
+    const uint8_t* data_ptr = reinterpret_cast<const uint8_t*>(&encrypted_packet);
+    const size_t   data_sz  = sizeof(encrypted_packet);
+    #else
+    const uint8_t* data_ptr = reinterpret_cast<const uint8_t*>(&packet);
+    const size_t   data_sz  = sizeof(packet);
     #endif
 
-    if (g_file.write(reinterpret_cast<const uint8_t*>(&packet), sizeof(packet)) != sizeof(packet))
+    if (g_file.write(data_ptr, data_sz) != data_sz)
     {
         DBG_LOGE(TAG, "metadata text packet write failed");
         return false;
     }
 
-    g_bytes_written += sizeof(packet);
+    g_bytes_written += data_sz;
     update_write_duration_stats(static_cast<uint32_t>(micros() - started_us));
 
     g_queued_meta_text[0]      = '\0';
@@ -428,6 +558,7 @@ bool startRecording(char typeCode)
 
     char started_path[sizeof(g_sd_path)] = {};
     bool recording_file_opened = false;
+    bool encryption_setup_failed = false;
     {
         std::lock_guard<std::mutex> pump_lock(g_pump_mutex);
         g_next_source_toggle = true;
@@ -443,30 +574,47 @@ bool startRecording(char typeCode)
         }
         else
         {
-#ifdef ENABLE_FILE_PREALLOCATION
-            // preallocate file space to avoid unexpected latency for editing file table entry
-            grow_file(g_file, max_prealloc_size());
+#ifdef BUILD_WITH_SECURITY
+            if (!start_recording_encryption_locked())
+            {
+                g_file.close();
+                g_sd_path[0] = '\0';
+                encryption_setup_failed = true;
+            }
 #endif
 
-            g_bytes_written  = 0;
-            g_sequence_num   = 0;
-            g_last_flush_ms  = millis();
-            g_consecutive_write_failures = 0;
-            g_card_failure_reported      = false;
-            g_recording      = true;
-            recording_file_opened = true;
-            strncpy(started_path, g_sd_path, sizeof(started_path) - 1);
+            if (!encryption_setup_failed)
+            {
+#ifdef ENABLE_FILE_PREALLOCATION
+                // preallocate file space to avoid unexpected latency for editing file table entry
+                grow_file(g_file, max_prealloc_size());
+#endif
+
+                g_bytes_written  = 0;
+                g_sequence_num   = 0;
+                g_last_flush_ms  = millis();
+                g_consecutive_write_failures = 0;
+                g_card_failure_reported      = false;
+                g_recording      = true;
+                recording_file_opened = true;
+                strncpy(started_path, g_sd_path, sizeof(started_path) - 1);
+            }
         }
+    }
+    if (encryption_setup_failed)
+    {
+        show_fatal_error_f(true, "recording encryption setup failed");
+        return false;
     }
     if (!recording_file_opened)
     {
+#ifdef BUILD_WITH_SECURITY
+        std::lock_guard<std::mutex> lock(g_recorder_mutex);
+        stop_recording_encryption_locked();
+#endif
         fatal_recording_storage_failure("opening recording file", "microSD recording file open failed");
         return false;
     }
-
-    #ifdef BUILD_WITH_SECURITY
-    // TODO: initialize encryption
-    #endif
 
     set_queue_enabled(true); // actually start recording
     DBG_LOGI(TAG, "recording started: %s", started_path);
@@ -544,10 +692,6 @@ bool stopRecording(bool estop)
 
         if (g_file)
         {
-            #ifdef BUILD_WITH_SECURITY
-            // TODO: clean up encryption related items
-            #endif
-
             g_file.flush(); // this makes sure the buffer actually makes it onto the card
             g_last_flush_ms = millis();
 
@@ -560,6 +704,10 @@ bool stopRecording(bool estop)
             g_file.close();
             closed_file = true;
         }
+
+#ifdef BUILD_WITH_SECURITY
+        stop_recording_encryption_locked();
+#endif
     }
 
     if (closed_file)

@@ -768,7 +768,7 @@ bool ScrollView::deleteArmedBluetoothHost()
             snprintf(message,
                      sizeof(message),
                      "Bluetooth delete failed\n%s",
-                     bluetoothHostList_ ? bluetoothHostList_->lastResultName() : "No host list");
+                     bluetoothHostList_ ? bluetoothHostList_->lastLoadResultName() : "No host list");
             dialog->configure(sprit_warning_100,
                               SPRIT_WARNING_100_BYTES,
                               SPRIT_WARNING_100_WIDTH,

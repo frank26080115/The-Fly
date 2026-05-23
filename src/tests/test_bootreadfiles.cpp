@@ -80,7 +80,7 @@ void report_wifi_summary(const WifiManager& wifi_manager, bool loaded)
     Serial.printf("%s: WifiManager load=%u result=%s stations=%u access_points=%u cloud_endpoints=%u timezone=%s\n",
                   TAG,
                   loaded ? 1U : 0U,
-                  wifi_manager.lastResultName(),
+                  wifi_manager.lastLoadResultName(),
                   static_cast<unsigned>(wifi_manager.stationCount()),
                   static_cast<unsigned>(wifi_manager.accessPointCount()),
                   static_cast<unsigned>(wifi_manager.cloudEndpointCount()),
@@ -115,7 +115,7 @@ void report_bt_summary(const BtHostList& bt_hosts, bool loaded)
     Serial.printf("%s: BtHostList load=%u result=%s hosts=%u\n",
                   TAG,
                   loaded ? 1U : 0U,
-                  bt_hosts.lastResultName(),
+                  bt_hosts.lastLoadResultName(),
                   static_cast<unsigned>(bt_hosts.size()));
 
     for (size_t i = 0; i < bt_hosts.size(); ++i)

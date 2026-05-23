@@ -14,6 +14,7 @@ For two mono 16 KHz streams being recorded, we want at least 64000 bytes/sec
 #include "AudioFileRecorder.h"
 #include "AudioManager.h"
 #include "MicroSdCard.h"
+#include "Aegis.h"
 #include "utilfuncs.h"
 
 namespace
@@ -289,6 +290,35 @@ void test_sdcard()
     Serial.println("starting microSD recorder smoke test");
     Serial.printf("free heap before FIFO init: %lu\n", static_cast<unsigned long>(ESP.getFreeHeap()));
 
+    #ifdef BUILD_WITH_SECURITY
+    Serial.printf("%s: BUILD_WITH_SECURITY is enabled; recorder packets should be AES-GCM encrypted\n", TAG);
+    if (!Aegis::init())
+    {
+        Serial.printf("%s: Aegis init failed\n", TAG);
+        idle_forever();
+    }
+    if (!Aegis::hasMasterKey())
+    {
+        const uint8_t test_key[Aegis::kMasterKeySize] = {
+            0x74, 0x68, 0x65, 0x66, 0x6c, 0x79, 0x2d, 0x73,
+            0x64, 0x63, 0x61, 0x72, 0x64, 0x2d, 0x74, 0x65,
+            0x73, 0x74, 0x2d, 0x6b, 0x65, 0x79, 0x2d, 0x30,
+            0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x31};
+        if (!Aegis::setMasterKey(test_key))
+        {
+            Serial.printf("%s: Aegis test master key setup failed\n", TAG);
+            idle_forever();
+        }
+        Serial.printf("%s: installed deterministic test master key\n", TAG);
+    }
+    else
+    {
+        Serial.printf("%s: using existing Aegis master key\n", TAG);
+    }
+    #else
+    Serial.printf("%s: BUILD_WITH_SECURITY is disabled; recorder packets will not be encrypted\n", TAG);
+    #endif
+
     if (!AudioManager::init())
     {
         Serial.printf("%s: AudioManager init failed\n", TAG);
@@ -296,8 +326,15 @@ void test_sdcard()
     }
     Serial.printf("free heap after FIFO init: %lu\n", static_cast<unsigned long>(ESP.getFreeHeap()));
 
+    if (!MicroSdCard::begin())
+    {
+        Serial.printf("%s: microSD init failed\n", TAG);
+        idle_forever();
+    }
+
     print_card_stats();
 
+    AudioFileRecorder::setPurePcmMode(false);
     if (!AudioFileRecorder::startRecording('S'))
     {
         Serial.printf("%s: recording start failed\n", TAG);

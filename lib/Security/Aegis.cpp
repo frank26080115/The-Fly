@@ -105,6 +105,14 @@ const uint8_t* getMasterKey()
     return hasMasterKey() ? g_master_key : nullptr;
 }
 
+#ifdef BUILD_IS_DEBUG
+void setTestTempMasterKey(const uint8_t* key)
+{
+    memcpy(g_master_key, key, sizeof(g_master_key));
+    g_master_key_valid = true;
+}
+#endif
+
 bool setMasterKey(const uint8_t* key)
 {
     if (!key)

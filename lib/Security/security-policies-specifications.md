@@ -85,9 +85,11 @@ The local device can use mDNS and service discovery and other broadcast methods 
 
 When a local soft-AP is used, it only allows for one client, and enforces WPA3 PSK security. The password is randomize each time as one of the measures to prevent an impersonation phishing attack. MAC address verification is not strong enough for phishing prevention, as it can be spoofed.
 
+The act of resetting the master-key can only be performed while using the default soft AP.
+
 The Bluetooth functionality of the local device is always in a connectable-but-not-discoverable state, unless BT pairing mode is active.
 
-External interfaces to the ESP32 will be locked down such that security is not compromised. Firmware updates must be authenticated.
+External interfaces to the ESP32 will be locked down such that security is not compromised. Firmware updates must be authenticated using Secure Boot v2.
 
 If Stolen: all files encrypted; all NVS encrypted; no key can be leaked; attacker can connect to bonded Bluetooth hosts; attacker can see timestamps of files and uploads
 

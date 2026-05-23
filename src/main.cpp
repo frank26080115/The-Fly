@@ -76,11 +76,11 @@ static BtManager::PairedDevice g_pending_paired_device = {};
 
 void setup()
 {
+    all_init();
+
     #ifdef RUN_BRINGUP_TEST
     run_test();
     #endif
-
-    all_init();
 
     if (reset_was_magic == false) {
         show_splash();
@@ -94,7 +94,7 @@ void setup()
     wifi_manager = new WifiManager();
     if (wifi_manager && !wifi_manager->loadFromMicroSd())
     {
-        show_fatal_error_f(false, "Wi-Fi configuration load failed: %s", wifi_manager->lastResultName());
+        show_fatal_error_f(false, "Wi-Fi configuration load failed: %s", wifi_manager->lastLoadResultName());
     }
     if (wifi_manager)
     {
@@ -209,13 +209,13 @@ static void handle_pending_bluetooth_pairing()
     {
         if (!bt_host_list->insert(g_pending_paired_device.name, g_pending_paired_device.mac))
         {
-            ESP_LOGW(MAINTAG, "failed to add paired Bluetooth host: %s", bt_host_list->lastResultName());
-            show_fatal_error_f(false, "Bluetooth pair saved in NVS, but host list insert failed: %s", bt_host_list->lastResultName());
+            ESP_LOGW(MAINTAG, "failed to add paired Bluetooth host: %s", bt_host_list->lastLoadResultName());
+            show_fatal_error_f(false, "Bluetooth pair saved in NVS, but host list insert failed: %s", bt_host_list->lastLoadResultName());
         }
         else if (!bt_host_list->saveToMicroSd())
         {
-            ESP_LOGW(MAINTAG, "failed to save Bluetooth host list: %s", bt_host_list->lastResultName());
-            show_fatal_error_f(false, "Bluetooth pair saved in NVS, but bluetooth.json save failed: %s", bt_host_list->lastResultName());
+            ESP_LOGW(MAINTAG, "failed to save Bluetooth host list: %s", bt_host_list->lastLoadResultName());
+            show_fatal_error_f(false, "Bluetooth pair saved in NVS, but Bluetooth host list save failed: %s", bt_host_list->lastLoadResultName());
         }
     }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "thefly_common.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -18,6 +19,9 @@ bool hasMasterKey();
 
 const uint8_t* getMasterKey();
 bool setMasterKey(const uint8_t* key);
+#ifdef BUILD_IS_DEBUG
+void setTestTempMasterKey(const uint8_t* key);
+#endif
 
 bool hmacSha256(const uint8_t* key, size_t key_len, const uint8_t* data, size_t data_len, uint8_t out[kSha256Size]);
 bool pbkdf2HmacSha256(const uint8_t* password,
