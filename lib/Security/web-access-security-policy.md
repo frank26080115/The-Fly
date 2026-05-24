@@ -16,6 +16,27 @@ That string is also hashed with the master-key, and carried with the request und
 
 The server can then authenticate whether or not the time is recent (within +/- 2 minutes) and if the client knows the master-key
 
+## Device Information
+
+These items can be requested without authentication, and is sent without encryption:
+
+ * Device Name
+ * BDADDR
+ * Wi-Fi MAC
+ * Self IP
+ * Firmware Version
+ * Disk Storage
+
+The current time and a cryptographic challenge is also delivered with this information.
+
+## Time Sync
+
+This is the only administrative action that is authenticated but not authenticated through using the time.
+
+The server provides the cryptographic challenge, this is hashed with the master-key by the front-end to produce a response. The response and the browser time is delivered to the ESP32 in order to sync the RTC time.
+
+Performing time-sync both invalidates the session-challenge in the back-end, and also causes a page refresh.
+
 ## File Upload
 
 Requires no authentication
