@@ -432,13 +432,12 @@ bool parse_url(const char* url, UrlParts& out)
 }
 
 #ifndef BUILD_WITH_SECURITY
-String sha1_filename_hash(const char* filename, const char* datetime, const char* password)
+String sha1_filename_hash(const char* filename, const char* datetime)
 {
     SHA1Builder sha1;
     sha1.begin();
     sha1.add(filename ? filename : "");
     sha1.add(datetime ? datetime : "");
-    sha1.add(password ? password : "");
     sha1.calculate();
     return sha1.toString();
 }
@@ -800,8 +799,7 @@ bool CloudUpload::copyDestination(const cloud_item_t* destination, uint32_t time
     }
 
     if (!copy_text(m_destination_name, sizeof(m_destination_name), destination->name ? destination->name : "") ||
-        !copy_text(m_destination_url, sizeof(m_destination_url), destination->url) ||
-        !copy_text(m_destination_password, sizeof(m_destination_password), destination->password ? destination->password : ""))
+        !copy_text(m_destination_url, sizeof(m_destination_url), destination->url))
     {
         return false;
     }
@@ -986,7 +984,7 @@ void CloudUpload::taskMain()
                      upload_datetime.time.seconds);
 
 #ifndef BUILD_WITH_SECURITY
-            const String hash = sha1_filename_hash(item->path, upload_timestamp, m_destination_password);
+            const String hash = sha1_filename_hash(item->path, upload_timestamp);
 #else
             const String hash = hmacsha_filename_hash(item->path, upload_timestamp);
 #endif

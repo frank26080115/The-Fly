@@ -14,7 +14,6 @@ public:
     static constexpr size_t   kPathMaxLength     = 192;
     static constexpr size_t   kNameMaxLength     = 64;
     static constexpr size_t   kUrlMaxLength      = 256;
-    static constexpr size_t   kPasswordMaxLength = 96;
     static constexpr size_t   kMessageMaxLength  = 160;
     static constexpr uint32_t kDefaultTimeoutMs  = 30000;
 
@@ -99,6 +98,5 @@ private:
     volatile bool        m_cancel_requested = false;
     char                 m_destination_name[kNameMaxLength] = {};
     char                 m_destination_url[kUrlMaxLength] = {};
-    char                 m_destination_password[kPasswordMaxLength] = {};
     uint32_t             m_timeout_ms      = kDefaultTimeoutMs;
 };
