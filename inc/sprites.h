@@ -76,6 +76,16 @@ extern const uint8_t sprit_canceldoor_50[];
 #define SPRIT_CLOUDUPLOAD_100_BYTES 11111u
 extern const uint8_t sprit_cloudupload_100[];
 
+#define SPRIT_GENERICDEVICE_BT_100_WIDTH 100u
+#define SPRIT_GENERICDEVICE_BT_100_HEIGHT 100u
+#define SPRIT_GENERICDEVICE_BT_100_BYTES 14592u
+extern const uint8_t sprit_genericdevice_bt_100[];
+
+#define SPRIT_GENERICWIFIROUTER_100_WIDTH 100u
+#define SPRIT_GENERICWIFIROUTER_100_HEIGHT 100u
+#define SPRIT_GENERICWIFIROUTER_100_BYTES 13166u
+extern const uint8_t sprit_genericwifirouter_100[];
+
 #define SPRIT_GREENCHECKMARK_100_WIDTH 100u
 #define SPRIT_GREENCHECKMARK_100_HEIGHT 100u
 #define SPRIT_GREENCHECKMARK_100_BYTES 8216u
@@ -176,6 +186,56 @@ extern const uint8_t sprit_muted_x[];
 #define SPRIT_NTPSYNC_100_BYTES 11983u
 extern const uint8_t sprit_ntpsync_100[];
 
+#define SPRIT_OVERLAY_BIRD_50_WIDTH 50u
+#define SPRIT_OVERLAY_BIRD_50_HEIGHT 50u
+#define SPRIT_OVERLAY_BIRD_50_BYTES 4143u
+extern const uint8_t sprit_overlay_bird_50[];
+
+#define SPRIT_OVERLAY_BT_50_WIDTH 50u
+#define SPRIT_OVERLAY_BT_50_HEIGHT 50u
+#define SPRIT_OVERLAY_BT_50_BYTES 4126u
+extern const uint8_t sprit_overlay_bt_50[];
+
+#define SPRIT_OVERLAY_CAT_50_WIDTH 50u
+#define SPRIT_OVERLAY_CAT_50_HEIGHT 50u
+#define SPRIT_OVERLAY_CAT_50_BYTES 5974u
+extern const uint8_t sprit_overlay_cat_50[];
+
+#define SPRIT_OVERLAY_CIRCLE_40_WIDTH 40u
+#define SPRIT_OVERLAY_CIRCLE_40_HEIGHT 40u
+#define SPRIT_OVERLAY_CIRCLE_40_BYTES 2847u
+extern const uint8_t sprit_overlay_circle_40[];
+
+#define SPRIT_OVERLAY_CLOUD_50_WIDTH 50u
+#define SPRIT_OVERLAY_CLOUD_50_HEIGHT 50u
+#define SPRIT_OVERLAY_CLOUD_50_BYTES 3299u
+extern const uint8_t sprit_overlay_cloud_50[];
+
+#define SPRIT_OVERLAY_DOG_50_WIDTH 50u
+#define SPRIT_OVERLAY_DOG_50_HEIGHT 50u
+#define SPRIT_OVERLAY_DOG_50_BYTES 4944u
+extern const uint8_t sprit_overlay_dog_50[];
+
+#define SPRIT_OVERLAY_HOME_50_WIDTH 50u
+#define SPRIT_OVERLAY_HOME_50_HEIGHT 50u
+#define SPRIT_OVERLAY_HOME_50_BYTES 4166u
+extern const uint8_t sprit_overlay_home_50[];
+
+#define SPRIT_OVERLAY_SQUARE_40_WIDTH 40u
+#define SPRIT_OVERLAY_SQUARE_40_HEIGHT 40u
+#define SPRIT_OVERLAY_SQUARE_40_BYTES 2262u
+extern const uint8_t sprit_overlay_square_40[];
+
+#define SPRIT_OVERLAY_TRIANGLE_40_WIDTH 40u
+#define SPRIT_OVERLAY_TRIANGLE_40_HEIGHT 40u
+#define SPRIT_OVERLAY_TRIANGLE_40_BYTES 2097u
+extern const uint8_t sprit_overlay_triangle_40[];
+
+#define SPRIT_OVERLAY_WIFI_50_WIDTH 50u
+#define SPRIT_OVERLAY_WIFI_50_HEIGHT 50u
+#define SPRIT_OVERLAY_WIFI_50_BYTES 3385u
+extern const uint8_t sprit_overlay_wifi_50[];
+
 #define SPRIT_PICKUP_WIDTH 50u
 #define SPRIT_PICKUP_HEIGHT 50u
 #define SPRIT_PICKUP_BYTES 2550u
@@ -240,6 +300,11 @@ extern const uint8_t sprit_trash_100[];
 #define SPRIT_TRASH_50_HEIGHT 50u
 #define SPRIT_TRASH_50_BYTES 3604u
 extern const uint8_t sprit_trash_50[];
+
+#define SPRIT_UNKNOWN_BT_100_WIDTH 100u
+#define SPRIT_UNKNOWN_BT_100_HEIGHT 100u
+#define SPRIT_UNKNOWN_BT_100_BYTES 15034u
+extern const uint8_t sprit_unknown_bt_100[];
 
 #define SPRIT_WARNING_100_WIDTH 100u
 #define SPRIT_WARNING_100_HEIGHT 100u
