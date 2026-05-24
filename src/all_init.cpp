@@ -216,6 +216,22 @@ bool show_recording_view_bluetooth()
     return gui->showView(FLYGUI_VIEW_RECORDING);
 }
 
+bool promote_recording_view_memo_to_bluetooth()
+{
+    if (!gui || !g_recording_view.promoteMemoToBluetoothMode())
+    {
+        return false;
+    }
+
+    if (gui->currentView() && gui->currentView()->id() == FLYGUI_VIEW_RECORDING)
+    {
+        gui->redraw(true);
+        return true;
+    }
+
+    return gui->showView(FLYGUI_VIEW_RECORDING);
+}
+
 bool show_recording_view_memo()
 {
     if (!gui)

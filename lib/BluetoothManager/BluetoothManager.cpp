@@ -169,7 +169,7 @@ void schedule_reconnect_attempt(uint32_t delay_ms)
 
 bool close_pairing_window()
 {
-    return ok(esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "close bt discovery window");
+    return ok(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "close bt discovery window");
 }
 
 bool make_bluetooth_non_connectable()
@@ -1158,7 +1158,7 @@ bool init_bluetooth(const char* device_name, const char* pin_code)
         || !strict_ok(esp_bt_gap_set_cod(handsfree_cod(), ESP_BT_INIT_COD), "bt class of device")
         || !strict_ok(esp_bt_gap_set_security_param(ESP_BT_SP_IOCAP_MODE, &iocap, sizeof(iocap)), "ssp iocap")
         || !strict_ok(esp_bt_gap_set_pin(ESP_BT_PIN_TYPE_FIXED, pin_length, pin), "legacy pin")
-        || !strict_ok(esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "initial scan mode")
+        || !strict_ok(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "initial scan mode")
         || !strict_ok(esp_bredr_sco_datapath_set(ESP_SCO_DATA_PATH_HCI), "sco hci path")
         )
     {

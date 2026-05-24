@@ -22,6 +22,7 @@ public:
     bool beginMemoRecording();
     void configureBluetoothMode();
     void configureMemoMode();
+    bool promoteMemoToBluetoothMode();
 
     void onLoad() override;
     void onUnload() override;

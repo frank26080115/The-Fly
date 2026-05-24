@@ -16,5 +16,5 @@ void run_test()
     //test_fonts();
     //test_pmic();
     //test_webserver();
-    test_btramusage();
+    //test_btramusage();
 }

@@ -62,6 +62,13 @@ bool beginMemoRecording(char typeCode)
     return true;
 }
 
+bool promoteMemoRecordingToBluetooth()
+{
+    restore_memo_bt_fifo();
+    setSpeakerMuted(false);
+    return AudioManager::mode() == AudioManager::P2TMode::Mic || AudioManager::enableMicMode();
+}
+
 bool stopRecording(bool disconnectBluetooth)
 {
     setSpeakerMuted(false);
@@ -82,6 +89,7 @@ bool enableMicMode()
 
 bool enableSpeakerMode()
 {
+    AudioManager::bluetoothToSpeakerFifo().clear();
     return AudioManager::enableSpeakerMode();
 }
 

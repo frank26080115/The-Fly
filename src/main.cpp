@@ -31,6 +31,7 @@ extern bool show_conn_waiting_bluetooth_pairing();
 extern uint16_t conn_waiting_return_view_id();
 extern bool show_recording_view_bluetooth();
 extern bool show_recording_view_memo();
+extern bool promote_recording_view_memo_to_bluetooth();
 extern ScrollView* get_scroll_view();
 extern ModalDialog* get_modal_dialog();
 extern void show_main_memo_starting_feedback();
@@ -256,6 +257,14 @@ static void handle_pending_bluetooth_recording()
 
     if (AudioFileRecorder::isRecording())
     {
+        if (promote_recording_view_memo_to_bluetooth())
+        {
+            ESP_LOGI(MAINTAG, "Bluetooth connected while memo recording; promoting active recording view");
+            if (!RecordingViewCallbacks::promoteMemoRecordingToBluetooth())
+            {
+                ESP_LOGW(MAINTAG, "failed to promote memo audio routing for Bluetooth");
+            }
+        }
         return;
     }
 

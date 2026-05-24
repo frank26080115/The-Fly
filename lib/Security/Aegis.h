@@ -17,6 +17,7 @@ static constexpr uint8_t kSalt[] = {
 };
 static constexpr size_t kSaltSize = sizeof(kSalt);
 static constexpr uint32_t kPbkdfIterations = 10000;
+
 uint32_t rand();
 
 bool init();

@@ -134,6 +134,24 @@ void RecordingView::configureMemoMode()
     setDirty();
 }
 
+bool RecordingView::promoteMemoToBluetoothMode()
+{
+    if (mode_ != Mode::Memo)
+    {
+        return false;
+    }
+
+    configureBluetoothMode();
+    callerInfoIndex_ = 0;
+    nextCallerInfoCycleMs_ = millis();
+    callerInfoText_.setText("");
+    syncAudioButtons();
+    syncAnswerCallButton();
+    syncText();
+    setDirty();
+    return true;
+}
+
 void RecordingView::onLoad()
 {
     startedMs_ = millis();
