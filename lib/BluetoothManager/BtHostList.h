@@ -1,5 +1,27 @@
 #pragma once
 
+/*
+Policy about BtHostList
+
+This list needs to work with the bonded devices list (esp_bt_gap_get_bond_device_list)
+
+If an entry exists in BtHostList but not esp_bt_gap_get_bond_device_list, it is kept for showing in the web front-end, but it does not show in the GUI ScrollView
+
+If an entry exists in esp_bt_gap_get_bond_device_list but not in BtHostList, it does not show up on the web front-end nor the GUI ScrollView
+
+On boot, and on submission of new configuration from web front-end, if an entry exists in esp_bt_gap_get_bond_device_list but not in BtHostList, then delete the bond with esp_bt_gap_remove_bond_device
+
+Upon completion of bonding/pairing, an entry is entered into BtHostList
+
+If the user edits a BDADDR to all 0 or blank in the web front-end, it means when it is submitted back, it is considered not a valid entry.
+
+If the user selects to unpair a device through the touchscreen GUI, unpair it by deleting the bond, but do not remove the entry from BtHostList, as we might want to keep the customized name
+
+Entries that are considered blank are never sent to the web front-end via the get_cfg request
+
+Entries that are considered blank are never sent from the web front-end via the set_cfg request, but if encountered, they are skipped and do not enter the table, and that request will blank out the remainder of the table after processing the available JSON entries
+*/
+
 #include "thefly_common.h"
 
 #include <stddef.h>
@@ -25,7 +47,6 @@ bt_host_item_t;
 typedef struct 
 {
     esp_bd_addr_t bdaddr;            // all zeros indicate slot is empty
-    char          name[kBtHostNameMaxLength];          // runtime display name, rebuilt from custom/reported names
     char          name_custom[kBtHostNameMaxLength];   // written through user admin interface, this has priority
     char          name_reported[kBtHostNameMaxLength]; // written only when pairing
     bool          bonded;            // use `bonded_mac_matches` to check, do not trust the value straight out of storage
@@ -44,6 +65,25 @@ typedef struct
 }
 bt_host_list_t;
 #endif
+
+inline const char* bt_host_display_name(const bt_host_item_t* item)
+{
+    if (!item)
+    {
+        return "";
+    }
+
+    #ifndef BUILD_WITH_SECURITY
+    return item->name ? item->name : "";
+    #else
+    return item->name_custom[0] != '\0' ? item->name_custom : item->name_reported;
+    #endif
+}
+
+inline const char* bt_host_display_name(const bt_host_item_t& item)
+{
+    return bt_host_display_name(&item);
+}
 
 class BtHostList
 {
@@ -79,7 +119,8 @@ public:
     bool replaceHostList(const bt_host_list_t& hosts);
     #endif
     bool pruneBonds();
-    bool insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t icon = ICON_BLUETOOTH);
+    bool insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t icon = ICON_UNKNOWN);
+    bool unpair(size_t index);
     bool remove(size_t index, bool removeBond = true);
     void clear();
 

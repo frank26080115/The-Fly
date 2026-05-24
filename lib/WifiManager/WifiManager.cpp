@@ -50,9 +50,50 @@ constexpr int kSoftApSsidHidden    = 0;
 constexpr int kSoftApMaxConnection = 1;
 #ifdef BUILD_WITH_SECURITY
 constexpr uint32_t    kNetworkConfigMagic   = 0x54465749; // "TFWI"
-constexpr uint32_t    kNetworkConfigVersion = 1;
+constexpr uint32_t    kNetworkConfigLegacyIconVersion = 1;
+constexpr uint32_t    kNetworkConfigLegacyCloudPasswordVersion = 2;
+constexpr uint32_t    kNetworkConfigVersion = 3;
 constexpr const char* kNetworkNvsNamespace  = "wifi_cfg";
 constexpr const char* kNetworkNvsBlobName   = "network";
+
+constexpr size_t kLegacyNetworkConfigCloudPasswordMaxLength = 96;
+
+struct cloud_item_legacy_password_t
+{
+    char    name[kNetworkConfigCloudNameMaxLength];
+    char    url[kNetworkConfigCloudUrlMaxLength];
+    char    password[kLegacyNetworkConfigCloudPasswordMaxLength];
+    uint8_t icon;
+    void*   next_node;
+};
+
+struct network_cfg_legacy_cloud_password_t
+{
+    uint32_t     magic;
+    uint32_t     version;
+    char         timezone[kNetworkConfigTimezoneMaxLength];
+    char         ntp_server[kNetworkConfigNtpServerCount][kNetworkConfigNtpServerMaxLength];
+    uint8_t      station_count;
+    uint8_t      access_point_count;
+    uint8_t      cloud_endpoint_count;
+    wifi_item_t  station[kNetworkConfigMaxEntries];
+    wifi_item_t  access_point[kNetworkConfigMaxEntriesAP];
+    cloud_item_legacy_password_t cloud[kNetworkConfigMaxEntries];
+};
+
+struct network_cfg_legacy_cloud_password_ap8_t
+{
+    uint32_t     magic;
+    uint32_t     version;
+    char         timezone[kNetworkConfigTimezoneMaxLength];
+    char         ntp_server[kNetworkConfigNtpServerCount][kNetworkConfigNtpServerMaxLength];
+    uint8_t      station_count;
+    uint8_t      access_point_count;
+    uint8_t      cloud_endpoint_count;
+    wifi_item_t  station[kNetworkConfigMaxEntries];
+    wifi_item_t  access_point[kNetworkConfigMaxEntries];
+    cloud_item_legacy_password_t cloud[kNetworkConfigMaxEntries];
+};
 #endif
 
 const char* load_result_tostring(WifiManager::LoadResult result)
@@ -160,7 +201,6 @@ void free_cloud_list(cloud_item_t*& head, cloud_item_t*& tail, size_t& count)
         cloud_item_t* next = static_cast<cloud_item_t*>(item->next_node);
         free(item->name);
         free(item->url);
-        free(item->password);
         free(item);
         item = next;
     }
@@ -193,7 +233,7 @@ wifi_item_t* create_wifi_item(const char* ssid, const char* password, uint8_t ic
     return item;
 }
 
-cloud_item_t* create_cloud_item(const char* name, const char* url, const char* password, uint8_t icon)
+cloud_item_t* create_cloud_item(const char* name, const char* url, uint8_t icon)
 {
     cloud_item_t* item = static_cast<cloud_item_t*>(calloc(1, sizeof(cloud_item_t)));
     if (!item)
@@ -203,12 +243,10 @@ cloud_item_t* create_cloud_item(const char* name, const char* url, const char* p
 
     item->name     = clone_string(name);
     item->url      = clone_string(url);
-    item->password = clone_string(password);
-    if (!item->name || !item->url || !item->password)
+    if (!item->name || !item->url)
     {
         free(item->name);
         free(item->url);
-        free(item->password);
         free(item);
         return nullptr;
     }
@@ -269,6 +307,50 @@ bool copy_config_text(char* dst, size_t dst_size, const char* value, bool requir
     return strlcpy(dst, value, dst_size) < dst_size;
 }
 
+uint8_t migrate_legacy_icon(uint8_t icon)
+{
+    switch (icon)
+    {
+    case 1:  // old ICON_PHONE
+    case 15: // old ICON_PHONE_AP
+        return ICON_SMARTPHONE;
+    case 2: // old ICON_LAPTOP
+        return ICON_LAPTOP;
+    case 3: // old ICON_TABLET
+        return ICON_TABLET;
+    case 7: // old ICON_HOME
+        return ICON_HOME;
+    default:
+        return ICON_UNKNOWN;
+    }
+}
+
+void migrate_legacy_network_icons(network_cfg_t& cfg)
+{
+    for (size_t i = 0; i < kNetworkConfigMaxEntries; ++i)
+    {
+        cfg.station[i].icon = migrate_legacy_icon(cfg.station[i].icon);
+        cfg.cloud[i].icon = migrate_legacy_icon(cfg.cloud[i].icon);
+    }
+
+    for (size_t i = 0; i < kNetworkConfigMaxEntriesAP; ++i)
+    {
+        cfg.access_point[i].icon = migrate_legacy_icon(cfg.access_point[i].icon);
+    }
+}
+
+bool valid_network_config_version(uint32_t version)
+{
+    return version == kNetworkConfigVersion ||
+           version == kNetworkConfigLegacyIconVersion ||
+           version == kNetworkConfigLegacyCloudPasswordVersion;
+}
+
+uint8_t capped_count(uint8_t count, size_t capacity)
+{
+    return count > capacity ? static_cast<uint8_t>(capacity) : count;
+}
+
 void init_network_config_defaults(network_cfg_t& cfg)
 {
     memset(&cfg, 0, sizeof(cfg));
@@ -301,63 +383,127 @@ void sanitize_network_config(network_cfg_t& cfg)
     }
 
     cfg.station_count = cfg.station_count > kNetworkConfigMaxEntries ? static_cast<uint8_t>(kNetworkConfigMaxEntries) : cfg.station_count;
-    cfg.access_point_count = cfg.access_point_count > kNetworkConfigMaxEntries ? static_cast<uint8_t>(kNetworkConfigMaxEntries) : cfg.access_point_count;
+    cfg.access_point_count = cfg.access_point_count > kNetworkConfigMaxEntriesAP ? static_cast<uint8_t>(kNetworkConfigMaxEntriesAP) : cfg.access_point_count;
     cfg.cloud_endpoint_count = cfg.cloud_endpoint_count > kNetworkConfigMaxEntries ? static_cast<uint8_t>(kNetworkConfigMaxEntries) : cfg.cloud_endpoint_count;
 
     for (size_t i = 0; i < kNetworkConfigMaxEntries; ++i)
     {
         cfg.station[i].ssid[sizeof(cfg.station[i].ssid) - 1] = '\0';
         cfg.station[i].password[sizeof(cfg.station[i].password) - 1] = '\0';
+        if (cfg.station[i].icon >= ICON_LAST)
+        {
+            cfg.station[i].icon = ICON_UNKNOWN;
+        }
         cfg.station[i].next_node = nullptr;
-
-        cfg.access_point[i].ssid[sizeof(cfg.access_point[i].ssid) - 1] = '\0';
-        cfg.access_point[i].password[sizeof(cfg.access_point[i].password) - 1] = '\0';
-        cfg.access_point[i].next_node = nullptr;
 
         cfg.cloud[i].name[sizeof(cfg.cloud[i].name) - 1] = '\0';
         cfg.cloud[i].url[sizeof(cfg.cloud[i].url) - 1] = '\0';
-        cfg.cloud[i].password[sizeof(cfg.cloud[i].password) - 1] = '\0';
+        if (cfg.cloud[i].icon >= ICON_LAST)
+        {
+            cfg.cloud[i].icon = ICON_UNKNOWN;
+        }
         cfg.cloud[i].next_node = nullptr;
     }
+
+    for (size_t i = 0; i < kNetworkConfigMaxEntriesAP; ++i)
+    {
+        cfg.access_point[i].ssid[sizeof(cfg.access_point[i].ssid) - 1] = '\0';
+        cfg.access_point[i].password[sizeof(cfg.access_point[i].password) - 1] = '\0';
+        if (cfg.access_point[i].icon >= ICON_LAST)
+        {
+            cfg.access_point[i].icon = ICON_UNKNOWN;
+        }
+        cfg.access_point[i].next_node = nullptr;
+    }
+}
+
+void copy_legacy_cloud_item(cloud_item_t& destination, const cloud_item_legacy_password_t& source)
+{
+    strlcpy(destination.name, source.name, sizeof(destination.name));
+    strlcpy(destination.url, source.url, sizeof(destination.url));
+    destination.icon = source.icon;
+    destination.next_node = nullptr;
+}
+
+template <typename LegacyConfig, size_t LegacyAccessPointCapacity>
+void migrate_legacy_cloud_password_config(const LegacyConfig& legacy, network_cfg_t& cfg)
+{
+    init_network_config_defaults(cfg);
+    strlcpy(cfg.timezone, legacy.timezone, sizeof(cfg.timezone));
+    for (size_t i = 0; i < kNetworkConfigNtpServerCount; ++i)
+    {
+        strlcpy(cfg.ntp_server[i], legacy.ntp_server[i], sizeof(cfg.ntp_server[i]));
+    }
+
+    cfg.station_count = capped_count(legacy.station_count, kNetworkConfigMaxEntries);
+    for (size_t i = 0; i < cfg.station_count; ++i)
+    {
+        cfg.station[i] = legacy.station[i];
+        cfg.station[i].next_node = nullptr;
+    }
+
+    const uint8_t legacy_access_point_count = capped_count(legacy.access_point_count, LegacyAccessPointCapacity);
+    cfg.access_point_count = capped_count(legacy_access_point_count, kNetworkConfigMaxEntriesAP);
+    for (size_t i = 0; i < cfg.access_point_count; ++i)
+    {
+        cfg.access_point[i] = legacy.access_point[i];
+        cfg.access_point[i].next_node = nullptr;
+    }
+
+    cfg.cloud_endpoint_count = capped_count(legacy.cloud_endpoint_count, kNetworkConfigMaxEntries);
+    for (size_t i = 0; i < cfg.cloud_endpoint_count; ++i)
+    {
+        copy_legacy_cloud_item(cfg.cloud[i], legacy.cloud[i]);
+    }
+
+    if (legacy.version == kNetworkConfigLegacyIconVersion)
+    {
+        migrate_legacy_network_icons(cfg);
+    }
+    sanitize_network_config(cfg);
 }
 
 bool parse_network_wifi_array(JsonDocument& doc,
                               const char* key,
                               wifi_item_t* items,
+                              size_t item_capacity,
                               uint8_t& count,
                               uint8_t default_icon,
                               size_t& skipped)
 {
     count = 0;
     JsonArray array = doc[key].as<JsonArray>();
-    if (array.isNull())
+    if (!array.isNull())
     {
-        return true;
+        for (JsonVariant value : array)
+        {
+            if (count >= item_capacity)
+            {
+                ++skipped;
+                continue;
+            }
+
+            JsonObject item_json = value.as<JsonObject>();
+            const char* ssid     = item_json["ssid"].as<const char*>();
+            const char* password = item_json["password"].as<const char*>();
+            const char* icon     = item_json["icon"].as<const char*>();
+            if (item_json.isNull() ||
+                !copy_config_text(items[count].ssid, sizeof(items[count].ssid), ssid, true) ||
+                !copy_config_text(items[count].password, sizeof(items[count].password), password, false))
+            {
+                ++skipped;
+                continue;
+            }
+
+            items[count].icon      = parse_icon_or_default(icon, default_icon);
+            items[count].next_node = nullptr;
+            ++count;
+        }
     }
 
-    for (JsonVariant value : array)
+    for (size_t i = count; i < item_capacity; ++i)
     {
-        if (count >= kNetworkConfigMaxEntries)
-        {
-            ++skipped;
-            continue;
-        }
-
-        JsonObject item_json = value.as<JsonObject>();
-        const char* ssid     = item_json["ssid"].as<const char*>();
-        const char* password = item_json["password"].as<const char*>();
-        const char* icon     = item_json["icon"].as<const char*>();
-        if (item_json.isNull() ||
-            !copy_config_text(items[count].ssid, sizeof(items[count].ssid), ssid, true) ||
-            !copy_config_text(items[count].password, sizeof(items[count].password), password, false))
-        {
-            ++skipped;
-            continue;
-        }
-
-        items[count].icon      = parse_icon_or_default(icon, default_icon);
-        items[count].next_node = nullptr;
-        ++count;
+        memset(&items[i], 0, sizeof(items[i]));
     }
 
     return true;
@@ -367,36 +513,37 @@ bool parse_network_cloud_array(JsonDocument& doc, cloud_item_t* items, uint8_t& 
 {
     count = 0;
     JsonArray array = doc["cloud_uploads"].as<JsonArray>();
-    if (array.isNull())
+    if (!array.isNull())
     {
-        return true;
+        for (JsonVariant value : array)
+        {
+            if (count >= kNetworkConfigMaxEntries)
+            {
+                ++skipped;
+                continue;
+            }
+
+            JsonObject item_json = value.as<JsonObject>();
+            const char* name     = item_json["name"].as<const char*>();
+            const char* url      = item_json["url"].as<const char*>();
+            const char* icon     = item_json["icon"].as<const char*>();
+            if (item_json.isNull() ||
+                !copy_config_text(items[count].name, sizeof(items[count].name), name, true) ||
+                !copy_config_text(items[count].url, sizeof(items[count].url), url, true))
+            {
+                ++skipped;
+                continue;
+            }
+
+            items[count].icon      = parse_icon_or_default(icon, ICON_UNKNOWN);
+            items[count].next_node = nullptr;
+            ++count;
+        }
     }
 
-    for (JsonVariant value : array)
+    for (size_t i = count; i < kNetworkConfigMaxEntries; ++i)
     {
-        if (count >= kNetworkConfigMaxEntries)
-        {
-            ++skipped;
-            continue;
-        }
-
-        JsonObject item_json = value.as<JsonObject>();
-        const char* name     = item_json["name"].as<const char*>();
-        const char* url      = item_json["url"].as<const char*>();
-        const char* password = item_json["password"].as<const char*>();
-        const char* icon     = item_json["icon"].as<const char*>();
-        if (item_json.isNull() ||
-            !copy_config_text(items[count].name, sizeof(items[count].name), name, true) ||
-            !copy_config_text(items[count].url, sizeof(items[count].url), url, true) ||
-            !copy_config_text(items[count].password, sizeof(items[count].password), password, false))
-        {
-            ++skipped;
-            continue;
-        }
-
-        items[count].icon      = parse_icon_or_default(icon, ICON_CLOUD);
-        items[count].next_node = nullptr;
-        ++count;
+        memset(&items[i], 0, sizeof(items[i]));
     }
 
     return true;
@@ -435,8 +582,8 @@ bool parse_network_config_json(JsonDocument& doc, network_cfg_t& cfg, size_t& sk
         }
     }
 
-    parse_network_wifi_array(doc, "stations", cfg.station, cfg.station_count, ICON_WIFI, skipped);
-    parse_network_wifi_array(doc, "access_points", cfg.access_point, cfg.access_point_count, ICON_WIFIAP, skipped);
+    parse_network_wifi_array(doc, "stations", cfg.station, kNetworkConfigMaxEntries, cfg.station_count, ICON_UNKNOWN, skipped);
+    parse_network_wifi_array(doc, "access_points", cfg.access_point, kNetworkConfigMaxEntriesAP, cfg.access_point_count, ICON_UNKNOWN, skipped);
     parse_network_cloud_array(doc, cfg.cloud, cfg.cloud_endpoint_count, skipped);
     sanitize_network_config(cfg);
     return skipped == 0;
@@ -677,7 +824,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
 
             const char* password = item_json["password"].as<const char*>();
             const char* icon     = item_json["icon"].as<const char*>();
-            wifi_item_t* item    = create_wifi_item(ssid, password, parse_icon_or_default(icon, ICON_WIFI));
+            wifi_item_t* item    = create_wifi_item(ssid, password, parse_icon_or_default(icon, ICON_UNKNOWN));
             if (!item)
             {
                 clear();
@@ -705,7 +852,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
 
             const char* password = item_json["password"].as<const char*>();
             const char* icon     = item_json["icon"].as<const char*>();
-            wifi_item_t* item    = create_wifi_item(ssid, password, parse_icon_or_default(icon, ICON_WIFIAP));
+            wifi_item_t* item    = create_wifi_item(ssid, password, parse_icon_or_default(icon, ICON_UNKNOWN));
             if (!item)
             {
                 clear();
@@ -732,9 +879,8 @@ bool WifiManager::loadFromMicroSd(const char* path)
                 continue;
             }
 
-            const char* password = item_json["password"].as<const char*>();
             const char* icon     = item_json["icon"].as<const char*>();
-            cloud_item_t* item   = create_cloud_item(name, url, password, parse_icon_or_default(icon, ICON_CLOUD));
+            cloud_item_t* item   = create_cloud_item(name, url, parse_icon_or_default(icon, ICON_UNKNOWN));
             if (!item)
             {
                 clear();
@@ -864,27 +1010,103 @@ bool WifiManager::loadFromNvs()
         return false;
     }
 
-    network_cfg_t cfg = {};
-    size_t cfg_size = sizeof(cfg);
-    err = nvs_get_blob(handle, kNetworkNvsBlobName, &cfg, &cfg_size);
-    nvs_close(handle);
+    size_t cfg_size = 0;
+    err = nvs_get_blob(handle, kNetworkNvsBlobName, nullptr, &cfg_size);
 
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
+        nvs_close(handle);
         m_last_load_result = LoadResult::Ok;
         ESP_LOGI(TAG, "no Wi-Fi config in NVS; using defaults");
         return true;
     }
-    if (err != ESP_OK || cfg_size != sizeof(cfg))
+    if (err != ESP_OK)
     {
+        nvs_close(handle);
         m_last_load_result = LoadResult::FileReadFailed;
-        ESP_LOGW(TAG, "could not load Wi-Fi config from NVS: %s size=%u", esp_err_to_name(err), static_cast<unsigned>(cfg_size));
+        ESP_LOGW(TAG, "could not query Wi-Fi config from NVS: %s", esp_err_to_name(err));
         return false;
     }
-    if (cfg.magic != kNetworkConfigMagic || cfg.version != kNetworkConfigVersion)
+    network_cfg_t cfg = {};
+    bool migrated = false;
+    if (cfg_size == sizeof(network_cfg_t))
     {
+        size_t read_size = sizeof(cfg);
+        err = nvs_get_blob(handle, kNetworkNvsBlobName, &cfg, &read_size);
+        nvs_close(handle);
+
+        if (err != ESP_OK || read_size != sizeof(cfg))
+        {
+            m_last_load_result = LoadResult::FileReadFailed;
+            ESP_LOGW(TAG, "could not load Wi-Fi config from NVS: %s size=%u", esp_err_to_name(err), static_cast<unsigned>(read_size));
+            return false;
+        }
+        if (cfg.magic != kNetworkConfigMagic || !valid_network_config_version(cfg.version))
+        {
+            m_last_load_result = LoadResult::Ok;
+            ESP_LOGW(TAG, "ignoring incompatible Wi-Fi config in NVS");
+            return true;
+        }
+
+        if (cfg.version == kNetworkConfigLegacyIconVersion)
+        {
+            migrate_legacy_network_icons(cfg);
+        }
+    }
+    else if (cfg_size == sizeof(network_cfg_legacy_cloud_password_t))
+    {
+        network_cfg_legacy_cloud_password_t legacy = {};
+        size_t read_size = sizeof(legacy);
+        err = nvs_get_blob(handle, kNetworkNvsBlobName, &legacy, &read_size);
+        nvs_close(handle);
+
+        if (err != ESP_OK || read_size != sizeof(legacy))
+        {
+            m_last_load_result = LoadResult::FileReadFailed;
+            ESP_LOGW(TAG, "could not load legacy Wi-Fi config from NVS: %s size=%u", esp_err_to_name(err), static_cast<unsigned>(read_size));
+            return false;
+        }
+        if (legacy.magic != kNetworkConfigMagic || !valid_network_config_version(legacy.version))
+        {
+            m_last_load_result = LoadResult::Ok;
+            ESP_LOGW(TAG, "ignoring incompatible legacy Wi-Fi config in NVS");
+            return true;
+        }
+
+        migrate_legacy_cloud_password_config<network_cfg_legacy_cloud_password_t, kNetworkConfigMaxEntriesAP>(legacy, cfg);
+        migrated = true;
+    }
+    else if (cfg_size == sizeof(network_cfg_legacy_cloud_password_ap8_t))
+    {
+        network_cfg_legacy_cloud_password_ap8_t legacy = {};
+        size_t read_size = sizeof(legacy);
+        err = nvs_get_blob(handle, kNetworkNvsBlobName, &legacy, &read_size);
+        nvs_close(handle);
+
+        if (err != ESP_OK || read_size != sizeof(legacy))
+        {
+            m_last_load_result = LoadResult::FileReadFailed;
+            ESP_LOGW(TAG, "could not load legacy Wi-Fi config from NVS: %s size=%u", esp_err_to_name(err), static_cast<unsigned>(read_size));
+            return false;
+        }
+        if (legacy.magic != kNetworkConfigMagic || !valid_network_config_version(legacy.version))
+        {
+            m_last_load_result = LoadResult::Ok;
+            ESP_LOGW(TAG, "ignoring incompatible legacy Wi-Fi config in NVS");
+            return true;
+        }
+
+        migrate_legacy_cloud_password_config<network_cfg_legacy_cloud_password_ap8_t, kNetworkConfigMaxEntries>(legacy, cfg);
+        migrated = true;
+    }
+    else
+    {
+        nvs_close(handle);
         m_last_load_result = LoadResult::Ok;
-        ESP_LOGW(TAG, "ignoring incompatible Wi-Fi config in NVS");
+        ESP_LOGW(TAG,
+                 "ignoring incompatible Wi-Fi config size in NVS: stored=%u expected=%u",
+                 static_cast<unsigned>(cfg_size),
+                 static_cast<unsigned>(sizeof(network_cfg_t)));
         return true;
     }
 
@@ -894,6 +1116,16 @@ bool WifiManager::loadFromNvs()
     m_access_point_count = m_network_cfg.access_point_count;
     m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
     m_last_load_result = LoadResult::Ok;
+    if (migrated)
+    {
+        ESP_LOGI(TAG,
+                 "migrated Wi-Fi config from legacy NVS layout: stations=%u access_points=%u cloud_endpoints=%u",
+                 static_cast<unsigned>(m_station_count),
+                 static_cast<unsigned>(m_access_point_count),
+                 static_cast<unsigned>(m_cloud_endpoint_count));
+        return saveToNvs();
+    }
+
     ESP_LOGI(TAG,
              "loaded Wi-Fi config from NVS: stations=%u access_points=%u cloud_endpoints=%u",
              static_cast<unsigned>(m_station_count),
@@ -1186,7 +1418,7 @@ bool WifiManager::startGeneratedSoftAp()
     strlcpy(m_generated_soft_ap.ssid, m_generated_soft_ap_ssid, sizeof(m_generated_soft_ap.ssid));
     strlcpy(m_generated_soft_ap.password, m_generated_soft_ap_password, sizeof(m_generated_soft_ap.password));
     #endif
-    m_generated_soft_ap.icon      = ICON_WIFIAP;
+    m_generated_soft_ap.icon      = ICON_UNKNOWN;
     m_generated_soft_ap.next_node = nullptr;
     return startSoftAp(&m_generated_soft_ap);
 }
@@ -1384,6 +1616,11 @@ const wifi_item_t* WifiManager::activeWifi() const
 const wifi_item_t* WifiManager::connectedWifi() const
 {
     return m_connected_wifi;
+}
+
+bool WifiManager::isGeneratedSoftApActive() const
+{
+    return status() == Status::AccessPoint && m_active_wifi == &m_generated_soft_ap;
 }
 
 const char* WifiManager::generatedSoftApSsid() const

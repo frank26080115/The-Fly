@@ -634,9 +634,10 @@ const char* connected_host_name(const esp_bd_addr_t mac)
     for (size_t i = 0; i < g_host_list.size(); ++i)
     {
         const bt_host_item_t* item = g_host_list.get(i);
-        if (item && item->name && item->name[0] != '\0' && bda_equal(item->bdaddr, mac))
+        const char* name = bt_host_display_name(item);
+        if (item && name[0] != '\0' && bda_equal(item->bdaddr, mac))
         {
-            return item->name;
+            return name;
         }
     }
 

@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 static constexpr size_t kNetworkConfigMaxEntries          = 8;
+static constexpr size_t kNetworkConfigMaxEntriesAP        = 1;
 static constexpr size_t kNetworkConfigNtpServerCount      = 3;
 static constexpr size_t kNetworkConfigSsidMaxLength       = 33;  // 32-byte 802.11 SSID plus NUL
 static constexpr size_t kNetworkConfigPasswordMaxLength   = 64;  // 63-byte WPA/WPA2/WPA3 passphrase plus NUL
@@ -13,7 +14,6 @@ static constexpr size_t kNetworkConfigTimezoneMaxLength   = 64;
 static constexpr size_t kNetworkConfigNtpServerMaxLength  = 254; // DNS name max length plus NUL
 static constexpr size_t kNetworkConfigCloudNameMaxLength  = 64;
 static constexpr size_t kNetworkConfigCloudUrlMaxLength   = 256;
-static constexpr size_t kNetworkConfigCloudPasswordMaxLength = 96;
 
 #ifndef BUILD_WITH_SECURITY
 typedef struct
@@ -30,7 +30,6 @@ typedef struct
     char*   name;      // allocate on creation, free on destructor
     char*   url;       // allocate on creation, free on destructor
     uint8_t icon;      // one of the ICON_* enums
-    char*   password;  // this is a hash salt, never actually send it, allocate on creation, free on destructor
     void*   next_node; // linked list next node
 }
 cloud_item_t;
@@ -48,7 +47,6 @@ typedef struct
 {
     char    name[kNetworkConfigCloudNameMaxLength];
     char    url[kNetworkConfigCloudUrlMaxLength];
-    char    password[kNetworkConfigCloudPasswordMaxLength]; // this is a hash salt, never actually send it
     uint8_t icon;      // one of the ICON_* enums
     void*   next_node; // unused in secure fixed-slot storage, kept for callers that inspect it
 }
@@ -64,7 +62,7 @@ typedef struct
     uint8_t  access_point_count;
     uint8_t  cloud_endpoint_count;
     wifi_item_t  station[kNetworkConfigMaxEntries];
-    wifi_item_t  access_point[kNetworkConfigMaxEntries];
+    wifi_item_t  access_point[kNetworkConfigMaxEntriesAP];
     cloud_item_t cloud[kNetworkConfigMaxEntries];
 }
 network_cfg_t;
@@ -145,6 +143,7 @@ public:
     void setOnScanFinished(ScanFinishedCallback callback);
     const wifi_item_t* activeWifi() const;
     const wifi_item_t* connectedWifi() const;
+    bool isGeneratedSoftApActive() const;
     const char* generatedSoftApSsid() const;
     const char* softApPassword() const;
 

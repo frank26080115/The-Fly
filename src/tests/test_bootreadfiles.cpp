@@ -42,12 +42,11 @@ void report_cloud_item(size_t index, const cloud_item_t* item)
         return;
     }
 
-    Serial.printf("%s: cloud_endpoint[%u] name=\"%s\" url=\"%s\" password=\"%s\" icon=%u next_node=%p\n",
+    Serial.printf("%s: cloud_endpoint[%u] name=\"%s\" url=\"%s\" icon=%u next_node=%p\n",
                   TAG,
                   static_cast<unsigned>(index),
                   safe_text(item->name),
                   safe_text(item->url),
-                  safe_text(item->password),
                   static_cast<unsigned>(item->icon),
                   item->next_node);
 }
@@ -69,7 +68,7 @@ void report_bt_host_item(size_t index, const bt_host_item_t* item)
                   item->bdaddr[3],
                   item->bdaddr[4],
                   item->bdaddr[5],
-                  safe_text(item->name),
+                  safe_text(bt_host_display_name(item)),
                   item->bonded ? 1U : 0U,
                   static_cast<unsigned>(item->icon),
                   item->next_node);

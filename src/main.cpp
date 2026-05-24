@@ -120,6 +120,10 @@ void setup()
     {
         show_fatal_error_f(false, "Bluetooth host list load failed");
     }
+    if (!bt_host_list->pruneBonds())
+    {
+        show_fatal_error_f(false, "Bluetooth bond pruning failed: %s", bt_host_list->lastLoadResultName());
+    }
 
     BattTracker::init();
 
@@ -306,7 +310,7 @@ static bool connect_to_bluetooth_host(const bt_host_item_t* host, const char* so
     ESP_LOGI(MAINTAG,
              "connecting to Bluetooth host from %s: name=%s bdaddr=%s",
              source ? source : "unknown",
-             host->name ? host->name : "",
+             bt_host_display_name(host),
              bdaddr_text);
 
     if (bluetooth_recording_state(BtManager::state()) && bda_equal(BtManager::connectedMac(), host->bdaddr))
@@ -330,7 +334,7 @@ static bool connect_to_bluetooth_host(const bt_host_item_t* host, const char* so
         return false;
     }
 
-    if (!show_conn_waiting_bluetooth(host->name))
+    if (!show_conn_waiting_bluetooth(bt_host_display_name(host)))
     {
         g_bluetooth_connect_waiting = false;
         ESP_LOGE(MAINTAG, "failed to show Bluetooth connection waiting view");
