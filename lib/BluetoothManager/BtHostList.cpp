@@ -661,6 +661,30 @@ bool BtHostList::saveToNvs()
     m_last_load_result = LoadResult::Ok;
     return true;
 }
+
+bool BtHostList::copyHostList(bt_host_list_t& out) const
+{
+    out = m_hosts;
+    sanitize_bt_host_list(out);
+    return true;
+}
+
+bool BtHostList::replaceHostList(const bt_host_list_t& hosts)
+{
+    if (m_destroyed)
+    {
+        m_last_load_result = LoadResult::Destroyed;
+        ESP_LOGW(TAG, "not replacing Bluetooth host list after destructor");
+        return false;
+    }
+
+    bt_host_list_t staged = hosts;
+    sanitize_bt_host_list(staged);
+
+    m_hosts = staged;
+    m_size = m_hosts.count;
+    return saveToNvs();
+}
 #endif
 
 bool BtHostList::pruneBonds()

@@ -116,6 +116,8 @@ public:
     #ifdef BUILD_WITH_SECURITY
     bool loadFromNvs();
     bool saveToNvs();
+    bool copyConfig(network_cfg_t& out) const;
+    bool replaceConfig(const network_cfg_t& config);
     #endif
     void clear();
 

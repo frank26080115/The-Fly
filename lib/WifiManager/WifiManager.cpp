@@ -935,6 +935,29 @@ bool WifiManager::saveToNvs()
     m_last_load_result = LoadResult::Ok;
     return true;
 }
+
+bool WifiManager::copyConfig(network_cfg_t& out) const
+{
+    out = m_network_cfg;
+    sanitize_network_config(out);
+    return true;
+}
+
+bool WifiManager::replaceConfig(const network_cfg_t& config)
+{
+    network_cfg_t staged = config;
+    sanitize_network_config(staged);
+
+    m_network_cfg = staged;
+    m_station_count = m_network_cfg.station_count;
+    m_access_point_count = m_network_cfg.access_point_count;
+    m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
+    m_active_wifi = nullptr;
+    m_connected_wifi = nullptr;
+    m_reported_connected = false;
+
+    return saveToNvs();
+}
 #endif
 
 void WifiManager::clear()

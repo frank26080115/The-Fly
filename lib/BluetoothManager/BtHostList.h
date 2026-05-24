@@ -75,6 +75,8 @@ public:
     #ifdef BUILD_WITH_SECURITY
     bool loadFromNvs();
     bool saveToNvs();
+    bool copyHostList(bt_host_list_t& out) const;
+    bool replaceHostList(const bt_host_list_t& hosts);
     #endif
     bool pruneBonds();
     bool insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t icon = ICON_BLUETOOTH);
