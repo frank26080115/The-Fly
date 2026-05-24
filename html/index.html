@@ -2,8 +2,323 @@
     <head>
         <title>The Fly - Admin</title>
         <link rel="stylesheet" href="styles.css" />
+        <script src="script.js"></script>
     </head>
-    <body>
+    <body onload="body_onload()">
         <h1>The Fly - Admin</h1>
+        <details open="open">
+            <summary>Info</summary>
+            <div id="loading">Page is loading, please wait...</div>
+            <div id="info">
+                <p>Device Name</p>
+                <p>BDADDR</p>
+                <p>Wi-Fi MAC</p>
+                <p>Self IP</p>
+                <p>Firmware</p>
+                <p>Disk Storage</p>
+            </div>
+        </details>
+        <details open="open" id="login_panel">
+            <summary>Admin Login</summary>
+            <div class="login-panel">
+                <div class="login-form">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Device password" />
+                    <button id="password_submit" class="button" type="button" onclick="login_onsubmit()">Login</button>
+                </div>
+            </div>
+        </details>
+        <details>
+            <summary>Files</summary>
+            <div id="files_please_wait">Please Wait</div>
+            <div id="files"></div>
+            <div id="files_test">
+                <table class="file-table">
+                    <tr>
+                        <td><a class="file-link" href="/download_file?file_name=">T-YYYY-MM-DD-HH-MM-SS-U.rec</a></td><td><a class="delete-link" href="/delete_file?file_name=" aria-label="Delete T-YYYY-MM-DD-HH-MM-SS-U.rec"></a></td>
+                    </tr>
+                    <tr>
+                        <td><a class="file-link" href="/download_file?file_name=">T-YYYY-MM-DD-HH-MM-SS-U.rec</a></td><td><a class="delete-link" href="/delete_file?file_name=" aria-label="Delete T-YYYY-MM-DD-HH-MM-SS-U.rec"></a></td>
+                    </tr>
+                    <tr>
+                        <td><a class="file-link" href="/download_file?file_name=">T-YYYY-MM-DD-HH-MM-SS-U.rec</a></td><td><a class="delete-link" href="/delete_file?file_name=" aria-label="Delete T-YYYY-MM-DD-HH-MM-SS-U.rec"></a></td>
+                    </tr>
+                </table>
+            </div>
+        </details>
+        <details>
+            <summary>Bluetooth Devices</summary>
+            <div id="bluetooth_devices_please_login">Please Log In First</div>
+            <div id="bluetooth_devices" class="config-list bluetooth-device-list">
+                <div class="config-row bluetooth-device-row">
+                    <div class="config-field bluetooth-bdaddr-field">
+                        <label for="bt_bdaddr_1">BDADDR</label>
+                        <div class="bdaddr-with-bond">
+                            <input id="bt_bdaddr_1" name="bt_bdaddr_1" type="text" autocomplete="off" maxlength="17" placeholder="AA:BB:CC:DD:EE:FF" />
+                            <span class="bonded-indicator" title="Bonded" aria-label="Bonded">&#x1F91D;</span>
+                        </div>
+                    </div>
+                    <div class="config-field bluetooth-name-field">
+                        <label for="bt_name_custom_1">Name</label>
+                        <input id="bt_name_custom_1" name="bt_name_custom_1" type="text" autocomplete="off" maxlength="31" placeholder="Custom name" />
+                    </div>
+                    <div class="config-field bluetooth-reported-field">
+                        <label>Reported</label>
+                        <span class="readonly-value">Pixel 9 Pro</span>
+                    </div>
+                    <div class="config-field bluetooth-last-used-field">
+                        <label>Last Used</label>
+                        <span class="readonly-value">2026-05-24-14:32</span>
+                    </div>
+                    <div class="config-field bluetooth-icon-field">
+                        <label for="bt_icon_1">Icon</label>
+                        <select id="bt_icon_1" name="bt_icon_1">
+                            <option value="unknown">&#128732; Default</option>
+                            <option value="smartphone">&#x1F4F1; Smartphone</option>
+                            <option value="laptop">&#x1F4BB; Laptop</option>
+                            <option value="tablet">&#x1F4F2; Tablet</option>
+                            <option value="home">&#x1F3E0; Home</option>
+                            <option value="cat">&#x1F431; Cat</option>
+                            <option value="dog">&#x1F436; Dog</option>
+                            <option value="bird">&#x1F426; Bird</option>
+                            <option value="circle">&#x26AA; Circle</option>
+                            <option value="square">&#x2B1C; Square</option>
+                            <option value="triangle">&#x1F53A; Triangle</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="config-row bluetooth-device-row">
+                    <div class="config-field bluetooth-bdaddr-field">
+                        <label for="bt_bdaddr_2">BDADDR</label>
+                        <div class="bdaddr-with-bond">
+                            <input id="bt_bdaddr_2" name="bt_bdaddr_2" type="text" autocomplete="off" maxlength="17" placeholder="AA:BB:CC:DD:EE:FF" />
+                            <span class="bonded-indicator empty" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                    <div class="config-field bluetooth-name-field">
+                        <label for="bt_name_custom_2">Name</label>
+                        <input id="bt_name_custom_2" name="bt_name_custom_2" type="text" autocomplete="off" maxlength="31" placeholder="Custom name" />
+                    </div>
+                    <div class="config-field bluetooth-reported-field">
+                        <label>Reported</label>
+                        <span class="readonly-value">MacBook Pro</span>
+                    </div>
+                    <div class="config-field bluetooth-last-used-field">
+                        <label>Last Used</label>
+                        <span class="readonly-value">2026-05-22-09:07</span>
+                    </div>
+                    <div class="config-field bluetooth-icon-field">
+                        <label for="bt_icon_2">Icon</label>
+                        <select id="bt_icon_2" name="bt_icon_2">
+                            <option value="unknown">&#128732; Default</option>
+                            <option value="smartphone">&#x1F4F1; Smartphone</option>
+                            <option value="laptop">&#x1F4BB; Laptop</option>
+                            <option value="tablet">&#x1F4F2; Tablet</option>
+                            <option value="home">&#x1F3E0; Home</option>
+                            <option value="cat">&#x1F431; Cat</option>
+                            <option value="dog">&#x1F436; Dog</option>
+                            <option value="bird">&#x1F426; Bird</option>
+                            <option value="circle">&#x26AA; Circle</option>
+                            <option value="square">&#x2B1C; Square</option>
+                            <option value="triangle">&#x1F53A; Triangle</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </details>
+        <details>
+            <summary>Wi-Fi Routers</summary>
+            <div id="wifi_routers_please_login">Please Log In First</div>
+            <div id="wifi_routers" class="config-list wifi-config-list">
+                <div class="config-row wifi-config-row">
+                    <div class="config-field wifi-ssid-field">
+                        <label for="wifi_ssid_1">SSID</label>
+                        <input id="wifi_ssid_1" name="wifi_ssid_1" type="text" autocomplete="off" maxlength="32" placeholder="Router SSID" />
+                    </div>
+                    <div class="config-field wifi-password-field">
+                        <label for="wifi_password_1">Password</label>
+                        <input id="wifi_password_1" name="wifi_password_1" type="password" autocomplete="new-password" maxlength="63" placeholder="Wi-Fi password" />
+                    </div>
+                    <div class="config-field wifi-icon-field">
+                        <label for="wifi_icon_1">Icon</label>
+                        <select id="wifi_icon_1" name="wifi_icon_1">
+                            <option value="unknown">&#128732; Default</option>
+                            <option value="smartphone">&#x1F4F1; Smartphone</option>
+                            <option value="laptop">&#x1F4BB; Laptop</option>
+                            <option value="tablet">&#x1F4F2; Tablet</option>
+                            <option value="home">&#x1F3E0; Home</option>
+                            <option value="cat">&#x1F431; Cat</option>
+                            <option value="dog">&#x1F436; Dog</option>
+                            <option value="bird">&#x1F426; Bird</option>
+                            <option value="circle">&#x26AA; Circle</option>
+                            <option value="square">&#x2B1C; Square</option>
+                            <option value="triangle">&#x1F53A; Triangle</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="config-row wifi-config-row">
+                    <div class="config-field wifi-ssid-field">
+                        <label for="wifi_ssid_2">SSID</label>
+                        <input id="wifi_ssid_2" name="wifi_ssid_2" type="text" autocomplete="off" maxlength="32" placeholder="Router SSID" />
+                    </div>
+                    <div class="config-field wifi-password-field">
+                        <label for="wifi_password_2">Password</label>
+                        <input id="wifi_password_2" name="wifi_password_2" type="password" autocomplete="new-password" maxlength="63" placeholder="Wi-Fi password" />
+                    </div>
+                    <div class="config-field wifi-icon-field">
+                        <label for="wifi_icon_2">Icon</label>
+                        <select id="wifi_icon_2" name="wifi_icon_2">
+                            <option value="unknown">&#128732; Default</option>
+                            <option value="smartphone">&#x1F4F1; Smartphone</option>
+                            <option value="laptop">&#x1F4BB; Laptop</option>
+                            <option value="tablet">&#x1F4F2; Tablet</option>
+                            <option value="home">&#x1F3E0; Home</option>
+                            <option value="cat">&#x1F431; Cat</option>
+                            <option value="dog">&#x1F436; Dog</option>
+                            <option value="bird">&#x1F426; Bird</option>
+                            <option value="circle">&#x26AA; Circle</option>
+                            <option value="square">&#x2B1C; Square</option>
+                            <option value="triangle">&#x1F53A; Triangle</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </details>
+        <details>
+            <summary>Wi-Fi Custom AP</summary>
+            <div id="wifi_ap_please_login">Please Log In First</div>
+            <div id="wifi_ap" class="config-list wifi-config-list">
+                <div class="config-row wifi-config-row">
+                    <div class="config-field wifi-ssid-field">
+                        <label for="wifi_ap_ssid_1">SSID</label>
+                        <input id="wifi_ap_ssid_1" name="wifi_ap_ssid_1" type="text" autocomplete="off" maxlength="32" placeholder="Access point SSID" />
+                    </div>
+                    <div class="config-field wifi-password-field">
+                        <label for="wifi_ap_password_1">Password</label>
+                        <input id="wifi_ap_password_1" name="wifi_ap_password_1" type="password" autocomplete="new-password" maxlength="63" placeholder="Access point password" />
+                    </div>
+                    <div class="config-field wifi-icon-field">
+                        <label for="wifi_ap_icon_1">Icon</label>
+                        <select id="wifi_ap_icon_1" name="wifi_ap_icon_1">
+                            <option value="unknown">&#128732; Default</option>
+                            <option value="smartphone">&#x1F4F1; Smartphone</option>
+                            <option value="laptop">&#x1F4BB; Laptop</option>
+                            <option value="tablet">&#x1F4F2; Tablet</option>
+                            <option value="home">&#x1F3E0; Home</option>
+                            <option value="cat">&#x1F431; Cat</option>
+                            <option value="dog">&#x1F436; Dog</option>
+                            <option value="bird">&#x1F426; Bird</option>
+                            <option value="circle">&#x26AA; Circle</option>
+                            <option value="square">&#x2B1C; Square</option>
+                            <option value="triangle">&#x1F53A; Triangle</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </details>
+        <details>
+            <summary>Cloud Destinations</summary>
+            <div id="cloud_please_login">Please Log In First</div>
+            <div id="cloud_dest" class="config-list cloud-dest-list">
+                <div class="config-row cloud-dest-row">
+                    <div class="config-field cloud-name-field">
+                        <label for="cloud_name_1">Name</label>
+                        <input id="cloud_name_1" name="cloud_name_1" type="text" autocomplete="off" maxlength="24" placeholder="Primary" />
+                    </div>
+                    <div class="config-field cloud-url-field">
+                        <label for="cloud_url_1">URL</label>
+                        <input id="cloud_url_1" name="cloud_url_1" type="url" autocomplete="off" placeholder="https://example.com/upload" />
+                    </div>
+                    <div class="config-field cloud-icon-field">
+                        <label for="cloud_icon_1">Icon</label>
+                        <select id="cloud_icon_1" name="cloud_icon_1">
+                            <option value="unknown">&#9729; Default</option>
+                            <option value="smartphone">&#x1F4F1; Smartphone</option>
+                            <option value="laptop">&#x1F4BB; Laptop</option>
+                            <option value="tablet">&#x1F4F2; Tablet</option>
+                            <option value="home">&#x1F3E0; Home</option>
+                            <option value="cat">&#x1F431; Cat</option>
+                            <option value="dog">&#x1F436; Dog</option>
+                            <option value="bird">&#x1F426; Bird</option>
+                            <option value="circle">&#x26AA; Circle</option>
+                            <option value="square">&#x2B1C; Square</option>
+                            <option value="triangle">&#x1F53A; Triangle</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="config-row cloud-dest-row">
+                    <div class="config-field cloud-name-field">
+                        <label for="cloud_name_2">Name</label>
+                        <input id="cloud_name_2" name="cloud_name_2" type="text" autocomplete="off" maxlength="24" placeholder="Backup" />
+                    </div>
+                    <div class="config-field cloud-url-field">
+                        <label for="cloud_url_2">URL</label>
+                        <input id="cloud_url_2" name="cloud_url_2" type="url" autocomplete="off" placeholder="https://example.com/upload" />
+                    </div>
+                    <div class="config-field cloud-icon-field">
+                        <label for="cloud_icon_2">Icon</label>
+                        <select id="cloud_icon_2" name="cloud_icon_2">
+                            <option value="unknown">&#9729; Default</option>
+                            <option value="smartphone">&#x1F4F1; Smartphone</option>
+                            <option value="laptop">&#x1F4BB; Laptop</option>
+                            <option value="tablet">&#x1F4F2; Tablet</option>
+                            <option value="home">&#x1F3E0; Home</option>
+                            <option value="cat">&#x1F431; Cat</option>
+                            <option value="dog">&#x1F436; Dog</option>
+                            <option value="bird">&#x1F426; Bird</option>
+                            <option value="circle">&#x26AA; Circle</option>
+                            <option value="square">&#x2B1C; Square</option>
+                            <option value="triangle">&#x1F53A; Triangle</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </details>
+        <details>
+            <summary>Time Sync Servers</summary>
+            <div id="ntp_servers_please_login">Please Log In First</div>
+            <div id="time_cfg" class="time-panel">
+                <div class="settings-form time-form">
+                    <label for="timezone">Timezone</label>
+                    <select id="timezone" name="timezone"></select>
+                    <label for="ntp_url_1">NTP Server 1</label>
+                    <input type="text" id="ntp_url_1" name="ntp_url_1" autocomplete="off" placeholder="pool.ntp.org" />
+                    <label for="ntp_url_2">NTP Server 2</label>
+                    <input type="text" id="ntp_url_2" name="ntp_url_2" autocomplete="off" placeholder="time.nist.gov" />
+                    <label for="ntp_url_3">NTP Server 3</label>
+                    <input type="text" id="ntp_url_3" name="ntp_url_3" autocomplete="off" placeholder="time.google.com" />
+                </div>
+            </div>
+        </details>
+        <input id="btn_save" type="button" onclick="save_config()" value="Save" class="button" style="display:none;" />
+        <details>
+            <summary>Upload File</summary>
+            <div>File Uploader</div>
+        </details>
+        <details id="password_reset_panel">
+            <summary>Password Reset</summary>
+            <div id="password_reset_help">
+                Password reset is only available while this browser is connected through the device's default soft AP mode.
+                You may reset the password, doing so will:
+                <ul>
+                    <li>unpair and erase all Bluetooth devices</li>
+                    <li>erase all Wi-Fi configurations</li>
+                    <li>erase all cloud destinations</li>
+                    <li>change the encryption key for future file encryption</li>
+                    <li>require you to change the password on any servers or tools used to decrypt the files</li>
+                </ul>
+                Please enter the transport key as displayed on the LCD screen of the device, and then the new password.
+            </div>
+            <div id="password_reset_entry" class="password-reset-panel" style="display:none;">
+                <div class="settings-form">
+                    <label for="transport_key">Transport Key</label>
+                    <input id="transport_key" name="transport_key" type="text" autocomplete="one-time-code" placeholder="Transport Key" />
+                    <label for="new_password">Password</label>
+                    <input id="new_password" name="new_password" type="password" autocomplete="new-password" placeholder="New Password" />
+                    <div></div>
+                    <button id="btn_password_reset" class="button settings-button" type="button" onclick="passreset_onsubmit()">Reset Password</button>
+                </div>
+            </div>
+        </details>
     </body>
 </html>
