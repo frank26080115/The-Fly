@@ -111,6 +111,27 @@ void setTestTempMasterKey(const uint8_t* key)
     memcpy(g_master_key, key, sizeof(g_master_key));
     g_master_key_valid = true;
 }
+
+void setTestTempPassword(const uint8_t* pw)
+{
+    if (!pw)
+    {
+        clear_master_key();
+        return;
+    }
+
+    uint8_t key[kMasterKeySize] = {};
+    const size_t password_len = strlen(reinterpret_cast<const char*>(pw));
+    if (pbkdf2HmacSha256(pw, password_len, kSalt, kSaltSize, kPbkdfIterations, key, sizeof(key)))
+    {
+        setTestTempMasterKey(key);
+    }
+    else
+    {
+        clear_master_key();
+    }
+    mbedtls_platform_zeroize(key, sizeof(key));
+}
 #endif
 
 bool setMasterKey(const uint8_t* key)
