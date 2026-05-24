@@ -16,6 +16,7 @@ namespace
 
 constexpr size_t kMaxRunChunkPixels = 128;
 constexpr const char* TAG = "SpriteDraw";
+constexpr uint8_t kTransparentAlphaThreshold = 255 / 4;
 
 struct PngDecodeContext
 {
@@ -43,9 +44,9 @@ lgfx::rgb565_t black_pixel()
     return lgfx::rgb565_t(0, 0, 0);
 }
 
-bool fully_transparent_pixel(const uint8_t* argb)
+bool considered_transparent_pixel(const uint8_t* argb)
 {
-    return argb[0] == 0;
+    return argb[0] <= kTransparentAlphaThreshold;
 }
 
 void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, size_t length, const uint8_t* argb)
@@ -90,7 +91,7 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
         for (size_t index = 0; index < length; ++index)
         {
             const int32_t pixel_x = dst_x + static_cast<int32_t>(index * div_x);
-            if (!fully_transparent_pixel(argb) && pixel_x >= 0 && pixel_x < thefly_display.width())
+            if (!considered_transparent_pixel(argb) && pixel_x >= 0 && pixel_x < thefly_display.width())
             {
                 const lgfx::rgb565_t color = !dither || dither_pixel_enabled(pixel_x, dst_y)
                                                ? argb_to_rgb565(argb, context->brightness)
@@ -143,7 +144,7 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
         size_t       index = 0;
         while (index < chunk)
         {
-            while (index < chunk && fully_transparent_pixel(argb + index * 4))
+            while (index < chunk && considered_transparent_pixel(argb + index * 4))
             {
                 ++index;
             }
@@ -155,7 +156,7 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
 
             const size_t span_start = index;
             size_t       span_len   = 0;
-            while (index < chunk && !fully_transparent_pixel(argb + index * 4))
+            while (index < chunk && !considered_transparent_pixel(argb + index * 4))
             {
                 const int32_t pixel_x = dst_x + static_cast<int32_t>(index);
                 line[span_len++] = !dither || dither_pixel_enabled(pixel_x, dst_y)

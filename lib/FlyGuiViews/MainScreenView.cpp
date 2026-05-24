@@ -51,11 +51,11 @@ MainScreenView::MainScreenView()
     memoItem_.setCallback(onclick_main_memo);
     addItem(memoItem_);
 
-    smartphoneItem_.setSprite(sprit_smartphone_100, SPRIT_SMARTPHONE_100_WIDTH, SPRIT_SMARTPHONE_100_HEIGHT, SPRIT_SMARTPHONE_100_BYTES);
+    smartphoneItem_.setSprite(sprit_smartphone_bt_100, SPRIT_SMARTPHONE_BT_100_WIDTH, SPRIT_SMARTPHONE_BT_100_HEIGHT, SPRIT_SMARTPHONE_BT_100_BYTES);
     smartphoneItem_.setCallback(onclick_main_smartphone);
     addItem(smartphoneItem_);
 
-    laptopItem_.setSprite(sprit_laptop_100, SPRIT_LAPTOP_100_WIDTH, SPRIT_LAPTOP_100_HEIGHT, SPRIT_LAPTOP_100_BYTES);
+    laptopItem_.setSprite(sprit_laptop_bt_100, SPRIT_LAPTOP_BT_100_WIDTH, SPRIT_LAPTOP_BT_100_HEIGHT, SPRIT_LAPTOP_BT_100_BYTES);
     laptopItem_.setCallback(onclick_main_laptop);
     addItem(laptopItem_);
 

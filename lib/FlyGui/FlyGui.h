@@ -12,6 +12,7 @@ class FlyGuiDateTime;
 class FlyGuiItem;
 class FlyGuiModal;
 class FlyGuiView;
+struct sprite_desc_t;
 
 using FlyGuiItemCallback = void (*)(uint32_t pressDurationMs);
 
@@ -269,6 +270,7 @@ public:
     virtual bool trigger(uint32_t pressDurationMs = 0);
 
     void setSprite(const uint8_t* data, uint32_t width, uint32_t height, size_t byte_cnt);
+    void setSprite(const sprite_desc_t& sprite);
     void clearSprite();
 
     virtual void onLoad();
@@ -298,6 +300,12 @@ private:
     uint32_t    spriteWidth_   = 0;
     uint32_t    spriteHeight_  = 0;
     size_t      spriteBytes_   = 0;
+    const uint8_t* overlayData_ = nullptr;
+    uint32_t    overlayWidth_   = 0;
+    uint32_t    overlayHeight_  = 0;
+    size_t      overlayBytes_   = 0;
+    int16_t     overlayOffsetX_ = 0;
+    int16_t     overlayOffsetY_ = 0;
     FlyGuiItemCallback callback_ = nullptr;
     bool        visible_  = true;
     bool        dirty_    = true;

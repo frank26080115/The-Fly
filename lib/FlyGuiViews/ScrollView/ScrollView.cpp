@@ -53,6 +53,11 @@ int16_t delete_x()
     return static_cast<int16_t>((thefly_display.width() * 5 / 6) - (kExitSize / 2));
 }
 
+sprite_desc_t make_sprite(const uint8_t* data, uint32_t width, uint32_t height, size_t byte_cnt)
+{
+    return { data, width, height, byte_cnt };
+}
+
 void draw_centered_line(char* line, size_t& len, int16_t& y)
 {
     while (len > 0 && line[0] == ' ')
@@ -210,10 +215,10 @@ bool ScrollView::populateBluetooth(BtHostList* hostList)
     exitDeleteMode();
     clearGeneratedItems();
 
-    bool ok = appendScrollItem(SCROLL_ITEM_BLUETOOTH_SHOW_SELF_INFO,
-                               SCROLL_TASK_BLUETOOTH_SHOW_SELF_INFO,
-                               "Bluetooth Info",
-                               ICON_INFO);
+    bool ok = appendSpriteScrollItem(SCROLL_ITEM_BLUETOOTH_SHOW_SELF_INFO,
+                                     SCROLL_TASK_BLUETOOTH_SHOW_SELF_INFO,
+                                     "Bluetooth Info",
+                                     make_sprite(sprit_info_100, SPRIT_INFO_100_WIDTH, SPRIT_INFO_100_HEIGHT, SPRIT_INFO_100_BYTES));
 
     if (hostList)
     {
@@ -230,15 +235,18 @@ bool ScrollView::populateBluetooth(BtHostList* hostList)
                 continue;
             }
 
-            const uint8_t icon = host->icon == ICON_UNKNOWN ? ICON_BLUETOOTH : host->icon;
-            ok = appendScrollItem(SCROLL_ITEM_BLUETOOTH_HOST, list_callback_value(i), host->name, icon) && ok;
+            ok = appendIconScrollItem(SCROLL_ITEM_BLUETOOTH_HOST,
+                                      list_callback_value(i),
+                                      bt_host_display_name(host),
+                                      host->icon,
+                                      IconLookup::ICON_CONTEXT_BLUETOOTH) && ok;
         }
     }
 
-    ok = appendScrollItem(SCROLL_ITEM_BLUETOOTH_PAIRING,
-                          SCROLL_TASK_BLUETOOTH_PAIRING,
-                          "Pair New Device",
-                          ICON_BTPAIRING) && ok;
+    ok = appendSpriteScrollItem(SCROLL_ITEM_BLUETOOTH_PAIRING,
+                                SCROLL_TASK_BLUETOOTH_PAIRING,
+                                "Pair New Device",
+                                make_sprite(sprit_btpairing_100, SPRIT_BTPAIRING_100_WIDTH, SPRIT_BTPAIRING_100_HEIGHT, SPRIT_BTPAIRING_100_BYTES)) && ok;
     return ok;
 }
 
@@ -249,10 +257,10 @@ bool ScrollView::populateWifi(const WifiManager* wifiManager)
     exitDeleteMode();
     clearGeneratedItems();
 
-    bool ok = appendScrollItem(SCROLL_ITEM_WIFI_SCAN_AND_CONNECT,
-                               SCROLL_TASK_WIFI_SCAN_AND_CONNECT,
-                               "Scan and Connect",
-                               ICON_WIFI_SEARCH);
+    bool ok = appendSpriteScrollItem(SCROLL_ITEM_WIFI_SCAN_AND_CONNECT,
+                                     SCROLL_TASK_WIFI_SCAN_AND_CONNECT,
+                                     "Scan and Connect",
+                                     make_sprite(sprit_wifisearch_100, SPRIT_WIFISEARCH_100_WIDTH, SPRIT_WIFISEARCH_100_HEIGHT, SPRIT_WIFISEARCH_100_BYTES));
 
     if (wifiManager)
     {
@@ -264,8 +272,11 @@ bool ScrollView::populateWifi(const WifiManager* wifiManager)
                 continue;
             }
 
-            const uint8_t icon = station->icon == ICON_UNKNOWN ? ICON_WIFI : station->icon;
-            ok = appendScrollItem(SCROLL_ITEM_WIFI_STATION, list_callback_value(i), station->ssid, icon) && ok;
+            ok = appendIconScrollItem(SCROLL_ITEM_WIFI_STATION,
+                                      list_callback_value(i),
+                                      station->ssid,
+                                      station->icon,
+                                      IconLookup::ICON_CONTEXT_WIFI) && ok;
         }
 
         for (size_t i = 0; i < wifiManager->accessPointCount(); ++i)
@@ -276,8 +287,11 @@ bool ScrollView::populateWifi(const WifiManager* wifiManager)
                 continue;
             }
 
-            const uint8_t icon = accessPoint->icon == ICON_UNKNOWN ? ICON_WIFIAP : accessPoint->icon;
-            ok = appendScrollItem(SCROLL_ITEM_WIFI_AP, list_callback_value(i), accessPoint->ssid, icon) && ok;
+            ok = appendIconScrollItem(SCROLL_ITEM_WIFI_AP,
+                                      list_callback_value(i),
+                                      accessPoint->ssid,
+                                      accessPoint->icon,
+                                      IconLookup::ICON_CONTEXT_WIFI) && ok;
         }
     }
 
@@ -291,10 +305,10 @@ bool ScrollView::populateCloud(const WifiManager* wifiManager)
     exitDeleteMode();
     clearGeneratedItems();
 
-    bool ok = appendScrollItem(SCROLL_ITEM_WIFI_SHOW_SELF_INFO,
-                               SCROLL_TASK_WIFI_SHOW_SELF_INFO,
-                               "Wi-Fi Info",
-                               ICON_WIFI);
+    bool ok = appendSpriteScrollItem(SCROLL_ITEM_WIFI_SHOW_SELF_INFO,
+                                     SCROLL_TASK_WIFI_SHOW_SELF_INFO,
+                                     "Wi-Fi Info",
+                                     make_sprite(sprit_wifi_100, SPRIT_WIFI_100_WIDTH, SPRIT_WIFI_100_HEIGHT, SPRIT_WIFI_100_BYTES));
 
     if (wifiManager)
     {
@@ -306,12 +320,18 @@ bool ScrollView::populateCloud(const WifiManager* wifiManager)
                 continue;
             }
 
-            const uint8_t icon = endpoint->icon == ICON_UNKNOWN ? ICON_CLOUD : endpoint->icon;
-            ok = appendScrollItem(SCROLL_ITEM_CLOUD_ENDPOINT, list_callback_value(i), endpoint->name, icon) && ok;
+            ok = appendIconScrollItem(SCROLL_ITEM_CLOUD_ENDPOINT,
+                                      list_callback_value(i),
+                                      endpoint->name,
+                                      endpoint->icon,
+                                      IconLookup::ICON_CONTEXT_CLOUD) && ok;
         }
     }
 
-    ok = appendScrollItem(SCROLL_ITEM_NTP_SYNC, SCROLL_TASK_NTP_SYNC, "Sync Time", ICON_NTP) && ok;
+    ok = appendSpriteScrollItem(SCROLL_ITEM_NTP_SYNC,
+                                SCROLL_TASK_NTP_SYNC,
+                                "Sync Time",
+                                make_sprite(sprit_ntpsync_100, SPRIT_NTPSYNC_100_WIDTH, SPRIT_NTPSYNC_100_HEIGHT, SPRIT_NTPSYNC_100_BYTES)) && ok;
     return ok;
 }
 
@@ -634,7 +654,7 @@ void ScrollView::drawDeleteButton()
     deleteItem_.redraw(true);
 }
 
-bool ScrollView::appendScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon)
+bool ScrollView::appendIconScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon, IconLookup::IconContext iconContext)
 {
     ScrollItem* item = new (std::nothrow) ScrollItem();
     if (!item)
@@ -649,12 +669,41 @@ bool ScrollView::appendScrollItem(ScrollItemKind kind, int32_t callbackValue, co
         return false;
     }
 
-    if ((kind == SCROLL_ITEM_WIFI_STATION || kind == SCROLL_ITEM_WIFI_AP) && icon == ICON_PHONE)
+    item->configure(kind, callbackValue, label, icon, iconContext);
+    item->setScrollCallback(onScrollItemTriggered, this);
+
+    node->item = item;
+    node->next = nullptr;
+    if (generatedTail_)
     {
-        icon = ICON_PHONE_AP;
+        generatedTail_->next = node;
+    }
+    else
+    {
+        generatedHead_ = node;
+    }
+    generatedTail_ = node;
+
+    addItem(*item);
+    return true;
+}
+
+bool ScrollView::appendSpriteScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, const sprite_desc_t& sprite)
+{
+    ScrollItem* item = new (std::nothrow) ScrollItem();
+    if (!item)
+    {
+        return false;
     }
 
-    item->configure(kind, callbackValue, label, icon);
+    GeneratedItemNode* node = new (std::nothrow) GeneratedItemNode();
+    if (!node)
+    {
+        delete item;
+        return false;
+    }
+
+    item->configureSprite(kind, callbackValue, label, sprite);
     item->setScrollCallback(onScrollItemTriggered, this);
 
     node->item = item;
@@ -729,19 +778,20 @@ bool ScrollView::deleteArmedBluetoothHost()
     const size_t hostIndex = static_cast<size_t>(deleteHostIndex_);
     const bt_host_item_t* host = bluetoothHostList_->get(hostIndex);
     char hostName[96] = {};
-    strncpy(hostName, host && host->name ? host->name : "Bluetooth host", sizeof(hostName) - 1);
+    const char* displayName = bt_host_display_name(host);
+    strncpy(hostName, displayName[0] != '\0' ? displayName : "Bluetooth host", sizeof(hostName) - 1);
     hostName[sizeof(hostName) - 1] = '\0';
 
-    const bool removed = bluetoothHostList_->remove(hostIndex, true);
-    bool       ok      = removed;
-    if (removed)
+    const bool unpaired = bluetoothHostList_->unpair(hostIndex);
+    bool       ok       = unpaired;
+    if (unpaired)
     {
         ok = bluetoothHostList_->saveToMicroSd(true);
     }
 
     exitDeleteMode();
 
-    if (removed)
+    if (unpaired)
     {
         populateBluetooth(bluetoothHostList_);
     }
@@ -753,7 +803,7 @@ bool ScrollView::deleteArmedBluetoothHost()
         char message[160];
         if (ok)
         {
-            snprintf(message, sizeof(message), "%s\nhas been deleted and un-paired", hostName);
+            snprintf(message, sizeof(message), "%s\nhas been un-paired", hostName);
             activeDeleteView_ = this;
             dialog->configure(sprit_thumbsup_100,
                               SPRIT_THUMBSUP_100_BYTES,
@@ -767,7 +817,7 @@ bool ScrollView::deleteArmedBluetoothHost()
         {
             snprintf(message,
                      sizeof(message),
-                     "Bluetooth delete failed\n%s",
+                     "Bluetooth un-pair failed\n%s",
                      bluetoothHostList_ ? bluetoothHostList_->lastLoadResultName() : "No host list");
             dialog->configure(sprit_warning_100,
                               SPRIT_WARNING_100_BYTES,

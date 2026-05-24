@@ -2,6 +2,7 @@
 
 #include "../Buttons/Buttons.h"
 #include "../Hotel/Hotel.h"
+#include "../SpriteDraw/IconLookup.h"
 #include "DiskStats.h"
 #include "FlyGuiText.h"
 #include "Display.h"
@@ -472,6 +473,27 @@ void FlyGuiItem::setSprite(const uint8_t* data, uint32_t width, uint32_t height,
     spriteWidth_  = width;
     spriteHeight_ = height;
     spriteBytes_  = byte_cnt;
+    overlayData_ = nullptr;
+    overlayWidth_ = 0;
+    overlayHeight_ = 0;
+    overlayBytes_ = 0;
+    overlayOffsetX_ = 0;
+    overlayOffsetY_ = 0;
+    setDirty();
+}
+
+void FlyGuiItem::setSprite(const sprite_desc_t& sprite)
+{
+    spriteData_   = sprite.data;
+    spriteWidth_  = sprite.width;
+    spriteHeight_ = sprite.height;
+    spriteBytes_  = sprite.byte_cnt;
+    overlayData_ = sprite.overlay_data;
+    overlayWidth_ = sprite.overlay_width;
+    overlayHeight_ = sprite.overlay_height;
+    overlayBytes_ = sprite.overlay_byte_cnt;
+    overlayOffsetX_ = static_cast<int16_t>(sprite.overlay_offset_x);
+    overlayOffsetY_ = static_cast<int16_t>(sprite.overlay_offset_y);
     setDirty();
 }
 
@@ -481,6 +503,12 @@ void FlyGuiItem::clearSprite()
     spriteWidth_  = 0;
     spriteHeight_ = 0;
     spriteBytes_  = 0;
+    overlayData_ = nullptr;
+    overlayWidth_ = 0;
+    overlayHeight_ = 0;
+    overlayBytes_ = 0;
+    overlayOffsetX_ = 0;
+    overlayOffsetY_ = 0;
     setDirty();
 }
 
@@ -591,6 +619,18 @@ void FlyGuiItem::redraw(bool forced)
         if (!result.ok)
         {
             return;
+        }
+
+        if (overlayData_ && overlayBytes_ > 0 && overlayWidth_ > 0 && overlayHeight_ > 0)
+        {
+            SpriteDraw::drawPng(overlayData_,
+                                overlayBytes_,
+                                x_ + overlayOffsetX_,
+                                y_ + overlayOffsetY_,
+                                overlayWidth_,
+                                overlayHeight_,
+                                true,
+                                brightness);
         }
     }
     else if (width_ > 0 && height_ > 0)

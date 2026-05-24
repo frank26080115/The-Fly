@@ -51,21 +51,16 @@ file_packet_t;
 enum : uint8_t
 {
     ICON_UNKNOWN = 0,
-    ICON_PHONE,
+    ICON_SMARTPHONE,
     ICON_LAPTOP,
     ICON_TABLET,
-    ICON_BLUETOOTH,
-    ICON_WIFI,
-    ICON_WIFI_SEARCH,
     ICON_HOME,
-    ICON_WIFIAP,
-    ICON_WWW,
-    ICON_CLOUD,
-    ICON_FTP,
-    ICON_NTP,
-    ICON_INFO,
-    ICON_BTPAIRING,
-    ICON_PHONE_AP,
+    ICON_CAT,
+    ICON_DOG,
+    ICON_BIRD,
+    ICON_CIRCLE,
+    ICON_SQUARE,
+    ICON_TRIANGLE,
     ICON_LAST
 };
 

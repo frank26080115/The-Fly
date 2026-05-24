@@ -85,7 +85,8 @@ private:
     void        drawSelectedText();
     void        drawExitButton();
     void        drawDeleteButton();
-    bool        appendScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon);
+    bool        appendIconScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon, IconLookup::IconContext iconContext);
+    bool        appendSpriteScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, const sprite_desc_t& sprite);
     void        clearGeneratedItems();
     void        enterBluetoothDeleteMode(int32_t hostIndex);
     void        exitDeleteMode();

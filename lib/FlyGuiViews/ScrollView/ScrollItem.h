@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../SpriteDraw/IconLookup.h"
 #include "../../FlyGui/FlyGui.h"
 #include <stdint.h>
 
@@ -33,7 +34,8 @@ class ScrollItem : public FlyGuiItem
 public:
     ScrollItem();
 
-    void configure(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon);
+    void configure(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon, IconLookup::IconContext iconContext);
+    void configureSprite(ScrollItemKind kind, int32_t callbackValue, const char* label, const sprite_desc_t& sprite);
     void setScrollCallback(ScrollItemCallback callback, void* context);
 
     ScrollItemKind kind() const
