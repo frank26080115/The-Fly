@@ -105,7 +105,7 @@ def build_parser(default_root: Path) -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--html-sub",
-        action="store_true",
+        action="store_false",
         help="Inline local stylesheet links and script src tags inside HTML assets.",
     )
     return parser
@@ -393,7 +393,7 @@ def package_web_assets(
     minify: bool = False,
     include_css: bool = False,
     include_js: bool = False,
-    html_sub: bool = False,
+    html_sub: bool = True,
 ) -> list[Asset]:
     assets = collect_assets(input_directory, minify, include_css, include_js, html_sub)
     write_if_changed(output_header, header_text(assets))
