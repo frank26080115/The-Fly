@@ -277,6 +277,10 @@ def should_package(path: Path, include_css: bool, include_js: bool) -> bool:
     return True
 
 
+def hidden_path(relative_path: Path) -> bool:
+    return any(part.startswith(".") for part in relative_path.parts)
+
+
 def processed_payload(root: Path, path: Path, minify: bool, html_sub: bool) -> bytes:
     suffix = path.suffix.lower()
     if suffix in (".html", ".htm"):
@@ -306,11 +310,14 @@ def collect_assets(
 
     used_identifiers: set[str] = set()
     assets: list[Asset] = []
-    for path in sorted(candidate for candidate in input_directory.rglob("*") if candidate.is_file()):
+    for path in sorted(candidate for candidate in input_directory.iterdir() if candidate.is_file()):
+        relative_path = path.relative_to(input_directory)
+        if hidden_path(relative_path):
+            continue
         if not should_package(path, include_css, include_js):
             continue
 
-        relative_name = path.relative_to(input_directory).as_posix()
+        relative_name = relative_path.as_posix()
         identifier = asset_identifier(relative_name, used_identifiers)
         raw_payload = processed_payload(input_directory, path, minify, html_sub)
         assets.append(

@@ -25,6 +25,9 @@ const session_security = {
     securityReady: false,
 };
 
+let cached_webcrypto_provider = null;
+let webcrypto_shim_load_promise = null;
+
 const timezone_option_groups = [
     {
         label: "United States and Canada",
@@ -158,13 +161,14 @@ function body_onload()
 
 function secure_random_bytes(size)
 {
-    if (!window.crypto || !window.crypto.getRandomValues)
+    const crypto = random_provider();
+    if (!crypto || !crypto.getRandomValues)
     {
         throw new Error("Browser random number generator is unavailable");
     }
 
     const bytes = new Uint8Array(size);
-    window.crypto.getRandomValues(bytes);
+    crypto.getRandomValues(bytes);
     return bytes;
 }
 
@@ -224,18 +228,125 @@ function constant_time_equal(left, right)
     return diff === 0;
 }
 
-function require_webcrypto()
+function webcrypto_shim_provider()
 {
-    if (!window.crypto || !window.crypto.subtle)
+    if (window.deviceCrypto && window.deviceCrypto.subtle)
     {
-        throw new Error("WebCrypto is unavailable in this browser context");
+        return window.deviceCrypto;
     }
-    return window.crypto.subtle;
+
+    if (window.deviceCrypto && window.deviceSubtle)
+    {
+        return {
+            subtle: window.deviceSubtle,
+            getRandomValues: function(buffer) {
+                return window.deviceCrypto.getRandomValues(buffer);
+            },
+        };
+    }
+
+    if (window.deviceSubtle)
+    {
+        return {
+            subtle: window.deviceSubtle,
+            getRandomValues: function(buffer) {
+                if (window.crypto && window.crypto.getRandomValues)
+                {
+                    return window.crypto.getRandomValues(buffer);
+                }
+                throw new Error("Browser random number generator is unavailable");
+            },
+        };
+    }
+
+    if (window.WebCryptoBundle)
+    {
+        const bundle_crypto = window.WebCryptoBundle.crypto || window.WebCryptoBundle;
+        if (bundle_crypto && bundle_crypto.subtle)
+        {
+            return bundle_crypto;
+        }
+    }
+
+    return null;
+}
+
+function random_provider()
+{
+    if (window.crypto && window.crypto.getRandomValues)
+    {
+        return window.crypto;
+    }
+
+    const shim = webcrypto_shim_provider();
+    if (shim && shim.getRandomValues)
+    {
+        return shim;
+    }
+    return null;
+}
+
+function webcrypto_provider()
+{
+    if (cached_webcrypto_provider && cached_webcrypto_provider.subtle)
+    {
+        return cached_webcrypto_provider;
+    }
+    if (window.crypto && window.crypto.subtle)
+    {
+        cached_webcrypto_provider = window.crypto;
+        return cached_webcrypto_provider;
+    }
+
+    const shim = webcrypto_shim_provider();
+    if (shim && shim.subtle)
+    {
+        cached_webcrypto_provider = shim;
+        return cached_webcrypto_provider;
+    }
+    return null;
+}
+
+function load_webcrypto_shim()
+{
+    if (webcrypto_provider())
+    {
+        return Promise.resolve();
+    }
+    if (webcrypto_shim_load_promise)
+    {
+        return webcrypto_shim_load_promise;
+    }
+
+    webcrypto_shim_load_promise = new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "webcrypto-shim.min.js";
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error("Could not load webcrypto-shim.min.js"));
+        document.head.appendChild(script);
+    });
+    return webcrypto_shim_load_promise;
+}
+
+async function require_webcrypto()
+{
+    let crypto = webcrypto_provider();
+    if (!crypto || !crypto.subtle)
+    {
+        await load_webcrypto_shim();
+        crypto = webcrypto_provider();
+    }
+    if (!crypto || !crypto.subtle)
+    {
+        throw new Error("WebCrypto is unavailable; webcrypto-shim.min.js did not provide a usable fallback.");
+    }
+    return crypto.subtle;
 }
 
 async function derive_pbkdf2_bytes(secret, salt)
 {
-    const subtle = require_webcrypto();
+    const subtle = await require_webcrypto();
     const base_key = await subtle.importKey("raw", secret, "PBKDF2", false, ["deriveBits"]);
     const bits = await subtle.deriveBits(
         {
@@ -251,7 +362,7 @@ async function derive_pbkdf2_bytes(secret, salt)
 
 async function import_hmac_key(key_bytes)
 {
-    return require_webcrypto().importKey(
+    return (await require_webcrypto()).importKey(
         "raw",
         key_bytes,
         { name: "HMAC", hash: "SHA-256" },
@@ -261,7 +372,7 @@ async function import_hmac_key(key_bytes)
 
 async function import_aes_key(key_bytes)
 {
-    return require_webcrypto().importKey(
+    return (await require_webcrypto()).importKey(
         "raw",
         key_bytes,
         { name: "AES-GCM" },
@@ -271,7 +382,7 @@ async function import_aes_key(key_bytes)
 
 async function hmac_sha256(key, data)
 {
-    const signature = await require_webcrypto().sign("HMAC", key, data);
+    const signature = await (await require_webcrypto()).sign("HMAC", key, data);
     return new Uint8Array(signature);
 }
 
@@ -751,7 +862,7 @@ async function decrypt_cfg_blob(buffer)
 
     const nonce = next_session_nonce();
     const encrypted = bytes.slice(get_cfg_magic.length + 1);
-    const plaintext = await require_webcrypto().decrypt(
+    const plaintext = await (await require_webcrypto()).decrypt(
         { name: "AES-GCM", iv: nonce, tagLength: 128 },
         session_security.sessionAesKey,
         encrypted);
