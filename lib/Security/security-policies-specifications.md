@@ -174,11 +174,13 @@ If Stolen: attacker can authenticate to servers; attacker can view SSID password
 
 ## Enrollment Confirmation Code
 
-The enrollment confirmation code is a short code derived from the combination of the filecrypt-key and network-key.
+The enrollment confirmation code is a short code derived from the combination of the filecrypt-key and network-key and the device MAC.
 
 The enrollment confirmation code is shown on the ESP32's LCD screen.
 
 The enrollment confirmation code is sent over to the cloud server as a part of enrollment.
+
+The enrollment confirmation code is included in plain-text in every `*.rec` file.
 
 The server will cache all the details about enrollment, and the user has to verify that the enrollment confirmation code on the server matches what the LCD screen shows, and then confirm the enrollment. NOTE: the server needs to only allow authenticated users to do this, and in this context, this authentication is outside the scope of this project.
 

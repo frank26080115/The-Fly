@@ -24,9 +24,11 @@ constexpr const char* kNetworkKeyBlobName   = "network_key";
 
 uint8_t      g_filecrypt_key[kFilecryptKeySize] = {};
 uint8_t      g_network_key[kNetworkKeySize] = {};
+uint8_t      g_network_config_hash[kSha1Size] = {};
 bool         g_initialized = false;
 bool         g_filecrypt_key_valid = false;
 bool         g_network_key_valid = false;
+bool         g_network_config_hash_valid = false;
 
 void clear_filecrypt_key()
 {
@@ -40,6 +42,12 @@ void clear_network_key()
     g_network_key_valid = false;
 }
 
+void clear_network_config_hash()
+{
+    mbedtls_platform_zeroize(g_network_config_hash, sizeof(g_network_config_hash));
+    g_network_config_hash_valid = false;
+}
+
 void clear_all_keys()
 {
     clear_filecrypt_key();
@@ -49,6 +57,67 @@ void clear_all_keys()
 bool valid_buffer(const uint8_t* ptr, size_t len)
 {
     return ptr || len == 0;
+}
+
+bool sha1_update_buffer(mbedtls_md_context_t& ctx, const void* data, size_t data_len)
+{
+    static constexpr uint8_t kEmptyBuffer = 0;
+    const uint8_t* bytes = static_cast<const uint8_t*>(data);
+    if (!valid_buffer(bytes, data_len))
+    {
+        return false;
+    }
+    if (!bytes)
+    {
+        bytes = &kEmptyBuffer;
+    }
+    return mbedtls_md_update(&ctx, bytes, data_len) == 0;
+}
+
+bool tamper_evidence_hash_from_network_hash(const uint8_t network_config_hash[kSha1Size], uint8_t out[kSha1Size])
+{
+    if (!network_config_hash || !out)
+    {
+        return false;
+    }
+    if (!g_initialized && !init())
+    {
+        return false;
+    }
+    if (!hasMasterKey())
+    {
+        return false;
+    }
+
+    const mbedtls_md_info_t* md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA1);
+    if (!md_info)
+    {
+        return false;
+    }
+
+    mbedtls_md_context_t ctx;
+    mbedtls_md_init(&ctx);
+    bool ok = mbedtls_md_setup(&ctx, md_info, 0) == 0 &&
+              mbedtls_md_starts(&ctx) == 0 &&
+              sha1_update_buffer(ctx, g_filecrypt_key, sizeof(g_filecrypt_key)) &&
+              sha1_update_buffer(ctx, g_network_key, sizeof(g_network_key)) &&
+              sha1_update_buffer(ctx, network_config_hash, kSha1Size) &&
+              mbedtls_md_finish(&ctx, out) == 0;
+    mbedtls_md_free(&ctx);
+
+    if (!ok)
+    {
+        mbedtls_platform_zeroize(out, kSha1Size);
+    }
+    return ok;
+}
+
+uint32_t sha1_prefix_u32(const uint8_t digest[kSha1Size])
+{
+    return (static_cast<uint32_t>(digest[0]) << 24) |
+           (static_cast<uint32_t>(digest[1]) << 16) |
+           (static_cast<uint32_t>(digest[2]) << 8) |
+           static_cast<uint32_t>(digest[3]);
 }
 
 bool load_key_from_nvs(nvs_handle_t handle, const char* blob_name, uint8_t* key, size_t key_size, bool& valid)
@@ -139,6 +208,7 @@ bool init()
 bool deinit()
 {
     clear_all_keys();
+    clear_network_config_hash();
     g_initialized = false;
     return true;
 }
@@ -171,6 +241,116 @@ const uint8_t* getFilecryptKey()
 const uint8_t* getNetworkKey()
 {
     return hasNetworkKey() ? g_network_key : nullptr;
+}
+
+bool sha1(const void* data, size_t data_len, uint8_t out[kSha1Size])
+{
+    static constexpr uint8_t kEmptyBuffer = 0;
+    const uint8_t* bytes = static_cast<const uint8_t*>(data);
+    if (!out || !valid_buffer(bytes, data_len))
+    {
+        return false;
+    }
+    if (!bytes)
+    {
+        bytes = &kEmptyBuffer;
+    }
+
+    const mbedtls_md_info_t* md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA1);
+    if (!md_info)
+    {
+        mbedtls_platform_zeroize(out, kSha1Size);
+        return false;
+    }
+
+    const bool ok = mbedtls_md(md_info, bytes, data_len, out) == 0;
+    if (!ok)
+    {
+        mbedtls_platform_zeroize(out, kSha1Size);
+    }
+    return ok;
+}
+
+bool networkConfigHash(const void* network_config, size_t network_config_size, uint8_t out[kSha1Size])
+{
+    return sha1(network_config, network_config_size, out);
+}
+
+bool cacheNetworkConfigHash(const void* network_config, size_t network_config_size)
+{
+    uint8_t hash[kSha1Size] = {};
+    if (!networkConfigHash(network_config, network_config_size, hash))
+    {
+        clear_network_config_hash();
+        return false;
+    }
+
+    memcpy(g_network_config_hash, hash, sizeof(g_network_config_hash));
+    g_network_config_hash_valid = true;
+    mbedtls_platform_zeroize(hash, sizeof(hash));
+    return true;
+}
+
+bool getCachedNetworkConfigHash(uint8_t out[kSha1Size])
+{
+    if (!out || !g_network_config_hash_valid)
+    {
+        return false;
+    }
+
+    memcpy(out, g_network_config_hash, sizeof(g_network_config_hash));
+    return true;
+}
+
+bool tamperEvidenceHash(const void* network_config, size_t network_config_size, uint8_t out[kSha1Size])
+{
+    uint8_t network_hash[kSha1Size] = {};
+    if (!networkConfigHash(network_config, network_config_size, network_hash))
+    {
+        return false;
+    }
+
+    const bool ok = tamper_evidence_hash_from_network_hash(network_hash, out);
+    mbedtls_platform_zeroize(network_hash, sizeof(network_hash));
+    return ok;
+}
+
+bool tamperEvidenceHash(uint8_t out[kSha1Size])
+{
+    if (!g_network_config_hash_valid)
+    {
+        return false;
+    }
+
+    return tamper_evidence_hash_from_network_hash(g_network_config_hash, out);
+}
+
+bool tamperEvidenceCode(const void* network_config, size_t network_config_size, uint32_t& out)
+{
+    uint8_t hash[kSha1Size] = {};
+    if (!tamperEvidenceHash(network_config, network_config_size, hash))
+    {
+        out = 0;
+        return false;
+    }
+
+    out = sha1_prefix_u32(hash);
+    mbedtls_platform_zeroize(hash, sizeof(hash));
+    return true;
+}
+
+bool tamperEvidenceCode(uint32_t& out)
+{
+    uint8_t hash[kSha1Size] = {};
+    if (!tamperEvidenceHash(hash))
+    {
+        out = 0;
+        return false;
+    }
+
+    out = sha1_prefix_u32(hash);
+    mbedtls_platform_zeroize(hash, sizeof(hash));
+    return true;
 }
 
 #ifdef BUILD_IS_DEBUG
@@ -277,6 +457,20 @@ bool setNetworkKey(const uint8_t* key)
     g_network_key_valid = true;
     mbedtls_platform_zeroize(staged_key, sizeof(staged_key));
     return true;
+}
+
+bool generateFilecryptKey()
+{
+    if (!g_initialized && !init())
+    {
+        return false;
+    }
+
+    uint8_t key[kFilecryptKeySize] = {};
+    esp_fill_random(key, sizeof(key));
+    const bool ok = setFilecryptKey(key);
+    mbedtls_platform_zeroize(key, sizeof(key));
+    return ok;
 }
 
 bool hmacSha256(const uint8_t* key, size_t key_len, const uint8_t* data, size_t data_len, uint8_t out[kSha256Size])

@@ -898,12 +898,13 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
         return false;
     }
 
+    network_cfg_t network_existing = {};
     network_cfg_t network_staged = {};
     bt_host_list_t bluetooth_staged = {};
+    bool network_config_changed = false;
 
     if (has_network)
     {
-        network_cfg_t network_existing = {};
         if (!wifi_manager || !wifi_manager->copyConfig(network_existing))
         {
             status_code = 500;
@@ -916,6 +917,22 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
             status_code = 400;
             return false;
         }
+
+        uint8_t existing_hash[Aegis::kSha1Size] = {};
+        uint8_t staged_hash[Aegis::kSha1Size] = {};
+        if (!Aegis::networkConfigHash(&network_existing, sizeof(network_existing), existing_hash) ||
+            !Aegis::networkConfigHash(&network_staged, sizeof(network_staged), staged_hash))
+        {
+            mbedtls_platform_zeroize(existing_hash, sizeof(existing_hash));
+            mbedtls_platform_zeroize(staged_hash, sizeof(staged_hash));
+            status_code = 500;
+            error = "Wi-Fi config hash failed";
+            return false;
+        }
+
+        network_config_changed = memcmp(existing_hash, staged_hash, sizeof(existing_hash)) != 0;
+        mbedtls_platform_zeroize(existing_hash, sizeof(existing_hash));
+        mbedtls_platform_zeroize(staged_hash, sizeof(staged_hash));
     }
 
     if (has_bluetooth)
@@ -940,6 +957,25 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
         status_code = 500;
         error = "Wi-Fi config save failed";
         return false;
+    }
+    if (has_network)
+    {
+        if (!Aegis::cacheNetworkConfigHash(&network_staged, sizeof(network_staged)))
+        {
+            status_code = 500;
+            error = "Wi-Fi config hash cache update failed";
+            return false;
+        }
+        if (network_config_changed && !Aegis::generateFilecryptKey())
+        {
+            status_code = 500;
+            error = "Filecrypt-key regeneration failed";
+            return false;
+        }
+        if (network_config_changed)
+        {
+            ESP_LOGI(TAG, "regenerated filecrypt-key after network config change");
+        }
     }
     if (has_bluetooth && !bt_host_list->replaceHostList(bluetooth_staged))
     {

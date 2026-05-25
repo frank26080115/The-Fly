@@ -10,6 +10,9 @@
 #include "AudioFileRecorder.h"
 #include "AudioManager.h"
 #include "BluetoothManager.h"
+#ifdef BUILD_WITH_SECURITY
+#include "Aegis.h"
+#endif
 #ifdef BUILD_FTP_SERVER
 #include "FtpServer.h"
 #endif
@@ -416,6 +419,19 @@ void sanitize_network_config(network_cfg_t& cfg)
         cfg.access_point[i].next_node = nullptr;
     }
 }
+
+#ifdef BUILD_WITH_SECURITY
+bool cache_network_config_hash(const network_cfg_t& cfg)
+{
+    if (Aegis::cacheNetworkConfigHash(&cfg, sizeof(cfg)))
+    {
+        return true;
+    }
+
+    ESP_LOGW(TAG, "could not cache Wi-Fi config hash");
+    return false;
+}
+#endif
 
 void copy_legacy_cloud_item(cloud_item_t& destination, const cloud_item_legacy_password_t& source)
 {
@@ -1004,7 +1020,7 @@ bool WifiManager::loadFromNvs()
     {
         m_last_load_result = LoadResult::Ok;
         ESP_LOGI(TAG, "no Wi-Fi config namespace in NVS; using defaults");
-        return true;
+        return cache_network_config_hash(m_network_cfg);
     }
     if (err != ESP_OK)
     {
@@ -1021,7 +1037,7 @@ bool WifiManager::loadFromNvs()
         nvs_close(handle);
         m_last_load_result = LoadResult::Ok;
         ESP_LOGI(TAG, "no Wi-Fi config in NVS; using defaults");
-        return true;
+        return cache_network_config_hash(m_network_cfg);
     }
     if (err != ESP_OK)
     {
@@ -1049,7 +1065,7 @@ bool WifiManager::loadFromNvs()
             init_network_config_defaults(m_network_cfg);
             m_last_load_result = LoadResult::Ok;
             ESP_LOGW(TAG, "ignoring incompatible Wi-Fi config in NVS");
-            return true;
+            return cache_network_config_hash(m_network_cfg);
         }
 
         if (cfg.version == kNetworkConfigLegacyIconVersion)
@@ -1076,7 +1092,7 @@ bool WifiManager::loadFromNvs()
             init_network_config_defaults(m_network_cfg);
             m_last_load_result = LoadResult::Ok;
             ESP_LOGW(TAG, "ignoring incompatible legacy Wi-Fi config in NVS");
-            return true;
+            return cache_network_config_hash(m_network_cfg);
         }
 
         migrate_legacy_cloud_password_config<network_cfg_legacy_cloud_password_t, kNetworkConfigMaxEntriesAP>(legacy, cfg);
@@ -1101,7 +1117,7 @@ bool WifiManager::loadFromNvs()
             init_network_config_defaults(m_network_cfg);
             m_last_load_result = LoadResult::Ok;
             ESP_LOGW(TAG, "ignoring incompatible legacy Wi-Fi config in NVS");
-            return true;
+            return cache_network_config_hash(m_network_cfg);
         }
 
         migrate_legacy_cloud_password_config<network_cfg_legacy_cloud_password_ap8_t, kNetworkConfigMaxEntries>(legacy, cfg);
@@ -1115,7 +1131,7 @@ bool WifiManager::loadFromNvs()
                  "ignoring incompatible Wi-Fi config size in NVS: stored=%u expected=%u",
                  static_cast<unsigned>(cfg_size),
                  static_cast<unsigned>(sizeof(network_cfg_t)));
-        return true;
+        return cache_network_config_hash(m_network_cfg);
     }
 
     sanitize_network_config(cfg);
@@ -1124,6 +1140,10 @@ bool WifiManager::loadFromNvs()
     m_access_point_count = m_network_cfg.access_point_count;
     m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
     m_last_load_result = LoadResult::Ok;
+    if (!cache_network_config_hash(m_network_cfg))
+    {
+        return false;
+    }
     if (migrated)
     {
         ESP_LOGI(TAG,
@@ -1173,7 +1193,7 @@ bool WifiManager::saveToNvs()
     }
 
     m_last_load_result = LoadResult::Ok;
-    return true;
+    return cache_network_config_hash(m_network_cfg);
 }
 
 bool WifiManager::copyConfig(network_cfg_t& out) const
@@ -1237,6 +1257,7 @@ void WifiManager::clear()
     m_connected_wifi = nullptr;
     m_reported_connected = false;
     m_last_load_result = LoadResult::Ok;
+    cache_network_config_hash(m_network_cfg);
     #endif
 }
 

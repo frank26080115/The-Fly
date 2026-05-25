@@ -10,6 +10,7 @@ namespace Aegis
 static constexpr size_t kFilecryptKeySize = 32;
 static constexpr size_t kNetworkKeySize   = 32;
 static constexpr size_t kSha256Size       = 32;
+static constexpr size_t kSha1Size         = 20;
 static constexpr uint8_t kSaltFilecrypt[] = { // note: this is never actually used, the filecrypt-key is randomly generated, not derived from a password, the salt is here for testing purposes
     0x98, 0xC2, 0x5A, 0xF2, 0xB7, 0x0F, 0xA4, 0xB3,
     0x42, 0xB4, 0x64, 0xE5, 0xEE, 0xD6, 0xFF, 0x3D,
@@ -49,6 +50,14 @@ void setTestTempPassword(const uint8_t* password);
 #endif
 
 bool hmacSha256(const uint8_t* key, size_t key_len, const uint8_t* data, size_t data_len, uint8_t out[kSha256Size]);
+bool sha1(const void* data, size_t data_len, uint8_t out[kSha1Size]);
+bool networkConfigHash(const void* network_config, size_t network_config_size, uint8_t out[kSha1Size]);
+bool cacheNetworkConfigHash(const void* network_config, size_t network_config_size);
+bool getCachedNetworkConfigHash(uint8_t out[kSha1Size]);
+bool tamperEvidenceHash(const void* network_config, size_t network_config_size, uint8_t out[kSha1Size]);
+bool tamperEvidenceHash(uint8_t out[kSha1Size]);
+bool tamperEvidenceCode(const void* network_config, size_t network_config_size, uint32_t& out);
+bool tamperEvidenceCode(uint32_t& out);
 bool pbkdf2HmacSha256(const uint8_t* password,
                       size_t password_len,
                       const uint8_t* salt,
