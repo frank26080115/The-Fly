@@ -444,13 +444,13 @@ String sha1_filename_hash(const char* filename, const char* datetime)
 #else
 String hmacsha_filename_hash(const char* filename, const char* datetime)
 {
-    if (!Aegis::isInitialized())
+    if (!Aegis::isInitialized() && !Aegis::init())
     {
         return "";
     }
 
-    const uint8_t* master_key = Aegis::getMasterKey();
-    if (!master_key)
+    const uint8_t* network_key = Aegis::getNetworkKey();
+    if (!network_key)
     {
         return "";
     }
@@ -467,8 +467,8 @@ String hmacsha_filename_hash(const char* filename, const char* datetime)
     input += safe_datetime;
 
     uint8_t digest[Aegis::kSha256Size] = {};
-    if (!Aegis::hmacSha256(master_key,
-                           Aegis::kMasterKeySize,
+    if (!Aegis::hmacSha256(network_key,
+                           Aegis::kNetworkKeySize,
                            reinterpret_cast<const uint8_t*>(input.c_str()),
                            input.length(),
                            digest))

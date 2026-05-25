@@ -931,18 +931,18 @@ bool WifiManager::loadFromMicroSd(const char* path)
     if (file_size > kMaxJsonFileSize)
     {
         file.close();
-        m_last_load_result = LoadResult::FileTooLarge;
         ESP_LOGW(TAG, "Wi-Fi config import is too large: %llu bytes", static_cast<unsigned long long>(file_size));
-        return false;
+        m_last_load_result = LoadResult::Ok;
+        return true;
     }
 
     char* buffer = static_cast<char*>(malloc(static_cast<size_t>(file_size) + 1));
     if (!buffer)
     {
         file.close();
-        m_last_load_result = LoadResult::AllocationFailed;
         ESP_LOGW(TAG, "could not allocate Wi-Fi config import buffer");
-        return false;
+        m_last_load_result = LoadResult::Ok;
+        return true;
     }
 
     const int bytes_read = file.read(buffer, static_cast<size_t>(file_size));
@@ -951,9 +951,9 @@ bool WifiManager::loadFromMicroSd(const char* path)
     if (bytes_read < 0 || static_cast<uint64_t>(bytes_read) != file_size)
     {
         free(buffer);
-        m_last_load_result = LoadResult::FileReadFailed;
         ESP_LOGW(TAG, "could not read Wi-Fi config import");
-        return false;
+        m_last_load_result = LoadResult::Ok;
+        return true;
     }
     buffer[file_size] = '\0';
 
@@ -962,21 +962,18 @@ bool WifiManager::loadFromMicroSd(const char* path)
     free(buffer);
     if (error)
     {
-        m_last_load_result = LoadResult::JsonParseFailed;
         ESP_LOGW(TAG, "could not parse Wi-Fi config import: %s", error.c_str());
-        return false;
+        m_last_load_result = LoadResult::Ok;
+        return true;
     }
 
-    network_cfg_t imported = {};
     size_t skipped = 0;
-    if (!parse_network_config_json(doc, imported, skipped))
+    parse_network_config_json(doc, m_network_cfg, skipped);
+    if (skipped > 0)
     {
-        m_last_load_result = LoadResult::InvalidItem;
-        ESP_LOGW(TAG, "Wi-Fi config import has %u invalid item(s)", static_cast<unsigned>(skipped));
-        return false;
+        ESP_LOGW(TAG, "Wi-Fi config import skipped %u invalid or extra item(s)", static_cast<unsigned>(skipped));
     }
 
-    m_network_cfg = imported;
     m_station_count = m_network_cfg.station_count;
     m_access_point_count = m_network_cfg.access_point_count;
     m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
@@ -1002,7 +999,13 @@ bool WifiManager::loadFromNvs()
     clear();
 
     nvs_handle_t handle = 0;
-    esp_err_t err = nvs_open(kNetworkNvsNamespace, NVS_READWRITE, &handle);
+    esp_err_t err = nvs_open(kNetworkNvsNamespace, NVS_READONLY, &handle);
+    if (err == ESP_ERR_NVS_NOT_FOUND)
+    {
+        m_last_load_result = LoadResult::Ok;
+        ESP_LOGI(TAG, "no Wi-Fi config namespace in NVS; using defaults");
+        return true;
+    }
     if (err != ESP_OK)
     {
         m_last_load_result = LoadResult::FileOpenFailed;
@@ -1027,7 +1030,7 @@ bool WifiManager::loadFromNvs()
         ESP_LOGW(TAG, "could not query Wi-Fi config from NVS: %s", esp_err_to_name(err));
         return false;
     }
-    network_cfg_t cfg = {};
+    network_cfg_t& cfg = m_network_cfg;
     bool migrated = false;
     if (cfg_size == sizeof(network_cfg_t))
     {
@@ -1043,6 +1046,7 @@ bool WifiManager::loadFromNvs()
         }
         if (cfg.magic != kNetworkConfigMagic || !valid_network_config_version(cfg.version))
         {
+            init_network_config_defaults(m_network_cfg);
             m_last_load_result = LoadResult::Ok;
             ESP_LOGW(TAG, "ignoring incompatible Wi-Fi config in NVS");
             return true;
@@ -1055,7 +1059,8 @@ bool WifiManager::loadFromNvs()
     }
     else if (cfg_size == sizeof(network_cfg_legacy_cloud_password_t))
     {
-        network_cfg_legacy_cloud_password_t legacy = {};
+        static network_cfg_legacy_cloud_password_t legacy;
+        memset(&legacy, 0, sizeof(legacy));
         size_t read_size = sizeof(legacy);
         err = nvs_get_blob(handle, kNetworkNvsBlobName, &legacy, &read_size);
         nvs_close(handle);
@@ -1068,6 +1073,7 @@ bool WifiManager::loadFromNvs()
         }
         if (legacy.magic != kNetworkConfigMagic || !valid_network_config_version(legacy.version))
         {
+            init_network_config_defaults(m_network_cfg);
             m_last_load_result = LoadResult::Ok;
             ESP_LOGW(TAG, "ignoring incompatible legacy Wi-Fi config in NVS");
             return true;
@@ -1078,7 +1084,8 @@ bool WifiManager::loadFromNvs()
     }
     else if (cfg_size == sizeof(network_cfg_legacy_cloud_password_ap8_t))
     {
-        network_cfg_legacy_cloud_password_ap8_t legacy = {};
+        static network_cfg_legacy_cloud_password_ap8_t legacy;
+        memset(&legacy, 0, sizeof(legacy));
         size_t read_size = sizeof(legacy);
         err = nvs_get_blob(handle, kNetworkNvsBlobName, &legacy, &read_size);
         nvs_close(handle);
@@ -1091,6 +1098,7 @@ bool WifiManager::loadFromNvs()
         }
         if (legacy.magic != kNetworkConfigMagic || !valid_network_config_version(legacy.version))
         {
+            init_network_config_defaults(m_network_cfg);
             m_last_load_result = LoadResult::Ok;
             ESP_LOGW(TAG, "ignoring incompatible legacy Wi-Fi config in NVS");
             return true;

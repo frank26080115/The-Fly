@@ -27,14 +27,13 @@ The uploading and transcription of the recorded audio files should be nearly sea
 # Secrets
 
  * password
- * master-key
+ * filecrypt-key
+ * network-key
  * link-key
  * Wi-Fi credentials
  * session identifier
- * temporary short key
- * temporary long key
- * session challenge
- * session response
+ * temporary short key, temporary long key
+ * session authentication and encryption
  * the recording files
  * audio/sound
 
@@ -59,6 +58,14 @@ Spoofing of the BDADDR is not useful without a correct link-key
  * looking at the device while a temporary key is shown
  * listening to the sound
 
+## Encryption and Hask Functions
+
+AES-GCM for file encryption.
+
+HMAC-SHA-256 for authentication to servers.
+
+PBKDF2-HMAC-SHA-256 for key generation. 32 byte salt, 100000 iterations.
+
 ## Audio/Sound
 
 The device, in its current implementation, is a glorified speakerphone. Please be mindful of where you are using it and who is listening.
@@ -73,9 +80,9 @@ As a policy, RAM is considered safe. RAM does not need to be encrypted.
 
 NVS is encrypted and the handling of this is mostly fully transparent, the key for this lives in the e-fuse. The key is random when generated and can never be read. As a policy, the NVS is considered safe from attacks such as dumping the flash memory IC itself.
 
-There is a copy of the master-key stored in NVS.
+There is a copy of the filecrypt-key and the network-key stored in NVS.
 
-The contents of the NVS is not further encrypted by the running firmware. But changing the master-key will trigger NVS to be erased.
+The contents of the NVS is not further encrypted by the running firmware. But changing the filecrypt-key or network-key will trigger NVS to be erased.
 
 The microSD card does not use full-disk-encryption. All `*.rec` files are encrypted, but the timestamps are exposed. `cloud_history.txt` is also not encrypted. If a firmware update file is present, it is not encrypted, it contains no secrets, and the firmware file is probably signed.
 
@@ -85,7 +92,7 @@ The local device can use mDNS and service discovery and other broadcast methods 
 
 When a local soft-AP is used, it only allows for one client, and enforces WPA3 PSK security. The password is randomize each time as one of the measures to prevent an impersonation phishing attack. MAC address verification is not strong enough for phishing prevention, as it can be spoofed.
 
-The act of resetting the master-key can only be performed while using the default soft AP.
+The act of resetting the filecrypt-key or network-key can only be performed while using the default soft AP.
 
 The Bluetooth functionality of the local device is always in a connectable-but-not-discoverable state, unless BT pairing mode is active.
 
@@ -99,7 +106,7 @@ If Stolen Recommended Action: unpair the old device from all Bluetooth hosts.
 
 The cloud server is a privately held virtual private server. It relies on its own security (such as user authentication, disk encryption, etc).
 
-The master-key will need to be stored on it. If the server is compromised, the master-key is considered compromised.
+The filecrypt-key and network-key will need to be stored on it. If the server is compromised, the filecrypt-key and network-key is considered compromised.
 
 The software should use a key-file, and if it is missing, ask the user for a password as a first time setup procedure.
 
@@ -109,7 +116,7 @@ Uploads are authenticated via request header data. Unauthenticated uploads are n
 
 The server implementation present in this repository is considered only demonstrative. It is up to the user how the server is setup in terms of user access and networking. It is up to the user how the unencrypted data is stored. The user may want to stream unencrypted data instead of ever letting it be saved to disk. This is outside the scope of this project.
 
-If Compromised: if the attacker actually gets the login credentials, this is bad, it's a complete compromise of the master-key and all encrypted files
+If Compromised: if the attacker actually gets the login credentials, this is bad, it's a complete compromise of the filecrypt-key and network-key and all encrypted files
 
 If Spoofed: the spoof server can get a copy of the file but will not be able to decrypt it; the spoof server can get samples of encrypted timestamps to attempt cryptanalysis with
 
@@ -123,29 +130,45 @@ There is extra functionality available while in a local network with the device,
 
 There is no ability to automate functionality involving the temporary short key (and thus, the derived temporary long key), as these are randomized per-session and require the human to input.
 
-If Compromised: if the attacker actually gets the login credentials, this is bad, it's a complete compromise of the master-key and all encrypted files
+If Compromised: if the attacker actually gets the login credentials, this is bad, it's a complete compromise of the filecrypt-key and network-key and all encrypted files
 
 ## User Web Browser
 
-Similar to a Local Network PC, but there is no permanent storage for a master-key. Any functionality involving the master-key will need to require the human to input the password. The password is never transmitted in any form. Any secret is never transmitted in plain-text.
+Similar to a Local Network PC, but there is no permanent storage. Any functionality involving the network-key will need to require the human to input the password. The password is never transmitted in any form. Any secret is never transmitted in plain-text. The filecrypt-key is not used in any web front-end functionality, except for when a new key is created as a password reset.
 
 Transmission of secrets will use temporary keys to assist in the encrypted transport.
 
-If Compromised: if there is malware that can peak at the session memory, then there is the chance of compromising some keys when they are in memory
+If Compromised: if there is malware that can peak at the session memory, then there is the chance of compromising some keys, or even the password, when they are in memory
 
 ## Password
 
 This means a string that the user is able to type and remember in their head. It is never stored or transmitted (neither encrypted nor plain-text)
 
-If Stolen: attacker can generate the Master-Key
+If Stolen: attacker can generate the master-key-pair
 
-## Master-Key
+## Master-Key-Pair
 
-32 byte array, derived from the password. Used for most security functions. Saved on servers (remote, cloud, and local).
+This simply refers to both the filecrypt-key and network-key. Both are generated at the same time using the same input password but different salts.
 
-The user can choose to reset the master-key on the device at any time, but doing so will cause NVS to be erased. The new master-key is to be transmitted while encrypted by a temporary key.
+Exposure of one does not compromise the other.
 
-If Stolen: attacker can decrypt all files; attacker can authenticate to servers; attacker can derive other keys; attacker cannot extract Bluetooth link-keys
+The user can choose to reset the master-key-pair on the device at any time, but doing so will cause NVS to be erased.
+
+The new master-key-pair is to be transmitted while encrypted by a temporary key.
+
+## Filecrypt-Key
+
+32 byte array, derived from the password. Used for file encryption only. Saved on servers (remote, cloud, and local).
+
+If Stolen: attacker can decrypt all files that uses that key
+
+## Network-Key
+
+32 byte array, derived from the password. Used for all networking functionality.
+
+Used for most security functions except file encryption. Saved on servers (remote, cloud, and local).
+
+If Stolen: attacker can authenticate to servers; attacker can view SSID passwords in transit; attacker cannot extract Bluetooth link-keys; attacker cannot derive password; attacker cannot derive filecrypt-key; attacker cannot decrypt files
 
 ## Link-Key
 
@@ -165,31 +188,35 @@ These can be set by the web browser front-end, and when doing so, it is transpor
 
 Wi-Fi SSIDs are transmitted from internal server to browser but not the passwords. SSID passwords are considered write only and never read out by the front-end.
 
-If Stolen: attacker can connect to the Wi-Fi network
+If Stolen: attacker can connect to the Wi-Fi network that has been compromised
 
-## Session Identifier
+## Session Authentication and Encryption
 
-A random 32 bit integer generated once per page-load of the ESP32's web server. It is only used in the context of the ESP32's web server communicating with a directly connected web browser, not cloud service. It is transmitted in plain-text to and from the web browser. It's not a secret and its only purpose is to make sure that the temporary key used is still valid. If either side detects a change in this session identifier, it knows that the previous temporary key is invalid.
+ * session challenge: 32 bytes, random, not secret
+ * session response from client: 32 bytes, not secret
+ * session response from server: 32 bytes, not secret
+ * session salt: 32 bytes, not secret
+ * session key: 32 bytes, secret, never transmitted
 
-If Stolen: nothing
+The session response from the client is derived from the network-key and the session challenge.
 
-## Session Challenge and Session Response
+The session response from the server is derived from the assumed session response from the client, it is precomputed. The client uses this to verify the server is trustworthy.
 
-This is only used for time sync between web browser and the ESP32's web server.
+The session salt is 32 bytes, with 16 bytes provided by the server and 16 bytes provided by the client.
 
-The session-challenge and session-response shall both be a 32 byte array. The session-challenge is randomly generated and is not tied to anything.
+The session key is derived from the network-key and the session salt. This is used to encrypt all payloads once available. The encryption shall use a nonce.
 
-The session-response is generated by hashing the session-challenge with the master-key.
+AES-GCM will be used, so authentication is included in the encryption.
 
-When the front-end sends back a time to sync against, the session-response is also attached. The server will verify the session-response is correct before accepting the time-sync.
+The nonce used in AES-GCM will be 12 bytes, 10 bytes will be random, the last 2 bytes is a uint16_t counter. The server will encrypt with odd counter numbers, the client will encrypt with even counter numbers. The numbers must always go up. If the nonce does not go up as expected, the session is immediately invalidated (this means there's a message limit when the counter overflows).
 
-Performing time-sync both invalidates the session-challenge in the back-end, and also causes a page refresh.
+The session challenge is also used as a session identifier.
 
-If Stolen: nothing
+If Stolen: leaking the session key can leak Wi-Fi passwords; the network-key and the master-key-pair are not practically compromised
 
 ## Temporary Keys
 
-The temporary short key is randomly generated 8 character code. It is not tied in any way to the session identifier, nor the master-key. The short key is random but also self-validating, so that the front-end can verify the user has input it correctly.
+The temporary short key is randomly generated 8 character code. It is not tied in any way to the session, nor any other keys. The short key is random but also self-validating, so that the front-end can verify the user has input it correctly.
 
 It is never transmitted in any electronic or radio form, but it is displayed on the LCD screen of the device. The user must never let somebody see it. But it does not need to be remembered beyond one usage session. The GUI will make it convenient to hide this number from view, and implement a time limit for when this number is in view.
 
@@ -197,41 +224,35 @@ The temp-long-key is derived from the temp-short-key, and is used to encrypt mes
 
 The temp-long-key is a 32 byte array. It is never transmitted in any form.
 
-If Stolen (seen by eye): attacker can potentially capture a new master-key if the user is setting up a new master-key, through a phishing attack or monitoring HTTP traffic
+If a new session challenge is generated, then a new temporary key is generated. The session challenge can be sent from the browser to the server again as a way to make sure the temporary key is still current.
 
-## Encryption and Hask Functions
-
-AES-GCM for file encryption.
-
-HMAC-SHA-256 for authentication to servers.
-
-PBKDF2-HMAC-SHA-256 for key generation.
+If Stolen (seen by eye): attacker can potentially capture keys if the user is doing a password reset, through a phishing attack or monitoring HTTP traffic
 
 ## File Encryption
 
-The `*.rec` files that are recorded have fixed size packets. Each packet is encrypted entirely, using the master-key.
+The `*.rec` files that are recorded have fixed size packets. Each packet is encrypted entirely, using the filecrypt-key.
 
 The packet header has some static features like a magic and source identifier, some parts that are dynamic like a timestamp and sequence number, plus 64 bits of random nonce.
 
 ## Authentication Over HTTP/HTTPS Request Headers
 
-For all requests, the current time (UTC) is to be included, and a hash of that time (with the master-key) is to be included. The server can verify that the time is in-sync within +/- 2 minutes, and infer that the master-key is correct.
+For all requests between the ESP32 and the cloud servers, the current time (UTC) is to be included, and a hash of that time (with the network-key) is to be included. The cloud server can verify that the time is in-sync within +/- 2 minutes, and infer that the network-key is correct.
 
-It is critical that the time is correct on all parties involved.
+For all requests from a web browser to the ESP32's web server, the current time (UTC) is to be included in plain-text, the payload is encrypted with the transaction-key and the payload includes the same current time. The ESP32's web server can verify that the transaction-key is correct based on the payload decrypting correctly.
+
+The server does not actually care about the time reported being in-sync or not, as setting the correct time (or time server) is a part of possible administrative tasks.
 
 ## Front-End Authentication
 
-The user will type in their password, this gets hashed into the master-key, but neither of these are transmitted.
+The user will type in their password, this gets hashed into the network-key, but neither of these are transmitted.
 
 The displayed page will be void of any data at this point. The fields on the page are all populated via Ajax after authentication completes.
 
-The ESP32 backend will issue a challenge, the front-end uses the master-key to generate a crypto-response.
+The ESP32 backend will issue a session-challenge, the front-end uses the network-key to generate a session-response.
 
-The front-end uses the crypto-response to issue a Ajax request to fetch the data required to populate the front-end page. This is the only time the crypto-response is used, as it can be easily captured.
+The front-end uses the session-response to issue a Ajax request to fetch the data required to populate the front-end page. This is the only time the session-response is used, as it can be easily captured. The new data will contain a session-salt.
 
-The challenge and crypto-response are both 32 bit arrays. The challenge is randomly generated once per page load.
-
-If either is stolen: the master-key is still safe; attacker can view file lists and SSID names and BT host information.
+If either is stolen: the keys are still safe; attacker can view file lists and SSID names and BT host information.
 
 ## Touch Screen Pin Login
 
@@ -243,9 +264,9 @@ A 6 digit pin input is requested on boot
 
 3 quick attempts allowed, after that it will have a cooldown to prevent brute forcing
 
-The pin is derived from the master-key, it can be shown on the web administrative page, it cannot be changed. To change it, the master-key must be changed, and thus, forcing the refresh of all other parts of the security chain
+The pin is derived from the network-key, it can be shown on the web administrative page, it cannot be changed. To change it, the network-key must be changed, and thus, forcing the refresh of all other parts of the security chain
 
-If Stolen: master-key is not compromised; attacker can connect to any bonded BT host; attacker can connect to Wi-Fi stations in memory; no keys are exposed directly; Wi-Fi passwords can be compromised by analyzing the Wi-Fi connections
+If Stolen: network-key is not compromised (nor the filecrypt-key); attacker can connect to any bonded BT host; attacker can connect to Wi-Fi stations in memory; no keys are exposed directly; Wi-Fi passwords can be compromised by analyzing the Wi-Fi connections
 
 Implementation details are not yet fully established.
 

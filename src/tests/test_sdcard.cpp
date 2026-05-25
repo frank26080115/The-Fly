@@ -299,21 +299,26 @@ void test_sdcard()
     }
     if (!Aegis::hasMasterKey())
     {
-        const uint8_t test_key[Aegis::kMasterKeySize] = {
+        const uint8_t test_filecrypt_key[Aegis::kFilecryptKeySize] = {
             0x74, 0x68, 0x65, 0x66, 0x6c, 0x79, 0x2d, 0x73,
             0x64, 0x63, 0x61, 0x72, 0x64, 0x2d, 0x74, 0x65,
             0x73, 0x74, 0x2d, 0x6b, 0x65, 0x79, 0x2d, 0x30,
             0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x31};
-        if (!Aegis::setMasterKey(test_key))
+        const uint8_t test_network_key[Aegis::kNetworkKeySize] = {
+            0x74, 0x68, 0x65, 0x66, 0x6c, 0x79, 0x2d, 0x6e,
+            0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x2d, 0x74,
+            0x65, 0x73, 0x74, 0x2d, 0x6b, 0x65, 0x79, 0x2d,
+            0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x31};
+        if (!Aegis::setFilecryptKey(test_filecrypt_key) || !Aegis::setNetworkKey(test_network_key))
         {
-            Serial.printf("%s: Aegis test master key setup failed\n", TAG);
+            Serial.printf("%s: Aegis test key setup failed\n", TAG);
             idle_forever();
         }
-        Serial.printf("%s: installed deterministic test master key\n", TAG);
+        Serial.printf("%s: installed deterministic test keys\n", TAG);
     }
     else
     {
-        Serial.printf("%s: using existing Aegis master key\n", TAG);
+        Serial.printf("%s: using existing Aegis keys\n", TAG);
     }
     #else
     Serial.printf("%s: BUILD_WITH_SECURITY is disabled; recorder packets will not be encrypted\n", TAG);

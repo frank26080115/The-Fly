@@ -3,13 +3,11 @@
 #include <ESPAsyncWebServer.h>
 #include <WiFi.h>
 
-#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "Aegis.h"
 #include "BluetoothManager.h"
-#include "ClockAgent.h"
 #ifdef BUILD_FTP_SERVER
 #include "FtpServer.h"
 #endif
@@ -18,6 +16,8 @@
 #include "WebFileHandlers.h"
 #include "WifiManager.h"
 #include "esp_log.h"
+#include "esp_random.h"
+#include "mbedtls/platform_util.h"
 #include "thefly_version.h"
 #include "web_assets.h"
 
@@ -27,9 +27,9 @@ namespace
 {
 
 constexpr const char* TAG = "WebServer";
-constexpr uint32_t    kRequestAuthWindowSeconds = 120;
-constexpr size_t      kTimestampLength = 19;
-constexpr size_t      kSha256HexLength = Aegis::kSha256Size * 2;
+constexpr char        kHexChars[] = "0123456789abcdef";
+constexpr const char* kHeaderSessionSaltFromClient = "X-TheFly-Session-Salt-From-Client";
+constexpr const char* kHeaderSessionResponseFromClient = "X-TheFly-Session-Response-From-Client";
 
 #ifdef BUILD_FTP_SERVER
 // This is only a login gate for plain FTP. Replace these credentials before
@@ -40,111 +40,26 @@ constexpr const char* kFtpPassword = "replace-me";
 
 AsyncWebServer g_server(80);
 bool           g_initialized = false;
+WebServer::SessionSecurityState g_session_security;
 
-bool is_leap_year(int32_t year)
+void zero_session_key()
 {
-    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+    mbedtls_platform_zeroize(g_session_security.session_key, sizeof(g_session_security.session_key));
+    g_session_security.session_key_valid = false;
 }
 
-bool valid_date(int32_t year, int32_t month, int32_t day)
+void reset_session_security()
 {
-    if (year < 2020 || year > 2099 || month < 1 || month > 12)
+    mbedtls_platform_zeroize(&g_session_security, sizeof(g_session_security));
+}
+
+void bytes_to_hex(const uint8_t* data, size_t size, String& out)
+{
+    for (size_t i = 0; data && i < size; ++i)
     {
-        return false;
+        out += kHexChars[data[i] >> 4];
+        out += kHexChars[data[i] & 0x0F];
     }
-
-    static constexpr int8_t kMonthDays[] = {
-        31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
-    };
-
-    int8_t max_day = kMonthDays[month - 1];
-    if (month == 2 && is_leap_year(year))
-    {
-        ++max_day;
-    }
-
-    return day >= 1 && day <= max_day;
-}
-
-bool valid_time(int32_t hours, int32_t minutes, int32_t seconds)
-{
-    return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59 && seconds >= 0 && seconds <= 59;
-}
-
-int64_t days_from_civil(int32_t year, int32_t month, int32_t day)
-{
-    year -= month <= 2;
-    const int32_t  era = (year >= 0 ? year : year - 399) / 400;
-    const uint32_t yoe = static_cast<uint32_t>(year - era * 400);
-    const uint32_t mp  = static_cast<uint32_t>(month + (month > 2 ? -3 : 9));
-    const uint32_t doy = (153 * mp + 2) / 5 + static_cast<uint32_t>(day) - 1;
-    const uint32_t doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
-    return static_cast<int64_t>(era) * 146097 + static_cast<int64_t>(doe) - 719468;
-}
-
-int64_t datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime)
-{
-    return days_from_civil(datetime.date.year, datetime.date.month, datetime.date.date) * 86400LL +
-           static_cast<int64_t>(datetime.time.hours) * 3600LL +
-           static_cast<int64_t>(datetime.time.minutes) * 60LL +
-           datetime.time.seconds;
-}
-
-bool parse_digits(const char* text, size_t offset, size_t count, int32_t& out)
-{
-    int32_t value = 0;
-    for (size_t i = 0; i < count; ++i)
-    {
-        const char ch = text[offset + i];
-        if (!isdigit(static_cast<unsigned char>(ch)))
-        {
-            return false;
-        }
-        value = value * 10 + (ch - '0');
-    }
-    out = value;
-    return true;
-}
-
-bool parse_auth_timestamp(const char* text, int64_t& epoch_seconds)
-{
-    if (!text || strlen(text) != kTimestampLength ||
-        text[4] != '-' ||
-        text[7] != '-' ||
-        text[10] != '-' ||
-        text[13] != ':' ||
-        text[16] != ':')
-    {
-        return false;
-    }
-
-    int32_t year = 0;
-    int32_t month = 0;
-    int32_t day = 0;
-    int32_t hours = 0;
-    int32_t minutes = 0;
-    int32_t seconds = 0;
-    if (!parse_digits(text, 0, 4, year) ||
-        !parse_digits(text, 5, 2, month) ||
-        !parse_digits(text, 8, 2, day) ||
-        !parse_digits(text, 11, 2, hours) ||
-        !parse_digits(text, 14, 2, minutes) ||
-        !parse_digits(text, 17, 2, seconds) ||
-        !valid_date(year, month, day) ||
-        !valid_time(hours, minutes, seconds))
-    {
-        return false;
-    }
-
-    m5::rtc_datetime_t datetime = {};
-    datetime.date.year = static_cast<int16_t>(year);
-    datetime.date.month = static_cast<int8_t>(month);
-    datetime.date.date = static_cast<int8_t>(day);
-    datetime.time.hours = static_cast<int8_t>(hours);
-    datetime.time.minutes = static_cast<int8_t>(minutes);
-    datetime.time.seconds = static_cast<int8_t>(seconds);
-    epoch_seconds = datetime_to_epoch_seconds(datetime);
-    return true;
 }
 
 int8_t hex_nibble(char ch)
@@ -164,48 +79,95 @@ int8_t hex_nibble(char ch)
     return -1;
 }
 
-bool hmac_sha256_hex_matches(const char* timestamp, const char* expected_hash)
+bool hex_to_bytes(const String& hex, uint8_t* out, size_t out_size)
 {
-    if (!timestamp || !expected_hash || strlen(expected_hash) != kSha256HexLength)
+    if (!out || hex.length() != out_size * 2)
     {
         return false;
     }
 
-    if (!Aegis::isInitialized() && !Aegis::init())
+    for (size_t i = 0; i < out_size; ++i)
     {
-        return false;
+        const int8_t high = hex_nibble(hex[i * 2]);
+        const int8_t low = hex_nibble(hex[i * 2 + 1]);
+        if (high < 0 || low < 0)
+        {
+            return false;
+        }
+        out[i] = static_cast<uint8_t>((high << 4) | low);
     }
+    return true;
+}
 
-    const uint8_t* master_key = Aegis::getMasterKey();
-    if (!master_key)
-    {
-        return false;
-    }
-
-    uint8_t digest[Aegis::kSha256Size] = {};
-    if (!Aegis::hmacSha256(master_key,
-                           Aegis::kMasterKeySize,
-                           reinterpret_cast<const uint8_t*>(timestamp),
-                           strlen(timestamp),
-                           digest))
+bool constant_time_equal(const uint8_t* lhs, const uint8_t* rhs, size_t size)
+{
+    if (!lhs || !rhs)
     {
         return false;
     }
 
     uint8_t diff = 0;
-    for (size_t i = 0; i < Aegis::kSha256Size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
-        const int8_t high = hex_nibble(expected_hash[i * 2]);
-        const int8_t low  = hex_nibble(expected_hash[i * 2 + 1]);
-        if (high < 0 || low < 0)
-        {
-            return false;
-        }
+        diff |= lhs[i] ^ rhs[i];
+    }
+    return diff == 0;
+}
 
-        diff |= digest[i] ^ static_cast<uint8_t>((high << 4) | low);
+bool load_network_key(const uint8_t*& network_key)
+{
+    network_key = nullptr;
+    if (!Aegis::isInitialized() && !Aegis::init())
+    {
+        return false;
+    }
+    network_key = Aegis::getNetworkKey();
+    return network_key != nullptr;
+}
+
+bool compute_hmac(const uint8_t* key, const uint8_t* data, size_t data_size, uint8_t out[Aegis::kSha256Size])
+{
+    return Aegis::hmacSha256(key, Aegis::kNetworkKeySize, data, data_size, out);
+}
+
+bool begin_new_session(const String& client_salt_hex)
+{
+    reset_session_security();
+
+    esp_fill_random(g_session_security.session_challenge, sizeof(g_session_security.session_challenge));
+    esp_fill_random(g_session_security.session_salt_from_server, sizeof(g_session_security.session_salt_from_server));
+    g_session_security.challenge_valid = true;
+    g_session_security.nonce_counter = 0;
+
+    if (!client_salt_hex.isEmpty())
+    {
+        hex_to_bytes(client_salt_hex, g_session_security.session_salt_from_client, sizeof(g_session_security.session_salt_from_client));
     }
 
-    return diff == 0;
+    const uint8_t* network_key = nullptr;
+    if (!load_network_key(network_key))
+    {
+        return false;
+    }
+
+    if (!compute_hmac(network_key,
+                      g_session_security.session_challenge,
+                      sizeof(g_session_security.session_challenge),
+                      g_session_security.session_response_from_client))
+    {
+        return false;
+    }
+
+    if (!compute_hmac(network_key,
+                      g_session_security.session_response_from_client,
+                      sizeof(g_session_security.session_response_from_client),
+                      g_session_security.session_response_from_server))
+    {
+        return false;
+    }
+
+    g_session_security.response_valid = true;
+    return true;
 }
 
 const web_asset_desc_t* find_asset_by_name(const char* file_name)
@@ -305,6 +267,8 @@ void send_info(AsyncWebServerRequest* request)
         return;
     }
 
+    const bool security_ready = begin_new_session(request->header(kHeaderSessionSaltFromClient));
+
     esp_bd_addr_t bdaddr = {};
     char          bdaddr_text[18] = "unknown";
     if (BtManager::localBdaddr(bdaddr))
@@ -319,8 +283,18 @@ void send_info(AsyncWebServerRequest* request)
     const uint64_t free_bytes  = ready ? MicroSdCard::freeBytes() : 0;
     const bool default_soft_ap = wifi_manager && wifi_manager->isGeneratedSoftApActive();
 
+    String session_challenge_hex;
+    String session_response_hex;
+    String session_salt_hex;
+    session_challenge_hex.reserve(WebServer::kSessionChallengeSize * 2);
+    session_response_hex.reserve(WebServer::kSessionResponseSize * 2);
+    session_salt_hex.reserve(WebServer::kSessionSaltHalfSize * 2);
+    bytes_to_hex(g_session_security.session_challenge, sizeof(g_session_security.session_challenge), session_challenge_hex);
+    bytes_to_hex(g_session_security.session_response_from_server, sizeof(g_session_security.session_response_from_server), session_response_hex);
+    bytes_to_hex(g_session_security.session_salt_from_server, sizeof(g_session_security.session_salt_from_server), session_salt_hex);
+
     String json;
-    json.reserve(640);
+    json.reserve(900);
     json += "{";
     json += "\"device_name\":";
     json += WebServer::jsonString(BtManager::localDeviceName());
@@ -332,6 +306,14 @@ void send_info(AsyncWebServerRequest* request)
     json += WebServer::jsonString(self_ip_string().c_str());
     json += ",\"default_soft_ap\":";
     json += default_soft_ap ? "true" : "false";
+    json += ",\"security_ready\":";
+    json += security_ready ? "true" : "false";
+    json += ",\"session_challenge\":";
+    json += WebServer::jsonString(session_challenge_hex.c_str());
+    json += ",\"session_response_from_server\":";
+    json += WebServer::jsonString(session_response_hex.c_str());
+    json += ",\"session_salt_from_server\":";
+    json += WebServer::jsonString(session_salt_hex.c_str());
     json += ",\"firmware\":";
     json += WebServer::jsonString(version_str);
     json += ",\"compiler\":";
@@ -356,32 +338,28 @@ void send_info(AsyncWebServerRequest* request)
 
 } // namespace
 
-const char* WebServer::requestAuthResultName(RequestAuthResult result)
+const char* WebServer::sessionAuthResultName(SessionAuthResult result)
 {
     switch (result)
     {
-    case RequestAuthResult::Ok:
+    case SessionAuthResult::Ok:
         return "Ok";
-    case RequestAuthResult::MissingTimestamp:
-        return "Missing timestamp";
-    case RequestAuthResult::BadTimestamp:
-        return "Bad timestamp";
-    case RequestAuthResult::ClockNotReady:
-        return "Clock not ready";
-    case RequestAuthResult::TimestampOutsideWindow:
-        return "Timestamp outside allowed window";
-    case RequestAuthResult::MissingHash:
-        return "Missing hash";
-    case RequestAuthResult::BadHash:
-        return "Bad hash";
-    case RequestAuthResult::MasterKeyUnavailable:
-        return "Master key unavailable";
-    case RequestAuthResult::HashFailed:
-        return "Hash failed";
-    case RequestAuthResult::HashMismatch:
-        return "Hash mismatch";
+    case SessionAuthResult::SessionUnavailable:
+        return "Session unavailable";
+    case SessionAuthResult::MissingClientResponse:
+        return "Missing session response";
+    case SessionAuthResult::BadClientResponse:
+        return "Bad session response";
+    case SessionAuthResult::MissingClientSalt:
+        return "Missing session salt";
+    case SessionAuthResult::BadClientSalt:
+        return "Bad session salt";
+    case SessionAuthResult::NetworkKeyUnavailable:
+        return "Network key unavailable";
+    case SessionAuthResult::SessionKeyFailed:
+        return "Session key failed";
     default:
-        return "Unknown authentication error";
+        return "Unknown session authentication error";
     }
 }
 
@@ -472,65 +450,106 @@ const AsyncWebParameter* WebServer::findRequestParam(AsyncWebServerRequest* requ
     return request->getParam(name, true, false);
 }
 
-WebServer::RequestAuthResult WebServer::authenticateRequest(AsyncWebServerRequest* request)
+WebServer::SessionAuthResult WebServer::authenticateSessionRequest(AsyncWebServerRequest* request, uint8_t out_session_key[kSessionKeySize])
 {
-    const AsyncWebParameter* timestamp_param = findRequestParam(request, "timestamp");
-    if (!timestamp_param || timestamp_param->value().isEmpty())
+    if (!out_session_key)
     {
-        return RequestAuthResult::MissingTimestamp;
+        return SessionAuthResult::SessionKeyFailed;
+    }
+    mbedtls_platform_zeroize(out_session_key, kSessionKeySize);
+
+    if (!request || !g_session_security.challenge_valid || !g_session_security.response_valid)
+    {
+        return SessionAuthResult::SessionUnavailable;
     }
 
-    const AsyncWebParameter* hash_param = findRequestParam(request, "hash");
-    if (!hash_param || hash_param->value().isEmpty())
+    const String& response_hex = request->header(kHeaderSessionResponseFromClient);
+    if (response_hex.isEmpty())
     {
-        return RequestAuthResult::MissingHash;
+        return SessionAuthResult::MissingClientResponse;
+    }
+    const String& client_salt_hex = request->header(kHeaderSessionSaltFromClient);
+    if (client_salt_hex.isEmpty())
+    {
+        return SessionAuthResult::MissingClientSalt;
     }
 
-    int64_t request_epoch = 0;
-    if (!parse_auth_timestamp(timestamp_param->value().c_str(), request_epoch))
+    uint8_t supplied_response[kSessionResponseSize] = {};
+    if (!hex_to_bytes(response_hex, supplied_response, sizeof(supplied_response)))
     {
-        return RequestAuthResult::BadTimestamp;
+        return SessionAuthResult::BadClientResponse;
+    }
+    uint8_t supplied_client_salt[kSessionSaltHalfSize] = {};
+    if (!hex_to_bytes(client_salt_hex, supplied_client_salt, sizeof(supplied_client_salt)))
+    {
+        mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
+        return SessionAuthResult::BadClientSalt;
     }
 
-    m5::rtc_datetime_t now = {};
-    if (!Clock.getDateTime(&now))
+    const uint8_t* network_key = nullptr;
+    if (!load_network_key(network_key))
     {
-        return RequestAuthResult::ClockNotReady;
+        mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
+        mbedtls_platform_zeroize(supplied_client_salt, sizeof(supplied_client_salt));
+        return SessionAuthResult::NetworkKeyUnavailable;
     }
 
-    const int64_t now_epoch = datetime_to_epoch_seconds(now);
-    const int64_t delta     = request_epoch > now_epoch ? request_epoch - now_epoch : now_epoch - request_epoch;
-    if (delta > kRequestAuthWindowSeconds)
+    uint8_t expected_response[kSessionResponseSize] = {};
+    if (!compute_hmac(network_key, g_session_security.session_challenge, sizeof(g_session_security.session_challenge), expected_response) ||
+        !constant_time_equal(supplied_response, expected_response, sizeof(expected_response)))
     {
-        return RequestAuthResult::TimestampOutsideWindow;
+        mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
+        mbedtls_platform_zeroize(supplied_client_salt, sizeof(supplied_client_salt));
+        mbedtls_platform_zeroize(expected_response, sizeof(expected_response));
+        return SessionAuthResult::BadClientResponse;
     }
 
-    if (hash_param->value().length() != kSha256HexLength)
+    memcpy(g_session_security.session_salt_from_client, supplied_client_salt, sizeof(g_session_security.session_salt_from_client));
+    uint8_t session_salt[kSessionSaltSize] = {};
+    memcpy(session_salt, g_session_security.session_salt_from_server, sizeof(g_session_security.session_salt_from_server));
+    memcpy(session_salt + sizeof(g_session_security.session_salt_from_server), supplied_client_salt, sizeof(supplied_client_salt));
+
+    zero_session_key();
+    const bool key_ok = Aegis::pbkdf2HmacSha256(network_key,
+                                                Aegis::kNetworkKeySize,
+                                                session_salt,
+                                                sizeof(session_salt),
+                                                Aegis::kPbkdfIterations,
+                                                g_session_security.session_key,
+                                                sizeof(g_session_security.session_key));
+    mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
+    mbedtls_platform_zeroize(supplied_client_salt, sizeof(supplied_client_salt));
+    mbedtls_platform_zeroize(expected_response, sizeof(expected_response));
+    mbedtls_platform_zeroize(session_salt, sizeof(session_salt));
+
+    if (!key_ok)
     {
-        return RequestAuthResult::BadHash;
+        return SessionAuthResult::SessionKeyFailed;
     }
 
-    if (!Aegis::isInitialized() && !Aegis::init())
-    {
-        return RequestAuthResult::MasterKeyUnavailable;
-    }
-
-    if (!Aegis::getMasterKey())
-    {
-        return RequestAuthResult::MasterKeyUnavailable;
-    }
-
-    if (!hmac_sha256_hex_matches(timestamp_param->value().c_str(), hash_param->value().c_str()))
-    {
-        return RequestAuthResult::HashMismatch;
-    }
-
-    return RequestAuthResult::Ok;
+    g_session_security.session_key_valid = true;
+    g_session_security.nonce_counter = 0;
+    memcpy(out_session_key, g_session_security.session_key, kSessionKeySize);
+    return SessionAuthResult::Ok;
 }
 
-bool WebServer::requestIsAuthenticated(AsyncWebServerRequest* request)
+uint64_t WebServer::nextSessionNonceCounter()
 {
-    return authenticateRequest(request) == RequestAuthResult::Ok;
+    return g_session_security.nonce_counter++;
+}
+
+void WebServer::fillSessionNonce(uint64_t counter, uint8_t nonce[kSessionGcmNonceSize])
+{
+    if (!nonce)
+    {
+        return;
+    }
+
+    memset(nonce, 0, kSessionGcmNonceSize);
+    for (size_t i = 0; i < sizeof(counter); ++i)
+    {
+        nonce[4 + i] = static_cast<uint8_t>((counter >> ((sizeof(counter) - 1 - i) * 8)) & 0xFF);
+    }
 }
 
 bool WebServer::init()
@@ -566,18 +585,18 @@ bool WebServer::init()
     ESP_LOGI(TAG, "registered microSD file list GET /list_files.json");
 
     g_server.on(AsyncURIMatcher::exact("/get_cfg"), HTTP_GET, WebCfgHandlers::sendCfg);
-    ESP_LOGI(TAG, "registered authenticated config GET /get_cfg");
+    ESP_LOGI(TAG, "registered session-encrypted config GET /get_cfg");
 
     g_server.on(AsyncURIMatcher::exact("/set_cfg"), HTTP_POST, WebCfgHandlers::finishSetCfg, nullptr, WebCfgHandlers::writeSetCfgBody);
-    ESP_LOGI(TAG, "registered authenticated encrypted config POST /set_cfg");
+    ESP_LOGI(TAG, "registered encrypted config POST /set_cfg");
 
-    // Authenticates timestamp/hash metadata, but the uploaded HTTP body is plaintext.
+    // Uploads are not encrypted; keep this endpoint off untrusted networks until it is replaced by session encryption.
     g_server.on(AsyncURIMatcher::exact("/file_upload"),
                 HTTP_POST,
                 WebFileHandlers::finishFileUpload,
                 WebFileHandlers::writeFileUploadPart,
                 WebFileHandlers::writeFileUploadBody);
-    ESP_LOGI(TAG, "registered authenticated microSD upload POST /file_upload");
+    ESP_LOGI(TAG, "registered microSD upload POST /file_upload");
 
 #ifdef BUILD_FTP_SERVER
     if (!FtpServer::start(MicroSdCard::fs(), kFtpUser, kFtpPassword))

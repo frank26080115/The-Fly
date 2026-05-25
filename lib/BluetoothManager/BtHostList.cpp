@@ -590,18 +590,18 @@ bool BtHostList::loadFromMicroSd(const char* path)
     if (file_size > kMaxJsonFileSize)
     {
         file.close();
-        m_last_load_result = LoadResult::FileTooLarge;
         ESP_LOGW(TAG, "Bluetooth host import is too large: %llu bytes", static_cast<unsigned long long>(file_size));
-        return false;
+        m_last_load_result = LoadResult::Ok;
+        return true;
     }
 
     char* buffer = static_cast<char*>(malloc(static_cast<size_t>(file_size) + 1));
     if (!buffer)
     {
         file.close();
-        m_last_load_result = LoadResult::AllocationFailed;
         ESP_LOGW(TAG, "could not allocate Bluetooth host import buffer");
-        return false;
+        m_last_load_result = LoadResult::Ok;
+        return true;
     }
 
     const int bytes_read = file.read(buffer, static_cast<size_t>(file_size));
@@ -609,9 +609,9 @@ bool BtHostList::loadFromMicroSd(const char* path)
     if (bytes_read < 0 || static_cast<uint64_t>(bytes_read) != file_size)
     {
         free(buffer);
-        m_last_load_result = LoadResult::FileReadFailed;
         ESP_LOGW(TAG, "could not read Bluetooth host import");
-        return false;
+        m_last_load_result = LoadResult::Ok;
+        return true;
     }
     buffer[file_size] = '\0';
 
@@ -620,17 +620,17 @@ bool BtHostList::loadFromMicroSd(const char* path)
     free(buffer);
     if (error)
     {
-        m_last_load_result = LoadResult::JsonParseFailed;
         ESP_LOGW(TAG, "could not parse Bluetooth host import: %s", error.c_str());
-        return false;
+        m_last_load_result = LoadResult::Ok;
+        return true;
     }
 
     JsonArray hosts_json = doc["hosts"].as<JsonArray>();
     if (hosts_json.isNull())
     {
-        m_last_load_result = LoadResult::MissingHosts;
         ESP_LOGW(TAG, "Bluetooth host import is missing hosts array");
-        return false;
+        m_last_load_result = LoadResult::Ok;
+        return true;
     }
 
     bt_host_list_t imported = {};
@@ -672,9 +672,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
 
     if (skipped > 0)
     {
-        m_last_load_result = LoadResult::InvalidHost;
-        ESP_LOGW(TAG, "Bluetooth host import has %u invalid item(s)", static_cast<unsigned>(skipped));
-        return false;
+        ESP_LOGW(TAG, "Bluetooth host import skipped %u invalid or extra item(s)", static_cast<unsigned>(skipped));
     }
 
     sanitize_bt_host_list(imported);
@@ -714,7 +712,13 @@ bool BtHostList::loadFromNvs()
     clear();
 
     nvs_handle_t handle = 0;
-    esp_err_t err = nvs_open(kBtHostNvsNamespace, NVS_READWRITE, &handle);
+    esp_err_t err = nvs_open(kBtHostNvsNamespace, NVS_READONLY, &handle);
+    if (err == ESP_ERR_NVS_NOT_FOUND)
+    {
+        m_last_load_result = LoadResult::Ok;
+        ESP_LOGI(TAG, "no Bluetooth host list namespace in NVS; using empty list");
+        return true;
+    }
     if (err != ESP_OK)
     {
         m_last_load_result = LoadResult::FileOpenFailed;

@@ -16,6 +16,7 @@
 #include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "mbedtls/gcm.h"
+#include "mbedtls/platform_util.h"
 #include "utilfuncs.h"
 
 extern WifiManager* wifi_manager;
@@ -30,6 +31,9 @@ constexpr const char* TAG = "WebCfgHandlers";
 constexpr size_t      kGcmNonceSize = 12;
 constexpr size_t      kGcmTagSize = 16;
 constexpr size_t      kSetCfgMaxEncryptedSize = 64 * 1024;
+constexpr uint8_t     kGetCfgMagic[] = { 'T', 'F', 'G', 'C' };
+constexpr uint8_t     kGetCfgVersion = 2;
+constexpr size_t      kGetCfgHeaderSize = sizeof(kGetCfgMagic) + 1;
 constexpr uint8_t     kSetCfgMagic[] = { 'T', 'F', 'G', 'C' };
 constexpr uint8_t     kSetCfgVersion = 1;
 constexpr size_t      kSetCfgHeaderSize = sizeof(kSetCfgMagic) + 1 + kGcmNonceSize;
@@ -109,13 +113,6 @@ void append_json_comma(String& json, bool& first)
     json += ",";
 }
 
-void append_json_unsigned(String& json, unsigned value)
-{
-    char text[16] = {};
-    snprintf(text, sizeof(text), "%u", value);
-    json += text;
-}
-
 void append_json_i64(String& json, long long value)
 {
     char text[32] = {};
@@ -144,7 +141,7 @@ void append_cfg_wifi_item(String& json, const wifi_item_t* item, bool& first)
     json += "{\"ssid\":";
     json += WebServer::jsonString(ssid);
     json += ",\"icon\":";
-    append_json_unsigned(json, static_cast<unsigned>(item->icon));
+    json += WebServer::jsonString(IconLookup::toString(item->icon));
     json += "}";
 }
 
@@ -173,7 +170,7 @@ void append_cfg_cloud_item(String& json, const cloud_item_t* item, bool& first)
     json += ",\"url\":";
     json += WebServer::jsonString(url);
     json += ",\"icon\":";
-    append_json_unsigned(json, static_cast<unsigned>(item->icon));
+    json += WebServer::jsonString(IconLookup::toString(item->icon));
     json += "}";
 }
 
@@ -204,7 +201,7 @@ void append_cfg_bluetooth_host(String& json, const bt_host_item_t* item, bool& f
     json += ",\"bonded\":";
     json += item->bonded ? "true" : "false";
     json += ",\"icon\":";
-    append_json_unsigned(json, static_cast<unsigned>(item->icon));
+    json += WebServer::jsonString(IconLookup::toString(item->icon));
     json += "}";
 }
 
@@ -261,20 +258,10 @@ bool build_cfg_json(String& json)
     return true;
 }
 
-void fill_cfg_nonce(uint8_t nonce[kGcmNonceSize])
-{
-    uint32_t word = 0;
-    for (size_t i = 0; i < kGcmNonceSize; ++i)
-    {
-        if ((i % sizeof(word)) == 0)
-        {
-            word = Aegis::rand();
-        }
-        nonce[i] = static_cast<uint8_t>(word >> ((i % sizeof(word)) * 8));
-    }
-}
-
-bool encrypt_cfg_json_blob(const String& json, std::shared_ptr<BinaryBlob>& blob, String& error)
+bool encrypt_cfg_json_blob(const String& json,
+                           const uint8_t session_key[WebServer::kSessionKeySize],
+                           std::shared_ptr<BinaryBlob>& blob,
+                           String& error)
 {
     blob.reset(new BinaryBlob());
     if (!blob)
@@ -283,27 +270,20 @@ bool encrypt_cfg_json_blob(const String& json, std::shared_ptr<BinaryBlob>& blob
         return false;
     }
 
-    if (!Aegis::isInitialized() && !Aegis::init())
+    if (!session_key)
     {
-        error = "Master key unavailable";
-        return false;
-    }
-
-    const uint8_t* master_key = Aegis::getMasterKey();
-    if (!master_key)
-    {
-        error = "Master key unavailable";
+        error = "Session key unavailable";
         return false;
     }
 
     const size_t plaintext_size = json.length();
-    if (plaintext_size > kSetCfgMaxEncryptedSize - kSetCfgHeaderSize - kGcmTagSize)
+    if (plaintext_size > kSetCfgMaxEncryptedSize - kGetCfgHeaderSize - kGcmTagSize)
     {
         error = "Config response is too large";
         return false;
     }
 
-    blob->size = kSetCfgHeaderSize + plaintext_size + kGcmTagSize;
+    blob->size = kGetCfgHeaderSize + plaintext_size + kGcmTagSize;
     blob->data = allocate_large_buffer(blob->size);
     if (!blob->data)
     {
@@ -312,24 +292,23 @@ bool encrypt_cfg_json_blob(const String& json, std::shared_ptr<BinaryBlob>& blob
         return false;
     }
 
-    memcpy(blob->data, kSetCfgMagic, sizeof(kSetCfgMagic));
-    blob->data[sizeof(kSetCfgMagic)] = kSetCfgVersion;
+    memcpy(blob->data, kGetCfgMagic, sizeof(kGetCfgMagic));
+    blob->data[sizeof(kGetCfgMagic)] = kGetCfgVersion;
 
-    uint8_t* nonce = blob->data + sizeof(kSetCfgMagic) + 1;
-    fill_cfg_nonce(nonce);
-
-    uint8_t* ciphertext = blob->data + kSetCfgHeaderSize;
+    uint8_t nonce[WebServer::kSessionGcmNonceSize] = {};
+    WebServer::fillSessionNonce(WebServer::nextSessionNonceCounter(), nonce);
+    uint8_t* ciphertext = blob->data + kGetCfgHeaderSize;
     uint8_t* tag        = ciphertext + plaintext_size;
 
     mbedtls_gcm_context gcm;
     mbedtls_gcm_init(&gcm);
-    const int key_result = mbedtls_gcm_setkey(&gcm, MBEDTLS_CIPHER_ID_AES, master_key, Aegis::kMasterKeySize * 8);
+    const int key_result = mbedtls_gcm_setkey(&gcm, MBEDTLS_CIPHER_ID_AES, session_key, WebServer::kSessionKeySize * 8);
     const int encrypt_result = key_result == 0
                                    ? mbedtls_gcm_crypt_and_tag(&gcm,
                                                               MBEDTLS_GCM_ENCRYPT,
                                                               plaintext_size,
                                                               nonce,
-                                                              kGcmNonceSize,
+                                                              sizeof(nonce),
                                                               nullptr,
                                                               0,
                                                               reinterpret_cast<const uint8_t*>(json.c_str()),
@@ -338,6 +317,7 @@ bool encrypt_cfg_json_blob(const String& json, std::shared_ptr<BinaryBlob>& blob
                                                               tag)
                                    : key_result;
     mbedtls_gcm_free(&gcm);
+    mbedtls_platform_zeroize(nonce, sizeof(nonce));
 
     if (encrypt_result != 0)
     {
@@ -832,15 +812,15 @@ bool decrypt_set_cfg_blob(const uint8_t* encrypted,
     if (!Aegis::isInitialized() && !Aegis::init())
     {
         status_code = 500;
-        error = "Master key unavailable";
+        error = "Network key unavailable";
         return false;
     }
 
-    const uint8_t* master_key = Aegis::getMasterKey();
-    if (!master_key)
+    const uint8_t* network_key = Aegis::getNetworkKey();
+    if (!network_key)
     {
         status_code = 500;
-        error = "Master key unavailable";
+        error = "Network key unavailable";
         return false;
     }
 
@@ -859,7 +839,7 @@ bool decrypt_set_cfg_blob(const uint8_t* encrypted,
 
     mbedtls_gcm_context gcm;
     mbedtls_gcm_init(&gcm);
-    const int key_result = mbedtls_gcm_setkey(&gcm, MBEDTLS_CIPHER_ID_AES, master_key, Aegis::kMasterKeySize * 8);
+    const int key_result = mbedtls_gcm_setkey(&gcm, MBEDTLS_CIPHER_ID_AES, network_key, Aegis::kNetworkKeySize * 8);
     const int decrypt_result = key_result == 0
                                    ? mbedtls_gcm_auth_decrypt(&gcm,
                                                               plaintext_size,
@@ -993,13 +973,6 @@ bool begin_set_cfg_upload(AsyncWebServerRequest* request, size_t total)
         reset_set_cfg_upload();
     });
 
-    const WebServer::RequestAuthResult auth = WebServer::authenticateRequest(request);
-    if (auth != WebServer::RequestAuthResult::Ok)
-    {
-        set_cfg_error(request, 401, WebServer::requestAuthResultName(auth));
-        return false;
-    }
-
     const size_t expected_size = total != 0 ? total : request->contentLength();
     if (expected_size == 0)
     {
@@ -1046,10 +1019,11 @@ void sendCfg(AsyncWebServerRequest* request)
         return;
     }
 
-    const WebServer::RequestAuthResult auth = WebServer::authenticateRequest(request);
-    if (auth != WebServer::RequestAuthResult::Ok)
+    uint8_t session_key[WebServer::kSessionKeySize] = {};
+    const WebServer::SessionAuthResult auth = WebServer::authenticateSessionRequest(request, session_key);
+    if (auth != WebServer::SessionAuthResult::Ok)
     {
-        request->send(401, "text/plain", WebServer::requestAuthResultName(auth));
+        request->send(401, "text/plain", WebServer::sessionAuthResultName(auth));
         return;
     }
 
@@ -1062,11 +1036,13 @@ void sendCfg(AsyncWebServerRequest* request)
 
     std::shared_ptr<BinaryBlob> blob;
     String error;
-    if (!encrypt_cfg_json_blob(json, blob, error))
+    if (!encrypt_cfg_json_blob(json, session_key, blob, error))
     {
+        mbedtls_platform_zeroize(session_key, sizeof(session_key));
         request->send(500, "text/plain", error.isEmpty() ? "Config encryption failed" : error);
         return;
     }
+    mbedtls_platform_zeroize(session_key, sizeof(session_key));
 
     AsyncWebServerResponse* response = request->beginResponse(
         "application/octet-stream",
@@ -1089,8 +1065,8 @@ void sendCfg(AsyncWebServerRequest* request)
     }
 
     response->addHeader("X-TheFly-Content", "config-json");
-    response->addHeader("X-TheFly-Encryption", "aes-256-gcm-blob-v1");
-    response->addHeader("X-TheFly-Blob-Format", "magic4|version1|nonce12|ciphertext|tag16");
+    response->addHeader("X-TheFly-Encryption", "aes-256-gcm-session-v1");
+    response->addHeader("X-TheFly-Blob-Format", "magic4|version1|ciphertext|tag16");
     request->send(response);
 }
 

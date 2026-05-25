@@ -103,13 +103,6 @@ bool prepare_file_upload(AsyncWebServerRequest* request, char* upload_path, size
 
     request->setAttribute(kUploadStartedAttribute, true);
 
-    const WebServer::RequestAuthResult auth = WebServer::authenticateRequest(request);
-    if (auth != WebServer::RequestAuthResult::Ok)
-    {
-        set_upload_error(request, 401, WebServer::requestAuthResultName(auth));
-        return false;
-    }
-
     if (!MicroSdCard::isReady())
     {
         set_upload_error(request, 503, "microSD card is not ready");

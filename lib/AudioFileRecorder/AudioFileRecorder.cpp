@@ -152,21 +152,21 @@ bool start_recording_encryption_locked()
         return true;
     }
 
-    if (!Aegis::isInitialized())
+    if (!Aegis::isInitialized() && !Aegis::init())
     {
         DBG_LOGE(TAG, "Aegis init failed");
         return false;
     }
 
-    const uint8_t* master_key = Aegis::getMasterKey();
-    if (!master_key)
+    const uint8_t* filecrypt_key = Aegis::getFilecryptKey();
+    if (!filecrypt_key)
     {
-        DBG_LOGE(TAG, "Aegis master key is not available");
+        DBG_LOGE(TAG, "Aegis filecrypt key is not available");
         return false;
     }
 
     mbedtls_gcm_init(&g_packet_gcm);
-    if (mbedtls_gcm_setkey(&g_packet_gcm, MBEDTLS_CIPHER_ID_AES, master_key, Aegis::kMasterKeySize * 8) != 0)
+    if (mbedtls_gcm_setkey(&g_packet_gcm, MBEDTLS_CIPHER_ID_AES, filecrypt_key, Aegis::kFilecryptKeySize * 8) != 0)
     {
         mbedtls_gcm_free(&g_packet_gcm);
         DBG_LOGE(TAG, "recording AES-GCM setup failed");

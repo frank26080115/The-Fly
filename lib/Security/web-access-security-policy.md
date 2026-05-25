@@ -6,15 +6,7 @@ All Wi-Fi access will need a password, no open networks allowed
 
 Administrative actions such as reconfiguration can only happen with authentication
 
-Setting a new master-key will require the Wi-Fi to be using the default soft AP mode, forcing a single user connection, WPA3 security, and using a randomly generated password.
-
-## Timestamp Authentication
-
-The HTTP request carries a key-value pair named 'timestamp' and is formatted as 'YYYY-MM-DD-HH:mm:SS'
-
-That string is also hashed with the master-key, and carried with the request under the key 'hash'
-
-The server can then authenticate whether or not the time is recent (within +/- 2 minutes) and if the client knows the master-key
+Setting a new master-key-pair will require the Wi-Fi to be using the default soft AP mode, forcing a single user connection, WPA3 security, and using a randomly generated password.
 
 ## Device Information
 
@@ -27,15 +19,11 @@ These items can be requested without authentication, and is sent without encrypt
  * Firmware Version
  * Disk Storage
 
-The current time and a cryptographic challenge is also delivered with this information.
+The current time and a cryptographic session challenge is also delivered with this information.
 
 ## Time Sync
 
-This is the only administrative action that is authenticated but not authenticated through using the time.
-
-The server provides the cryptographic challenge, this is hashed with the master-key by the front-end to produce a response. The response and the browser time is delivered to the ESP32 in order to sync the RTC time.
-
-Performing time-sync both invalidates the session-challenge in the back-end, and also causes a page refresh.
+Time sync can be performed at any time when authenticated, and also automatically during password reset.
 
 ## File Upload
 
@@ -65,30 +53,30 @@ I understand this is insecure, this does not expose keys. This makes it easy for
 
 ## Configuration JSON Download
 
-Requires timestamp-authentication
+Data is encrypted using the session-key
 
-Data is encrypted using the master-key
+Authentication is included in the encryption
 
 Data can contain identifiers that may need to be protected
 
 ## Configuration JSON Upload
 
-Requires timestamp-authentication
+Data is encrypted using the session-key
 
-Data is encrypted using the master-key
+Authentication is included in the encryption
 
 Data will contain SSID passwords, amongst other data
 
-## Setting New Master-Key
+## Setting New Password
 
 A temporary short key is shown to the user via LCD display
 
 The user types this into the web browser along with the new password, and attempts to submit it.
 
-The temporary short key is validated to prevent typos, if validated, a longer temporary key is generated. The new master-key is generated. The new master-key is encrypted with the temporary long key, and then transmitted.
+The temporary short key is validated to prevent typos, if validated, a longer temporary key is generated. The new master-key-pair are generated. The 2 new keys are encrypted with the temporary long key, and then transmitted. The transmission also includes the session-challenge as a way of verifying that the temporary key used is still valid. The time is also transmitted as a way to perform a first-time-setup time-sync.
 
-This action must be allowed even if the user isn't authenticated. The firmware will erase all data within NVS when a new master-key is set.
+This action must be allowed even if the user isn't authenticated. The firmware will erase all data within NVS when a new master-key-pair is set.
 
-Note that the server cannot really authenticate anything about the new master-key, and so, this simple action can cause NVS to be erased.
+Note that the server cannot really authenticate anything about the new master-key-pair, and so, this simple action can cause NVS to be erased.
 
 A denial-of-service attack here can potentially annoy the owner of the device, causing files to be encrypted with an unknown key, and deleting all Bluetooth and Wi-Fi connections.

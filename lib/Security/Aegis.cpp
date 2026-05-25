@@ -19,22 +19,83 @@ namespace
 
 constexpr const char* TAG                 = "Aegis";
 constexpr const char* kNvsNamespace       = "aegis";
-constexpr const char* kMasterKeyBlobName  = "master_key";
+constexpr const char* kFilecryptKeyBlobName = "filecrypt_key";
+constexpr const char* kNetworkKeyBlobName   = "network_key";
 
-nvs_handle_t g_nvs              = 0;
-uint8_t      g_master_key[kMasterKeySize] = {};
-bool         g_initialized      = false;
-bool         g_master_key_valid = false;
+uint8_t      g_filecrypt_key[kFilecryptKeySize] = {};
+uint8_t      g_network_key[kNetworkKeySize] = {};
+bool         g_initialized = false;
+bool         g_filecrypt_key_valid = false;
+bool         g_network_key_valid = false;
 
-void clear_master_key()
+void clear_filecrypt_key()
 {
-    mbedtls_platform_zeroize(g_master_key, sizeof(g_master_key));
-    g_master_key_valid = false;
+    mbedtls_platform_zeroize(g_filecrypt_key, sizeof(g_filecrypt_key));
+    g_filecrypt_key_valid = false;
+}
+
+void clear_network_key()
+{
+    mbedtls_platform_zeroize(g_network_key, sizeof(g_network_key));
+    g_network_key_valid = false;
+}
+
+void clear_all_keys()
+{
+    clear_filecrypt_key();
+    clear_network_key();
 }
 
 bool valid_buffer(const uint8_t* ptr, size_t len)
 {
     return ptr || len == 0;
+}
+
+bool load_key_from_nvs(nvs_handle_t handle, const char* blob_name, uint8_t* key, size_t key_size, bool& valid)
+{
+    valid = false;
+    mbedtls_platform_zeroize(key, key_size);
+
+    size_t stored_size = key_size;
+    const esp_err_t err = nvs_get_blob(handle, blob_name, key, &stored_size);
+    if (err == ESP_OK && stored_size == key_size)
+    {
+        valid = true;
+        return true;
+    }
+
+    mbedtls_platform_zeroize(key, key_size);
+    if (err != ESP_ERR_NVS_NOT_FOUND)
+    {
+        ESP_LOGW(TAG, "NVS %s load failed: %s size=%u", blob_name, esp_err_to_name(err), static_cast<unsigned>(stored_size));
+    }
+    return false;
+}
+
+bool save_key_to_nvs(const char* blob_name, const uint8_t* key, size_t key_size)
+{
+    nvs_handle_t handle = 0;
+    esp_err_t err = nvs_open(kNvsNamespace, NVS_READWRITE, &handle);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "NVS open for %s save failed: %s", blob_name, esp_err_to_name(err));
+        return false;
+    }
+
+    err = nvs_set_blob(handle, blob_name, key, key_size);
+    if (err == ESP_OK)
+    {
+        err = nvs_commit(handle);
+    }
+    nvs_close(handle);
+
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "NVS %s save failed: %s", blob_name, esp_err_to_name(err));
+        return false;
+    }
+
+    return true;
 }
 
 } // namespace
@@ -51,28 +112,25 @@ bool init()
         return true;
     }
 
-    const esp_err_t open_err = nvs_open(kNvsNamespace, NVS_READWRITE, &g_nvs);
+    nvs_handle_t handle = 0;
+    const esp_err_t open_err = nvs_open(kNvsNamespace, NVS_READONLY, &handle);
+    if (open_err == ESP_ERR_NVS_NOT_FOUND)
+    {
+        clear_all_keys();
+        g_initialized = true;
+        ESP_LOGI(TAG, "NVS Aegis namespace not found; keys unavailable");
+        return true;
+    }
     if (open_err != ESP_OK)
     {
         ESP_LOGE(TAG, "NVS open failed: %s", esp_err_to_name(open_err));
-        g_nvs = 0;
+        clear_all_keys();
         return false;
     }
 
-    size_t key_size = sizeof(g_master_key);
-    const esp_err_t get_err = nvs_get_blob(g_nvs, kMasterKeyBlobName, g_master_key, &key_size);
-    if (get_err == ESP_OK && key_size == sizeof(g_master_key))
-    {
-        g_master_key_valid = true;
-    }
-    else
-    {
-        clear_master_key();
-        if (get_err != ESP_ERR_NVS_NOT_FOUND)
-        {
-            ESP_LOGW(TAG, "NVS master key load failed: %s", esp_err_to_name(get_err));
-        }
-    }
+    load_key_from_nvs(handle, kFilecryptKeyBlobName, g_filecrypt_key, sizeof(g_filecrypt_key), g_filecrypt_key_valid);
+    load_key_from_nvs(handle, kNetworkKeyBlobName, g_network_key, sizeof(g_network_key), g_network_key_valid);
+    nvs_close(handle);
 
     g_initialized = true;
     return true;
@@ -80,12 +138,7 @@ bool init()
 
 bool deinit()
 {
-    clear_master_key();
-    if (g_initialized)
-    {
-        nvs_close(g_nvs);
-    }
-    g_nvs = 0;
+    clear_all_keys();
     g_initialized = false;
     return true;
 }
@@ -97,44 +150,84 @@ bool isInitialized()
 
 bool hasMasterKey()
 {
-    return g_initialized && g_master_key_valid;
+    return hasFilecryptKey() && hasNetworkKey();
 }
 
-const uint8_t* getMasterKey()
+bool hasFilecryptKey()
 {
-    return hasMasterKey() ? g_master_key : nullptr;
+    return g_initialized && g_filecrypt_key_valid;
+}
+
+bool hasNetworkKey()
+{
+    return g_initialized && g_network_key_valid;
+}
+
+const uint8_t* getFilecryptKey()
+{
+    return hasFilecryptKey() ? g_filecrypt_key : nullptr;
+}
+
+const uint8_t* getNetworkKey()
+{
+    return hasNetworkKey() ? g_network_key : nullptr;
 }
 
 #ifdef BUILD_IS_DEBUG
-void setTestTempMasterKey(const uint8_t* key)
+void setTestTempFilecryptKey(const uint8_t* key)
 {
-    memcpy(g_master_key, key, sizeof(g_master_key));
-    g_master_key_valid = true;
+    if (!key)
+    {
+        clear_filecrypt_key();
+        return;
+    }
+
+    memcpy(g_filecrypt_key, key, sizeof(g_filecrypt_key));
+    g_filecrypt_key_valid = true;
+    g_initialized = true;
+}
+
+void setTestTempNetworkKey(const uint8_t* key)
+{
+    if (!key)
+    {
+        clear_network_key();
+        return;
+    }
+
+    memcpy(g_network_key, key, sizeof(g_network_key));
+    g_network_key_valid = true;
+    g_initialized = true;
 }
 
 void setTestTempPassword(const uint8_t* pw)
 {
     if (!pw)
     {
-        clear_master_key();
+        clear_all_keys();
         return;
     }
 
-    uint8_t key[kMasterKeySize] = {};
+    uint8_t filecrypt_key[kFilecryptKeySize] = {};
+    uint8_t network_key[kNetworkKeySize] = {};
     const size_t password_len = strlen(reinterpret_cast<const char*>(pw));
-    if (pbkdf2HmacSha256(pw, password_len, kSalt, kSaltSize, kPbkdfIterations, key, sizeof(key)))
+    const bool filecrypt_ok = pbkdf2HmacSha256(pw, password_len, kSaltFilecrypt, kSaltFilecryptSize, kPbkdfIterations, filecrypt_key, sizeof(filecrypt_key));
+    const bool network_ok = pbkdf2HmacSha256(pw, password_len, kSaltNetwork, kSaltNetworkSize, kPbkdfIterations, network_key, sizeof(network_key));
+    if (filecrypt_ok && network_ok)
     {
-        setTestTempMasterKey(key);
+        setTestTempFilecryptKey(filecrypt_key);
+        setTestTempNetworkKey(network_key);
     }
     else
     {
-        clear_master_key();
+        clear_all_keys();
     }
-    mbedtls_platform_zeroize(key, sizeof(key));
+    mbedtls_platform_zeroize(filecrypt_key, sizeof(filecrypt_key));
+    mbedtls_platform_zeroize(network_key, sizeof(network_key));
 }
 #endif
 
-bool setMasterKey(const uint8_t* key)
+bool setFilecryptKey(const uint8_t* key)
 {
     if (!key)
     {
@@ -145,23 +238,43 @@ bool setMasterKey(const uint8_t* key)
         return false;
     }
 
-    uint8_t staged_key[kMasterKeySize] = {};
+    uint8_t staged_key[kFilecryptKeySize] = {};
     memcpy(staged_key, key, sizeof(staged_key));
 
-    esp_err_t err = nvs_set_blob(g_nvs, kMasterKeyBlobName, staged_key, sizeof(staged_key));
-    if (err == ESP_OK)
-    {
-        err = nvs_commit(g_nvs);
-    }
-    if (err != ESP_OK)
+    if (!save_key_to_nvs(kFilecryptKeyBlobName, staged_key, sizeof(staged_key)))
     {
         mbedtls_platform_zeroize(staged_key, sizeof(staged_key));
-        ESP_LOGE(TAG, "NVS master key save failed: %s", esp_err_to_name(err));
         return false;
     }
 
-    memcpy(g_master_key, staged_key, sizeof(g_master_key));
-    g_master_key_valid = true;
+    memcpy(g_filecrypt_key, staged_key, sizeof(g_filecrypt_key));
+    g_filecrypt_key_valid = true;
+    mbedtls_platform_zeroize(staged_key, sizeof(staged_key));
+    return true;
+}
+
+bool setNetworkKey(const uint8_t* key)
+{
+    if (!key)
+    {
+        return false;
+    }
+    if (!g_initialized && !init())
+    {
+        return false;
+    }
+
+    uint8_t staged_key[kNetworkKeySize] = {};
+    memcpy(staged_key, key, sizeof(staged_key));
+
+    if (!save_key_to_nvs(kNetworkKeyBlobName, staged_key, sizeof(staged_key)))
+    {
+        mbedtls_platform_zeroize(staged_key, sizeof(staged_key));
+        return false;
+    }
+
+    memcpy(g_network_key, staged_key, sizeof(g_network_key));
+    g_network_key_valid = true;
     mbedtls_platform_zeroize(staged_key, sizeof(staged_key));
     return true;
 }
