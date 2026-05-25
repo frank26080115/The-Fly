@@ -4,9 +4,15 @@ This document pertains to accessing the web server implemented internally to the
 
 All Wi-Fi access will need a password, no open networks allowed
 
-Administrative actions such as reconfiguration can only happen with authentication
+Basic functions, such as downloading files from microSD card and uploading files to microSD card, can be done from any Wi-Fi network.
 
-Setting a new master-key-pair will require the Wi-Fi to be using the default soft AP mode, forcing a single user connection, WPA3 security, and using a randomly generated password.
+Functions that are administrative, reconfiguration, password resets, must happen on the default soft-AP.
+
+The default soft-AP must enforce the use of WPA3 with only one user allowed, as the layer of authentication and encryption. This prevents impersonation and network sniffing.
+
+The default soft-AP must use a randomly generated password. The password will be shown on the LCD screen.
+
+Administrative actions such as reconfiguration can only happen with authentication that involves the user's password.
 
 ## Device Information
 
@@ -19,7 +25,7 @@ These items can be requested without authentication, and is sent without encrypt
  * Firmware Version
  * Disk Storage
 
-The current time and a cryptographic session challenge is also delivered with this information.
+Other data included in this data package includes data for the session cryptographic functionalities.
 
 ## Time Sync
 
@@ -53,7 +59,7 @@ I understand this is insecure, this does not expose keys. This makes it easy for
 
 ## Configuration JSON Download
 
-Data is encrypted using the session-key
+Data is further encrypted using the session-key (on top of WPA3 security)
 
 Authentication is included in the encryption
 
@@ -61,7 +67,7 @@ Data can contain identifiers that may need to be protected
 
 ## Configuration JSON Upload
 
-Data is encrypted using the session-key
+Data is further encrypted using the session-key (on top of WPA3 security)
 
 Authentication is included in the encryption
 
@@ -69,14 +75,10 @@ Data will contain SSID passwords, amongst other data
 
 ## Setting New Password
 
-A temporary short key is shown to the user via LCD display
+This only resets the network-key. The user is prompted for a new password, which gets transformed into a network-key on the front-end. The front-end sends it back to the ESP32's server.
 
-The user types this into the web browser along with the new password, and attempts to submit it.
+This action must be allowed even if the user isn't authenticated.
 
-The temporary short key is validated to prevent typos, if validated, a longer temporary key is generated. The new master-key-pair are generated. The 2 new keys are encrypted with the temporary long key, and then transmitted. The transmission also includes the session-challenge as a way of verifying that the temporary key used is still valid. The time is also transmitted as a way to perform a first-time-setup time-sync.
+Resetting this network-key triggers all NVS data to be erased. The filecrypt-key will be erased, and so, it will be automatically re-generated.
 
-This action must be allowed even if the user isn't authenticated. The firmware will erase all data within NVS when a new master-key-pair is set.
-
-Note that the server cannot really authenticate anything about the new master-key-pair, and so, this simple action can cause NVS to be erased.
-
-A denial-of-service attack here can potentially annoy the owner of the device, causing files to be encrypted with an unknown key, and deleting all Bluetooth and Wi-Fi connections.
+The transport of this happens over a WPA3 enforced Wi-Fi connection that only allows for one user and has a randomly generated password. This configuration will encrypt the transport and prevent sniffing and impersonation.

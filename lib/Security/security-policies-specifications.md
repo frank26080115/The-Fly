@@ -20,20 +20,21 @@ The uploading and transcription of the recorded audio files should be nearly sea
 # Transports
 
  * Wi-Fi is used but assume WPA2 or better
+ * Wi-Fi WPA3, and a single-user-allowed policy, is enforced when data needs to be securely transmitted
  * HTTP is used by the ESP32's web server, HTTPS is impractical in this context, message-layer-encryption is used in some cases
  * HTTPS is used between the ESP32 and any server
  * The ESP32 uses an external flash memory IC over SPI bus, the data here is encrypted
 
-# Secrets
+# Potential Secrets
 
  * password
  * filecrypt-key
  * network-key
  * link-key
  * Wi-Fi credentials
- * session identifier
- * temporary short key, temporary long key
+ * enrollment confirmation code
  * session authentication and encryption
+ * tamper evidence code
  * the recording files
  * audio/sound
 
@@ -55,16 +56,17 @@ Spoofing of the BDADDR is not useful without a correct link-key
  * finding exploits in the open source firmware
  * stolen device
  * data traffic interception
- * looking at the device while a temporary key is shown
+ * looking at the device while a key or password is shown on the screen
  * listening to the sound
+ * malware on servers or browsers
 
-## Encryption and Hask Functions
+## Encryption and Hash Functions
 
 AES-GCM for file encryption.
 
 HMAC-SHA-256 for authentication to servers.
 
-PBKDF2-HMAC-SHA-256 for key generation. 32 byte salt, 100000 iterations.
+PBKDF2-HMAC-SHA-256 for key generation. 32 byte salt, 10000 iterations.
 
 ## Audio/Sound
 
@@ -76,13 +78,13 @@ The audio data on the circuit board is communicated via I2S or raw analog signal
 
 This ESP32 has RAM memory, a SPI flash used for NVS and LittleFS, and e-fuses. There is also a RTC that is used for some security functions by simply providing the correct current time.
 
-As a policy, RAM is considered safe. RAM does not need to be encrypted.
+As a policy, RAM is considered safe. RAM does not need to be encrypted. The MPU will be configured to disallow code execution from RAM regions meant for data.
 
 NVS is encrypted and the handling of this is mostly fully transparent, the key for this lives in the e-fuse. The key is random when generated and can never be read. As a policy, the NVS is considered safe from attacks such as dumping the flash memory IC itself.
 
 There is a copy of the filecrypt-key and the network-key stored in NVS.
 
-The contents of the NVS is not further encrypted by the running firmware. But changing the filecrypt-key or network-key will trigger NVS to be erased.
+The contents of the NVS is not further encrypted by the running firmware. But changing network-key will trigger NVS to be erased.
 
 The microSD card does not use full-disk-encryption. All `*.rec` files are encrypted, but the timestamps are exposed. `cloud_history.txt` is also not encrypted. If a firmware update file is present, it is not encrypted, it contains no secrets, and the firmware file is probably signed.
 
@@ -106,7 +108,7 @@ If Stolen Recommended Action: unpair the old device from all Bluetooth hosts.
 
 The cloud server is a privately held virtual private server. It relies on its own security (such as user authentication, disk encryption, etc).
 
-The filecrypt-key and network-key will need to be stored on it. If the server is compromised, the filecrypt-key and network-key is considered compromised.
+The filecrypt-key and network-key will need to be stored on it. If the server is compromised, the filecrypt-key and network-key are both considered compromised.
 
 The software should use a key-file, and if it is missing, ask the user for a password as a first time setup procedure.
 
@@ -128,15 +130,11 @@ The software should use a key-file, and if it is missing, ask the user for a pas
 
 There is extra functionality available while in a local network with the device, such as the possibility of implementing automated workflows by issuing HTTP requests.
 
-There is no ability to automate functionality involving the temporary short key (and thus, the derived temporary long key), as these are randomized per-session and require the human to input.
-
 If Compromised: if the attacker actually gets the login credentials, this is bad, it's a complete compromise of the filecrypt-key and network-key and all encrypted files
 
 ## User Web Browser
 
-Similar to a Local Network PC, but there is no permanent storage. Any functionality involving the network-key will need to require the human to input the password. The password is never transmitted in any form. Any secret is never transmitted in plain-text. The filecrypt-key is not used in any web front-end functionality, except for when a new key is created as a password reset.
-
-Transmission of secrets will use temporary keys to assist in the encrypted transport.
+Similar to a Local Network PC, but there is no permanent storage. Any functionality involving the network-key will need to require the human to input the password. The password is never transmitted in any form. Any secret is never transmitted in plain-text. The filecrypt-key is not used in any web front-end functionality.
 
 If Compromised: if there is malware that can peak at the session memory, then there is the chance of compromising some keys, or even the password, when they are in memory
 
@@ -144,21 +142,21 @@ If Compromised: if there is malware that can peak at the session memory, then th
 
 This means a string that the user is able to type and remember in their head. It is never stored or transmitted (neither encrypted nor plain-text)
 
-If Stolen: attacker can generate the master-key-pair
+It is only used to generate a network-key
+
+If Stolen: attacker can generate the network-key
 
 ## Master-Key-Pair
 
-This simply refers to both the filecrypt-key and network-key. Both are generated at the same time using the same input password but different salts.
-
-Exposure of one does not compromise the other.
-
-The user can choose to reset the master-key-pair on the device at any time, but doing so will cause NVS to be erased.
-
-The new master-key-pair is to be transmitted while encrypted by a temporary key.
+This simply refers to both the filecrypt-key and network-key. But they are never really used together. They simply exist together sometimes.
 
 ## Filecrypt-Key
 
-32 byte array, derived from the password. Used for file encryption only. Saved on servers (remote, cloud, and local).
+32 byte array, randomly generated. Used for file encryption only. Saved on servers (remote, cloud, and local).
+
+During enrollment, this is transmitted to a server in plain-text. Enrollment must only happen over HTTPS. Enrollment is the only time this key leaves the device, ever, literally.
+
+The filecrypt-key is regenerated upon any change in cloud server configuration. This prevents a change in configuration to send an old filecrypt-key to a different malicious server.
 
 If Stolen: attacker can decrypt all files that uses that key
 
@@ -168,7 +166,27 @@ If Stolen: attacker can decrypt all files that uses that key
 
 Used for most security functions except file encryption. Saved on servers (remote, cloud, and local).
 
+During enrollment, this is transmitted to a server in plain-text. Enrollment must only happen over HTTPS.
+
+During password reset, this is transmitted from a web browser to the ESP32 in plain-text. This cannot happen over HTTPS because a CA trusted SSL server cannot be practically implemented on this embedded platform. This happens over a single user WPA3 Wi-Fi network that uses a randomized password.
+
 If Stolen: attacker can authenticate to servers; attacker can view SSID passwords in transit; attacker cannot extract Bluetooth link-keys; attacker cannot derive password; attacker cannot derive filecrypt-key; attacker cannot decrypt files
+
+## Enrollment Confirmation Code
+
+The enrollment confirmation code is a short code derived from the combination of the filecrypt-key and network-key.
+
+The enrollment confirmation code is shown on the ESP32's LCD screen.
+
+The enrollment confirmation code is sent over to the cloud server as a part of enrollment.
+
+The server will cache all the details about enrollment, and the user has to verify that the enrollment confirmation code on the server matches what the LCD screen shows, and then confirm the enrollment. NOTE: the server needs to only allow authenticated users to do this, and in this context, this authentication is outside the scope of this project.
+
+It is considered not possible for the enrollment details (the master-key-pair and the enrollment confirmation code) to be sent to the wrong destination, as HTTPS is being used to prevent interception and impersonation.
+
+But it is possible for somebody to flood a server with new enrollments, valid or not, which can degrade service. But this does not compromise the master-key-pair, and thus, encrypted files cannot be decrypted by an attacker.
+
+If Stolen: the confirmation code itself does not compromise any keys
 
 ## Link-Key
 
@@ -214,20 +232,6 @@ The session challenge is also used as a session identifier.
 
 If Stolen: leaking the session key can leak Wi-Fi passwords; the network-key and the master-key-pair are not practically compromised
 
-## Temporary Keys
-
-The temporary short key is randomly generated 8 character code. It is not tied in any way to the session, nor any other keys. The short key is random but also self-validating, so that the front-end can verify the user has input it correctly.
-
-It is never transmitted in any electronic or radio form, but it is displayed on the LCD screen of the device. The user must never let somebody see it. But it does not need to be remembered beyond one usage session. The GUI will make it convenient to hide this number from view, and implement a time limit for when this number is in view.
-
-The temp-long-key is derived from the temp-short-key, and is used to encrypt messages between the ESP32's web server and a directly connected web browser.
-
-The temp-long-key is a 32 byte array. It is never transmitted in any form.
-
-If a new session challenge is generated, then a new temporary key is generated. The session challenge can be sent from the browser to the server again as a way to make sure the temporary key is still current.
-
-If Stolen (seen by eye): attacker can potentially capture keys if the user is doing a password reset, through a phishing attack or monitoring HTTP traffic
-
 ## File Encryption
 
 The `*.rec` files that are recorded have fixed size packets. Each packet is encrypted entirely, using the filecrypt-key.
@@ -254,6 +258,24 @@ The front-end uses the session-response to issue a Ajax request to fetch the dat
 
 If either is stolen: the keys are still safe; attacker can view file lists and SSID names and BT host information.
 
+## Tamper Evidence Code
+
+The following items:
+
+ * filecrypt-key
+ * network-key
+ * network configuration binary
+
+are hashed together. The user is shown a part of that hash on the LCD screen. If the code is not what the user remembers, the user can suspect the device has been tampered with.
+
+Note: Bluetooth data is excluded because it is expected to change very frequently, but this does mean the device can be paired to malicious Bluetooth devices, which, at most, can listen in to the microphone.
+
+The primary fear is that there is a new malicious cloud upload destination configured.
+
+It is advised that this code is not shown to an attacker. A pin entry screen can prevent this.
+
+If Stolen: attacker can make another counterfeit device that shows the same tamper-evidence-code, the user will trust this device, old encrypted files are not compromised because the filecrypt-key is not compromised, but the user can start recording audio into a counterfeit device, which can do anything it wants with it
+
 ## Touch Screen Pin Login
 
 Under consideration
@@ -262,7 +284,7 @@ If implemented...
 
 A 6 digit pin input is requested on boot
 
-3 quick attempts allowed, after that it will have a cooldown to prevent brute forcing
+3 quick attempts allowed, after that it will have a cooldown to prevent brute forcing. The default Wi-Fi soft-AP can be activated so that the user either review the pin or reset the whole device.
 
 The pin is derived from the network-key, it can be shown on the web administrative page, it cannot be changed. To change it, the network-key must be changed, and thus, forcing the refresh of all other parts of the security chain
 

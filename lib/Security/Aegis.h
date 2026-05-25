@@ -10,7 +10,7 @@ namespace Aegis
 static constexpr size_t kFilecryptKeySize = 32;
 static constexpr size_t kNetworkKeySize   = 32;
 static constexpr size_t kSha256Size       = 32;
-static constexpr uint8_t kSaltFilecrypt[] = {
+static constexpr uint8_t kSaltFilecrypt[] = { // note: this is never actually used, the filecrypt-key is randomly generated, not derived from a password, the salt is here for testing purposes
     0x98, 0xC2, 0x5A, 0xF2, 0xB7, 0x0F, 0xA4, 0xB3,
     0x42, 0xB4, 0x64, 0xE5, 0xEE, 0xD6, 0xFF, 0x3D,
     0x0D, 0xD8, 0x21, 0x9C, 0x9D, 0x7B, 0x16, 0xB4,
@@ -38,9 +38,11 @@ bool hasNetworkKey();
 
 const uint8_t* getFilecryptKey();
 const uint8_t* getNetworkKey();
-bool setFilecryptKey(const uint8_t* key);
+bool generateFilecryptKey();
+bool generateEnrollmentConfirmationCode();
 bool setNetworkKey(const uint8_t* key);
 #ifdef BUILD_IS_DEBUG
+bool setFilecryptKey(const uint8_t* key);
 void setTestTempFilecryptKey(const uint8_t* key);
 void setTestTempNetworkKey(const uint8_t* key);
 void setTestTempPassword(const uint8_t* password);
