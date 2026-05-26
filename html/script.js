@@ -526,6 +526,86 @@ function disk_summary(disk)
            " free)";
 }
 
+function make_rows_from_template(parent_container_id, first_child_row, num_of_rows)
+{
+    const parent = document.getElementById(parent_container_id);
+    if (!parent)
+    {
+        return [];
+    }
+
+    if (num_of_rows <= 0)
+    {
+        clear_node(parent);
+        return [];
+    }
+
+    const template = typeof first_child_row === "string" ? document.getElementById(first_child_row) : first_child_row;
+    if (!template)
+    {
+        return [];
+    }
+
+    const update_trailing_number = (value, index) => {
+        if (typeof value !== "string" || value.length === 0)
+        {
+            return value;
+        }
+        return value.replace(/([_-])\d+$/, "$1" + index);
+    };
+
+    const clear_row_value = (node) => {
+        if (node instanceof HTMLInputElement)
+        {
+            if (node.type === "checkbox" || node.type === "radio")
+            {
+                node.checked = false;
+            }
+            else
+            {
+                node.value = "";
+            }
+        }
+        else if (node instanceof HTMLTextAreaElement)
+        {
+            node.value = "";
+        }
+        else if (node instanceof HTMLSelectElement)
+        {
+            node.selectedIndex = 0;
+        }
+    };
+
+    const reindex_row = (row, index) => {
+        const nodes = [row, ...row.querySelectorAll("*")];
+        for (const node of nodes)
+        {
+            for (const attr of ["id", "name", "for", "aria-label", "aria-labelledby", "aria-describedby"])
+            {
+                if (node.hasAttribute && node.hasAttribute(attr))
+                {
+                    node.setAttribute(attr, update_trailing_number(node.getAttribute(attr), index));
+                }
+            }
+            clear_row_value(node);
+        }
+    };
+
+    const rows = [];
+    clear_node(parent);
+
+    for (let i = 1; i <= num_of_rows; ++i)
+    {
+        const row = template.cloneNode(true);
+        reindex_row(row, i);
+        parent.appendChild(row);
+        rows.push(row);
+    }
+
+    return rows;
+
+}
+
 function hide_all_test_divs()
 {
 
@@ -780,7 +860,9 @@ function fill_time_config(network)
 function fill_wifi_rows(container_id, row_class, id_prefix, items, minimum_rows)
 {
     const list = Array.isArray(items) ? items : [];
-    const rows = ensure_config_rows(container_id, row_class, Math.max(minimum_rows, list.length));
+    const row_count = Math.max(minimum_rows, list.length);
+    const template_id = container_id === "wifi_routers" ? "wifi_routers_row_1" : null;
+    const rows = template_id ? make_rows_from_template(container_id, template_id, row_count) : ensure_config_rows(container_id, row_class, row_count);
 
     rows.forEach((row, index) => {
         const item = list[index] || {};
@@ -793,7 +875,7 @@ function fill_wifi_rows(container_id, row_class, id_prefix, items, minimum_rows)
 function fill_cloud_rows(items)
 {
     const list = Array.isArray(items) ? items : [];
-    const rows = ensure_config_rows("cloud_dest", "cloud-dest-row", Math.max(2, list.length));
+    const rows = make_rows_from_template("cloud_dest", "cloud_row_1", Math.max(2, list.length));
 
     rows.forEach((row, index) => {
         const item = list[index] || {};
@@ -806,7 +888,7 @@ function fill_cloud_rows(items)
 function fill_bluetooth_rows(items)
 {
     const list = Array.isArray(items) ? items : [];
-    const rows = ensure_config_rows("bluetooth_devices", "bluetooth-device-row", Math.max(2, list.length));
+    const rows = make_rows_from_template("bluetooth_devices", "bt_row_1", Math.max(2, list.length));
 
     rows.forEach((row, index) => {
         const item = list[index] || {};
