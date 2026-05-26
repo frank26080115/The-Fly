@@ -16,8 +16,20 @@ then followed by file content
 parameter ["action"] should be "enroll"
 
  * `date-time`
- * `filecrypt-key`
- * `network-key`
+ * `filecrypt-key` (encrypted by network-key)
+ * `network-key` (just a hash)
  * `mac-addr`
 
 details are in `lib\Security\enrollment-mechanism.md`
+
+## Databases
+
+### enrollment
+
+ * UUID
+ * date-time
+ * `filecrypt-key` (encrypted by network-key)
+ * `network-key` (just a hash)
+ * `mac-addr`
+ * `accepted` boolean
+ * `accepted-date-time`
