@@ -273,7 +273,7 @@ extern const uint8_t sprit_speaker_100[];
 
 #define SPRIT_SPLASH_WIDTH 320u
 #define SPRIT_SPLASH_HEIGHT 240u
-#define SPRIT_SPLASH_BYTES 33837u
+#define SPRIT_SPLASH_BYTES 48938u
 extern const uint8_t sprit_splash[];
 
 #define SPRIT_TABLET_100_WIDTH 100u
