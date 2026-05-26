@@ -469,6 +469,7 @@ bool configure_secure_client(WiFiClientSecure& client, uint32_t timeout_ms, char
     }
 
     client.setCACertBundle(x509_crt_bundle_start, static_cast<size_t>(x509_crt_bundle_end - x509_crt_bundle_start));
+    // while it looks like we can our own certs from a microSD card, don't do that, it adds another vector for attack
     client.setTimeout(timeout_seconds(timeout_ms));
     client.setHandshakeTimeout(timeout_seconds(timeout_ms));
     return true;
