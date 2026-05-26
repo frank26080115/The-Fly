@@ -270,7 +270,7 @@ input[type="submit"],
 }
 
 .cloud-dest-row {
-  grid-template-columns: minmax(150px, 210px) minmax(260px, 1fr) minmax(130px, 170px);
+  grid-template-columns: minmax(260px, 1fr) minmax(190px, 260px) minmax(130px, 170px);
 }
 
 .wifi-config-row {

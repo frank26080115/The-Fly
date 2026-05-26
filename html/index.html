@@ -35,13 +35,13 @@
             <div id="files"></div>
             <div id="files_test">
                 <table class="file-table">
-                    <tr>
+                    <tr id="file_row_1">
                         <td><a class="file-link" href="/download_file?file_name=">T-YYYY-MM-DD-HH-MM-SS-U.rec</a></td><td><a class="delete-link" href="/delete_file?file_name=" aria-label="Delete T-YYYY-MM-DD-HH-MM-SS-U.rec"></a></td>
                     </tr>
-                    <tr>
+                    <tr id="file_row_2">
                         <td><a class="file-link" href="/download_file?file_name=">T-YYYY-MM-DD-HH-MM-SS-U.rec</a></td><td><a class="delete-link" href="/delete_file?file_name=" aria-label="Delete T-YYYY-MM-DD-HH-MM-SS-U.rec"></a></td>
                     </tr>
-                    <tr>
+                    <tr id="file_row_3">
                         <td><a class="file-link" href="/download_file?file_name=">T-YYYY-MM-DD-HH-MM-SS-U.rec</a></td><td><a class="delete-link" href="/delete_file?file_name=" aria-label="Delete T-YYYY-MM-DD-HH-MM-SS-U.rec"></a></td>
                     </tr>
                 </table>
@@ -51,7 +51,7 @@
             <summary>Bluetooth Devices</summary>
             <div id="bluetooth_devices_please_login">Please Log In First</div>
             <div id="bluetooth_devices" class="config-list bluetooth-device-list">
-                <div class="config-row bluetooth-device-row">
+                <div id="bt_row_1" class="config-row bluetooth-device-row">
                     <div class="config-field bluetooth-bdaddr-field">
                         <label for="bt_bdaddr_1">BDADDR</label>
                         <div class="bdaddr-with-bond">
@@ -88,7 +88,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="config-row bluetooth-device-row">
+                <div id="bt_row_2" class="config-row bluetooth-device-row">
                     <div class="config-field bluetooth-bdaddr-field">
                         <label for="bt_bdaddr_2">BDADDR</label>
                         <div class="bdaddr-with-bond">
@@ -131,7 +131,7 @@
             <summary>Wi-Fi Routers</summary>
             <div id="wifi_routers_please_login">Please Log In First</div>
             <div id="wifi_routers" class="config-list wifi-config-list">
-                <div class="config-row wifi-config-row">
+                <div id="wifi_routers_row_1" class="config-row wifi-config-row">
                     <div class="config-field wifi-ssid-field">
                         <label for="wifi_ssid_1">SSID</label>
                         <input id="wifi_ssid_1" name="wifi_ssid_1" type="text" autocomplete="off" maxlength="32" placeholder="Router SSID" />
@@ -157,7 +157,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="config-row wifi-config-row">
+                <div id="wifi_routers_row_2" class="config-row wifi-config-row">
                     <div class="config-field wifi-ssid-field">
                         <label for="wifi_ssid_2">SSID</label>
                         <input id="wifi_ssid_2" name="wifi_ssid_2" type="text" autocomplete="off" maxlength="32" placeholder="Router SSID" />
@@ -188,7 +188,7 @@
         <details>
             <summary>Wi-Fi Custom AP</summary>
             <div id="wifi_ap_please_login">Please Log In First</div>
-            <div id="wifi_ap" class="config-list wifi-config-list">
+            <div id="wifi_ap_row_1" class="config-list wifi-config-list">
                 <div class="config-row wifi-config-row">
                     <div class="config-field wifi-ssid-field">
                         <label for="wifi_ap_ssid_1">SSID</label>
@@ -221,14 +221,14 @@
             <summary>Cloud Destinations</summary>
             <div id="cloud_please_login">Please Log In First</div>
             <div id="cloud_dest" class="config-list cloud-dest-list">
-                <div class="config-row cloud-dest-row">
-                    <div class="config-field cloud-name-field">
-                        <label for="cloud_name_1">Name</label>
-                        <input id="cloud_name_1" name="cloud_name_1" type="text" autocomplete="off" maxlength="24" placeholder="Primary" />
-                    </div>
+                <div id="cloud_row_1" class="config-row cloud-dest-row">
                     <div class="config-field cloud-url-field">
                         <label for="cloud_url_1">URL</label>
                         <input id="cloud_url_1" name="cloud_url_1" type="url" autocomplete="off" placeholder="https://example.com/upload" />
+                    </div>
+                    <div class="config-field cloud-password-field security-level-0-only">
+                        <label for="cloud_password_1">Password</label>
+                        <input id="cloud_password_1" name="cloud_password_1" type="password" autocomplete="new-password" maxlength="63" placeholder="Security level 0 password" />
                     </div>
                     <div class="config-field cloud-icon-field">
                         <label for="cloud_icon_1">Icon</label>
@@ -247,14 +247,14 @@
                         </select>
                     </div>
                 </div>
-                <div class="config-row cloud-dest-row">
-                    <div class="config-field cloud-name-field">
-                        <label for="cloud_name_2">Name</label>
-                        <input id="cloud_name_2" name="cloud_name_2" type="text" autocomplete="off" maxlength="24" placeholder="Backup" />
-                    </div>
+                <div id="cloud_row_2" class="config-row cloud-dest-row">
                     <div class="config-field cloud-url-field">
                         <label for="cloud_url_2">URL</label>
                         <input id="cloud_url_2" name="cloud_url_2" type="url" autocomplete="off" placeholder="https://example.com/upload" />
+                    </div>
+                    <div class="config-field cloud-password-field security-level-0-only">
+                        <label for="cloud_password_2">Password</label>
+                        <input id="cloud_password_2" name="cloud_password_2" type="password" autocomplete="new-password" maxlength="63" placeholder="Security level 0 password" />
                     </div>
                     <div class="config-field cloud-icon-field">
                         <label for="cloud_icon_2">Icon</label>
@@ -308,16 +308,12 @@
                     <li>change the encryption key for future file encryption</li>
                     <li>require you to change the password on any servers or tools used to decrypt the files</li>
                 </ul>
-                Please enter the transport key as displayed on the LCD screen of the device, and then the new password.
             </div>
             <div id="password_reset_entry" class="password-reset-panel" style="display:none;">
-                <div class="settings-form">
-                    <label for="transport_key">Transport Key</label>
-                    <input id="transport_key" name="transport_key" type="text" autocomplete="one-time-code" placeholder="Transport Key" />
+                <div class="login-form">
                     <label for="new_password">Password</label>
-                    <input id="new_password" name="new_password" type="password" autocomplete="new-password" placeholder="New Password" />
-                    <div></div>
-                    <button id="btn_password_reset" class="button settings-button" type="button" onclick="passreset_onsubmit()">Reset Password</button>
+                    <input id="new_password" name="new_password" type="password" autocomplete="new-password" placeholder="New password" />
+                    <button id="btn_password_reset" class="button" type="button" onclick="passreset_onsubmit()">Reset Password</button>
                 </div>
             </div>
         </details>

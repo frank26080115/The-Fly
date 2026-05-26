@@ -797,8 +797,8 @@ function fill_cloud_rows(items)
 
     rows.forEach((row, index) => {
         const item = list[index] || {};
-        set_input_by_id("cloud_name_" + (index + 1), item.name || "");
         set_input_by_id("cloud_url_" + (index + 1), item.url || "");
+        set_input_by_id("cloud_password_" + (index + 1), "");
         set_select_by_id("cloud_icon_" + (index + 1), item.icon || "unknown");
     });
 }
