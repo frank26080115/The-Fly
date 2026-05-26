@@ -205,8 +205,41 @@ input[type="submit"],
   color: #ffd3da;
 }
 
-.password-reset-panel {
+.password-reset-panel,
+.memory-reset-panel {
   padding-top: 2px;
+}
+
+.reset-help {
+  max-width: 620px;
+  margin: 0 auto;
+  color: #d8dae2;
+  line-height: 1.45;
+}
+
+.reset-help p {
+  margin: 0 0 10px;
+}
+
+.reset-help ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.reset-action-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.danger-button {
+  background: #b33a3a;
+}
+
+.danger-button:hover {
+  background: #cf4545;
 }
 
 .settings-form {

@@ -313,7 +313,24 @@
                 <div class="login-form">
                     <label for="new_password">Password</label>
                     <input id="new_password" name="new_password" type="password" autocomplete="new-password" placeholder="New password" />
-                    <button id="btn_password_reset" class="button" type="button" onclick="passreset_onsubmit()">Reset Password</button>
+                    <button id="btn_password_reset" class="button" type="button danger-button" onclick="passreset_onsubmit()">Reset Password</button>
+                </div>
+            </div>
+        </details>
+        <details id="memory_reset_panel" class="security-level-0-only">
+            <summary>Memory Reset</summary>
+            <div id="memory_reset_help" class="reset-help">
+                <p>This clears stored connection settings while keeping recorded files on the device.</p>
+                <ul>
+                    <li>Unpairs and erases all Bluetooth devices</li>
+                    <li>Erases all Wi-Fi configurations</li>
+                    <li>Erases all cloud destinations</li>
+                    <li>Does not delete recorded files</li>
+                </ul>
+            </div>
+            <div id="memory_reset_entry" class="memory-reset-panel">
+                <div class="reset-action-row">
+                    <button id="btn_memory_reset" class="button danger-button" type="button" onclick="memreset_onsubmit()">Reset Memory</button>
                 </div>
             </div>
         </details>

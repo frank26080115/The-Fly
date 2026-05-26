@@ -88,3 +88,4 @@ sdkconfig.defaults
 sdkconfig.thefly*
 .vscode/settings.json
 *.af~lock~
+/gfx-assets/sprites_resized
