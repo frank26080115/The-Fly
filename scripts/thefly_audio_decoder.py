@@ -56,6 +56,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import BinaryIO, Dict, Iterable, List, Optional, Sequence, Tuple
 
+import sectools
+
 
 FILE_PACKET_HEADER_MAGIC = 0xDEADBEEF
 FILE_PACKET_PAYLOAD_MAX = 256
@@ -667,6 +669,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("-o", "--output", type=Path, help="output .wav path; defaults to input path with .wav extension")
     parser.add_argument("--pcm-output", type=Path, help="intermediate stereo .pcm path; defaults to input path with .pcm extension")
     parser.add_argument("--gap-threshold-ms", type=float, default=200.0, help="minimum timestamp gap to treat as silence; default: 200")
+    parser.add_argument("--key", type=Path, help="optional .key file; when supplied, input must be AES-GCM encrypted")
     return parser.parse_args(argv)
 
 
@@ -697,14 +700,33 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"error: output WAV path and intermediate PCM path are the same: {wav_path}", file=sys.stderr)
         return 2
 
+    decrypt_temp_path: Optional[Path] = None
+
     try:
-        decode_recording(input_path, pcm_path, wav_path, args.gap_threshold_ms)
+        decode_input_path = input_path
+        if args.key is not None:
+            key = sectools.read_key_file(args.key)
+            decrypt_temp = tempfile.NamedTemporaryFile(prefix="thefly-decrypted-", suffix=".rec", delete=False)
+            decrypt_temp_path = Path(decrypt_temp.name)
+            decrypt_temp.close()
+
+            packet_count = sectools.decrypt_recording_file(input_path, decrypt_temp_path, key)
+            print(f"decrypted packets: {packet_count}")
+            decode_input_path = decrypt_temp_path
+
+        decode_recording(decode_input_path, pcm_path, wav_path, args.gap_threshold_ms)
     except OSError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
+    finally:
+        if decrypt_temp_path is not None:
+            try:
+                decrypt_temp_path.unlink()
+            except FileNotFoundError:
+                pass
 
     return 0
 
