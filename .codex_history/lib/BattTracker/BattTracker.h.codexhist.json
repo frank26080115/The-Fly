@@ -1,0 +1,55 @@
+[
+  {
+    "timestamp": "2026-05-04T17:32:58.461Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BattTracker/readme.md",
+      "",
+      "## Open tabs:",
+      "- readme.md: lib/BattTracker/readme.md",
+      "- BattTracker.h: lib/BattTracker/BattTracker.h",
+      "- BattTracker.cpp: lib/BattTracker/BattTracker.cpp",
+      "- readme.md: lib/sbc/readme.md",
+      "- utilfuncs.cpp: lib/UtilFuncs/utilfuncs.cpp",
+      "",
+      "## My request for Codex:",
+      "read `lib\\BattTracker\\readme.md` and implement in `lib\\BattTracker`"
+    ],
+    "agent_reply": [
+      "Implemented `lib/BattTracker` from the readme.",
+      "",
+      "Added a namespace-based singleton API in [BattTracker.h](c:/GitHubRepos/The-Fly/lib/BattTracker/BattTracker.h) and [BattTracker.cpp](c:/GitHubRepos/The-Fly/lib/BattTracker/BattTracker.cpp):",
+      "",
+      "- `BattTracker::init()`",
+      "- `BattTracker::poll()` with fixed 1 second cadence",
+      "- `BattTracker::status()`",
+      "- `BattTracker::level()`",
+      "- `BattTracker::isCharging()`",
+      "- `BattTracker::voltage()`",
+      "- HAL wrappers:",
+      "  - `halReadBatteryVoltage()`",
+      "  - `halReadUsbAvailable()`",
+      "",
+      "Behavior implemented:",
+      "- High/medium/low thresholds at `3.95V` and `3.40V`.",
+      "- Seven status values: unknown, low/medium/high, and charging variants using bit `0x04`.",
+      "- Non-charging voltage only tracks downward, ignoring upward noisy readings.",
+      "- Charging mode uses `0.10V` hysteresis for level transitions.",
+      "- Uses M5Unified `M5.Power.getBatteryVoltage()`, `getVBUSVoltage()`, and `isCharging()`.",
+      "",
+      "I tried to run `pio run`, but PlatformIO is still not available on PATH in this shell."
+    ],
+    "files": [
+      "lib/BattTracker/BattTracker.h",
+      "lib/BattTracker/BattTracker.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-04T22:18:38Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
+  }
+]

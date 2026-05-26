@@ -1,0 +1,59 @@
+[
+  {
+    "timestamp": "2026-05-26T08:31:56Z",
+    "type": "git_commit",
+    "commit_message": "implement the wifi ap view",
+    "commit_hash": "d8fe002743fef62a02f8317b0e30b6a57eebd666"
+  },
+  {
+    "timestamp": "2026-05-26T09:47:27Z",
+    "type": "git_commit",
+    "commit_message": "expose connected mac and cnts in ap view",
+    "commit_hash": "e486cd8c44f77f484940b29cfd1db4b676546f90"
+  },
+  {
+    "timestamp": "2026-05-26T20:32:28.140Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## Open tabs:",
+      "- platformio.ini: platformio.ini",
+      "- sdkconfig.defaults: sdkconfig.defaults",
+      "- WifiApModeView.cpp: lib/FlyGuiViews/WifiApModeView.cpp",
+      "- WebServer.cpp: lib/WifiManager/WebServer.cpp",
+      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## My request for Codex:",
+      "function `void WifiApModeView::drawCredentials()` I want to be more advanced",
+      "",
+      "there will be a few different variations of `kTextLineHeight`",
+      "",
+      "`draw_fit_line` will need to know the font and a color",
+      "",
+      "the text styling for \"SSID:\" and \"Password:\" remains the same",
+      "",
+      "the text styling for the actual information will switch to using font number 4 and be yellow",
+      "",
+      "do not build, platformio is busy doing other stuff for me"
+    ],
+    "agent_reply": [
+      "Done in [WifiApModeView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:50).",
+      "",
+      "`draw_fit_line` now takes a font and color, so width fitting happens with the same styling used for drawing. `drawCredentials()` now keeps `SSID:` and `Password:` in the existing white font 2 style, while the actual SSID/password values use font 4 in `TFT_YELLOW`. I also split the line-height constants for label/value/small text and moved the stats/hint rows down to make room.",
+      "",
+      "I did not run a build, per your request."
+    ],
+    "files": [
+      "lib/FlyGuiViews/WifiApModeView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T21:19:25Z",
+    "type": "git_commit",
+    "commit_message": "yellow font for wifi ap info",
+    "commit_hash": "d99d619f239d7b74081421ba1f8a0c9eb9386994"
+  }
+]

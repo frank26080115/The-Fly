@@ -1,0 +1,95 @@
+[
+  {
+    "timestamp": "2026-05-14T09:06:33Z",
+    "type": "git_commit",
+    "commit_message": "got a physical unit, starting bringup tests",
+    "commit_hash": "9d0330a8d4292ae1c769e093080a2eba28dce43f"
+  },
+  {
+    "timestamp": "2026-05-14T19:24:15.832Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.h",
+      "",
+      "## Active selection of the file:",
+      "resetWriteDurationStats",
+      "## Open tabs:",
+      "- AudioFileRecorder.h: lib/AudioFileRecorder/AudioFileRecorder.h",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- test_sdcard.cpp: src/tests/test_sdcard.cpp",
+      "- thefly_audio_decoder.py: scripts/thefly_audio_decoder.py",
+      "- defs.h: inc/defs.h",
+      "",
+      "## My request for Codex:",
+      "edit `run_recording_throughput_test`",
+      "",
+      "every 30 seconds, chunk_samples doubles, the test ends when chunk_samples is at max_capacity_samples for 30 seconds. Have a print when the switch occurs so we can see which section of log is what chunk_size.",
+      "",
+      "the report should also include the `writeDurationAverageMs` and `writeDurationMaxMs`, and call `resetWriteDurationStats`."
+    ],
+    "agent_reply": [
+      "Updated `run_recording_throughput_test()` in [test_sdcard.cpp](c:/GitHubRepos/The-Fly/src/tests/test_sdcard.cpp:186).",
+      "",
+      "It now:",
+      "- Starts at `64` samples, clamped to `max_capacity_samples`.",
+      "- Doubles `chunk_samples` every 30 seconds.",
+      "- Stops after the max chunk size has run for 30 seconds.",
+      "- Prints a `throughput section` line whenever the chunk size changes.",
+      "- Adds `write_avg_ms` and `write_max_ms` to each report.",
+      "- Calls `AudioFileRecorder::resetWriteDurationStats()` after each report and at each section switch.",
+      "",
+      "I used the shared FIFO capacity as the max: `min(bt_capacity_samples, mic_capacity_samples)`, so one chunk can fit in either FIFO.",
+      "",
+      "Verified with `pio run`: build succeeded.",
+      "",
+      "Updated `run_recording_throughput_test()` in [test_sdcard.cpp](c:/GitHubRepos/The-Fly/src/tests/test_sdcard.cpp:186).",
+      "",
+      "It now:",
+      "- Starts at `64` samples, clamped to `max_capacity_samples`.",
+      "- Doubles `chunk_samples` every 30 seconds.",
+      "- Stops after the max chunk size has run for 30 seconds.",
+      "- Prints a `throughput section` line whenever the chunk size changes.",
+      "- Adds `write_avg_ms` and `write_max_ms` to each report.",
+      "- Calls `AudioFileRecorder::resetWriteDurationStats()` after each report and at each section switch.",
+      "",
+      "I used the shared FIFO capacity as the max: `min(bt_capacity_samples, mic_capacity_samples)`, so one chunk can fit in either FIFO.",
+      "",
+      "Verified with `pio run`: build succeeded."
+    ],
+    "files": [
+      "src/tests/test_sdcard.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-14T20:17:29Z",
+    "type": "git_commit",
+    "commit_message": "better sd card test with latency and various chunk sizes",
+    "commit_hash": "7f8cabf8e0323005034b80958c70a3d0511b1833"
+  },
+  {
+    "timestamp": "2026-05-15T09:30:10Z",
+    "type": "git_commit",
+    "commit_message": "clean up some tests a bit",
+    "commit_hash": "eb358d8766ce23080e7131aae68bf3fd9f89731d"
+  },
+  {
+    "timestamp": "2026-05-23T09:06:27Z",
+    "type": "git_commit",
+    "commit_message": "tested SD card with encryption",
+    "commit_hash": "aa5a8d695449da500eedafc4b596671f4ac49351"
+  },
+  {
+    "timestamp": "2026-05-25T03:26:11Z",
+    "type": "git_commit",
+    "commit_message": "I'm checking in this state before tearing it all down",
+    "commit_hash": "335274e4557167c4d8346db9a0eb5ce8adc4b329"
+  },
+  {
+    "timestamp": "2026-05-26T02:07:37Z",
+    "type": "git_commit",
+    "commit_message": "clean up for security levels",
+    "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
+  }
+]

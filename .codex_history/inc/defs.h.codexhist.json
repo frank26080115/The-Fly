@@ -1,0 +1,118 @@
+[
+  {
+    "timestamp": "2026-05-01T08:45:00Z",
+    "type": "git_commit",
+    "commit_message": "progress",
+    "commit_hash": "384fc246aafc465d1b9dc72802ba63530501f038"
+  },
+  {
+    "timestamp": "2026-05-02T07:20:03Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "9495ca3e997d6aca003aa5a6ec502e2204cea031"
+  },
+  {
+    "timestamp": "2026-05-04T08:21:58Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "dcdf504ad0b634fb1b6629ede78526be42cdf96e"
+  },
+  {
+    "timestamp": "2026-05-14T20:16:47Z",
+    "type": "git_commit",
+    "commit_message": "no debugging fields in file packet header",
+    "commit_hash": "11ab6eb78c58d2be476b07344087f2dea534bb90"
+  },
+  {
+    "timestamp": "2026-05-17T03:29:41Z",
+    "type": "git_commit",
+    "commit_message": "icon lookup",
+    "commit_hash": "b6b89e5847d7bc25ba28221a7c11ba0dce2e94c9"
+  },
+  {
+    "timestamp": "2026-05-18T22:51:18.362Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/defs.h",
+      "",
+      "## Active selection of the file:",
+      "typedef enum : uint8_t",
+      "{",
+      "    AUDSRC_BT_16KHZ_MONO,",
+      "    AUDSRC_MIC_16KHZ_MONO,",
+      "}",
+      "filepkt_src_e;",
+      "## Open tabs:",
+      "- defs.h: inc/defs.h",
+      "- platformio.ini: platformio.ini",
+      "- m5unified_common.h: .pio/libdeps/thefly_bringuptest/M5Unified/src/utility/m5unified_common.h",
+      "- BtHostList.h: lib/BluetoothManager/BtHostList.h",
+      "- test_bootreadfiles.cpp: src/tests/test_bootreadfiles.cpp",
+      "",
+      "## My request for Codex:",
+      "can you please fill in this enum with the way `scripts\\thefly_audio_decoder.py` has implemented it? and change the places withere `AUDSRC_*` is used to match"
+    ],
+    "agent_reply": [
+      "Done. I filled out `filepkt_src_e` in [inc/defs.h](c:/GitHubRepos/The-Fly/inc/defs.h:15) to match the decoder’s implemented IDs:",
+      "",
+      "```cpp",
+      "AUDSRC_BT_16KHZ_MONO     = 0,",
+      "AUDSRC_MIC_16KHZ_MONO    = 1,",
+      "AUDSRC_BT_32KHZ_MONO     = 2,",
+      "AUDSRC_MIC_32KHZ_MONO    = 3,",
+      "AUDSRC_BT_32KHZ_STEREO   = 4,",
+      "AUDSRC_MIC_32KHZ_STEREO  = 5,",
+      "AUDSRC_BT_48KHZ_MONO     = 6,",
+      "AUDSRC_MIC_48KHZ_MONO    = 7,",
+      "AUDSRC_BT_48KHZ_STEREO   = 8,",
+      "AUDSRC_MIC_48KHZ_STEREO  = 9,",
+      "```",
+      "",
+      "I also updated [AudioFileRecorder.cpp](c:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:149) so it uses `filepkt_src_e` and writes `AUDSRC_BT_16KHZ_MONO` / `AUDSRC_MIC_16KHZ_MONO` instead of the old `AUDSRC_BT` / `AUDSRC_MIC` names.",
+      "",
+      "Build passed with `pio run -e thefly`."
+    ],
+    "files": [
+      "inc/defs.h",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-18T22:54:31Z",
+    "type": "git_commit",
+    "commit_message": "added filepkt_src_e",
+    "commit_hash": "d617daf95bc61f0742f14d0d88b1bd228ebab221"
+  },
+  {
+    "timestamp": "2026-05-20T07:17:21Z",
+    "type": "git_commit",
+    "commit_message": "massive progress with RecordingView",
+    "commit_hash": "1c4305479f888bd2dc55b13c27a109f8c8dc6cd7"
+  },
+  {
+    "timestamp": "2026-05-20T19:02:28Z",
+    "type": "git_commit",
+    "commit_message": "good progress on GUI",
+    "commit_hash": "3d988cb62856bfbc633ccac6598e1ba741663eec"
+  },
+  {
+    "timestamp": "2026-05-22T03:27:25Z",
+    "type": "git_commit",
+    "commit_message": "starting to add a web server",
+    "commit_hash": "421a041f801f5f993b55e85fd21fbb828bf995c0"
+  },
+  {
+    "timestamp": "2026-05-24T08:10:45Z",
+    "type": "git_commit",
+    "commit_message": "user customized icon rewrite",
+    "commit_hash": "77e4a4ef8b64072a653f33ecc377d9b157bc4629"
+  },
+  {
+    "timestamp": "2026-05-26T02:07:37Z",
+    "type": "git_commit",
+    "commit_message": "clean up for security levels",
+    "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
+  }
+]

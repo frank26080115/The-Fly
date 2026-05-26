@@ -1,0 +1,38 @@
+[
+  {
+    "timestamp": "2026-05-26T20:06:52.337Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WebServer.cpp",
+      "",
+      "## Open tabs:",
+      "- WebServer.cpp: lib/WifiManager/WebServer.cpp",
+      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
+      "- WebCfgHandlers.cpp: lib/WifiManager/WebCfgHandlers.cpp",
+      "- index.html: html/index.html",
+      "- script.js: html/script.js",
+      "",
+      "## My request for Codex:",
+      "give calling `tools\\sterile_rebuild.py` a try for when the iram0 overflow happens"
+    ],
+    "agent_reply": [
+      "Yep, the sterile rebuild worked for the `thefly_sec1` IRAM overflow case.",
+      "",
+      "I ran `python tools\\sterile_rebuild.py -e thefly_sec1` with elevated access after the sandbox run hit PlatformIO home-directory permissions. It cleaned `.pio/build`, removed `sdkconfig.*`, regenerated config, rebuilt from scratch, and finished with exit code `0`.",
+      "",
+      "Artifacts are present:",
+      "",
+      "- `.pio\\build\\thefly_sec1\\firmware.bin` at `2,572,832` bytes",
+      "- `.pio\\build\\thefly_sec1\\firmware.elf`",
+      "- `.pio\\build\\thefly_sec1\\firmware.map`",
+      "",
+      "One side effect to note: the script removed all `sdkconfig.*` files, then regenerated only `sdkconfig.defaults` and `sdkconfig.thefly_sec1`. The other environment sdkconfigs should come back when those envs are rebuilt."
+    ],
+    "files": [
+      "sterile_rebuild.py",
+      "tools/sterile_rebuild.py"
+    ]
+  }
+]

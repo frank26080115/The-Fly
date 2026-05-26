@@ -1,0 +1,55 @@
+[
+  {
+    "timestamp": "2026-05-01T18:42:55.334Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/UtilFuncs/utilfuncs.cpp",
+      "",
+      "## Open tabs:",
+      "- utilfuncs.cpp: lib/UtilFuncs/utilfuncs.cpp",
+      "- bt_audio_demo.cpp: src/bt_audio_demo.cpp",
+      "- bt_pairing_demo.cpp: src/bt_pairing_demo.cpp",
+      "- utilfuncs.h: lib/UtilFuncs/utilfuncs.h",
+      "- utils.h: inc/utils.h",
+      "",
+      "## My request for Codex:",
+      "I have pulled some functions into `lib\\UtilFuncs\\utilfuncs.cpp`, make sure all demos still build by adding function signatures and header includes"
+    ],
+    "agent_reply": [
+      "Done. I made `lib/UtilFuncs` usable as a real shared library:",
+      "",
+      "- Added function declarations and ESP-IDF type includes to [utilfuncs.h](C:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.h).",
+      "- Added the missing implementation includes and a local log tag in [utilfuncs.cpp](C:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.cpp).",
+      "- Included `utilfuncs.h` from:",
+      "  - [bt_audio_demo.cpp](C:/GitHubRepos/The-Fly/src/bt_audio_demo.cpp)",
+      "  - [bt_pairing_demo.cpp](C:/GitHubRepos/The-Fly/src/bt_pairing_demo.cpp)",
+      "  - [push_to_talk_demo.cpp](C:/GitHubRepos/The-Fly/src/push_to_talk_demo.cpp)",
+      "- Removed the duplicated local helper implementations from those demos.",
+      "",
+      "Verification: `platformio run` succeeds. PlatformIO now detects `UtilFuncs` in the dependency graph. Existing libsbc `always_inline` warnings remain.",
+      "",
+      "Done. I made `lib/UtilFuncs` usable as a real shared library:",
+      "",
+      "- Added function declarations and ESP-IDF type includes to [utilfuncs.h](C:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.h).",
+      "- Added the missing implementation includes and a local log tag in [utilfuncs.cpp](C:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.cpp).",
+      "- Included `utilfuncs.h` from:",
+      "  - [bt_audio_demo.cpp](C:/GitHubRepos/The-Fly/src/bt_audio_demo.cpp)",
+      "  - [bt_pairing_demo.cpp](C:/GitHubRepos/The-Fly/src/bt_pairing_demo.cpp)",
+      "  - [push_to_talk_demo.cpp](C:/GitHubRepos/The-Fly/src/push_to_talk_demo.cpp)",
+      "- Removed the duplicated local helper implementations from those demos.",
+      "",
+      "Verification: `platformio run` succeeds. PlatformIO now detects `UtilFuncs` in the dependency graph. Existing libsbc `always_inline` warnings remain."
+    ],
+    "files": [
+      "utilfuncs.cpp",
+      "lib/UtilFuncs/utilfuncs.h",
+      "lib/UtilFuncs/utilfuncs.cpp",
+      "src/bt_audio_demo.cpp",
+      "src/bt_pairing_demo.cpp",
+      "src/push_to_talk_demo.cpp",
+      "utilfuncs.h"
+    ]
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "timestamp": "2026-05-06T23:58:59.897Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "Please implement the code as described by the comment on inc/dbg_log.h:3",
+      "",
+      "The comment is:",
+      "the job of this file is to simply rename all the ESP_* logging functions to DBG_*, for portability reasons, put it under some sort of always available flag that indicates ESP-IDF is being used, and if not, have stub macros. Do not edit other files yet.",
+      "",
+      "Replace the comment with your implementation.",
+      "Optimize for speed. Don't over-explore or over-check your work other than what is absolutely necessary to implement the comment.",
+      "Once you are done, remove the comment."
+    ],
+    "agent_reply": [
+      "Implemented [inc/dbg_log.h](c:/GitHubRepos/The-Fly/inc/dbg_log.h) as requested.",
+      "",
+      "It now:",
+      "- Defines `DBG_LOG_USE_ESP_IDF` automatically.",
+      "- Includes `esp_log.h` when ESP-IDF is detected.",
+      "- Maps common `ESP_*` logging macros to `DBG_*`.",
+      "- Provides no-op stubs when ESP-IDF is unavailable.",
+      "- Removes the original TODO comment.",
+      "",
+      "I only touched `inc/dbg_log.h` and did not run a full build."
+    ],
+    "files": [
+      "inc/dbg_log.h",
+      "esp_log.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-07T00:37:28Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "c31536e76af6564fcf9e33fe1e79c3fef9bf8e36"
+  },
+  {
+    "timestamp": "2026-05-07T00:54:23Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "b3b772056c7834aba6a5a20ff399780150e87263"
+  }
+]

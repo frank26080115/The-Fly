@@ -1,0 +1,161 @@
+[
+  {
+    "timestamp": "2026-05-15T09:29:54Z",
+    "type": "git_commit",
+    "commit_message": "added bt tests",
+    "commit_hash": "d3c291e69ab7f6d42eba1621c414eea70930cf28"
+  },
+  {
+    "timestamp": "2026-05-15T22:24:39Z",
+    "type": "git_commit",
+    "commit_message": "disable the web stuff in test_btspeakerphone",
+    "commit_hash": "c38a46e267093e17db6e853b446c6a21e707d777"
+  },
+  {
+    "timestamp": "2026-05-15T22:29:38.182Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_micrec.cpp",
+      "",
+      "## Active selection of the file:",
+      "micPeakLevel",
+      "## Open tabs:",
+      "- test_micrec.cpp: src/tests/test_micrec.cpp",
+      "- test_btspeakerphone.cpp: src/tests/test_btspeakerphone.cpp",
+      "- MicGainManager.cpp: lib/AudioManager/MicGainManager.cpp",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- test_micfilterresult.cpp: src/tests/test_micfilterresult.cpp",
+      "",
+      "## My request for Codex:",
+      "inside `test_btspeakerphone`, please start another thread, in the same manner as in `src\\tests\\test_micrec.cpp`",
+      "",
+      "leave the thread as a blank placeholder, do not test build, thanks"
+    ],
+    "agent_reply": [
+      "Added the pinned core 0 placeholder thread in [test_btspeakerphone.cpp](/c:/GitHubRepos/The-Fly/src/tests/test_btspeakerphone.cpp).",
+      "",
+      "It mirrors the `test_micrec` style:",
+      "- `kCore0StackSize`",
+      "- `kCore0Priority`",
+      "- `TaskHandle_t g_core0_task`",
+      "- `xTaskCreatePinnedToCore(..., core 0)`",
+      "- placeholder task body that just logs and idles forever",
+      "",
+      "Skipped the build as requested.",
+      "",
+      "Added the pinned core 0 placeholder thread in [test_btspeakerphone.cpp](/c:/GitHubRepos/The-Fly/src/tests/test_btspeakerphone.cpp).",
+      "",
+      "It mirrors the `test_micrec` style:",
+      "- `kCore0StackSize`",
+      "- `kCore0Priority`",
+      "- `TaskHandle_t g_core0_task`",
+      "- `xTaskCreatePinnedToCore(..., core 0)`",
+      "- placeholder task body that just logs and idles forever",
+      "",
+      "Skipped the build as requested."
+    ],
+    "files": [
+      "src/tests/test_btspeakerphone.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-15T22:39:16.223Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_btspeakerphone.cpp",
+      "",
+      "## Active selection of the file:",
+      "    /*",
+      "    initialize the LCD display and the buttons",
+      "",
+      "    as in the other test, button-A is the push-to-talk button, button-C ends the test (disconnects bluetooth and idle_forever)",
+      "    this has to signal to the other thread to do these things",
+      "",
+      "    from within this thread, do the screen colour changes, have the other thread signal back what colour is wanted",
+      "",
+      "    Grey means idle/done",
+      "    Blue is bluetooth connected",
+      "    Red is connected and mic active",
+      "",
+      "    if there are super safe FreeRTOS mechanisms to do these thread safe signalling, demonstrate them. Personally I would've just declared variables and written them.",
+      "    */",
+      "## Open tabs:",
+      "- test_btspeakerphone.cpp: src/tests/test_btspeakerphone.cpp",
+      "- test_micrec.cpp: src/tests/test_micrec.cpp",
+      "- MicGainManager.cpp: lib/AudioManager/MicGainManager.cpp",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- test_micfilterresult.cpp: src/tests/test_micfilterresult.cpp",
+      "",
+      "## My request for Codex:",
+      "implement the highlighted comment"
+    ],
+    "agent_reply": [
+      "Implemented the highlighted `test_btspeakerphone` control/UI thread.",
+      "",
+      "What changed:",
+      "- Core 0 task now initializes LCD/buttons, owns `M5.update()`, button reads, and screen colour changes.",
+      "- Button A sends push-to-talk commands via a FreeRTOS queue.",
+      "- Button C sends a stop command via the same queue.",
+      "- Main thread receives commands, switches speaker/mic mode, disconnects Bluetooth on stop, and sends desired colour back through a one-slot FreeRTOS colour queue.",
+      "- Grey = idle/done, blue = connected/speaker mode, red = mic active.",
+      "",
+      "Verified with `pio run`: build succeeds. `src/version.c` nonce regenerated again."
+    ],
+    "files": [
+      "src/tests/test_btspeakerphone.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-05-15T23:03:51Z",
+    "type": "git_commit",
+    "commit_message": "speaker phone test more complicated controls",
+    "commit_hash": "566530b7b0bdaa1a5b1a37bcb3186b61b38ee105"
+  },
+  {
+    "timestamp": "2026-05-16T08:46:51Z",
+    "type": "git_commit",
+    "commit_message": "speakerphone test works, it did involve editing the esp-idf config and building the library in the back",
+    "commit_hash": "0fb9d76750530a27bc80183add0ccf3c26959ed3"
+  },
+  {
+    "timestamp": "2026-05-16T10:26:31Z",
+    "type": "git_commit",
+    "commit_message": "outgoing audio works",
+    "commit_hash": "f8f3fdf74e476147651004e4bd8d6998a606ee7b"
+  },
+  {
+    "timestamp": "2026-05-16T10:52:48Z",
+    "type": "git_commit",
+    "commit_message": "cleaned up diagnostics a bit, added mutex for pump functions",
+    "commit_hash": "29089ae91ae93ddd946f37d2b0c1c4b345a20763"
+  },
+  {
+    "timestamp": "2026-05-17T03:30:13Z",
+    "type": "git_commit",
+    "commit_message": "application infrastructure wip",
+    "commit_hash": "380e678127c354bb1fcb6171bc0720f72caba667"
+  },
+  {
+    "timestamp": "2026-05-18T06:48:14Z",
+    "type": "git_commit",
+    "commit_message": "change bluetooth init behavior to be connectable",
+    "commit_hash": "c413b9460ff7cad507efe70c6364120b3b62ea0b"
+  },
+  {
+    "timestamp": "2026-05-19T09:44:16Z",
+    "type": "git_commit",
+    "commit_message": "cleaned up display as param",
+    "commit_hash": "44c732408fa59c62aa9a1734f91a61315fcfe7ed"
+  },
+  {
+    "timestamp": "2026-05-26T03:37:42Z",
+    "type": "git_commit",
+    "commit_message": "deleted SBC stuff",
+    "commit_hash": "3161432d1a0fa698e9adc8c48bc6d9be0b51178c"
+  }
+]

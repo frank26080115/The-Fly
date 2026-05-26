@@ -1,0 +1,110 @@
+[
+  {
+    "timestamp": "2026-05-17T03:29:41Z",
+    "type": "git_commit",
+    "commit_message": "icon lookup",
+    "commit_hash": "b6b89e5847d7bc25ba28221a7c11ba0dce2e94c9"
+  },
+  {
+    "timestamp": "2026-05-19T08:07:31Z",
+    "type": "git_commit",
+    "commit_message": "good progress working on GUI but ran into memory problems with PNG decode",
+    "commit_hash": "ce293de5bfe655e8023945176b68c324355ad1de"
+  },
+  {
+    "timestamp": "2026-05-20T18:08:41.239Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/defs.h",
+      "",
+      "## Active selection of the file:",
+      "ICON_",
+      "## Open tabs:",
+      "- defs.h: inc/defs.h",
+      "- ScrollView.cpp: lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "- ScrollItem.cpp: lib/FlyGuiViews/ScrollView/ScrollItem.cpp",
+      "- FlyGui.h: lib/FlyGui/FlyGui.h",
+      "- ScrollView.h: lib/FlyGuiViews/ScrollView/ScrollView.h",
+      "",
+      "## My request for Codex:",
+      "I added some more `ICON_` enum items along with more sprites, wire them into the sprite lookup so that the new `ScrollView` changes work"
+    ],
+    "agent_reply": [
+      "Wired the new icons into [IconLookup.cpp](C:/GitHubRepos/The-Fly/lib/SpriteDraw/IconLookup.cpp:1).",
+      "",
+      "Added parsing/string support for:",
+      "- `ICON_NTP`",
+      "- `ICON_INFO`",
+      "- `ICON_BTPAIRING`",
+      "",
+      "Added sprite mappings for:",
+      "- `ICON_CLOUD` -> `sprit_btn_cloud`",
+      "- `ICON_NTP` -> `sprit_btn_ntp`",
+      "- `ICON_INFO` -> `sprit_btn_info`",
+      "- `ICON_BTPAIRING` -> `sprit_btn_bluetooth_pairing`",
+      "",
+      "Also added a few useful string aliases like `bluetooth_pairing`, `bt_pairing`, `time_sync`, and `information`.",
+      "",
+      "Verified with `pio run -e thefly_bringuptest`; build passed."
+    ],
+    "files": [
+      "lib/SpriteDraw/IconLookup.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-20T18:22:10.193Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/defs.h",
+      "",
+      "## Active selection of the file:",
+      "ICON_WIFI_SEARCH, // sprite_btn_wifisearch",
+      "## Open tabs:",
+      "- defs.h: inc/defs.h",
+      "- RecordingView.cpp: lib/FlyGuiViews/RecordingView/RecordingView.cpp",
+      "- main.cpp: src/main.cpp",
+      "- ScrollView.cpp: lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "- ScrollItem.cpp: lib/FlyGuiViews/ScrollView/ScrollItem.cpp",
+      "",
+      "## My request for Codex:",
+      "add an entry for `ICON_WIFI_SEARCH, // sprite_btn_wifisearch` in the lookup",
+      "",
+      "the first item for the `ScrollView` while in Wi-Fi mode should be a button that launches an automatic-scan-and-connect"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "Changed:",
+      "- Added `ICON_WIFI_SEARCH` lookup names, string conversion, and sprite mapping to `sprit_btn_wifisearch` in [IconLookup.cpp](C:/GitHubRepos/The-Fly/lib/SpriteDraw/IconLookup.cpp:34).",
+      "- Added a Wi-Fi scan/connect `ScrollItem` task and callback path in [ScrollItem.h](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollItem.h:11) and [ScrollView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:219).",
+      "- `populateWifi()` now inserts `Scan and Connect` as the first Wi-Fi item.",
+      "- Hooked the new GUI callback in [main.cpp](C:/GitHubRepos/The-Fly/src/main.cpp:220). It starts `WifiManager::scanAndConnect()`, and the scan-finished callback connects to the found configured station.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_bringuptest",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "main.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollItem.h",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "src/main.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollView.h",
+      "lib/SpriteDraw/IconLookup.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-24T08:10:45Z",
+    "type": "git_commit",
+    "commit_message": "user customized icon rewrite",
+    "commit_hash": "77e4a4ef8b64072a653f33ecc377d9b157bc4629"
+  }
+]

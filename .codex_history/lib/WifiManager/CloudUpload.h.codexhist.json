@@ -1,0 +1,68 @@
+[
+  {
+    "timestamp": "2026-05-17T05:06:42Z",
+    "type": "git_commit",
+    "commit_message": "cloud uploader",
+    "commit_hash": "cd054c35764c06f5912ce3eb8475be22556367f4"
+  },
+  {
+    "timestamp": "2026-05-26T02:07:37Z",
+    "type": "git_commit",
+    "commit_message": "clean up for security levels",
+    "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
+  },
+  {
+    "timestamp": "2026-05-26T20:54:25.353Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/CloudUpload.cpp",
+      "",
+      "## Active selection of the file:",
+      "WiFiClientSecure",
+      "## Open tabs:",
+      "- CloudUpload.cpp: lib/WifiManager/CloudUpload.cpp",
+      "- platformio.ini: platformio.ini",
+      "- custom_sdkconfig: custom_sdkconfig",
+      "- sdkconfig.defaults: sdkconfig.defaults",
+      "- WifiApModeView.cpp: lib/FlyGuiViews/WifiApModeView.cpp",
+      "",
+      "## My request for Codex:",
+      "`void CloudUpload::taskMain()` needs to be have the internals of the `for (PendingFile* item = head; item; item = item->next)` loop be broken out in a way that allows for easy calling/testing for just one file",
+      "",
+      "so whatever function you've broken that out into needs another layer of caller that specifies a file, builds a PendingFile structure, and frees the structure when done",
+      "",
+      "also `WiFiClientSecure` needs to be actually secure as much as possible, the destination needs to be authentic",
+      "",
+      "`ClockAgent` must make sure `WiFiClientSecure` works as intended",
+      ""
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "What changed:",
+      "- Added `CloudUpload::uploadSingleFile(destination, path, timeout_ms)` for easy one-file testing.",
+      "- Broke the per-file upload work out into `uploadPendingFile(...)`, shared by both the normal scan loop and the single-file wrapper.",
+      "- The single-file path builds a `PendingFile`, calls the shared uploader, then frees it.",
+      "- Removed `setInsecure()` usage.",
+      "- HTTPS is now required for cloud uploads; `http://` is rejected.",
+      "- `WiFiClientSecure` now uses the ESP x509 cert bundle via `setCACertBundle(...)`, with hostname verification handled by the secure client connect path.",
+      "- `ClockAgent` now pushes its RTC/managed time into system time and exposes `ensureSystemTimeForTls()`, which CloudUpload calls before TLS handshakes.",
+      "",
+      "I did not run PlatformIO, since you said it was busy. Static checks only."
+    ],
+    "files": [
+      "lib/WifiManager/CloudUpload.h",
+      "lib/WifiManager/CloudUpload.cpp",
+      "lib/ClockAgent/ClockAgent.h",
+      "lib/ClockAgent/ClockAgent.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T21:19:11Z",
+    "type": "git_commit",
+    "commit_message": "HTTPS cloud upload",
+    "commit_hash": "b1666ed641f04db9ed2dcef198f85144bad52595"
+  }
+]

@@ -1,0 +1,80 @@
+[
+  {
+    "timestamp": "2026-05-05T18:16:41.313Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/Hotel/readme.md",
+      "",
+      "## Open tabs:",
+      "- readme.md: lib/Hotel/readme.md",
+      "- Hotel.h: lib/Hotel/Hotel.h",
+      "- Hotel.cpp: lib/Hotel/Hotel.cpp",
+      "- MostRecentFiles.cpp: lib/AudioFileRecorder/MostRecentFiles.cpp",
+      "- MostRecentFiles.h: lib/AudioFileRecorder/MostRecentFiles.h",
+      "",
+      "## My request for Codex:",
+      "implement the design of `lib\\Hotel\\readme.md` in `lib\\Hotel`"
+    ],
+    "agent_reply": [
+      "Implemented `Hotel` as a namespace-backed power manager in [Hotel.h](C:/GitHubRepos/The-Fly/lib/Hotel/Hotel.h) and [Hotel.cpp](C:/GitHubRepos/The-Fly/lib/Hotel/Hotel.cpp).",
+      "",
+      "What’s included:",
+      "- State machine from the README: blocked, active thresholds, light sleep states, shutdown.",
+      "- `pollCore0()` / `pollCore1()` synchronization before light sleep.",
+      "- User activity API, including ISR-safe activity notification.",
+      "- Blocking while recording, Bluetooth is active, Wi-Fi is active, or audio mode is active.",
+      "- Transition-only CPU/backlight changes with debug transition logging.",
+      "- `esp_timer_get_time()` wrapper for sleep-safe elapsed time.",
+      "- M5 PMIC shutdown, M5 light sleep when ready, timer-only ESP light sleep fallback before `M5.begin()`.",
+      "",
+      "I also wired it into:",
+      "- [main.cpp](C:/GitHubRepos/The-Fly/src/main.cpp): both core loops call Hotel polling.",
+      "- [Buttons.cpp](C:/GitHubRepos/The-Fly/lib/Buttons/Buttons.cpp): button activity resets Hotel timer.",
+      "- [FlyGui.cpp](C:/GitHubRepos/The-Fly/lib/FlyGui/FlyGui.cpp): touch activity resets Hotel timer.",
+      "",
+      "Verification: `pio run` still fails before compiling `Hotel` because of the existing `SdCard` namespace collision with SdFat in `src/mic_sd_recorder_demo.cpp`. The error is the same prior blocker: repo `namespace SdCard` conflicts with SdFat’s global `SdCard` typedef."
+    ],
+    "files": [
+      "Hotel.cpp",
+      "lib/FlyGui/FlyGui.cpp",
+      "src/main.cpp",
+      "lib/Hotel/Hotel.cpp",
+      "lib/Buttons/Buttons.cpp",
+      "lib/Hotel/Hotel.h",
+      "mic_sd_recorder_demo.cpp",
+      "src/mic_sd_recorder_demo.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-05T21:16:39Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "6a8e6bd8033b3bb6a02c82981bb3ec72f49fac02"
+  },
+  {
+    "timestamp": "2026-05-19T09:44:16Z",
+    "type": "git_commit",
+    "commit_message": "cleaned up display as param",
+    "commit_hash": "44c732408fa59c62aa9a1734f91a61315fcfe7ed"
+  },
+  {
+    "timestamp": "2026-05-20T07:17:21Z",
+    "type": "git_commit",
+    "commit_message": "massive progress with RecordingView",
+    "commit_hash": "1c4305479f888bd2dc55b13c27a109f8c8dc6cd7"
+  },
+  {
+    "timestamp": "2026-05-21T07:34:30Z",
+    "type": "git_commit",
+    "commit_message": "progress on bluetooth but cannot initiate connection, can handle incoming though",
+    "commit_hash": "e94d9d093825b8b6ff31e1ff98b191887cc736cc"
+  },
+  {
+    "timestamp": "2026-05-21T19:17:26Z",
+    "type": "git_commit",
+    "commit_message": "bt host delete, debug shown on top bar",
+    "commit_hash": "faf2c6341baa36a0f9941de6378b0a239fcfab7a"
+  }
+]

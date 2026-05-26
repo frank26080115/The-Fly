@@ -1,0 +1,158 @@
+[
+  {
+    "timestamp": "2026-05-17T05:06:42Z",
+    "type": "git_commit",
+    "commit_message": "cloud uploader",
+    "commit_hash": "cd054c35764c06f5912ce3eb8475be22556367f4"
+  },
+  {
+    "timestamp": "2026-05-22T06:14:22Z",
+    "type": "git_commit",
+    "commit_message": "cloud upload now includes a time nonce",
+    "commit_hash": "cba97ed94aaf1818604d54d1bc92792c2ebabde4"
+  },
+  {
+    "timestamp": "2026-05-23T09:06:40Z",
+    "type": "git_commit",
+    "commit_message": "some work on secured web interactions",
+    "commit_hash": "18565178bedd39532b6f4eeb03bf327ff678b30e"
+  },
+  {
+    "timestamp": "2026-05-24T08:11:50Z",
+    "type": "git_commit",
+    "commit_message": "cleaned up usage of password in cloud, todo: add real authentication",
+    "commit_hash": "19bc76b7453c6b58864d3ccd33d0085a3e68c6e6"
+  },
+  {
+    "timestamp": "2026-05-25T03:26:11Z",
+    "type": "git_commit",
+    "commit_message": "I'm checking in this state before tearing it all down",
+    "commit_hash": "335274e4557167c4d8346db9a0eb5ce8adc4b329"
+  },
+  {
+    "timestamp": "2026-05-26T02:07:37Z",
+    "type": "git_commit",
+    "commit_message": "clean up for security levels",
+    "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
+  },
+  {
+    "timestamp": "2026-05-26T20:54:25.353Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/CloudUpload.cpp",
+      "",
+      "## Active selection of the file:",
+      "WiFiClientSecure",
+      "## Open tabs:",
+      "- CloudUpload.cpp: lib/WifiManager/CloudUpload.cpp",
+      "- platformio.ini: platformio.ini",
+      "- custom_sdkconfig: custom_sdkconfig",
+      "- sdkconfig.defaults: sdkconfig.defaults",
+      "- WifiApModeView.cpp: lib/FlyGuiViews/WifiApModeView.cpp",
+      "",
+      "## My request for Codex:",
+      "`void CloudUpload::taskMain()` needs to be have the internals of the `for (PendingFile* item = head; item; item = item->next)` loop be broken out in a way that allows for easy calling/testing for just one file",
+      "",
+      "so whatever function you've broken that out into needs another layer of caller that specifies a file, builds a PendingFile structure, and frees the structure when done",
+      "",
+      "also `WiFiClientSecure` needs to be actually secure as much as possible, the destination needs to be authentic",
+      "",
+      "`ClockAgent` must make sure `WiFiClientSecure` works as intended",
+      ""
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "What changed:",
+      "- Added `CloudUpload::uploadSingleFile(destination, path, timeout_ms)` for easy one-file testing.",
+      "- Broke the per-file upload work out into `uploadPendingFile(...)`, shared by both the normal scan loop and the single-file wrapper.",
+      "- The single-file path builds a `PendingFile`, calls the shared uploader, then frees it.",
+      "- Removed `setInsecure()` usage.",
+      "- HTTPS is now required for cloud uploads; `http://` is rejected.",
+      "- `WiFiClientSecure` now uses the ESP x509 cert bundle via `setCACertBundle(...)`, with hostname verification handled by the secure client connect path.",
+      "- `ClockAgent` now pushes its RTC/managed time into system time and exposes `ensureSystemTimeForTls()`, which CloudUpload calls before TLS handshakes.",
+      "",
+      "I did not run PlatformIO, since you said it was busy. Static checks only."
+    ],
+    "files": [
+      "lib/WifiManager/CloudUpload.h",
+      "lib/WifiManager/CloudUpload.cpp",
+      "lib/ClockAgent/ClockAgent.h",
+      "lib/ClockAgent/ClockAgent.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T21:12:17.700Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/CloudUpload.cpp",
+      "",
+      "## Open tabs:",
+      "- CloudUpload.cpp: lib/WifiManager/CloudUpload.cpp",
+      "- platformio.ini: platformio.ini",
+      "- custom_sdkconfig: custom_sdkconfig",
+      "- sdkconfig.defaults: sdkconfig.defaults",
+      "- WifiApModeView.cpp: lib/FlyGuiViews/WifiApModeView.cpp",
+      "",
+      "## My request for Codex:",
+      "you are free to build again, I did and got",
+      "",
+      "```",
+      "lib/WifiManager/CloudUpload.cpp: In function 'bool {anonymous}::configure_secure_client(WiFiClientSecure&, uint32_t, char*, size_t)':",
+      "lib/WifiManager/CloudUpload.cpp:470:27: error: no matching function for call to 'NetworkClientSecure::setCACertBundle(const uint8_t [])'",
+      "  470 |     client.setCACertBundle(x509_crt_bundle_start);",
+      "      |     ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~",
+      "In file included from C:/Users/frank/.platformio/packages/framework-arduinoespressif32-src-77c8e93767360b28deee4aedf5d0a1ab/libraries/NetworkClientSecure/src/WiFiClientSecure.h:2,",
+      "                 from lib/WifiManager/CloudUpload.cpp:7:",
+      "C:/Users/frank/.platformio/packages/framework-arduinoespressif32-src-77c8e93767360b28deee4aedf5d0a1ab/libraries/NetworkClientSecure/src/NetworkClientSecure.h:76:8: note: candidate: 'void NetworkClientSecure::setCACertBundle(const uint8_t*, size_t)'",
+      "   76 |   void setCACertBundle(const uint8_t *bundle, size_t size);",
+      "      |        ^~~~~~~~~~~~~~~",
+      "C:/Users/frank/.platformio/packages/framework-arduinoespressif32-src-77c8e93767360b28deee4aedf5d0a1ab/libraries/NetworkClientSecure/src/NetworkClientSecure.h:76:8: note:   candidate expects 2 arguments, 1 provided",
+      "*** [.pio\\build\\thefly_sec0\\lib543\\WifiManager\\CloudUpload.cpp.o] Error 1",
+      "```"
+    ],
+    "agent_reply": [
+      "Fixed that compile error.",
+      "",
+      "`NetworkClientSecure::setCACertBundle()` in this core needs both the bundle pointer and size, so I added the generated `_binary_x509_crt_bundle_end` symbol and now call:",
+      "",
+      "```cpp",
+      "client.setCACertBundle(x509_crt_bundle_start,",
+      "                       static_cast<size_t>(x509_crt_bundle_end - x509_crt_bundle_start));",
+      "```",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes successfully. The build also repackaged web assets into `inc/web_assets.h`.",
+      "",
+      "Fixed that compile error.",
+      "",
+      "`NetworkClientSecure::setCACertBundle()` in this core needs both the bundle pointer and size, so I added the generated `_binary_x509_crt_bundle_end` symbol and now call:",
+      "",
+      "```cpp",
+      "client.setCACertBundle(x509_crt_bundle_start,",
+      "                       static_cast<size_t>(x509_crt_bundle_end - x509_crt_bundle_start));",
+      "```",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes successfully. The build also repackaged web assets into `inc/web_assets.h`."
+    ],
+    "files": [
+      "lib/WifiManager/CloudUpload.cpp",
+      "inc/web_assets.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T21:19:11Z",
+    "type": "git_commit",
+    "commit_message": "HTTPS cloud upload",
+    "commit_hash": "b1666ed641f04db9ed2dcef198f85144bad52595"
+  },
+  {
+    "timestamp": "2026-05-26T21:32:30Z",
+    "type": "git_commit",
+    "commit_message": "Update CloudUpload.cpp",
+    "commit_hash": "9d48d3bb4669beb7790bb5dc5226f5a2baae535a"
+  }
+]

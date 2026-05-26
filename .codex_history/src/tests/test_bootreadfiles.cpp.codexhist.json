@@ -1,0 +1,170 @@
+[
+  {
+    "timestamp": "2026-05-18T18:51:39.104Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_bootreadfiles.cpp",
+      "",
+      "## Active selection of the file:",
+      "void test_bootreadfiles()",
+      "## Open tabs:",
+      "- test_bootreadfiles.cpp: src/tests/test_bootreadfiles.cpp",
+      "- all_tests.cpp: src/tests/all_tests.cpp",
+      "- all_tests.h: src/tests/all_tests.h",
+      "- test_imu.cpp: src/tests/test_imu.cpp",
+      "- all_init.cpp: src/all_init.cpp",
+      "",
+      "## My request for Codex:",
+      "implement `void test_bootreadfiles()`, initialize the serial port, then initialize both `WifiManager` and `BtHostList` and have them load the JSON files, they should have an internal summary reporting feature, I just want a test function to show those outputs. Then `idle_forever`"
+    ],
+    "agent_reply": [
+      "Implemented `test_bootreadfiles()` in [src/tests/test_bootreadfiles.cpp](c:/GitHubRepos/The-Fly/src/tests/test_bootreadfiles.cpp:1).",
+      "",
+      "It now starts Serial, initializes M5 just enough for board support while leaving mic/speaker off, starts `MicroSdCard`, loads `wifi.json` through `WifiManager`, loads `bluetooth.json` through `BtHostList`, prints their public load summaries/results, then calls `idle_forever()`.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "src/tests/test_bootreadfiles.cpp",
+      "wifi.json",
+      "bluetooth.json"
+    ]
+  },
+  {
+    "timestamp": "2026-05-18T21:34:19.294Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.h",
+      "",
+      "## Active selection of the file:",
+      "wifi_item_t",
+      "## Open tabs:",
+      "- WifiManager.h: lib/WifiManager/WifiManager.h",
+      "- test_bootreadfiles.cpp: src/tests/test_bootreadfiles.cpp",
+      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
+      "- platformio.ini: platformio.ini",
+      "- all_tests.cpp: src/tests/all_tests.cpp",
+      "",
+      "## My request for Codex:",
+      "`test_bootreadfiles` function `report_wifi_summary` should provide as much data as it possibly can, print every field available from the `wifi_item_t` and `cloud_item_t` structures"
+    ],
+    "agent_reply": [
+      "Updated [src/tests/test_bootreadfiles.cpp](c:/GitHubRepos/The-Fly/src/tests/test_bootreadfiles.cpp:1).",
+      "",
+      "`report_wifi_summary()` now prints:",
+      "- Top-level `WifiManager` load result, counts, timezone.",
+      "- Every NTP server.",
+      "- Every `wifi_item_t` in stations:",
+      "  - `ssid`",
+      "  - `password`",
+      "  - `icon`",
+      "  - `next_node`",
+      "- Every `wifi_item_t` in access points with the same fields.",
+      "- Every `cloud_item_t`:",
+      "  - `name`",
+      "  - `url`",
+      "  - `password`",
+      "  - `icon`",
+      "  - `next_node`",
+      "",
+      "Also fixed the local timestamp format strings from `%ul` to `%lu`.",
+      "",
+      "Build passed with `pio run -e thefly`.",
+      "",
+      "Updated [src/tests/test_bootreadfiles.cpp](c:/GitHubRepos/The-Fly/src/tests/test_bootreadfiles.cpp:1).",
+      "",
+      "`report_wifi_summary()` now prints:",
+      "- Top-level `WifiManager` load result, counts, timezone.",
+      "- Every NTP server.",
+      "- Every `wifi_item_t` in stations:",
+      "  - `ssid`",
+      "  - `password`",
+      "  - `icon`",
+      "  - `next_node`",
+      "- Every `wifi_item_t` in access points with the same fields.",
+      "- Every `cloud_item_t`:",
+      "  - `name`",
+      "  - `url`",
+      "  - `password`",
+      "  - `icon`",
+      "  - `next_node`",
+      "",
+      "Also fixed the local timestamp format strings from `%ul` to `%lu`.",
+      "",
+      "Build passed with `pio run -e thefly`."
+    ],
+    "files": [
+      "src/tests/test_bootreadfiles.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-18T21:55:35.966Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## Open tabs:",
+      "- platformio.ini: platformio.ini",
+      "- BtHostList.h: lib/BluetoothManager/BtHostList.h",
+      "- test_bootreadfiles.cpp: src/tests/test_bootreadfiles.cpp",
+      "- WifiManager.h: lib/WifiManager/WifiManager.h",
+      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## My request for Codex:",
+      "(the internet just went out, if you are confused about any interrupted queries)",
+      "",
+      "change `report_bt_summary` so that it reports every `bt_host_item_t`"
+    ],
+    "agent_reply": [
+      "Updated `report_bt_summary()` in [src/tests/test_bootreadfiles.cpp](c:/GitHubRepos/The-Fly/src/tests/test_bootreadfiles.cpp:1).",
+      "",
+      "It now prints every `bt_host_item_t` field:",
+      "- `bdaddr` as `XX:XX:XX:XX:XX:XX`",
+      "- `name`",
+      "- `bonded`",
+      "- `icon`",
+      "- `next_node`",
+      "",
+      "Verified with `pio run -e thefly`; build passed."
+    ],
+    "files": [
+      "src/tests/test_bootreadfiles.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-18T22:48:44Z",
+    "type": "git_commit",
+    "commit_message": "test the json file loading",
+    "commit_hash": "18a60860b26e8891ff7f6d0e4dfd895368b81151"
+  },
+  {
+    "timestamp": "2026-05-23T09:06:27Z",
+    "type": "git_commit",
+    "commit_message": "tested SD card with encryption",
+    "commit_hash": "aa5a8d695449da500eedafc4b596671f4ac49351"
+  },
+  {
+    "timestamp": "2026-05-24T08:12:26Z",
+    "type": "git_commit",
+    "commit_message": "web server related major work",
+    "commit_hash": "5347b8785e4501a28ac8abae3f67111dfb8fe246"
+  },
+  {
+    "timestamp": "2026-05-26T02:07:37Z",
+    "type": "git_commit",
+    "commit_message": "clean up for security levels",
+    "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
+  }
+]

@@ -1,0 +1,64 @@
+[
+  {
+    "timestamp": "2026-05-04T21:24:36.775Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/ActiveRecordingView.h",
+      "",
+      "## Open tabs:",
+      "- ActiveRecordingView.h: lib/FlyGuiViews/ActiveRecordingView.h",
+      "- ActiveRecordingView.cpp: lib/FlyGuiViews/ActiveRecordingView.cpp",
+      "- AudioFifo.h: lib/AudioFifo/AudioFifo.h",
+      "- platformio.ini: platformio.ini",
+      "- bt_pairing_demo.cpp: src/bt_pairing_demo.cpp",
+      "",
+      "## My request for Codex:",
+      "Add a new view to `lib\\FlyGuiViews` called `SplashView`",
+      "",
+      "It is optionally the first view that is shown.",
+      "",
+      "It loads `splash.png` from the internal LittleFS. It is a full screen 320x240 image. It writes it to screen. Then add a placeholder with a short delay, then hand off to `MainScreenView`"
+    ],
+    "agent_reply": [
+      "Added `SplashView` in [lib/FlyGuiViews/SplashView.h](c:/GitHubRepos/The-Fly/lib/FlyGuiViews/SplashView.h) and [lib/FlyGuiViews/SplashView.cpp](c:/GitHubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp).",
+      "",
+      "It uses new `FLYGUI_VIEW_SPLASH = 0`, streams `/splash.png` from LittleFS to the full `320x240` display, waits `800ms`, then hands off to `FLYGUI_VIEW_MAIN`. If the image or filesystem load fails, it clears to black before handing off.",
+      "",
+      "I couldn’t run a PlatformIO build because neither `pio` nor `python -m platformio` is available in this shell."
+    ],
+    "files": [
+      "main.cpp",
+      "SplashView.h",
+      "splash.png",
+      "lib/FlyGuiViews/SplashView.h",
+      "lib/FlyGuiViews/SplashView.cpp",
+      "lib/FlyGui/FlyGui.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-04T22:18:38Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
+  },
+  {
+    "timestamp": "2026-05-19T09:44:16Z",
+    "type": "git_commit",
+    "commit_message": "cleaned up display as param",
+    "commit_hash": "44c732408fa59c62aa9a1734f91a61315fcfe7ed"
+  },
+  {
+    "timestamp": "2026-05-21T08:00:40Z",
+    "type": "git_commit",
+    "commit_message": "graphics revamp normalize to 100x100 imgs",
+    "commit_hash": "b1a1cbe13a47ccf6843b479b02dce075402a8028"
+  },
+  {
+    "timestamp": "2026-05-26T04:16:57Z",
+    "type": "git_commit",
+    "commit_message": "better splashview",
+    "commit_hash": "5d6e3cd59cf0a071c90542106fc384b1e1e8eab2"
+  }
+]

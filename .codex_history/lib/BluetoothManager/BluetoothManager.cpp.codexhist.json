@@ -1,0 +1,294 @@
+[
+  {
+    "timestamp": "2026-05-04T07:46:20Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "0065bdba2a9c72d3ebef8982804023dd796267c9"
+  },
+  {
+    "timestamp": "2026-05-04T08:21:58Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "dcdf504ad0b634fb1b6629ede78526be42cdf96e"
+  },
+  {
+    "timestamp": "2026-05-05T18:55:00.172Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/MicroSdCard/MicroSdCard.h",
+      "",
+      "## Open tabs:",
+      "- MicroSdCard.h: lib/MicroSdCard/MicroSdCard.h",
+      "- MicroSdCard.cpp: lib/MicroSdCard/MicroSdCard.cpp",
+      "- SdCard.cpp: lib/MicroSdCard/SdCard.cpp",
+      "- SdCard.cpp: lib/SdCard/SdCard.cpp",
+      "- SdCard.h: lib/SdCard/SdCard.h",
+      "",
+      "## My request for Codex:",
+      "fix `lib/BluetoothManager/BluetoothManager.cpp:40:46: error: array must be initialized with a brace-enclosed initializer`, where it says `char g_legacy_pin[kLegacyPinMaxLength + 1] = kLegacyPin;`"
+    ],
+    "agent_reply": [
+      "Fixed the Bluetooth initializer:",
+      "",
+      "```cpp",
+      "char g_legacy_pin[kLegacyPinMaxLength + 1] = { '0', '0', '0', '0', '\\0' };",
+      "```",
+      "",
+      "I also fixed the stale SD wrapper includes after the folder/header rename to `MicroSdCard`.",
+      "",
+      "Updated:",
+      "- [BluetoothManager.cpp](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:40)",
+      "- [MicroSdCard.cpp](C:/GitHubRepos/The-Fly/lib/MicroSdCard/MicroSdCard.cpp:1)",
+      "- [mic_sd_recorder_demo.cpp](C:/GitHubRepos/The-Fly/src/mic_sd_recorder_demo.cpp:9)",
+      "- [AudioFileRecorder.cpp](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:9)",
+      "- [MostRecentFiles.cpp](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/MostRecentFiles.cpp:5)",
+      "- [FlyGui.cpp](C:/GitHubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:5)",
+      "",
+      "Verification: `pio run` now succeeds.",
+      "",
+      "Fixed the Bluetooth initializer:",
+      "",
+      "```cpp",
+      "char g_legacy_pin[kLegacyPinMaxLength + 1] = { '0', '0', '0', '0', '\\0' };",
+      "```",
+      "",
+      "I also fixed the stale SD wrapper includes after the folder/header rename to `MicroSdCard`.",
+      "",
+      "Updated:",
+      "- [BluetoothManager.cpp](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:40)",
+      "- [MicroSdCard.cpp](C:/GitHubRepos/The-Fly/lib/MicroSdCard/MicroSdCard.cpp:1)",
+      "- [mic_sd_recorder_demo.cpp](C:/GitHubRepos/The-Fly/src/mic_sd_recorder_demo.cpp:9)",
+      "- [AudioFileRecorder.cpp](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:9)",
+      "- [MostRecentFiles.cpp](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/MostRecentFiles.cpp:5)",
+      "- [FlyGui.cpp](C:/GitHubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:5)",
+      "",
+      "Verification: `pio run` now succeeds."
+    ],
+    "files": [
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "mic_sd_recorder_demo.cpp",
+      "SdCard.h",
+      "lib/AudioFileRecorder/MostRecentFiles.cpp",
+      "lib/FlyGui/FlyGui.cpp",
+      "lib/MicroSdCard/MicroSdCard.cpp",
+      "src/mic_sd_recorder_demo.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-05T19:02:58.890Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BluetoothManager/BluetoothManager.h",
+      "",
+      "## Open tabs:",
+      "- BluetoothManager.h: lib/BluetoothManager/BluetoothManager.h",
+      "- MicroSdCard.cpp: lib/MicroSdCard/MicroSdCard.cpp",
+      "- MicroSdCard.h: lib/MicroSdCard/MicroSdCard.h",
+      "- SdCard.cpp: lib/MicroSdCard/SdCard.cpp",
+      "- SdCard.cpp: lib/SdCard/SdCard.cpp",
+      "",
+      "## My request for Codex:",
+      "Inside BtManager, add a convenience function that generates a 4 digit pin by taking the last 2 bytes of the MAC and then modulo it against 10000. Avoid a all 0000 result. Make sure there's a getter function so this result can be shown by the GUI later"
+    ],
+    "agent_reply": [
+      "Added the BtManager convenience API:",
+      "",
+      "- `bool BtManager::generateLegacyPinFromMac()`",
+      "- `const char* BtManager::generatedLegacyPin()`",
+      "",
+      "Behavior:",
+      "- Reads the BT MAC with `esp_read_mac(..., ESP_MAC_BT)`.",
+      "- Takes the last 2 bytes as a `uint16_t`.",
+      "- Computes `value % 10000`.",
+      "- Converts to a zero-padded 4 digit string.",
+      "- Avoids `0000` by changing zero to `0001`.",
+      "- Caches the result for GUI display.",
+      "- Also sets it as the active legacy pairing PIN.",
+      "",
+      "Updated:",
+      "- [BluetoothManager.h](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.h)",
+      "- [BluetoothManager.cpp](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp)",
+      "",
+      "Verification: `pio run` succeeds.",
+      "",
+      "Added the BtManager convenience API:",
+      "",
+      "- `bool BtManager::generateLegacyPinFromMac()`",
+      "- `const char* BtManager::generatedLegacyPin()`",
+      "",
+      "Behavior:",
+      "- Reads the BT MAC with `esp_read_mac(..., ESP_MAC_BT)`.",
+      "- Takes the last 2 bytes as a `uint16_t`.",
+      "- Computes `value % 10000`.",
+      "- Converts to a zero-padded 4 digit string.",
+      "- Avoids `0000` by changing zero to `0001`.",
+      "- Caches the result for GUI display.",
+      "- Also sets it as the active legacy pairing PIN.",
+      "",
+      "Updated:",
+      "- [BluetoothManager.h](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.h)",
+      "- [BluetoothManager.cpp](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp)",
+      "",
+      "Verification: `pio run` succeeds."
+    ],
+    "files": [
+      "lib/BluetoothManager/BluetoothManager.h",
+      "lib/BluetoothManager/BluetoothManager.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-05T21:16:39Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "6a8e6bd8033b3bb6a02c82981bb3ec72f49fac02"
+  },
+  {
+    "timestamp": "2026-05-11T01:02:24Z",
+    "type": "git_commit",
+    "commit_message": "default bt to non-discoverable",
+    "commit_hash": "848364986cca7a8000fb772fff07185e716a8334"
+  },
+  {
+    "timestamp": "2026-05-15T09:33:58Z",
+    "type": "git_commit",
+    "commit_message": "bluetooth actually works now",
+    "commit_hash": "c18fece1e916f4b71893eceaafe1c096e227e050"
+  },
+  {
+    "timestamp": "2026-05-16T08:46:51Z",
+    "type": "git_commit",
+    "commit_message": "speakerphone test works, it did involve editing the esp-idf config and building the library in the back",
+    "commit_hash": "0fb9d76750530a27bc80183add0ccf3c26959ed3"
+  },
+  {
+    "timestamp": "2026-05-16T10:26:31Z",
+    "type": "git_commit",
+    "commit_message": "outgoing audio works",
+    "commit_hash": "f8f3fdf74e476147651004e4bd8d6998a606ee7b"
+  },
+  {
+    "timestamp": "2026-05-17T03:32:00Z",
+    "type": "git_commit",
+    "commit_message": "bt host list manager",
+    "commit_hash": "385fed95153b1bfef78346d7d917de8b924f231d"
+  },
+  {
+    "timestamp": "2026-05-18T06:48:14Z",
+    "type": "git_commit",
+    "commit_message": "change bluetooth init behavior to be connectable",
+    "commit_hash": "c413b9460ff7cad507efe70c6364120b3b62ea0b"
+  },
+  {
+    "timestamp": "2026-05-20T07:17:21Z",
+    "type": "git_commit",
+    "commit_message": "massive progress with RecordingView",
+    "commit_hash": "1c4305479f888bd2dc55b13c27a109f8c8dc6cd7"
+  },
+  {
+    "timestamp": "2026-05-20T17:55:54.250Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "",
+      "## Active selection of the file:",
+      "SCROLL_ITEM_WIFI_SHOW_SELF_INFO",
+      "## Open tabs:",
+      "- ScrollView.cpp: lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "- ScrollItem.cpp: lib/FlyGuiViews/ScrollView/ScrollItem.cpp",
+      "- ModalDialog.h: lib/FlyGuiViews/ModalDialog.h",
+      "- FlyGui.h: lib/FlyGui/FlyGui.h",
+      "- ModalDialog.cpp: lib/FlyGuiViews/ModalDialog.cpp",
+      "",
+      "## My request for Codex:",
+      "`ScrollView` and `ScrollItem` has some entries that are \"show self info\" for bluetooth and wifi",
+      "",
+      "these should launch into `ModalDialog` with sprite `sprit_info_100` to display some text. For bluetooth, it lists the device's bdaddr and bt name. For the Wi-Fi self info, it shows the SSID, the IP of our device, and only for AP, show the password.",
+      "",
+      "ModalDialog returns to the list when dismissed",
+      ""
+    ],
+    "agent_reply": [
+      "Implemented the Bluetooth/Wi-Fi self-info actions.",
+      "",
+      "Changed:",
+      "- [main.cpp](C:/GitHubRepos/The-Fly/src/main.cpp:1)",
+      "- [BluetoothManager.h](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.h:1)",
+      "- [BluetoothManager.cpp](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:1)",
+      "- [WifiManager.h](C:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.h:1)",
+      "- [WifiManager.cpp](C:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1)",
+      "",
+      "Behavior:",
+      "- Bluetooth info item opens `ModalDialog` with `sprit_info_100`.",
+      "- Bluetooth modal shows local BT name and BDADDR.",
+      "- Wi-Fi info item opens `ModalDialog` with `sprit_info_100`.",
+      "- Wi-Fi modal shows SSID and local IP.",
+      "- If Wi-Fi is in AP mode, it also shows the AP password.",
+      "- Dismiss returns to `FLYGUI_VIEW_SCROLL`.",
+      "",
+      "I added small read-only getters so this doesn’t have to guess:",
+      "- `BtManager::localDeviceName()`",
+      "- `BtManager::localBdaddr(...)`",
+      "- `WifiManager::activeWifi()`",
+      "- `WifiManager::connectedWifi()`",
+      "",
+      "Verified with `pio run -e thefly_bringuptest`; build passed."
+    ],
+    "files": [
+      "lib/BluetoothManager/BluetoothManager.h",
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "lib/WifiManager/WifiManager.h",
+      "lib/WifiManager/WifiManager.cpp",
+      "main.cpp",
+      "src/main.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-20T19:02:28Z",
+    "type": "git_commit",
+    "commit_message": "good progress on GUI",
+    "commit_hash": "3d988cb62856bfbc633ccac6598e1ba741663eec"
+  },
+  {
+    "timestamp": "2026-05-21T02:56:49Z",
+    "type": "git_commit",
+    "commit_message": "more gui work, auto bt reconnect",
+    "commit_hash": "c002fb0767624f8362097c9328ec1d3f695a20db"
+  },
+  {
+    "timestamp": "2026-05-21T07:34:30Z",
+    "type": "git_commit",
+    "commit_message": "progress on bluetooth but cannot initiate connection, can handle incoming though",
+    "commit_hash": "e94d9d093825b8b6ff31e1ff98b191887cc736cc"
+  },
+  {
+    "timestamp": "2026-05-21T15:38:21Z",
+    "type": "git_commit",
+    "commit_message": [
+      "test build to try fixing dev initiated bt connection",
+      "",
+      "I made the next diagnostic change: BluetoothManager.cpp now initializes and returns closed Bluetooth state to ESP_BT_NON_CONNECTABLE / ESP_BT_NON_DISCOVERABLE, matching the old working code more closely. Pairing still opens discoverable mode.",
+      "",
+      "This is deliberately a test build: passive host-initiated connection while idle may not work in this version. The point is to test whether ESP32-initiated HFP starts working when HFP is initialized from the old non-connectable idle mode."
+    ],
+    "commit_hash": "2ca90bafab24f83246d8fc2b9b61af1b45ad7523"
+  },
+  {
+    "timestamp": "2026-05-24T08:12:26Z",
+    "type": "git_commit",
+    "commit_message": "web server related major work",
+    "commit_hash": "5347b8785e4501a28ac8abae3f67111dfb8fe246"
+  },
+  {
+    "timestamp": "2026-05-24T22:45:12Z",
+    "type": "git_commit",
+    "commit_message": "bt connectable during memo recortding",
+    "commit_hash": "3e542f23d6873064109f5ca94adc3193f8b4e692"
+  }
+]

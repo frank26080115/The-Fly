@@ -1,0 +1,90 @@
+[
+  {
+    "timestamp": "2026-05-03T07:14:11Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "37471f5d99727676ebcaee90085bb7e9b6cfa054"
+  },
+  {
+    "timestamp": "2026-05-03T07:20:50Z",
+    "type": "git_commit",
+    "commit_message": "ran clang-format",
+    "commit_hash": "3d9ea7744be0307aa3f036911a5433b7fb358ce2"
+  },
+  {
+    "timestamp": "2026-05-04T07:46:20Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "0065bdba2a9c72d3ebef8982804023dd796267c9"
+  },
+  {
+    "timestamp": "2026-05-19T08:07:31Z",
+    "type": "git_commit",
+    "commit_message": "good progress working on GUI but ran into memory problems with PNG decode",
+    "commit_hash": "ce293de5bfe655e8023945176b68c324355ad1de"
+  },
+  {
+    "timestamp": "2026-05-19T09:44:16Z",
+    "type": "git_commit",
+    "commit_message": "cleaned up display as param",
+    "commit_hash": "44c732408fa59c62aa9a1734f91a61315fcfe7ed"
+  },
+  {
+    "timestamp": "2026-05-20T19:58:19.550Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main.cpp",
+      "",
+      "## Open tabs:",
+      "- main.cpp: src/main.cpp",
+      "- utilfuncs.cpp: lib/UtilFuncs/utilfuncs.cpp",
+      "- utilfuncs.h: lib/UtilFuncs/utilfuncs.h",
+      "- DiskStats.h: lib/AudioFileRecorder/DiskStats.h",
+      "- DiskStats.cpp: lib/AudioFileRecorder/DiskStats.cpp",
+      "",
+      "## My request for Codex:",
+      "find me places where we are not using 1.0f"
+    ],
+    "agent_reply": [
+      "Places currently using non-`1.0f` text scaling:",
+      "",
+      "- [ConnWaitingView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/ConnWaitingView.cpp:164)  ",
+      "  `setTextSize(1.5f)`",
+      "",
+      "- [ErrorView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/ErrorView.cpp:15)  ",
+      "  `kTextSize = 1.5f`, used at line 70.",
+      "",
+      "- [ScrollView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:20)  ",
+      "  `kTextSize = 1.5f`, used at line 556.",
+      "",
+      "- [RecordingView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingView.cpp:34)  ",
+      "  `kTextSize = 2.0f`, used for duration and caller info.",
+      "",
+      "- [RecordingView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingView.cpp:35)  ",
+      "  `kFileTextSize = 1.5f`, used for filename text.",
+      "",
+      "Worth noting: [FlyGuiText.cpp](C:/GitHubRepos/The-Fly/lib/FlyGui/FlyGuiText.cpp:201) calls `setTextSize(fontSize_)`, so any `FlyGuiText` instance can be scaled indirectly. The top bar date/time uses `1.0f`; the RecordingView text instances are the non-`1.0f` ones I found."
+    ],
+    "files": [
+      "lib/FlyGuiViews/ConnWaitingView.cpp",
+      "lib/FlyGuiViews/ErrorView.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingView.cpp",
+      "lib/FlyGui/FlyGuiText.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-21T07:34:30Z",
+    "type": "git_commit",
+    "commit_message": "progress on bluetooth but cannot initiate connection, can handle incoming though",
+    "commit_hash": "e94d9d093825b8b6ff31e1ff98b191887cc736cc"
+  },
+  {
+    "timestamp": "2026-05-21T19:17:26Z",
+    "type": "git_commit",
+    "commit_message": "bt host delete, debug shown on top bar",
+    "commit_hash": "faf2c6341baa36a0f9941de6378b0a239fcfab7a"
+  }
+]

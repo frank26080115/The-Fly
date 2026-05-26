@@ -1,0 +1,238 @@
+[
+  {
+    "timestamp": "2026-05-17T03:32:00Z",
+    "type": "git_commit",
+    "commit_message": "bt host list manager",
+    "commit_hash": "385fed95153b1bfef78346d7d917de8b924f231d"
+  },
+  {
+    "timestamp": "2026-05-18T16:37:53.966Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BluetoothManager/BtHostList.h",
+      "",
+      "## Open tabs:",
+      "- BtHostList.h: lib/BluetoothManager/BtHostList.h",
+      "- BtHostList.cpp: lib/BluetoothManager/BtHostList.cpp",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- test_btspeakerphone.cpp: src/tests/test_btspeakerphone.cpp",
+      "- test_micrec.cpp: src/tests/test_micrec.cpp",
+      "",
+      "## My request for Codex:",
+      "to `lib\\BluetoothManager\\BtHostList.cpp` add a publically available `pruneBonds` method, if a bdaddr doesn't exist in the linked list (and by extension, doesn't exist in the JSON), then delete the bond from nvs"
+    ],
+    "agent_reply": "",
+    "files": [
+      "lib/BluetoothManager/BtHostList.h",
+      "lib/BluetoothManager/BtHostList.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-18T22:48:01Z",
+    "type": "git_commit",
+    "commit_message": "bthostlist prune bonds",
+    "commit_hash": "564196f58ea56b0eb555a32dc86a6f8e3054d980"
+  },
+  {
+    "timestamp": "2026-05-19T17:23:51.007Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BluetoothManager/BtHostList.cpp",
+      "",
+      "## Open tabs:",
+      "- BtHostList.cpp: lib/BluetoothManager/BtHostList.cpp",
+      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
+      "- ErrorView.cpp: lib/FlyGuiViews/ErrorView.cpp",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- defs.h: inc/defs.h",
+      "",
+      "## My request for Codex:",
+      "add to `lib\\BluetoothManager\\BtHostList.cpp` public methods for \"getFirstPhone\" and \"getFirstLaptop\", by using the icons, returning null if none exist."
+    ],
+    "agent_reply": [
+      "Implemented in [BtHostList.h](c:/GitHubRepos/The-Fly/lib/BluetoothManager/BtHostList.h:48) and [BtHostList.cpp](c:/GitHubRepos/The-Fly/lib/BluetoothManager/BtHostList.cpp:103).",
+      "",
+      "Added public methods:",
+      "",
+      "```cpp",
+      "bt_host_item_t* getFirstPhone();",
+      "const bt_host_item_t* getFirstPhone() const;",
+      "bt_host_item_t* getFirstLaptop();",
+      "const bt_host_item_t* getFirstLaptop() const;",
+      "```",
+      "",
+      "They return the first host whose `icon` is `ICON_PHONE` or `ICON_LAPTOP`, otherwise `nullptr`.",
+      "",
+      "I attempted a PlatformIO build, but it ran past the 5-minute timeout and left compiler processes running, so I cleaned those up. No completed build result this time.",
+      "",
+      "Implemented in [BtHostList.h](c:/GitHubRepos/The-Fly/lib/BluetoothManager/BtHostList.h:48) and [BtHostList.cpp](c:/GitHubRepos/The-Fly/lib/BluetoothManager/BtHostList.cpp:103).",
+      "",
+      "Added public methods:",
+      "",
+      "```cpp",
+      "bt_host_item_t* getFirstPhone();",
+      "const bt_host_item_t* getFirstPhone() const;",
+      "bt_host_item_t* getFirstLaptop();",
+      "const bt_host_item_t* getFirstLaptop() const;",
+      "```",
+      "",
+      "They return the first host whose `icon` is `ICON_PHONE` or `ICON_LAPTOP`, otherwise `nullptr`.",
+      "",
+      "I attempted a PlatformIO build, but it ran past the 5-minute timeout and left compiler processes running, so I cleaned those up. No completed build result this time."
+    ],
+    "files": [
+      "lib/BluetoothManager/BtHostList.h",
+      "lib/BluetoothManager/BtHostList.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-19T19:25:52.776Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## Open tabs:",
+      "- platformio.ini: platformio.ini",
+      "- FlyGui.cpp: lib/FlyGui/FlyGui.cpp",
+      "- SpriteDraw.cpp: lib/SpriteDraw/SpriteDraw.cpp",
+      "- BtHostList.cpp: lib/BluetoothManager/BtHostList.cpp",
+      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
+      "",
+      "## My request for Codex:",
+      "I can accept that but it looks like there's a lot of redundant code, make it so that there's only one find_host_by_icon and all the getters just cast the return from that correctly"
+    ],
+    "agent_reply": [
+      "Cleaned it up in [BtHostList.cpp](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BtHostList.cpp:105).",
+      "",
+      "There is now only one `find_host_by_icon`, returning `const bt_host_item_t*`. The mutable getters use `const_cast` on that return, while the const getters return it directly.",
+      "",
+      "Verified with `pio run -e thefly_bringuptest`, build passes.",
+      "",
+      "Cleaned it up in [BtHostList.cpp](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BtHostList.cpp:105).",
+      "",
+      "There is now only one `find_host_by_icon`, returning `const bt_host_item_t*`. The mutable getters use `const_cast` on that return, while the const getters return it directly.",
+      "",
+      "Verified with `pio run -e thefly_bringuptest`, build passes."
+    ],
+    "files": [
+      "lib/BluetoothManager/BtHostList.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-19T19:27:51Z",
+    "type": "git_commit",
+    "commit_message": "quick check for default phone and laptop",
+    "commit_hash": "b54a896764280e257e18ab3d3b52a7c1e4940f72"
+  },
+  {
+    "timestamp": "2026-05-21T19:17:26Z",
+    "type": "git_commit",
+    "commit_message": "bt host delete, debug shown on top bar",
+    "commit_hash": "faf2c6341baa36a0f9941de6378b0a239fcfab7a"
+  },
+  {
+    "timestamp": "2026-05-22T17:53:27.418Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BluetoothManager/BtHostList.cpp",
+      "",
+      "## Open tabs:",
+      "- BtHostList.cpp: lib/BluetoothManager/BtHostList.cpp",
+      "- utilfuncs.cpp: lib/UtilFuncs/utilfuncs.cpp",
+      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- SpriteDraw.cpp: lib/SpriteDraw/SpriteDraw.cpp",
+      "",
+      "## My request for Codex:",
+      "the function `clone_string` seem to appear twice in differen namespaces, move them both to `lib\\UtilFuncs\\utilfuncs.cpp`",
+      "",
+      "`const char* result_name(` is used twice and the `result_name` name isn't very descriptive, rename both to `load_result_tostring`"
+    ],
+    "agent_reply": [
+      "Moved `clone_string` into `UtilFuncs` and exposed it in [utilfuncs.h](c:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.h:31), with the implementation in [utilfuncs.cpp](c:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.cpp:140). The private copies were removed from `BtHostList` and `WifiManager`, which already include `utilfuncs.h`.",
+      "",
+      "Renamed both load-result helpers from `result_name` to `load_result_tostring` and updated their callers:",
+      "- [BtHostList.cpp](c:/GitHubRepos/The-Fly/lib/BluetoothManager/BtHostList.cpp:23)",
+      "- [WifiManager.cpp](c:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:44)",
+      "",
+      "Verification:",
+      "- Searched for stale `result_name` definitions/calls and duplicate `clone_string` definitions; only the shared utility definition remains.",
+      "- Attempted `pio run` twice. Both PlatformIO runs timed out without compiler output after roughly 2 minutes and 6 minutes, so I stopped the build processes they left running.",
+      "",
+      "There were already unrelated worktree changes in `lib/AudioFileRecorder/AudioFileRecorder.cpp`, `src/version.c`, and existing edits in `BtHostList.cpp`; I left those intact.",
+      "",
+      "Moved `clone_string` into `UtilFuncs` and exposed it in [utilfuncs.h](c:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.h:31), with the implementation in [utilfuncs.cpp](c:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.cpp:140). The private copies were removed from `BtHostList` and `WifiManager`, which already include `utilfuncs.h`.",
+      "",
+      "Renamed both load-result helpers from `result_name` to `load_result_tostring` and updated their callers:",
+      "- [BtHostList.cpp](c:/GitHubRepos/The-Fly/lib/BluetoothManager/BtHostList.cpp:23)",
+      "- [WifiManager.cpp](c:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:44)",
+      "",
+      "Verification:",
+      "- Searched for stale `result_name` definitions/calls and duplicate `clone_string` definitions; only the shared utility definition remains.",
+      "- Attempted `pio run` twice. Both PlatformIO runs timed out without compiler output after roughly 2 minutes and 6 minutes, so I stopped the build processes they left running.",
+      "",
+      "There were already unrelated worktree changes in `lib/AudioFileRecorder/AudioFileRecorder.cpp`, `src/version.c`, and existing edits in `BtHostList.cpp`; I left those intact."
+    ],
+    "files": [
+      "BtHostList.cpp",
+      "WifiManager.cpp",
+      "lib/BluetoothManager/BtHostList.cpp",
+      "lib/UtilFuncs/utilfuncs.h",
+      "lib/UtilFuncs/utilfuncs.cpp",
+      "lib/WifiManager/WifiManager.cpp",
+      "utilfuncs.h",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-05-22T20:49:03Z",
+    "type": "git_commit",
+    "commit_message": "minor clean up",
+    "commit_hash": "86e23c1b9957c5fa15698d202e381e533889d055"
+  },
+  {
+    "timestamp": "2026-05-23T05:27:47Z",
+    "type": "git_commit",
+    "commit_message": "prepping for adding NVS config store",
+    "commit_hash": "a662d2ecc3e4763fd97b574d5e9200e6ac7ec6c3"
+  },
+  {
+    "timestamp": "2026-05-23T09:06:27Z",
+    "type": "git_commit",
+    "commit_message": "tested SD card with encryption",
+    "commit_hash": "aa5a8d695449da500eedafc4b596671f4ac49351"
+  },
+  {
+    "timestamp": "2026-05-24T00:09:46Z",
+    "type": "git_commit",
+    "commit_message": "added \"set_cfg\" request handler",
+    "commit_hash": "976c60f0ec74e8d902b255cd244c33b17b1f0771"
+  },
+  {
+    "timestamp": "2026-05-24T08:12:26Z",
+    "type": "git_commit",
+    "commit_message": "web server related major work",
+    "commit_hash": "5347b8785e4501a28ac8abae3f67111dfb8fe246"
+  },
+  {
+    "timestamp": "2026-05-25T03:26:11Z",
+    "type": "git_commit",
+    "commit_message": "I'm checking in this state before tearing it all down",
+    "commit_hash": "335274e4557167c4d8346db9a0eb5ce8adc4b329"
+  },
+  {
+    "timestamp": "2026-05-26T02:07:37Z",
+    "type": "git_commit",
+    "commit_message": "clean up for security levels",
+    "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
+  }
+]

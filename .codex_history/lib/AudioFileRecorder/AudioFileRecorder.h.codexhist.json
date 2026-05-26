@@ -1,0 +1,389 @@
+[
+  {
+    "timestamp": "2026-05-03T07:14:11Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "37471f5d99727676ebcaee90085bb7e9b6cfa054"
+  },
+  {
+    "timestamp": "2026-05-03T07:20:50Z",
+    "type": "git_commit",
+    "commit_message": "ran clang-format",
+    "commit_hash": "3d9ea7744be0307aa3f036911a5433b7fb358ce2"
+  },
+  {
+    "timestamp": "2026-05-04T22:00:36.167Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGui/FlyGui.cpp",
+      "",
+      "## Open tabs:",
+      "- FlyGui.cpp: lib/FlyGui/FlyGui.cpp",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- ActiveRecordingView.h: lib/FlyGuiViews/ActiveRecordingView.h",
+      "- ActiveRecordingView.cpp: lib/FlyGuiViews/ActiveRecordingView.cpp",
+      "- AudioFifo.h: lib/AudioFifo/AudioFifo.h",
+      "",
+      "## My request for Codex:",
+      "I want a project wide removal of SD and we are changing to using SdFat instead. VFS paths are not important. What is important is that the files being created have actual creation time stamp file attributes so we can sort them later."
+    ],
+    "agent_reply": [
+      "Implemented the project-wide SD to SdFat move.",
+      "",
+      "Changed:",
+      "- Added shared SdFat wrapper: [SdCard.h](c:/GitHubRepos/The-Fly/lib/SdCard/SdCard.h), [SdCard.cpp](c:/GitHubRepos/The-Fly/lib/SdCard/SdCard.cpp)",
+      "- Converted recorder to `FsFile`, SdFat open/write/preallocate/truncate: [AudioFileRecorder.cpp](c:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp), [AudioFileRecorder.h](c:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h)",
+      "- Updated GUI image SD fallback to use SdFat instead of Arduino `SD`: [FlyGui.cpp](c:/GitHubRepos/The-Fly/lib/FlyGui/FlyGui.cpp)",
+      "- Updated mic SD recorder demo: [mic_sd_recorder_demo.cpp](c:/GitHubRepos/The-Fly/src/mic_sd_recorder_demo.cpp)",
+      "- Added `greiman/SdFat @ 2.3.0`: [platformio.ini](c:/GitHubRepos/The-Fly/platformio.ini)",
+      "",
+      "Timestamp handling is now centralized through `FsDateTime::setCallback(...)`, using `ClockAgent` to populate FAT creation/sync timestamps via `FS_DATE` / `FS_TIME`. I also removed the VFS path API and POSIX `truncate()` usage; files are now truncated through `FsFile::truncate()` while still open.",
+      "",
+      "I verified there are no remaining `#include <SD.h>` or `SD.` references. I couldn’t run a PlatformIO build because `pio` is not installed/on PATH here, and `python -m platformio` is unavailable.",
+      "",
+      "References used for SdFat timestamp/preallocation behavior: [SdFat GitHub](https://github.com/greiman/SdFat), [SdFat timestamp callback notes](https://github-wiki-see.page/m/renesas/Arduino/wiki/How-to-set-timestamps-on-files-handled-by-SdFat)."
+    ],
+    "files": [
+      "lib/SdCard/SdCard.cpp",
+      "lib/SdCard/SdCard.h",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.h",
+      "src/mic_sd_recorder_demo.cpp",
+      "lib/FlyGui/FlyGui.cpp",
+      "platformio.ini",
+      "SD.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-04T22:18:38Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
+  },
+  {
+    "timestamp": "2026-05-07T00:37:28Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "c31536e76af6564fcf9e33fe1e79c3fef9bf8e36"
+  },
+  {
+    "timestamp": "2026-05-07T00:45:01.453Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "",
+      "## Active selection of the file:",
+      "AUDSRC_BT",
+      "## Open tabs:",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- AudioFifo.h: lib/AudioFifo/AudioFifo.h",
+      "- defs.h: inc/defs.h",
+      "- AudioFileRecorder.h: lib/AudioFileRecorder/AudioFileRecorder.h",
+      "- thefly_common.h: inc/thefly_common.h",
+      "",
+      "## My request for Codex:",
+      "in `lib\\AudioFileRecorder\\AudioFileRecorder.cpp` and `lib\\AudioFileRecorder\\AudioFileRecorder.h` only, replace `_bt_` with `_host_`, and any other similar places within this file (and the header file) only, but keep `AUDSRC_BT` as is."
+    ],
+    "agent_reply": [
+      "Done. In the two requested files only, I renamed the recorder’s BT FIFO naming to host naming:",
+      "",
+      "- `g_bt_fifo` -> `g_host_fifo`",
+      "- `btFifo` -> `hostFifo`",
+      "- `RecordingType::Bluetooth` -> `RecordingType::Host`",
+      "",
+      "I left `AUDSRC_BT` unchanged exactly as requested. I did a targeted search afterward; no `g_bt_fifo`, `btFifo`, or `Bluetooth` references remain in `AudioFileRecorder.cpp` / `.h`, and `AUDSRC_BT` is still present.",
+      "",
+      "Done. In the two requested files only, I renamed the recorder’s BT FIFO naming to host naming:",
+      "",
+      "- `g_bt_fifo` -> `g_host_fifo`",
+      "- `btFifo` -> `hostFifo`",
+      "- `RecordingType::Bluetooth` -> `RecordingType::Host`",
+      "",
+      "I left `AUDSRC_BT` unchanged exactly as requested. I did a targeted search afterward; no `g_bt_fifo`, `btFifo`, or `Bluetooth` references remain in `AudioFileRecorder.cpp` / `.h`, and `AUDSRC_BT` is still present."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.h",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "AudioFileRecorder.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-07T00:54:23Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "b3b772056c7834aba6a5a20ff399780150e87263"
+  },
+  {
+    "timestamp": "2026-05-14T17:30:12.151Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "",
+      "## Active selection of the file:",
+      "g_pure_pcm_mode",
+      "## Open tabs:",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- defs.h: inc/defs.h",
+      "- MicroSdCard.cpp: lib/MicroSdCard/MicroSdCard.cpp",
+      "- platformio.ini: platformio.ini",
+      "- SdFat.h: .pio/libdeps/theflybringuptest/SdFat/src/SdFat.h",
+      "",
+      "## My request for Codex:",
+      "edit `AudioFileRecorder::stopRecording()`, give it a boolean parameter called `estop`, if `etop` is true, flush and close the file immediately without pumping any more packets.",
+      "",
+      "also add a getter and setter for `g_pure_pcm_mode`"
+    ],
+    "agent_reply": [
+      "Implemented in [AudioFileRecorder.h](c:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h:35) and [AudioFileRecorder.cpp](c:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:270).",
+      "",
+      "Changes:",
+      "- `AudioFileRecorder::stopRecording(bool estop = false)` now accepts `estop`.",
+      "- When `estop` is `true`, it disables queues, skips the FIFO drain/pump loop, then flushes, truncates to `g_bytes_written`, and closes the file.",
+      "- Added `purePcmMode()` and `setPurePcmMode(bool enabled)` for `g_pure_pcm_mode`.",
+      "",
+      "Verified with `pio run`: build succeeded. There are unrelated existing warnings from dependencies and one existing packed-member warning in `AudioFileRecorder.cpp`."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.h",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "AudioFileRecorder.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-14T19:20:48.671Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "",
+      "## Active selection of the file:",
+      "// TODO: calculate the duration, add a mechanism to track average time (low pass filtered, publicly reports in floating point millisecond units), and maximum time (can be read and also reset from public calls)",
+      "## Open tabs:",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- test_sdcard.cpp: src/tests/test_sdcard.cpp",
+      "- thefly_audio_decoder.py: scripts/thefly_audio_decoder.py",
+      "- defs.h: inc/defs.h",
+      "- recording-file-format.md: developer-docs/recording-file-format.md",
+      "",
+      "## My request for Codex:",
+      "execute the highlighted TODO item"
+    ],
+    "agent_reply": [
+      "Implemented the TODO in `AudioFileRecorder`.",
+      "",
+      "Added timing stats around successful packet writes in [AudioFileRecorder.cpp](c:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:154):",
+      "- Low-pass filtered average write duration, alpha `0.05`",
+      "- Maximum write duration",
+      "- Duration measured with `micros()` using wrapping-safe unsigned subtraction",
+      "- Public reporting in floating point milliseconds",
+      "",
+      "New public API in [AudioFileRecorder.h](c:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h:40):",
+      "```cpp",
+      "float writeDurationAverageMs();",
+      "float writeDurationMaxMs();",
+      "void  resetWriteDurationStats();",
+      "```",
+      "",
+      "Verified with `pio run`: build succeeded. Existing packed-member warning remains in `AudioFileRecorder.cpp`."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.h",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "AudioFileRecorder.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-14T20:16:33Z",
+    "type": "git_commit",
+    "commit_message": "file recorder, statistics, pure pcm mode, no debugging",
+    "commit_hash": "f700a259e2b1bafa901b4516f9bf8a959f9cdb87"
+  },
+  {
+    "timestamp": "2026-05-15T22:50:30.400Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "",
+      "## Active selection of the file:",
+      "update_write_duration_stats",
+      "## Open tabs:",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- test_btspeakerphone.cpp: src/tests/test_btspeakerphone.cpp",
+      "- test_micrec.cpp: src/tests/test_micrec.cpp",
+      "- MicGainManager.cpp: lib/AudioManager/MicGainManager.cpp",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## My request for Codex:",
+      "modify `lib\\AudioFileRecorder\\AudioFileRecorder.cpp`, using `update_write_duration_stats`, have it remember the last time that the time exceeded 10ms.",
+      "",
+      "Have two flags, one for whether or not the last call to write_packet exceeded that time, and one that latches true if it has exceeded, and something else has to reset the flag to false. Have public getters and resetters for these. Have a public getter for that timestamp too",
+      "",
+      "At the start of `pump()`, if the last time the flush has happened was more than 2 seconds ago, call a `flush()` if the file is open"
+    ],
+    "agent_reply": [
+      "Implemented in [AudioFileRecorder.cpp](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:98) and exposed in [AudioFileRecorder.h](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h:40).",
+      "",
+      "What changed:",
+      "- `update_write_duration_stats()` now tracks writes over `10ms`.",
+      "- Added last-call exceeded flag, latched exceeded flag, resetters, and timestamp getter.",
+      "- `pump()` now calls a timed flush helper at the start when the open recording file has not been flushed for over `2s`.",
+      "- Flush timestamp is updated after `flush()` returns.",
+      "",
+      "New API:",
+      "- `writeDurationLastExceededThreshold()`",
+      "- `writeDurationExceededSinceReset()`",
+      "- `resetWriteDurationLastExceededThreshold()`",
+      "- `resetWriteDurationExceededSinceReset()`",
+      "- `writeDurationLastExceededTimestampMs()`",
+      "",
+      "Verified with `pio run`: build passed."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-15T22:59:32.269Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "",
+      "## Active selection of the file:",
+      "g_last_write_duration_exceeded_threshold",
+      "## Open tabs:",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- test_btspeakerphone.cpp: src/tests/test_btspeakerphone.cpp",
+      "- test_micrec.cpp: src/tests/test_micrec.cpp",
+      "- MicGainManager.cpp: lib/AudioManager/MicGainManager.cpp",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## My request for Codex:",
+      "change \"write_duration_exceeded\" to \"longwrite\"",
+      "",
+      "change \"WriteDurationLastExceededThreshold\" to \"LongWrite\""
+    ],
+    "agent_reply": [
+      "Renamed the long-write API and internals in [AudioFileRecorder.h](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h:40) and [AudioFileRecorder.cpp](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:98).",
+      "",
+      "New public names:",
+      "- `longWrite()`",
+      "- `longWriteSinceReset()`",
+      "- `resetLongWrite()`",
+      "- `resetLongWriteSinceReset()`",
+      "- `lastLongWriteTimestampMs()`",
+      "",
+      "Internal state now uses `longwrite` naming too, like `g_longwrite`, `g_longwrite_latched`, and `g_last_longwrite_ms`.",
+      "",
+      "Verified with `pio run`: build passed."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-15T23:03:38Z",
+    "type": "git_commit",
+    "commit_message": "file recorder track when cache was flushed, and autoflushes",
+    "commit_hash": "e3f4e8b22b42525c0d2c6bee3cc4503194c63eb0"
+  },
+  {
+    "timestamp": "2026-05-18T06:47:15Z",
+    "type": "git_commit",
+    "commit_message": "file history pruning",
+    "commit_hash": "64d2f662e58a3e34857f5e6cf80d869277f9a5d2"
+  },
+  {
+    "timestamp": "2026-05-18T23:00:00.926Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "",
+      "## Active selection of the file:",
+      "stopRecording",
+      "## Open tabs:",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- defs.h: inc/defs.h",
+      "- platformio.ini: platformio.ini",
+      "- m5unified_common.h: .pio/libdeps/thefly_bringuptest/M5Unified/src/utility/m5unified_common.h",
+      "- BtHostList.h: lib/BluetoothManager/BtHostList.h",
+      "",
+      "## My request for Codex:",
+      "I've added a special `AUDSRC_META_TEXT` type of audio source, what it represents is not audio at all. Instead, when the decoder script encounters this, `file_packet_t`'s `payload` is a string of text (`payload_length` will be the length of the string).",
+      "",
+      "This string of text is to be embedded in the output `.wav` file as a `INFO` `ICMT` chunk.",
+      "",
+      "`AudioFileRecorder` needs a public call that can queue up a string to be embedded into the stream. It doesn't have to be inserted immediately, it's perfectly fine to insert it during `stopRecording`. Make sure it's thread safe.",
+      "",
+      "Only one string can be queued, calls overwrite previously queued. The queue is cleared when the action is performed (saved to file).",
+      "",
+      "So modify `lib\\AudioFileRecorder\\AudioFileRecorder.cpp`, `lib\\AudioFileRecorder\\AudioFileRecorder.h`, and `scripts\\thefly_audio_decoder.py` to do this"
+    ],
+    "agent_reply": [
+      "Implemented the metadata text path end to end.",
+      "",
+      "Firmware changes:",
+      "- Added `AudioFileRecorder::queueMetaText(const char* text)` in [AudioFileRecorder.h](c:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h:40).",
+      "- Stores one queued string, thread-safe behind `g_recorder_mutex`.",
+      "- Calls overwrite the previous queued string.",
+      "- Max stored payload is 512 bytes; longer strings are truncated and the call returns `false`.",
+      "- During `stopRecording()`, after optional FIFO drain and before flush/truncate/close, it writes an `AUDSRC_META_TEXT` packet and clears the queue once saved.",
+      "",
+      "Decoder changes:",
+      "- [thefly_audio_decoder.py](c:/GitHubRepos/The-Fly/scripts/thefly_audio_decoder.py:62) now recognizes `AUDSRC_META_TEXT = 0xAA`.",
+      "- Metadata packets are skipped for audio timing/PCM decoding.",
+      "- The payload is decoded as UTF-8 text.",
+      "- The output WAV gets a `LIST/INFO/ICMT` comment chunk appended.",
+      "",
+      "Verified:",
+      "- `python -m py_compile scripts/thefly_audio_decoder.py`",
+      "- `pio run -e thefly`",
+      "- Synthetic `.rec` decode confirmed the WAV contains `LIST`, `INFO`, `ICMT`, and the comment text.",
+      "",
+      "Implemented the metadata text path end to end.",
+      "",
+      "Firmware changes:",
+      "- Added `AudioFileRecorder::queueMetaText(const char* text)` in [AudioFileRecorder.h](c:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h:40).",
+      "- Stores one queued string, thread-safe behind `g_recorder_mutex`.",
+      "- Calls overwrite the previous queued string.",
+      "- Max stored payload is 512 bytes; longer strings are truncated and the call returns `false`.",
+      "- During `stopRecording()`, after optional FIFO drain and before flush/truncate/close, it writes an `AUDSRC_META_TEXT` packet and clears the queue once saved.",
+      "",
+      "Decoder changes:",
+      "- [thefly_audio_decoder.py](c:/GitHubRepos/The-Fly/scripts/thefly_audio_decoder.py:62) now recognizes `AUDSRC_META_TEXT = 0xAA`.",
+      "- Metadata packets are skipped for audio timing/PCM decoding.",
+      "- The payload is decoded as UTF-8 text.",
+      "- The output WAV gets a `LIST/INFO/ICMT` comment chunk appended.",
+      "",
+      "Verified:",
+      "- `python -m py_compile scripts/thefly_audio_decoder.py`",
+      "- `pio run -e thefly`",
+      "- Synthetic `.rec` decode confirmed the WAV contains `LIST`, `INFO`, `ICMT`, and the comment text."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.h",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "scripts/thefly_audio_decoder.py"
+    ]
+  },
+  {
+    "timestamp": "2026-05-18T23:22:32Z",
+    "type": "git_commit",
+    "commit_message": "audio stream now embeds meta text",
+    "commit_hash": "e75a61e97a39e9d34844d2197866ad8caf1ed1d0"
+  }
+]

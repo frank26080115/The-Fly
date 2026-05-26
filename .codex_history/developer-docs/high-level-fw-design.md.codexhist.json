@@ -1,0 +1,164 @@
+[
+  {
+    "timestamp": "2026-05-01T08:45:00Z",
+    "type": "git_commit",
+    "commit_message": "progress",
+    "commit_hash": "384fc246aafc465d1b9dc72802ba63530501f038"
+  },
+  {
+    "timestamp": "2026-05-01T22:24:52.075Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: developer-docs/high-level-fw-design.md",
+      "",
+      "## Open tabs:",
+      "- high-level-fw-design.md: developer-docs/high-level-fw-design.md",
+      "- bt_audio_demo.cpp: src/bt_audio_demo.cpp",
+      "- Displays.ino: .pio/libdeps/m5stack-core2/M5Unified/examples/Basic/Displays/Displays.ino",
+      "- Bluetooth_with_ESP32A2DP.ino: .pio/libdeps/m5stack-core2/M5Unified/examples/Advanced/Bluetooth_with_ESP32A2DP/Bluetooth_with_ESP32A2DP.ino",
+      "- Buttons.cpp: lib/Buttons/Buttons.cpp",
+      "",
+      "## My request for Codex:",
+      "review the text under `### Audio Data Formats` inside `developer-docs\\high-level-fw-design.md`"
+    ],
+    "agent_reply": [
+      "Findings:",
+      "",
+      "- **Ambiguous Bluetooth-side vs local decoded format** at [high-level-fw-design.md](c:/GitHubRepos/The-Fly/developer-docs/high-level-fw-design.md:29).  ",
+      "  “When using CVSD, the sample rate is 8 kHZ and the format is 16 bit PCM” is probably okay for the **local I2S/PDM/audio-recording representation**, but CVSD itself is a codec, not PCM. Better wording: “After the HFP/CVSD path is presented to local audio, it is treated as 8 kHz signed 16-bit mono PCM.”",
+      "",
+      "- **Same ambiguity for mSBC** at [line 31](c:/GitHubRepos/The-Fly/developer-docs/high-level-fw-design.md:31).  ",
+      "  This one is closer because it says “after decoding,” but it should also say mono and little-endian if this doc is meant to drive file format/code. Current code configures mSBC as `SBC_FREQ_16000`, `SBC_MODE_MONO`, `SBC_LE`.",
+      "",
+      "- **Capitalization typo**: `kHZ` should be `kHz` at [lines 29 and 31](c:/GitHubRepos/The-Fly/developer-docs/high-level-fw-design.md:29).",
+      "",
+      "- **Missing channel count**. The current audio paths are mono (`I2S_CHANNEL_FMT_ONLY_RIGHT`), so the section should explicitly say **mono**.",
+      "",
+      "Suggested replacement:",
+      "",
+      "```md",
+      "The Bluetooth audio path is HFP and negotiates one of two audio modes: CVSD/narrowband or mSBC/wideband.",
+      "",
+      "For the local audio pipeline and recording format, both modes become signed 16-bit little-endian mono PCM.",
+      "",
+      "When using CVSD, the local PCM sample rate is 8 kHz.",
+      "",
+      "When using mSBC, the Bluetooth-side payload is mSBC/SBC encoded. After decoding, the local PCM sample rate is 16 kHz.",
+      "```",
+      "",
+      "That would match `src/bt_audio_demo.cpp` much more cleanly.",
+      "",
+      "Findings:",
+      "",
+      "- **Ambiguous Bluetooth-side vs local decoded format** at [high-level-fw-design.md](c:/GitHubRepos/The-Fly/developer-docs/high-level-fw-design.md:29).  ",
+      "  “When using CVSD, the sample rate is 8 kHZ and the format is 16 bit PCM” is probably okay for the **local I2S/PDM/audio-recording representation**, but CVSD itself is a codec, not PCM. Better wording: “After the HFP/CVSD path is presented to local audio, it is treated as 8 kHz signed 16-bit mono PCM.”",
+      "",
+      "- **Same ambiguity for mSBC** at [line 31](c:/GitHubRepos/The-Fly/developer-docs/high-level-fw-design.md:31).  ",
+      "  This one is closer because it says “after decoding,” but it should also say mono and little-endian if this doc is meant to drive file format/code. Current code configures mSBC as `SBC_FREQ_16000`, `SBC_MODE_MONO`, `SBC_LE`.",
+      "",
+      "- **Capitalization typo**: `kHZ` should be `kHz` at [lines 29 and 31](c:/GitHubRepos/The-Fly/developer-docs/high-level-fw-design.md:29).",
+      "",
+      "- **Missing channel count**. The current audio paths are mono (`I2S_CHANNEL_FMT_ONLY_RIGHT`), so the section should explicitly say **mono**.",
+      "",
+      "Suggested replacement:",
+      "",
+      "```md",
+      "The Bluetooth audio path is HFP and negotiates one of two audio modes: CVSD/narrowband or mSBC/wideband.",
+      "",
+      "For the local audio pipeline and recording format, both modes become signed 16-bit little-endian mono PCM.",
+      "",
+      "When using CVSD, the local PCM sample rate is 8 kHz.",
+      "",
+      "When using mSBC, the Bluetooth-side payload is mSBC/SBC encoded. After decoding, the local PCM sample rate is 16 kHz.",
+      "```",
+      "",
+      "That would match `src/bt_audio_demo.cpp` much more cleanly."
+    ],
+    "files": [
+      "developer-docs/high-level-fw-design.md",
+      "src/bt_audio_demo.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-01T22:30:37Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "b8b0ab39dab7aef8677e5cf22c8807103a62ef05"
+  },
+  {
+    "timestamp": "2026-05-03T07:14:11Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "37471f5d99727676ebcaee90085bb7e9b6cfa054"
+  },
+  {
+    "timestamp": "2026-05-04T07:46:20Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "0065bdba2a9c72d3ebef8982804023dd796267c9"
+  },
+  {
+    "timestamp": "2026-05-04T20:31:05.859Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Open tabs:",
+      "- bt_pairing_demo.cpp: src/bt_pairing_demo.cpp",
+      "- bt_audio_demo.cpp: src/bt_audio_demo.cpp",
+      "- readme.md: lib/AudioManager/readme.md",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- AudioManager.h: lib/AudioManager/AudioManager.h",
+      "",
+      "## My request for Codex:",
+      "I removed references to WM8960 because it is obsolete, new hardware target is SGTL5000 but I renamed a ton of stuff as external I2S codec",
+      "",
+      "review these changes"
+    ],
+    "agent_reply": [
+      "**Findings**",
+      "",
+      "1. [platformio.ini](c:/GitHubRepos/The-Fly/platformio.ini:29) still depends on `SparkFun_WM8960_Arduino_Library`.",
+      "   If WM8960 is obsolete, this dependency should be removed or replaced with the SGTL5000/control library you actually plan to use. Right now the build still pulls WM8960-specific code.",
+      "",
+      "2. [high-level-fw-design.md](c:/GitHubRepos/The-Fly/developer-docs/high-level-fw-design.md:9) still says “WM8960 or SGTL5000 available.”",
+      "   That conflicts with the new direction. If WM8960 is no longer valid hardware, this doc should say only SGTL5000 or generic external I2S codec.",
+      "",
+      "3. [AudioManager.cpp](c:/GitHubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:385) and [AudioManager.cpp](c:/GitHubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:391) still make `ExternalI2SCodec` unusable.",
+      "   Both `enable_exti2scodec_speaker()` and `enable_exti2scodec_mic()` return `false`, so selecting `Hardware::ExternalI2SCodec` cannot currently enable speaker or mic mode. If the rename was meant to preserve behavior while swapping codec hardware, this is the main functional gap.",
+      "",
+      "4. [AudioManager.cpp](c:/GitHubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:553) assumes every external I2S codec mic stream is stereo.",
+      "   That matches what you described, but it should be considered part of the external codec contract. If SGTL5000 is ever configured mono at the codec or I2S slot level, this path will incorrectly halve the frame count and mix adjacent mono samples as L/R.",
+      "",
+      "**Notes**",
+      "",
+      "The broad rename to `ExternalI2SCodec` looks consistent in `AudioManager.h/.cpp`; I don’t see leftover `WM8960` identifiers in that module. The stale references are mainly dependency/docs, plus the external codec setup stubs. I couldn’t use `git diff` because this shell reported the directory as not a git repo."
+    ],
+    "files": [
+      "platformio.ini",
+      "developer-docs/high-level-fw-design.md",
+      "lib/AudioManager/AudioManager.cpp",
+      "AudioManager.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-04T22:18:38Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
+  },
+  {
+    "timestamp": "2026-05-18T06:48:14Z",
+    "type": "git_commit",
+    "commit_message": "change bluetooth init behavior to be connectable",
+    "commit_hash": "c413b9460ff7cad507efe70c6364120b3b62ea0b"
+  },
+  {
+    "timestamp": "2026-05-22T03:54:52Z",
+    "type": "git_commit",
+    "commit_message": "minor documentation realignment",
+    "commit_hash": "f2c709ecce52380184bf7572afec748da37a5039"
+  }
+]

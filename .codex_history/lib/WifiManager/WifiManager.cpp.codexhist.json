@@ -1,0 +1,371 @@
+[
+  {
+    "timestamp": "2026-05-17T03:35:18Z",
+    "type": "git_commit",
+    "commit_message": "wifi manager",
+    "commit_hash": "3f0155a2c552559eea9fee49790c1ffa13f6829d"
+  },
+  {
+    "timestamp": "2026-05-18T06:48:14Z",
+    "type": "git_commit",
+    "commit_message": "change bluetooth init behavior to be connectable",
+    "commit_hash": "c413b9460ff7cad507efe70c6364120b3b62ea0b"
+  },
+  {
+    "timestamp": "2026-05-18T18:59:54.166Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "const int network_count = WiFi.scanNetworks();",
+      "## Open tabs:",
+      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
+      "- test_bootreadfiles.cpp: src/tests/test_bootreadfiles.cpp",
+      "- all_tests.cpp: src/tests/all_tests.cpp",
+      "- all_tests.h: src/tests/all_tests.h",
+      "- test_imu.cpp: src/tests/test_imu.cpp",
+      "",
+      "## My request for Codex:",
+      "how fast is `bool WifiManager::scanAndConnect()`? is `const int network_count = WiFi.scanNetworks();` a blocking call?"
+    ],
+    "agent_reply": [
+      "Yes. In your current call, `WiFi.scanNetworks()` is blocking.",
+      "",
+      "In this Arduino ESP32 WiFi version, the signature defaults to:",
+      "",
+      "```cpp",
+      "scanNetworks(async = false, show_hidden = false, passive = false, max_ms_per_chan = 300, channel = 0)",
+      "```",
+      "",
+      "So [WifiManager.cpp](c:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:694):",
+      "",
+      "```cpp",
+      "const int network_count = WiFi.scanNetworks();",
+      "```",
+      "",
+      "does a synchronous active scan. Internally it starts the scan, then waits on `WIFI_SCAN_DONE_BIT` with a default scan timeout of `60000` ms.",
+      "",
+      "Expected timing: usually around 1 to 4 seconds for a normal 2.4 GHz scan, depending on channels/AP density. The defaults are roughly `100 ms` minimum and `300 ms` maximum per channel, so crowded channels can push it toward the higher end.",
+      "",
+      "`WifiManager::scanAndConnect()` itself does not wait for the actual Wi-Fi connection to finish. After scan finds a configured SSID, it calls `WiFi.begin(...)`, sets status to `StationConnecting`, and returns. Connection completion is later observed by `WifiManager::poll()`.",
+      "",
+      "So the blocking cost is mostly:",
+      "",
+      "```text",
+      "Bluetooth/audio shutdown + WiFi mode changes + synchronous Wi-Fi scan",
+      "```",
+      "",
+      "The scan is the big one. For an audio device, I’d treat this as unsuitable for an audio-critical path unless moved to async scan or a background task."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-18T19:02:42.214Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "void WifiManager::poll()",
+      "## Open tabs:",
+      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
+      "- test_bootreadfiles.cpp: src/tests/test_bootreadfiles.cpp",
+      "- all_tests.cpp: src/tests/all_tests.cpp",
+      "- all_tests.h: src/tests/all_tests.h",
+      "- test_imu.cpp: src/tests/test_imu.cpp",
+      "",
+      "## My request for Codex:",
+      "Make it only start the scan as async, have `void WifiManager::poll()` handle that particular state, and check the results when the scan is finished, poll is then responsible for calling for a connection if needed"
+    ],
+    "agent_reply": [
+      "Done. `WifiManager::scanAndConnect()` now starts an async scan and returns immediately once the scan is running.",
+      "",
+      "Changed:",
+      "- Added `WifiManager::Status::StationScanning`.",
+      "- `scanAndConnect()` now calls `WiFi.scanNetworks(true)`.",
+      "- `poll()` now handles `StationScanning`:",
+      "  - waits while `WiFi.scanComplete()` returns `WIFI_SCAN_RUNNING`",
+      "  - handles scan failure",
+      "  - searches scan results for a configured SSID",
+      "  - calls `connectToHotspot(..., false)` when it finds one",
+      "  - reports `NoKnownNetwork` if none match",
+      "- `status()` preserves `StationScanning` so UI/status callers can see that transitional state.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.h",
+      "lib/WifiManager/WifiManager.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-18T19:09:02.876Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.h",
+      "",
+      "## Active selection of the file:",
+      "wifi_item_t",
+      "## Open tabs:",
+      "- WifiManager.h: lib/WifiManager/WifiManager.h",
+      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
+      "- test_bootreadfiles.cpp: src/tests/test_bootreadfiles.cpp",
+      "- all_tests.cpp: src/tests/all_tests.cpp",
+      "- all_tests.h: src/tests/all_tests.h",
+      "",
+      "## My request for Codex:",
+      "have a `setOnScanFinished` function for registering a callback for when scan finishes, have it supply the `wifi_item_t` representing what was found, instead of automatically connecting, let the callback handle the connecting if the parent wants to "
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "`WifiManager` now has:",
+      "",
+      "```cpp",
+      "using ScanFinishedCallback = void (*)(const wifi_item_t* item);",
+      "void setOnScanFinished(ScanFinishedCallback callback);",
+      "```",
+      "",
+      "Behavior changed in `poll()`:",
+      "- Async scan still starts from `scanAndConnect()`.",
+      "- When the scan completes, `poll()` searches for a configured station.",
+      "- It calls `setOnScanFinished`’s callback with the matching `wifi_item_t*`.",
+      "- If no configured station was found, it calls the callback with `nullptr`.",
+      "- It no longer automatically calls `connectToHotspot()` after scan completion.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.h",
+      "lib/WifiManager/WifiManager.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-18T22:48:15Z",
+    "type": "git_commit",
+    "commit_message": "wifimanager async auto-scan",
+    "commit_hash": "9a204a9d89a617f7e697878501a05073907ee0f1"
+  },
+  {
+    "timestamp": "2026-05-20T17:55:54.250Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "",
+      "## Active selection of the file:",
+      "SCROLL_ITEM_WIFI_SHOW_SELF_INFO",
+      "## Open tabs:",
+      "- ScrollView.cpp: lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "- ScrollItem.cpp: lib/FlyGuiViews/ScrollView/ScrollItem.cpp",
+      "- ModalDialog.h: lib/FlyGuiViews/ModalDialog.h",
+      "- FlyGui.h: lib/FlyGui/FlyGui.h",
+      "- ModalDialog.cpp: lib/FlyGuiViews/ModalDialog.cpp",
+      "",
+      "## My request for Codex:",
+      "`ScrollView` and `ScrollItem` has some entries that are \"show self info\" for bluetooth and wifi",
+      "",
+      "these should launch into `ModalDialog` with sprite `sprit_info_100` to display some text. For bluetooth, it lists the device's bdaddr and bt name. For the Wi-Fi self info, it shows the SSID, the IP of our device, and only for AP, show the password.",
+      "",
+      "ModalDialog returns to the list when dismissed",
+      ""
+    ],
+    "agent_reply": [
+      "Implemented the Bluetooth/Wi-Fi self-info actions.",
+      "",
+      "Changed:",
+      "- [main.cpp](C:/GitHubRepos/The-Fly/src/main.cpp:1)",
+      "- [BluetoothManager.h](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.h:1)",
+      "- [BluetoothManager.cpp](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:1)",
+      "- [WifiManager.h](C:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.h:1)",
+      "- [WifiManager.cpp](C:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1)",
+      "",
+      "Behavior:",
+      "- Bluetooth info item opens `ModalDialog` with `sprit_info_100`.",
+      "- Bluetooth modal shows local BT name and BDADDR.",
+      "- Wi-Fi info item opens `ModalDialog` with `sprit_info_100`.",
+      "- Wi-Fi modal shows SSID and local IP.",
+      "- If Wi-Fi is in AP mode, it also shows the AP password.",
+      "- Dismiss returns to `FLYGUI_VIEW_SCROLL`.",
+      "",
+      "I added small read-only getters so this doesn’t have to guess:",
+      "- `BtManager::localDeviceName()`",
+      "- `BtManager::localBdaddr(...)`",
+      "- `WifiManager::activeWifi()`",
+      "- `WifiManager::connectedWifi()`",
+      "",
+      "Verified with `pio run -e thefly_bringuptest`; build passed."
+    ],
+    "files": [
+      "lib/BluetoothManager/BluetoothManager.h",
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "lib/WifiManager/WifiManager.h",
+      "lib/WifiManager/WifiManager.cpp",
+      "main.cpp",
+      "src/main.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-20T19:02:28Z",
+    "type": "git_commit",
+    "commit_message": "good progress on GUI",
+    "commit_hash": "3d988cb62856bfbc633ccac6598e1ba741663eec"
+  },
+  {
+    "timestamp": "2026-05-22T03:27:25Z",
+    "type": "git_commit",
+    "commit_message": "starting to add a web server",
+    "commit_hash": "421a041f801f5f993b55e85fd21fbb828bf995c0"
+  },
+  {
+    "timestamp": "2026-05-22T06:02:06Z",
+    "type": "git_commit",
+    "commit_message": "ftp code organization",
+    "commit_hash": "df387f86d00534edd3aa28bde131b727f880666f"
+  },
+  {
+    "timestamp": "2026-05-22T06:14:22Z",
+    "type": "git_commit",
+    "commit_message": "cloud upload now includes a time nonce",
+    "commit_hash": "cba97ed94aaf1818604d54d1bc92792c2ebabde4"
+  },
+  {
+    "timestamp": "2026-05-22T17:53:27.418Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BluetoothManager/BtHostList.cpp",
+      "",
+      "## Open tabs:",
+      "- BtHostList.cpp: lib/BluetoothManager/BtHostList.cpp",
+      "- utilfuncs.cpp: lib/UtilFuncs/utilfuncs.cpp",
+      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- SpriteDraw.cpp: lib/SpriteDraw/SpriteDraw.cpp",
+      "",
+      "## My request for Codex:",
+      "the function `clone_string` seem to appear twice in differen namespaces, move them both to `lib\\UtilFuncs\\utilfuncs.cpp`",
+      "",
+      "`const char* result_name(` is used twice and the `result_name` name isn't very descriptive, rename both to `load_result_tostring`"
+    ],
+    "agent_reply": [
+      "Moved `clone_string` into `UtilFuncs` and exposed it in [utilfuncs.h](c:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.h:31), with the implementation in [utilfuncs.cpp](c:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.cpp:140). The private copies were removed from `BtHostList` and `WifiManager`, which already include `utilfuncs.h`.",
+      "",
+      "Renamed both load-result helpers from `result_name` to `load_result_tostring` and updated their callers:",
+      "- [BtHostList.cpp](c:/GitHubRepos/The-Fly/lib/BluetoothManager/BtHostList.cpp:23)",
+      "- [WifiManager.cpp](c:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:44)",
+      "",
+      "Verification:",
+      "- Searched for stale `result_name` definitions/calls and duplicate `clone_string` definitions; only the shared utility definition remains.",
+      "- Attempted `pio run` twice. Both PlatformIO runs timed out without compiler output after roughly 2 minutes and 6 minutes, so I stopped the build processes they left running.",
+      "",
+      "There were already unrelated worktree changes in `lib/AudioFileRecorder/AudioFileRecorder.cpp`, `src/version.c`, and existing edits in `BtHostList.cpp`; I left those intact.",
+      "",
+      "Moved `clone_string` into `UtilFuncs` and exposed it in [utilfuncs.h](c:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.h:31), with the implementation in [utilfuncs.cpp](c:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.cpp:140). The private copies were removed from `BtHostList` and `WifiManager`, which already include `utilfuncs.h`.",
+      "",
+      "Renamed both load-result helpers from `result_name` to `load_result_tostring` and updated their callers:",
+      "- [BtHostList.cpp](c:/GitHubRepos/The-Fly/lib/BluetoothManager/BtHostList.cpp:23)",
+      "- [WifiManager.cpp](c:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:44)",
+      "",
+      "Verification:",
+      "- Searched for stale `result_name` definitions/calls and duplicate `clone_string` definitions; only the shared utility definition remains.",
+      "- Attempted `pio run` twice. Both PlatformIO runs timed out without compiler output after roughly 2 minutes and 6 minutes, so I stopped the build processes they left running.",
+      "",
+      "There were already unrelated worktree changes in `lib/AudioFileRecorder/AudioFileRecorder.cpp`, `src/version.c`, and existing edits in `BtHostList.cpp`; I left those intact."
+    ],
+    "files": [
+      "BtHostList.cpp",
+      "WifiManager.cpp",
+      "lib/BluetoothManager/BtHostList.cpp",
+      "lib/UtilFuncs/utilfuncs.h",
+      "lib/UtilFuncs/utilfuncs.cpp",
+      "lib/WifiManager/WifiManager.cpp",
+      "utilfuncs.h",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-05-22T20:49:03Z",
+    "type": "git_commit",
+    "commit_message": "minor clean up",
+    "commit_hash": "86e23c1b9957c5fa15698d202e381e533889d055"
+  },
+  {
+    "timestamp": "2026-05-23T05:27:47Z",
+    "type": "git_commit",
+    "commit_message": "prepping for adding NVS config store",
+    "commit_hash": "a662d2ecc3e4763fd97b574d5e9200e6ac7ec6c3"
+  },
+  {
+    "timestamp": "2026-05-23T09:06:40Z",
+    "type": "git_commit",
+    "commit_message": "some work on secured web interactions",
+    "commit_hash": "18565178bedd39532b6f4eeb03bf327ff678b30e"
+  },
+  {
+    "timestamp": "2026-05-24T00:09:46Z",
+    "type": "git_commit",
+    "commit_message": "added \"set_cfg\" request handler",
+    "commit_hash": "976c60f0ec74e8d902b255cd244c33b17b1f0771"
+  },
+  {
+    "timestamp": "2026-05-24T08:12:26Z",
+    "type": "git_commit",
+    "commit_message": "web server related major work",
+    "commit_hash": "5347b8785e4501a28ac8abae3f67111dfb8fe246"
+  },
+  {
+    "timestamp": "2026-05-25T03:26:11Z",
+    "type": "git_commit",
+    "commit_message": "I'm checking in this state before tearing it all down",
+    "commit_hash": "335274e4557167c4d8346db9a0eb5ce8adc4b329"
+  },
+  {
+    "timestamp": "2026-05-25T08:12:57Z",
+    "type": "git_commit",
+    "commit_message": "added security levels in docs, will implement later",
+    "commit_hash": "d07ac1b0a9aeb6ff34d24f1f400b5189cd61bc11"
+  },
+  {
+    "timestamp": "2026-05-26T02:07:37Z",
+    "type": "git_commit",
+    "commit_message": "clean up for security levels",
+    "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
+  },
+  {
+    "timestamp": "2026-05-26T08:31:56Z",
+    "type": "git_commit",
+    "commit_message": "implement the wifi ap view",
+    "commit_hash": "d8fe002743fef62a02f8317b0e30b6a57eebd666"
+  },
+  {
+    "timestamp": "2026-05-26T09:47:27Z",
+    "type": "git_commit",
+    "commit_message": "expose connected mac and cnts in ap view",
+    "commit_hash": "e486cd8c44f77f484940b29cfd1db4b676546f90"
+  }
+]

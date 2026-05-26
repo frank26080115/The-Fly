@@ -1,0 +1,169 @@
+[
+  {
+    "timestamp": "2026-05-22T03:27:25Z",
+    "type": "git_commit",
+    "commit_message": "starting to add a web server",
+    "commit_hash": "421a041f801f5f993b55e85fd21fbb828bf995c0"
+  },
+  {
+    "timestamp": "2026-05-22T06:02:06Z",
+    "type": "git_commit",
+    "commit_message": "ftp code organization",
+    "commit_hash": "df387f86d00534edd3aa28bde131b727f880666f"
+  },
+  {
+    "timestamp": "2026-05-23T09:06:40Z",
+    "type": "git_commit",
+    "commit_message": "some work on secured web interactions",
+    "commit_hash": "18565178bedd39532b6f4eeb03bf327ff678b30e"
+  },
+  {
+    "timestamp": "2026-05-24T00:09:46Z",
+    "type": "git_commit",
+    "commit_message": "added \"set_cfg\" request handler",
+    "commit_hash": "976c60f0ec74e8d902b255cd244c33b17b1f0771"
+  },
+  {
+    "timestamp": "2026-05-24T08:12:26Z",
+    "type": "git_commit",
+    "commit_message": "web server related major work",
+    "commit_hash": "5347b8785e4501a28ac8abae3f67111dfb8fe246"
+  },
+  {
+    "timestamp": "2026-05-25T03:26:11Z",
+    "type": "git_commit",
+    "commit_message": "I'm checking in this state before tearing it all down",
+    "commit_hash": "335274e4557167c4d8346db9a0eb5ce8adc4b329"
+  },
+  {
+    "timestamp": "2026-05-26T02:07:37Z",
+    "type": "git_commit",
+    "commit_message": "clean up for security levels",
+    "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
+  },
+  {
+    "timestamp": "2026-05-26T06:01:31Z",
+    "type": "git_commit",
+    "commit_message": "wip on front-end interaction",
+    "commit_hash": "31809cca15b2676842f49731d11ff55b42a22240"
+  },
+  {
+    "timestamp": "2026-05-26T07:58:09Z",
+    "type": "git_commit",
+    "commit_message": "password reset mechanism implementation",
+    "commit_hash": "b912990e70975d6dcadba6ebc765222feaea1602"
+  },
+  {
+    "timestamp": "2026-05-26T08:07:21Z",
+    "type": "git_commit",
+    "commit_message": "reset memory button implementation",
+    "commit_hash": "8bcf8a4aeece8bf576756b9657276588cef0f3e9"
+  },
+  {
+    "timestamp": "2026-05-26T08:31:56Z",
+    "type": "git_commit",
+    "commit_message": "implement the wifi ap view",
+    "commit_hash": "d8fe002743fef62a02f8317b0e30b6a57eebd666"
+  },
+  {
+    "timestamp": "2026-05-26T19:32:54.578Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WebServer.cpp",
+      "",
+      "## Active selection of the file:",
+      "void reset_password(AsyncWebServerRequest* request)",
+      "## Open tabs:",
+      "- WebServer.cpp: lib/WifiManager/WebServer.cpp",
+      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
+      "- WebCfgHandlers.cpp: lib/WifiManager/WebCfgHandlers.cpp",
+      "- index.html: html/index.html",
+      "- script.js: html/script.js",
+      "",
+      "## My request for Codex:",
+      "when password reset is successful",
+      "",
+      "the javascript causes the `<body>` element of the page be completely empty except `<h2>Password Reset Sucessful</h2>please allow the device to reboot`",
+      "",
+      "the handler `void reset_password(AsyncWebServerRequest* request)` should show a `ModalDialog` view with a confirmation. Dismissing the dialog causes the whole microcontroller to reboot"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "In [html/script.js](c:/GitHubRepos/The-Fly/html/script.js:879), successful `/reset_password` now replaces the entire page body with only:",
+      "",
+      "```html",
+      "<h2>Password Reset Sucessful</h2>",
+      "please allow the device to reboot",
+      "```",
+      "",
+      "In [lib/WifiManager/WebServer.cpp](c:/GitHubRepos/The-Fly/lib/WifiManager/WebServer.cpp:92), successful `reset_password()` now shows a `ModalDialog` confirmation using the thumbs-up sprite. Dismissing that dialog calls `esp_restart()`.",
+      "",
+      "Verification:",
+      "- `pio run -e thefly_sec1` compiled the changed C++ and reached link.",
+      "- Link failed with existing size pressure: `.iram0.text` overflowed by `2152 bytes`.",
+      "- `pio run` default env still fails earlier because `BUILD_WITH_SECURITY_LEVEL` is undefined for `thefly`.",
+      "- CRLF preserved.",
+      "",
+      "PlatformIO also regenerated [inc/web_assets.h](c:/GitHubRepos/The-Fly/inc/web_assets.h) when packaging the updated HTML/JS."
+    ],
+    "files": [
+      "html/script.js",
+      "lib/WifiManager/WebServer.cpp",
+      "inc/web_assets.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T20:02:28.150Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WebServer.cpp",
+      "",
+      "## Active selection of the file:",
+      "void reset_memory(AsyncWebServerRequest* request)",
+      "## Open tabs:",
+      "- WebServer.cpp: lib/WifiManager/WebServer.cpp",
+      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
+      "- WebCfgHandlers.cpp: lib/WifiManager/WebCfgHandlers.cpp",
+      "- index.html: html/index.html",
+      "- script.js: html/script.js",
+      "",
+      "## My request for Codex:",
+      "when memory reset is successful, same as the last task about password reset but for the memory reset function",
+      "",
+      "the javascript causes the `<body>` element of the page be completely empty except `<h2>Memory Reset Sucessful</h2>please allow the device to reboot`",
+      "",
+      "the handler `void reset_memory(AsyncWebServerRequest* request)` should show a `ModalDialog` view with a confirmation. Dismissing the dialog causes the whole microcontroller to reboot"
+    ],
+    "agent_reply": [
+      "Implemented the memory reset flow to match the password reset behavior.",
+      "",
+      "Changes made:",
+      "- `reset_memory()` now shows a `ModalDialog` confirmation after successful memory reset.",
+      "- Dismissing that dialog calls `esp_restart()` so the microcontroller reboots.",
+      "- The web UI now replaces the page body with:",
+      "  `<h2>Memory Reset Sucessful</h2>please allow the device to reboot`",
+      "- Shared reset dialog helper logic is used for both password reset and memory reset.",
+      "",
+      "Verification:",
+      "- `pio run -e thefly_sec0` passed successfully.",
+      "- `inc/web_assets.h` was regenerated by the build.",
+      "- `thefly_sec1` still hits an existing IRAM overflow at link time, unrelated to this change."
+    ],
+    "files": [
+      "html/script.js",
+      "lib/WifiManager/WebServer.cpp",
+      "inc/web_assets.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T20:16:37Z",
+    "type": "git_commit",
+    "commit_message": "good progress on front end, organized the js files a bit, password and memory reset implemented",
+    "commit_hash": "b338b968a3e7d8ae40716584d19bbabe6c5d77d1"
+  }
+]

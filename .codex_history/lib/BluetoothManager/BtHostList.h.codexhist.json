@@ -1,0 +1,163 @@
+[
+  {
+    "timestamp": "2026-05-17T03:32:00Z",
+    "type": "git_commit",
+    "commit_message": "bt host list manager",
+    "commit_hash": "385fed95153b1bfef78346d7d917de8b924f231d"
+  },
+  {
+    "timestamp": "2026-05-18T16:37:53.966Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BluetoothManager/BtHostList.h",
+      "",
+      "## Open tabs:",
+      "- BtHostList.h: lib/BluetoothManager/BtHostList.h",
+      "- BtHostList.cpp: lib/BluetoothManager/BtHostList.cpp",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- test_btspeakerphone.cpp: src/tests/test_btspeakerphone.cpp",
+      "- test_micrec.cpp: src/tests/test_micrec.cpp",
+      "",
+      "## My request for Codex:",
+      "to `lib\\BluetoothManager\\BtHostList.cpp` add a publically available `pruneBonds` method, if a bdaddr doesn't exist in the linked list (and by extension, doesn't exist in the JSON), then delete the bond from nvs"
+    ],
+    "agent_reply": "",
+    "files": [
+      "lib/BluetoothManager/BtHostList.h",
+      "lib/BluetoothManager/BtHostList.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-18T22:48:01Z",
+    "type": "git_commit",
+    "commit_message": "bthostlist prune bonds",
+    "commit_hash": "564196f58ea56b0eb555a32dc86a6f8e3054d980"
+  },
+  {
+    "timestamp": "2026-05-19T17:23:51.007Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BluetoothManager/BtHostList.cpp",
+      "",
+      "## Open tabs:",
+      "- BtHostList.cpp: lib/BluetoothManager/BtHostList.cpp",
+      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
+      "- ErrorView.cpp: lib/FlyGuiViews/ErrorView.cpp",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- defs.h: inc/defs.h",
+      "",
+      "## My request for Codex:",
+      "add to `lib\\BluetoothManager\\BtHostList.cpp` public methods for \"getFirstPhone\" and \"getFirstLaptop\", by using the icons, returning null if none exist."
+    ],
+    "agent_reply": [
+      "Implemented in [BtHostList.h](c:/GitHubRepos/The-Fly/lib/BluetoothManager/BtHostList.h:48) and [BtHostList.cpp](c:/GitHubRepos/The-Fly/lib/BluetoothManager/BtHostList.cpp:103).",
+      "",
+      "Added public methods:",
+      "",
+      "```cpp",
+      "bt_host_item_t* getFirstPhone();",
+      "const bt_host_item_t* getFirstPhone() const;",
+      "bt_host_item_t* getFirstLaptop();",
+      "const bt_host_item_t* getFirstLaptop() const;",
+      "```",
+      "",
+      "They return the first host whose `icon` is `ICON_PHONE` or `ICON_LAPTOP`, otherwise `nullptr`.",
+      "",
+      "I attempted a PlatformIO build, but it ran past the 5-minute timeout and left compiler processes running, so I cleaned those up. No completed build result this time.",
+      "",
+      "Implemented in [BtHostList.h](c:/GitHubRepos/The-Fly/lib/BluetoothManager/BtHostList.h:48) and [BtHostList.cpp](c:/GitHubRepos/The-Fly/lib/BluetoothManager/BtHostList.cpp:103).",
+      "",
+      "Added public methods:",
+      "",
+      "```cpp",
+      "bt_host_item_t* getFirstPhone();",
+      "const bt_host_item_t* getFirstPhone() const;",
+      "bt_host_item_t* getFirstLaptop();",
+      "const bt_host_item_t* getFirstLaptop() const;",
+      "```",
+      "",
+      "They return the first host whose `icon` is `ICON_PHONE` or `ICON_LAPTOP`, otherwise `nullptr`.",
+      "",
+      "I attempted a PlatformIO build, but it ran past the 5-minute timeout and left compiler processes running, so I cleaned those up. No completed build result this time."
+    ],
+    "files": [
+      "lib/BluetoothManager/BtHostList.h",
+      "lib/BluetoothManager/BtHostList.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-19T19:23:58.708Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## Open tabs:",
+      "- platformio.ini: platformio.ini",
+      "- FlyGui.cpp: lib/FlyGui/FlyGui.cpp",
+      "- SpriteDraw.cpp: lib/SpriteDraw/SpriteDraw.cpp",
+      "- BtHostList.cpp: lib/BluetoothManager/BtHostList.cpp",
+      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
+      "",
+      "## My request for Codex:",
+      "why are there two getFirstPhone and two getFirstLaptop?"
+    ],
+    "agent_reply": [
+      "They’re `const` overloads.",
+      "",
+      "- `bt_host_item_t* getFirstPhone();`",
+      "  Used when the `BtHostList` object is mutable. Caller can modify the returned host item.",
+      "",
+      "- `const bt_host_item_t* getFirstPhone() const;`",
+      "  Used when the `BtHostList` object is itself `const`. Caller can inspect the host item but cannot modify it.",
+      "",
+      "Same idea for `getFirstLaptop()`.",
+      "",
+      "So there are only two logical operations, but each has a mutable and read-only version. That matches the existing `get(size_t index)` pattern in [BtHostList.h](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BtHostList.h:50)."
+    ],
+    "files": [
+      "lib/BluetoothManager/BtHostList.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-19T19:27:51Z",
+    "type": "git_commit",
+    "commit_message": "quick check for default phone and laptop",
+    "commit_hash": "b54a896764280e257e18ab3d3b52a7c1e4940f72"
+  },
+  {
+    "timestamp": "2026-05-21T19:17:26Z",
+    "type": "git_commit",
+    "commit_message": "bt host delete, debug shown on top bar",
+    "commit_hash": "faf2c6341baa36a0f9941de6378b0a239fcfab7a"
+  },
+  {
+    "timestamp": "2026-05-23T05:27:47Z",
+    "type": "git_commit",
+    "commit_message": "prepping for adding NVS config store",
+    "commit_hash": "a662d2ecc3e4763fd97b574d5e9200e6ac7ec6c3"
+  },
+  {
+    "timestamp": "2026-05-23T09:06:27Z",
+    "type": "git_commit",
+    "commit_message": "tested SD card with encryption",
+    "commit_hash": "aa5a8d695449da500eedafc4b596671f4ac49351"
+  },
+  {
+    "timestamp": "2026-05-24T00:09:46Z",
+    "type": "git_commit",
+    "commit_message": "added \"set_cfg\" request handler",
+    "commit_hash": "976c60f0ec74e8d902b255cd244c33b17b1f0771"
+  },
+  {
+    "timestamp": "2026-05-24T08:12:26Z",
+    "type": "git_commit",
+    "commit_message": "web server related major work",
+    "commit_hash": "5347b8785e4501a28ac8abae3f67111dfb8fe246"
+  }
+]

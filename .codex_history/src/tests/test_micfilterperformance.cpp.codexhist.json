@@ -1,0 +1,93 @@
+[
+  {
+    "timestamp": "2026-05-15T20:41:14.899Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_micfilterperformance.cpp",
+      "",
+      "## Active selection of the file:",
+      "void test_micfilterperformance()",
+      "{",
+      "    /*",
+      "    initialize the serial port for printing messages",
+      "    initialize AudioManager",
+      "    declare a buffer identical to `g_mono_buffer`, randomly generate data into it",
+      "",
+      "    for the next 10 seconds (when ended, use idle_forever) ...",
+      "",
+      "    use `MicGainManager::process` on that buffer over and over again as fast as possible. count how many time this has been done",
+      "",
+      "    after the 10 seconds, report how many times the process has been done, and vs how many times it should have been done if it was a realistic 16 kHz stream for 10 seconds",
+      "    */",
+      "}",
+      "## Open tabs:",
+      "- test_micfilterperformance.cpp: src/tests/test_micfilterperformance.cpp",
+      "- MicGainManager.cpp: lib/AudioManager/MicGainManager.cpp",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- all_tests.cpp: src/tests/all_tests.cpp",
+      "- all_tests.h: src/tests/all_tests.h",
+      "",
+      "## My request for Codex:",
+      "implement the file I am looking at in the IDE"
+    ],
+    "agent_reply": [
+      "Implemented [test_micfilterperformance.cpp](/c:/GitHubRepos/The-Fly/src/tests/test_micfilterperformance.cpp:1).",
+      "",
+      "It now:",
+      "- Starts Serial.",
+      "- Initializes `AudioManager`.",
+      "- Creates a `240` sample mono buffer matching `g_mono_buffer`.",
+      "- Fills it once with deterministic random PCM.",
+      "- Runs `MicGainManager::process()` as fast as possible for 10 seconds.",
+      "- Prints actual process count, expected real-time count for 16 kHz / 240-sample buffers, calls/sec, and real-time factor.",
+      "- Ends with `idle_forever()`.",
+      "",
+      "Verified with `pio run`: build succeeds."
+    ],
+    "files": [
+      "all_tests.cpp",
+      "src/tests/test_micfilterperformance.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-15T20:50:17.968Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_micfilterperformance.cpp",
+      "",
+      "## Open tabs:",
+      "- test_micfilterperformance.cpp: src/tests/test_micfilterperformance.cpp",
+      "- MicGainManager.cpp: lib/AudioManager/MicGainManager.cpp",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- all_tests.cpp: src/tests/all_tests.cpp",
+      "- all_tests.h: src/tests/all_tests.h",
+      "",
+      "## My request for Codex:",
+      "ok we are getting 114 realtime factor, very good, can you please just review this to make sure the test is valid and is fully utilizing all the math and nothing got optimized away because it's a test?"
+    ],
+    "agent_reply": [
+      "No serious findings. The test is valid as a throughput sanity check, and `114x` is a real “plenty of headroom” result.",
+      "",
+      "The work is not being optimized away:",
+      "- `MicGainManager::process()` is a nontrivial external call from the test loop at [test_micfilterperformance.cpp](/c:/GitHubRepos/The-Fly/src/tests/test_micfilterperformance.cpp:56).",
+      "- It takes a mutex, calls `millis()`, mutates module globals, updates the caller’s buffer, runs HPF, peak tracking, gain, and AGC updates in [MicGainManager.cpp](/c:/GitHubRepos/The-Fly/lib/AudioManager/MicGainManager.cpp:221).",
+      "- Bypass is explicitly disabled and then reset cleanly before timing at [test_micfilterperformance.cpp](/c:/GitHubRepos/The-Fly/src/tests/test_micfilterperformance.cpp:49).",
+      "",
+      "One caveat: the buffer is filled once, then processed in place repeatedly. That still executes the math, but after many passes the data distribution is no longer “fresh mic input.” So the result is a good CPU cost estimate for the processing loop, but not a perfect simulation of real incoming audio. If you want to make the benchmark more adversarial later, add a checksum print or refill/swap from a pre-generated corpus outside the measured cost. Not necessary for trusting the `114x` result."
+    ],
+    "files": [
+      "src/tests/test_micfilterperformance.cpp",
+      "lib/AudioManager/MicGainManager.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-15T22:19:39Z",
+    "type": "git_commit",
+    "commit_message": "added a mic preprocessor, HPF and AGC",
+    "commit_hash": "e521f961cce7b271b736c720eb61e519219aa616"
+  }
+]

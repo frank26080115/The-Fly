@@ -1,0 +1,161 @@
+[
+  {
+    "timestamp": "2026-05-22T03:27:25Z",
+    "type": "git_commit",
+    "commit_message": "starting to add a web server",
+    "commit_hash": "421a041f801f5f993b55e85fd21fbb828bf995c0"
+  },
+  {
+    "timestamp": "2026-05-24T08:09:42Z",
+    "type": "git_commit",
+    "commit_message": "work on html front-end",
+    "commit_hash": "1645edb5032a7f7e5d79630177d3d1cadc2ee54f"
+  },
+  {
+    "timestamp": "2026-05-25T06:46:05Z",
+    "type": "git_commit",
+    "commit_message": "added webcrypto shim",
+    "commit_hash": "6a04737635273ab72e57a7653e9edc5929638d5a"
+  },
+  {
+    "timestamp": "2026-05-26T03:15:17Z",
+    "type": "git_commit",
+    "commit_message": "got rid of the temp key in frontend",
+    "commit_hash": "eee569157d9e06dc13bd4b2bae89ad0b49a091fa"
+  },
+  {
+    "timestamp": "2026-05-26T03:38:14Z",
+    "type": "git_commit",
+    "commit_message": "frontend row cloning",
+    "commit_hash": "237f8ca6dd0b96cab151fee83494c06808fb0c33"
+  },
+  {
+    "timestamp": "2026-05-26T07:29:40Z",
+    "type": "git_commit",
+    "commit_message": "memory reset button on frontend",
+    "commit_hash": "6c323e6238d7e839e5d67bc97b2fb014d52453b8"
+  },
+  {
+    "timestamp": "2026-05-26T07:58:09Z",
+    "type": "git_commit",
+    "commit_message": "password reset mechanism implementation",
+    "commit_hash": "b912990e70975d6dcadba6ebc765222feaea1602"
+  },
+  {
+    "timestamp": "2026-05-26T08:07:21Z",
+    "type": "git_commit",
+    "commit_message": "reset memory button implementation",
+    "commit_hash": "8bcf8a4aeece8bf576756b9657276588cef0f3e9"
+  },
+  {
+    "timestamp": "2026-05-26T18:33:48.881Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: html/index.html",
+      "",
+      "## Active selection of the file:",
+      "<input id=\"password\" name=\"password\" type=\"password\" autocomplete=\"current-password\" placeholder=\"Device password\" />",
+      "## Open tabs:",
+      "- index.html: html/index.html",
+      "- script.js: html/script.js",
+      "- check_dev_pace.py: tools/check_dev_pace.py",
+      "- platformio.ini: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "the password field highlighted should trigger `login_onsubmit` with the enter key"
+    ],
+    "agent_reply": [
+      "Done. The password input in [html/index.html](c:/GitHubRepos/The-Fly/html/index.html:27) now calls `login_onsubmit()` when Enter is pressed.",
+      "",
+      "Also kept the file CRLF-normalized."
+    ],
+    "files": [
+      "html/index.html"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T18:45:01.544Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: html/script.js",
+      "",
+      "## Active selection of the file:",
+      "function set_login_error(message)",
+      "## Open tabs:",
+      "- script.js: html/script.js",
+      "- helpers.js: html/helpers.js",
+      "- sec_helpers.js: html/sec_helpers.js",
+      "- index.html: html/index.html",
+      "- timezone.js: html/timezone.js",
+      "",
+      "## My request for Codex:",
+      "you've already made `set_password_reset_message`, make `function set_login_error(message)` work in a similar fashion"
+    ],
+    "agent_reply": [
+      "Done. `set_login_error(message, notice)` now behaves like the reset message helpers:",
+      "",
+      "- writes to `#login_error`",
+      "- toggles `.notice`",
+      "- hides itself when the message is empty",
+      "- no more `window.alert()` for login/config errors",
+      "",
+      "I also added the `#login_error` element to [html/index.html](c:/GitHubRepos/The-Fly/html/index.html:32), reused the existing message styling in [html/styles.css](c:/GitHubRepos/The-Fly/html/styles.css:251), and clear the message when the login panel is hidden. CRLF preserved."
+    ],
+    "files": [
+      "html/script.js",
+      "html/index.html",
+      "html/styles.css"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T18:49:34.273Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: html/helpers.js",
+      "",
+      "## Active selection of the file:",
+      "make_rows_from_template",
+      "## Open tabs:",
+      "- helpers.js: html/helpers.js",
+      "- index.html: html/index.html",
+      "- WebServer.cpp: lib/WifiManager/WebServer.cpp",
+      "- script.js: html/script.js",
+      "- WebFileHandlers.cpp: lib/WifiManager/WebFileHandlers.cpp",
+      "",
+      "## My request for Codex:",
+      "`handle_info` should automatically trigger a ajax request to `/list_files.json`, which is served by `WebFileHandlers::sendMicroSdFileList`, the result should unhide and populate `#files_test` after using `make_rows_from_template`"
+    ],
+    "agent_reply": [
+      "Done. `handle_info(info)` now calls `fetch_file_list()` after finishing the existing info/security setup.",
+      "",
+      "Added:",
+      "",
+      "- `fetch_file_list()` AJAX GET to `/list_files.json`",
+      "- `render_file_list(files)` to populate `#files_test`",
+      "- `make_rows_from_template(\"files_table_body\", ...)` usage for file rows",
+      "- `files_table_body` `<tbody>` in [html/index.html](c:/GitHubRepos/The-Fly/html/index.html:42)",
+      "- cached file-row template so empty file lists don’t destroy the reusable template",
+      "- hides `#files_please_wait` and unhides `#files_test` when the list renders",
+      "",
+      "Touched files are CRLF-normalized."
+    ],
+    "files": [
+      "list_files.json",
+      "script.js",
+      "html/index.html",
+      "html/script.js"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T20:16:37Z",
+    "type": "git_commit",
+    "commit_message": "good progress on front end, organized the js files a bit, password and memory reset implemented",
+    "commit_hash": "b338b968a3e7d8ae40716584d19bbabe6c5d77d1"
+  }
+]

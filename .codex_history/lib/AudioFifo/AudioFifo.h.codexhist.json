@@ -1,0 +1,342 @@
+[
+  {
+    "timestamp": "2026-05-02T07:20:03Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "9495ca3e997d6aca003aa5a6ec502e2204cea031"
+  },
+  {
+    "timestamp": "2026-05-03T07:14:11Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "37471f5d99727676ebcaee90085bb7e9b6cfa054"
+  },
+  {
+    "timestamp": "2026-05-03T07:20:50Z",
+    "type": "git_commit",
+    "commit_message": "ran clang-format",
+    "commit_hash": "3d9ea7744be0307aa3f036911a5433b7fb358ce2"
+  },
+  {
+    "timestamp": "2026-05-03T09:03:36Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "29745920c6cf847fb4135d8f0efdf47683bcba94"
+  },
+  {
+    "timestamp": "2026-05-04T07:46:20Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "0065bdba2a9c72d3ebef8982804023dd796267c9"
+  },
+  {
+    "timestamp": "2026-05-04T18:03:06.752Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFifo/AudioFifo.h",
+      "",
+      "## Active selection of the file:",
+      "queue",
+      "## Open tabs:",
+      "- AudioFifo.h: lib/AudioFifo/AudioFifo.h",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- platformio.ini: platformio.ini",
+      "- AudioManager.h: lib/AudioManager/AudioManager.h",
+      "- BattTracker.cpp: lib/BattTracker/BattTracker.cpp",
+      "",
+      "## My request for Codex:",
+      "edit `pump_mic2bt` inside `lib\\AudioManager\\AudioManager.cpp`, if the mic is the spm1423 mic, then the stream is mono, if the mic is the wm8960 mic, the stream is stereo. Add a `queueStereo` function to the `AudioFifo` class. The data inside this AudioFifo is always 16 kHz mono"
+    ],
+    "agent_reply": [
+      "Implemented the stereo mic path.",
+      "",
+      "In [AudioFifo.h](c:/GitHubRepos/The-Fly/lib/AudioFifo/AudioFifo.h), I added:",
+      "",
+      "- `queueStereo(const int16_t* interleavedSamples, size_t frameCount, uint32_t sampleRateHz = 16000)`",
+      "",
+      "It accepts interleaved stereo frames, mixes each frame to mono with `(L + R) / 2`, and stores the FIFO’s internal stream as 16 kHz mono. It also supports the existing 8 kHz upsample path if needed.",
+      "",
+      "In [AudioManager.cpp](c:/GitHubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:509), `pump_mic2bt()` now:",
+      "",
+      "- Reads SPM1423 as mono into `g_mono_buffer`",
+      "- Reads WM8960 as stereo into `g_stereo_buffer`",
+      "- Queues SPM1423 with `queue(...)`",
+      "- Queues WM8960 with `queueStereo(...)`",
+      "- Sends both `mic2bt` and `mic2file` through the same normalization path",
+      "",
+      "I tried `pio run`, but `pio` still isn’t available in this shell."
+    ],
+    "files": [
+      "lib/AudioFifo/AudioFifo.h",
+      "lib/AudioManager/AudioManager.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-04T20:42:33.551Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "Please implement the code as described by the comment on lib/AudioFifo/AudioFifo.h:351",
+      "",
+      "The comment is:",
+      "keep the line above this line commented out for reference, but the real implementation here should be just take the first sample out of the two that is non-zero",
+      "",
+      "Replace the comment with your implementation.",
+      "Optimize for speed. Don't over-explore or over-check your work other than what is absolutely necessary to implement the comment.",
+      "Once you are done, remove the comment."
+    ],
+    "agent_reply": [
+      "Implemented in [lib/AudioFifo/AudioFifo.h](c:/GitHubRepos/The-Fly/lib/AudioFifo/AudioFifo.h:350).",
+      "",
+      "The old averaged-mix line remains commented for reference, and the real implementation now returns `frame[0]` when non-zero, otherwise `frame[1]`. The TODO comment is gone."
+    ],
+    "files": [
+      "lib/AudioFifo/AudioFifo.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-04T22:18:38Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
+  },
+  {
+    "timestamp": "2026-05-06T23:55:06.888Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFifo/AudioFifo.h",
+      "",
+      "## Active selection of the file:",
+      "usedSamples_",
+      "## Open tabs:",
+      "- AudioFifo.h: lib/AudioFifo/AudioFifo.h",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- AudioFileRecorder.h: lib/AudioFileRecorder/AudioFileRecorder.h",
+      "- readme.md: lib/AudioFileRecorder/readme.md",
+      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
+      "",
+      "## My request for Codex:",
+      "class `AudioFifo`, function `availableToRead`, if the state is `State::Filling` and the watermark criteria is not met, do not return `usedSamples_`, return 0 instead to fool the caller."
+    ],
+    "agent_reply": [
+      "Updated `AudioFifo::availableToRead()` so it now returns `0` while `state_ == State::Filling` and the watermark hasn’t been met. It calls `updateWatermarkLocked()` first, so once the watermark criteria is satisfied, it flips to draining and returns `usedSamples_`.",
+      "",
+      "Verification: `pio run` succeeds.",
+      "",
+      "Updated `AudioFifo::availableToRead()` so it now returns `0` while `state_ == State::Filling` and the watermark hasn’t been met. It calls `updateWatermarkLocked()` first, so once the watermark criteria is satisfied, it flips to draining and returns `usedSamples_`.",
+      "",
+      "Verification: `pio run` succeeds."
+    ],
+    "files": [
+      "lib/AudioFifo/AudioFifo.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-07T00:37:28Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "c31536e76af6564fcf9e33fe1e79c3fef9bf8e36"
+  },
+  {
+    "timestamp": "2026-05-07T00:41:19.013Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFifo/AudioFifo.h",
+      "",
+      "## Active selection of the file:",
+      "getFillPercentage",
+      "## Open tabs:",
+      "- AudioFifo.h: lib/AudioFifo/AudioFifo.h",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- defs.h: inc/defs.h",
+      "- AudioFileRecorder.h: lib/AudioFileRecorder/AudioFileRecorder.h",
+      "- thefly_common.h: inc/thefly_common.h",
+      "",
+      "## My request for Codex:",
+      "inside `lib\\AudioFifo\\AudioFifo.h`, why does both `getFillPercentagle` and `getFillPercentage` exist?"
+    ],
+    "agent_reply": [
+      "Because `getFillPercentagle()` is almost certainly a typo that became part of the API, and `getFillPercentage()` was later added as the correctly spelled wrapper.",
+      "",
+      "In [AudioFifo.h](c:/GitHubRepos/The-Fly/lib/AudioFifo/AudioFifo.h), the typo version does the real work:",
+      "",
+      "```cpp",
+      "uint8_t getFillPercentagle() const",
+      "{",
+      "    std::lock_guard<std::mutex> lock(mutex_);",
+      "    return static_cast<uint8_t>((usedSamples_ * 100U) / capacitySamples_);",
+      "}",
+      "```",
+      "",
+      "and the correctly spelled one just forwards to it:",
+      "",
+      "```cpp",
+      "uint8_t getFillPercentage() const",
+      "{",
+      "    return getFillPercentagle();",
+      "}",
+      "```",
+      "",
+      "So functionally they are identical. The likely reason both exist is backward compatibility: some code may have used the misspelled name, then the correctly spelled name was added without breaking existing callers.",
+      "",
+      "If you want to clean it up, the tidy path is: search for `getFillPercentagle`, replace any callers with `getFillPercentage`, then remove the misspelled method.",
+      "",
+      "Because `getFillPercentagle()` is almost certainly a typo that became part of the API, and `getFillPercentage()` was later added as the correctly spelled wrapper.",
+      "",
+      "In [AudioFifo.h](c:/GitHubRepos/The-Fly/lib/AudioFifo/AudioFifo.h), the typo version does the real work:",
+      "",
+      "```cpp",
+      "uint8_t getFillPercentagle() const",
+      "{",
+      "    std::lock_guard<std::mutex> lock(mutex_);",
+      "    return static_cast<uint8_t>((usedSamples_ * 100U) / capacitySamples_);",
+      "}",
+      "```",
+      "",
+      "and the correctly spelled one just forwards to it:",
+      "",
+      "```cpp",
+      "uint8_t getFillPercentage() const",
+      "{",
+      "    return getFillPercentagle();",
+      "}",
+      "```",
+      "",
+      "So functionally they are identical. The likely reason both exist is backward compatibility: some code may have used the misspelled name, then the correctly spelled name was added without breaking existing callers.",
+      "",
+      "If you want to clean it up, the tidy path is: search for `getFillPercentagle`, replace any callers with `getFillPercentage`, then remove the misspelled method."
+    ],
+    "files": [
+      "lib/AudioFifo/AudioFifo.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-07T00:54:23Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "b3b772056c7834aba6a5a20ff399780150e87263"
+  },
+  {
+    "timestamp": "2026-05-14T09:06:33Z",
+    "type": "git_commit",
+    "commit_message": "got a physical unit, starting bringup tests",
+    "commit_hash": "9d0330a8d4292ae1c769e093080a2eba28dce43f"
+  },
+  {
+    "timestamp": "2026-05-14T17:58:30.135Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFifo/AudioFifo.h",
+      "",
+      "## Active selection of the file:",
+      "AudioFifo",
+      "## Open tabs:",
+      "- AudioFifo.h: lib/AudioFifo/AudioFifo.h",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "- thefly_audio_decoder.py: scripts/thefly_audio_decoder.py",
+      "- defs.h: inc/defs.h",
+      "- AudioFileRecorder.h: lib/AudioFileRecorder/AudioFileRecorder.h",
+      "",
+      "## My request for Codex:",
+      "review the changes I made to `AudioFifo::getFillPercentage`"
+    ],
+    "agent_reply": [
+      "**Finding**",
+      "",
+      "- [AudioFifo.h](c:/GitHubRepos/The-Fly/lib/AudioFifo/AudioFifo.h:282): the “full” test is slightly too loose: `usedSamples_ >= (capacitySamples_ - 1)` can report `100` when the FIFO is one sample short of full. In normal current capacities, the `percentage >= 100` branch will only be reached when `usedSamples_ == capacitySamples_`, so it probably won’t bite today. But it contradicts the comment and makes the edge behavior fragile. I’d make the condition exact:",
+      "  ```cpp",
+      "  percentage = percentage == 0 ? (usedSamples_ > 0 ? 1 : 0) : (usedSamples_ == capacitySamples_ ? 100 : min<uint8_t>(percentage, 99));",
+      "  ```",
+      "",
+      "**Notes**",
+      "",
+      "The main idea looks good: for the recorder’s `kPumpTargetFillPercentage = 0`, returning `1` for any non-empty FIFO means the pump loop won’t falsely stop while a tiny unread tail remains. That matches your intent nicely.",
+      "",
+      "No major correctness issues beyond the off-by-one-ish full check and readability of the nested ternary.",
+      "",
+      "**Finding**",
+      "",
+      "- [AudioFifo.h](c:/GitHubRepos/The-Fly/lib/AudioFifo/AudioFifo.h:282): the “full” test is slightly too loose: `usedSamples_ >= (capacitySamples_ - 1)` can report `100` when the FIFO is one sample short of full. In normal current capacities, the `percentage >= 100` branch will only be reached when `usedSamples_ == capacitySamples_`, so it probably won’t bite today. But it contradicts the comment and makes the edge behavior fragile. I’d make the condition exact:",
+      "  ```cpp",
+      "  percentage = percentage == 0 ? (usedSamples_ > 0 ? 1 : 0) : (usedSamples_ == capacitySamples_ ? 100 : min<uint8_t>(percentage, 99));",
+      "  ```",
+      "",
+      "**Notes**",
+      "",
+      "The main idea looks good: for the recorder’s `kPumpTargetFillPercentage = 0`, returning `1` for any non-empty FIFO means the pump loop won’t falsely stop while a tiny unread tail remains. That matches your intent nicely.",
+      "",
+      "No major correctness issues beyond the off-by-one-ish full check and readability of the nested ternary."
+    ],
+    "files": [
+      "lib/AudioFifo/AudioFifo.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-14T20:16:03Z",
+    "type": "git_commit",
+    "commit_message": "fifo reports percentage better, no zeros or 100 unless actually empty or full",
+    "commit_hash": "0acebb7c4a8087939fd8aae55349ab6f28116c3b"
+  },
+  {
+    "timestamp": "2026-05-14T23:37:11.793Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_micrec.cpp",
+      "",
+      "## Active selection of the file:",
+      "test_micrec",
+      "## Open tabs:",
+      "- test_micrec.cpp: src/tests/test_micrec.cpp",
+      "- AudioFifo.h: lib/AudioFifo/AudioFifo.h",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- thefly_audio_decoder.py: scripts/thefly_audio_decoder.py",
+      "- test_screen.cpp: src/tests/test_screen.cpp",
+      "",
+      "## My request for Codex:",
+      "in `lib\\AudioFifo\\AudioFifo.h`, add something similar to `muted` but call it `choked`, it simply won't let queue happen, but return success.",
+      "",
+      "there are operating modes that don't use Bluetooth, like a local memo recording, and I want this as a mechanism to not need having to drain the BT FIFO",
+      "",
+      "when this is implemented, let the `test_micrec` simply set the choke flag instead of draining the FIFO"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "In [AudioFifo.h](c:/GitHubRepos/The-Fly/lib/AudioFifo/AudioFifo.h:74), `choked` now behaves like a sink:",
+      "",
+      "- `queue()` / `queueStereo()` return success without storing samples.",
+      "- `availableToWrite()` reports full capacity while choked, so producers like `pump_mic2bt()` keep running.",
+      "- Added `setChoked()`, `choke()`, `unchoke()`, and `choked()`.",
+      "",
+      "In [test_micrec.cpp](c:/GitHubRepos/The-Fly/src/tests/test_micrec.cpp:165), the test now chokes `micToBluetoothFifo()` instead of draining it, and unchokes it on stop/failure.",
+      "",
+      "Verification: `pio run` passed successfully. There is still the existing packed-member warning in `AudioFileRecorder.cpp`, unrelated to this change."
+    ],
+    "files": [
+      "lib/AudioFifo/AudioFifo.h",
+      "src/tests/test_micrec.cpp",
+      "AudioFileRecorder.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-15T00:48:18Z",
+    "type": "git_commit",
+    "commit_message": "audiofifo can be choked, so local recordings don't stuff up the bt fifo",
+    "commit_hash": "f76a0d35bc5aa9b1e16d871c7896efc7b1715d40"
+  },
+  {
+    "timestamp": "2026-05-15T09:31:10Z",
+    "type": "git_commit",
+    "commit_message": "AudioFifo can free up memeory",
+    "commit_hash": "a9a9c22ecfb4968a77255d161ab4cf82062776f0"
+  }
+]

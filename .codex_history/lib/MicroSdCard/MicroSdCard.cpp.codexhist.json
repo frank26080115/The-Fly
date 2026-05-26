@@ -1,0 +1,110 @@
+[
+  {
+    "timestamp": "2026-05-04T22:18:38Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
+  },
+  {
+    "timestamp": "2026-05-05T18:55:00.172Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/MicroSdCard/MicroSdCard.h",
+      "",
+      "## Open tabs:",
+      "- MicroSdCard.h: lib/MicroSdCard/MicroSdCard.h",
+      "- MicroSdCard.cpp: lib/MicroSdCard/MicroSdCard.cpp",
+      "- SdCard.cpp: lib/MicroSdCard/SdCard.cpp",
+      "- SdCard.cpp: lib/SdCard/SdCard.cpp",
+      "- SdCard.h: lib/SdCard/SdCard.h",
+      "",
+      "## My request for Codex:",
+      "fix `lib/BluetoothManager/BluetoothManager.cpp:40:46: error: array must be initialized with a brace-enclosed initializer`, where it says `char g_legacy_pin[kLegacyPinMaxLength + 1] = kLegacyPin;`"
+    ],
+    "agent_reply": [
+      "Fixed the Bluetooth initializer:",
+      "",
+      "```cpp",
+      "char g_legacy_pin[kLegacyPinMaxLength + 1] = { '0', '0', '0', '0', '\\0' };",
+      "```",
+      "",
+      "I also fixed the stale SD wrapper includes after the folder/header rename to `MicroSdCard`.",
+      "",
+      "Updated:",
+      "- [BluetoothManager.cpp](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:40)",
+      "- [MicroSdCard.cpp](C:/GitHubRepos/The-Fly/lib/MicroSdCard/MicroSdCard.cpp:1)",
+      "- [mic_sd_recorder_demo.cpp](C:/GitHubRepos/The-Fly/src/mic_sd_recorder_demo.cpp:9)",
+      "- [AudioFileRecorder.cpp](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:9)",
+      "- [MostRecentFiles.cpp](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/MostRecentFiles.cpp:5)",
+      "- [FlyGui.cpp](C:/GitHubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:5)",
+      "",
+      "Verification: `pio run` now succeeds.",
+      "",
+      "Fixed the Bluetooth initializer:",
+      "",
+      "```cpp",
+      "char g_legacy_pin[kLegacyPinMaxLength + 1] = { '0', '0', '0', '0', '\\0' };",
+      "```",
+      "",
+      "I also fixed the stale SD wrapper includes after the folder/header rename to `MicroSdCard`.",
+      "",
+      "Updated:",
+      "- [BluetoothManager.cpp](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:40)",
+      "- [MicroSdCard.cpp](C:/GitHubRepos/The-Fly/lib/MicroSdCard/MicroSdCard.cpp:1)",
+      "- [mic_sd_recorder_demo.cpp](C:/GitHubRepos/The-Fly/src/mic_sd_recorder_demo.cpp:9)",
+      "- [AudioFileRecorder.cpp](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:9)",
+      "- [MostRecentFiles.cpp](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/MostRecentFiles.cpp:5)",
+      "- [FlyGui.cpp](C:/GitHubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:5)",
+      "",
+      "Verification: `pio run` now succeeds."
+    ],
+    "files": [
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "mic_sd_recorder_demo.cpp",
+      "SdCard.h",
+      "lib/AudioFileRecorder/MostRecentFiles.cpp",
+      "lib/FlyGui/FlyGui.cpp",
+      "lib/MicroSdCard/MicroSdCard.cpp",
+      "src/mic_sd_recorder_demo.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-05T21:16:39Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "6a8e6bd8033b3bb6a02c82981bb3ec72f49fac02"
+  },
+  {
+    "timestamp": "2026-05-14T09:06:33Z",
+    "type": "git_commit",
+    "commit_message": "got a physical unit, starting bringup tests",
+    "commit_hash": "9d0330a8d4292ae1c769e093080a2eba28dce43f"
+  },
+  {
+    "timestamp": "2026-05-14T20:17:05Z",
+    "type": "git_commit",
+    "commit_message": "only print card stats during tests",
+    "commit_hash": "a70773ab62be390bba2aa984edb37963efc45449"
+  },
+  {
+    "timestamp": "2026-05-21T02:56:49Z",
+    "type": "git_commit",
+    "commit_message": "more gui work, auto bt reconnect",
+    "commit_hash": "c002fb0767624f8362097c9328ec1d3f695a20db"
+  },
+  {
+    "timestamp": "2026-05-22T04:56:41Z",
+    "type": "git_commit",
+    "commit_message": "ftp server works",
+    "commit_hash": "999c2544883494dd08561819dc74e913ba45cd35"
+  },
+  {
+    "timestamp": "2026-05-22T07:18:40Z",
+    "type": "git_commit",
+    "commit_message": "recording works great now, tweaked the ui",
+    "commit_hash": "62765d1d8b21f98b4d6f07736b3fb63a966637c5"
+  }
+]

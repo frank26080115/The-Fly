@@ -1,0 +1,82 @@
+[
+  {
+    "timestamp": "2026-05-03T07:14:11Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "37471f5d99727676ebcaee90085bb7e9b6cfa054"
+  },
+  {
+    "timestamp": "2026-05-19T08:07:31Z",
+    "type": "git_commit",
+    "commit_message": "good progress working on GUI but ran into memory problems with PNG decode",
+    "commit_hash": "ce293de5bfe655e8023945176b68c324355ad1de"
+  },
+  {
+    "timestamp": "2026-05-20T07:17:21Z",
+    "type": "git_commit",
+    "commit_message": "massive progress with RecordingView",
+    "commit_hash": "1c4305479f888bd2dc55b13c27a109f8c8dc6cd7"
+  },
+  {
+    "timestamp": "2026-05-20T18:34:16.534Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/MostRecentFiles.cpp",
+      "",
+      "## Open tabs:",
+      "- MostRecentFiles.cpp: lib/AudioFileRecorder/MostRecentFiles.cpp",
+      "- MostRecentFiles.h: lib/AudioFileRecorder/MostRecentFiles.h",
+      "- FileHistory.h: lib/AudioFileRecorder/FileHistory.h",
+      "- FileHistory.cpp: lib/AudioFileRecorder/FileHistory.cpp",
+      "- AudioFileRecorder.h: lib/AudioFileRecorder/AudioFileRecorder.h",
+      "",
+      "## My request for Codex:",
+      "in `MainScreenView`, trade the top center position for `sprite_btn_info` (currently it is wifi), trade the bottom right for `sprite_btn_wifi` and have it launch the `ScrollView` for Wifi",
+      "",
+      "the info button now goes to a ModalDialog with the `sprite_info_100` logo, and shows some placeholder text. I need to define how to show disk status, unuploaded files status, etc later",
+      "",
+      "remember to edit all the callbacks"
+    ],
+    "agent_reply": [
+      "Done.",
+      "",
+      "Changed [MainScreenView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/MainScreenView.cpp:28):",
+      "- Top-center is now `sprit_btn_info`, calling `onclick_main_info`.",
+      "- Bottom-right is now `sprit_btn_wifi`, calling `onclick_main_wifi`.",
+      "- Right hardware button now triggers the Wi-Fi tile.",
+      "",
+      "Changed [main.cpp](C:/GitHubRepos/The-Fly/src/main.cpp:155):",
+      "- Added `onclick_main_info()`.",
+      "- It opens `ModalDialog` with `sprit_info_100`.",
+      "- Placeholder text is in place for future disk/unuploaded/network status.",
+      "- Existing scroll info dialogs still return to `ScrollView`; main info returns to `MainScreenView`.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_bringuptest",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "lib/FlyGuiViews/MainScreenView.cpp",
+      "src/main.cpp",
+      "lib/FlyGuiViews/MainScreenView.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-20T19:02:28Z",
+    "type": "git_commit",
+    "commit_message": "good progress on GUI",
+    "commit_hash": "3d988cb62856bfbc633ccac6598e1ba741663eec"
+  },
+  {
+    "timestamp": "2026-05-22T07:18:40Z",
+    "type": "git_commit",
+    "commit_message": "recording works great now, tweaked the ui",
+    "commit_hash": "62765d1d8b21f98b4d6f07736b3fb63a966637c5"
+  }
+]

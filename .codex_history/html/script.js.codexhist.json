@@ -1,0 +1,490 @@
+[
+  {
+    "timestamp": "2026-05-24T08:09:42Z",
+    "type": "git_commit",
+    "commit_message": "work on html front-end",
+    "commit_hash": "1645edb5032a7f7e5d79630177d3d1cadc2ee54f"
+  },
+  {
+    "timestamp": "2026-05-25T03:26:11Z",
+    "type": "git_commit",
+    "commit_message": "I'm checking in this state before tearing it all down",
+    "commit_hash": "335274e4557167c4d8346db9a0eb5ce8adc4b329"
+  },
+  {
+    "timestamp": "2026-05-25T06:46:05Z",
+    "type": "git_commit",
+    "commit_message": "added webcrypto shim",
+    "commit_hash": "6a04737635273ab72e57a7653e9edc5929638d5a"
+  },
+  {
+    "timestamp": "2026-05-26T03:38:14Z",
+    "type": "git_commit",
+    "commit_message": "frontend row cloning",
+    "commit_hash": "237f8ca6dd0b96cab151fee83494c06808fb0c33"
+  },
+  {
+    "timestamp": "2026-05-26T06:01:31Z",
+    "type": "git_commit",
+    "commit_message": "wip on front-end interaction",
+    "commit_hash": "31809cca15b2676842f49731d11ff55b42a22240"
+  },
+  {
+    "timestamp": "2026-05-26T07:39:46Z",
+    "type": "git_commit",
+    "commit_message": "frontend changes about password fields",
+    "commit_hash": "e67bb26814f4504f12da189d69f11529ad1c28fd"
+  },
+  {
+    "timestamp": "2026-05-26T07:58:09Z",
+    "type": "git_commit",
+    "commit_message": "password reset mechanism implementation",
+    "commit_hash": "b912990e70975d6dcadba6ebc765222feaea1602"
+  },
+  {
+    "timestamp": "2026-05-26T08:07:21Z",
+    "type": "git_commit",
+    "commit_message": "reset memory button implementation",
+    "commit_hash": "8bcf8a4aeece8bf576756b9657276588cef0f3e9"
+  },
+  {
+    "timestamp": "2026-05-26T18:27:42.777Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: html/script.js",
+      "",
+      "## Active selection of the file:",
+      "function is_offline_test()",
+      "{",
+      "    ",
+      "}",
+      "## Open tabs:",
+      "- script.js: html/script.js",
+      "- index.html: html/index.html",
+      "- check_dev_pace.py: tools/check_dev_pace.py",
+      "- platformio.ini: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "the highlighted javascript function should detect if the page is served as an offline test, like maybe it's served via \"file:\\\\\\\" or something like that"
+    ],
+    "agent_reply": [
+      "Updated [html/script.js](c:/GitHubRepos/The-Fly/html/script.js:173). `is_offline_test()` now returns `true` when the page is loaded from:",
+      "",
+      "- `file:`",
+      "- `localhost`",
+      "- `127.0.0.1`",
+      "- `::1`",
+      "",
+      "and `false` otherwise. Also normalized the file back to CRLF."
+    ],
+    "files": [
+      "html/script.js"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T18:29:12.131Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: html/script.js",
+      "",
+      "## Active selection of the file:",
+      "/*",
+      "    if is_offline_test() is false then hide all of the templates",
+      "    */",
+      "## Open tabs:",
+      "- script.js: html/script.js",
+      "- index.html: html/index.html",
+      "- check_dev_pace.py: tools/check_dev_pace.py",
+      "- platformio.ini: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "implement the highlighted logic in javascript"
+    ],
+    "agent_reply": [
+      "Implemented in [html/script.js](c:/GitHubRepos/The-Fly/html/script.js:167).",
+      "",
+      "`body_onload()` now calls `hide_all_test_divs()` only when `is_offline_test()` is false, and `hide_all_test_divs()` hides elements whose ids end in `_test`, like `files_test`.",
+      "",
+      "Kept CRLF line endings intact."
+    ],
+    "files": [
+      "html/script.js"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T18:31:59.895Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: html/index.html",
+      "",
+      "## Active selection of the file:",
+      "login_panel",
+      "## Open tabs:",
+      "- index.html: html/index.html",
+      "- script.js: html/script.js",
+      "- check_dev_pace.py: tools/check_dev_pace.py",
+      "- platformio.ini: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "`html\\script.js` should work like this:",
+      "",
+      "if under an offline test `#login_panel` is not hidden, otherwise, the `body_onload()` function hides `#login_panel`. The completetion of `/get_info` finds out the security level, and then `#login_panel` is shown or hidden accordingly"
+    ],
+    "agent_reply": [
+      "Implemented in [html/script.js](c:/GitHubRepos/The-Fly/html/script.js:167).",
+      "",
+      "Behavior now matches what you described:",
+      "",
+      "- Offline test: `#login_panel` stays visible on load.",
+      "- Normal served page: `body_onload()` immediately hides `#login_panel`.",
+      "- When `/get_info` completes and `current_security_level` is known:",
+      "  - security level `0`: login panel stays hidden.",
+      "  - any other level: login panel is shown.",
+      "- Successful login now hides the panel instead of removing it from the DOM.",
+      "",
+      "Also kept the offline test fixtures visible during offline tests and normalized `html/script.js` to CRLF. I tried `node --check`, but Node is not installed in this environment.",
+      "",
+      "Implemented in [html/script.js](c:/GitHubRepos/The-Fly/html/script.js:167).",
+      "",
+      "Behavior now matches what you described:",
+      "",
+      "- Offline test: `#login_panel` stays visible on load.",
+      "- Normal served page: `body_onload()` immediately hides `#login_panel`.",
+      "- When `/get_info` completes and `current_security_level` is known:",
+      "  - security level `0`: login panel stays hidden.",
+      "  - any other level: login panel is shown.",
+      "- Successful login now hides the panel instead of removing it from the DOM.",
+      "",
+      "Also kept the offline test fixtures visible during offline tests and normalized `html/script.js` to CRLF. I tried `node --check`, but Node is not installed in this environment."
+    ],
+    "files": [
+      "html/script.js"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T18:38:28.570Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: html/script.js",
+      "",
+      "## Active selection of the file:",
+      "                remember_session_info(info);",
+      "                render_info(info);",
+      "                hide_loading();",
+      "                setup_config_tables_from_info(info);",
+      "                apply_login_panel_visibility();",
+      "                if (current_security_level === 0)",
+      "                {",
+      "                    show_save_button();",
+      "                    fetch_cfg().catch((error) => set_login_error(error.message || \"Config load failed.\"));",
+      "                }",
+      "## Open tabs:",
+      "- script.js: html/script.js",
+      "- index.html: html/index.html",
+      "- check_dev_pace.py: tools/check_dev_pace.py",
+      "- platformio.ini: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "everything highlighted here, nothing more, nothing less, is broken out into another function that accepts an object, later I could theoretically call it from the developer tools with a test object"
+    ],
+    "agent_reply": [
+      "Done. Extracted the highlighted block into [html/script.js](c:/GitHubRepos/The-Fly/html/script.js:452):",
+      "",
+      "```js",
+      "function handle_info(info)",
+      "```",
+      "",
+      "`fetch_info()` now parses the response and calls `handle_info(info)`, so you can later call `handle_info({...})` from dev tools with a test object. CRLF preserved."
+    ],
+    "files": [
+      "html/script.js"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T18:45:01.544Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: html/script.js",
+      "",
+      "## Active selection of the file:",
+      "function set_login_error(message)",
+      "## Open tabs:",
+      "- script.js: html/script.js",
+      "- helpers.js: html/helpers.js",
+      "- sec_helpers.js: html/sec_helpers.js",
+      "- index.html: html/index.html",
+      "- timezone.js: html/timezone.js",
+      "",
+      "## My request for Codex:",
+      "you've already made `set_password_reset_message`, make `function set_login_error(message)` work in a similar fashion"
+    ],
+    "agent_reply": [
+      "Done. `set_login_error(message, notice)` now behaves like the reset message helpers:",
+      "",
+      "- writes to `#login_error`",
+      "- toggles `.notice`",
+      "- hides itself when the message is empty",
+      "- no more `window.alert()` for login/config errors",
+      "",
+      "I also added the `#login_error` element to [html/index.html](c:/GitHubRepos/The-Fly/html/index.html:32), reused the existing message styling in [html/styles.css](c:/GitHubRepos/The-Fly/html/styles.css:251), and clear the message when the login panel is hidden. CRLF preserved."
+    ],
+    "files": [
+      "html/script.js",
+      "html/index.html",
+      "html/styles.css"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T18:49:34.273Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: html/helpers.js",
+      "",
+      "## Active selection of the file:",
+      "make_rows_from_template",
+      "## Open tabs:",
+      "- helpers.js: html/helpers.js",
+      "- index.html: html/index.html",
+      "- WebServer.cpp: lib/WifiManager/WebServer.cpp",
+      "- script.js: html/script.js",
+      "- WebFileHandlers.cpp: lib/WifiManager/WebFileHandlers.cpp",
+      "",
+      "## My request for Codex:",
+      "`handle_info` should automatically trigger a ajax request to `/list_files.json`, which is served by `WebFileHandlers::sendMicroSdFileList`, the result should unhide and populate `#files_test` after using `make_rows_from_template`"
+    ],
+    "agent_reply": [
+      "Done. `handle_info(info)` now calls `fetch_file_list()` after finishing the existing info/security setup.",
+      "",
+      "Added:",
+      "",
+      "- `fetch_file_list()` AJAX GET to `/list_files.json`",
+      "- `render_file_list(files)` to populate `#files_test`",
+      "- `make_rows_from_template(\"files_table_body\", ...)` usage for file rows",
+      "- `files_table_body` `<tbody>` in [html/index.html](c:/GitHubRepos/The-Fly/html/index.html:42)",
+      "- cached file-row template so empty file lists don’t destroy the reusable template",
+      "- hides `#files_please_wait` and unhides `#files_test` when the list renders",
+      "",
+      "Touched files are CRLF-normalized."
+    ],
+    "files": [
+      "list_files.json",
+      "script.js",
+      "html/index.html",
+      "html/script.js"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T18:57:50.992Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: html/index.html",
+      "",
+      "## Active selection of the file:",
+      "btn_save",
+      "## Open tabs:",
+      "- index.html: html/index.html",
+      "- script.js: html/script.js",
+      "- WebServer.cpp: lib/WifiManager/WebServer.cpp",
+      "- helpers.js: html/helpers.js",
+      "- WebFileHandlers.cpp: lib/WifiManager/WebFileHandlers.cpp",
+      "",
+      "## My request for Codex:",
+      "in `handle_info` somewhere, for security level 1 and over, if `default_soft_ap` is false, the `#login_panel` panel becomes hidden, `function apply_login_panel_visibility()` needs to beware of this",
+      "",
+      "also if `default_soft_ap` is false, all the `class=\"please-login-first\"` items say \"reconfiguration not allowed\", we'll tweak this message later",
+      "",
+      "also `#btn_save` needs to be shown and hidden appropriately as per the above rules",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "agent_reply": [
+      "Implemented in [html/script.js](c:/GitHubRepos/The-Fly/html/script.js:22).",
+      "",
+      "`handle_info(info)` now stores `default_soft_ap` state and applies one shared visibility path:",
+      "",
+      "- `default_soft_ap === false` hides `#login_panel`",
+      "- `.please-login-first` elements change to `reconfiguration not allowed`",
+      "- `#btn_save` is hidden when reconfiguration is not allowed",
+      "- `#btn_save` is shown only when reconfiguration is allowed and config is unlocked:",
+      "  - security level `0`, or",
+      "  - successful login for security level `1+`",
+      "",
+      "I also made `hide_logged_out_markers()` respect the reconfiguration-disabled state so it won’t hide those “reconfiguration not allowed” messages later. CRLF preserved.",
+      "",
+      "Implemented in [html/script.js](c:/GitHubRepos/The-Fly/html/script.js:22).",
+      "",
+      "`handle_info(info)` now stores `default_soft_ap` state and applies one shared visibility path:",
+      "",
+      "- `default_soft_ap === false` hides `#login_panel`",
+      "- `.please-login-first` elements change to `reconfiguration not allowed`",
+      "- `#btn_save` is hidden when reconfiguration is not allowed",
+      "- `#btn_save` is shown only when reconfiguration is allowed and config is unlocked:",
+      "  - security level `0`, or",
+      "  - successful login for security level `1+`",
+      "",
+      "I also made `hide_logged_out_markers()` respect the reconfiguration-disabled state so it won’t hide those “reconfiguration not allowed” messages later. CRLF preserved."
+    ],
+    "files": [
+      "script.js",
+      "html/script.js"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T19:26:30.639Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: html/index.html",
+      "",
+      "## Open tabs:",
+      "- index.html: html/index.html",
+      "- script.js: html/script.js",
+      "- main.cpp: src/main.cpp",
+      "- WebServer.cpp: lib/WifiManager/WebServer.cpp",
+      "- helpers.js: html/helpers.js",
+      "",
+      "## My request for Codex:",
+      "`passreset_onsubmit()` please enforce minimum 6 character password with at least one letter (don't care about case) and one number, and no spaces"
+    ],
+    "agent_reply": [
+      "Done. `passreset_onsubmit()` now rejects reset passwords that:",
+      "",
+      "- are shorter than 6 characters",
+      "- contain spaces or any whitespace",
+      "- do not contain at least one letter",
+      "- do not contain at least one number",
+      "",
+      "It reports the reason through `set_password_reset_message(...)` before checking confirmation or sending the request. CRLF preserved. Node is still not installed here, so I couldn’t run a JS syntax check.",
+      "",
+      "Done. `passreset_onsubmit()` now rejects reset passwords that:",
+      "",
+      "- are shorter than 6 characters",
+      "- contain spaces or any whitespace",
+      "- do not contain at least one letter",
+      "- do not contain at least one number",
+      "",
+      "It reports the reason through `set_password_reset_message(...)` before checking confirmation or sending the request. CRLF preserved. Node is still not installed here, so I couldn’t run a JS syntax check."
+    ],
+    "files": [
+      "html/script.js"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T19:32:54.578Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WebServer.cpp",
+      "",
+      "## Active selection of the file:",
+      "void reset_password(AsyncWebServerRequest* request)",
+      "## Open tabs:",
+      "- WebServer.cpp: lib/WifiManager/WebServer.cpp",
+      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
+      "- WebCfgHandlers.cpp: lib/WifiManager/WebCfgHandlers.cpp",
+      "- index.html: html/index.html",
+      "- script.js: html/script.js",
+      "",
+      "## My request for Codex:",
+      "when password reset is successful",
+      "",
+      "the javascript causes the `<body>` element of the page be completely empty except `<h2>Password Reset Sucessful</h2>please allow the device to reboot`",
+      "",
+      "the handler `void reset_password(AsyncWebServerRequest* request)` should show a `ModalDialog` view with a confirmation. Dismissing the dialog causes the whole microcontroller to reboot"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "In [html/script.js](c:/GitHubRepos/The-Fly/html/script.js:879), successful `/reset_password` now replaces the entire page body with only:",
+      "",
+      "```html",
+      "<h2>Password Reset Sucessful</h2>",
+      "please allow the device to reboot",
+      "```",
+      "",
+      "In [lib/WifiManager/WebServer.cpp](c:/GitHubRepos/The-Fly/lib/WifiManager/WebServer.cpp:92), successful `reset_password()` now shows a `ModalDialog` confirmation using the thumbs-up sprite. Dismissing that dialog calls `esp_restart()`.",
+      "",
+      "Verification:",
+      "- `pio run -e thefly_sec1` compiled the changed C++ and reached link.",
+      "- Link failed with existing size pressure: `.iram0.text` overflowed by `2152 bytes`.",
+      "- `pio run` default env still fails earlier because `BUILD_WITH_SECURITY_LEVEL` is undefined for `thefly`.",
+      "- CRLF preserved.",
+      "",
+      "PlatformIO also regenerated [inc/web_assets.h](c:/GitHubRepos/The-Fly/inc/web_assets.h) when packaging the updated HTML/JS."
+    ],
+    "files": [
+      "html/script.js",
+      "lib/WifiManager/WebServer.cpp",
+      "inc/web_assets.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T20:02:28.150Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WebServer.cpp",
+      "",
+      "## Active selection of the file:",
+      "void reset_memory(AsyncWebServerRequest* request)",
+      "## Open tabs:",
+      "- WebServer.cpp: lib/WifiManager/WebServer.cpp",
+      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
+      "- WebCfgHandlers.cpp: lib/WifiManager/WebCfgHandlers.cpp",
+      "- index.html: html/index.html",
+      "- script.js: html/script.js",
+      "",
+      "## My request for Codex:",
+      "when memory reset is successful, same as the last task about password reset but for the memory reset function",
+      "",
+      "the javascript causes the `<body>` element of the page be completely empty except `<h2>Memory Reset Sucessful</h2>please allow the device to reboot`",
+      "",
+      "the handler `void reset_memory(AsyncWebServerRequest* request)` should show a `ModalDialog` view with a confirmation. Dismissing the dialog causes the whole microcontroller to reboot"
+    ],
+    "agent_reply": [
+      "Implemented the memory reset flow to match the password reset behavior.",
+      "",
+      "Changes made:",
+      "- `reset_memory()` now shows a `ModalDialog` confirmation after successful memory reset.",
+      "- Dismissing that dialog calls `esp_restart()` so the microcontroller reboots.",
+      "- The web UI now replaces the page body with:",
+      "  `<h2>Memory Reset Sucessful</h2>please allow the device to reboot`",
+      "- Shared reset dialog helper logic is used for both password reset and memory reset.",
+      "",
+      "Verification:",
+      "- `pio run -e thefly_sec0` passed successfully.",
+      "- `inc/web_assets.h` was regenerated by the build.",
+      "- `thefly_sec1` still hits an existing IRAM overflow at link time, unrelated to this change."
+    ],
+    "files": [
+      "html/script.js",
+      "lib/WifiManager/WebServer.cpp",
+      "inc/web_assets.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T20:16:37Z",
+    "type": "git_commit",
+    "commit_message": "good progress on front end, organized the js files a bit, password and memory reset implemented",
+    "commit_hash": "b338b968a3e7d8ae40716584d19bbabe6c5d77d1"
+  }
+]

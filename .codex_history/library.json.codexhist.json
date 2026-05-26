@@ -1,0 +1,46 @@
+[
+  {
+    "timestamp": "2026-05-01T18:17:05.600Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: .pio/libdeps/m5stack-core2/libsbc/src/sbc/sbc.c",
+      "",
+      "## Open tabs:",
+      "- bt_audio_demo.cpp: src/bt_audio_demo.cpp",
+      "- push_to_talk_demo.cpp: src/push_to_talk_demo.cpp",
+      "- high-level-fw-design.md: developer-docs/high-level-fw-design.md",
+      "- i2s_types.h: c:\\Users\\frank\\.platformio\\packages\\framework-arduinoespressif32\\tools\\sdk\\esp32\\include\\hal\\include\\hal\\i2s_types.h",
+      "- main.cpp: src/main.cpp",
+      "",
+      "## My request for Codex:",
+      "remove the libsbc from platformio.ini, as I have made a copy in `lib\\sbc`, no code changes so far but verify what I did is valid"
+    ],
+    "agent_reply": [
+      "Removed the external `arduino-libsbc` dependency from [platformio.ini](c:/GitHubRepos/The-Fly/platformio.ini).",
+      "",
+      "Your `lib\\sbc` copy is valid for PlatformIO as-is: the build now detects it as a local project library named `sbc`, compiles it, and `#include \"sbc.h\"` resolves correctly.",
+      "",
+      "Verified with PlatformIO: build passes.",
+      "",
+      "One small note: PlatformIO is compiling the copied command-line/test files too:",
+      "",
+      "- `sbcdec.c`",
+      "- `sbcenc.c`",
+      "- `sbcinfo.c`",
+      "- `sbctester.c`",
+      "",
+      "They appear to compile into tiny object files and don’t break anything, but they aren’t needed for firmware. Later we may want a `library.json` or source filter to include only the codec files."
+    ],
+    "files": [
+      "sbc.h",
+      "platformio.ini",
+      "sbcdec.c",
+      "sbcenc.c",
+      "sbcinfo.c",
+      "sbctester.c",
+      "library.json"
+    ]
+  }
+]

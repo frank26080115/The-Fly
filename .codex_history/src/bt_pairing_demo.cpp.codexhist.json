@@ -1,0 +1,92 @@
+[
+  {
+    "timestamp": "2026-05-01T17:26:15.481Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/bt_pairing_demo.cpp",
+      "",
+      "## Open tabs:",
+      "- bt_pairing_demo.cpp: src/bt_pairing_demo.cpp",
+      "- bt_audio_demo.cpp: src/bt_audio_demo.cpp",
+      "- high-level-fw-design.md: developer-docs/high-level-fw-design.md",
+      "- bt_demo.cpp: src/bt_demo.cpp",
+      "- readme.md: lib/AudioFifo/readme.md",
+      "",
+      "## My request for Codex:",
+      "now implement the comment inside src\\bt_pairing_demo.cpp"
+    ],
+    "agent_reply": [
+      "Implemented [src/bt_pairing_demo.cpp](c:/GitHubRepos/The-Fly/src/bt_pairing_demo.cpp).",
+      "",
+      "It now provides:",
+      "",
+      "- `bt_pairing_demo_pair()` and `bt_pairing_demo_pair(BtPairingDemoCredentials *saved_credentials)`: starts BT/HFP, opens Classic BT discoverable/connectable pairing for 60 seconds, accepts SSP/PIN pairing, then shuts discoverability off.",
+      "- `bt_pairing_demo_connect_saved(const BtPairingDemoCredentials &saved_credentials)`: reconnects HFP using the saved peer address.",
+      "- `bt_pairing_demo_connect_last()`",
+      "- `bt_pairing_demo_last_credentials()`",
+      "- `bt_pairing_demo_shutdown_pairing()`",
+      "",
+      "The saved app-level credentials are `version`, `remote_bda`, `remote_name`, and `valid`. The actual Bluetooth link key/bond material is maintained by Bluedroid in NVS, so the saved record points back to that bond.",
+      "",
+      "Verified with PlatformIO: build passes."
+    ],
+    "files": [
+      "src/bt_pairing_demo.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-01T18:42:55.334Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/UtilFuncs/utilfuncs.cpp",
+      "",
+      "## Open tabs:",
+      "- utilfuncs.cpp: lib/UtilFuncs/utilfuncs.cpp",
+      "- bt_audio_demo.cpp: src/bt_audio_demo.cpp",
+      "- bt_pairing_demo.cpp: src/bt_pairing_demo.cpp",
+      "- utilfuncs.h: lib/UtilFuncs/utilfuncs.h",
+      "- utils.h: inc/utils.h",
+      "",
+      "## My request for Codex:",
+      "I have pulled some functions into `lib\\UtilFuncs\\utilfuncs.cpp`, make sure all demos still build by adding function signatures and header includes"
+    ],
+    "agent_reply": [
+      "Done. I made `lib/UtilFuncs` usable as a real shared library:",
+      "",
+      "- Added function declarations and ESP-IDF type includes to [utilfuncs.h](C:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.h).",
+      "- Added the missing implementation includes and a local log tag in [utilfuncs.cpp](C:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.cpp).",
+      "- Included `utilfuncs.h` from:",
+      "  - [bt_audio_demo.cpp](C:/GitHubRepos/The-Fly/src/bt_audio_demo.cpp)",
+      "  - [bt_pairing_demo.cpp](C:/GitHubRepos/The-Fly/src/bt_pairing_demo.cpp)",
+      "  - [push_to_talk_demo.cpp](C:/GitHubRepos/The-Fly/src/push_to_talk_demo.cpp)",
+      "- Removed the duplicated local helper implementations from those demos.",
+      "",
+      "Verification: `platformio run` succeeds. PlatformIO now detects `UtilFuncs` in the dependency graph. Existing libsbc `always_inline` warnings remain.",
+      "",
+      "Done. I made `lib/UtilFuncs` usable as a real shared library:",
+      "",
+      "- Added function declarations and ESP-IDF type includes to [utilfuncs.h](C:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.h).",
+      "- Added the missing implementation includes and a local log tag in [utilfuncs.cpp](C:/GitHubRepos/The-Fly/lib/UtilFuncs/utilfuncs.cpp).",
+      "- Included `utilfuncs.h` from:",
+      "  - [bt_audio_demo.cpp](C:/GitHubRepos/The-Fly/src/bt_audio_demo.cpp)",
+      "  - [bt_pairing_demo.cpp](C:/GitHubRepos/The-Fly/src/bt_pairing_demo.cpp)",
+      "  - [push_to_talk_demo.cpp](C:/GitHubRepos/The-Fly/src/push_to_talk_demo.cpp)",
+      "- Removed the duplicated local helper implementations from those demos.",
+      "",
+      "Verification: `platformio run` succeeds. PlatformIO now detects `UtilFuncs` in the dependency graph. Existing libsbc `always_inline` warnings remain."
+    ],
+    "files": [
+      "utilfuncs.cpp",
+      "lib/UtilFuncs/utilfuncs.h",
+      "lib/UtilFuncs/utilfuncs.cpp",
+      "src/bt_audio_demo.cpp",
+      "src/bt_pairing_demo.cpp",
+      "src/push_to_talk_demo.cpp",
+      "utilfuncs.h"
+    ]
+  }
+]
