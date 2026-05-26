@@ -16,10 +16,13 @@ namespace
 constexpr int16_t  kContentY         = FlyGui::kTopBarHeight;
 constexpr int16_t  kWifiIconX        = 4;
 constexpr int16_t  kWifiIconY        = FlyGui::kTopBarHeight + 2;
-constexpr int16_t  kSecurityIconX    = 58;
+constexpr int16_t  kSecurityIconX    = 54;
 constexpr int16_t  kEyeSize          = 100;
 constexpr int16_t  kEyeX             = 220;
 constexpr int16_t  kEyeY             = 140;
+constexpr int16_t  kClientInfoX      = 104;
+constexpr int16_t  kClientInfoY      = FlyGui::kTopBarHeight + 2;
+constexpr int16_t  kClientInfoWidth  = 212;
 constexpr int16_t  kTextX            = 8;
 constexpr int16_t  kTextY            = 68;
 constexpr int16_t  kTextWidth        = 206;
@@ -27,6 +30,7 @@ constexpr int16_t  kTextLineHeight   = 18;
 constexpr int16_t  kStatsY           = 166;
 constexpr int16_t  kHintY            = 180;
 constexpr int16_t  kSmallLineHeight  = 10;
+constexpr uint32_t kClientInfoDrawMs = 500;
 constexpr uint32_t kStatsCycleMs     = 3000;
 constexpr const char* kHiddenText     = "**********";
 constexpr const char* kExitHint       = "power-off/reset to stop";
@@ -76,6 +80,29 @@ void draw_fit_line(const char* text, int16_t x, int16_t y, int16_t width)
 
     thefly_display.drawString("...", x, y);
 }
+
+void format_mac_hyphen(const uint8_t mac[6], char* out, size_t out_size)
+{
+    if (!out || out_size == 0)
+    {
+        return;
+    }
+    if (!mac)
+    {
+        out[0] = '\0';
+        return;
+    }
+
+    snprintf(out,
+             out_size,
+             "%02X-%02X-%02X-%02X-%02X-%02X",
+             mac[0],
+             mac[1],
+             mac[2],
+             mac[3],
+             mac[4],
+             mac[5]);
+}
 } // namespace
 
 WifiApModeView* WifiApModeView::activeView_ = nullptr;
@@ -102,6 +129,7 @@ void WifiApModeView::onLoad()
     activeView_ = this;
     showSensitive_ = false;
     statsIndex_ = 0;
+    lastClientDrawMs_ = 0;
     lastStatsDrawMs_ = 0;
     syncEyeSprite();
     FlyGuiView::onLoad();
@@ -122,11 +150,13 @@ void WifiApModeView::redraw(bool forced)
     if (redrawStatic)
     {
         drawStaticContent();
+        drawClientInfo(true);
         drawStatsLine(true);
         markClean();
         return;
     }
 
+    drawClientInfo(false);
     drawStatsLine(false);
 }
 
@@ -174,6 +204,41 @@ void WifiApModeView::drawStaticContent()
     securityIcon_.redraw(true);
     eyeItem_.redraw(true);
     drawCredentials();
+}
+
+void WifiApModeView::drawClientInfo(bool forced)
+{
+    const uint32_t now = millis();
+    if (!forced && now - lastClientDrawMs_ < kClientInfoDrawMs)
+    {
+        return;
+    }
+    lastClientDrawMs_ = now;
+
+    char client_text[18] = "nobody";
+    uint8_t client_mac[6] = {};
+    if (wifi_manager && wifi_manager->softApClientMac(client_mac))
+    {
+        format_mac_hyphen(client_mac, client_text, sizeof(client_text));
+    }
+
+    char count_text[16] = {};
+    snprintf(count_text,
+             sizeof(count_text),
+             "%lu",
+             static_cast<unsigned long>(wifi_manager ? wifi_manager->softApClientConnectionCount() : 0));
+
+    set_small_text(TFT_WHITE);
+    thefly_display.fillRect(kClientInfoX,
+                            kClientInfoY,
+                            kClientInfoWidth,
+                            static_cast<int16_t>(kSmallLineHeight * 2),
+                            TFT_BLACK);
+    draw_fit_line(client_text, kClientInfoX, kClientInfoY, kClientInfoWidth);
+    draw_fit_line(count_text,
+                  kClientInfoX,
+                  static_cast<int16_t>(kClientInfoY + kSmallLineHeight),
+                  kClientInfoWidth);
 }
 
 void WifiApModeView::drawCredentials()

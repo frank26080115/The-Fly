@@ -19,6 +19,7 @@ private:
     void syncEyeSprite();
     void drawStaticContent();
     void drawCredentials();
+    void drawClientInfo(bool forced);
     void drawStatsLine(bool forced);
     void formatStatsLine(char* out, size_t out_size) const;
 
@@ -27,6 +28,7 @@ private:
     FlyGuiItem eyeItem_;
     bool       showSensitive_ = false;
     uint8_t    statsIndex_ = 0;
+    uint32_t   lastClientDrawMs_ = 0;
     uint32_t   lastStatsDrawMs_ = 0;
 
     static WifiApModeView* activeView_;

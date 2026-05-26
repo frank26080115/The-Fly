@@ -127,6 +127,8 @@ public:
     bool isGeneratedSoftApActive() const;
     const char* generatedSoftApSsid() const;
     const char* softApPassword() const;
+    bool softApClientMac(uint8_t out[6]) const;
+    uint32_t softApClientConnectionCount() const;
     void noteWebPageLoad();
     void noteWebLogin();
     void noteWebSave();
@@ -148,6 +150,8 @@ public:
 private:
     bool connectToHotspot(const wifi_item_t* hotspot, bool shutdown_first);
     void resetWebCounters();
+    void resetSoftApClientTracking();
+    void updateSoftApClientTracking();
     void notifyConnected(const wifi_item_t* item);
     void notifyDisconnected(const wifi_item_t* item);
     void notifyScanFinished(const wifi_item_t* item);
@@ -172,4 +176,7 @@ private:
     uint32_t      m_web_save_count                 = 0;
     uint32_t      m_web_error_count                = 0;
     uint32_t      m_web_download_count             = 0;
+    bool          m_soft_ap_client_connected       = false;
+    uint8_t       m_soft_ap_client_mac[6]          = {};
+    uint32_t      m_soft_ap_client_connection_count = 0;
 };

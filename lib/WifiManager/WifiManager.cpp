@@ -769,6 +769,7 @@ bool WifiManager::connectToHotspot(const wifi_item_t* hotspot, bool shutdown_fir
     {
         shutdown_for_wifi_activation();
     }
+    resetSoftApClientTracking();
 
     if (m_reported_connected)
     {
@@ -797,6 +798,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
 {
     if (!access_point || !access_point->ssid || access_point->ssid[0] == '\0')
     {
+        resetSoftApClientTracking();
         m_status      = Status::AccessPointFailed;
         m_active_wifi = nullptr;
         ESP_LOGW(TAG, "cannot start missing Wi-Fi access point");
@@ -804,6 +806,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     }
 
     shutdown_for_wifi_activation();
+    resetSoftApClientTracking();
 
     if (m_reported_connected)
     {
@@ -813,6 +816,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     WiFi.disconnect(true, false);
     if (!WiFi.mode(WIFI_AP))
     {
+        resetSoftApClientTracking();
         m_status      = Status::AccessPointFailed;
         m_active_wifi = nullptr;
         ESP_LOGW(TAG, "could not switch Wi-Fi to access point mode");
@@ -822,6 +826,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     const char* password = access_point->password && access_point->password[0] != '\0' ? access_point->password : nullptr;
     if (!password || strlen(password) < 8)
     {
+        resetSoftApClientTracking();
         m_status      = Status::AccessPointFailed;
         m_active_wifi = nullptr;
         ESP_LOGW(TAG, "cannot start WPA3-only Wi-Fi access point \"%s\" without an 8+ character password", access_point->ssid);
@@ -831,6 +836,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     const bool started = WiFi.softAP(access_point->ssid, password, kSoftApChannel, kSoftApSsidHidden, kSoftApMaxConnection);
     if (!started)
     {
+        resetSoftApClientTracking();
         m_status      = Status::AccessPointFailed;
         m_active_wifi = nullptr;
         ESP_LOGW(TAG, "could not start Wi-Fi access point \"%s\"", access_point->ssid);
@@ -839,6 +845,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     if (!enforce_soft_ap_security())
     {
         WiFi.softAPdisconnect(true);
+        resetSoftApClientTracking();
         m_status      = Status::AccessPointFailed;
         m_active_wifi = nullptr;
         ESP_LOGW(TAG, "stopped Wi-Fi access point \"%s\" because WPA3-only security could not be enforced", access_point->ssid);
@@ -876,6 +883,7 @@ bool WifiManager::scanAndConnect()
     {
         notifyDisconnected(m_connected_wifi);
     }
+    resetSoftApClientTracking();
 
     if (m_station_count == 0)
     {
@@ -927,6 +935,7 @@ bool WifiManager::disconnect()
     m_active_wifi = nullptr;
     m_connected_wifi = nullptr;
     m_status      = Status::Idle;
+    resetSoftApClientTracking();
     return station_disconnected || ap_disconnected;
 }
 
@@ -986,6 +995,10 @@ void WifiManager::poll()
     if (is_connected_status(current))
     {
         m_status = current;
+        if (current == Status::AccessPoint)
+        {
+            updateSoftApClientTracking();
+        }
         if (!m_reported_connected && m_active_wifi)
         {
             notifyConnected(m_active_wifi);
@@ -1080,6 +1093,22 @@ const char* WifiManager::softApPassword() const
     return m_active_wifi->password;
 }
 
+bool WifiManager::softApClientMac(uint8_t out[6]) const
+{
+    if (!out || !m_soft_ap_client_connected)
+    {
+        return false;
+    }
+
+    memcpy(out, m_soft_ap_client_mac, sizeof(m_soft_ap_client_mac));
+    return true;
+}
+
+uint32_t WifiManager::softApClientConnectionCount() const
+{
+    return m_soft_ap_client_connection_count;
+}
+
 void WifiManager::noteWebPageLoad()
 {
     ++m_web_page_load_count;
@@ -1137,6 +1166,41 @@ void WifiManager::resetWebCounters()
     m_web_save_count = 0;
     m_web_error_count = 0;
     m_web_download_count = 0;
+}
+
+void WifiManager::resetSoftApClientTracking()
+{
+    m_soft_ap_client_connected = false;
+    memset(m_soft_ap_client_mac, 0, sizeof(m_soft_ap_client_mac));
+    m_soft_ap_client_connection_count = 0;
+}
+
+void WifiManager::updateSoftApClientTracking()
+{
+    if (status() != Status::AccessPoint)
+    {
+        m_soft_ap_client_connected = false;
+        memset(m_soft_ap_client_mac, 0, sizeof(m_soft_ap_client_mac));
+        return;
+    }
+
+    wifi_sta_list_t stations = {};
+    const esp_err_t err = esp_wifi_ap_get_sta_list(&stations);
+    if (err != ESP_OK || stations.num <= 0)
+    {
+        m_soft_ap_client_connected = false;
+        memset(m_soft_ap_client_mac, 0, sizeof(m_soft_ap_client_mac));
+        return;
+    }
+
+    const uint8_t* mac = stations.sta[0].mac;
+    const bool same_client = m_soft_ap_client_connected && memcmp(m_soft_ap_client_mac, mac, sizeof(m_soft_ap_client_mac)) == 0;
+    if (!same_client)
+    {
+        ++m_soft_ap_client_connection_count;
+        memcpy(m_soft_ap_client_mac, mac, sizeof(m_soft_ap_client_mac));
+    }
+    m_soft_ap_client_connected = true;
 }
 
 void WifiManager::notifyConnected(const wifi_item_t* item)
