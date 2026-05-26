@@ -4,6 +4,8 @@ const session_salt_half_size = 16;
 const sha256_size = 32;
 const get_cfg_magic = [0x54, 0x46, 0x47, 0x43];
 const get_cfg_version = 2;
+const set_cfg_magic = [0x54, 0x46, 0x47, 0x43];
+const set_cfg_version = 1;
 const header_session_salt_from_client = "X-TheFly-Session-Salt-From-Client";
 const header_session_response_from_client = "X-TheFly-Session-Response-From-Client";
 const network_salt = new Uint8Array([
@@ -20,11 +22,13 @@ const session_security = {
     sessionSaltFromServer: null,
     sessionSaltFromClient: null,
     networkHmacKey: null,
+    networkAesKey: null,
     sessionAesKey: null,
     nonceCounter: 0,
     securityReady: false,
 };
 
+let current_security_level = null;
 let cached_webcrypto_provider = null;
 let webcrypto_shim_load_promise = null;
 
@@ -370,14 +374,14 @@ async function import_hmac_key(key_bytes)
         ["sign"]);
 }
 
-async function import_aes_key(key_bytes)
+async function import_aes_key(key_bytes, usages)
 {
     return (await require_webcrypto()).importKey(
         "raw",
         key_bytes,
         { name: "AES-GCM" },
         false,
-        ["decrypt"]);
+        usages || ["decrypt"]);
 }
 
 async function hmac_sha256(key, data)
@@ -400,11 +404,17 @@ function next_session_nonce()
 
 function remember_session_info(info)
 {
+    current_security_level = Number(info["security-level"]);
+    if (!Number.isFinite(current_security_level))
+    {
+        current_security_level = null;
+    }
     session_security.sessionChallenge = hex_to_bytes(info.session_challenge || "", 32);
     session_security.sessionResponseFromServer = hex_to_bytes(info.session_response_from_server || "", sha256_size);
     session_security.sessionSaltFromServer = hex_to_bytes(info.session_salt_from_server || "", session_salt_half_size);
     session_security.sessionResponseFromClientHex = "";
     session_security.networkHmacKey = null;
+    session_security.networkAesKey = null;
     session_security.sessionAesKey = null;
     session_security.nonceCounter = 0;
     session_security.securityReady = Boolean(info.security_ready);
@@ -437,6 +447,13 @@ function fetch_info()
                 remember_session_info(info);
                 render_info(info);
                 hide_loading();
+                setup_config_tables_from_info(info);
+                if (current_security_level === 0)
+                {
+                    remove_login_panel();
+                    show_save_button();
+                    fetch_cfg().catch((error) => set_login_error(error.message || "Config load failed."));
+                }
             }
             catch (error)
             {
@@ -606,6 +623,31 @@ function make_rows_from_template(parent_container_id, first_child_row, num_of_ro
 
 }
 
+function config_limit(info, key, fallback)
+{
+    const limits = info && info.config_limits ? info.config_limits : {};
+    const value = Number(limits[key]);
+    return Number.isFinite(value) && value >= 0 ? value : fallback;
+}
+
+function setup_config_tables_from_info(info)
+{
+    make_rows_from_template("bluetooth_devices", "bt_row_1", Math.max(2, config_limit(info, "bluetooth_hosts", 8)));
+    make_rows_from_template("wifi_routers", "wifi_routers_row_1", Math.max(2, config_limit(info, "stations", 8)));
+    make_rows_from_template("wifi_ap_row_1", document.querySelector("#wifi_ap_row_1 .wifi-config-row"), Math.max(1, config_limit(info, "access_points", 1)));
+    make_rows_from_template("cloud_dest", "cloud_row_1", Math.max(1, config_limit(info, "cloud_uploads", 1)));
+    apply_security_level_visibility();
+}
+
+function apply_security_level_visibility()
+{
+    const show_level_0 = current_security_level === 0;
+    for (const node of document.querySelectorAll(".security-level-0-only"))
+    {
+        node.style.display = show_level_0 ? "" : "none";
+    }
+}
+
 function hide_all_test_divs()
 {
 
@@ -666,7 +708,11 @@ function render_info(info)
     append_info_row(container, "Self IP", info.self_ip);
     append_info_row(container, "Firmware", info.firmware);
     append_info_row(container, "Compiled", info.compiled);
-    append_info_row(container, "Security", info.security_ready ? "Ready" : "Network key unavailable");
+    append_info_row(container, "Security", "Level " + (Number.isFinite(current_security_level) ? current_security_level : "unknown"));
+    if (current_security_level !== 0)
+    {
+        append_info_row(container, "Session Security", info.security_ready ? "Ready" : "Network key unavailable");
+    }
     append_info_row(container, "Disk Storage", disk_summary(info.disk));
 
     update_password_reset_entry(Boolean(info.default_soft_ap));
@@ -860,9 +906,12 @@ function fill_time_config(network)
 function fill_wifi_rows(container_id, row_class, id_prefix, items, minimum_rows)
 {
     const list = Array.isArray(items) ? items : [];
-    const row_count = Math.max(minimum_rows, list.length);
+    const container = document.getElementById(container_id);
+    const existing_count = container ? container.querySelectorAll("." + row_class).length : 0;
+    const row_count = Math.max(minimum_rows, existing_count, list.length);
     const template_id = container_id === "wifi_routers" ? "wifi_routers_row_1" : null;
-    const rows = template_id ? make_rows_from_template(container_id, template_id, row_count) : ensure_config_rows(container_id, row_class, row_count);
+    const template = template_id ? template_id : document.querySelector("#" + container_id + " ." + row_class);
+    const rows = make_rows_from_template(container_id, template, row_count);
 
     rows.forEach((row, index) => {
         const item = list[index] || {};
@@ -875,12 +924,14 @@ function fill_wifi_rows(container_id, row_class, id_prefix, items, minimum_rows)
 function fill_cloud_rows(items)
 {
     const list = Array.isArray(items) ? items : [];
-    const rows = make_rows_from_template("cloud_dest", "cloud_row_1", Math.max(2, list.length));
+    const container = document.getElementById("cloud_dest");
+    const existing_count = container ? container.querySelectorAll(".cloud-dest-row").length : 0;
+    const rows = make_rows_from_template("cloud_dest", "cloud_row_1", Math.max(1, existing_count, list.length));
 
     rows.forEach((row, index) => {
         const item = list[index] || {};
         set_input_by_id("cloud_url_" + (index + 1), item.url || "");
-        set_input_by_id("cloud_password_" + (index + 1), "");
+        set_input_by_id("cloud_password_" + (index + 1), current_security_level === 0 ? (item.password || "") : "");
         set_select_by_id("cloud_icon_" + (index + 1), item.icon || "unknown");
     });
 }
@@ -888,7 +939,9 @@ function fill_cloud_rows(items)
 function fill_bluetooth_rows(items)
 {
     const list = Array.isArray(items) ? items : [];
-    const rows = make_rows_from_template("bluetooth_devices", "bt_row_1", Math.max(2, list.length));
+    const container = document.getElementById("bluetooth_devices");
+    const existing_count = container ? container.querySelectorAll(".bluetooth-device-row").length : 0;
+    const rows = make_rows_from_template("bluetooth_devices", "bt_row_1", Math.max(2, existing_count, list.length));
 
     rows.forEach((row, index) => {
         const item = list[index] || {};
@@ -916,10 +969,11 @@ function fill_config_page(config)
 
     fill_time_config(network);
     fill_wifi_rows("wifi_routers", "wifi-config-row", "wifi", network.stations, 2);
-    fill_wifi_rows("wifi_ap", "wifi-config-row", "wifi_ap", network.access_points, 1);
+    fill_wifi_rows("wifi_ap_row_1", "wifi-config-row", "wifi_ap", network.access_points, 1);
     fill_cloud_rows(network.cloud_uploads);
     fill_bluetooth_rows(bluetooth.hosts);
     hide_logged_out_markers();
+    apply_security_level_visibility();
 }
 
 async function decrypt_cfg_blob(buffer)
@@ -956,11 +1010,14 @@ function fetch_cfg()
     return new Promise((resolve, reject) => {
         const request = new XMLHttpRequest();
         request.open("GET", "/get_cfg", true);
-        request.responseType = "arraybuffer";
+        request.responseType = current_security_level === 0 ? "json" : "arraybuffer";
         request.timeout = 10000;
-        request.setRequestHeader(header_session_response_from_client, session_security.sessionResponseFromClientHex);
-        request.setRequestHeader(header_session_salt_from_client, bytes_to_hex(session_security.sessionSaltFromClient));
-        session_security.nonceCounter = 0;
+        if (current_security_level !== 0)
+        {
+            request.setRequestHeader(header_session_response_from_client, session_security.sessionResponseFromClientHex);
+            request.setRequestHeader(header_session_salt_from_client, bytes_to_hex(session_security.sessionSaltFromClient));
+            session_security.nonceCounter = 0;
+        }
 
         request.onload = async function() {
             if (request.status < 200 || request.status >= 300)
@@ -971,7 +1028,9 @@ function fetch_cfg()
 
             try
             {
-                const config = await decrypt_cfg_blob(request.response);
+                const config = current_security_level === 0
+                    ? (request.response || JSON.parse(request.responseText))
+                    : await decrypt_cfg_blob(request.response);
                 fill_config_page(config);
                 resolve(config);
             }
@@ -1025,6 +1084,7 @@ async function login_onsubmit()
 
         network_key_bytes = await derive_pbkdf2_bytes(password_bytes, network_salt);
         session_security.networkHmacKey = await import_hmac_key(network_key_bytes);
+        session_security.networkAesKey = await import_aes_key(network_key_bytes, ["encrypt"]);
 
         client_response = await hmac_sha256(session_security.networkHmacKey, session_security.sessionChallenge);
         server_response = await hmac_sha256(session_security.networkHmacKey, client_response);
@@ -1048,6 +1108,7 @@ async function login_onsubmit()
     {
         session_security.sessionResponseFromClientHex = "";
         session_security.networkHmacKey = null;
+        session_security.networkAesKey = null;
         session_security.sessionAesKey = null;
         set_login_error(error.message || "Login failed.");
     }
@@ -1061,4 +1122,168 @@ async function login_onsubmit()
         clear_bytes(server_response);
         password_text = "";
     }
+}
+
+function input_value(id)
+{
+    const input = document.getElementById(id);
+    return input ? input.value.trim() : "";
+}
+
+function select_value(id, fallback)
+{
+    const select = document.getElementById(id);
+    return select && select.value ? select.value : (fallback || "unknown");
+}
+
+function collect_wifi_rows(container_id, id_prefix)
+{
+    const container = document.getElementById(container_id);
+    const rows = container ? Array.from(container.querySelectorAll(".wifi-config-row")) : [];
+    const items = [];
+
+    rows.forEach((_row, index) => {
+        const suffix = index + 1;
+        const ssid = input_value(id_prefix + "_ssid_" + suffix);
+        if (!ssid)
+        {
+            return;
+        }
+
+        items.push({
+            ssid: ssid,
+            password: input_value(id_prefix + "_password_" + suffix),
+            icon: select_value(id_prefix + "_icon_" + suffix, "unknown"),
+        });
+    });
+
+    return items;
+}
+
+function collect_cloud_rows()
+{
+    const container = document.getElementById("cloud_dest");
+    const rows = container ? Array.from(container.querySelectorAll(".cloud-dest-row")) : [];
+    const items = [];
+
+    rows.forEach((_row, index) => {
+        const suffix = index + 1;
+        const url = input_value("cloud_url_" + suffix);
+        if (!url)
+        {
+            return;
+        }
+
+        const item = {
+            url: url,
+            icon: select_value("cloud_icon_" + suffix, "unknown"),
+        };
+        if (current_security_level === 0)
+        {
+            item.password = input_value("cloud_password_" + suffix);
+        }
+        items.push(item);
+    });
+
+    return items;
+}
+
+function collect_bluetooth_rows()
+{
+    const container = document.getElementById("bluetooth_devices");
+    const rows = container ? Array.from(container.querySelectorAll(".bluetooth-device-row")) : [];
+    const hosts = [];
+
+    rows.forEach((_row, index) => {
+        const suffix = index + 1;
+        const mac = input_value("bt_bdaddr_" + suffix);
+        if (!mac)
+        {
+            return;
+        }
+
+        hosts.push({
+            mac: mac,
+            name_custom: input_value("bt_name_custom_" + suffix),
+            icon: select_value("bt_icon_" + suffix, "unknown"),
+        });
+    });
+
+    return hosts;
+}
+
+function collect_config()
+{
+    return {
+        network: {
+            timezone: input_value("timezone") || "UTC0",
+            ntp_servers: [
+                input_value("ntp_url_1"),
+                input_value("ntp_url_2"),
+                input_value("ntp_url_3"),
+            ],
+            stations: collect_wifi_rows("wifi_routers", "wifi"),
+            access_points: collect_wifi_rows("wifi_ap_row_1", "wifi_ap"),
+            cloud_uploads: collect_cloud_rows(),
+        },
+        bluetooth: {
+            hosts: collect_bluetooth_rows(),
+        },
+    };
+}
+
+async function encrypt_set_cfg_blob(config)
+{
+    if (!session_security.networkAesKey)
+    {
+        throw new Error("Network encryption key is not available.");
+    }
+
+    const nonce = secure_random_bytes(12);
+    const plaintext = new TextEncoder().encode(JSON.stringify(config));
+    const encrypted = new Uint8Array(await (await require_webcrypto()).encrypt(
+        { name: "AES-GCM", iv: nonce, tagLength: 128 },
+        session_security.networkAesKey,
+        plaintext));
+    const body = new Uint8Array(set_cfg_magic.length + 1 + nonce.length + encrypted.length);
+    body.set(set_cfg_magic, 0);
+    body[set_cfg_magic.length] = set_cfg_version;
+    body.set(nonce, set_cfg_magic.length + 1);
+    body.set(encrypted, set_cfg_magic.length + 1 + nonce.length);
+    return body;
+}
+
+async function save_config()
+{
+    let body = null;
+    try
+    {
+        const config = collect_config();
+        body = current_security_level === 0
+            ? new TextEncoder().encode(JSON.stringify(config))
+            : await encrypt_set_cfg_blob(config);
+    }
+    catch (error)
+    {
+        set_login_error(error.message || "Config save failed.");
+        return;
+    }
+
+    const request = new XMLHttpRequest();
+    request.open("POST", "/set_cfg", true);
+    request.timeout = 15000;
+    request.setRequestHeader("Content-Type", current_security_level === 0 ? "application/json" : "application/octet-stream");
+
+    request.onload = function() {
+        if (request.status >= 200 && request.status < 300)
+        {
+            window.alert("Configuration saved.");
+            fetch_cfg().catch((error) => set_login_error(error.message || "Config reload failed."));
+            return;
+        }
+        set_login_error(request.responseText || ("Config save failed: " + request.status));
+    };
+    request.onerror = () => set_login_error("Config save failed.");
+    request.ontimeout = () => set_login_error("Config save timed out.");
+    request.send(body);
 }

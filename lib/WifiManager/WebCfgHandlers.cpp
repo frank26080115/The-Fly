@@ -157,6 +157,10 @@ void append_cfg_cloud_item(String& json, const cloud_item_t* item, bool& first)
     append_json_comma(json, first);
     json += "{\"url\":";
     json += WebServer::jsonString(url);
+    #if BUILD_WITH_SECURITY_LEVEL <= 0
+    json += ",\"password\":";
+    json += WebServer::jsonString(item->password);
+    #endif
     json += ",\"icon\":";
     json += WebServer::jsonString(IconLookup::toString(item->icon));
     json += "}";

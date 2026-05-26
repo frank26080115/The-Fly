@@ -8,6 +8,7 @@
 
 #include "Aegis.h"
 #include "BluetoothManager.h"
+#include "BtHostList.h"
 #if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
 #include "FtpServer.h"
 #endif
@@ -294,7 +295,7 @@ void send_info(AsyncWebServerRequest* request)
     bytes_to_hex(g_session_security.session_salt_from_server, sizeof(g_session_security.session_salt_from_server), session_salt_hex);
 
     String json;
-    json.reserve(900);
+    json.reserve(1100);
     json += "{";
     json += "\"device_name\":";
     json += WebServer::jsonString(BtManager::localDeviceName());
@@ -308,6 +309,20 @@ void send_info(AsyncWebServerRequest* request)
     json += default_soft_ap ? "true" : "false";
     json += ",\"security_ready\":";
     json += security_ready ? "true" : "false";
+    json += ",\"security-level\":";
+    json += BUILD_WITH_SECURITY_LEVEL;
+    json += ",\"config_limits\":{";
+    json += "\"stations\":";
+    append_json_u64(json, kNetworkConfigMaxEntries);
+    json += ",\"access_points\":";
+    append_json_u64(json, kNetworkConfigAllowedEntriesAP);
+    json += ",\"cloud_uploads\":";
+    append_json_u64(json, kNetworkConfigCloudAllowedEntries);
+    json += ",\"bluetooth_hosts\":";
+    append_json_u64(json, kBtHostListMaxEntries);
+    json += ",\"ntp_servers\":";
+    append_json_u64(json, WifiManager::kNtpServerCount);
+    json += "}";
     json += ",\"session_challenge\":";
     json += WebServer::jsonString(session_challenge_hex.c_str());
     json += ",\"session_response_from_server\":";
