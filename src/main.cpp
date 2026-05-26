@@ -9,6 +9,7 @@
 #include "BluetoothManager.h"
 #include "BtHostList.h"
 #include "Aegis.h"
+#include "CloudUpload.h"
 #include "DiskStats.h"
 #include "Hotel.h"
 #include "FlyGui.h"
@@ -19,6 +20,7 @@
 #include "ScrollView/ScrollView.h"
 #include "WifiManager.h"
 #include "esp_log.h"
+#include "esp_system.h"
 #include "sprites.h"
 #include "utilfuncs.h"
 #include "all_tests.h"
@@ -31,6 +33,7 @@ extern void show_splash();
 extern void draw_splash_boot_info();
 extern bool show_conn_waiting_bluetooth(const char* targetName);
 extern bool show_conn_waiting_bluetooth_pairing();
+extern bool show_cloud_upload_view(CloudUpload* uploader, const char* targetName);
 extern uint16_t conn_waiting_return_view_id();
 extern bool show_recording_view_bluetooth();
 extern bool show_recording_view_memo();
@@ -47,6 +50,7 @@ void onclick_wifi_scan_and_connect(int32_t value, uint32_t pressDurationMs);
 void onclick_wifi_station(int32_t value, uint32_t pressDurationMs);
 void onclick_wifi_ap(int32_t value, uint32_t pressDurationMs);
 void onclick_cloud_upload(int32_t value, uint32_t pressDurationMs);
+void cloud_upload_cancel(uint32_t pressDurationMs);
 void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs);
 void onclick_bt_show_info(int32_t value, uint32_t pressDurationMs);
 void onclick_wifi_show_info(int32_t value, uint32_t pressDurationMs);
@@ -63,22 +67,28 @@ static void  on_bluetooth_paired(const BtManager::PairedDevice& device);
 static void  handle_pending_bluetooth_recording();
 static void  handle_pending_bluetooth_pairing();
 static void  handle_pending_bluetooth_connect_failed();
+static void  handle_pending_cloud_upload_complete();
 static bool  connect_to_bluetooth_host(const bt_host_item_t* host, const char* source);
 static void  on_wifi_scan_finished(const wifi_item_t* item);
 static void  request_bluetooth_disconnect();
 static const char* info_dialog_text_with_tamper_code(const char* text, char* buffer, size_t buffer_size);
+static void  on_cloud_upload_complete(const CloudUpload::Status& status);
+static void  on_cloud_upload_dialog_dismissed();
 
 FlyGui* gui;
 M5GFX& thefly_display = M5.Display;
 BtHostList* bt_host_list;
 WifiManager* wifi_manager;
+static CloudUpload g_cloud_upload;
 static volatile bool g_pending_bluetooth_recording = false;
 static volatile bool g_pending_bluetooth_disconnect = false;
 static volatile bool g_pending_bluetooth_pairing = false;
 static volatile bool g_bluetooth_connect_waiting = false;
 static volatile bool g_pending_bluetooth_connect_failed = false;
+static volatile bool g_pending_cloud_upload_complete = false;
 static volatile bool g_suppress_bluetooth_auto_recording = false;
 static BtManager::PairedDevice g_pending_paired_device = {};
+static CloudUpload::Status g_pending_cloud_upload_status = {};
 
 void setup()
 {
@@ -167,6 +177,7 @@ void loop()
     handle_pending_bluetooth_pairing();
     handle_pending_bluetooth_connect_failed();
     handle_pending_bluetooth_recording();
+    handle_pending_cloud_upload_complete();
     gui->poll();
     AudioFileRecorder::pump();
     if (wifi_manager) {
@@ -329,6 +340,63 @@ static void handle_pending_bluetooth_connect_failed()
     {
         gui->showView(FLYGUI_VIEW_SCROLL);
     }
+}
+
+static void handle_pending_cloud_upload_complete()
+{
+    if (!g_pending_cloud_upload_complete)
+    {
+        return;
+    }
+    g_pending_cloud_upload_complete = false;
+
+    const CloudUpload::Status status = g_pending_cloud_upload_status;
+    const bool                succeeded = status.state == CloudUpload::State::Done && status.error == CloudUpload::Error::None;
+
+    ModalDialog* dialog = get_modal_dialog();
+    if (!dialog || !gui)
+    {
+        ESP_LOGW(MAINTAG, "cloud upload complete but modal dialog is unavailable; rebooting");
+        delay(50);
+        esp_restart();
+        return;
+    }
+
+    char text[240] = {};
+    if (succeeded)
+    {
+        snprintf(text,
+                 sizeof(text),
+                 "Cloud upload complete\n%lu/%lu files uploaded.",
+                 static_cast<unsigned long>(status.files_succeeded),
+                 static_cast<unsigned long>(status.files_total));
+        dialog->configure(sprit_thumbsup_100,
+                          SPRIT_THUMBSUP_100_BYTES,
+                          SPRIT_THUMBSUP_100_WIDTH,
+                          SPRIT_THUMBSUP_100_HEIGHT,
+                          text,
+                          FLYGUI_VIEW_MAIN,
+                          on_cloud_upload_dialog_dismissed);
+    }
+    else
+    {
+        snprintf(text,
+                 sizeof(text),
+                 "Cloud upload failed\n%s\n%lu/%lu uploaded, %lu errs",
+                 status.message[0] != '\0' ? status.message : "unknown error",
+                 static_cast<unsigned long>(status.files_succeeded),
+                 static_cast<unsigned long>(status.files_total),
+                 static_cast<unsigned long>(status.files_failed));
+        dialog->configure(sprit_warning_100,
+                          SPRIT_WARNING_100_BYTES,
+                          SPRIT_WARNING_100_WIDTH,
+                          SPRIT_WARNING_100_HEIGHT,
+                          text,
+                          FLYGUI_VIEW_MAIN,
+                          on_cloud_upload_dialog_dismissed);
+    }
+
+    gui->showView(FLYGUI_VIEW_MODAL_DIALOG);
 }
 
 static bool connect_to_bluetooth_host(const bt_host_item_t* host, const char* source)
@@ -620,6 +688,40 @@ void onclick_cloud_upload(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     ESP_LOGI(MAINTAG, "scroll cloud upload selected: index=%ld", static_cast<long>(value));
+
+    if (value < 0 || !wifi_manager)
+    {
+        show_fatal_error_f(false, "Cloud upload selection is invalid");
+        return;
+    }
+
+    const cloud_item_t* endpoint = wifi_manager->cloudEndpoint(static_cast<size_t>(value));
+    if (!endpoint)
+    {
+        show_fatal_error_f(false, "Cloud upload endpoint is invalid");
+        return;
+    }
+
+    g_cloud_upload.setOnCompleteCallback(on_cloud_upload_complete);
+    if (!g_cloud_upload.start(endpoint))
+    {
+        const CloudUpload::Status status = g_cloud_upload.status();
+        show_error_dialog(status.message[0] != '\0' ? status.message : "Cloud upload failed to start", FLYGUI_VIEW_SCROLL);
+        return;
+    }
+
+    if (!show_cloud_upload_view(&g_cloud_upload, endpoint->url))
+    {
+        g_cloud_upload.cancel();
+        show_fatal_error_f(false, "Cloud upload view failed");
+    }
+}
+
+void cloud_upload_cancel(uint32_t pressDurationMs)
+{
+    (void)pressDurationMs;
+    ESP_LOGI(MAINTAG, "cloud upload cancel selected");
+    g_cloud_upload.cancel();
 }
 
 void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs)
@@ -770,6 +872,19 @@ static void on_pairing_success_dialog_dismissed()
         ESP_LOGI(MAINTAG, "Bluetooth was connected while pairing confirmation was shown; queueing recording start");
         g_pending_bluetooth_recording = true;
     }
+}
+
+static void on_cloud_upload_complete(const CloudUpload::Status& status)
+{
+    g_pending_cloud_upload_status = status;
+    g_pending_cloud_upload_complete = true;
+}
+
+static void on_cloud_upload_dialog_dismissed()
+{
+    ESP_LOGI(MAINTAG, "cloud upload confirmation dismissed; rebooting");
+    delay(50);
+    esp_restart();
 }
 
 static void on_wifi_scan_finished(const wifi_item_t* item)

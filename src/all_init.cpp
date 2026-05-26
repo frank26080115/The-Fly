@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include "nvs_flash.h"
 #include "M5Unified.h"
+#include "CloudUploadView.h"
 #include "FlyGui.h"
 #include "ConnWaitingView.h"
 #include "ErrorView.h"
@@ -36,6 +37,9 @@ extern void onclick_cloud_upload(int32_t value, uint32_t pressDurationMs);
 extern void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs);
 extern void onclick_bt_show_info(int32_t value, uint32_t pressDurationMs);
 extern void onclick_wifi_show_info(int32_t value, uint32_t pressDurationMs);
+extern void cloud_upload_cancel(uint32_t pressDurationMs);
+
+class CloudUpload;
 
 namespace
 {
@@ -45,6 +49,7 @@ RecordingView       g_recording_view;
 ErrorView           g_error_view;
 ModalDialog         g_modal_dialog;
 ConnWaitingView     g_conn_waiting_view(CONN_WAITING_BLUETOOTH_CONNECTING, "", conn_waiting_cancel);
+CloudUploadView     g_cloud_upload_view(cloud_upload_cancel);
 ScrollView          g_scroll_view(FLYGUI_VIEW_SCROLL, onclick_scroll_exit);
 WifiApModeView      g_wifi_ap_mode_view;
 uint16_t            g_conn_waiting_return_view_id = FLYGUI_VIEW_MAIN;
@@ -127,6 +132,7 @@ void init_gui()
     gui->addView(g_error_view);
     gui->addView(g_modal_dialog);
     gui->addView(g_conn_waiting_view);
+    gui->addView(g_cloud_upload_view);
     gui->addView(g_scroll_view);
     gui->addView(g_wifi_ap_mode_view);
 
@@ -196,6 +202,18 @@ bool show_conn_waiting_bluetooth_pairing()
     g_conn_waiting_view.configure(CONN_WAITING_BLUETOOTH_PAIRING, "");
     g_conn_waiting_view.setCancelCallback(conn_waiting_cancel);
     return gui->showView(FLYGUI_VIEW_CONN_WAITING);
+}
+
+bool show_cloud_upload_view(CloudUpload* uploader, const char* targetName)
+{
+    if (!gui)
+    {
+        return false;
+    }
+
+    g_cloud_upload_view.configureUpload(uploader, targetName);
+    g_cloud_upload_view.setCancelCallback(cloud_upload_cancel);
+    return gui->showView(FLYGUI_VIEW_UPLOAD_PROGRESS);
 }
 
 bool show_recording_view_bluetooth()

@@ -14,7 +14,10 @@ enum ConnWaitingMode : uint8_t
 class ConnWaitingView : public FlyGuiView
 {
 public:
-    ConnWaitingView(ConnWaitingMode mode, const char* targetName, FlyGuiItemCallback cancelCallback);
+    ConnWaitingView(ConnWaitingMode mode,
+                    const char* targetName,
+                    FlyGuiItemCallback cancelCallback,
+                    uint16_t viewId = FLYGUI_VIEW_CONN_WAITING);
 
     ConnWaitingMode mode() const
     {
@@ -31,14 +34,16 @@ public:
     bool handleTouch(const FlyGuiTouchEvent& event) override;
     void redraw(bool forced) override;
 
-private:
+protected:
     static constexpr size_t kTargetNameMax = 95;
 
+    virtual void drawBottomCenter();
+    virtual bool updateHourglass(uint32_t now, bool forced);
+
+private:
     void drawStaticContent();
     void drawMainSprite();
-    void drawBottomCenter();
     void drawHourglassFrame(uint8_t frame);
-    bool updateHourglass(uint32_t now, bool forced);
 
     ConnWaitingMode mode_                       = CONN_WAITING_BLUETOOTH_CONNECTING;
     char            targetName_[kTargetNameMax + 1] = {};

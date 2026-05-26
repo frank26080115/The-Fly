@@ -64,8 +64,8 @@ SpriteRef hourglass_sprite_for_frame(uint8_t frame)
 }
 } // namespace
 
-ConnWaitingView::ConnWaitingView(ConnWaitingMode mode, const char* targetName, FlyGuiItemCallback cancelCallback)
-    : FlyGuiView(FLYGUI_VIEW_CONN_WAITING),
+ConnWaitingView::ConnWaitingView(ConnWaitingMode mode, const char* targetName, FlyGuiItemCallback cancelCallback, uint16_t viewId)
+    : FlyGuiView(viewId),
       mode_(mode),
       cancelItem_(kCancelX, kBottomY, kBottomSpriteSize, kBottomSpriteSize)
 {
@@ -112,7 +112,7 @@ void ConnWaitingView::redraw(bool forced)
         drawStaticContent();
         hourglassFrame_      = 0;
         lastHourglassDrawMs_ = now;
-        drawHourglassFrame(hourglassFrame_);
+        updateHourglass(now, true);
         cancelItem_.redraw(true);
         markClean();
         return;
