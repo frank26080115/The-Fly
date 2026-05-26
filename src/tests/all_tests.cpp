@@ -17,4 +17,5 @@ void run_test()
     //test_pmic();
     //test_webserver();
     //test_btramusage();
+    test_nvsloadsave();
 }

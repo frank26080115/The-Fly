@@ -79,9 +79,9 @@ void setup()
 {
     all_init();
 
-    #ifdef RUN_BRINGUP_TEST
+    //#ifdef RUN_BRINGUP_TEST
     run_test();
-    #endif
+    //#endif
 
     if (reset_was_magic == false) {
         show_splash();
