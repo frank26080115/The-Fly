@@ -34,9 +34,6 @@ struct HfpAudioDiagnostics
 {
     uint32_t incomingCallbacks          = 0;
     uint32_t incomingNullOrEmpty        = 0;
-    uint32_t incomingNoDecoder          = 0;
-    uint32_t incomingDecodeFrames       = 0;
-    uint32_t incomingDecodeFailures     = 0;
     uint64_t incomingBytes              = 0;
     uint64_t incomingConsumedBytes      = 0;
     uint64_t incomingPcmSamples         = 0;
@@ -44,10 +41,7 @@ struct HfpAudioDiagnostics
     uint64_t incomingQueuedFileSamples  = 0;
     uint32_t outgoingCallbacks          = 0;
     uint32_t outgoingNullOrSmall        = 0;
-    uint32_t outgoingNoEncoder          = 0;
     uint32_t outgoingUnderflows         = 0;
-    uint32_t outgoingEncodeFrames       = 0;
-    uint32_t outgoingEncodeFailures     = 0;
     uint64_t outgoingRequestedBytes     = 0;
     uint64_t outgoingReturnedBytes      = 0;
     uint64_t outgoingPcmSamplesRead     = 0;

@@ -13,19 +13,6 @@
 #include "driver/i2s_std.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
-#if defined(USE_BLUEDROID_MSBC) && defined(USE_LIBSBC_MSBC)
-#error "Use only one of USE_BLUEDROID_MSBC or USE_LIBSBC_MSBC"
-#endif
-#if defined(USE_BLUEDROID_MSBC)
-#include "bluedroid_sbc.h"
-#define AUDIO_MANAGER_USE_MSBC_CODEC 1
-#elif defined(USE_LIBSBC_MSBC)
-#include "sbc.h"
-#define AUDIO_MANAGER_USE_MSBC_CODEC 1
-#else
-#define AUDIO_MANAGER_USE_MSBC_CODEC 0
-#endif
-#define AUDIO_MANAGER_HFP_CALLBACKS_ARE_PCM 1
 #include "BluetoothManager.h"
 #include "utilfuncs.h"
 
@@ -34,12 +21,6 @@ namespace AudioManager
 namespace
 {
 
-#if defined(USE_BLUEDROID_MSBC)
-using SbcCodec = bluedroid_sbc_t;
-#elif defined(USE_LIBSBC_MSBC)
-using SbcCodec = sbc_t;
-#endif
-
 constexpr const char* TAG = "AudioManager";
 
 enum class SpeakerPath
@@ -47,13 +28,6 @@ enum class SpeakerPath
     None,
     NS4168,
     ExternalI2SCodec,
-};
-
-enum class HfpCallbackPayload
-{
-    Unknown,
-    EncodedMsbc,
-    Pcm,
 };
 
 constexpr i2s_port_t kI2sPort = I2S_NUM_0;
@@ -74,10 +48,7 @@ constexpr size_t   kPumpSamples                   = 240;
 constexpr size_t   kDmaBufferCount                = 8;
 constexpr uint8_t  kVolumeStep                    = 3;
 constexpr uint8_t  kVolumeGainShift               = 10;
-constexpr size_t   kSbcScratchBytes               = 512;
-constexpr uint32_t kMsbcFrameBytes                = 57;
-constexpr uint32_t kMsbcPcmBytes                  = 240;
-constexpr size_t   kHfpOutgoingNotifyMinSamples   = kMsbcPcmBytes / sizeof(int16_t);
+constexpr size_t   kHfpOutgoingNotifyMinSamples   = 120;
 constexpr uint16_t kVolumeGainByLevel[kMaxVolume] = {
     // gain = 10^(dB / 20) ; -50 dB was used to generate this table
     3, 4, 5, 6, 7, 9, 11, 13, 16, 19, 24, 29, 35, 43, 52, 64, 78, 95, 115, 141, 172, 209, 255, 311, 380, 463, 565, 688, 840, 1024,
@@ -100,11 +71,6 @@ bool              g_initialized            = false;
 bool              g_wire_started           = false;
 HfpCodec          g_hfp_codec              = HfpCodec::Msbc;
 uint32_t          g_hfp_rate_hz            = kSampleRateHz;
-HfpCallbackPayload g_hfp_callback_payload  = HfpCallbackPayload::Unknown;
-#if AUDIO_MANAGER_USE_MSBC_CODEC
-bool              g_sbc_decoder_ready      = false;
-bool              g_sbc_encoder_ready      = false;
-#endif
 volatile size_t   g_i2s_tx_available_bytes = 0;
 portMUX_TYPE      g_i2s_tx_credit_mux      = portMUX_INITIALIZER_UNLOCKED;
 std::mutex        g_pump_mutex;
@@ -113,12 +79,6 @@ size_t            g_pending_speaker_bytes = 0;
 int16_t g_mono_buffer[kPumpSamples];
 int16_t g_stereo_buffer[kPumpSamples * 2];
 uint8_t g_pending_speaker_buffer[kPumpSamples * 2 * sizeof(int16_t)];
-#if AUDIO_MANAGER_USE_MSBC_CODEC
-uint8_t g_sbc_decode_pcm[kSbcScratchBytes];
-uint8_t g_sbc_encode_pcm[kSbcScratchBytes];
-SbcCodec g_sbc_decoder = {};
-SbcCodec g_sbc_encoder = {};
-#endif
 
 #ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
 HfpAudioDiagnostics g_hfp_diag     = {};
@@ -161,63 +121,6 @@ void note_speaker_i2s_write(size_t requested, size_t written, size_t bytes_per_f
 #define note_speaker_i2s_write(...) do { } while (false)
 #endif
 
-bool is_msbc_h2_header(const uint8_t* buf, uint32_t len)
-{
-    if (len < 3 || buf[0] != 0x01 || buf[2] != 0xad)
-    {
-        return false;
-    }
-
-    return buf[1] == 0x08 || buf[1] == 0x38 || buf[1] == 0xc8 || buf[1] == 0xf8;
-}
-
-bool has_msbc_frame_header(const uint8_t* buf, uint32_t len)
-{
-    if (len == 0)
-    {
-        return false;
-    }
-
-    return is_msbc_h2_header(buf, len) || (buf[0] == 0xad && (len % kMsbcFrameBytes) == 0);
-}
-
-void note_hfp_callback_payload(HfpCallbackPayload payload, const char* reason, uint32_t len)
-{
-    if (g_hfp_callback_payload != HfpCallbackPayload::Unknown || payload == HfpCallbackPayload::Unknown)
-    {
-        return;
-    }
-
-    g_hfp_callback_payload = payload;
-    ESP_LOGI(TAG,
-             "HFP callback payload detected as %s: %s, len=%lu",
-             payload == HfpCallbackPayload::EncodedMsbc ? "encoded mSBC" : "PCM",
-             reason,
-             static_cast<unsigned long>(len));
-}
-
-bool hfp_callback_should_decode_msbc(const uint8_t* buf, uint32_t len)
-{
-    if (g_hfp_callback_payload == HfpCallbackPayload::Pcm)
-    {
-        return false;
-    }
-
-    if (has_msbc_frame_header(buf, len))
-    {
-        note_hfp_callback_payload(HfpCallbackPayload::EncodedMsbc, "mSBC frame header present", len);
-        return true;
-    }
-
-    if (len >= kMsbcPcmBytes && (len % sizeof(int16_t)) == 0)
-    {
-        note_hfp_callback_payload(HfpCallbackPayload::Pcm, "no mSBC header and PCM-sized callback", len);
-        return false;
-    }
-
-    return g_hfp_callback_payload == HfpCallbackPayload::EncodedMsbc;
-}
-
 void queue_hfp_pcm(const uint8_t* buf, uint32_t len)
 {
     if (len < sizeof(int16_t))
@@ -231,7 +134,6 @@ void queue_hfp_pcm(const uint8_t* buf, uint32_t len)
     const size_t queued_spk  = g_fifo_bt2spk.queue(pcm, samples, g_hfp_rate_hz);
     const size_t queued_file = g_fifo_bt2file.queue(pcm, samples, g_hfp_rate_hz);
     HFP_AUDIO_DIAG([len, samples, queued_spk, queued_file](HfpAudioDiagnostics& diag) {
-        ++diag.incomingDecodeFrames;
         diag.incomingConsumedBytes += len;
         diag.incomingPcmSamples += samples;
         diag.incomingQueuedSpkSamples += queued_spk;
@@ -355,106 +257,6 @@ void apply_ns4168_software_volume(int16_t* samples, size_t sampleCount)
     {
         samples[i] = static_cast<int16_t>((static_cast<int32_t>(samples[i]) * gain) >> kVolumeGainShift);
     }
-}
-
-void finish_sbc()
-{
-#if AUDIO_MANAGER_USE_MSBC_CODEC
-    if (g_sbc_decoder_ready)
-    {
-#if defined(USE_BLUEDROID_MSBC)
-        bluedroid_sbc_finish(&g_sbc_decoder);
-#elif defined(USE_LIBSBC_MSBC)
-        sbc_finish(&g_sbc_decoder);
-#endif
-        g_sbc_decoder_ready = false;
-    }
-
-    if (g_sbc_encoder_ready)
-    {
-#if defined(USE_BLUEDROID_MSBC)
-        bluedroid_sbc_finish(&g_sbc_encoder);
-#elif defined(USE_LIBSBC_MSBC)
-        sbc_finish(&g_sbc_encoder);
-#endif
-        g_sbc_encoder_ready = false;
-    }
-#endif
-}
-
-#if AUDIO_MANAGER_USE_MSBC_CODEC
-bool configure_sbc_struct(SbcCodec& sbc)
-{
-#if defined(USE_BLUEDROID_MSBC)
-    memset(&sbc, 0, sizeof(sbc));
-    if (bluedroid_sbc_init(&sbc, 0) != 0)
-    {
-        return false;
-    }
-    if (bluedroid_sbc_configure_msbc(&sbc) != 0)
-    {
-        bluedroid_sbc_finish(&sbc);
-        return false;
-    }
-#elif defined(USE_LIBSBC_MSBC)
-    memset(&sbc, 0, sizeof(sbc));
-    if (sbc_init(&sbc, 0) != 0)
-    {
-        return false;
-    }
-
-    sbc.frequency  = SBC_FREQ_16000;
-    sbc.mode       = SBC_MODE_MONO;
-    sbc.allocation = SBC_AM_LOUDNESS;
-    sbc.subbands   = SBC_SB_8;
-    sbc.blocks     = SBC_BLK_15;
-    sbc.bitpool    = 26;
-    sbc.endian     = SBC_LE;
-#endif
-
-    return true;
-}
-#endif
-
-bool init_sbc()
-{
-#if !AUDIO_MANAGER_USE_MSBC_CODEC
-    ESP_LOGI(TAG, "userspace mSBC codec disabled; assuming HFP audio callbacks are PCM");
-    return true;
-#else
-    finish_sbc();
-
-    g_sbc_decoder_ready = configure_sbc_struct(g_sbc_decoder);
-    g_sbc_encoder_ready = configure_sbc_struct(g_sbc_encoder);
-    if (!g_sbc_decoder_ready || !g_sbc_encoder_ready)
-    {
-        ESP_LOGE(TAG, "libsbc initialization failed");
-        finish_sbc();
-        return false;
-    }
-
-    const size_t frame_length =
-#if defined(USE_BLUEDROID_MSBC)
-        bluedroid_sbc_get_frame_length(&g_sbc_encoder);
-#elif defined(USE_LIBSBC_MSBC)
-        sbc_get_frame_length(&g_sbc_encoder);
-#endif
-    const size_t codesize =
-#if defined(USE_BLUEDROID_MSBC)
-        bluedroid_sbc_get_codesize(&g_sbc_encoder);
-#elif defined(USE_LIBSBC_MSBC)
-        sbc_get_codesize(&g_sbc_encoder);
-#endif
-
-    ESP_LOGI(TAG, "%s initialized: frame=%u bytes, pcm=%u bytes",
-#if defined(USE_BLUEDROID_MSBC)
-             bluedroid_sbc_get_implementation_info(&g_sbc_encoder),
-#elif defined(USE_LIBSBC_MSBC)
-             sbc_get_implementation_info(&g_sbc_encoder),
-#endif
-             static_cast<unsigned>(frame_length), static_cast<unsigned>(codesize));
-    return true;
-#endif
 }
 
 size_t take_i2s_tx_frames(size_t maxFrames)
@@ -995,56 +797,6 @@ void hfp_incoming_audio(const uint8_t* buf, uint32_t len)
         diag.incomingBytes += len;
     });
 
-#if AUDIO_MANAGER_USE_MSBC_CODEC && !AUDIO_MANAGER_HFP_CALLBACKS_ARE_PCM
-    if (g_hfp_codec == HfpCodec::Msbc && hfp_callback_should_decode_msbc(buf, len))
-    {
-        if (!g_sbc_decoder_ready)
-        {
-            HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
-                ++diag.incomingNoDecoder;
-            });
-            return;
-        }
-
-        size_t pos = 0;
-        while (pos < len)
-        {
-            size_t        pcm_written = 0;
-            const ssize_t consumed    =
-#if defined(USE_BLUEDROID_MSBC)
-                bluedroid_sbc_decode(&g_sbc_decoder, buf + pos, len - pos, g_sbc_decode_pcm, sizeof(g_sbc_decode_pcm), &pcm_written);
-#elif defined(USE_LIBSBC_MSBC)
-                sbc_decode(&g_sbc_decoder, buf + pos, len - pos, g_sbc_decode_pcm, sizeof(g_sbc_decode_pcm), &pcm_written);
-#endif
-
-            if (consumed <= 0 || pcm_written == 0)
-            {
-                HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
-                    ++diag.incomingDecodeFailures;
-                });
-                break;
-            }
-
-            const auto*  pcm     = reinterpret_cast<const int16_t*>(g_sbc_decode_pcm);
-            const size_t samples = pcm_written / sizeof(int16_t);
-            SpeakerPeakActivity::process(pcm, samples);
-            const size_t queued_spk  = g_fifo_bt2spk.queue(pcm, samples, g_hfp_rate_hz);
-            const size_t queued_file = g_fifo_bt2file.queue(pcm, samples, g_hfp_rate_hz);
-            HFP_AUDIO_DIAG([consumed, samples, queued_spk, queued_file](HfpAudioDiagnostics& diag) {
-                ++diag.incomingDecodeFrames;
-                diag.incomingConsumedBytes += static_cast<size_t>(consumed);
-                diag.incomingPcmSamples += samples;
-                diag.incomingQueuedSpkSamples += queued_spk;
-                diag.incomingQueuedFileSamples += queued_file;
-            });
-            pos += static_cast<size_t>(consumed);
-        }
-
-        pump_bt2spk();
-        return;
-    }
-#endif
-
     queue_hfp_pcm(buf, len);
 }
 
@@ -1064,67 +816,6 @@ uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
     });
 
     pump_mic2bt();
-
-#if AUDIO_MANAGER_USE_MSBC_CODEC && !AUDIO_MANAGER_HFP_CALLBACKS_ARE_PCM
-    if (g_hfp_codec == HfpCodec::Msbc && g_hfp_callback_payload == HfpCallbackPayload::EncodedMsbc)
-    {
-        if (!g_sbc_encoder_ready)
-        {
-            HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
-                ++diag.outgoingNoEncoder;
-            });
-            return 0;
-        }
-
-        const size_t codesize =
-#if defined(USE_BLUEDROID_MSBC)
-            bluedroid_sbc_get_codesize(&g_sbc_encoder);
-#elif defined(USE_LIBSBC_MSBC)
-            sbc_get_codesize(&g_sbc_encoder);
-#endif
-        if (codesize == 0 || codesize > sizeof(g_sbc_encode_pcm))
-        {
-            HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
-                ++diag.outgoingEncodeFailures;
-            });
-            return 0;
-        }
-
-        const size_t samples_to_read = codesize / sizeof(int16_t);
-        const size_t read            = g_fifo_mic2bt.dequeueMono(reinterpret_cast<int16_t*>(g_sbc_encode_pcm), samples_to_read);
-        if (read < samples_to_read)
-        {
-            HFP_AUDIO_DIAG([read](HfpAudioDiagnostics& diag) {
-                ++diag.outgoingUnderflows;
-                diag.outgoingPcmSamplesRead += read;
-            });
-            return 0;
-        }
-
-        ssize_t       encoded  = 0;
-        const ssize_t consumed =
-#if defined(USE_BLUEDROID_MSBC)
-            bluedroid_sbc_encode(&g_sbc_encoder, g_sbc_encode_pcm, codesize, buf, len, &encoded);
-#elif defined(USE_LIBSBC_MSBC)
-            sbc_encode(&g_sbc_encoder, g_sbc_encode_pcm, codesize, buf, len, &encoded);
-#endif
-        if (consumed <= 0 || encoded <= 0)
-        {
-            HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) {
-                ++diag.outgoingEncodeFailures;
-            });
-            return 0;
-        }
-
-        HFP_AUDIO_DIAG([read, encoded](HfpAudioDiagnostics& diag) {
-            ++diag.outgoingEncodeFrames;
-            diag.outgoingPcmSamplesRead += read;
-            diag.outgoingReturnedBytes += static_cast<size_t>(encoded);
-        });
-        pump_mic2bt();
-        return static_cast<uint32_t>(encoded);
-    }
-#endif
 
     const size_t output_samples = len / sizeof(int16_t);
     const size_t read           = g_fifo_mic2bt.dequeueMono(reinterpret_cast<int16_t*>(buf), output_samples, g_hfp_rate_hz);
@@ -1150,9 +841,6 @@ bool setHfpAudioFormat(HfpCodec codec, uint32_t sampleRateHz)
 
     g_hfp_codec   = codec;
     g_hfp_rate_hz = sampleRateHz;
-    // ESP-IDF Bluedroid's HFP co-layer keeps SBC/mSBC inside the stack. The
-    // application data callbacks see raw signed 16-bit mono PCM.
-    g_hfp_callback_payload = HfpCallbackPayload::Pcm;
 
     if (g_hfp_codec == HfpCodec::Msbc)
     {
@@ -1161,19 +849,15 @@ bool setHfpAudioFormat(HfpCodec codec, uint32_t sampleRateHz)
             ESP_LOGE(TAG, "mSBC requires %lu Hz audio", static_cast<unsigned long>(kSampleRateHz));
             g_hfp_codec   = HfpCodec::Cvsd;
             g_hfp_rate_hz = 8000;
-            finish_sbc();
             return false;
         }
-#if AUDIO_MANAGER_HFP_CALLBACKS_ARE_PCM
-        finish_sbc();
+
+        // ESP-IDF Bluedroid keeps SBC/mSBC inside the Bluetooth stack. The
+        // application HFP data callbacks see raw signed 16-bit mono PCM.
         ESP_LOGI(TAG, "HFP mSBC format set: callback PCM, %lu Hz", static_cast<unsigned long>(g_hfp_rate_hz));
         return true;
-#else
-        return init_sbc();
-#endif
     }
 
-    finish_sbc();
     ESP_LOGI(TAG, "HFP CVSD format set: callback PCM, %lu Hz", static_cast<unsigned long>(g_hfp_rate_hz));
     return true;
 }
