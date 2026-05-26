@@ -16,13 +16,16 @@
 #include "WebCfgHandlers.h"
 #include "WebFileHandlers.h"
 #include "WifiManager.h"
+#include "esp_err.h"
 #include "esp_log.h"
 #include "esp_random.h"
 #include "mbedtls/platform_util.h"
+#include "nvs.h"
 #include "thefly_version.h"
 #include "web_assets.h"
 
 extern WifiManager* wifi_manager;
+extern BtHostList*  bt_host_list;
 
 namespace
 {
@@ -31,6 +34,9 @@ constexpr const char* TAG = "WebServer";
 constexpr char        kHexChars[] = "0123456789abcdef";
 constexpr const char* kHeaderSessionSaltFromClient = "X-TheFly-Session-Salt-From-Client";
 constexpr const char* kHeaderSessionResponseFromClient = "X-TheFly-Session-Response-From-Client";
+constexpr const char* kBluedroidNvsNamespace = "bt_config.conf";
+constexpr const char* kBtHostListNvsNamespace = "bt_hosts";
+constexpr const char* kNetworkNvsNamespace = "wifi_cfg";
 
 #if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
 // This is only a login gate for plain FTP. Replace these credentials before
@@ -432,6 +438,94 @@ void reset_password(AsyncWebServerRequest* request)
     #endif
 }
 
+bool erase_nvs_namespace(const char* name, String& error)
+{
+    nvs_handle_t handle = 0;
+    esp_err_t err = nvs_open(name, NVS_READWRITE, &handle);
+    if (err == ESP_ERR_NVS_NOT_FOUND)
+    {
+        return true;
+    }
+    if (err != ESP_OK)
+    {
+        error = "NVS open failed for ";
+        error += name ? name : "namespace";
+        error += ": ";
+        error += esp_err_to_name(err);
+        return false;
+    }
+
+    err = nvs_erase_all(handle);
+    if (err == ESP_OK)
+    {
+        err = nvs_commit(handle);
+    }
+    nvs_close(handle);
+
+    if (err != ESP_OK)
+    {
+        error = "NVS erase failed for ";
+        error += name ? name : "namespace";
+        error += ": ";
+        error += esp_err_to_name(err);
+        return false;
+    }
+    return true;
+}
+
+void reset_memory(AsyncWebServerRequest* request)
+{
+    if (!request)
+    {
+        return;
+    }
+
+    #if BUILD_WITH_SECURITY_LEVEL > 0
+    request->send(403, "text/plain", "Memory reset is only available under security level 0");
+    #else
+    String error;
+    if (!bt_host_list)
+    {
+        request->send(500, "text/plain", "Bluetooth host list is unavailable");
+        return;
+    }
+    if (!wifi_manager)
+    {
+        request->send(500, "text/plain", "Wi-Fi config is unavailable");
+        return;
+    }
+
+    if (BtManager::shutdown() != BtManager::Result::Ok)
+    {
+        request->send(500, "text/plain", "Bluetooth shutdown failed");
+        return;
+    }
+
+    if (!erase_nvs_namespace(kBluedroidNvsNamespace, error))
+    {
+        request->send(500, "text/plain", error);
+        return;
+    }
+
+    if (!erase_nvs_namespace(kBtHostListNvsNamespace, error))
+    {
+        request->send(500, "text/plain", error);
+        return;
+    }
+    bt_host_list->clear();
+
+    if (!erase_nvs_namespace(kNetworkNvsNamespace, error))
+    {
+        request->send(500, "text/plain", error);
+        return;
+    }
+    wifi_manager->clear();
+
+    ESP_LOGI(TAG, "memory reset erased Bluetooth bonds, Bluetooth host list, and Wi-Fi/cloud config");
+    request->send(200, "application/json", "{\"status\":\"ok\"}");
+    #endif
+}
+
 } // namespace
 
 const char* WebServer::sessionAuthResultName(SessionAuthResult result)
@@ -688,6 +782,9 @@ bool WebServer::init()
 
     g_server.on(AsyncURIMatcher::exact("/reset_password"), HTTP_POST, reset_password);
     ESP_LOGI(TAG, "registered password reset POST /reset_password");
+
+    g_server.on(AsyncURIMatcher::exact("/reset_memory"), HTTP_POST, reset_memory);
+    ESP_LOGI(TAG, "registered memory reset POST /reset_memory");
 
     // Uploads are not encrypted; keep this endpoint off untrusted networks until it is replaced by session encryption.
     g_server.on(AsyncURIMatcher::exact("/file_upload"),

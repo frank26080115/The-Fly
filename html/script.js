@@ -748,6 +748,19 @@ function set_password_reset_message(message, notice)
     node.style.display = message ? "" : "none";
 }
 
+function set_memory_reset_message(message, notice)
+{
+    const node = document.getElementById("memory_reset_error");
+    if (!node)
+    {
+        return;
+    }
+
+    node.textContent = message || "";
+    node.classList.toggle("notice", Boolean(notice));
+    node.style.display = message ? "" : "none";
+}
+
 function set_login_error(message)
 {
     window.alert(message);
@@ -1266,6 +1279,49 @@ async function passreset_onsubmit()
         }
         set_password_reset_message(error.message || "Password reset failed.", false);
     }
+}
+
+function memreset_onsubmit()
+{
+    const button = document.getElementById("btn_memory_reset");
+    set_memory_reset_message("", false);
+
+    if (current_security_level !== 0)
+    {
+        set_memory_reset_message("Memory reset is only available under security level 0.", false);
+        return;
+    }
+    if (!window.confirm("Reset memory and erase Bluetooth, Wi-Fi, and cloud settings?"))
+    {
+        return;
+    }
+
+    if (button)
+    {
+        button.disabled = true;
+    }
+
+    const request = new XMLHttpRequest();
+    request.open("POST", "/reset_memory", true);
+    request.timeout = 15000;
+    request.onload = function() {
+        if (request.status >= 200 && request.status < 300)
+        {
+            set_memory_reset_message("Memory reset complete.", true);
+            fetch_info();
+            return;
+        }
+        set_memory_reset_message(request.responseText || ("Memory reset failed: " + request.status), false);
+    };
+    request.onerror = () => set_memory_reset_message("Memory reset failed.", false);
+    request.ontimeout = () => set_memory_reset_message("Memory reset timed out.", false);
+    request.onloadend = function() {
+        if (button)
+        {
+            button.disabled = false;
+        }
+    };
+    request.send("");
 }
 
 function input_value(id)

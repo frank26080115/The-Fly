@@ -248,7 +248,8 @@ button:disabled,
   justify-content: flex-start;
 }
 
-.password-reset-message {
+.password-reset-message,
+.memory-reset-message {
   grid-column: 1 / -1;
   padding: 10px 12px;
   border: 1px solid #6f3338;
@@ -257,7 +258,8 @@ button:disabled,
   color: #ffd3da;
 }
 
-.password-reset-message.notice {
+.password-reset-message.notice,
+.memory-reset-message.notice {
   border-color: #315d3c;
   background: #17251b;
   color: #b8f3c5;
@@ -285,6 +287,11 @@ button:disabled,
   display: flex;
   justify-content: center;
   margin-top: 14px;
+}
+
+.memory-reset-message {
+  max-width: 560px;
+  margin: 12px auto 0;
 }
 
 .danger-button {
