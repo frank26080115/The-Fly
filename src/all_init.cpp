@@ -12,6 +12,8 @@
 #include "SplashView.h"
 #include "WifiApModeView.h"
 #include "thefly_version.h"
+#include "Aegis.h"
+#include "esp_mac.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -53,6 +55,9 @@ void check_reset_flag();
 void init_m5();
 void init_gui();
 void draw_splash_boot_info();
+static void format_mac_hyphen(const uint8_t mac[6], char* out, size_t out_size);
+static void draw_splash_mac_info();
+static void draw_splash_tamper_code();
 
 void all_init()
 {
@@ -278,12 +283,91 @@ void draw_splash_boot_info()
     }
 
     // Add more splash boot-info lines here.
+    draw_splash_mac_info();
+    draw_splash_tamper_code();
 
     if (gui)
     {
         gui->requestTopBarFullRedraw();
         gui->redraw(false);
     }
+}
+
+static void format_mac_hyphen(const uint8_t mac[6], char* out, size_t out_size)
+{
+    if (!out || out_size == 0)
+    {
+        return;
+    }
+
+    if (!mac)
+    {
+        out[0] = '\0';
+        return;
+    }
+
+    snprintf(out,
+             out_size,
+             "%02X-%02X-%02X-%02X-%02X-%02X",
+             mac[0],
+             mac[1],
+             mac[2],
+             mac[3],
+             mac[4],
+             mac[5]);
+}
+
+static void draw_splash_mac_info()
+{
+    static constexpr int16_t kTextX          = 144;
+    static constexpr int16_t kTextY          = 60;
+    static constexpr int16_t kTextLineHeight = 9;
+    static constexpr float   kTextSize       = 1.0f;
+    static constexpr uint8_t kTextFont       = 1;
+
+    uint8_t bdaddr[6] = {};
+    uint8_t wifi_mac[6] = {};
+    char    bdaddr_text[18] = "unknown";
+    char    wifi_text[18] = "unknown";
+    if (esp_read_mac(bdaddr, ESP_MAC_BT) == ESP_OK)
+    {
+        format_mac_hyphen(bdaddr, bdaddr_text, sizeof(bdaddr_text));
+    }
+    if (esp_read_mac(wifi_mac, ESP_MAC_WIFI_STA) == ESP_OK)
+    {
+        format_mac_hyphen(wifi_mac, wifi_text, sizeof(wifi_text));
+    }
+
+    thefly_display.setTextFont(kTextFont);
+    thefly_display.setTextSize(kTextSize);
+    thefly_display.setTextDatum(top_left);
+    thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
+    thefly_display.drawString("B:", kTextX, kTextY);
+    thefly_display.drawString(bdaddr_text, static_cast<int16_t>(kTextX + 14), kTextY);
+    thefly_display.drawString("W:", kTextX, static_cast<int16_t>(kTextY + kTextLineHeight));
+    thefly_display.drawString(wifi_text, static_cast<int16_t>(kTextX + 14), static_cast<int16_t>(kTextY + kTextLineHeight));
+}
+
+static void draw_splash_tamper_code()
+{
+#if BUILD_WITH_SECURITY_LEVEL == 2
+    uint32_t code = 0;
+    if (!Aegis::tamperEvidenceCode(code))
+    {
+        return;
+    }
+
+    char text[5] = {};
+    snprintf(text, sizeof(text), "%04lX", static_cast<unsigned long>((code >> 16) & 0xFFFF));
+
+    thefly_display.setTextFont(4);
+    thefly_display.setTextSize(1.0f);
+    thefly_display.setTextDatum(bottom_right);
+    thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
+    thefly_display.drawString(text,
+                              static_cast<int16_t>(thefly_display.width() - 4),
+                              static_cast<int16_t>(thefly_display.height() - 4));
+#endif
 }
 
 void check_reset_flag()

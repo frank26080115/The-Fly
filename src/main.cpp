@@ -8,6 +8,7 @@
 #include "BattTracker.h"
 #include "BluetoothManager.h"
 #include "BtHostList.h"
+#include "Aegis.h"
 #include "DiskStats.h"
 #include "Hotel.h"
 #include "FlyGui.h"
@@ -21,6 +22,7 @@
 #include "sprites.h"
 #include "utilfuncs.h"
 #include "all_tests.h"
+#include <string.h>
 
 constexpr const char* MAINTAG = "main.cpp";
 
@@ -64,6 +66,7 @@ static void  handle_pending_bluetooth_connect_failed();
 static bool  connect_to_bluetooth_host(const bt_host_item_t* host, const char* source);
 static void  on_wifi_scan_finished(const wifi_item_t* item);
 static void  request_bluetooth_disconnect();
+static const char* info_dialog_text_with_tamper_code(const char* text, char* buffer, size_t buffer_size);
 
 FlyGui* gui;
 M5GFX& thefly_display = M5.Display;
@@ -107,6 +110,10 @@ void setup()
     if (wifi_manager)
     {
         wifi_manager->setOnScanFinished(on_wifi_scan_finished);
+    }
+    if (gui && gui->currentView() && gui->currentView()->id() == FLYGUI_VIEW_SPLASH)
+    {
+        draw_splash_boot_info();
     }
 
     if (!AudioManager::init())
@@ -683,13 +690,36 @@ static bool show_info_dialog(const char* text, uint16_t next_view)
         return false;
     }
 
+    char        dialog_text[256] = {};
+    const char* shown_text = info_dialog_text_with_tamper_code(text, dialog_text, sizeof(dialog_text));
+
     dialog->configure(sprit_info_100,
                       SPRIT_INFO_100_BYTES,
                       SPRIT_INFO_100_WIDTH,
                       SPRIT_INFO_100_HEIGHT,
-                      text,
+                      shown_text,
                       next_view);
     return gui->showView(FLYGUI_VIEW_MODAL_DIALOG);
+}
+
+static const char* info_dialog_text_with_tamper_code(const char* text, char* buffer, size_t buffer_size)
+{
+    if (!buffer || buffer_size == 0)
+    {
+        return text ? text : "";
+    }
+
+    strlcpy(buffer, text ? text : "", buffer_size);
+#if BUILD_WITH_SECURITY_LEVEL >= 2
+    uint32_t code = 0;
+    if (Aegis::tamperEvidenceCode(code))
+    {
+        char line[24] = {};
+        snprintf(line, sizeof(line), "\nTamper: %04lX", static_cast<unsigned long>((code >> 16) & 0xFFFF));
+        strlcat(buffer, line, buffer_size);
+    }
+#endif
+    return buffer;
 }
 
 static bool show_error_dialog(const char* text, uint16_t next_view)

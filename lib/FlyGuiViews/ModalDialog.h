@@ -36,7 +36,7 @@ public:
     void onPressRight() override;
 
 private:
-    static constexpr size_t kTextMax = 191;
+    static constexpr size_t kTextMax = 255;
 
     void dismiss();
     void clearConfiguration();
