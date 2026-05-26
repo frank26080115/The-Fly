@@ -2,6 +2,8 @@
 
 Enrollment is how the device is registered with the cloud server. It is how the cloud server knows what the filecrypt-key is.
 
+It is NOT how the cloud server knows what the network-key is. The network-key is set in some other fashion.
+
 ## Goals and Justification
 
 For security, the policy is to distrust the human. Phishing attacks, including ones that involve fake hardware, must not compromise the filecrypt-key. This means the filecrypt-key is completely randomly generated instead of depending on a password.
@@ -16,14 +18,14 @@ The ESP32 sends an enrollment request to the cloud server.
 
 Included data:
 
- * filecrypt-key
- * network-key
+ * filecrypt-key (encrypted by the network-key)
+ * a hash of the network-key
  * date and time
  * device MAC
 
 This gets saved to a database table row.
 
-The enrollment confirmation code is derived from the combination of filecrypt-key, network-key, and device MAC. This is done both on the ESP32 and on the cloud server.
+The enrollment confirmation code is derived from the combination of raw filecrypt-key, raw network-key, and device MAC. This is done both on the ESP32 and on the cloud server.
 
 The enrollment confirmation code is shown to the user on the LCD screen.
 
@@ -34,6 +36,8 @@ Now files can be decrypted with that filecrypt-key. As the files are timestamped
 ## Security Measures
 
 This can only occur over HTTPS. Interception of the data, or the impersonation of a server, are both considered a threat outside the scope of our security efforts.
+
+The network-key must be one that's recognized. The user must configure the server to have the key on file. This is to prevent the server from getting spammed.
 
 URL of the cloud server is shown prominently to the user, as to prevent somebody from configuring a different server and having the user send the sensitive data to the wrong server. The configuration of the device is protected, but just in case.
 
