@@ -76,6 +76,21 @@ extern const uint8_t sprit_canceldoor_50[];
 #define SPRIT_CLOUDUPLOAD_100_BYTES 11111u
 extern const uint8_t sprit_cloudupload_100[];
 
+#define SPRIT_ENROLL_50_WIDTH 50u
+#define SPRIT_ENROLL_50_HEIGHT 50u
+#define SPRIT_ENROLL_50_BYTES 3541u
+extern const uint8_t sprit_enroll_50[];
+
+#define SPRIT_EYE_CLOSED_100_WIDTH 100u
+#define SPRIT_EYE_CLOSED_100_HEIGHT 100u
+#define SPRIT_EYE_CLOSED_100_BYTES 8986u
+extern const uint8_t sprit_eye_closed_100[];
+
+#define SPRIT_EYE_OPEN_100_WIDTH 100u
+#define SPRIT_EYE_OPEN_100_HEIGHT 100u
+#define SPRIT_EYE_OPEN_100_BYTES 7997u
+extern const uint8_t sprit_eye_open_100[];
+
 #define SPRIT_GENERICDEVICE_BT_100_WIDTH 100u
 #define SPRIT_GENERICDEVICE_BT_100_HEIGHT 100u
 #define SPRIT_GENERICDEVICE_BT_100_BYTES 14592u
@@ -246,6 +261,11 @@ extern const uint8_t sprit_pickup[];
 #define SPRIT_PICKUPDOWN_BYTES 2727u
 extern const uint8_t sprit_pickupdown[];
 
+#define SPRIT_SECURITY_50_WIDTH 50u
+#define SPRIT_SECURITY_50_HEIGHT 50u
+#define SPRIT_SECURITY_50_BYTES 4610u
+extern const uint8_t sprit_security_50[];
+
 #define SPRIT_SLEEP_100_WIDTH 100u
 #define SPRIT_SLEEP_100_HEIGHT 100u
 #define SPRIT_SLEEP_100_BYTES 12460u
@@ -315,6 +335,11 @@ extern const uint8_t sprit_warning_100[];
 #define SPRIT_WIFI_100_HEIGHT 100u
 #define SPRIT_WIFI_100_BYTES 10195u
 extern const uint8_t sprit_wifi_100[];
+
+#define SPRIT_WIFI_50_WIDTH 50u
+#define SPRIT_WIFI_50_HEIGHT 50u
+#define SPRIT_WIFI_50_BYTES 3185u
+extern const uint8_t sprit_wifi_50[];
 
 #define SPRIT_WIFISEARCH_100_WIDTH 100u
 #define SPRIT_WIFISEARCH_100_HEIGHT 100u
