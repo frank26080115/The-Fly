@@ -4,7 +4,6 @@
 #include <ArduinoJson.h>
 #include <Client.h>
 #include <WiFi.h>
-#include <WiFiClient.h>
 #include <WiFiClientSecure.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -22,25 +21,15 @@ namespace
 
 constexpr const char* TAG          = "CloudUpload";
 constexpr const char* kHistoryPath = "/cloud_history.txt";
-constexpr size_t      kHostMaxLength = 128;
 constexpr size_t      kResponseMaxLength = 1024;
 constexpr size_t      kUploadBufferSize = 1024;
 constexpr uint32_t    kDestroyPollMs = 10;
 
-struct PendingFile
-{
-    char*        path = nullptr;
-    uint64_t     size = 0;
-    PendingFile* next = nullptr;
-};
+using PendingFile = CloudUpload::PendingFile;
+using UrlParts = CloudUpload::UrlParts;
 
-struct UrlParts
-{
-    bool     https = false;
-    char     host[kHostMaxLength] = {};
-    char     path[CloudUpload::kUrlMaxLength] = {};
-    uint16_t port = 0;
-};
+extern const uint8_t x509_crt_bundle_start[] asm("_binary_x509_crt_bundle_start");
+extern const uint8_t x509_crt_bundle_end[] asm("_binary_x509_crt_bundle_end");
 
 const char* state_name(CloudUpload::State state)
 {
@@ -192,6 +181,44 @@ bool append_pending(PendingFile*& head, PendingFile*& tail, const char* path, ui
         head = item;
     }
     tail = item;
+    return true;
+}
+
+bool make_single_pending_file(const char* path, PendingFile*& item, char* message, size_t message_size)
+{
+    item = nullptr;
+    if (!path || path[0] == '\0' || strlen(path) >= CloudUpload::kPathMaxLength)
+    {
+        copy_text(message, message_size, "invalid cloud upload file path");
+        return false;
+    }
+
+    FsFile file;
+    if (!file.open(path, O_RDONLY))
+    {
+        copy_text(message, message_size, "could not open recording file");
+        return false;
+    }
+
+    if (!file.isFile())
+    {
+        file.close();
+        copy_text(message, message_size, "cloud upload path is not a file");
+        return false;
+    }
+
+    const uint64_t size = file.fileSize();
+    file.close();
+
+    PendingFile* head = nullptr;
+    PendingFile* tail = nullptr;
+    if (!append_pending(head, tail, path, size))
+    {
+        copy_text(message, message_size, "could not allocate pending upload file");
+        return false;
+    }
+
+    item = head;
     return true;
 }
 
@@ -425,6 +452,25 @@ bool parse_url(const char* url, UrlParts& out)
         return false;
     }
 
+    return true;
+}
+
+uint32_t timeout_seconds(uint32_t timeout_ms)
+{
+    return timeout_ms / 1000U + 1U;
+}
+
+bool configure_secure_client(WiFiClientSecure& client, uint32_t timeout_ms, char* message, size_t message_size)
+{
+    if (!Clock.ensureSystemTimeForTls())
+    {
+        copy_text(message, message_size, "clock is not ready for secure cloud upload");
+        return false;
+    }
+
+    client.setCACertBundle(x509_crt_bundle_start, static_cast<size_t>(x509_crt_bundle_end - x509_crt_bundle_start));
+    client.setTimeout(timeout_seconds(timeout_ms));
+    client.setHandshakeTimeout(timeout_seconds(timeout_ms));
     return true;
 }
 
@@ -737,6 +783,42 @@ bool CloudUpload::start(const cloud_item_t* destination, uint32_t timeout_ms)
     return true;
 }
 
+bool CloudUpload::uploadSingleFile(const cloud_item_t* destination, const char* path, uint32_t timeout_ms)
+{
+    portENTER_CRITICAL(&m_lock);
+    const bool busy = m_status.state == State::Busy;
+    portEXIT_CRITICAL(&m_lock);
+
+    if (busy)
+    {
+        setStatusMessage(Error::AlreadyBusy, "cloud upload already busy");
+        return false;
+    }
+
+    if (!copyDestination(destination, timeout_ms))
+    {
+        portENTER_CRITICAL(&m_lock);
+        m_status = {};
+        m_status.state = State::Error;
+        m_status.error = Error::InvalidArgument;
+        m_status.finished = true;
+        copy_text(m_status.message, sizeof(m_status.message), "invalid cloud upload destination");
+        portEXIT_CRITICAL(&m_lock);
+        return false;
+    }
+
+    portENTER_CRITICAL(&m_lock);
+    m_cancel_requested = false;
+    m_task_handle = xTaskGetCurrentTaskHandle();
+    m_status = {};
+    m_status.state = State::Busy;
+    m_status.error = Error::None;
+    copy_text(m_status.destination, sizeof(m_status.destination), m_destination_name);
+    portEXIT_CRITICAL(&m_lock);
+
+    return uploadSingleFilePath(path);
+}
+
 bool CloudUpload::cancel()
 {
     portENTER_CRITICAL(&m_lock);
@@ -880,6 +962,330 @@ void CloudUpload::finish(State state, Error error, const char* message)
     }
 }
 
+bool CloudUpload::uploadSingleFilePath(const char* path)
+{
+    if (!MicroSdCard::isReady())
+    {
+        finish(State::Error, Error::SdNotReady, "microSD is not ready");
+        return false;
+    }
+
+    if (WiFi.status() != WL_CONNECTED)
+    {
+        finish(State::Error, Error::WifiNotConnected, "Wi-Fi is not connected");
+        return false;
+    }
+
+    UrlParts url = {};
+    if (!parse_url(m_destination_url, url))
+    {
+        finish(State::Error, Error::InvalidArgument, "invalid cloud upload URL");
+        return false;
+    }
+
+    if (!url.https)
+    {
+        finish(State::Error, Error::InvalidArgument, "cloud upload URL must use https");
+        return false;
+    }
+
+    char last_message[kMessageMaxLength] = {};
+    PendingFile* item = nullptr;
+    if (!make_single_pending_file(path, item, last_message, sizeof(last_message)))
+    {
+        const Error error = strstr(last_message, "allocate") ? Error::AllocationFailed : Error::FileOpenFailed;
+        finish(State::Error, error, last_message);
+        return false;
+    }
+
+    portENTER_CRITICAL(&m_lock);
+    m_status.files_total = 1;
+    m_status.bytes_total = item->size;
+    portEXIT_CRITICAL(&m_lock);
+
+    uint64_t committed_bytes = 0;
+    const PendingUploadResult result = uploadPendingFile(*item, url, committed_bytes, last_message, sizeof(last_message));
+    free_pending_list(item);
+
+    switch (result)
+    {
+    case PendingUploadResult::Succeeded:
+        finish(State::Done, Error::None, "cloud upload complete");
+        return true;
+    case PendingUploadResult::Cancelled:
+        finish(State::Cancelled, Error::Cancelled, "cloud upload cancelled");
+        return false;
+    case PendingUploadResult::FatalError:
+        finish(State::Error, Error::HistoryWriteFailed, last_message);
+        return false;
+    case PendingUploadResult::Failed:
+    default:
+        finish(State::Error, Error::ServerError, last_message[0] ? last_message : "cloud upload failed");
+        return false;
+    }
+}
+
+CloudUpload::PendingUploadResult CloudUpload::uploadPendingFile(PendingFile& item, const UrlParts& url, uint64_t& committed_bytes, char* last_message, size_t last_message_size)
+{
+    portENTER_CRITICAL(&m_lock);
+    const bool cancel_requested = m_cancel_requested;
+    portEXIT_CRITICAL(&m_lock);
+    if (cancel_requested)
+    {
+        return PendingUploadResult::Cancelled;
+    }
+
+    portENTER_CRITICAL(&m_lock);
+    ++m_status.files_started;
+    copy_text(m_status.current_file, sizeof(m_status.current_file), item.path);
+    m_status.bytes_uploaded = committed_bytes;
+    portEXIT_CRITICAL(&m_lock);
+
+    bool file_ok = false;
+    bool cancelled = false;
+    for (uint8_t attempt = 0; attempt < kMaxRetries && !file_ok && !cancelled; ++attempt)
+    {
+        FsFile file;
+        if (!file.open(item.path, O_RDONLY))
+        {
+            copy_text(last_message, last_message_size, "could not open recording file");
+            break;
+        }
+
+        WiFiClientSecure secure_client;
+        if (!configure_secure_client(secure_client, m_timeout_ms, last_message, last_message_size))
+        {
+            file.close();
+            break;
+        }
+
+        if (!secure_client.connect(url.host, url.port))
+        {
+            char tls_error[96] = {};
+            file.close();
+            if (secure_client.lastError(tls_error, sizeof(tls_error)) != 0 && tls_error[0] != '\0')
+            {
+                snprintf(last_message, last_message_size, "secure connection failed: %s", tls_error);
+            }
+            else
+            {
+                copy_text(last_message, last_message_size, "secure connection failed");
+            }
+            delay(100);
+            continue;
+        }
+
+        Client* client = &secure_client;
+
+        m5::rtc_datetime_t upload_datetime = {};
+        if (!Clock.getDateTime(&upload_datetime))
+        {
+            client->stop();
+            file.close();
+            copy_text(last_message, last_message_size, "clock is not ready for cloud upload");
+            break;
+        }
+
+        char upload_timestamp[24];
+        snprintf(upload_timestamp,
+                 sizeof(upload_timestamp),
+                 "%04d-%02d-%02d-%02d:%02d:%02d",
+                 upload_datetime.date.year,
+                 upload_datetime.date.month,
+                 upload_datetime.date.date,
+                 upload_datetime.time.hours,
+                 upload_datetime.time.minutes,
+                 upload_datetime.time.seconds);
+
+        const String hash = filename_hash(item.path, upload_timestamp, m_destination_password);
+
+        if (hash.length() == 0)
+        {
+            client->stop();
+            file.close();
+            copy_text(last_message, last_message_size, "cloud upload authentication hash failed");
+            break;
+        }
+
+        const String source_mac = WiFi.macAddress();
+        const char* boundary = "----TheFlyCloudUploadBoundary";
+
+        char part_filename[CloudUpload::kPathMaxLength + 128];
+        char part_timestamp[128];
+        char part_hash[128];
+        char part_source[128];
+        char part_payload[CloudUpload::kPathMaxLength + 160];
+        snprintf(part_filename, sizeof(part_filename), "--%s\r\nContent-Disposition: form-data; name=\"filename\"\r\n\r\n%s\r\n", boundary, item.path);
+        snprintf(part_timestamp, sizeof(part_timestamp), "--%s\r\nContent-Disposition: form-data; name=\"timestamp\"\r\n\r\n%s\r\n", boundary, upload_timestamp);
+        snprintf(part_hash, sizeof(part_hash), "--%s\r\nContent-Disposition: form-data; name=\"hash\"\r\n\r\n%s\r\n", boundary, hash.c_str());
+        snprintf(part_source, sizeof(part_source), "--%s\r\nContent-Disposition: form-data; name=\"source_mac\"\r\n\r\n%s\r\n", boundary, source_mac.c_str());
+        snprintf(part_payload,
+                 sizeof(part_payload),
+                 "--%s\r\nContent-Disposition: form-data; name=\"payload\"; filename=\"%s\"\r\nContent-Type: application/octet-stream\r\n\r\n",
+                 boundary,
+                 item.path);
+
+        char end_boundary[48];
+        snprintf(end_boundary, sizeof(end_boundary), "\r\n--%s--\r\n", boundary);
+
+        const uint64_t content_length = strlen(part_filename) + strlen(part_timestamp) + strlen(part_hash) + strlen(part_source) + strlen(part_payload) + item.size + strlen(end_boundary);
+
+        char header[512];
+        snprintf(header,
+                 sizeof(header),
+                 "POST %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\nContent-Type: multipart/form-data; boundary=%s\r\nContent-Length: %llu\r\n\r\n",
+                 url.path,
+                 url.host,
+                 boundary,
+                 static_cast<unsigned long long>(content_length));
+
+        bool ok = send_all(*client, header) &&
+                  send_all(*client, part_filename) &&
+                  send_all(*client, part_timestamp) &&
+                  send_all(*client, part_hash) &&
+                  send_all(*client, part_source) &&
+                  send_all(*client, part_payload);
+
+        uint64_t attempt_bytes = 0;
+        uint8_t buffer[kUploadBufferSize];
+        while (ok && attempt_bytes < item.size)
+        {
+            portENTER_CRITICAL(&m_lock);
+            const bool cancel_requested_inner = m_cancel_requested;
+            portEXIT_CRITICAL(&m_lock);
+            if (cancel_requested_inner)
+            {
+                ok = false;
+                cancelled = true;
+                copy_text(last_message, last_message_size, "cancelled during upload");
+                break;
+            }
+
+            const size_t to_read = (item.size - attempt_bytes) < sizeof(buffer) ? static_cast<size_t>(item.size - attempt_bytes) : sizeof(buffer);
+            const int bytes_read = file.read(buffer, to_read);
+            if (bytes_read <= 0)
+            {
+                ok = false;
+                copy_text(last_message, last_message_size, "recording file read failed");
+                break;
+            }
+
+            if (!send_all(*client, buffer, static_cast<size_t>(bytes_read)))
+            {
+                ok = false;
+                copy_text(last_message, last_message_size, "network write failed");
+                break;
+            }
+
+            attempt_bytes += static_cast<uint64_t>(bytes_read);
+            portENTER_CRITICAL(&m_lock);
+            m_status.bytes_uploaded = committed_bytes + attempt_bytes;
+            portEXIT_CRITICAL(&m_lock);
+        }
+
+        ok = ok && !cancelled && send_all(*client, end_boundary);
+        file.close();
+
+        int http_status = 0;
+        bool chunked = false;
+        int content_length_response = -1;
+        char response_body[kResponseMaxLength];
+        char line[192];
+
+        if (ok && read_client_line(*client, line, sizeof(line), m_timeout_ms))
+        {
+            if (strncmp(line, "HTTP/", 5) == 0)
+            {
+                const char* first_space = strchr(line, ' ');
+                http_status = first_space ? atoi(first_space + 1) : 0;
+            }
+
+            while (read_client_line(*client, line, sizeof(line), m_timeout_ms) && line[0] != '\0')
+            {
+                if (strncasecmp(line, "Content-Length:", 15) == 0)
+                {
+                    content_length_response = atoi(line + 15);
+                }
+                else if (strncasecmp(line, "Transfer-Encoding:", 18) == 0 && strstr(line, "chunked"))
+                {
+                    chunked = true;
+                }
+            }
+        }
+        else if (!cancelled)
+        {
+            ok = false;
+            copy_text(last_message, last_message_size, "HTTP response read failed");
+        }
+
+        if (ok && (http_status < 200 || http_status >= 300))
+        {
+            ok = false;
+            snprintf(last_message, last_message_size, "HTTP status %d", http_status);
+        }
+
+        if (ok && !read_response_body(*client, chunked, content_length_response, response_body, sizeof(response_body), m_timeout_ms))
+        {
+            ok = false;
+            copy_text(last_message, last_message_size, "HTTP body read failed");
+        }
+
+        client->stop();
+
+        if (cancelled)
+        {
+            break;
+        }
+
+        if (ok)
+        {
+            char server_message[kMessageMaxLength] = {};
+            if (parse_upload_ack(response_body, server_message, sizeof(server_message)))
+            {
+                file_ok = true;
+                break;
+            }
+
+            copy_text(last_message, last_message_size, server_message[0] ? server_message : "server returned error");
+        }
+
+        portENTER_CRITICAL(&m_lock);
+        m_status.bytes_uploaded = committed_bytes;
+        portEXIT_CRITICAL(&m_lock);
+        delay(100);
+    }
+
+    if (cancelled)
+    {
+        return PendingUploadResult::Cancelled;
+    }
+
+    if (file_ok)
+    {
+        if (!append_history_success(item.path))
+        {
+            copy_text(last_message, last_message_size, "uploaded but failed to append success history");
+            append_history_error(item.path, last_message);
+            return PendingUploadResult::FatalError;
+        }
+
+        committed_bytes += item.size;
+        portENTER_CRITICAL(&m_lock);
+        ++m_status.files_succeeded;
+        m_status.bytes_uploaded = committed_bytes;
+        portEXIT_CRITICAL(&m_lock);
+        return PendingUploadResult::Succeeded;
+    }
+
+    append_history_error(item.path, last_message);
+    portENTER_CRITICAL(&m_lock);
+    ++m_status.files_failed;
+    m_status.bytes_uploaded = committed_bytes;
+    copy_text(m_status.message, sizeof(m_status.message), last_message);
+    portEXIT_CRITICAL(&m_lock);
+    return PendingUploadResult::Failed;
+}
+
 void CloudUpload::taskMain()
 {
     if (!MicroSdCard::isReady())
@@ -898,6 +1304,12 @@ void CloudUpload::taskMain()
     if (!parse_url(m_destination_url, url))
     {
         finish(State::Error, Error::InvalidArgument, "invalid cloud upload URL");
+        return;
+    }
+
+    if (!url.https)
+    {
+        finish(State::Error, Error::InvalidArgument, "cloud upload URL must use https");
         return;
     }
 
@@ -923,251 +1335,20 @@ void CloudUpload::taskMain()
 
     for (PendingFile* item = head; item; item = item->next)
     {
-        portENTER_CRITICAL(&m_lock);
-        const bool cancel_requested = m_cancel_requested;
-        portEXIT_CRITICAL(&m_lock);
-        if (cancel_requested)
+        const PendingUploadResult result = uploadPendingFile(*item, url, committed_bytes, last_message, sizeof(last_message));
+        if (result == PendingUploadResult::Cancelled)
         {
             free_pending_list(head);
             finish(State::Cancelled, Error::Cancelled, "cloud upload cancelled");
             return;
         }
 
-        portENTER_CRITICAL(&m_lock);
-        ++m_status.files_started;
-        copy_text(m_status.current_file, sizeof(m_status.current_file), item->path);
-        m_status.bytes_uploaded = committed_bytes;
-        portEXIT_CRITICAL(&m_lock);
-
-        bool file_ok = false;
-        for (uint8_t attempt = 0; attempt < kMaxRetries && !file_ok; ++attempt)
+        if (result == PendingUploadResult::FatalError)
         {
-            FsFile file;
-            if (!file.open(item->path, O_RDONLY))
-            {
-                copy_text(last_message, sizeof(last_message), "could not open recording file");
-                break;
-            }
-
-            WiFiClient plain_client;
-            WiFiClientSecure secure_client;
-            Client* client = nullptr;
-            if (url.https)
-            {
-                secure_client.setInsecure();
-                secure_client.setTimeout(m_timeout_ms / 1000U + 1U);
-                client = &secure_client;
-            }
-            else
-            {
-                plain_client.setTimeout(m_timeout_ms / 1000U + 1U);
-                client = &plain_client;
-            }
-
-            if (!client->connect(url.host, url.port))
-            {
-                file.close();
-                copy_text(last_message, sizeof(last_message), "network connection failed");
-                delay(100);
-                continue;
-            }
-
-            m5::rtc_datetime_t upload_datetime = {};
-            if (!Clock.getDateTime(&upload_datetime))
-            {
-                client->stop();
-                file.close();
-                copy_text(last_message, sizeof(last_message), "clock is not ready for cloud upload");
-                break;
-            }
-
-            char upload_timestamp[24];
-            snprintf(upload_timestamp,
-                     sizeof(upload_timestamp),
-                     "%04d-%02d-%02d-%02d:%02d:%02d",
-                     upload_datetime.date.year,
-                     upload_datetime.date.month,
-                     upload_datetime.date.date,
-                     upload_datetime.time.hours,
-                     upload_datetime.time.minutes,
-                     upload_datetime.time.seconds);
-
-            const String hash = filename_hash(item->path, upload_timestamp, m_destination_password);
-
-            if (hash.length() == 0)
-            {
-                client->stop();
-                file.close();
-                copy_text(last_message, sizeof(last_message), "cloud upload authentication hash failed");
-                break;
-            }
-
-            const String source_mac = WiFi.macAddress();
-            const char* boundary = "----TheFlyCloudUploadBoundary";
-
-            char part_filename[CloudUpload::kPathMaxLength + 128];
-            char part_timestamp[128];
-            char part_hash[128];
-            char part_source[128];
-            char part_payload[CloudUpload::kPathMaxLength + 160];
-            snprintf(part_filename, sizeof(part_filename), "--%s\r\nContent-Disposition: form-data; name=\"filename\"\r\n\r\n%s\r\n", boundary, item->path);
-            snprintf(part_timestamp, sizeof(part_timestamp), "--%s\r\nContent-Disposition: form-data; name=\"timestamp\"\r\n\r\n%s\r\n", boundary, upload_timestamp);
-            snprintf(part_hash, sizeof(part_hash), "--%s\r\nContent-Disposition: form-data; name=\"hash\"\r\n\r\n%s\r\n", boundary, hash.c_str());
-            snprintf(part_source, sizeof(part_source), "--%s\r\nContent-Disposition: form-data; name=\"source_mac\"\r\n\r\n%s\r\n", boundary, source_mac.c_str());
-            snprintf(part_payload,
-                     sizeof(part_payload),
-                     "--%s\r\nContent-Disposition: form-data; name=\"payload\"; filename=\"%s\"\r\nContent-Type: application/octet-stream\r\n\r\n",
-                     boundary,
-                     item->path);
-
-            char end_boundary[48];
-            snprintf(end_boundary, sizeof(end_boundary), "\r\n--%s--\r\n", boundary);
-
-            const uint64_t content_length = strlen(part_filename) + strlen(part_timestamp) + strlen(part_hash) + strlen(part_source) + strlen(part_payload) + item->size + strlen(end_boundary);
-
-            char header[512];
-            snprintf(header,
-                     sizeof(header),
-                     "POST %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\nContent-Type: multipart/form-data; boundary=%s\r\nContent-Length: %llu\r\n\r\n",
-                     url.path,
-                     url.host,
-                     boundary,
-                     static_cast<unsigned long long>(content_length));
-
-            bool ok = send_all(*client, header) &&
-                      send_all(*client, part_filename) &&
-                      send_all(*client, part_timestamp) &&
-                      send_all(*client, part_hash) &&
-                      send_all(*client, part_source) &&
-                      send_all(*client, part_payload);
-
-            uint64_t attempt_bytes = 0;
-            uint8_t buffer[kUploadBufferSize];
-            while (ok && attempt_bytes < item->size)
-            {
-                portENTER_CRITICAL(&m_lock);
-                const bool cancel_requested_inner = m_cancel_requested;
-                portEXIT_CRITICAL(&m_lock);
-                if (cancel_requested_inner)
-                {
-                    ok = false;
-                    copy_text(last_message, sizeof(last_message), "cancelled during upload");
-                    break;
-                }
-
-                const size_t to_read = (item->size - attempt_bytes) < sizeof(buffer) ? static_cast<size_t>(item->size - attempt_bytes) : sizeof(buffer);
-                const int bytes_read = file.read(buffer, to_read);
-                if (bytes_read <= 0)
-                {
-                    ok = false;
-                    copy_text(last_message, sizeof(last_message), "recording file read failed");
-                    break;
-                }
-
-                if (!send_all(*client, buffer, static_cast<size_t>(bytes_read)))
-                {
-                    ok = false;
-                    copy_text(last_message, sizeof(last_message), "network write failed");
-                    break;
-                }
-
-                attempt_bytes += static_cast<uint64_t>(bytes_read);
-                portENTER_CRITICAL(&m_lock);
-                m_status.bytes_uploaded = committed_bytes + attempt_bytes;
-                portEXIT_CRITICAL(&m_lock);
-            }
-
-            ok = ok && send_all(*client, end_boundary);
-            file.close();
-
-            int http_status = 0;
-            bool chunked = false;
-            int content_length_response = -1;
-            char response_body[kResponseMaxLength];
-            char line[192];
-
-            if (ok && read_client_line(*client, line, sizeof(line), m_timeout_ms))
-            {
-                if (strncmp(line, "HTTP/", 5) == 0)
-                {
-                    const char* first_space = strchr(line, ' ');
-                    http_status = first_space ? atoi(first_space + 1) : 0;
-                }
-
-                while (read_client_line(*client, line, sizeof(line), m_timeout_ms) && line[0] != '\0')
-                {
-                    if (strncasecmp(line, "Content-Length:", 15) == 0)
-                    {
-                        content_length_response = atoi(line + 15);
-                    }
-                    else if (strncasecmp(line, "Transfer-Encoding:", 18) == 0 && strstr(line, "chunked"))
-                    {
-                        chunked = true;
-                    }
-                }
-            }
-            else
-            {
-                ok = false;
-                copy_text(last_message, sizeof(last_message), "HTTP response read failed");
-            }
-
-            if (ok && (http_status < 200 || http_status >= 300))
-            {
-                ok = false;
-                snprintf(last_message, sizeof(last_message), "HTTP status %d", http_status);
-            }
-
-            if (ok && !read_response_body(*client, chunked, content_length_response, response_body, sizeof(response_body), m_timeout_ms))
-            {
-                ok = false;
-                copy_text(last_message, sizeof(last_message), "HTTP body read failed");
-            }
-
-            client->stop();
-
-            if (ok)
-            {
-                char server_message[kMessageMaxLength] = {};
-                if (parse_upload_ack(response_body, server_message, sizeof(server_message)))
-                {
-                    file_ok = true;
-                    break;
-                }
-
-                copy_text(last_message, sizeof(last_message), server_message[0] ? server_message : "server returned error");
-            }
-
-            portENTER_CRITICAL(&m_lock);
-            m_status.bytes_uploaded = committed_bytes;
-            portEXIT_CRITICAL(&m_lock);
-            delay(100);
+            free_pending_list(head);
+            finish(State::Error, Error::HistoryWriteFailed, last_message);
+            return;
         }
-
-        if (file_ok)
-        {
-            if (!append_history_success(item->path))
-            {
-                append_history_error(item->path, "uploaded but failed to append success history");
-                free_pending_list(head);
-                finish(State::Error, Error::HistoryWriteFailed, "uploaded but failed to append success history");
-                return;
-            }
-
-            committed_bytes += item->size;
-            portENTER_CRITICAL(&m_lock);
-            ++m_status.files_succeeded;
-            m_status.bytes_uploaded = committed_bytes;
-            portEXIT_CRITICAL(&m_lock);
-            continue;
-        }
-
-        append_history_error(item->path, last_message);
-        portENTER_CRITICAL(&m_lock);
-        ++m_status.files_failed;
-        m_status.bytes_uploaded = committed_bytes;
-        copy_text(m_status.message, sizeof(m_status.message), last_message);
-        portEXIT_CRITICAL(&m_lock);
     }
 
     free_pending_list(head);

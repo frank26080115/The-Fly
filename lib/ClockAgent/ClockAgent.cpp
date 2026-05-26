@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include "thefly_version.h"
 
@@ -185,6 +186,45 @@ m5::rtc_datetime_t merge_datetime(const m5::rtc_datetime_t& base, const m5::rtc_
     return merged;
 }
 
+bool datetime_to_local_epoch_seconds(const m5::rtc_datetime_t& datetime, time_t& epoch_seconds)
+{
+    if (!valid_date(datetime.date) || !valid_time(datetime.time))
+    {
+        return false;
+    }
+
+    tm value = {};
+    value.tm_year = datetime.date.year - 1900;
+    value.tm_mon = datetime.date.month - 1;
+    value.tm_mday = datetime.date.date;
+    value.tm_hour = datetime.time.hours;
+    value.tm_min = datetime.time.minutes;
+    value.tm_sec = datetime.time.seconds;
+    value.tm_isdst = -1;
+
+    const time_t converted = mktime(&value);
+    if (converted == static_cast<time_t>(-1))
+    {
+        return false;
+    }
+
+    epoch_seconds = converted;
+    return true;
+}
+
+bool apply_system_time(const m5::rtc_datetime_t& datetime)
+{
+    time_t epoch_seconds = 0;
+    if (!datetime_to_local_epoch_seconds(datetime, epoch_seconds))
+    {
+        return false;
+    }
+
+    struct timeval value = {};
+    value.tv_sec = epoch_seconds;
+    return settimeofday(&value, nullptr) == 0;
+}
+
 } // namespace
 
 ClockAgent Clock;
@@ -206,6 +246,7 @@ bool ClockAgent::syncFromRtc()
     baseEpochSeconds_ = datetime_to_epoch_seconds(datetime);
     baseMillis_       = millis();
     synced_           = true;
+    apply_system_time(datetime);
     return true;
 }
 
@@ -230,6 +271,7 @@ bool ClockAgent::syncToCompileTime()
     baseEpochSeconds_ = datetime_to_epoch_seconds(rtc_datetime);
     baseMillis_       = millis();
     synced_           = true;
+    apply_system_time(rtc_datetime);
     return true;
 }
 
@@ -317,6 +359,7 @@ void ClockAgent::setDateTime(const m5::rtc_date_t* date, const m5::rtc_time_t* t
     baseEpochSeconds_ = datetime_to_epoch_seconds(merged);
     baseMillis_       = millis();
     synced_           = true;
+    apply_system_time(merged);
 }
 
 void ClockAgent::setDateTime(const m5::rtc_datetime_t* datetime)
@@ -333,6 +376,10 @@ void ClockAgent::setDateTime(const m5::rtc_datetime_t& datetime)
     baseEpochSeconds_ = datetime_to_epoch_seconds(datetime);
     baseMillis_       = millis();
     synced_           = valid_date(datetime.date) && valid_time(datetime.time);
+    if (synced_)
+    {
+        apply_system_time(datetime);
+    }
 }
 
 void ClockAgent::setDate(const m5::rtc_date_t* date)
@@ -358,6 +405,16 @@ void ClockAgent::setTime(const m5::rtc_time_t& time)
 bool ClockAgent::isSynced() const
 {
     return synced_;
+}
+
+bool ClockAgent::ensureSystemTimeForTls()
+{
+    if (!ensureSynced() && !syncToCompileTime())
+    {
+        return false;
+    }
+
+    return apply_system_time(currentDateTime());
 }
 
 m5::rtc_datetime_t ClockAgent::currentDateTime() const

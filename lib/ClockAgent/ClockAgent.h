@@ -30,6 +30,7 @@ public:
     void setTime(const m5::rtc_time_t& time);
 
     bool isSynced() const;
+    bool ensureSystemTimeForTls();
 
 private:
     bool               ensureSynced();
