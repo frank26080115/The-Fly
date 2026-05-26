@@ -32,6 +32,8 @@ using ScrollItemCallback = void (*)(ScrollItem& item, void* context, uint32_t pr
 class ScrollItem : public FlyGuiItem
 {
 public:
+    static constexpr size_t kLabelCapacity = 256;
+
     ScrollItem();
 
     void configure(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon, IconLookup::IconContext iconContext);
@@ -61,12 +63,10 @@ public:
     bool trigger(uint32_t pressDurationMs = 0) override;
 
 private:
-    static constexpr size_t kLabelMax = 95;
-
     ScrollItemKind     kind_          = SCROLL_ITEM_BLUETOOTH_HOST;
     int32_t            callbackValue_ = 0;
     uint8_t            icon_          = 0;
     ScrollItemCallback scrollCallback_ = nullptr;
     void*              callbackContext_ = nullptr;
-    char               label_[kLabelMax + 1] = {};
+    char               label_[kLabelCapacity] = {};
 };

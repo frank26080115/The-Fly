@@ -22,6 +22,8 @@ constexpr int16_t kExitSize       = 50;
 constexpr int16_t kExitY          = 190;
 constexpr float   kTextSize       = 1.0f;
 constexpr uint8_t kTextFont       = 2;
+constexpr uint8_t kSmallTextFont  = 1;
+constexpr uint16_t kInsecureUrlTextColor = TFT_ORANGE;
 constexpr uint32_t kBluetoothDeleteLongPressMs = 3000;
 
 int32_t list_callback_value(size_t index)
@@ -166,6 +168,121 @@ void draw_centered_wrapped_text(const char* text)
     {
         draw_centered_line(line, len, y);
     }
+}
+
+void truncate_to_width(char* text, size_t text_size, int16_t width)
+{
+    static constexpr const char* kEllipsis = "...";
+    static constexpr size_t      kEllipsisLen = 3;
+
+    if (!text || text_size <= kEllipsisLen + 1 || thefly_display.textWidth(text) <= width)
+    {
+        return;
+    }
+
+    size_t len = strlen(text);
+    while (len > 0)
+    {
+        --len;
+        text[len] = '\0';
+        strncat(text, kEllipsis, text_size - strlen(text) - 1);
+        if (thefly_display.textWidth(text) <= width)
+        {
+            return;
+        }
+        text[len] = '\0';
+    }
+
+    strlcpy(text, kEllipsis, text_size);
+}
+
+bool starts_with_case_insensitive(const char* text, const char* prefix)
+{
+    if (!text || !prefix)
+    {
+        return false;
+    }
+
+    while (*prefix)
+    {
+        char lhs = *text++;
+        char rhs = *prefix++;
+        if (lhs >= 'A' && lhs <= 'Z')
+        {
+            lhs = static_cast<char>(lhs - 'A' + 'a');
+        }
+        if (rhs >= 'A' && rhs <= 'Z')
+        {
+            rhs = static_cast<char>(rhs - 'A' + 'a');
+        }
+        if (lhs != rhs)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool is_secure_url(const char* text)
+{
+    return starts_with_case_insensitive(text, "https://");
+}
+
+const char* display_cloud_url(const char* text)
+{
+    if (starts_with_case_insensitive(text, "https://www."))
+    {
+        return text + 12;
+    }
+    if (starts_with_case_insensitive(text, "http://www."))
+    {
+        return text + 11;
+    }
+    if (starts_with_case_insensitive(text, "https://"))
+    {
+        return text + 8;
+    }
+    if (starts_with_case_insensitive(text, "http://"))
+    {
+        return text + 7;
+    }
+
+    return text;
+}
+
+void draw_centered_fitted_cloud_url(const char* text)
+{
+    if (!text || text[0] == '\0')
+    {
+        return;
+    }
+
+    const bool  secure = is_secure_url(text);
+    const char* shown  = display_cloud_url(text);
+    const int16_t width = static_cast<int16_t>(thefly_display.width() - 8);
+
+    thefly_display.setTextColor(secure ? TFT_WHITE : kInsecureUrlTextColor, TFT_BLACK);
+    thefly_display.setTextFont(kTextFont);
+    thefly_display.setTextSize(kTextSize);
+    if (thefly_display.textWidth(shown) <= width)
+    {
+        thefly_display.drawString(shown, thefly_display.width() / 2, kTextY);
+        return;
+    }
+
+    thefly_display.setTextFont(kSmallTextFont);
+    thefly_display.setTextSize(kTextSize);
+    if (thefly_display.textWidth(shown) <= width)
+    {
+        thefly_display.drawString(shown, thefly_display.width() / 2, kTextY);
+        return;
+    }
+
+    char truncated[ScrollItem::kLabelCapacity] = {};
+    strlcpy(truncated, shown, sizeof(truncated));
+    truncate_to_width(truncated, sizeof(truncated), width);
+    thefly_display.drawString(truncated, thefly_display.width() / 2, kTextY);
 }
 } // namespace
 
@@ -633,6 +750,13 @@ void ScrollView::drawSelectedText()
     thefly_display.setTextSize(kTextSize);
     thefly_display.setTextDatum(top_center);
     thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
+
+    if (scrollItem && scrollItem->kind() == SCROLL_ITEM_CLOUD_ENDPOINT)
+    {
+        draw_centered_fitted_cloud_url(text);
+        return;
+    }
+
     draw_centered_wrapped_text(text);
 }
 
