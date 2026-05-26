@@ -3,6 +3,7 @@
 #include <ESPAsyncWebServer.h>
 #include <WiFi.h>
 
+#include <esp_system.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -13,6 +14,7 @@
 #include "FtpServer.h"
 #endif
 #include "MicroSdCard.h"
+#include "ModalDialog.h"
 #include "WebCfgHandlers.h"
 #include "WebFileHandlers.h"
 #include "WifiManager.h"
@@ -21,11 +23,14 @@
 #include "esp_random.h"
 #include "mbedtls/platform_util.h"
 #include "nvs.h"
+#include "sprites.h"
 #include "thefly_version.h"
 #include "web_assets.h"
 
 extern WifiManager* wifi_manager;
 extern BtHostList*  bt_host_list;
+extern FlyGui*      gui;
+extern ModalDialog* get_modal_dialog();
 
 namespace
 {
@@ -82,6 +87,45 @@ void note_web_error()
     {
         wifi_manager->noteWebError();
     }
+}
+
+void reboot_after_reset_dialog()
+{
+    ESP_LOGI(TAG, "reset confirmation dismissed; rebooting");
+    delay(50);
+    esp_restart();
+}
+
+void show_reset_reboot_dialog(const char* reset_name, const char* text)
+{
+    ModalDialog* dialog = get_modal_dialog();
+    if (!dialog || !gui)
+    {
+        ESP_LOGW(TAG, "%s succeeded, but modal dialog is unavailable", reset_name);
+        return;
+    }
+
+    dialog->configure(sprit_thumbsup_100,
+                      SPRIT_THUMBSUP_100_BYTES,
+                      SPRIT_THUMBSUP_100_WIDTH,
+                      SPRIT_THUMBSUP_100_HEIGHT,
+                      text,
+                      FLYGUI_VIEW_MAIN,
+                      reboot_after_reset_dialog);
+    if (!gui->showView(FLYGUI_VIEW_MODAL_DIALOG))
+    {
+        ESP_LOGW(TAG, "%s succeeded, but modal dialog could not be shown", reset_name);
+    }
+}
+
+void show_password_reset_reboot_dialog()
+{
+    show_reset_reboot_dialog("password reset", "Password reset successful\nDismiss to reboot.");
+}
+
+void show_memory_reset_reboot_dialog()
+{
+    show_reset_reboot_dialog("memory reset", "Memory reset successful\nDismiss to reboot.");
 }
 
 void bytes_to_hex(const uint8_t* data, size_t size, String& out)
@@ -466,6 +510,7 @@ void reset_password(AsyncWebServerRequest* request)
     reset_session_security();
     ESP_LOGI(TAG, "password reset updated Aegis keys");
     request->send(200, "application/json", "{\"status\":\"ok\"}");
+    show_password_reset_reboot_dialog();
     #endif
 }
 
@@ -562,6 +607,7 @@ void reset_memory(AsyncWebServerRequest* request)
     note_web_save();
     ESP_LOGI(TAG, "memory reset erased Bluetooth bonds, Bluetooth host list, and Wi-Fi/cloud config");
     request->send(200, "application/json", "{\"status\":\"ok\"}");
+    show_memory_reset_reboot_dialog();
     #endif
 }
 

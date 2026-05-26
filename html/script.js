@@ -1,430 +1,108 @@
 const info_retry_ms = 1500;
-const pbkdf_iterations = 100000;
-const session_salt_half_size = 16;
-const sha256_size = 32;
 const get_cfg_magic = [0x54, 0x46, 0x47, 0x43];
 const get_cfg_version = 2;
 const set_cfg_magic = [0x54, 0x46, 0x47, 0x43];
 const set_cfg_version = 1;
-const header_session_salt_from_client = "X-TheFly-Session-Salt-From-Client";
-const header_session_response_from_client = "X-TheFly-Session-Response-From-Client";
 const stored_password_placeholder = "********";
-const filecrypt_salt = new Uint8Array([
-    0x98, 0xC2, 0x5A, 0xF2, 0xB7, 0x0F, 0xA4, 0xB3,
-    0x42, 0xB4, 0x64, 0xE5, 0xEE, 0xD6, 0xFF, 0x3D,
-    0x0D, 0xD8, 0x21, 0x9C, 0x9D, 0x7B, 0x16, 0xB4,
-    0xCE, 0xDE, 0xCF, 0xFA, 0xCA, 0x4E, 0xF3, 0x2F,
-]);
-const network_salt = new Uint8Array([
-    0x36, 0x22, 0x5C, 0x86, 0xC1, 0x70, 0xF2, 0xC1,
-    0x11, 0xD3, 0xD6, 0xDF, 0x57, 0x6E, 0x28, 0x93,
-    0x71, 0x4E, 0x52, 0x6C, 0xD8, 0x43, 0xB2, 0x6B,
-    0xDF, 0xEE, 0x1F, 0x12, 0xC9, 0xA3, 0xE5, 0xB2,
-]);
 
-const session_security = {
-    sessionChallenge: null,
-    sessionResponseFromServer: null,
-    sessionResponseFromClientHex: "",
-    sessionSaltFromServer: null,
-    sessionSaltFromClient: null,
-    networkHmacKey: null,
-    networkAesKey: null,
-    sessionAesKey: null,
-    nonceCounter: 0,
-    securityReady: false,
-};
-
-let current_security_level = null;
-let cached_webcrypto_provider = null;
-let webcrypto_shim_load_promise = null;
-
-const timezone_option_groups = [
-    {
-        label: "United States and Canada",
-        zones: [
-            ["Pacific (PST/PDT/-8)", "PST8PDT,M3.2.0,M11.1.0"],
-            ["Mountain (MST/MDT/-7)", "MST7MDT,M3.2.0,M11.1.0"],
-            ["Mountain (MST/-7), no DST", "MST7"],
-            ["Central (CST/CDT/-6)", "CST6CDT,M3.2.0,M11.1.0"],
-            ["Eastern (EST/EDT/-5)", "EST5EDT,M3.2.0,M11.1.0"],
-            ["Alaska (AKST/AKDT/-9)", "AKST9AKDT,M3.2.0,M11.1.0"],
-            ["Hawaii (HST/-10)", "HST10"],
-            ["Atlantic (AST/ADT/-4)", "AST4ADT,M3.2.0,M11.1.0"],
-            ["Newfoundland (NST/NDT/-3:30)", "NST3:30NDT,M3.2.0,M11.1.0"],
-        ],
-    },
-    {
-        label: "UTC and fixed offsets",
-        zones: [
-            ["UTC (UTC/0)", "UTC0"],
-            ["UTC-12:00 (UTC/-12)", "UTC12"],
-            ["UTC-11:00 (UTC/-11)", "UTC11"],
-            ["UTC-10:00 (HST/-10)", "HST10"],
-            ["UTC-09:30 (UTC/-9:30)", "UTC9:30"],
-            ["UTC-09:00 (AKST/-9)", "AKST9"],
-            ["UTC-08:00 (PST/-8)", "PST8"],
-            ["UTC-07:00 (MST/-7)", "MST7"],
-            ["UTC-06:00 (CST/-6)", "CST6"],
-            ["UTC-05:00 (EST/-5)", "EST5"],
-            ["UTC-04:00 (AST/-4)", "AST4"],
-            ["UTC-03:30 (NST/-3:30)", "NST3:30"],
-            ["UTC-03:00 (BRT/-3)", "BRT3"],
-            ["UTC-02:00 (UTC/-2)", "UTC2"],
-            ["UTC-01:00 (UTC/-1)", "UTC1"],
-            ["UTC+01:00 (CET/+1)", "CET-1"],
-            ["UTC+02:00 (EET/+2)", "EET-2"],
-            ["UTC+03:00 (MSK/+3)", "MSK-3"],
-            ["UTC+03:30 (IRST/+3:30)", "IRST-3:30"],
-            ["UTC+04:00 (GST/+4)", "GST-4"],
-            ["UTC+04:30 (AFT/+4:30)", "AFT-4:30"],
-            ["UTC+05:00 (PKT/+5)", "PKT-5"],
-            ["UTC+05:30 (IST/+5:30)", "IST-5:30"],
-            ["UTC+05:45 (NPT/+5:45)", "NPT-5:45"],
-            ["UTC+06:00 (BST/+6)", "BST-6"],
-            ["UTC+06:30 (MMT/+6:30)", "MMT-6:30"],
-            ["UTC+07:00 (ICT/+7)", "ICT-7"],
-            ["UTC+08:00 (CST/+8)", "CST-8"],
-            ["UTC+08:45 (ACWST/+8:45)", "ACWST-8:45"],
-            ["UTC+09:00 (JST/+9)", "JST-9"],
-            ["UTC+09:30 (ACST/+9:30)", "ACST-9:30"],
-            ["UTC+10:00 (AEST/+10)", "AEST-10"],
-            ["UTC+10:30 (LHST/+10:30)", "LHST-10:30"],
-            ["UTC+11:00 (SBT/+11)", "SBT-11"],
-            ["UTC+12:00 (NZST/+12)", "NZST-12"],
-            ["UTC+12:45 (CHAST/+12:45)", "CHAST-12:45"],
-            ["UTC+13:00 (NZDT/+13)", "NZDT-13"],
-            ["UTC+14:00 (LINT/+14)", "LINT-14"],
-        ],
-    },
-    {
-        label: "Europe",
-        zones: [
-            ["UK, Ireland, Portugal (GMT/BST/0)", "GMT0BST,M3.5.0/1,M10.5.0"],
-            ["Western Europe (WET/WEST/0)", "WET0WEST,M3.5.0/1,M10.5.0"],
-            ["Central Europe (CET/CEST/+1)", "CET-1CEST,M3.5.0,M10.5.0/3"],
-            ["Eastern Europe (EET/EEST/+2)", "EET-2EEST,M3.5.0/3,M10.5.0/4"],
-            ["Moscow (MSK/+3), no DST", "MSK-3"],
-        ],
-    },
-    {
-        label: "Asia",
-        zones: [
-            ["Dubai / Gulf (GST/+4)", "GST-4"],
-            ["Afghanistan (AFT/+4:30)", "AFT-4:30"],
-            ["Pakistan (PKT/+5)", "PKT-5"],
-            ["India / Sri Lanka (IST/+5:30)", "IST-5:30"],
-            ["Nepal (NPT/+5:45)", "NPT-5:45"],
-            ["Bangladesh (BST/+6)", "BST-6"],
-            ["Myanmar (MMT/+6:30)", "MMT-6:30"],
-            ["Thailand / Vietnam / West Indonesia (ICT/+7)", "ICT-7"],
-            ["China / Singapore / Taiwan / Philippines (CST/+8)", "CST-8"],
-            ["Japan (JST/+9)", "JST-9"],
-            ["Korea (KST/+9)", "KST-9"],
-        ],
-    },
-    {
-        label: "Australia, New Zealand, and Pacific",
-        zones: [
-            ["Western Australia (AWST/+8)", "AWST-8"],
-            ["South Australia (ACST/ACDT/+9:30)", "ACST-9:30ACDT,M10.1.0,M4.1.0/3"],
-            ["Northern Territory (ACST/+9:30)", "ACST-9:30"],
-            ["Queensland (AEST/+10)", "AEST-10"],
-            ["NSW / Victoria / Tasmania (AEST/AEDT/+10)", "AEST-10AEDT,M10.1.0,M4.1.0/3"],
-            ["Lord Howe Island (LHST/LHDT/+10:30)", "LHST-10:30LHDT-11,M10.1.0,M4.1.0"],
-            ["New Zealand (NZST/NZDT/+12)", "NZST-12NZDT,M9.5.0,M4.1.0/3"],
-            ["Chatham Islands (CHAST/CHADT/+12:45)", "CHAST-12:45CHADT,M9.5.0/2:45,M4.1.0/3:45"],
-        ],
-    },
-    {
-        label: "Latin America",
-        zones: [
-            ["Mexico Pacific (MST/MDT/-7)", "MST7MDT,M4.1.0,M10.5.0"],
-            ["Mexico Central (CST/-6), no DST", "CST6"],
-            ["Colombia / Peru / Ecuador (COT/-5)", "COT5"],
-            ["Venezuela (VET/-4)", "VET4"],
-            ["Bolivia (BOT/-4)", "BOT4"],
-            ["Chile continental (CLT/CLST/-4)", "CLT4CLST,M9.1.6/24,M4.1.6/24"],
-            ["Argentina (ART/-3)", "ART3"],
-            ["Brazil, Brasilia (BRT/-3)", "BRT3"],
-        ],
-    },
-    {
-        label: "Africa and Middle East",
-        zones: [
-            ["Morocco (<+01>/+1)", "<+01>-1"],
-            ["West Africa (WAT/+1)", "WAT-1"],
-            ["Central Africa (CAT/+2)", "CAT-2"],
-            ["South Africa (SAST/+2)", "SAST-2"],
-            ["East Africa (EAT/+3)", "EAT-3"],
-            ["Egypt (EET/+2)", "EET-2"],
-            ["Israel (IST/IDT/+2)", "IST-2IDT,M3.4.4/26,M10.5.0"],
-            ["Turkey (<+03>/+3)", "<+03>-3"],
-        ],
-    },
-];
+let file_row_template = null;
+let current_default_soft_ap = true;
 
 function body_onload()
 {
     fill_in_timezone_options();
+    if (!is_offline_test())
+    {
+        hide_all_test_divs();
+        hide_login_panel();
+    }
     fetch_info();
 }
 
-function secure_random_bytes(size)
+function handle_info(info)
 {
-    const crypto = random_provider();
-    if (!crypto || !crypto.getRandomValues)
+    current_default_soft_ap = !info || info.default_soft_ap !== false;
+    remember_session_info(info);
+    render_info(info);
+    hide_loading();
+    setup_config_tables_from_info(info);
+    apply_reconfiguration_visibility();
+    if (reconfiguration_allowed() && current_security_level === 0)
     {
-        throw new Error("Browser random number generator is unavailable");
+        fetch_cfg().catch((error) => set_login_error(error.message || "Config load failed."));
     }
-
-    const bytes = new Uint8Array(size);
-    crypto.getRandomValues(bytes);
-    return bytes;
+    fetch_file_list();
 }
 
-function bytes_to_hex(bytes)
+function fetch_file_list()
 {
-    let text = "";
-    for (const byte of bytes)
-    {
-        text += byte.toString(16).padStart(2, "0");
-    }
-    return text;
-}
+    const request = new XMLHttpRequest();
+    request.open("GET", "/list_files.json", true);
+    request.responseType = "json";
+    request.timeout = 5000;
 
-function hex_to_bytes(text, expected_size)
-{
-    if (typeof text !== "string" || text.length !== expected_size * 2 || !/^[0-9a-fA-F]+$/.test(text))
-    {
-        throw new Error("Invalid hex string");
-    }
-
-    const bytes = new Uint8Array(expected_size);
-    for (let i = 0; i < expected_size; ++i)
-    {
-        bytes[i] = parseInt(text.substr(i * 2, 2), 16);
-    }
-    return bytes;
-}
-
-function concat_bytes(first, second)
-{
-    const combined = new Uint8Array(first.length + second.length);
-    combined.set(first, 0);
-    combined.set(second, first.length);
-    return combined;
-}
-
-function clear_bytes(bytes)
-{
-    if (bytes && bytes.fill)
-    {
-        bytes.fill(0);
-    }
-}
-
-function constant_time_equal(left, right)
-{
-    if (!left || !right || left.length !== right.length)
-    {
-        return false;
-    }
-
-    let diff = 0;
-    for (let i = 0; i < left.length; ++i)
-    {
-        diff |= left[i] ^ right[i];
-    }
-    return diff === 0;
-}
-
-function webcrypto_shim_provider()
-{
-    if (window.deviceCrypto && window.deviceCrypto.subtle)
-    {
-        return window.deviceCrypto;
-    }
-
-    if (window.deviceCrypto && window.deviceSubtle)
-    {
-        return {
-            subtle: window.deviceSubtle,
-            getRandomValues: function(buffer) {
-                return window.deviceCrypto.getRandomValues(buffer);
-            },
-        };
-    }
-
-    if (window.deviceSubtle)
-    {
-        return {
-            subtle: window.deviceSubtle,
-            getRandomValues: function(buffer) {
-                if (window.crypto && window.crypto.getRandomValues)
-                {
-                    return window.crypto.getRandomValues(buffer);
-                }
-                throw new Error("Browser random number generator is unavailable");
-            },
-        };
-    }
-
-    if (window.WebCryptoBundle)
-    {
-        const bundle_crypto = window.WebCryptoBundle.crypto || window.WebCryptoBundle;
-        if (bundle_crypto && bundle_crypto.subtle)
+    request.onload = function() {
+        if (request.status >= 200 && request.status < 300)
         {
-            return bundle_crypto;
+            try
+            {
+                const files = request.response || JSON.parse(request.responseText);
+                render_file_list(files);
+            }
+            catch (error)
+            {
+                return;
+            }
         }
-    }
+    };
 
-    return null;
+    request.send();
 }
 
-function random_provider()
+function render_file_list(files)
 {
-    if (window.crypto && window.crypto.getRandomValues)
+    const container = document.getElementById("files_test");
+    if (!container)
     {
-        return window.crypto;
+        return;
     }
 
-    const shim = webcrypto_shim_provider();
-    if (shim && shim.getRandomValues)
+    if (!file_row_template)
     {
-        return shim;
-    }
-    return null;
-}
-
-function webcrypto_provider()
-{
-    if (cached_webcrypto_provider && cached_webcrypto_provider.subtle)
-    {
-        return cached_webcrypto_provider;
-    }
-    if (window.crypto && window.crypto.subtle)
-    {
-        cached_webcrypto_provider = window.crypto;
-        return cached_webcrypto_provider;
-    }
-
-    const shim = webcrypto_shim_provider();
-    if (shim && shim.subtle)
-    {
-        cached_webcrypto_provider = shim;
-        return cached_webcrypto_provider;
-    }
-    return null;
-}
-
-function load_webcrypto_shim()
-{
-    if (webcrypto_provider())
-    {
-        return Promise.resolve();
-    }
-    if (webcrypto_shim_load_promise)
-    {
-        return webcrypto_shim_load_promise;
-    }
-
-    webcrypto_shim_load_promise = new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        script.src = "webcrypto-shim.min.js";
-        script.async = true;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error("Could not load webcrypto-shim.min.js"));
-        document.head.appendChild(script);
-    });
-    return webcrypto_shim_load_promise;
-}
-
-async function require_webcrypto()
-{
-    let crypto = webcrypto_provider();
-    if (!crypto || !crypto.subtle)
-    {
-        await load_webcrypto_shim();
-        crypto = webcrypto_provider();
-    }
-    if (!crypto || !crypto.subtle)
-    {
-        throw new Error("WebCrypto is unavailable; webcrypto-shim.min.js did not provide a usable fallback.");
-    }
-    return crypto.subtle;
-}
-
-async function derive_pbkdf2_bytes(secret, salt)
-{
-    const subtle = await require_webcrypto();
-    const base_key = await subtle.importKey("raw", secret, "PBKDF2", false, ["deriveBits"]);
-    const bits = await subtle.deriveBits(
+        const template = document.getElementById("file_row_1");
+        if (!template)
         {
-            name: "PBKDF2",
-            salt: salt,
-            iterations: pbkdf_iterations,
-            hash: "SHA-256",
-        },
-        base_key,
-        sha256_size * 8);
-    return new Uint8Array(bits);
-}
-
-async function import_hmac_key(key_bytes)
-{
-    return (await require_webcrypto()).importKey(
-        "raw",
-        key_bytes,
-        { name: "HMAC", hash: "SHA-256" },
-        false,
-        ["sign"]);
-}
-
-async function import_aes_key(key_bytes, usages)
-{
-    return (await require_webcrypto()).importKey(
-        "raw",
-        key_bytes,
-        { name: "AES-GCM" },
-        false,
-        usages || ["decrypt"]);
-}
-
-async function hmac_sha256(key, data)
-{
-    const signature = await (await require_webcrypto()).sign("HMAC", key, data);
-    return new Uint8Array(signature);
-}
-
-function next_session_nonce()
-{
-    const nonce = new Uint8Array(12);
-    let counter = session_security.nonceCounter++;
-    for (let i = 0; i < 8; ++i)
-    {
-        nonce[11 - i] = counter & 0xFF;
-        counter = Math.floor(counter / 256);
+            return;
+        }
+        file_row_template = template.cloneNode(true);
     }
-    return nonce;
-}
 
-function remember_session_info(info)
-{
-    current_security_level = Number(info["security-level"]);
-    if (!Number.isFinite(current_security_level))
+    const list = Array.isArray(files) ? files : [];
+    const rows = make_rows_from_template("files_table_body", file_row_template, list.length);
+    rows.forEach((row, index) => {
+        const file_name = String(list[index] || "");
+        const encoded_name = encodeURIComponent(file_name);
+        const file_link = row.querySelector(".file-link");
+        const delete_link = row.querySelector(".delete-link");
+
+        if (file_link)
+        {
+            file_link.textContent = file_name;
+            file_link.href = "/download_file?file_name=" + encoded_name;
+        }
+        if (delete_link)
+        {
+            delete_link.href = "/delete_file?file_name=" + encoded_name;
+            delete_link.setAttribute("aria-label", "Delete " + file_name);
+        }
+    });
+
+    const please_wait = document.getElementById("files_please_wait");
+    if (please_wait)
     {
-        current_security_level = null;
+        please_wait.style.display = "none";
     }
-    session_security.sessionChallenge = hex_to_bytes(info.session_challenge || "", 32);
-    session_security.sessionResponseFromServer = hex_to_bytes(info.session_response_from_server || "", sha256_size);
-    session_security.sessionSaltFromServer = hex_to_bytes(info.session_salt_from_server || "", session_salt_half_size);
-    session_security.sessionResponseFromClientHex = "";
-    session_security.networkHmacKey = null;
-    session_security.networkAesKey = null;
-    session_security.sessionAesKey = null;
-    session_security.nonceCounter = 0;
-    session_security.securityReady = Boolean(info.security_ready);
+    container.style.display = "";
 }
 
 function fetch_info()
@@ -451,16 +129,7 @@ function fetch_info()
             try
             {
                 const info = request.response || JSON.parse(request.responseText);
-                remember_session_info(info);
-                render_info(info);
-                hide_loading();
-                setup_config_tables_from_info(info);
-                if (current_security_level === 0)
-                {
-                    remove_login_panel();
-                    show_save_button();
-                    fetch_cfg().catch((error) => set_login_error(error.message || "Config load failed."));
-                }
+                handle_info(info);
             }
             catch (error)
             {
@@ -490,14 +159,6 @@ function hide_loading()
     }
 }
 
-function clear_node(node)
-{
-    while (node.firstChild)
-    {
-        node.removeChild(node.firstChild);
-    }
-}
-
 function append_info_row(parent, label, value)
 {
     const row = document.createElement("div");
@@ -516,22 +177,6 @@ function append_info_row(parent, label, value)
     parent.appendChild(row);
 }
 
-function format_bytes(value)
-{
-    const bytes = Number(value) || 0;
-    const units = ["B", "KB", "MB", "GB"];
-    let scaled = bytes;
-    let unit_index = 0;
-    while (scaled >= 1024 && unit_index < units.length - 1)
-    {
-        scaled /= 1024;
-        ++unit_index;
-    }
-
-    const digits = unit_index === 0 ? 0 : 1;
-    return scaled.toFixed(digits) + " " + units[unit_index];
-}
-
 function disk_summary(disk)
 {
     if (!disk)
@@ -548,86 +193,6 @@ function disk_summary(disk)
            " (" +
            format_bytes(disk.free_bytes) +
            " free)";
-}
-
-function make_rows_from_template(parent_container_id, first_child_row, num_of_rows)
-{
-    const parent = document.getElementById(parent_container_id);
-    if (!parent)
-    {
-        return [];
-    }
-
-    if (num_of_rows <= 0)
-    {
-        clear_node(parent);
-        return [];
-    }
-
-    const template = typeof first_child_row === "string" ? document.getElementById(first_child_row) : first_child_row;
-    if (!template)
-    {
-        return [];
-    }
-
-    const update_trailing_number = (value, index) => {
-        if (typeof value !== "string" || value.length === 0)
-        {
-            return value;
-        }
-        return value.replace(/([_-])\d+$/, "$1" + index);
-    };
-
-    const clear_row_value = (node) => {
-        if (node instanceof HTMLInputElement)
-        {
-            if (node.type === "checkbox" || node.type === "radio")
-            {
-                node.checked = false;
-            }
-            else
-            {
-                node.value = "";
-            }
-        }
-        else if (node instanceof HTMLTextAreaElement)
-        {
-            node.value = "";
-        }
-        else if (node instanceof HTMLSelectElement)
-        {
-            node.selectedIndex = 0;
-        }
-    };
-
-    const reindex_row = (row, index) => {
-        const nodes = [row, ...row.querySelectorAll("*")];
-        for (const node of nodes)
-        {
-            for (const attr of ["id", "name", "for", "aria-label", "aria-labelledby", "aria-describedby"])
-            {
-                if (node.hasAttribute && node.hasAttribute(attr))
-                {
-                    node.setAttribute(attr, update_trailing_number(node.getAttribute(attr), index));
-                }
-            }
-            clear_row_value(node);
-        }
-    };
-
-    const rows = [];
-    clear_node(parent);
-
-    for (let i = 1; i <= num_of_rows; ++i)
-    {
-        const row = template.cloneNode(true);
-        reindex_row(row, i);
-        parent.appendChild(row);
-        rows.push(row);
-    }
-
-    return rows;
-
 }
 
 function config_limit(info, key, fallback)
@@ -655,9 +220,59 @@ function apply_security_level_visibility()
     }
 }
 
-function hide_all_test_divs()
+function apply_login_panel_visibility()
 {
+    if (current_security_level === 0 || !reconfiguration_allowed())
+    {
+        hide_login_panel();
+    }
+    else
+    {
+        show_login_panel();
+    }
+}
 
+function apply_reconfiguration_visibility()
+{
+    update_logged_out_marker_text();
+    apply_login_panel_visibility();
+    apply_save_button_visibility();
+}
+
+function apply_save_button_visibility()
+{
+    if (reconfiguration_allowed() && config_is_unlocked())
+    {
+        show_save_button();
+    }
+    else
+    {
+        hide_save_button();
+    }
+}
+
+function reconfiguration_allowed()
+{
+    return current_default_soft_ap !== false;
+}
+
+function config_is_unlocked()
+{
+    return current_security_level === 0 || Boolean(session_security.sessionAesKey);
+}
+
+function update_logged_out_marker_text()
+{
+    const allowed = reconfiguration_allowed();
+    const message = allowed ? "Please Log In First" : "reconfiguration not allowed";
+    for (const marker of document.querySelectorAll(".please-login-first"))
+    {
+        marker.textContent = message;
+        if (!allowed)
+        {
+            marker.style.display = "";
+        }
+    }
 }
 
 function fill_in_timezone_options()
@@ -722,8 +337,11 @@ function render_info(info)
     }
     append_info_row(container, "Disk Storage", disk_summary(info.disk));
 
-    update_password_reset_entry(Boolean(info.default_soft_ap));
-    hide_all_test_divs();
+    update_password_reset_entry(current_default_soft_ap);
+    if (!is_offline_test())
+    {
+        hide_all_test_divs();
+    }
 }
 
 function update_password_reset_entry(default_soft_ap)
@@ -761,9 +379,17 @@ function set_memory_reset_message(message, notice)
     node.style.display = message ? "" : "none";
 }
 
-function set_login_error(message)
+function set_login_error(message, notice)
 {
-    window.alert(message);
+    const node = document.getElementById("login_error");
+    if (!node)
+    {
+        return;
+    }
+
+    node.textContent = message || "";
+    node.classList.toggle("notice", Boolean(notice));
+    node.style.display = message ? "" : "none";
 }
 
 function set_input_by_id(id, value)
@@ -861,6 +487,12 @@ function ensure_config_rows(container_id, row_class, count)
 
 function hide_logged_out_markers()
 {
+    if (!reconfiguration_allowed())
+    {
+        update_logged_out_marker_text();
+        return;
+    }
+
     const ids = [
         "bluetooth_devices_please_login",
         "wifi_routers_please_login",
@@ -879,8 +511,10 @@ function hide_logged_out_markers()
     }
 }
 
-function remove_login_panel()
+function hide_login_panel()
 {
+    set_login_error("");
+
     const password = document.getElementById("password");
     if (password)
     {
@@ -890,7 +524,16 @@ function remove_login_panel()
     const panel = document.getElementById("login_panel");
     if (panel)
     {
-        panel.remove();
+        panel.hidden = true;
+    }
+}
+
+function show_login_panel()
+{
+    const panel = document.getElementById("login_panel");
+    if (panel)
+    {
+        panel.hidden = false;
     }
 }
 
@@ -900,6 +543,15 @@ function show_save_button()
     if (save)
     {
         save.style.display = "block";
+    }
+}
+
+function hide_save_button()
+{
+    const save = document.getElementById("btn_save");
+    if (save)
+    {
+        save.style.display = "none";
     }
 }
 
@@ -1152,8 +804,8 @@ async function login_onsubmit()
         session_security.sessionAesKey = await import_aes_key(session_key_bytes);
         session_security.nonceCounter = 0;
 
-        remove_login_panel();
-        show_save_button();
+        hide_login_panel();
+        apply_save_button_visibility();
         await fetch_cfg();
     }
     catch (error)
@@ -1203,6 +855,44 @@ async function derive_password_reset_payload(password_text)
     }
 }
 
+function password_reset_validation_error(password_text)
+{
+    if (password_text.length < 6)
+    {
+        return "Password must be at least 6 characters.";
+    }
+    if (/\s/.test(password_text))
+    {
+        return "Password must not contain spaces.";
+    }
+    if (!/[A-Za-z]/.test(password_text))
+    {
+        return "Password must contain at least one letter.";
+    }
+    if (!/[0-9]/.test(password_text))
+    {
+        return "Password must contain at least one number.";
+    }
+    return "";
+}
+
+function show_reset_success_page(title_text)
+{
+    const title = document.createElement("h2");
+    title.textContent = title_text;
+    document.body.replaceChildren(title, document.createTextNode("please allow the device to reboot"));
+}
+
+function show_password_reset_success_page()
+{
+    show_reset_success_page("Password Reset Sucessful");
+}
+
+function show_memory_reset_success_page()
+{
+    show_reset_success_page("Memory Reset Sucessful");
+}
+
 async function passreset_onsubmit()
 {
     const password_input = document.getElementById("new_password");
@@ -1215,6 +905,12 @@ async function passreset_onsubmit()
     if (!password_text)
     {
         set_password_reset_message("Enter a new password.", false);
+        return;
+    }
+    const validation_error = password_reset_validation_error(password_text);
+    if (validation_error)
+    {
+        set_password_reset_message(validation_error, false);
         return;
     }
     if (password_text !== confirm_text)
@@ -1255,8 +951,7 @@ async function passreset_onsubmit()
                 {
                     confirm_input.value = "";
                 }
-                set_password_reset_message("Password reset complete.", true);
-                fetch_info();
+                show_password_reset_success_page();
                 return;
             }
             set_password_reset_message(request.responseText || ("Password reset failed: " + request.status), false);
@@ -1307,8 +1002,7 @@ function memreset_onsubmit()
     request.onload = function() {
         if (request.status >= 200 && request.status < 300)
         {
-            set_memory_reset_message("Memory reset complete.", true);
-            fetch_info();
+            show_memory_reset_success_page();
             return;
         }
         set_memory_reset_message(request.responseText || ("Memory reset failed: " + request.status), false);

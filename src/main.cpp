@@ -710,7 +710,7 @@ static const char* info_dialog_text_with_tamper_code(const char* text, char* buf
     }
 
     strlcpy(buffer, text ? text : "", buffer_size);
-#if BUILD_WITH_SECURITY_LEVEL >= 2
+#if BUILD_WITH_SECURITY_LEVEL == 2
     uint32_t code = 0;
     if (Aegis::tamperEvidenceCode(code))
     {

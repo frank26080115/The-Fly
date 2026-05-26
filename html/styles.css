@@ -248,6 +248,7 @@ button:disabled,
   justify-content: flex-start;
 }
 
+.login-message,
 .password-reset-message,
 .memory-reset-message {
   grid-column: 1 / -1;
@@ -258,6 +259,7 @@ button:disabled,
   color: #ffd3da;
 }
 
+.login-message.notice,
 .password-reset-message.notice,
 .memory-reset-message.notice {
   border-color: #315d3c;

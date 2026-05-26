@@ -3,6 +3,9 @@
         <title>The Fly - Admin</title>
         <link rel="stylesheet" href="styles.css" />
         <script src="webcrypto-shim.min.js"></script>
+        <script src="helpers.js"></script>
+        <script src="sec_helpers.js"></script>
+        <script src="timezone.js"></script>
         <script src="script.js"></script>
     </head>
     <body onload="body_onload()">
@@ -24,8 +27,9 @@
             <div class="login-panel">
                 <div class="login-form">
                     <label for="password">Password</label>
-                    <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Device password" />
+                    <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Device password" onkeydown="if (event.key === 'Enter') login_onsubmit();" />
                     <button id="password_submit" class="button" type="button" onclick="login_onsubmit()">Login</button>
+                    <div id="login_error" class="login-message" role="alert" style="display:none;"></div>
                 </div>
             </div>
         </details>
@@ -35,21 +39,23 @@
             <div id="files"></div>
             <div id="files_test">
                 <table class="file-table">
-                    <tr id="file_row_1">
-                        <td><a class="file-link" href="/download_file?file_name=">T-YYYY-MM-DD-HH-MM-SS-U.rec</a></td><td><a class="delete-link" href="/delete_file?file_name=" aria-label="Delete T-YYYY-MM-DD-HH-MM-SS-U.rec"></a></td>
-                    </tr>
-                    <tr id="file_row_2">
-                        <td><a class="file-link" href="/download_file?file_name=">T-YYYY-MM-DD-HH-MM-SS-U.rec</a></td><td><a class="delete-link" href="/delete_file?file_name=" aria-label="Delete T-YYYY-MM-DD-HH-MM-SS-U.rec"></a></td>
-                    </tr>
-                    <tr id="file_row_3">
-                        <td><a class="file-link" href="/download_file?file_name=">T-YYYY-MM-DD-HH-MM-SS-U.rec</a></td><td><a class="delete-link" href="/delete_file?file_name=" aria-label="Delete T-YYYY-MM-DD-HH-MM-SS-U.rec"></a></td>
-                    </tr>
+                    <tbody id="files_table_body">
+                        <tr id="file_row_1">
+                            <td><a class="file-link" href="/download_file?file_name=">T-YYYY-MM-DD-HH-MM-SS-U.rec</a></td><td><a class="delete-link" href="/delete_file?file_name=" aria-label="Delete T-YYYY-MM-DD-HH-MM-SS-U.rec"></a></td>
+                        </tr>
+                        <tr id="file_row_2">
+                            <td><a class="file-link" href="/download_file?file_name=">T-YYYY-MM-DD-HH-MM-SS-U.rec</a></td><td><a class="delete-link" href="/delete_file?file_name=" aria-label="Delete T-YYYY-MM-DD-HH-MM-SS-U.rec"></a></td>
+                        </tr>
+                        <tr id="file_row_3">
+                            <td><a class="file-link" href="/download_file?file_name=">T-YYYY-MM-DD-HH-MM-SS-U.rec</a></td><td><a class="delete-link" href="/delete_file?file_name=" aria-label="Delete T-YYYY-MM-DD-HH-MM-SS-U.rec"></a></td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </details>
         <details>
             <summary>Bluetooth Devices</summary>
-            <div id="bluetooth_devices_please_login">Please Log In First</div>
+            <div id="bluetooth_devices_please_login" class="please-login-first">Please Log In First</div>
             <div id="bluetooth_devices" class="config-list bluetooth-device-list">
                 <div id="bt_row_1" class="config-row bluetooth-device-row">
                     <div class="config-field bluetooth-bdaddr-field">
@@ -129,7 +135,7 @@
         </details>
         <details>
             <summary>Wi-Fi Routers</summary>
-            <div id="wifi_routers_please_login">Please Log In First</div>
+            <div id="wifi_routers_please_login" class="please-login-first">Please Log In First</div>
             <div id="wifi_routers" class="config-list wifi-config-list">
                 <div id="wifi_routers_row_1" class="config-row wifi-config-row">
                     <div class="config-field wifi-ssid-field">
@@ -187,7 +193,7 @@
         </details>
         <details>
             <summary>Wi-Fi Custom AP</summary>
-            <div id="wifi_ap_please_login">Please Log In First</div>
+            <div id="wifi_ap_please_login" class="please-login-first">Please Log In First</div>
             <div id="wifi_ap_row_1" class="config-list wifi-config-list">
                 <div class="config-row wifi-config-row">
                     <div class="config-field wifi-ssid-field">
@@ -219,7 +225,7 @@
         </details>
         <details>
             <summary>Cloud Destinations</summary>
-            <div id="cloud_please_login">Please Log In First</div>
+            <div id="cloud_please_login" class="please-login-first">Please Log In First</div>
             <div id="cloud_dest" class="config-list cloud-dest-list">
                 <div id="cloud_row_1" class="config-row cloud-dest-row">
                     <div class="config-field cloud-url-field">
@@ -277,7 +283,7 @@
         </details>
         <details>
             <summary>Time Sync Servers</summary>
-            <div id="ntp_servers_please_login">Please Log In First</div>
+            <div id="ntp_servers_please_login" class="please-login-first">Please Log In First</div>
             <div id="time_cfg" class="time-panel">
                 <div class="settings-form time-form">
                     <label for="timezone">Timezone</label>
@@ -308,6 +314,7 @@
                     <li>change the encryption key for future file encryption</li>
                     <li>require you to change the password on any servers or tools used to decrypt the files</li>
                 </ul>
+                Please use at least 6 characters, include at least one letter and at least one number, and do not use spaces.
             </div>
             <div id="password_reset_entry" class="password-reset-panel">
                 <div class="password-reset-form">
