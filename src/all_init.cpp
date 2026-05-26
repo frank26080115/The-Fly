@@ -3,19 +3,13 @@
 #include "nvs_flash.h"
 #include "M5Unified.h"
 #include "FlyGui.h"
-#include "ApModeView.h"
-#include "BluetoothDeviceView.h"
 #include "ConnWaitingView.h"
 #include "ErrorView.h"
-#include "FileListView.h"
 #include "MainScreenView.h"
 #include "ModalDialog.h"
 #include "RecordingView/RecordingView.h"
 #include "ScrollView/ScrollView.h"
 #include "SplashView.h"
-#include "UploadProgressView.h"
-#include "WebActionView.h"
-#include "WifiChooserView.h"
 #include "thefly_version.h"
 #include <stdarg.h>
 #include <stdio.h>
@@ -44,13 +38,7 @@ namespace
 {
 SplashView          g_splash_view;
 MainScreenView      g_main_screen_view;
-BluetoothDeviceView g_bluetooth_device_view;
 RecordingView       g_recording_view;
-WifiChooserView     g_wifi_chooser_view;
-WebActionView       g_web_action_view;
-ApModeView          g_ap_mode_view;
-UploadProgressView  g_upload_progress_view;
-FileListView        g_file_list_view;
 ErrorView           g_error_view;
 ModalDialog         g_modal_dialog;
 ConnWaitingView     g_conn_waiting_view(CONN_WAITING_BLUETOOTH_CONNECTING, "", conn_waiting_cancel);
@@ -128,13 +116,7 @@ void init_gui()
 
     gui->addView(g_splash_view);
     gui->addView(g_main_screen_view);
-    gui->addView(g_bluetooth_device_view);
     gui->addView(g_recording_view);
-    gui->addView(g_wifi_chooser_view);
-    gui->addView(g_web_action_view);
-    gui->addView(g_ap_mode_view);
-    gui->addView(g_upload_progress_view);
-    gui->addView(g_file_list_view);
     gui->addView(g_error_view);
     gui->addView(g_modal_dialog);
     gui->addView(g_conn_waiting_view);
