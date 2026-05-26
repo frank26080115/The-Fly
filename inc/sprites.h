@@ -76,6 +76,11 @@ extern const uint8_t sprit_canceldoor_50[];
 #define SPRIT_CLOUDUPLOAD_100_BYTES 11111u
 extern const uint8_t sprit_cloudupload_100[];
 
+#define SPRIT_DEFAULT_WIFI_AP_WIDTH 100u
+#define SPRIT_DEFAULT_WIFI_AP_HEIGHT 100u
+#define SPRIT_DEFAULT_WIFI_AP_BYTES 13841u
+extern const uint8_t sprit_default_wifi_ap[];
+
 #define SPRIT_ENROLL_50_WIDTH 50u
 #define SPRIT_ENROLL_50_HEIGHT 50u
 #define SPRIT_ENROLL_50_BYTES 3541u

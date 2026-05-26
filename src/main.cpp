@@ -33,6 +33,7 @@ extern uint16_t conn_waiting_return_view_id();
 extern bool show_recording_view_bluetooth();
 extern bool show_recording_view_memo();
 extern bool promote_recording_view_memo_to_bluetooth();
+extern bool show_wifi_ap_mode_view();
 extern ScrollView* get_scroll_view();
 extern ModalDialog* get_modal_dialog();
 extern void show_main_memo_starting_feedback();
@@ -569,6 +570,43 @@ void onclick_wifi_ap(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     ESP_LOGI(MAINTAG, "scroll wifi ap selected: index=%ld", static_cast<long>(value));
+    if (!wifi_manager)
+    {
+        show_fatal_error_f(false, "Wi-Fi AP is unavailable");
+        return;
+    }
+
+    bool started = false;
+    if (value == SCROLL_TASK_WIFI_GENERATED_AP)
+    {
+        started = wifi_manager->startGeneratedSoftAp();
+    }
+    else if (value >= 0)
+    {
+        const wifi_item_t* access_point = wifi_manager->accessPoint(static_cast<size_t>(value));
+        if (!access_point)
+        {
+            show_fatal_error_f(false, "Wi-Fi AP index is invalid");
+            return;
+        }
+        started = wifi_manager->startSoftAp(access_point);
+    }
+    else
+    {
+        show_fatal_error_f(false, "Wi-Fi AP selection is invalid");
+        return;
+    }
+
+    if (!started)
+    {
+        show_fatal_error_f(false, "Wi-Fi AP start failed: %s", wifi_manager->statusName());
+        return;
+    }
+
+    if (!show_wifi_ap_mode_view())
+    {
+        show_fatal_error_f(false, "Wi-Fi AP view failed");
+    }
 }
 
 void onclick_cloud_upload(int32_t value, uint32_t pressDurationMs)

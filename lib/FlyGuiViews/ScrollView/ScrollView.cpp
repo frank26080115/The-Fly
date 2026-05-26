@@ -379,6 +379,14 @@ bool ScrollView::populateWifi(const WifiManager* wifiManager)
                                      "Scan and Connect",
                                      make_sprite(sprit_wifisearch_100, SPRIT_WIFISEARCH_100_WIDTH, SPRIT_WIFISEARCH_100_HEIGHT, SPRIT_WIFISEARCH_100_BYTES));
 
+    ok = appendSpriteScrollItem(SCROLL_ITEM_WIFI_AP,
+                                SCROLL_TASK_WIFI_GENERATED_AP,
+                                "Default Secure AP",
+                                make_sprite(sprit_default_wifi_ap,
+                                            SPRIT_DEFAULT_WIFI_AP_WIDTH,
+                                            SPRIT_DEFAULT_WIFI_AP_HEIGHT,
+                                            SPRIT_DEFAULT_WIFI_AP_BYTES)) && ok;
+
     if (wifiManager)
     {
         for (size_t i = 0; i < wifiManager->stationCount(); ++i)

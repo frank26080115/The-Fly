@@ -7,7 +7,10 @@
 
 #include "MicroSdCard.h"
 #include "WebServer.h"
+#include "WifiManager.h"
 #include "esp_log.h"
+
+extern WifiManager* wifi_manager;
 
 namespace WebFileHandlers
 {
@@ -20,6 +23,22 @@ constexpr const char* kUploadErrorAttribute = "file_upload_error";
 constexpr const char* kUploadStatusAttribute = "file_upload_status";
 constexpr const char* kUploadPathAttribute = "file_upload_path";
 constexpr const char* kUploadStartedAttribute = "file_upload_started";
+
+void note_web_download()
+{
+    if (wifi_manager)
+    {
+        wifi_manager->noteWebDownload();
+    }
+}
+
+void note_web_error()
+{
+    if (wifi_manager)
+    {
+        wifi_manager->noteWebError();
+    }
+}
 
 bool path_has_parent_or_current_segment(const char* path)
 {
@@ -191,6 +210,7 @@ void send_file_upload_error(AsyncWebServerRequest* request)
     remove_partial_upload(request);
     const String& error = request->getAttribute(kUploadErrorAttribute);
     const long    status_code = request->getAttribute(kUploadStatusAttribute, 500L);
+    note_web_error();
     request->send(static_cast<int>(status_code), "text/plain", error.isEmpty() ? "File upload failed" : error);
 }
 
@@ -349,6 +369,7 @@ void finishFileUpload(AsyncWebServerRequest* request)
 
     const String& upload_path = request->getAttribute(kUploadPathAttribute);
     ESP_LOGI(TAG, "uploaded microSD file %s", upload_path.c_str());
+    note_web_download();
     request->send(200, "application/json", "{\"status\":\"ok\"}");
 }
 
@@ -361,12 +382,14 @@ void sendMicroSdFile(AsyncWebServerRequest* request)
 
     if (!request->hasParam("file_name"))
     {
+        note_web_error();
         request->send(400, "text/plain", "Missing file_name");
         return;
     }
 
     if (!MicroSdCard::isReady())
     {
+        note_web_error();
         request->send(503, "text/plain", "microSD card is not ready");
         return;
     }
@@ -374,6 +397,7 @@ void sendMicroSdFile(AsyncWebServerRequest* request)
     const String file_name = request->getParam("file_name")->value();
     if (file_name.isEmpty())
     {
+        note_web_error();
         request->send(400, "text/plain", "Missing file_name");
         return;
     }
@@ -381,6 +405,7 @@ void sendMicroSdFile(AsyncWebServerRequest* request)
     std::shared_ptr<FsFile> file(new FsFile());
     if (!file || !file->open(file_name.c_str(), O_RDONLY) || file->isDir())
     {
+        note_web_error();
         request->send(404, "text/plain", "File not found");
         return;
     }
@@ -398,11 +423,13 @@ void sendMicroSdFile(AsyncWebServerRequest* request)
         });
     if (!response)
     {
+        note_web_error();
         request->send(500);
         return;
     }
 
     response->addHeader("Content-Disposition", "attachment");
+    note_web_download();
     request->send(response);
 }
 
@@ -415,12 +442,14 @@ void deleteMicroSdFile(AsyncWebServerRequest* request)
 
     if (!request->hasParam("file_name"))
     {
+        note_web_error();
         request->send(400, "text/plain", "Missing file_name");
         return;
     }
 
     if (!MicroSdCard::isReady())
     {
+        note_web_error();
         request->send(503, "text/plain", "microSD card is not ready");
         return;
     }
@@ -428,6 +457,7 @@ void deleteMicroSdFile(AsyncWebServerRequest* request)
     const String file_name = request->getParam("file_name")->value();
     if (file_name.isEmpty())
     {
+        note_web_error();
         request->send(400, "text/plain", "Missing file_name");
         return;
     }
@@ -435,12 +465,14 @@ void deleteMicroSdFile(AsyncWebServerRequest* request)
     FsFile file;
     if (!file.open(file_name.c_str(), O_RDONLY))
     {
+        note_web_error();
         request->send(404, "text/plain", "File not found");
         return;
     }
 
     if (file.isDir())
     {
+        note_web_error();
         request->send(400, "text/plain", "Target is not a file");
         return;
     }
@@ -448,11 +480,13 @@ void deleteMicroSdFile(AsyncWebServerRequest* request)
     if (!file.remove())
     {
         ESP_LOGW(TAG, "could not delete microSD file %s", file_name.c_str());
+        note_web_error();
         request->send(500, "text/plain", "File delete failed");
         return;
     }
 
     ESP_LOGI(TAG, "deleted microSD file %s", file_name.c_str());
+    note_web_download();
     request->send(200, "text/plain", "Deleted");
 }
 
@@ -465,6 +499,7 @@ void sendMicroSdFileList(AsyncWebServerRequest* request)
 
     if (!MicroSdCard::isReady())
     {
+        note_web_error();
         request->send(503, "text/plain", "microSD card is not ready");
         return;
     }
@@ -472,6 +507,7 @@ void sendMicroSdFileList(AsyncWebServerRequest* request)
     std::shared_ptr<FileListJsonStream> stream(new FileListJsonStream());
     if (!stream || !stream->open())
     {
+        note_web_error();
         request->send(500, "text/plain", "File list failed");
         return;
     }
@@ -483,6 +519,7 @@ void sendMicroSdFileList(AsyncWebServerRequest* request)
         });
     if (!response)
     {
+        note_web_error();
         request->send(500);
         return;
     }

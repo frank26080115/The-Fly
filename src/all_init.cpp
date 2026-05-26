@@ -10,6 +10,7 @@
 #include "RecordingView/RecordingView.h"
 #include "ScrollView/ScrollView.h"
 #include "SplashView.h"
+#include "WifiApModeView.h"
 #include "thefly_version.h"
 #include <stdarg.h>
 #include <stdio.h>
@@ -43,6 +44,7 @@ ErrorView           g_error_view;
 ModalDialog         g_modal_dialog;
 ConnWaitingView     g_conn_waiting_view(CONN_WAITING_BLUETOOTH_CONNECTING, "", conn_waiting_cancel);
 ScrollView          g_scroll_view(FLYGUI_VIEW_SCROLL, onclick_scroll_exit);
+WifiApModeView      g_wifi_ap_mode_view;
 uint16_t            g_conn_waiting_return_view_id = FLYGUI_VIEW_MAIN;
 } // namespace
 
@@ -121,6 +123,7 @@ void init_gui()
     gui->addView(g_modal_dialog);
     gui->addView(g_conn_waiting_view);
     gui->addView(g_scroll_view);
+    gui->addView(g_wifi_ap_mode_view);
 
     g_scroll_view.setOnClickBluetoothHost(onclick_bluetooth_host);
     g_scroll_view.setOnClickBluetoothPair(onclick_bluetooth_pair);
@@ -226,6 +229,11 @@ bool show_recording_view_memo()
 
     const bool started = g_recording_view.beginMemoRecording();
     return started && gui->showView(FLYGUI_VIEW_RECORDING);
+}
+
+bool show_wifi_ap_mode_view()
+{
+    return gui && gui->showView(FLYGUI_VIEW_AP_MODE);
 }
 
 void show_splash()

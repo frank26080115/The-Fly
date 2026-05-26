@@ -42,6 +42,30 @@ constexpr const char* kSetCfgErrorAttribute = "set_cfg_error";
 constexpr const char* kSetCfgStatusAttribute = "set_cfg_status";
 constexpr const char* kSetCfgStartedAttribute = "set_cfg_started";
 
+void note_web_login()
+{
+    if (wifi_manager)
+    {
+        wifi_manager->noteWebLogin();
+    }
+}
+
+void note_web_save()
+{
+    if (wifi_manager)
+    {
+        wifi_manager->noteWebSave();
+    }
+}
+
+void note_web_error()
+{
+    if (wifi_manager)
+    {
+        wifi_manager->noteWebError();
+    }
+}
+
 struct BinaryBlob
 {
     uint8_t* data = nullptr;
@@ -88,6 +112,7 @@ void send_set_cfg_error(AsyncWebServerRequest* request)
 
     const String& error = request->getAttribute(kSetCfgErrorAttribute);
     const long    status_code = request->getAttribute(kSetCfgStatusAttribute, 500L);
+    note_web_error();
     request->send(static_cast<int>(status_code), "text/plain", error.isEmpty() ? "Config update failed" : error);
 }
 
@@ -1099,6 +1124,7 @@ void sendCfg(AsyncWebServerRequest* request)
     String json;
     if (!build_cfg_json(json))
     {
+        note_web_error();
         request->send(500, "text/plain", "Config JSON allocation failed");
         return;
     }
@@ -1109,6 +1135,7 @@ void sendCfg(AsyncWebServerRequest* request)
     const WebServer::SessionAuthResult auth = WebServer::authenticateSessionRequest(request, session_key);
     if (auth != WebServer::SessionAuthResult::Ok)
     {
+        note_web_error();
         request->send(401, "text/plain", WebServer::sessionAuthResultName(auth));
         return;
     }
@@ -1116,6 +1143,7 @@ void sendCfg(AsyncWebServerRequest* request)
     String json;
     if (!build_cfg_json(json))
     {
+        note_web_error();
         request->send(500, "text/plain", "Config JSON allocation failed");
         return;
     }
@@ -1125,6 +1153,7 @@ void sendCfg(AsyncWebServerRequest* request)
     if (!encrypt_cfg_json_blob(json, session_key, blob, error))
     {
         mbedtls_platform_zeroize(session_key, sizeof(session_key));
+        note_web_error();
         request->send(500, "text/plain", error.isEmpty() ? "Config encryption failed" : error);
         return;
     }
@@ -1146,10 +1175,12 @@ void sendCfg(AsyncWebServerRequest* request)
         });
     if (!response)
     {
+        note_web_error();
         request->send(500);
         return;
     }
 
+    note_web_login();
     response->addHeader("X-TheFly-Content", "config-json");
     response->addHeader("X-TheFly-Encryption", "aes-256-gcm-session-v1");
     response->addHeader("X-TheFly-Blob-Format", "magic4|version1|ciphertext|tag16");
@@ -1235,10 +1266,12 @@ void finishSetCfg(AsyncWebServerRequest* request)
 
     if (!ok)
     {
+        note_web_error();
         request->send(status_code, "text/plain", error.isEmpty() ? "Config update failed" : error);
         return;
     }
 
+    note_web_save();
     ESP_LOGI(TAG, "updated config from encrypted web upload");
     request->send(200, "application/json", "{\"status\":\"ok\"}");
 }

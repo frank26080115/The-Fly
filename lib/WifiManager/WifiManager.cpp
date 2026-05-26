@@ -847,6 +847,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
 
     m_active_wifi = access_point;
     m_status      = Status::AccessPoint;
+    resetWebCounters();
     notifyConnected(access_point);
     ESP_LOGI(TAG, "started Wi-Fi access point \"%s\" at %s", access_point->ssid, WiFi.softAPIP().toString().c_str());
     return true;
@@ -1077,6 +1078,65 @@ const char* WifiManager::softApPassword() const
     }
 
     return m_active_wifi->password;
+}
+
+void WifiManager::noteWebPageLoad()
+{
+    ++m_web_page_load_count;
+}
+
+void WifiManager::noteWebLogin()
+{
+    ++m_web_login_count;
+}
+
+void WifiManager::noteWebSave()
+{
+    ++m_web_save_count;
+}
+
+void WifiManager::noteWebError()
+{
+    ++m_web_error_count;
+}
+
+void WifiManager::noteWebDownload()
+{
+    ++m_web_download_count;
+}
+
+uint32_t WifiManager::webPageLoadCount() const
+{
+    return m_web_page_load_count;
+}
+
+uint32_t WifiManager::webLoginCount() const
+{
+    return m_web_login_count;
+}
+
+uint32_t WifiManager::webSaveCount() const
+{
+    return m_web_save_count;
+}
+
+uint32_t WifiManager::webErrorCount() const
+{
+    return m_web_error_count;
+}
+
+uint32_t WifiManager::webDownloadCount() const
+{
+    return m_web_download_count;
+}
+
+void WifiManager::resetWebCounters()
+{
+    m_web_page_load_count = 0;
+    m_web_login_count = 0;
+    m_web_save_count = 0;
+    m_web_error_count = 0;
+    m_web_download_count = 0;
 }
 
 void WifiManager::notifyConnected(const wifi_item_t* item)

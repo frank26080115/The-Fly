@@ -127,6 +127,16 @@ public:
     bool isGeneratedSoftApActive() const;
     const char* generatedSoftApSsid() const;
     const char* softApPassword() const;
+    void noteWebPageLoad();
+    void noteWebLogin();
+    void noteWebSave();
+    void noteWebError();
+    void noteWebDownload();
+    uint32_t webPageLoadCount() const;
+    uint32_t webLoginCount() const;
+    uint32_t webSaveCount() const;
+    uint32_t webErrorCount() const;
+    uint32_t webDownloadCount() const;
 
     size_t        cloudEndpointCount() const;
     cloud_item_t* cloudEndpoint(size_t index);
@@ -137,6 +147,7 @@ public:
 
 private:
     bool connectToHotspot(const wifi_item_t* hotspot, bool shutdown_first);
+    void resetWebCounters();
     void notifyConnected(const wifi_item_t* item);
     void notifyDisconnected(const wifi_item_t* item);
     void notifyScanFinished(const wifi_item_t* item);
@@ -156,4 +167,9 @@ private:
     char          m_generated_soft_ap_ssid[kGeneratedSoftApSsidLength + 1] = {};
     char          m_generated_soft_ap_password[kGeneratedSoftApPasswordLength + 1] = {};
     wifi_item_t   m_generated_soft_ap              = {};
+    uint32_t      m_web_page_load_count            = 0;
+    uint32_t      m_web_login_count                = 0;
+    uint32_t      m_web_save_count                 = 0;
+    uint32_t      m_web_error_count                = 0;
+    uint32_t      m_web_download_count             = 0;
 };

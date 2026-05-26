@@ -60,6 +60,30 @@ void reset_session_security()
     mbedtls_platform_zeroize(&g_session_security, sizeof(g_session_security));
 }
 
+void note_web_page_load()
+{
+    if (wifi_manager)
+    {
+        wifi_manager->noteWebPageLoad();
+    }
+}
+
+void note_web_save()
+{
+    if (wifi_manager)
+    {
+        wifi_manager->noteWebSave();
+    }
+}
+
+void note_web_error()
+{
+    if (wifi_manager)
+    {
+        wifi_manager->noteWebError();
+    }
+}
+
 void bytes_to_hex(const uint8_t* data, size_t size, String& out)
 {
     for (size_t i = 0; data && i < size; ++i)
@@ -302,6 +326,7 @@ void send_info(AsyncWebServerRequest* request)
         return;
     }
 
+    note_web_page_load();
     const bool security_ready = begin_new_session(request->header(kHeaderSessionSaltFromClient));
 
     esp_bd_addr_t bdaddr = {};
@@ -393,10 +418,12 @@ void reset_password(AsyncWebServerRequest* request)
     }
 
     #if BUILD_WITH_SECURITY_LEVEL <= 0
+    note_web_error();
     request->send(501, "text/plain", "Password reset is not implemented for security level 0");
     #else
     if (!wifi_manager || !wifi_manager->isGeneratedSoftApActive())
     {
+        note_web_error();
         request->send(403, "text/plain", "Password reset is only available from the generated soft AP");
         return;
     }
@@ -405,6 +432,7 @@ void reset_password(AsyncWebServerRequest* request)
     String  error;
     if (!read_hex_key_param(request, "network_key", network_key, sizeof(network_key), error))
     {
+        note_web_error();
         request->send(400, "text/plain", error);
         return;
     }
@@ -415,6 +443,7 @@ void reset_password(AsyncWebServerRequest* request)
     if (!read_hex_key_param(request, "filecrypt_key", filecrypt_key, sizeof(filecrypt_key), error))
     {
         mbedtls_platform_zeroize(network_key, sizeof(network_key));
+        note_web_error();
         request->send(400, "text/plain", error);
         return;
     }
@@ -428,10 +457,12 @@ void reset_password(AsyncWebServerRequest* request)
     mbedtls_platform_zeroize(network_key, sizeof(network_key));
     if (!ok)
     {
+        note_web_error();
         request->send(500, "text/plain", "Password reset failed");
         return;
     }
 
+    note_web_save();
     reset_session_security();
     ESP_LOGI(TAG, "password reset updated Aegis keys");
     request->send(200, "application/json", "{\"status\":\"ok\"}");
@@ -481,34 +512,40 @@ void reset_memory(AsyncWebServerRequest* request)
     }
 
     #if BUILD_WITH_SECURITY_LEVEL > 0
+    note_web_error();
     request->send(403, "text/plain", "Memory reset is only available under security level 0");
     #else
     String error;
     if (!bt_host_list)
     {
+        note_web_error();
         request->send(500, "text/plain", "Bluetooth host list is unavailable");
         return;
     }
     if (!wifi_manager)
     {
+        note_web_error();
         request->send(500, "text/plain", "Wi-Fi config is unavailable");
         return;
     }
 
     if (BtManager::shutdown() != BtManager::Result::Ok)
     {
+        note_web_error();
         request->send(500, "text/plain", "Bluetooth shutdown failed");
         return;
     }
 
     if (!erase_nvs_namespace(kBluedroidNvsNamespace, error))
     {
+        note_web_error();
         request->send(500, "text/plain", error);
         return;
     }
 
     if (!erase_nvs_namespace(kBtHostListNvsNamespace, error))
     {
+        note_web_error();
         request->send(500, "text/plain", error);
         return;
     }
@@ -516,11 +553,13 @@ void reset_memory(AsyncWebServerRequest* request)
 
     if (!erase_nvs_namespace(kNetworkNvsNamespace, error))
     {
+        note_web_error();
         request->send(500, "text/plain", error);
         return;
     }
     wifi_manager->clear();
 
+    note_web_save();
     ESP_LOGI(TAG, "memory reset erased Bluetooth bonds, Bluetooth host list, and Wi-Fi/cloud config");
     request->send(200, "application/json", "{\"status\":\"ok\"}");
     #endif

@@ -24,6 +24,7 @@ enum ScrollItemTask : int32_t
     SCROLL_TASK_NTP_SYNC                 = -3,
     SCROLL_TASK_WIFI_SHOW_SELF_INFO      = -4,
     SCROLL_TASK_WIFI_SCAN_AND_CONNECT    = -5,
+    SCROLL_TASK_WIFI_GENERATED_AP        = -6,
 };
 
 class ScrollItem;
