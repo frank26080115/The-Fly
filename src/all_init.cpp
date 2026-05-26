@@ -16,8 +16,10 @@
 #include "UploadProgressView.h"
 #include "WebActionView.h"
 #include "WifiChooserView.h"
+#include "thefly_version.h"
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 constexpr const char* TAG = "all_init.cpp";
 
@@ -60,6 +62,7 @@ bool init_nvs();
 void check_reset_flag();
 void init_m5();
 void init_gui();
+void draw_splash_boot_info();
 
 void all_init()
 {
@@ -248,6 +251,48 @@ void show_splash()
     if (!gui || !gui->showView(FLYGUI_VIEW_SPLASH))
     {
         show_fatal_error_f(true, "Failed to show splash view");
+    }
+}
+
+void draw_splash_boot_info()
+{
+    static constexpr int16_t kTextX          = 144;
+    static constexpr int16_t kTextY          = 20;
+    static constexpr int16_t kTextLineHeight = 17;
+    static constexpr float   kTextSize       = 1.0f;
+    static constexpr uint8_t kTextFont       = 2;
+
+    char text[80];
+    snprintf(text,
+             sizeof(text),
+             "FW: %s\nSecurity: %d",
+             version_str ? version_str : "unknown",
+             BUILD_WITH_SECURITY_LEVEL);
+
+    thefly_display.setTextFont(kTextFont);
+    thefly_display.setTextSize(kTextSize);
+    thefly_display.setTextDatum(top_left);
+    thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
+
+    int16_t y = kTextY;
+    for (char* line = text; line && *line; y = static_cast<int16_t>(y + kTextLineHeight))
+    {
+        char* newline = strchr(line, '\n');
+        if (newline)
+        {
+            *newline = '\0';
+        }
+
+        thefly_display.drawString(line, kTextX, y);
+        line = newline ? newline + 1 : nullptr;
+    }
+
+    // Add more splash boot-info lines here.
+
+    if (gui)
+    {
+        gui->requestTopBarFullRedraw();
+        gui->redraw(false);
     }
 }
 

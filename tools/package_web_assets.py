@@ -391,7 +391,7 @@ def write_if_changed(output_header: Path, content: str) -> None:
     output_header.parent.mkdir(parents=True, exist_ok=True)
     if output_header.exists() and output_header.read_text(encoding="utf-8") == content:
         return
-    output_header.write_text(content, encoding="utf-8", newline="\n")
+    output_header.write_text(content, encoding="utf-8", newline="\r\n")
 
 
 def package_web_assets(

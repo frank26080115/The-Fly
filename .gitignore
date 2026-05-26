@@ -87,3 +87,4 @@ Testing/
 sdkconfig.defaults
 sdkconfig.thefly*
 .vscode/settings.json
+*.af~lock~

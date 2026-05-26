@@ -17,6 +17,19 @@ void SplashView::onUnload()
     FlyGuiView::onUnload();
 }
 
+bool SplashView::handleTouch(const FlyGuiTouchEvent& event)
+{
+    if (event.justPressed || event.justReleased)
+    {
+        if (gui())
+        {
+            gui()->showView(FLYGUI_VIEW_MAIN);
+        }
+    }
+
+    return true;
+}
+
 void SplashView::redraw(bool forced)
 {
     if (!forced && !dirty())

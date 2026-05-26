@@ -9,6 +9,7 @@ public:
 
     void onLoad() override;
     void onUnload() override;
+    bool handleTouch(const FlyGuiTouchEvent& event) override;
     void redraw(bool forced) override;
 
 private:

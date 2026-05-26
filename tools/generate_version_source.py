@@ -69,5 +69,5 @@ const char* compiler_version_str = THEFLY_COMPILER_VERSION;
 const char* compiler_time_str = __DATE__ " " __TIME__;
 """
 
-version_source.write_text(content, encoding="utf-8", newline="\n")
+version_source.write_text(content, encoding="utf-8", newline="\r\n")
 remove_stale_version_objects()

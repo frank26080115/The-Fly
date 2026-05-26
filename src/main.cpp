@@ -26,6 +26,7 @@ constexpr const char* MAINTAG = "main.cpp";
 
 extern void all_init();
 extern void show_splash();
+extern void draw_splash_boot_info();
 extern bool show_conn_waiting_bluetooth(const char* targetName);
 extern bool show_conn_waiting_bluetooth_pairing();
 extern uint16_t conn_waiting_return_view_id();
@@ -79,12 +80,13 @@ void setup()
 {
     all_init();
 
-    //#ifdef RUN_BRINGUP_TEST
+    #ifdef RUN_BRINGUP_TEST
     run_test();
-    //#endif
+    #endif
 
     if (reset_was_magic == false) {
         show_splash();
+        draw_splash_boot_info();
     }
 
     if (!MicroSdCard::begin())
@@ -136,9 +138,16 @@ void setup()
 
     BattTracker::init();
 
-    if (!gui || !gui->showView(FLYGUI_VIEW_MAIN))
+    if (!gui)
     {
-        show_fatal_error_f(true, "Failed to show main view");
+        show_fatal_error_f(true, "GUI init failed");
+    }
+    else if (!gui->currentView())
+    {
+        if (!gui->showView(FLYGUI_VIEW_MAIN))
+        {
+            show_fatal_error_f(true, "Failed to show main view");
+        }
     }
 
     xTaskCreateUniversal(loopTask_core0, "loopTask_core0", getArduinoLoopTaskStackSize(), NULL, 1, &loopTask_core0_Handle, 0);
