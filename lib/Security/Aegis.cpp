@@ -167,6 +167,39 @@ bool save_key_to_nvs(const char* blob_name, const uint8_t* key, size_t key_size)
     return true;
 }
 
+bool save_keys_to_nvs(const uint8_t* filecrypt_key, const uint8_t* network_key)
+{
+    nvs_handle_t handle = 0;
+    esp_err_t err = nvs_open(kNvsNamespace, NVS_READWRITE, &handle);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "NVS open for key save failed: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    if (filecrypt_key)
+    {
+        err = nvs_set_blob(handle, kFilecryptKeyBlobName, filecrypt_key, kFilecryptKeySize);
+    }
+    if (err == ESP_OK && network_key)
+    {
+        err = nvs_set_blob(handle, kNetworkKeyBlobName, network_key, kNetworkKeySize);
+    }
+    if (err == ESP_OK)
+    {
+        err = nvs_commit(handle);
+    }
+    nvs_close(handle);
+
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "NVS key save failed: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    return true;
+}
+
 } // namespace
 
 uint32_t rand()
@@ -457,6 +490,56 @@ bool setNetworkKey(const uint8_t* key)
     g_network_key_valid = true;
     mbedtls_platform_zeroize(staged_key, sizeof(staged_key));
     return true;
+}
+
+bool setMasterKeys(const uint8_t* filecrypt_key, const uint8_t* network_key)
+{
+    if (!filecrypt_key || !network_key)
+    {
+        return false;
+    }
+    if (!g_initialized && !init())
+    {
+        return false;
+    }
+
+    uint8_t staged_filecrypt_key[kFilecryptKeySize] = {};
+    uint8_t staged_network_key[kNetworkKeySize] = {};
+    memcpy(staged_filecrypt_key, filecrypt_key, sizeof(staged_filecrypt_key));
+    memcpy(staged_network_key, network_key, sizeof(staged_network_key));
+
+    if (!save_keys_to_nvs(staged_filecrypt_key, staged_network_key))
+    {
+        mbedtls_platform_zeroize(staged_filecrypt_key, sizeof(staged_filecrypt_key));
+        mbedtls_platform_zeroize(staged_network_key, sizeof(staged_network_key));
+        return false;
+    }
+
+    memcpy(g_filecrypt_key, staged_filecrypt_key, sizeof(g_filecrypt_key));
+    memcpy(g_network_key, staged_network_key, sizeof(g_network_key));
+    g_filecrypt_key_valid = true;
+    g_network_key_valid = true;
+    mbedtls_platform_zeroize(staged_filecrypt_key, sizeof(staged_filecrypt_key));
+    mbedtls_platform_zeroize(staged_network_key, sizeof(staged_network_key));
+    return true;
+}
+
+bool setNetworkKeyAndGenerateFilecryptKey(const uint8_t* network_key)
+{
+    if (!network_key)
+    {
+        return false;
+    }
+    if (!g_initialized && !init())
+    {
+        return false;
+    }
+
+    uint8_t filecrypt_key[kFilecryptKeySize] = {};
+    esp_fill_random(filecrypt_key, sizeof(filecrypt_key));
+    const bool ok = setMasterKeys(filecrypt_key, network_key);
+    mbedtls_platform_zeroize(filecrypt_key, sizeof(filecrypt_key));
+    return ok;
 }
 
 bool generateFilecryptKey()

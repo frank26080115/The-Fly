@@ -310,10 +310,16 @@
                 </ul>
             </div>
             <div id="password_reset_entry" class="password-reset-panel">
-                <div class="login-form">
+                <div class="password-reset-form">
                     <label for="new_password">Password</label>
                     <input id="new_password" name="new_password" type="password" autocomplete="new-password" placeholder="New password" />
-                    <button id="btn_password_reset" class="button" type="button danger-button" onclick="passreset_onsubmit()">Reset Password</button>
+                    <label for="new_password_confirm">Confirm</label>
+                    <input id="new_password_confirm" name="new_password_confirm" type="password" autocomplete="new-password" placeholder="Repeat password" />
+                    <div></div>
+                    <div class="password-reset-actions">
+                        <button id="btn_password_reset" class="button danger-button" type="button" onclick="passreset_onsubmit()">Reset Password</button>
+                    </div>
+                    <div id="password_reset_error" class="password-reset-message" role="alert" style="display:none;"></div>
                 </div>
             </div>
         </details>

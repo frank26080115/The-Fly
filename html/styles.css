@@ -104,6 +104,12 @@ input[type="submit"],
   cursor: pointer;
 }
 
+button:disabled,
+.button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
 .login-panel {
   padding-top: 2px;
 }
@@ -213,6 +219,48 @@ input[type="submit"],
 .password-reset-panel,
 .memory-reset-panel {
   padding-top: 2px;
+}
+
+.password-reset-form {
+  display: grid;
+  grid-template-columns: max-content minmax(220px, 340px);
+  column-gap: 14px;
+  row-gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 560px;
+}
+
+.password-reset-form label {
+  color: #c9ccd6;
+  font-size: 0.95rem;
+  font-weight: 650;
+  text-align: right;
+}
+
+.password-reset-form input {
+  min-width: 0;
+}
+
+.password-reset-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.password-reset-message {
+  grid-column: 1 / -1;
+  padding: 10px 12px;
+  border: 1px solid #6f3338;
+  border-radius: 8px;
+  background: #27171a;
+  color: #ffd3da;
+}
+
+.password-reset-message.notice {
+  border-color: #315d3c;
+  background: #17251b;
+  color: #b8f3c5;
 }
 
 .reset-help {
@@ -386,6 +434,18 @@ input[type="submit"],
 
   .settings-form {
     grid-template-columns: 1fr;
+  }
+
+  .password-reset-form {
+    grid-template-columns: 1fr;
+  }
+
+  .password-reset-form label {
+    text-align: left;
+  }
+
+  .password-reset-actions {
+    justify-content: stretch;
   }
 
   .settings-form > div {

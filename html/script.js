@@ -9,6 +9,12 @@ const set_cfg_version = 1;
 const header_session_salt_from_client = "X-TheFly-Session-Salt-From-Client";
 const header_session_response_from_client = "X-TheFly-Session-Response-From-Client";
 const stored_password_placeholder = "********";
+const filecrypt_salt = new Uint8Array([
+    0x98, 0xC2, 0x5A, 0xF2, 0xB7, 0x0F, 0xA4, 0xB3,
+    0x42, 0xB4, 0x64, 0xE5, 0xEE, 0xD6, 0xFF, 0x3D,
+    0x0D, 0xD8, 0x21, 0x9C, 0x9D, 0x7B, 0x16, 0xB4,
+    0xCE, 0xDE, 0xCF, 0xFA, 0xCA, 0x4E, 0xF3, 0x2F,
+]);
 const network_salt = new Uint8Array([
     0x36, 0x22, 0x5C, 0x86, 0xC1, 0x70, 0xF2, 0xC1,
     0x11, 0xD3, 0xD6, 0xDF, 0x57, 0x6E, 0x28, 0x93,
@@ -729,6 +735,19 @@ function update_password_reset_entry(default_soft_ap)
     }
 }
 
+function set_password_reset_message(message, notice)
+{
+    const node = document.getElementById("password_reset_error");
+    if (!node)
+    {
+        return;
+    }
+
+    node.textContent = message || "";
+    node.classList.toggle("notice", Boolean(notice));
+    node.style.display = message ? "" : "none";
+}
+
 function set_login_error(message)
 {
     window.alert(message);
@@ -1141,6 +1160,111 @@ async function login_onsubmit()
         clear_bytes(client_response);
         clear_bytes(server_response);
         password_text = "";
+    }
+}
+
+async function derive_password_reset_payload(password_text)
+{
+    let password_bytes = null;
+    let network_key_bytes = null;
+    let filecrypt_key_bytes = null;
+
+    try
+    {
+        password_bytes = new TextEncoder().encode(password_text);
+        network_key_bytes = await derive_pbkdf2_bytes(password_bytes, network_salt);
+
+        let body = "network_key=" + encodeURIComponent(bytes_to_hex(network_key_bytes));
+        if (current_security_level === 1)
+        {
+            filecrypt_key_bytes = await derive_pbkdf2_bytes(password_bytes, filecrypt_salt);
+            body += "&filecrypt_key=" + encodeURIComponent(bytes_to_hex(filecrypt_key_bytes));
+        }
+        return body;
+    }
+    finally
+    {
+        clear_bytes(password_bytes);
+        clear_bytes(network_key_bytes);
+        clear_bytes(filecrypt_key_bytes);
+    }
+}
+
+async function passreset_onsubmit()
+{
+    const password_input = document.getElementById("new_password");
+    const confirm_input = document.getElementById("new_password_confirm");
+    const button = document.getElementById("btn_password_reset");
+    const password_text = password_input ? password_input.value : "";
+    const confirm_text = confirm_input ? confirm_input.value : "";
+
+    set_password_reset_message("", false);
+    if (!password_text)
+    {
+        set_password_reset_message("Enter a new password.", false);
+        return;
+    }
+    if (password_text !== confirm_text)
+    {
+        set_password_reset_message("Passwords do not match.", false);
+        return;
+    }
+    if (!Number.isFinite(current_security_level))
+    {
+        set_password_reset_message("Security level is not available yet.", false);
+        return;
+    }
+
+    let body = "";
+    try
+    {
+        if (button)
+        {
+            button.disabled = true;
+        }
+        if (current_security_level > 0)
+        {
+            body = await derive_password_reset_payload(password_text);
+        }
+
+        const request = new XMLHttpRequest();
+        request.open("POST", "/reset_password", true);
+        request.timeout = 15000;
+        request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 300)
+            {
+                if (password_input)
+                {
+                    password_input.value = "";
+                }
+                if (confirm_input)
+                {
+                    confirm_input.value = "";
+                }
+                set_password_reset_message("Password reset complete.", true);
+                fetch_info();
+                return;
+            }
+            set_password_reset_message(request.responseText || ("Password reset failed: " + request.status), false);
+        };
+        request.onerror = () => set_password_reset_message("Password reset failed.", false);
+        request.ontimeout = () => set_password_reset_message("Password reset timed out.", false);
+        request.onloadend = function() {
+            if (button)
+            {
+                button.disabled = false;
+            }
+        };
+        request.send(body);
+    }
+    catch (error)
+    {
+        if (button)
+        {
+            button.disabled = false;
+        }
+        set_password_reset_message(error.message || "Password reset failed.", false);
     }
 }
 

@@ -100,6 +100,34 @@ bool hex_to_bytes(const String& hex, uint8_t* out, size_t out_size)
     return true;
 }
 
+bool read_hex_key_param(AsyncWebServerRequest* request, const char* name, uint8_t* key, size_t key_size, String& error)
+{
+    if (!key || key_size == 0)
+    {
+        error = "Internal key buffer is invalid";
+        return false;
+    }
+
+    mbedtls_platform_zeroize(key, key_size);
+    const AsyncWebParameter* param = WebServer::findRequestParam(request, name);
+    if (!param)
+    {
+        error = "Missing ";
+        error += name ? name : "key";
+        return false;
+    }
+
+    const String& value = param->value();
+    if (!hex_to_bytes(value, key, key_size))
+    {
+        error = "Invalid ";
+        error += name ? name : "key";
+        return false;
+    }
+
+    return true;
+}
+
 bool constant_time_equal(const uint8_t* lhs, const uint8_t* rhs, size_t size)
 {
     if (!lhs || !rhs)
@@ -349,6 +377,59 @@ void send_info(AsyncWebServerRequest* request)
     json += "}}";
 
     request->send(200, "application/json", json);
+}
+
+void reset_password(AsyncWebServerRequest* request)
+{
+    if (!request)
+    {
+        return;
+    }
+
+    #if BUILD_WITH_SECURITY_LEVEL <= 0
+    request->send(501, "text/plain", "Password reset is not implemented for security level 0");
+    #else
+    if (!wifi_manager || !wifi_manager->isGeneratedSoftApActive())
+    {
+        request->send(403, "text/plain", "Password reset is only available from the generated soft AP");
+        return;
+    }
+
+    uint8_t network_key[Aegis::kNetworkKeySize] = {};
+    String  error;
+    if (!read_hex_key_param(request, "network_key", network_key, sizeof(network_key), error))
+    {
+        request->send(400, "text/plain", error);
+        return;
+    }
+
+    bool ok = false;
+    #if BUILD_WITH_SECURITY_LEVEL == 1
+    uint8_t filecrypt_key[Aegis::kFilecryptKeySize] = {};
+    if (!read_hex_key_param(request, "filecrypt_key", filecrypt_key, sizeof(filecrypt_key), error))
+    {
+        mbedtls_platform_zeroize(network_key, sizeof(network_key));
+        request->send(400, "text/plain", error);
+        return;
+    }
+
+    ok = Aegis::setMasterKeys(filecrypt_key, network_key);
+    mbedtls_platform_zeroize(filecrypt_key, sizeof(filecrypt_key));
+    #else
+    ok = Aegis::setNetworkKeyAndGenerateFilecryptKey(network_key);
+    #endif
+
+    mbedtls_platform_zeroize(network_key, sizeof(network_key));
+    if (!ok)
+    {
+        request->send(500, "text/plain", "Password reset failed");
+        return;
+    }
+
+    reset_session_security();
+    ESP_LOGI(TAG, "password reset updated Aegis keys");
+    request->send(200, "application/json", "{\"status\":\"ok\"}");
+    #endif
 }
 
 } // namespace
@@ -604,6 +685,9 @@ bool WebServer::init()
 
     g_server.on(AsyncURIMatcher::exact("/set_cfg"), HTTP_POST, WebCfgHandlers::finishSetCfg, nullptr, WebCfgHandlers::writeSetCfgBody);
     ESP_LOGI(TAG, "registered encrypted config POST /set_cfg");
+
+    g_server.on(AsyncURIMatcher::exact("/reset_password"), HTTP_POST, reset_password);
+    ESP_LOGI(TAG, "registered password reset POST /reset_password");
 
     // Uploads are not encrypted; keep this endpoint off untrusted networks until it is replaced by session encryption.
     g_server.on(AsyncURIMatcher::exact("/file_upload"),
