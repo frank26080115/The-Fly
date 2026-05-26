@@ -8,6 +8,7 @@ const set_cfg_magic = [0x54, 0x46, 0x47, 0x43];
 const set_cfg_version = 1;
 const header_session_salt_from_client = "X-TheFly-Session-Salt-From-Client";
 const header_session_response_from_client = "X-TheFly-Session-Response-From-Client";
+const stored_password_placeholder = "********";
 const network_salt = new Uint8Array([
     0x36, 0x22, 0x5C, 0x86, 0xC1, 0x70, 0xF2, 0xC1,
     0x11, 0xD3, 0xD6, 0xDF, 0x57, 0x6E, 0x28, 0x93,
@@ -742,6 +743,18 @@ function set_input_by_id(id, value)
     }
 }
 
+function set_password_placeholder_by_id(id, has_stored_password, empty_placeholder)
+{
+    const input = document.getElementById(id);
+    if (!input)
+    {
+        return;
+    }
+
+    input.placeholder = has_stored_password ? stored_password_placeholder : (empty_placeholder || "");
+    input.classList.toggle("stored-secret-placeholder", Boolean(has_stored_password));
+}
+
 function set_select_by_id(id, value)
 {
     const select = document.getElementById(id);
@@ -915,9 +928,13 @@ function fill_wifi_rows(container_id, row_class, id_prefix, items, minimum_rows)
 
     rows.forEach((row, index) => {
         const item = list[index] || {};
-        set_input_by_id(id_prefix + "_ssid_" + (index + 1), item.ssid || "");
-        set_input_by_id(id_prefix + "_password_" + (index + 1), "");
-        set_select_by_id(id_prefix + "_icon_" + (index + 1), item.icon || "unknown");
+        const suffix = index + 1;
+        const ssid = item.ssid || "";
+        const password_placeholder = id_prefix === "wifi_ap" ? "Access point password" : "Wi-Fi password";
+        set_input_by_id(id_prefix + "_ssid_" + suffix, ssid);
+        set_input_by_id(id_prefix + "_password_" + suffix, "");
+        set_password_placeholder_by_id(id_prefix + "_password_" + suffix, Boolean(ssid), password_placeholder);
+        set_select_by_id(id_prefix + "_icon_" + suffix, item.icon || "unknown");
     });
 }
 
@@ -930,9 +947,12 @@ function fill_cloud_rows(items)
 
     rows.forEach((row, index) => {
         const item = list[index] || {};
-        set_input_by_id("cloud_url_" + (index + 1), item.url || "");
-        set_input_by_id("cloud_password_" + (index + 1), current_security_level === 0 ? (item.password || "") : "");
-        set_select_by_id("cloud_icon_" + (index + 1), item.icon || "unknown");
+        const suffix = index + 1;
+        const url = item.url || "";
+        set_input_by_id("cloud_url_" + suffix, url);
+        set_input_by_id("cloud_password_" + suffix, "");
+        set_password_placeholder_by_id("cloud_password_" + suffix, Boolean(url), "Security level 0 password");
+        set_select_by_id("cloud_icon_" + suffix, item.icon || "unknown");
     });
 }
 
@@ -1178,9 +1198,10 @@ function collect_cloud_rows()
             url: url,
             icon: select_value("cloud_icon_" + suffix, "unknown"),
         };
-        if (current_security_level === 0)
+        const password = input_value("cloud_password_" + suffix);
+        if (current_security_level === 0 && password)
         {
-            item.password = input_value("cloud_password_" + suffix);
+            item.password = password;
         }
         items.push(item);
     });

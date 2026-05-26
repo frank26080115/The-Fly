@@ -157,10 +157,6 @@ void append_cfg_cloud_item(String& json, const cloud_item_t* item, bool& first)
     append_json_comma(json, first);
     json += "{\"url\":";
     json += WebServer::jsonString(url);
-    #if BUILD_WITH_SECURITY_LEVEL <= 0
-    json += ",\"password\":";
-    json += WebServer::jsonString(item->password);
-    #endif
     json += ",\"icon\":";
     json += WebServer::jsonString(IconLookup::toString(item->icon));
     json += "}";
@@ -416,6 +412,23 @@ const wifi_item_t* find_wifi_by_ssid(const wifi_item_t* items, size_t count, con
     return nullptr;
 }
 
+const cloud_item_t* find_cloud_by_url(const cloud_item_t* items, size_t count, const char* url)
+{
+    if (!items || !url)
+    {
+        return nullptr;
+    }
+
+    for (size_t i = 0; i < count; ++i)
+    {
+        if (strcmp(items[i].url, url) == 0)
+        {
+            return &items[i];
+        }
+    }
+    return nullptr;
+}
+
 bool parse_wifi_config_array(JsonObject network,
                              const char* key,
                              const wifi_item_t* existing,
@@ -476,6 +489,10 @@ bool parse_wifi_config_array(JsonObject network,
         else
         {
             const wifi_item_t* previous = find_wifi_by_ssid(existing, existing_count, item.ssid);
+            if (!previous && target_count < existing_count)
+            {
+                previous = &existing[target_count];
+            }
             if (!previous || !valid_wifi_password(previous->password))
             {
                 error = "wifi password is required for new or previously-open networks";
@@ -492,6 +509,8 @@ bool parse_wifi_config_array(JsonObject network,
 }
 
 bool parse_cloud_config_array(JsonObject network,
+                              const cloud_item_t* existing,
+                              size_t existing_count,
                               cloud_item_t* target,
                               uint8_t& target_count,
                               String& error)
@@ -535,9 +554,26 @@ bool parse_cloud_config_array(JsonObject network,
 
         #if BUILD_WITH_SECURITY_LEVEL <= 0
         const char* password = item_json["password"].as<const char*>();
-        if (!copy_text_field(item.password, sizeof(item.password), password, true, error, "cloud password"))
+        if (password && password[0] != '\0')
         {
-            return false;
+            if (!copy_text_field(item.password, sizeof(item.password), password, true, error, "cloud password"))
+            {
+                return false;
+            }
+        }
+        else
+        {
+            const cloud_item_t* previous = find_cloud_by_url(existing, existing_count, item.url);
+            if (!previous && target_count < existing_count)
+            {
+                previous = &existing[target_count];
+            }
+            if (!previous || previous->password[0] == '\0')
+            {
+                error = "cloud password is required for new cloud destinations";
+                return false;
+            }
+            strlcpy(item.password, previous->password, sizeof(item.password));
         }
         #else
         item.password[0] = '\0';
@@ -635,7 +671,12 @@ bool parse_network_object(JsonObject network, const network_cfg_t& existing, net
                                    staged.access_point_count,
                                    ICON_UNKNOWN,
                                    error) &&
-           parse_cloud_config_array(network, staged.cloud, staged.cloud_endpoint_count, error) &&
+           parse_cloud_config_array(network,
+                                    existing.cloud,
+                                    existing.cloud_endpoint_count,
+                                    staged.cloud,
+                                    staged.cloud_endpoint_count,
+                                    error) &&
            validate_wifi_config_list(staged.station, staged.station_count, "stations", error) &&
            validate_wifi_config_list(staged.access_point, staged.access_point_count, "access_points", error);
 }
