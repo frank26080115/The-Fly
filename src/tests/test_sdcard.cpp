@@ -290,8 +290,8 @@ void test_sdcard()
     Serial.println("starting microSD recorder smoke test");
     Serial.printf("free heap before FIFO init: %lu\n", static_cast<unsigned long>(ESP.getFreeHeap()));
 
-    #ifdef BUILD_WITH_SECURITY
-    Serial.printf("%s: BUILD_WITH_SECURITY is enabled; recorder packets should be AES-GCM encrypted\n", TAG);
+    #if BUILD_WITH_SECURITY_LEVEL >= 1
+    Serial.printf("%s: BUILD_WITH_SECURITY_LEVEL is %d; recorder packets should be AES-GCM encrypted\n", TAG, BUILD_WITH_SECURITY_LEVEL);
     if (!Aegis::init())
     {
         Serial.printf("%s: Aegis init failed\n", TAG);
@@ -321,7 +321,7 @@ void test_sdcard()
         Serial.printf("%s: using existing Aegis keys\n", TAG);
     }
     #else
-    Serial.printf("%s: BUILD_WITH_SECURITY is disabled; recorder packets will not be encrypted\n", TAG);
+    Serial.printf("%s: BUILD_WITH_SECURITY_LEVEL is 0; recorder packets will not be encrypted\n", TAG);
     #endif
 
     if (!AudioManager::init())

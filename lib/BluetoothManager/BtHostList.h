@@ -33,17 +33,6 @@ Entries that are considered blank are never sent from the web front-end via the 
 static constexpr size_t kBtHostListMaxEntries = 8;
 static constexpr size_t kBtHostNameMaxLength  = 32; // true max is ESP_BT_GAP_MAX_BDNAME_LEN + 1; but we only need to display it on a small LCD screen
 
-#ifndef BUILD_WITH_SECURITY
-typedef struct 
-{
-    esp_bd_addr_t bdaddr;
-    char*         name;         // allocate, deallocate on destructor
-    bool          bonded;       // use `bonded_mac_matches` to check
-    uint8_t       icon;         // one of `ICON_*`
-    void*         next_node;    // pointer to another bt_host_item_t
-}
-bt_host_item_t;
-#else
 typedef struct 
 {
     esp_bd_addr_t bdaddr;            // all zeros indicate slot is empty
@@ -52,7 +41,6 @@ typedef struct
     bool          bonded;            // use `bonded_mac_matches` to check, do not trust the value straight out of storage
     time_t        last_used;         // we have a fixed number of entries, if we are full and a pair happens, overwrite the oldest
     uint8_t       icon;              // one of `ICON_*`
-    void*         next_node;         // runtime compatibility with linked-list callers; always null in fixed storage
 }
 bt_host_item_t;
 
@@ -64,7 +52,6 @@ typedef struct
     bt_host_item_t host[kBtHostListMaxEntries];
 }
 bt_host_list_t;
-#endif
 
 inline const char* bt_host_display_name(const bt_host_item_t* item)
 {
@@ -73,11 +60,7 @@ inline const char* bt_host_display_name(const bt_host_item_t* item)
         return "";
     }
 
-    #ifndef BUILD_WITH_SECURITY
-    return item->name ? item->name : "";
-    #else
     return item->name_custom[0] != '\0' ? item->name_custom : item->name_reported;
-    #endif
 }
 
 inline const char* bt_host_display_name(const bt_host_item_t& item)
@@ -112,12 +95,10 @@ public:
 
     bool loadFromMicroSd(const char* path = "/bluetooth.json");
     bool saveToMicroSd(bool allowEmpty = false);
-    #ifdef BUILD_WITH_SECURITY
     bool loadFromNvs();
     bool saveToNvs();
     bool copyHostList(bt_host_list_t& out) const;
     bool replaceHostList(const bt_host_list_t& hosts);
-    #endif
     bool pruneBonds();
     bool insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t icon = ICON_UNKNOWN);
     bool unpair(size_t index);
@@ -135,16 +116,8 @@ public:
     const char*     lastLoadResultName() const;
 
 private:
-    #ifndef BUILD_WITH_SECURITY
-    static constexpr size_t kMaxPathLength = 96;
-    char            m_path[kMaxPathLength];
-    bt_host_item_t* m_head        = nullptr;
-    bt_host_item_t* m_tail        = nullptr;
-    size_t          m_size        = 0;
-    #else
     bt_host_list_t  m_hosts       = {};
     size_t          m_size        = 0;
-    #endif
     LoadResult      m_last_load_result = LoadResult::Ok;
     bool            m_destroyed   = false;
 };

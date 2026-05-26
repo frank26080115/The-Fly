@@ -24,14 +24,13 @@ void report_wifi_item(const char* list_name, size_t index, const wifi_item_t* it
         return;
     }
 
-    Serial.printf("%s: %s[%u] ssid=\"%s\" password=\"%s\" icon=%u next_node=%p\n",
+    Serial.printf("%s: %s[%u] ssid=\"%s\" password=\"%s\" icon=%u\n",
                   TAG,
                   list_name,
                   static_cast<unsigned>(index),
                   safe_text(item->ssid),
                   safe_text(item->password),
-                  static_cast<unsigned>(item->icon),
-                  item->next_node);
+                  static_cast<unsigned>(item->icon));
 }
 
 void report_cloud_item(size_t index, const cloud_item_t* item)
@@ -42,13 +41,12 @@ void report_cloud_item(size_t index, const cloud_item_t* item)
         return;
     }
 
-    Serial.printf("%s: cloud_endpoint[%u] name=\"%s\" url=\"%s\" icon=%u next_node=%p\n",
+    Serial.printf("%s: cloud_endpoint[%u] url=\"%s\" password=\"%s\" icon=%u\n",
                   TAG,
                   static_cast<unsigned>(index),
-                  safe_text(item->name),
                   safe_text(item->url),
-                  static_cast<unsigned>(item->icon),
-                  item->next_node);
+                  safe_text(item->password),
+                  static_cast<unsigned>(item->icon));
 }
 
 void report_bt_host_item(size_t index, const bt_host_item_t* item)
@@ -59,7 +57,7 @@ void report_bt_host_item(size_t index, const bt_host_item_t* item)
         return;
     }
 
-    Serial.printf("%s: bt_host[%u] bdaddr=%02X:%02X:%02X:%02X:%02X:%02X name=\"%s\" bonded=%u icon=%u next_node=%p\n",
+    Serial.printf("%s: bt_host[%u] bdaddr=%02X:%02X:%02X:%02X:%02X:%02X name=\"%s\" bonded=%u icon=%u\n",
                   TAG,
                   static_cast<unsigned>(index),
                   item->bdaddr[0],
@@ -70,8 +68,7 @@ void report_bt_host_item(size_t index, const bt_host_item_t* item)
                   item->bdaddr[5],
                   safe_text(bt_host_display_name(item)),
                   item->bonded ? 1U : 0U,
-                  static_cast<unsigned>(item->icon),
-                  item->next_node);
+                  static_cast<unsigned>(item->icon));
 }
 
 void report_wifi_summary(const WifiManager& wifi_manager, bool loaded)
@@ -142,7 +139,11 @@ void test_bootreadfiles()
     Serial.printf("%s: MicroSdCard begin=%u ready=%u\n", TAG, sd_ready ? 1U : 0U, MicroSdCard::isReady() ? 1U : 0U);
 
     WifiManager wifi_manager;
+    #if BUILD_WITH_SECURITY_LEVEL <= 0
     const bool  wifi_loaded = wifi_manager.loadFromMicroSd();
+    #else
+    const bool  wifi_loaded = wifi_manager.loadFromNvs();
+    #endif
     report_wifi_summary(wifi_manager, wifi_loaded);
 
     BtHostList bt_hosts;

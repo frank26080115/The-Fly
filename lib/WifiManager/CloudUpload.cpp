@@ -3,7 +3,6 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <Client.h>
-#include <SHA1Builder.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <WiFiClientSecure.h>
@@ -15,9 +14,7 @@
 
 #include "ClockAgent.h"
 #include "MicroSdCard.h"
-#ifdef BUILD_WITH_SECURITY
 #include "Aegis.h"
-#endif
 #include "esp_log.h"
 
 namespace
@@ -431,26 +428,32 @@ bool parse_url(const char* url, UrlParts& out)
     return true;
 }
 
-#ifndef BUILD_WITH_SECURITY
-String sha1_filename_hash(const char* filename, const char* datetime)
+String filename_hash(const char* filename, const char* datetime, const char* destination_password)
 {
-    SHA1Builder sha1;
-    sha1.begin();
-    sha1.add(filename ? filename : "");
-    sha1.add(datetime ? datetime : "");
-    sha1.calculate();
-    return sha1.toString();
-}
-#else
-String hmacsha_filename_hash(const char* filename, const char* datetime)
-{
-    if (!Aegis::isInitialized() && !Aegis::init())
+    const uint8_t* auth_key = nullptr;
+    size_t auth_key_len = 0;
+    #if BUILD_WITH_SECURITY_LEVEL <= 0
+    // minimum security uses the password specified by the user for each cloud endpoint
+    const char* safe_password = destination_password ? destination_password : "";
+    auth_key = reinterpret_cast<const uint8_t*>(safe_password);
+    auth_key_len = strlen(safe_password);
+    #else
+    // higher security uses network-key
+    if (!Aegis::isInitialized())
     {
         return "";
     }
 
     const uint8_t* network_key = Aegis::getNetworkKey();
     if (!network_key)
+    {
+        return "";
+    }
+    auth_key = network_key;
+    auth_key_len = Aegis::kNetworkKeySize;
+    #endif
+
+    if (!auth_key || auth_key_len == 0)
     {
         return "";
     }
@@ -467,15 +470,14 @@ String hmacsha_filename_hash(const char* filename, const char* datetime)
     input += safe_datetime;
 
     uint8_t digest[Aegis::kSha256Size] = {};
-    if (!Aegis::hmacSha256(network_key,
-                           Aegis::kNetworkKeySize,
+    if (!Aegis::hmacSha256(auth_key,
+                           auth_key_len,
                            reinterpret_cast<const uint8_t*>(input.c_str()),
                            input.length(),
                            digest))
     {
         return "";
     }
-
     static constexpr char kHex[] = "0123456789abcdef";
     char                  hex[(Aegis::kSha256Size * 2) + 1] = {};
     for (size_t i = 0; i < Aegis::kSha256Size; ++i)
@@ -486,7 +488,6 @@ String hmacsha_filename_hash(const char* filename, const char* datetime)
 
     return String(hex);
 }
-#endif
 
 bool send_all(Client& client, const uint8_t* data, size_t size)
 {
@@ -798,12 +799,20 @@ bool CloudUpload::copyDestination(const cloud_item_t* destination, uint32_t time
         return false;
     }
 
-    if (!copy_text(m_destination_name, sizeof(m_destination_name), destination->name ? destination->name : "") ||
+    if (!copy_text(m_destination_name, sizeof(m_destination_name), destination->url) ||
         !copy_text(m_destination_url, sizeof(m_destination_url), destination->url))
     {
         return false;
     }
 
+    #if BUILD_WITH_SECURITY_LEVEL <= 0
+    if (!copy_text(m_destination_password, sizeof(m_destination_password), destination->password))
+    {
+        return false;
+    }
+    #else
+    m_destination_password[0] = '\0';
+    #endif
     m_timeout_ms = timeout_ms == 0 ? kDefaultTimeoutMs : timeout_ms;
     return true;
 }
@@ -983,11 +992,8 @@ void CloudUpload::taskMain()
                      upload_datetime.time.minutes,
                      upload_datetime.time.seconds);
 
-#ifndef BUILD_WITH_SECURITY
-            const String hash = sha1_filename_hash(item->path, upload_timestamp);
-#else
-            const String hash = hmacsha_filename_hash(item->path, upload_timestamp);
-#endif
+            const String hash = filename_hash(item->path, upload_timestamp, m_destination_password);
+
             if (hash.length() == 0)
             {
                 client->stop();

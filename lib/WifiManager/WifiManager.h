@@ -6,49 +6,30 @@
 #include <stdint.h>
 
 static constexpr size_t kNetworkConfigMaxEntries          = 8;
-static constexpr size_t kNetworkConfigMaxEntriesAP        = 1;
+static constexpr size_t kNetworkConfigMaxEntriesAP        = SOFTAP_CUSTOM_CFG_CNT_MAX;
+static constexpr size_t kNetworkConfigAllowedEntriesAP    = SOFTAP_CUSTOM_CFG_CNT;
+static constexpr size_t kNetworkConfigCloudMaxEntries     = CLOUD_SERVER_CNT_MAX;
+static constexpr size_t kNetworkConfigCloudAllowedEntries = CLOUD_SERVER_CNT_ALLOWED;
 static constexpr size_t kNetworkConfigNtpServerCount      = 3;
 static constexpr size_t kNetworkConfigSsidMaxLength       = 33;  // 32-byte 802.11 SSID plus NUL
 static constexpr size_t kNetworkConfigPasswordMaxLength   = 64;  // 63-byte WPA/WPA2/WPA3 passphrase plus NUL
 static constexpr size_t kNetworkConfigTimezoneMaxLength   = 64;
 static constexpr size_t kNetworkConfigNtpServerMaxLength  = 254; // DNS name max length plus NUL
-static constexpr size_t kNetworkConfigCloudNameMaxLength  = 64;
 static constexpr size_t kNetworkConfigCloudUrlMaxLength   = 256;
 
-#ifndef BUILD_WITH_SECURITY
-typedef struct
-{
-    char*   ssid;      // allocate on creation, free on destructor
-    char*   password;  // allocate on creation, free on destructor
-    uint8_t icon;      // one of the ICON_* enums
-    void*   next_node; // linked list next node
-}
-wifi_item_t;
-
-typedef struct
-{
-    char*   name;      // allocate on creation, free on destructor
-    char*   url;       // allocate on creation, free on destructor
-    uint8_t icon;      // one of the ICON_* enums
-    void*   next_node; // linked list next node
-}
-cloud_item_t;
-#else
 typedef struct
 {
     char    ssid[kNetworkConfigSsidMaxLength];
     char    password[kNetworkConfigPasswordMaxLength];
     uint8_t icon;      // one of the ICON_* enums
-    void*   next_node; // unused in secure fixed-slot storage, kept for callers that inspect it
 }
 wifi_item_t;
 
 typedef struct
 {
-    char    name[kNetworkConfigCloudNameMaxLength];
     char    url[kNetworkConfigCloudUrlMaxLength];
+    char    password[kNetworkConfigPasswordMaxLength]; // this is only used in security level 0, but it is kept in memory for all other security levels, just always blank
     uint8_t icon;      // one of the ICON_* enums
-    void*   next_node; // unused in secure fixed-slot storage, kept for callers that inspect it
 }
 cloud_item_t;
 
@@ -56,6 +37,7 @@ typedef struct
 {
     uint32_t magic;
     uint32_t version;
+    uint8_t  security_level; // do not load if firmware is mismatched
     char     timezone[kNetworkConfigTimezoneMaxLength];
     char     ntp_server[kNetworkConfigNtpServerCount][kNetworkConfigNtpServerMaxLength];
     uint8_t  station_count;
@@ -63,10 +45,9 @@ typedef struct
     uint8_t  cloud_endpoint_count;
     wifi_item_t  station[kNetworkConfigMaxEntries];
     wifi_item_t  access_point[kNetworkConfigMaxEntriesAP];
-    cloud_item_t cloud[kNetworkConfigMaxEntries];
+    cloud_item_t cloud[kNetworkConfigCloudMaxEntries];
 }
 network_cfg_t;
-#endif
 
 class WifiManager
 {
@@ -110,13 +91,13 @@ public:
     WifiManager(const WifiManager&)            = delete;
     WifiManager& operator=(const WifiManager&) = delete;
 
+    #if BUILD_WITH_SECURITY_LEVEL <= 0
     bool loadFromMicroSd(const char* path = "/wifi.json");
-    #ifdef BUILD_WITH_SECURITY
+    #endif
     bool loadFromNvs();
     bool saveToNvs();
     bool copyConfig(network_cfg_t& out) const;
     bool replaceConfig(const network_cfg_t& config);
-    #endif
     void clear();
 
     const char* timezone() const;
@@ -160,18 +141,7 @@ private:
     void notifyDisconnected(const wifi_item_t* item);
     void notifyScanFinished(const wifi_item_t* item);
 
-    #ifndef BUILD_WITH_SECURITY
-    char*         m_timezone                       = nullptr;
-    char*         m_ntp_servers[kNtpServerCount]   = {};
-    wifi_item_t*  m_station_head                   = nullptr;
-    wifi_item_t*  m_station_tail                   = nullptr;
-    wifi_item_t*  m_access_point_head              = nullptr;
-    wifi_item_t*  m_access_point_tail              = nullptr;
-    cloud_item_t* m_cloud_endpoint_head            = nullptr;
-    cloud_item_t* m_cloud_endpoint_tail            = nullptr;
-    #else
     network_cfg_t m_network_cfg                    = {};
-    #endif
     size_t        m_station_count                  = 0;
     size_t        m_access_point_count             = 0;
     size_t        m_cloud_endpoint_count           = 0;

@@ -8,7 +8,7 @@
 
 #include "Aegis.h"
 #include "BluetoothManager.h"
-#ifdef BUILD_FTP_SERVER
+#if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
 #include "FtpServer.h"
 #endif
 #include "MicroSdCard.h"
@@ -31,7 +31,7 @@ constexpr char        kHexChars[] = "0123456789abcdef";
 constexpr const char* kHeaderSessionSaltFromClient = "X-TheFly-Session-Salt-From-Client";
 constexpr const char* kHeaderSessionResponseFromClient = "X-TheFly-Session-Response-From-Client";
 
-#ifdef BUILD_FTP_SERVER
+#if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
 // This is only a login gate for plain FTP. Replace these credentials before
 // exposing FTP; this library is not SFTP and does not encrypt its traffic.
 constexpr const char* kFtpUser     = "thefly";
@@ -598,7 +598,7 @@ bool WebServer::init()
                 WebFileHandlers::writeFileUploadBody);
     ESP_LOGI(TAG, "registered microSD upload POST /file_upload");
 
-#ifdef BUILD_FTP_SERVER
+#if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
     if (!FtpServer::start(MicroSdCard::fs(), kFtpUser, kFtpPassword))
     {
         ESP_LOGE(TAG, "FTP server start failed");

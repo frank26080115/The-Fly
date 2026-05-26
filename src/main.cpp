@@ -93,7 +93,11 @@ void setup()
     }
 
     wifi_manager = new WifiManager();
+    #if BUILD_WITH_SECURITY_LEVEL <= 0
     if (wifi_manager && !wifi_manager->loadFromMicroSd())
+    #else
+    if (wifi_manager && !wifi_manager->loadFromNvs())
+    #endif
     {
         show_fatal_error_f(false, "Wi-Fi configuration load failed: %s", wifi_manager->lastLoadResultName());
     }
@@ -117,7 +121,11 @@ void setup()
     }
 
     bt_host_list = new BtHostList();
+    #if BUILD_WITH_SECURITY_LEVEL <= 0
     if (!bt_host_list->loadFromMicroSd())
+    #else
+    if (!bt_host_list->loadFromNvs())
+    #endif
     {
         show_fatal_error_f(false, "Bluetooth host list load failed");
     }
@@ -217,7 +225,7 @@ static void handle_pending_bluetooth_pairing()
             ESP_LOGW(MAINTAG, "failed to add paired Bluetooth host: %s", bt_host_list->lastLoadResultName());
             show_fatal_error_f(false, "Bluetooth pair saved in NVS, but host list insert failed: %s", bt_host_list->lastLoadResultName());
         }
-        else if (!bt_host_list->saveToMicroSd())
+        else if (!bt_host_list->saveToNvs())
         {
             ESP_LOGW(MAINTAG, "failed to save Bluetooth host list: %s", bt_host_list->lastLoadResultName());
             show_fatal_error_f(false, "Bluetooth pair saved in NVS, but Bluetooth host list save failed: %s", bt_host_list->lastLoadResultName());

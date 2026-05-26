@@ -36,7 +36,7 @@ typedef struct __attribute__((packed))
     uint8_t  flags;          // indicates any warnings from the FIFO
     uint32_t ms_timestamp;   // millis() when written to file
     uint32_t sequence_num;   // per whole file, not per channel/FIFO
-    #ifdef BUILD_WITH_SECURITY
+    #if BUILD_WITH_SECURITY_LEVEL >= 1
     // we want 12 bytes of nonce, the timestamp and seq-num takes care of 8 of them, we can do another 8 for 16 bytes of uniqueness
     uint32_t nonce_1;        // random
     uint32_t nonce_2;        // random

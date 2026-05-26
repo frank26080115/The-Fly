@@ -322,7 +322,7 @@ bool ScrollView::populateCloud(const WifiManager* wifiManager)
 
             ok = appendIconScrollItem(SCROLL_ITEM_CLOUD_ENDPOINT,
                                       list_callback_value(i),
-                                      endpoint->name,
+                                      endpoint->url,
                                       endpoint->icon,
                                       IconLookup::ICON_CONTEXT_CLOUD) && ok;
         }

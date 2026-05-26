@@ -14,7 +14,11 @@ Equivalent to a plain consumer voice recorder.
 
 Files are not encrypted.
 
+FTP server is allowed
+
 Wi-Fi credentials are write-only without authentication. Encryption depends on being on a Wi-Fi soft AP that uses WPA3, only allowing one client. The AP's password can be fixed.
+
+Cloud server is public facing and needs a password, it's a password configured per cloud server, not the network-key
 
 # Level 1
 
@@ -24,7 +28,11 @@ Decryption depends on enrollment to cloud server.
 
 Wi-Fi credentials are write-only, with authentication. Password for administration is tied to both filecrypt-key and network-key.
 
+Cloud server uses network-key as a part of authentication
+
 Changing password requires re-enrollment, this seems reasonable and easy to understand.
+
+FTP server is not allowed
 
 # Level 2
 
@@ -38,4 +46,4 @@ Tamper evidence code is shown when requested
 
 Includes level-2 specifications
 
-Pin code login required
+Pin code login required, prevents tamper evidence code from being viewed

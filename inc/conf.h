@@ -6,7 +6,29 @@
 use this file for preprocessor definitions that are used to configure parts of the code at compile-time
 */
 
-#define BUILD_WITH_SECURITY
+#if !defined(BUILD_WITH_SECURITY_LEVEL)
+#error BUILD_WITH_SECURITY_LEVEL must be defined!
+#elif BUILD_WITH_SECURITY_LEVEL > 3
+#error BUILD_WITH_SECURITY_LEVEL not valid
+#endif
+
+// storage stays the same, up to max, but for secure setups, only 1 is allowed, as we need to track enrollment
+#define CLOUD_SERVER_CNT_MAX        8
+#if BUILD_WITH_SECURITY_LEVEL >= 2
+#define CLOUD_SERVER_CNT_ALLOWED    CLOUD_SERVER_CNT_MAX
+#else
+#define CLOUD_SERVER_CNT_ALLOWED    1
+#endif
+
+// storage stays the same, up to max, but allowed customizable soft-AP configurations varies based on security levels
+#define SOFTAP_CUSTOM_CFG_CNT_MAX    4
+#if BUILD_WITH_SECURITY_LEVEL <= 0
+#define SOFTAP_CUSTOM_CFG_CNT        SOFTAP_CUSTOM_CFG_CNT_MAX
+#elif BUILD_WITH_SECURITY_LEVEL == 1
+#define SOFTAP_CUSTOM_CFG_CNT        1
+#elif BUILD_WITH_SECURITY_LEVEL >= 2
+#define SOFTAP_CUSTOM_CFG_CNT        0
+#endif
 
 #if (defined(CORE_DEBUG_LEVEL) && CORE_DEBUG_LEVEL > ESP_LOG_ERROR) || (defined(LOG_LOCAL_LEVEL) && LOG_LOCAL_LEVEL > ESP_LOG_ERROR)
 #ifndef BUILD_IS_DEBUG
@@ -14,6 +36,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 #endif
 #endif
 
+// file preallocation constants, not used
 constexpr uint64_t kHalfGiB = 512ULL * 1024ULL * 1024ULL;
 constexpr uint64_t kMaxGrowFileBytes = 2ULL * 1024ULL * 1024ULL * 1024ULL;
 

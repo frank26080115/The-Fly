@@ -4,8 +4,8 @@
 #include <mutex>
 #include <string.h>
 
-#ifdef BUILD_WITH_SECURITY
-#include "../Security/Aegis.h"
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+#include "Aegis.h"
 #include "esp_random.h"
 #include "mbedtls/gcm.h"
 #endif
@@ -32,7 +32,7 @@ constexpr uint32_t kTimedFlushIntervalMs            = 2000;
 constexpr size_t   kMetaTextPayloadMaxBytes         = FILE_PACKET_PAYLOAD_MAX * sizeof(uint16_t);
 constexpr uint8_t  kMaxConsecutiveWriteFailures     = 3;
 
-#ifdef BUILD_WITH_SECURITY
+#if BUILD_WITH_SECURITY_LEVEL >= 1
 constexpr size_t kGcmNonceSize = 12;
 constexpr size_t kGcmTagSize   = 16;
 
@@ -68,7 +68,7 @@ bool       g_longwrite_latched                      = false;
 bool       g_next_source_toggle                     = true;
 uint8_t    g_consecutive_write_failures             = 0;
 bool       g_card_failure_reported                  = false;
-#ifdef BUILD_WITH_SECURITY
+#if BUILD_WITH_SECURITY_LEVEL >= 1
 mbedtls_gcm_context g_packet_gcm;
 bool                g_packet_gcm_ready              = false;
 #endif
@@ -125,7 +125,7 @@ void reset_fifo_flags(AudioFifo& fifo)
 
 bool recording_file_ready_locked();
 
-#ifdef BUILD_WITH_SECURITY
+#if BUILD_WITH_SECURITY_LEVEL >= 1
 void store_u32_be(uint8_t* dst, uint32_t value)
 {
     dst[0] = static_cast<uint8_t>((value >> 24) & 0xFF);
@@ -336,7 +336,7 @@ bool write_packet(AudioFifo& fifo, filepkt_src_e source)
     packet.sequence_num  = g_sequence_num++;
     packet.fifo_cnt      = static_cast<uint32_t>(available);
 
-    #ifdef BUILD_WITH_SECURITY
+    #if BUILD_WITH_SECURITY_LEVEL >= 1
     packet.nonce_1 = esp_random();
     packet.nonce_2 = esp_random();
     #endif
@@ -362,7 +362,7 @@ bool write_packet(AudioFifo& fifo, filepkt_src_e source)
     const uint8_t* data_ptr = g_pure_pcm_mode ? reinterpret_cast<const uint8_t*>(packet.payload) : reinterpret_cast<const uint8_t*>(&packet);
     size_t         data_sz  = g_pure_pcm_mode ? samples_read * sizeof(samples[0]) : sizeof(packet);
 
-    #ifdef BUILD_WITH_SECURITY
+    #if BUILD_WITH_SECURITY_LEVEL >= 1
     encrypted_file_packet_t encrypted_packet = {};
     if (!g_pure_pcm_mode) // g_pure_pcm_mode is only for testing
     {
@@ -428,7 +428,7 @@ bool write_queued_meta_text_locked()
     packet.payload_length = static_cast<uint16_t>(g_queued_meta_text_length);
     memcpy(reinterpret_cast<uint8_t*>(packet.payload), g_queued_meta_text, g_queued_meta_text_length);
 
-    #ifdef BUILD_WITH_SECURITY
+    #if BUILD_WITH_SECURITY_LEVEL >= 1
     packet.nonce_1 = esp_random();
     packet.nonce_2 = esp_random();
     encrypted_file_packet_t encrypted_packet = {};
@@ -574,7 +574,7 @@ bool startRecording(char typeCode)
         }
         else
         {
-#ifdef BUILD_WITH_SECURITY
+#if BUILD_WITH_SECURITY_LEVEL >= 1
             if (!start_recording_encryption_locked())
             {
                 g_file.close();
@@ -608,7 +608,7 @@ bool startRecording(char typeCode)
     }
     if (!recording_file_opened)
     {
-#ifdef BUILD_WITH_SECURITY
+#if BUILD_WITH_SECURITY_LEVEL >= 1
         std::lock_guard<std::mutex> lock(g_recorder_mutex);
         stop_recording_encryption_locked();
 #endif
@@ -705,7 +705,7 @@ bool stopRecording(bool estop)
             closed_file = true;
         }
 
-#ifdef BUILD_WITH_SECURITY
+#if BUILD_WITH_SECURITY_LEVEL >= 1
         stop_recording_encryption_locked();
 #endif
     }

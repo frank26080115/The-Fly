@@ -127,11 +127,7 @@ void append_cfg_wifi_item(String& json, const wifi_item_t* item, bool& first)
         return;
     }
 
-#ifndef BUILD_WITH_SECURITY
-    const char* ssid = item->ssid ? item->ssid : "";
-#else
     const char* ssid = item->ssid;
-#endif
     if (!ssid || ssid[0] == '\0')
     {
         return;
@@ -152,22 +148,14 @@ void append_cfg_cloud_item(String& json, const cloud_item_t* item, bool& first)
         return;
     }
 
-#ifndef BUILD_WITH_SECURITY
-    const char* name = item->name ? item->name : "";
-    const char* url  = item->url ? item->url : "";
-#else
-    const char* name = item->name;
     const char* url  = item->url;
-#endif
-    if (!name || name[0] == '\0' || !url || url[0] == '\0')
+    if (!url || url[0] == '\0')
     {
         return;
     }
 
     append_json_comma(json, first);
-    json += "{\"name\":";
-    json += WebServer::jsonString(name);
-    json += ",\"url\":";
+    json += "{\"url\":";
     json += WebServer::jsonString(url);
     json += ",\"icon\":";
     json += WebServer::jsonString(IconLookup::toString(item->icon));
@@ -187,17 +175,12 @@ void append_cfg_bluetooth_host(String& json, const bt_host_item_t* item, bool& f
     append_json_comma(json, first);
     json += "{\"mac\":";
     json += WebServer::jsonString(mac);
-#ifndef BUILD_WITH_SECURITY
-    json += ",\"name\":";
-    json += WebServer::jsonString(item->name ? item->name : "");
-#else
     json += ",\"name_custom\":";
     json += WebServer::jsonString(item->name_custom);
     json += ",\"name_reported\":";
     json += WebServer::jsonString(item->name_reported);
     json += ",\"last_used\":";
     append_json_i64(json, static_cast<long long>(item->last_used));
-#endif
     json += ",\"bonded\":";
     json += item->bonded ? "true" : "false";
     json += ",\"icon\":";
@@ -329,7 +312,6 @@ bool encrypt_cfg_json_blob(const String& json,
     return true;
 }
 
-#ifdef BUILD_WITH_SECURITY
 struct SetCfgUploadState
 {
     AsyncWebServerRequest* request = nullptr;
@@ -499,7 +481,6 @@ bool parse_wifi_config_array(JsonObject network,
         }
 
         item.icon = parse_json_icon(item_json["icon"], default_icon);
-        item.next_node = nullptr;
         ++target_count;
     }
 
@@ -523,13 +504,13 @@ bool parse_cloud_config_array(JsonObject network,
         error = "cloud_uploads must be an array";
         return false;
     }
-    if (array.size() > kNetworkConfigMaxEntries)
+    if (array.size() > kNetworkConfigCloudAllowedEntries)
     {
         error = "cloud_uploads has too many entries";
         return false;
     }
 
-    memset(target, 0, sizeof(cloud_item_t) * kNetworkConfigMaxEntries);
+    memset(target, 0, sizeof(cloud_item_t) * kNetworkConfigCloudMaxEntries);
     target_count = 0;
 
     for (JsonVariant value : array)
@@ -542,16 +523,22 @@ bool parse_cloud_config_array(JsonObject network,
         }
 
         cloud_item_t& item = target[target_count];
-        const char* name = item_json["name"].as<const char*>();
         const char* url = item_json["url"].as<const char*>();
-        if (!copy_text_field(item.name, sizeof(item.name), name, true, error, "cloud name") ||
-            !copy_text_field(item.url, sizeof(item.url), url, true, error, "cloud url"))
+        if (!copy_text_field(item.url, sizeof(item.url), url, true, error, "cloud url"))
         {
             return false;
         }
 
+        #if BUILD_WITH_SECURITY_LEVEL <= 0
+        const char* password = item_json["password"].as<const char*>();
+        if (!copy_text_field(item.password, sizeof(item.password), password, true, error, "cloud password"))
+        {
+            return false;
+        }
+        #else
+        item.password[0] = '\0';
+        #endif
         item.icon = parse_json_icon(item_json["icon"], ICON_UNKNOWN);
-        item.next_node = nullptr;
         ++target_count;
     }
 
@@ -640,7 +627,7 @@ bool parse_network_object(JsonObject network, const network_cfg_t& existing, net
                                    existing.access_point,
                                    existing.access_point_count,
                                    staged.access_point,
-                                   kNetworkConfigMaxEntriesAP,
+                                   kNetworkConfigAllowedEntriesAP,
                                    staged.access_point_count,
                                    ICON_UNKNOWN,
                                    error) &&
@@ -774,13 +761,13 @@ bool parse_bluetooth_object(JsonObject bluetooth, const bt_host_list_t& existing
 
         item.bonded = previous ? previous->bonded : false;
         item.icon = parse_json_icon(host_json["icon"], previous ? previous->icon : ICON_UNKNOWN);
-        item.next_node = nullptr;
         ++staged.count;
     }
 
     return true;
 }
 
+#if BUILD_WITH_SECURITY_LEVEL >= 1
 bool decrypt_set_cfg_blob(const uint8_t* encrypted,
                           size_t encrypted_size,
                           uint8_t*& plaintext,
@@ -867,6 +854,7 @@ bool decrypt_set_cfg_blob(const uint8_t* encrypted,
     plaintext[plaintext_size] = '\0';
     return true;
 }
+#endif
 
 bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& status_code, String& error)
 {
@@ -966,6 +954,7 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
             error = "Wi-Fi config hash cache update failed";
             return false;
         }
+        #if BUILD_WITH_SECURITY_LEVEL >= 2
         if (network_config_changed && !Aegis::generateFilecryptKey())
         {
             status_code = 500;
@@ -976,6 +965,7 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
         {
             ESP_LOGI(TAG, "regenerated filecrypt-key after network config change");
         }
+        #endif
     }
     if (has_bluetooth && !bt_host_list->replaceHostList(bluetooth_staged))
     {
@@ -990,6 +980,9 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
 
 bool process_set_cfg_blob(const uint8_t* encrypted, size_t encrypted_size, int& status_code, String& error)
 {
+    #if BUILD_WITH_SECURITY_LEVEL <= 0
+    return apply_set_cfg_json(encrypted, encrypted_size, status_code, error);
+    #else
     uint8_t* plaintext = nullptr;
     size_t plaintext_size = 0;
     if (!decrypt_set_cfg_blob(encrypted, encrypted_size, plaintext, plaintext_size, status_code, error))
@@ -1000,6 +993,7 @@ bool process_set_cfg_blob(const uint8_t* encrypted, size_t encrypted_size, int& 
     const bool ok = apply_set_cfg_json(plaintext, plaintext_size, status_code, error);
     free(plaintext);
     return ok;
+    #endif
 }
 
 bool begin_set_cfg_upload(AsyncWebServerRequest* request, size_t total)
@@ -1020,11 +1014,13 @@ bool begin_set_cfg_upload(AsyncWebServerRequest* request, size_t total)
         set_cfg_error(request, 413, "Encrypted config body is too large");
         return false;
     }
+    #if BUILD_WITH_SECURITY_LEVEL >= 1
     if (expected_size < kSetCfgMinEnvelopeSize)
     {
         set_cfg_error(request, 400, "Encrypted config body is too small");
         return false;
     }
+    #endif
     if (g_set_cfg_upload.request && g_set_cfg_upload.request != request)
     {
         set_cfg_error(request, 409, "Another config update is already in progress");
@@ -1044,7 +1040,6 @@ bool begin_set_cfg_upload(AsyncWebServerRequest* request, size_t total)
     g_set_cfg_upload.received_size = 0;
     return true;
 }
-#endif
 
 } // namespace
 
@@ -1055,6 +1050,16 @@ void sendCfg(AsyncWebServerRequest* request)
         return;
     }
 
+    #if BUILD_WITH_SECURITY_LEVEL <= 0
+    String json;
+    if (!build_cfg_json(json))
+    {
+        request->send(500, "text/plain", "Config JSON allocation failed");
+        return;
+    }
+
+    request->send(200, "application/json", json);
+    #else
     uint8_t session_key[WebServer::kSessionKeySize] = {};
     const WebServer::SessionAuthResult auth = WebServer::authenticateSessionRequest(request, session_key);
     if (auth != WebServer::SessionAuthResult::Ok)
@@ -1104,34 +1109,9 @@ void sendCfg(AsyncWebServerRequest* request)
     response->addHeader("X-TheFly-Encryption", "aes-256-gcm-session-v1");
     response->addHeader("X-TheFly-Blob-Format", "magic4|version1|ciphertext|tag16");
     request->send(response);
+    #endif
 }
 
-#ifndef BUILD_WITH_SECURITY
-void writeSetCfgBody(AsyncWebServerRequest* request, uint8_t*, size_t, size_t index, size_t)
-{
-    if (request && index == 0)
-    {
-        request->setAttribute(kSetCfgStartedAttribute, true);
-        set_cfg_error(request, 501, "Config writes require BUILD_WITH_SECURITY");
-    }
-}
-
-void finishSetCfg(AsyncWebServerRequest* request)
-{
-    if (!request)
-    {
-        return;
-    }
-
-    if (request->hasAttribute(kSetCfgErrorAttribute))
-    {
-        send_set_cfg_error(request);
-        return;
-    }
-
-    request->send(501, "text/plain", "Config writes require BUILD_WITH_SECURITY");
-}
-#else
 void writeSetCfgBody(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total)
 {
     if (!request || len == 0)
@@ -1217,6 +1197,5 @@ void finishSetCfg(AsyncWebServerRequest* request)
     ESP_LOGI(TAG, "updated config from encrypted web upload");
     request->send(200, "application/json", "{\"status\":\"ok\"}");
 }
-#endif
 
 } // namespace WebCfgHandlers

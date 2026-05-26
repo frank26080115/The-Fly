@@ -98,5 +98,6 @@ private:
     volatile bool        m_cancel_requested = false;
     char                 m_destination_name[kNameMaxLength] = {};
     char                 m_destination_url[kUrlMaxLength] = {};
+    char                 m_destination_password[kNetworkConfigPasswordMaxLength] = {};
     uint32_t             m_timeout_ms      = kDefaultTimeoutMs;
 };
