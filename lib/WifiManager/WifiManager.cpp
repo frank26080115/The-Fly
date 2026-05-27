@@ -388,14 +388,11 @@ void shutdown_for_wifi_activation()
 
 void format_generated_soft_ap_ssid(char* ssid, size_t ssid_size)
 {
-    uint8_t mac[6] = {};
-    if (esp_read_mac(mac, ESP_MAC_BT) != ESP_OK)
+    if (!ssid || ssid_size == 0)
     {
-        snprintf(ssid, ssid_size, "The-Fly-0000");
         return;
     }
-
-    snprintf(ssid, ssid_size, "The-Fly-%02X%02X", mac[4], mac[5]);
+    snprintf(ssid, ssid_size, "Fly-%08lu", static_cast<unsigned long>(generate_8_digit_nonce()));
 }
 
 void format_generated_soft_ap_password(char* password, size_t password_size)
