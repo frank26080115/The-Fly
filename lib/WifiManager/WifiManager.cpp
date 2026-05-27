@@ -442,6 +442,7 @@ bool start_secure_soft_ap(const char* ssid, const char* password)
     wifi_config_t config = {};
     configure_soft_ap_security(config, ssid, password);
 
+    WiFi.mode(WIFI_OFF);
     if (!wifiLowLevelInit(false))
     {
         ESP_LOGW(TAG, "could not initialize Wi-Fi before SoftAP security configuration");
@@ -469,10 +470,11 @@ bool start_secure_soft_ap(const char* ssid, const char* password)
         return false;
     }
 
-    err = esp_wifi_start();
-    if (err != ESP_OK)
+    // Use Arduino only for the final start so its mode/IP/disconnect helpers
+    // stay in sync after the low-level, config-first setup above.
+    if (!WiFi.mode(WIFI_MODE_AP))
     {
-        ESP_LOGW(TAG, "could not start WPA3-only SoftAP: %s", esp_err_to_name(err));
+        ESP_LOGW(TAG, "could not start WPA3-only SoftAP");
         return false;
     }
 
