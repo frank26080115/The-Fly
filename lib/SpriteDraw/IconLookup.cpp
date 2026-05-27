@@ -50,6 +50,15 @@ constexpr IconName kIconNames[] = {
     { "home", ICON_HOME },
     { "house", ICON_HOME },
     { "icon_home", ICON_HOME },
+        { "work", ICON_WORK },
+    { "briefcase", ICON_WORK },
+    { "icon_work", ICON_WORK },
+    { "car", ICON_CAR },
+    { "icon_car", ICON_CAR },
+    { "plane", ICON_PLANE },
+    { "icon_plane", ICON_PLANE },
+    { "airplane", ICON_PLANE },
+    { "icon_airplane", ICON_PLANE },
     { "cat", ICON_CAT },
     { "icon_cat", ICON_CAT },
     { "dog", ICON_DOG },
@@ -150,6 +159,11 @@ SpriteRef home()
     return { sprit_home_100, SPRIT_HOME_100_WIDTH, SPRIT_HOME_100_HEIGHT, SPRIT_HOME_100_BYTES };
 }
 
+SpriteRef work()
+{
+    return { sprit_briefcase_100, SPRIT_BRIEFCASE_100_WIDTH, SPRIT_BRIEFCASE_100_HEIGHT, SPRIT_BRIEFCASE_100_BYTES };
+}
+
 SpriteRef home_wifi()
 {
     return { sprit_home_wifi_100, SPRIT_HOME_WIFI_100_WIDTH, SPRIT_HOME_WIFI_100_HEIGHT, SPRIT_HOME_WIFI_100_BYTES };
@@ -180,6 +194,16 @@ SpriteRef overlay_cat()
     return { sprit_overlay_cat_50, SPRIT_OVERLAY_CAT_50_WIDTH, SPRIT_OVERLAY_CAT_50_HEIGHT, SPRIT_OVERLAY_CAT_50_BYTES };
 }
 
+SpriteRef overlay_car()
+{
+    return { sprit_overlay_car_50, SPRIT_OVERLAY_CAR_50_WIDTH, SPRIT_OVERLAY_CAR_50_HEIGHT, SPRIT_OVERLAY_CAR_50_BYTES };
+}
+
+SpriteRef overlay_plane()
+{
+    return { sprit_overlay_airplane_50, SPRIT_OVERLAY_AIRPLANE_50_WIDTH, SPRIT_OVERLAY_AIRPLANE_50_HEIGHT, SPRIT_OVERLAY_AIRPLANE_50_BYTES };
+}
+
 SpriteRef overlay_circle()
 {
     return { sprit_overlay_circle_40, SPRIT_OVERLAY_CIRCLE_40_WIDTH, SPRIT_OVERLAY_CIRCLE_40_HEIGHT, SPRIT_OVERLAY_CIRCLE_40_BYTES };
@@ -198,6 +222,11 @@ SpriteRef overlay_dog()
 SpriteRef overlay_home()
 {
     return { sprit_overlay_home_50, SPRIT_OVERLAY_HOME_50_WIDTH, SPRIT_OVERLAY_HOME_50_HEIGHT, SPRIT_OVERLAY_HOME_50_BYTES };
+}
+
+SpriteRef overlay_work()
+{
+    return { sprit_overlay_briefcase_50, SPRIT_OVERLAY_BRIEFCASE_50_WIDTH, SPRIT_OVERLAY_BRIEFCASE_50_HEIGHT, SPRIT_OVERLAY_BRIEFCASE_50_BYTES };
 }
 
 SpriteRef overlay_square()
@@ -251,6 +280,12 @@ void assign_generic_overlay(sprite_desc_t* sprite, SpriteRef base, uint8_t icon)
 
     switch (icon)
     {
+    case ICON_CAR:
+        assign_overlay(sprite, overlay_car(), OVERLAY_BOTTOM_RIGHT);
+        break;
+    case ICON_PLANE:
+        assign_overlay(sprite, overlay_plane(), OVERLAY_BOTTOM_RIGHT);
+        break;
     case ICON_CAT:
         assign_overlay(sprite, overlay_cat(), OVERLAY_BOTTOM_RIGHT);
         break;
@@ -291,6 +326,12 @@ void assign_bluetooth_sprite(uint8_t icon, sprite_desc_t* sprite)
         assign_sprite(sprite, home());
         assign_overlay(sprite, overlay_bt(), OVERLAY_TOP_RIGHT);
         break;
+    case ICON_WORK:
+        assign_sprite(sprite, work());
+        assign_overlay(sprite, overlay_bt(), OVERLAY_TOP_RIGHT);
+        break;
+    case ICON_CAR:
+    case ICON_PLANE:
     case ICON_CAT:
     case ICON_DOG:
     case ICON_BIRD:
@@ -324,6 +365,12 @@ void assign_wifi_sprite(uint8_t icon, sprite_desc_t* sprite)
     case ICON_HOME:
         assign_sprite(sprite, home_wifi());
         break;
+    case ICON_WORK:
+        assign_sprite(sprite, work());
+        assign_overlay(sprite, overlay_wifi(), OVERLAY_TOP_RIGHT);
+        break;
+    case ICON_CAR:
+    case ICON_PLANE:
     case ICON_CAT:
     case ICON_DOG:
     case ICON_BIRD:
@@ -359,6 +406,12 @@ void assign_cloud_sprite(uint8_t icon, sprite_desc_t* sprite)
         assign_sprite(sprite, cloud_upload());
         assign_overlay(sprite, overlay_home(), OVERLAY_BOTTOM_RIGHT);
         break;
+    case ICON_WORK:
+        assign_sprite(sprite, cloud_upload());
+        assign_overlay(sprite, overlay_work(), OVERLAY_BOTTOM_RIGHT);
+        break;
+    case ICON_CAR:
+    case ICON_PLANE:
     case ICON_CAT:
     case ICON_DOG:
     case ICON_BIRD:
@@ -406,6 +459,12 @@ const char* toString(uint8_t icon)
         return "tablet";
     case ICON_HOME:
         return "home";
+    case ICON_WORK:
+        return "work";
+    case ICON_CAR:
+        return "car";
+    case ICON_PLANE:
+        return "plane";
     case ICON_CAT:
         return "cat";
     case ICON_DOG:

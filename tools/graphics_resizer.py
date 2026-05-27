@@ -17,7 +17,7 @@ def output_name(input_path: Path, size: int) -> str:
     return f"{stem}_{size}.png"
 
 
-def process_png(input_path: Path, output_path: Path, size: int, margin: int = 2):
+def process_png(input_path: Path, output_path: Path, size: int, margin: int = 2, keep_transparency: bool = False):
     img = Image.open(input_path).convert("RGBA")
     arr = np.array(img)
 
@@ -70,7 +70,8 @@ def process_png(input_path: Path, output_path: Path, size: int, margin: int = 2)
     if scaled_max_y > size - margin:
         paste_y -= round(scaled_max_y - (size - margin))
 
-    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 255))
+    background = (0, 0, 0, 0) if keep_transparency else (0, 0, 0, 255)
+    canvas = Image.new("RGBA", (size, size), background)
     canvas.alpha_composite(resized, (paste_x, paste_y))
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -104,6 +105,12 @@ def main():
         help="Output square size in pixels. Default: 100",
     )
 
+    parser.add_argument(
+        "--keep-transparency",
+        action="store_true",
+        help="Keep transparent output pixels instead of flattening onto opaque black.",
+    )
+
     args = parser.parse_args()
 
     input_dir = Path(args.input_dir)
@@ -114,7 +121,7 @@ def main():
 
     for input_path in sorted(input_dir.glob("*.png")):
         out_path = output_dir / output_name(input_path, args.size)
-        process_png(input_path, out_path, args.size)
+        process_png(input_path, out_path, args.size, keep_transparency=args.keep_transparency)
         print(f"{input_path.name} -> {out_path.name}")
 
 

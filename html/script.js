@@ -11,6 +11,7 @@ let current_default_soft_ap = true;
 function body_onload()
 {
     fill_in_timezone_options();
+    fill_in_icon_selectors();
     if (!is_offline_test())
     {
         hide_all_test_divs();
@@ -57,6 +58,96 @@ function fetch_file_list()
     };
 
     request.send();
+}
+
+function show_file_upload_status(message, class_name)
+{
+    const status_panel = document.getElementById("file_upload_status");
+    const message_node = document.getElementById("file_upload_message");
+    if (!status_panel || !message_node)
+    {
+        return;
+    }
+
+    status_panel.classList.remove("notice", "error");
+    if (class_name)
+    {
+        status_panel.classList.add(class_name);
+    }
+    message_node.textContent = message || "";
+    status_panel.style.display = "";
+}
+
+function set_file_upload_progress(percent)
+{
+    const progress = document.getElementById("file_upload_progress");
+    const label = document.getElementById("file_upload_percent");
+    const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+    if (progress)
+    {
+        progress.value = clamped;
+    }
+    if (label)
+    {
+        label.textContent = clamped + "%";
+    }
+}
+
+function file_upload_onsubmit()
+{
+    const input = document.getElementById("file_upload_input");
+    const button = document.getElementById("btn_file_upload");
+    const file = input && input.files && input.files.length > 0 ? input.files[0] : null;
+
+    if (!file)
+    {
+        set_file_upload_progress(0);
+        show_file_upload_status("Choose a file to upload.", "error");
+        return;
+    }
+
+    set_file_upload_progress(0);
+    show_file_upload_status("Uploading " + file.name + "...", "");
+    if (button)
+    {
+        button.disabled = true;
+    }
+
+    const request = new XMLHttpRequest();
+    request.open("POST", "/file_upload?file_name=" + encodeURIComponent(file.name), true);
+    request.timeout = 120000;
+    request.setRequestHeader("Content-Type", "application/octet-stream");
+
+    request.upload.onprogress = function(event) {
+        if (event.lengthComputable)
+        {
+            set_file_upload_progress((event.loaded / event.total) * 100);
+        }
+    };
+
+    request.onload = function() {
+        if (request.status >= 200 && request.status < 300)
+        {
+            set_file_upload_progress(100);
+            show_file_upload_status("Upload complete.", "notice");
+            if (input)
+            {
+                input.value = "";
+            }
+            fetch_file_list();
+            return;
+        }
+        show_file_upload_status(request.responseText || ("Upload failed: " + request.status), "error");
+    };
+    request.onerror = () => show_file_upload_status("Upload failed.", "error");
+    request.ontimeout = () => show_file_upload_status("Upload timed out.", "error");
+    request.onloadend = function() {
+        if (button)
+        {
+            button.disabled = false;
+        }
+    };
+    request.send(file);
 }
 
 function render_file_list(files)
@@ -570,6 +661,48 @@ function format_last_used(value)
     const hour = date.getHours().toString().padStart(2, "0");
     const minute = date.getMinutes().toString().padStart(2, "0");
     return year + "-" + month + "-" + day + "-" + hour + ":" + minute;
+}
+
+function fill_in_icon_selectors()
+{
+    const shared_options = `
+                            <option value="smartphone">&#x1F4F1; Smartphone</option>
+                            <option value="laptop">&#x1F4BB; Laptop</option>
+                            <option value="tablet">&#x1F4F2; Tablet</option>
+                            <option value="home">&#x1F3E0; Home</option>
+                            <option value="work">&#128188; Work</option>
+                            <option value="car">&#128663; Car</option>
+                            <option value="plane">&#x2708;&#xFE0F; Plane</option>
+                            <option value="cat">&#x1F431; Cat</option>
+                            <option value="dog">&#x1F436; Dog</option>
+                            <option value="bird">&#x1F426; Bird</option>
+                            <option value="circle">&#x26AA; Circle</option>
+                            <option value="square">&#x2B1C; Square</option>
+                            <option value="triangle">&#x1F53A; Triangle</option>`;
+
+    for (const selector of document.querySelectorAll(".icon-selector"))
+    {
+        const selected_value = selector.value || "unknown";
+        selector.innerHTML = default_icon_option_for_selector(selector) + shared_options;
+        selector.value = selected_value;
+        if (selector.value !== selected_value)
+        {
+            selector.value = "unknown";
+        }
+    }
+}
+
+function default_icon_option_for_selector(selector)
+{
+    if (selector.closest(".bluetooth-device-list, .bluetooth-device-row"))
+    {
+        return `<option value="unknown">&#x1F535; Default</option>`;
+    }
+    if (selector.closest(".cloud-dest-list, .cloud-dest-row"))
+    {
+        return `<option value="unknown">&#9729; Default</option>`;
+    }
+    return `<option value="unknown">&#128732; Default</option>`;
 }
 
 function fill_time_config(network)

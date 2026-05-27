@@ -216,6 +216,73 @@ button:disabled,
   color: #ffd3da;
 }
 
+.file-upload-panel {
+  padding-top: 2px;
+}
+
+.file-upload-form {
+  display: grid;
+  grid-template-columns: max-content minmax(220px, 360px);
+  column-gap: 14px;
+  row-gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 560px;
+}
+
+.file-upload-form label {
+  color: #c9ccd6;
+  font-size: 0.95rem;
+  font-weight: 650;
+  text-align: right;
+}
+
+.file-upload-form input {
+  min-width: 0;
+}
+
+.file-upload-status {
+  max-width: 560px;
+  margin: 14px auto 0;
+  padding: 12px;
+  border: 1px solid #30333a;
+  border-radius: 8px;
+  background: #15171c;
+  color: #d8dae2;
+  box-sizing: border-box;
+}
+
+.file-upload-status.notice {
+  border-color: #315d3c;
+  background: #17251b;
+  color: #b8f3c5;
+}
+
+.file-upload-status.error {
+  border-color: #6f3338;
+  background: #27171a;
+  color: #ffd3da;
+}
+
+.file-upload-progress-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  gap: 10px;
+  align-items: center;
+}
+
+.file-upload-progress-row progress {
+  width: 100%;
+  height: 12px;
+  accent-color: #7c5cff;
+}
+
+.file-upload-message {
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+
 .password-reset-panel,
 .memory-reset-panel {
   padding-top: 2px;
@@ -447,6 +514,14 @@ button:disabled,
 
   .password-reset-form {
     grid-template-columns: 1fr;
+  }
+
+  .file-upload-form {
+    grid-template-columns: 1fr;
+  }
+
+  .file-upload-form label {
+    text-align: left;
   }
 
   .password-reset-form label {

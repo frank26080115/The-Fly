@@ -56,6 +56,11 @@ extern const uint8_t sprit_bluetooth_50[];
 #define SPRIT_BLUETOOTH_X_50_BYTES 4027u
 extern const uint8_t sprit_bluetooth_x_50[];
 
+#define SPRIT_BRIEFCASE_100_WIDTH 100u
+#define SPRIT_BRIEFCASE_100_HEIGHT 100u
+#define SPRIT_BRIEFCASE_100_BYTES 12703u
+extern const uint8_t sprit_briefcase_100[];
+
 #define SPRIT_BTPAIRING_100_WIDTH 100u
 #define SPRIT_BTPAIRING_100_HEIGHT 100u
 #define SPRIT_BTPAIRING_100_BYTES 12906u
@@ -78,7 +83,7 @@ extern const uint8_t sprit_cloudupload_100[];
 
 #define SPRIT_DEFAULT_WIFI_AP_WIDTH 100u
 #define SPRIT_DEFAULT_WIFI_AP_HEIGHT 100u
-#define SPRIT_DEFAULT_WIFI_AP_BYTES 13841u
+#define SPRIT_DEFAULT_WIFI_AP_BYTES 13728u
 extern const uint8_t sprit_default_wifi_ap[];
 
 #define SPRIT_ENROLL_50_WIDTH 50u
@@ -206,15 +211,30 @@ extern const uint8_t sprit_muted_x[];
 #define SPRIT_NTPSYNC_100_BYTES 11983u
 extern const uint8_t sprit_ntpsync_100[];
 
+#define SPRIT_OVERLAY_AIRPLANE_50_WIDTH 50u
+#define SPRIT_OVERLAY_AIRPLANE_50_HEIGHT 50u
+#define SPRIT_OVERLAY_AIRPLANE_50_BYTES 3926u
+extern const uint8_t sprit_overlay_airplane_50[];
+
 #define SPRIT_OVERLAY_BIRD_50_WIDTH 50u
 #define SPRIT_OVERLAY_BIRD_50_HEIGHT 50u
 #define SPRIT_OVERLAY_BIRD_50_BYTES 4143u
 extern const uint8_t sprit_overlay_bird_50[];
 
+#define SPRIT_OVERLAY_BRIEFCASE_50_WIDTH 50u
+#define SPRIT_OVERLAY_BRIEFCASE_50_HEIGHT 50u
+#define SPRIT_OVERLAY_BRIEFCASE_50_BYTES 3963u
+extern const uint8_t sprit_overlay_briefcase_50[];
+
 #define SPRIT_OVERLAY_BT_50_WIDTH 50u
 #define SPRIT_OVERLAY_BT_50_HEIGHT 50u
 #define SPRIT_OVERLAY_BT_50_BYTES 4126u
 extern const uint8_t sprit_overlay_bt_50[];
+
+#define SPRIT_OVERLAY_CAR_50_WIDTH 50u
+#define SPRIT_OVERLAY_CAR_50_HEIGHT 50u
+#define SPRIT_OVERLAY_CAR_50_BYTES 2849u
+extern const uint8_t sprit_overlay_car_50[];
 
 #define SPRIT_OVERLAY_CAT_50_WIDTH 50u
 #define SPRIT_OVERLAY_CAT_50_HEIGHT 50u
@@ -268,7 +288,7 @@ extern const uint8_t sprit_pickupdown[];
 
 #define SPRIT_SECURITY_50_WIDTH 50u
 #define SPRIT_SECURITY_50_HEIGHT 50u
-#define SPRIT_SECURITY_50_BYTES 4610u
+#define SPRIT_SECURITY_50_BYTES 4765u
 extern const uint8_t sprit_security_50[];
 
 #define SPRIT_SLEEP_100_WIDTH 100u
