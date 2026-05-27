@@ -216,7 +216,7 @@ void WifiApModeView::drawClientInfo(bool forced)
 
     const bool secureAp = wifi_manager && wifi_manager->isGeneratedSoftApActive();
 
-    char client_text[24] = "TO: nobody";
+    char client_text[24] = "To: nobody";
     uint8_t client_mac[6] = {};
     if (wifi_manager && wifi_manager->softApClientMac(client_mac))
     {

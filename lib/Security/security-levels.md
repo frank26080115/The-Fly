@@ -16,9 +16,11 @@ Files are not encrypted.
 
 FTP server is allowed
 
-Wi-Fi credentials are write-only without authentication. Encryption depends on being on a Wi-Fi soft AP that uses WPA3, only allowing one client. The AP's password can be fixed.
+Wi-Fi credentials are write-only without authentication. Encryption depends on being on a Wi-Fi soft AP that uses WPA3, only allowing one client.
 
 Cloud server is public facing and needs a password, it's a password configured per cloud server, not the network-key
+
+User allowed to set a customized Wi-Fi AP, which cannot perform administrative tasks.
 
 # Level 1
 
@@ -32,7 +34,9 @@ Cloud server uses network-key as a part of authentication
 
 Changing password requires re-enrollment, this seems reasonable and easy to understand.
 
-FTP server is not allowed
+FTP server is allowed
+
+User allowed to set a customized Wi-Fi AP, which cannot perform administrative tasks.
 
 # Level 2
 

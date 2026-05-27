@@ -1,6 +1,7 @@
 #include "WebServer.h"
 
 #include <ESPAsyncWebServer.h>
+#include <ESPmDNS.h>
 #include <WiFi.h>
 
 #include <esp_system.h>
@@ -42,6 +43,7 @@ constexpr const char* kHeaderSessionResponseFromClient = "X-TheFly-Session-Respo
 constexpr const char* kBluedroidNvsNamespace = "bt_config.conf";
 constexpr const char* kBtHostListNvsNamespace = "bt_hosts";
 constexpr const char* kNetworkNvsNamespace = "wifi_cfg";
+constexpr uint16_t    kWebServerPort = 80;
 
 #if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
 // This is only a login gate for plain FTP. Replace these credentials before
@@ -50,7 +52,7 @@ constexpr const char* kFtpUser     = "thefly";
 constexpr const char* kFtpPassword = "replace-me";
 #endif
 
-AsyncWebServer g_server(80);
+AsyncWebServer g_server(kWebServerPort);
 bool           g_initialized = false;
 WebServer::SessionSecurityState g_session_security;
 
@@ -87,6 +89,43 @@ void note_web_error()
     {
         wifi_manager->noteWebError();
     }
+}
+
+void make_mdns_hostname(char* out, size_t out_size)
+{
+    if (!out || out_size == 0)
+    {
+        return;
+    }
+
+    uint8_t mac[6] = {};
+    WiFi.macAddress(mac);
+    snprintf(out, out_size, "the-fly-%02x%02x", mac[4], mac[5]);
+}
+
+void start_mdns()
+{
+    char hostname[24] = {};
+    make_mdns_hostname(hostname, sizeof(hostname));
+    if (hostname[0] == '\0')
+    {
+        ESP_LOGW(TAG, "mDNS hostname generation failed");
+        return;
+    }
+
+    if (!MDNS.begin(hostname))
+    {
+        ESP_LOGW(TAG, "mDNS start failed for %s.local", hostname);
+        return;
+    }
+
+    MDNS.addService("http", "tcp", kWebServerPort);
+    MDNS.addServiceTxt("http", "tcp", "device", "the-fly");
+    MDNS.addServiceTxt("http", "tcp", "path", "/");
+    MDNS.addService("the-fly", "tcp", kWebServerPort);
+    MDNS.addServiceTxt("the-fly", "tcp", "path", "/");
+    MDNS.addServiceTxt("the-fly", "tcp", "version", version_str ? version_str : "");
+    ESP_LOGI(TAG, "mDNS started: http://%s.local/ service=_the-fly._tcp", hostname);
 }
 
 void reboot_after_reset_dialog()
@@ -879,7 +918,7 @@ bool WebServer::init()
                 WebFileHandlers::writeFileUploadBody);
     ESP_LOGI(TAG, "registered microSD upload POST /file_upload");
 
-#if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
+#if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 1
     if (!FtpServer::start(MicroSdCard::fs(), kFtpUser, kFtpPassword))
     {
         ESP_LOGE(TAG, "FTP server start failed");
@@ -888,6 +927,8 @@ bool WebServer::init()
 
     ESP_LOGI(TAG, "FTP server started");
 #endif
+
+    start_mdns();
 
     g_server.begin();
     g_initialized = true;
