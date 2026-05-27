@@ -11,6 +11,7 @@
 #include "Aegis.h"
 #include "BluetoothManager.h"
 #include "BtHostList.h"
+#include "DiskStats.h"
 #if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
 #include "FtpServer.h"
 #endif
@@ -419,11 +420,15 @@ void send_info(AsyncWebServerRequest* request)
         WebServer::formatMac(bdaddr, bdaddr_text, sizeof(bdaddr_text));
     }
 
-    const bool ready = MicroSdCard::isReady();
-    const MicroSdCard::Health health = ready ? MicroSdCard::health() : MicroSdCard::Health::NotReady;
-    const uint64_t total_bytes = ready ? MicroSdCard::totalBytes() : 0;
-    const uint64_t used_bytes  = ready ? MicroSdCard::usedBytes() : 0;
-    const uint64_t free_bytes  = ready ? MicroSdCard::freeBytes() : 0;
+    uint64_t total_bytes = 0;
+    uint64_t free_bytes  = 0;
+    const bool sd_ready = MicroSdCard::isReady();
+    const bool disk_ready = sd_ready && DiskStats::diskSpace(total_bytes, free_bytes);
+    const uint64_t used_bytes = total_bytes > free_bytes ? total_bytes - free_bytes : 0;
+    const char* disk_health = !sd_ready ? MicroSdCard::healthName(MicroSdCard::Health::NotReady) :
+                              !disk_ready ? "Unknown" :
+                              free_bytes == 0 ? MicroSdCard::healthName(MicroSdCard::Health::Full) :
+                              MicroSdCard::healthName(MicroSdCard::Health::Ready);
     const bool default_soft_ap = wifi_manager && wifi_manager->isGeneratedSoftApActive();
 
     String session_challenge_hex;
@@ -479,9 +484,9 @@ void send_info(AsyncWebServerRequest* request)
     json += WebServer::jsonString(compiler_time_str);
     json += ",\"disk\":{";
     json += "\"ready\":";
-    json += ready ? "true" : "false";
+    json += disk_ready ? "true" : "false";
     json += ",\"health\":";
-    json += WebServer::jsonString(MicroSdCard::healthName(health));
+    json += WebServer::jsonString(disk_health);
     json += ",\"total_bytes\":";
     append_json_u64(json, total_bytes);
     json += ",\"used_bytes\":";
@@ -928,6 +933,7 @@ bool WebServer::init()
     ESP_LOGI(TAG, "FTP server started");
 #endif
 
+    //DiskStats::refreshDiskSpace();
     start_mdns();
 
     g_server.begin();

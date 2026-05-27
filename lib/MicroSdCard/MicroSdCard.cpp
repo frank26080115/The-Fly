@@ -161,19 +161,19 @@ SdFs& fs()
     return g_sd;
 }
 
-uint64_t totalBytes()
+uint64_t totalBytes() // warning: this function is slow, it does actual IO, use DiskStats instead
 {
     return static_cast<uint64_t>(g_sd.clusterCount()) * static_cast<uint64_t>(g_sd.bytesPerCluster());
 }
 
-uint64_t usedBytes()
+uint64_t usedBytes() // warning: this function is slow, it does actual IO, use DiskStats instead
 {
     const uint64_t total = totalBytes();
     const uint64_t free  = freeBytes();
     return total > free ? total - free : 0;
 }
 
-uint64_t freeBytes()
+uint64_t freeBytes() // warning: this function is slow, it does actual IO, use DiskStats instead
 {
     const int64_t freeClusters = g_sd.freeClusterCount();
     if (freeClusters <= 0)

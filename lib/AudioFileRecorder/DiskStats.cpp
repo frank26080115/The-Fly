@@ -463,6 +463,14 @@ bool refreshRecordingUploadStats()
     return ok;
 }
 
+bool diskSpace(uint64_t& total_bytes, uint64_t& free_bytes)
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+    total_bytes = g_total_disk_space;
+    free_bytes  = g_free_disk_space;
+    return g_disk_space_valid;
+}
+
 uint64_t totalDiskSpace()
 {
     std::lock_guard<std::mutex> lock(g_mutex);

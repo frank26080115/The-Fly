@@ -18,6 +18,7 @@
 #include "ModalDialog.h"
 #include "RecordingView/RecordingViewCallbacks.h"
 #include "ScrollView/ScrollView.h"
+#include "WebServer.h"
 #include "WifiManager.h"
 #include "esp_log.h"
 #include "esp_system.h"
@@ -675,6 +676,12 @@ void onclick_wifi_ap(int32_t value, uint32_t pressDurationMs)
     if (!started)
     {
         show_fatal_error_f(false, "Wi-Fi AP start failed: %s", wifi_manager->statusName());
+        return;
+    }
+
+    if (!WebServer::init())
+    {
+        show_fatal_error_f(false, "Wi-Fi web server failed to start");
         return;
     }
 
