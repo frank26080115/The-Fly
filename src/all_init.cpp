@@ -360,10 +360,10 @@ static void draw_splash_mac_info()
     thefly_display.setTextSize(kTextSize);
     thefly_display.setTextDatum(top_left);
     thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
-    thefly_display.drawString("B:", kTextX, kTextY);
-    thefly_display.drawString(bdaddr_text, static_cast<int16_t>(kTextX + 14), kTextY);
-    thefly_display.drawString("W:", kTextX, static_cast<int16_t>(kTextY + kTextLineHeight));
-    thefly_display.drawString(wifi_text, static_cast<int16_t>(kTextX + 14), static_cast<int16_t>(kTextY + kTextLineHeight));
+    thefly_display.drawString("BT:", kTextX, kTextY);
+    thefly_display.drawString(bdaddr_text, static_cast<int16_t>(kTextX + 21), kTextY);
+    thefly_display.drawString("WI:", kTextX, static_cast<int16_t>(kTextY + kTextLineHeight));
+    thefly_display.drawString(wifi_text, static_cast<int16_t>(kTextX + 21), static_cast<int16_t>(kTextY + kTextLineHeight));
 }
 
 static void draw_splash_tamper_code()
