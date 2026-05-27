@@ -1,0 +1,42 @@
+[
+  {
+    "timestamp": "2026-05-15T07:41:24.031Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_btspeakerphone.cpp",
+      "",
+      "## Open tabs:",
+      "- test_btspeakerphone.cpp: src/tests/test_btspeakerphone.cpp",
+      "- test_btpairing.cpp: src/tests/test_btpairing.cpp",
+      "- size-files.csv: .pio/build/theflybringuptest/size-files.csv",
+      "- esp32-hal-bt.c: .pio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal-bt.c",
+      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
+      "",
+      "## My request for Codex:",
+      "scan `.pio\\libdeps` simply for functions with the IRAM attribute"
+    ],
+    "agent_reply": [
+      "Scanned `.pio\\libdeps` for `IRAM_ATTR`, `ARDUINO_ISR_ATTR`, and explicit IRAM section attributes.",
+      "",
+      "Only dependency hits are in `M5GFX`, duplicated across the env-specific libdeps folders:",
+      "",
+      "```text",
+      "M5GFX/src/lgfx/v1/platforms/esp32/Panel_CVBS.cpp",
+      "M5GFX/src/lgfx/v1/platforms/esp32/Bus_EPD.cpp",
+      "```",
+      "",
+      "Notably, I did not see IRAM attributes in `AsyncTCP` or `ESPAsyncWebServer`.",
+      "",
+      "The bulk of the hits are CVBS/video scanline/blit helpers and one interrupt handler in `Panel_CVBS.cpp`, plus `Bus_EPD::notify_line_done()` in `Bus_EPD.cpp`. These do not appear to be the current IRAM problem though: `idf_size.py --files` showed the big IRAM users are framework/BTDM/FreeRTOS/PHY files, while `M5GFX` contributed no IRAM in the linked build."
+    ],
+    "files": [
+      "M5GFX/src/lgfx/v1/platforms/esp32/Panel_CVBS.cpp",
+      "M5GFX/src/lgfx/v1/platforms/esp32/Bus_EPD.cpp",
+      "Panel_CVBS.cpp",
+      "Bus_EPD.cpp",
+      "idf_size.py"
+    ]
+  }
+]

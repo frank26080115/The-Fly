@@ -70,10 +70,101 @@
     "commit_hash": "3d988cb62856bfbc633ccac6598e1ba741663eec"
   },
   {
+    "timestamp": "2026-05-21T04:40:43.884Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main.cpp",
+      "",
+      "## Open tabs:",
+      "- main.cpp: src/main.cpp",
+      "- platformio.ini: platformio.ini",
+      "- Hotel.cpp: lib/Hotel/Hotel.cpp",
+      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
+      "- BtHostList.cpp: lib/BluetoothManager/BtHostList.cpp",
+      "",
+      "## My request for Codex:",
+      "cool",
+      "",
+      "another thing I want, upon completion of pairing, before launching the ModalDialog, temporarily set the Bluetooth stack to non-connectable-non-discoverable, when the user dismisses the ModalDialog, go back to connectable-non-discoverable"
+    ],
+    "agent_reply": [
+      "Done.",
+      "",
+      "I added two explicit BtManager scan-mode helpers:",
+      "",
+      "- `BtManager::setNonConnectableNonDiscoverable()`",
+      "- `BtManager::setConnectableNonDiscoverable()`",
+      "",
+      "Pairing success now does this flow:",
+      "",
+      "1. Save/repopulate Bluetooth entries.",
+      "2. Set Bluetooth to non-connectable/non-discoverable.",
+      "3. Show the thumbs-up `ModalDialog`.",
+      "4. When the dialog is dismissed, request restore to connectable/non-discoverable.",
+      "5. The restore is executed from the core-0 loop, not directly inside the GUI touch callback.",
+      "",
+      "I also added an optional `ModalDialog` dismiss callback for this kind of flow.",
+      "",
+      "Build passed for `m5stack-core2`."
+    ],
+    "files": [
+      "lib/BluetoothManager/BluetoothManager.h",
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "lib/FlyGuiViews/ModalDialog.h",
+      "lib/FlyGuiViews/ModalDialog.cpp",
+      "src/main.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-05-21T07:34:30Z",
     "type": "git_commit",
     "commit_message": "progress on bluetooth but cannot initiate connection, can handle incoming though",
     "commit_hash": "e94d9d093825b8b6ff31e1ff98b191887cc736cc"
+  },
+  {
+    "timestamp": "2026-05-26T08:42:28.193Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/WifiApModeView.cpp",
+      "",
+      "## Open tabs:",
+      "- WifiApModeView.cpp: lib/FlyGuiViews/WifiApModeView.cpp",
+      "- WebCfgHandlers.cpp: lib/WifiManager/WebCfgHandlers.cpp",
+      "- ScrollView.cpp: lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "- enrollment-mechanism.md: lib/Security/enrollment-mechanism.md",
+      "- cloud-upload.md: developer-docs/cloud-upload.md",
+      "",
+      "## My request for Codex:",
+      "The SplashView screen should also show both the BDADDR and Wi-Fi MAC address in the smallest font, just make it say \"B: <addr>\" and \"W: <addr>\", use hyphens within the address between the bytes",
+      "",
+      "And in the bottom right corner of the screen, in a larger font, show 4 hex digits of the tamper-evidence-code, if the security-level is exactly 2",
+      "",
+      "The device information dialog should also show 4 hex digits of the tamper-evidence-code, if the security-level is 2 or higher"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "Changed:",
+      "- [src/all_init.cpp](</d:/GithubRepos/The-Fly/src/all_init.cpp:252>) now draws:",
+      "  - `B: XX-XX-XX-XX-XX-XX`",
+      "  - `W: XX-XX-XX-XX-XX-XX`",
+      "  - level-2-only tamper code in the bottom-right, using a larger font.",
+      "- [src/main.cpp](</d:/GithubRepos/The-Fly/src/main.cpp:116>) refreshes the splash overlay again after Wi-Fi config loads, so the tamper code has the cached network hash available.",
+      "- [src/main.cpp](</d:/GithubRepos/The-Fly/src/main.cpp:705>) appends `Tamper: XXXX` to info dialogs for security level 2+.",
+      "- [lib/FlyGuiViews/ModalDialog.h](</d:/GithubRepos/The-Fly/lib/FlyGuiViews/ModalDialog.h:39>) bumps dialog text capacity so the extra line has room.",
+      "",
+      "Verification: `pio run -e thefly_sec2` compiled the touched files and reached link, then failed on the existing IRAM limit: `.iram0.text` overflowed by 2232 bytes."
+    ],
+    "files": [
+      "src/main.cpp",
+      "src/all_init.cpp",
+      "lib/FlyGuiViews/ModalDialog.h",
+      "src/version.c"
+    ]
   },
   {
     "timestamp": "2026-05-26T09:17:01Z",

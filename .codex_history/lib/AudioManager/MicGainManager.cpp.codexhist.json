@@ -311,6 +311,49 @@
     "commit_hash": "e521f961cce7b271b736c720eb61e519219aa616"
   },
   {
+    "timestamp": "2026-05-20T06:34:30.104Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/all_tests.cpp",
+      "",
+      "## Open tabs:",
+      "- all_tests.cpp: src/tests/all_tests.cpp",
+      "- main.cpp: src/main.cpp",
+      "- MainScreenView.cpp: lib/FlyGuiViews/MainScreenView.cpp",
+      "- RecordingView.cpp: lib/FlyGuiViews/RecordingView/RecordingView.cpp",
+      "- AudioDeviceButton.cpp: lib/FlyGuiViews/RecordingView/AudioDeviceButton.cpp",
+      "",
+      "## My request for Codex:",
+      "the peak level decay for both mic and speaker can be sped up by 2, it works great, the animation is also quite smooth",
+      "",
+      "go one size smaller for the font just for the file name, it's overflowing by 2 characters",
+      "",
+      "move all the text to the right by 2 more pixels"
+    ],
+    "agent_reply": [
+      "Done.",
+      "",
+      "- Doubled peak decay speed for both mic and speaker meters.",
+      "- Moved the recording text block right by 2px: `x=14` to `x=16`.",
+      "- Made only the filename row smaller: `2.0f` to `1.5f`; duration/caller info stay large.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e m5stack-core2",
+      "```",
+      "",
+      "Build passes."
+    ],
+    "files": [
+      "lib/AudioManager/SpeakerPeakActivity.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingView.cpp",
+      "lib/AudioManager/MicGainManager.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-05-20T07:17:21Z",
     "type": "git_commit",
     "commit_message": "massive progress with RecordingView",

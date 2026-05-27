@@ -73,6 +73,54 @@
     "commit_hash": "abd204ec22dfe148723d1f8633539f2232ca194b"
   },
   {
+    "timestamp": "2026-05-20T23:18:19.376Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/DiskStats.h",
+      "",
+      "## Active selection of the file:",
+      "refreshRecordingUploadStats",
+      "## Open tabs:",
+      "- DiskStats.h: lib/AudioFileRecorder/DiskStats.h",
+      "- DiskStats.cpp: lib/AudioFileRecorder/DiskStats.cpp",
+      "- ErrorView.cpp: lib/FlyGuiViews/ErrorView.cpp",
+      "- MainScreenView.cpp: lib/FlyGuiViews/MainScreenView.cpp",
+      "- Hotel.cpp: lib/Hotel/Hotel.cpp",
+      "",
+      "## My request for Codex:",
+      "I want the following to be put in `lib\\AudioFileRecorder\\DiskStats.cpp`, which might seem unconventional, but because we are calling `refreshDiskSpace` so infrequently, I think it's the right move: I want it to draw a text on top of the top bar at the end of `refreshDiskSpace`, if the free disk space is less than 4 gigabytes, draw yellow colour `MEM`, less than 2 GB, draw a red `MEM FULL`, on the same line that the clock is on, starting from X=160, using the same font as the clock",
+      "",
+      "wire `refreshDiskSpace` to the end of file write after the file is closed, and at the end of file pruning."
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "What changed:",
+      "- [DiskStats.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/DiskStats.cpp:408) now draws the top-bar disk warning after `refreshDiskSpace()`.",
+      "- `< 4 GiB` free: yellow `MEM`",
+      "- `< 2 GiB` free: red `MEM FULL`",
+      "- Draws at `x=160`, same font/size as the clock.",
+      "- Added cached redraw via `DiskStats::drawDiskSpaceWarning()` so full top-bar redraws do not wipe it.",
+      "- [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:526) refreshes disk space after the recording file is closed.",
+      "- [FileHistory.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/FileHistory.cpp:175) refreshes disk space when pruning finishes.",
+      "",
+      "Verification:",
+      "- `pio run -e m5stack-core2` passed.",
+      "",
+      "As usual, the build regenerated `src/version.c`."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/DiskStats.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/AudioFileRecorder/FileHistory.cpp",
+      "lib/AudioFileRecorder/DiskStats.h",
+      "lib/FlyGui/FlyGui.cpp",
+      "src/version.c"
+    ]
+  },
+  {
     "timestamp": "2026-05-21T02:56:49Z",
     "type": "git_commit",
     "commit_message": "more gui work, auto bt reconnect",

@@ -1,0 +1,45 @@
+[
+  {
+    "timestamp": "2026-05-03T08:28:59.905Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/push_to_talk_demo.cpp",
+      "",
+      "## Open tabs:",
+      "- push_to_talk_demo.cpp: src/push_to_talk_demo.cpp",
+      "- adc.h: c:\\Users\\frank\\.platformio\\packages\\framework-arduinoespressif32-libs\\esp32\\include\\driver\\deprecated\\driver\\adc.h",
+      "- platformio.ini: platformio.ini",
+      "- readme.md: lib/AudioManager/readme.md",
+      "- bt_audio_demo.cpp: src/bt_audio_demo.cpp",
+      "",
+      "## My request for Codex:",
+      "migrate `src\\push_to_talk_demo.cpp`, I got a ton of deprecated warnings"
+    ],
+    "agent_reply": [
+      "Migrated [src/push_to_talk_demo.cpp](d:/GithubRepos/The-Fly/src/push_to_talk_demo.cpp) off the deprecated legacy I2S driver.",
+      "",
+      "What changed:",
+      "- Replaced `driver/i2s.h` with the ESP-IDF 5 channel APIs:",
+      "  - `driver/i2s_std.h` for speaker TX",
+      "  - `driver/i2s_pdm.h` for PDM mic RX",
+      "- Replaced `i2s_driver_install`, `i2s_set_pin`, `i2s_start`, `i2s_stop`, `i2s_read`, and `i2s_write`.",
+      "- Added explicit TX/RX channel handles and cleanup via `i2s_del_channel`.",
+      "- Kept the same sample rate, DMA frame size, mono/right-slot behavior, and phase structure.",
+      "",
+      "Verification:",
+      "- `push_to_talk_demo.cpp` compiled cleanly during `pio run`.",
+      "- Full build is still blocked later by an unrelated Arduino 3.x / PlatformIO issue: `WiFiGeneric.h` cannot find `Network.h`. That is separate from this migration."
+    ],
+    "files": [
+      "driver/i2s.h",
+      "driver/i2s_std.h",
+      "driver/i2s_pdm.h",
+      "src/push_to_talk_demo.cpp",
+      "push_to_talk_demo.cpp",
+      "Network.h",
+      "WiFiGeneric.h"
+    ]
+  }
+]

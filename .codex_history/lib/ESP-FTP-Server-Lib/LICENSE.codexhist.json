@@ -1,0 +1,44 @@
+[
+  {
+    "timestamp": "2026-05-22T04:39:38.053Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_webserver.cpp",
+      "",
+      "## Open tabs:",
+      "- test_webserver.cpp: src/tests/test_webserver.cpp",
+      "- platformio.ini: platformio.ini",
+      "- STAT.h: lib/ESP-FTP-Server-Lib/src/Commands/STAT.h",
+      "- NLST.h: lib/ESP-FTP-Server-Lib/src/Commands/NLST.h",
+      "- MLSD.h: lib/ESP-FTP-Server-Lib/src/Commands/MLSD.h",
+      "",
+      "## My request for Codex:",
+      "LMAO that built without error, nice, thanks",
+      "",
+      "should I keep a fork of that library on my githubvv, with your changes, marked as \"modified to work with SdFat\"?",
+      "",
+      "answer with consideration to the code license of that library"
+    ],
+    "agent_reply": [
+      "Yes. **License-wise, a public fork is fine.** The library is MIT-licensed in [LICENSE](/d:/GithubRepos/The-Fly/lib/ESP-FTP-Server-Lib/LICENSE:1), and MIT explicitly allows copying, modifying, publishing, distributing, and sublicensing, provided the original copyright notice and permission notice stay with copies or substantial portions of the software. ([opensource.org](https://opensource.org/license/mit?utm_source=openai))",
+      "",
+      "My recommendation:",
+      "",
+      "1. **Keep the fork** if you expect to maintain this SdFat adaptation, reuse it in other firmware, or pin your project to a known working version.",
+      "2. **Preserve the existing `LICENSE` file unchanged** with Peter Buchegger’s copyright notice.",
+      "3. **Add a clear README note** such as:",
+      "   > Fork of `ESP-FTP-Server-Lib` modified for `SdFat` `SdFs` / `FsFile` use in The Fly.",
+      "4. **Do not present it as upstream or official.** A fork name like `ESP-FTP-Server-Lib-SdFat` or a repo description that says “SdFat adaptation” is cleaner than leaving people guessing.",
+      "5. **Consider opening an upstream PR** only if the change can be made optional or generic. What we changed effectively narrows the library from generic Arduino `FS` filesystems to SdFat behavior, so upstream may prefer an abstraction or compile-time option instead of this direct swap.",
+      "",
+      "The one subtle point: MIT lets you publish your modifications, but it does **not** require you to publish them. So this is more an engineering/provenance decision than a legal necessity. For your situation, I would fork it and mark it clearly as modified for SdFat. That gives you a stable home for the patch instead of leaving a hand-edited third-party library buried in your firmware repo. ([opensource.org](https://opensource.org/license/mit?utm_source=openai))",
+      "",
+      "Not legal advice, but this is a very normal use of an MIT-licensed library."
+    ],
+    "files": [
+      "lib/ESP-FTP-Server-Lib/LICENSE"
+    ]
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "timestamp": "2026-05-04T04:47:18.490Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: .pio/libdeps/m5stack-core2/M5GFX/src/lgfx/Fonts/Font16.h",
+      "",
+      "## Open tabs:",
+      "- Font16.h: .pio/libdeps/m5stack-core2/M5GFX/src/lgfx/Fonts/Font16.h",
+      "- RTC_Class.hpp: .pio/libdeps/m5stack-core2/M5Unified/src/utility/RTC_Class.hpp",
+      "- RTC_Class.cpp: .pio/libdeps/m5stack-core2/M5Unified/src/utility/RTC_Class.cpp",
+      "- RTC_Base.hpp: .pio/libdeps/m5stack-core2/M5Unified/src/utility/rtc/RTC_Base.hpp",
+      "- RTC_Base.cpp: .pio/libdeps/m5stack-core2/M5Unified/src/utility/rtc/RTC_Base.cpp",
+      "",
+      "## My request for Codex:",
+      "are these all available by default? or is there a config file or preprocessor switch to enable them?"
+    ],
+    "agent_reply": [
+      "In this installed M5GFX version: **yes, essentially all of those named fonts are compiled in by default**.",
+      "",
+      "I don’t see `LOAD_FONT*`, `LOAD_GFXFF`, or TFT_eSPI-style switches controlling them. Instead, `lgfx/v1/lgfx_fonts.cpp` directly includes the font headers and defines objects in `lgfx::v1::fonts`, and `lgfx_fonts.hpp` declares them as `extern`.",
+      "",
+      "So you can use them like:",
+      "",
+      "```cpp",
+      "display.setFont(&fonts::Font2);",
+      "display.setFont(&fonts::FreeSans12pt7b);",
+      "display.setFont(&fonts::DejaVu24);",
+      "display.setFont(&fonts::Font8);",
+      "```",
+      "",
+      "The older numeric API also exists:",
+      "",
+      "```cpp",
+      "display.setTextFont(2); // maps to fonts::Font2",
+      "display.setTextFont(4); // maps to fonts::Font4",
+      "display.setTextFont(6); // maps to fonts::Font6",
+      "display.setTextFont(7); // maps to fonts::Font7",
+      "display.setTextFont(8); // maps to fonts::Font8",
+      "```",
+      "",
+      "Caveats:",
+      "- `setTextFont(int)` is marked deprecated in M5GFX; preferred form is `setFont(&fonts::FontName)`.",
+      "- `Font1`, `Font3`, and `Font5` are unused aliases to `Font0` in the legacy `fontdata[]` array.",
+      "- Some language/font systems like efont/Japanese/LVGL are also compiled in here, but may have their own runtime behavior/coverage. For the ASCII/GFX/custom fonts we discussed, they are directly available.",
+      "- The raw header existing is not the main thing; the important bit is that `lgfx_fonts.cpp` includes and exports it. For example `Font72x53rle.h` exists but is **not** the one included by default; `Font72rle.h` is."
+    ],
+    "files": [
+      "lgfx/v1/lgfx_fonts.cpp",
+      "lgfx_fonts.hpp",
+      "lgfx_fonts.cpp",
+      "Font72x53rle.h",
+      "Font72rle.h"
+    ]
+  }
+]

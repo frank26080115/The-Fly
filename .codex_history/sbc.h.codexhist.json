@@ -84,5 +84,60 @@
       "sbctester.c",
       "library.json"
     ]
+  },
+  {
+    "timestamp": "2026-05-11T02:02:02.681Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/sbc/readme.md",
+      "",
+      "## Open tabs:",
+      "- readme.md: lib/sbc/readme.md",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- bluedroid_sbc.h: lib/bluedroid/bluedroid_sbc.h",
+      "- conf.h: inc/conf.h",
+      "- sbc.h: lib/sbc/sbc.h",
+      "",
+      "## My request for Codex:",
+      "I made changes in `lib\\AudioManager` related to the new switch `USE_BLUEDROID_MSBC` which switches between using bluedroid and libsbc",
+      "",
+      "review these changes, implement the marked TODO items"
+    ],
+    "agent_reply": [
+      "Implemented the `USE_BLUEDROID_MSBC` TODOs in [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:7).",
+      "",
+      "What changed:",
+      "- `AudioManager` now includes [conf.h](D:/GithubRepos/The-Fly/inc/conf.h) so `USE_BLUEDROID_MSBC` is actually visible there.",
+      "- Added an internal `SbcCodec` alias:",
+      "  - `bluedroid_sbc_t` when `USE_BLUEDROID_MSBC` is enabled",
+      "  - `sbc_t` otherwise",
+      "- Wired the switch through:",
+      "  - init/configure",
+      "  - finish",
+      "  - decode",
+      "  - encode",
+      "  - codesize/frame-length logging",
+      "- Added `-I lib/bluedroid` to [platformio.ini](D:/GithubRepos/The-Fly/platformio.ini:12), since `AudioManager` includes `bluedroid_sbc.h` directly.",
+      "",
+      "Review note: I didn’t find other functional issues in the switch code after the TODOs were filled. The one practical integration issue was the missing wrapper include path, which is now fixed.",
+      "",
+      "Verification:",
+      "- `rg` confirms the marked Bluedroid TODOs are gone.",
+      "- `lib\\bluedroid\\bluedroid_sbc.c` still compiles directly with the ESP32 Xtensa compiler.",
+      "- `pio pkg pack lib\\bluedroid` succeeds, though PlatformIO still prints its local `.platformio\\.cache` ownership warning.",
+      "- Full `pio run` still fails on the existing ESP32 WiFi `Network.h` include problem before a complete firmware link."
+    ],
+    "files": [
+      "sbc.h",
+      "lib/AudioManager/AudioManager.cpp",
+      "Network.h",
+      "AudioManager.cpp",
+      "bluedroid_sbc.h",
+      "platformio.ini",
+      "inc/conf.h",
+      "lib/bluedroid/bluedroid_sbc.c"
+    ]
   }
 ]

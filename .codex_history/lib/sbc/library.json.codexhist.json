@@ -1,0 +1,54 @@
+[
+  {
+    "timestamp": "2026-05-16T08:27:20.827Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "USE_BLUEDROID_MSBC",
+      "## Open tabs:",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- embed_managed_component_certs.py: tools/embed_managed_component_certs.py",
+      "- platformio.ini: platformio.ini",
+      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
+      "- all_tests.cpp: src/tests/all_tests.cpp",
+      "",
+      "## My request for Codex:",
+      "you know how we are using `USE_BLUEDROID_MSBC`? add a switch for `USE_LIBSBC_MSBC`, and if neither are used, do the \"assume it's PCM\" way"
+    ],
+    "agent_reply": [
+      "Implemented the tri-state mSBC switch.",
+      "",
+      "Default is now **PCM callback mode** because both switches are commented in [conf.h](D:/GithubRepos/The-Fly/inc/conf.h:12):",
+      "",
+      "```cpp",
+      "// #define USE_BLUEDROID_MSBC",
+      "// #define USE_LIBSBC_MSBC",
+      "```",
+      "",
+      "Behavior now:",
+      "- `USE_BLUEDROID_MSBC`: use Bluedroid mSBC decode/encode.",
+      "- `USE_LIBSBC_MSBC`: use local `lib/sbc`.",
+      "- neither defined: assume HFP callbacks are already PCM and queue/dequeue PCM directly.",
+      "",
+      "I also added [lib/sbc/library.json](D:/GithubRepos/The-Fly/lib/sbc/library.json:1), plus the PlatformIO include/dependency entries so `USE_LIBSBC_MSBC` actually builds.",
+      "",
+      "Verified:",
+      "- default PCM mode: `pio run -e theflybringuptest` succeeds",
+      "- `USE_LIBSBC_MSBC`: succeeds",
+      "- `USE_BLUEDROID_MSBC`: succeeds",
+      "",
+      "The PCM default should be the one to flash for your next voicemail test."
+    ],
+    "files": [
+      "inc/conf.h",
+      "lib/AudioManager/AudioManager.cpp",
+      "conf.h",
+      "lib/sbc/library.json",
+      "platformio.ini"
+    ]
+  }
+]

@@ -1,0 +1,63 @@
+[
+  {
+    "timestamp": "2026-05-04T06:09:37.489Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/bt_audio_demo.cpp",
+      "",
+      "## Active selection of the file:",
+      "ESP_HF_CLIENT_AUDIO_STATE_DISCONNECTED",
+      "## Open tabs:",
+      "- bt_audio_demo.cpp: src/bt_audio_demo.cpp",
+      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
+      "- high-level-fw-design.md: developer-docs/high-level-fw-design.md",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- bluetooth-workflow.md: developer-docs/bluetooth-workflow.md",
+      "",
+      "## My request for Codex:",
+      "add the downsampling feature to AudioFifo upon dequeuing, since it already has upsampling as a feature"
+    ],
+    "agent_reply": [
+      "Implemented downsampling in [AudioFifo.h](d:/GithubRepos/The-Fly/lib/AudioFifo/AudioFifo.h:58).",
+      "",
+      "`dequeueMono`, `dequeueMonoImmediate`, and `dequeueStereo` now accept an optional `sampleRateHz`, defaulting to 16 kHz. If called with `8000`, the FIFO consumes two internal 16 kHz samples per returned sample/frame.",
+      "",
+      "I also simplified [AudioManager.cpp](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:489) so outgoing CVSD now does:",
+      "",
+      "```cpp",
+      "g_mic_to_bt.dequeueMono(..., g_hfp_rate_hz);",
+      "```",
+      "",
+      "instead of manually downsampling there.",
+      "",
+      "Verification:",
+      "- Normal `pio run`: passed.",
+      "- Forced `AudioManager` into the build with a temporary compile hook: passed.",
+      "- Removed the hook and ran normal `pio run` again: passed.",
+      "",
+      "Implemented downsampling in [AudioFifo.h](d:/GithubRepos/The-Fly/lib/AudioFifo/AudioFifo.h:58).",
+      "",
+      "`dequeueMono`, `dequeueMonoImmediate`, and `dequeueStereo` now accept an optional `sampleRateHz`, defaulting to 16 kHz. If called with `8000`, the FIFO consumes two internal 16 kHz samples per returned sample/frame.",
+      "",
+      "I also simplified [AudioManager.cpp](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:489) so outgoing CVSD now does:",
+      "",
+      "```cpp",
+      "g_mic_to_bt.dequeueMono(..., g_hfp_rate_hz);",
+      "```",
+      "",
+      "instead of manually downsampling there.",
+      "",
+      "Verification:",
+      "- Normal `pio run`: passed.",
+      "- Forced `AudioManager` into the build with a temporary compile hook: passed.",
+      "- Removed the hook and ran normal `pio run` again: passed."
+    ],
+    "files": [
+      "lib/AudioFifo/AudioFifo.h",
+      "lib/AudioManager/AudioManager.cpp",
+      "src/_audio_manager_compile_check.cpp"
+    ]
+  }
+]

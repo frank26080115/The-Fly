@@ -108,5 +108,148 @@
       "src/push_to_talk_demo.cpp",
       "utilfuncs.h"
     ]
+  },
+  {
+    "timestamp": "2026-05-03T08:28:59.905Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/push_to_talk_demo.cpp",
+      "",
+      "## Open tabs:",
+      "- push_to_talk_demo.cpp: src/push_to_talk_demo.cpp",
+      "- adc.h: c:\\Users\\frank\\.platformio\\packages\\framework-arduinoespressif32-libs\\esp32\\include\\driver\\deprecated\\driver\\adc.h",
+      "- platformio.ini: platformio.ini",
+      "- readme.md: lib/AudioManager/readme.md",
+      "- bt_audio_demo.cpp: src/bt_audio_demo.cpp",
+      "",
+      "## My request for Codex:",
+      "migrate `src\\push_to_talk_demo.cpp`, I got a ton of deprecated warnings"
+    ],
+    "agent_reply": [
+      "Migrated [src/push_to_talk_demo.cpp](d:/GithubRepos/The-Fly/src/push_to_talk_demo.cpp) off the deprecated legacy I2S driver.",
+      "",
+      "What changed:",
+      "- Replaced `driver/i2s.h` with the ESP-IDF 5 channel APIs:",
+      "  - `driver/i2s_std.h` for speaker TX",
+      "  - `driver/i2s_pdm.h` for PDM mic RX",
+      "- Replaced `i2s_driver_install`, `i2s_set_pin`, `i2s_start`, `i2s_stop`, `i2s_read`, and `i2s_write`.",
+      "- Added explicit TX/RX channel handles and cleanup via `i2s_del_channel`.",
+      "- Kept the same sample rate, DMA frame size, mono/right-slot behavior, and phase structure.",
+      "",
+      "Verification:",
+      "- `push_to_talk_demo.cpp` compiled cleanly during `pio run`.",
+      "- Full build is still blocked later by an unrelated Arduino 3.x / PlatformIO issue: `WiFiGeneric.h` cannot find `Network.h`. That is separate from this migration."
+    ],
+    "files": [
+      "driver/i2s.h",
+      "driver/i2s_std.h",
+      "driver/i2s_pdm.h",
+      "src/push_to_talk_demo.cpp",
+      "push_to_talk_demo.cpp",
+      "Network.h",
+      "WiFiGeneric.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-03T08:35:26.219Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/push_to_talk_demo.cpp",
+      "",
+      "## Open tabs:",
+      "- push_to_talk_demo.cpp: src/push_to_talk_demo.cpp",
+      "- adc.h: c:\\Users\\frank\\.platformio\\packages\\framework-arduinoespressif32-libs\\esp32\\include\\driver\\deprecated\\driver\\adc.h",
+      "- platformio.ini: platformio.ini",
+      "- readme.md: lib/AudioManager/readme.md",
+      "- bt_audio_demo.cpp: src/bt_audio_demo.cpp",
+      "",
+      "## My request for Codex:",
+      "hmmm this migration task might be bigger, do it across the project, including attempts to fix the WiFiGeneric.h and Network.h issues, try not doing a test build until the very end as I want to take a shower while you think"
+    ],
+    "agent_reply": [
+      "Done. I migrated the remaining project-owned deprecated I2S usage to the ESP-IDF 5 channel API across:",
+      "",
+      "- [src/push_to_talk_demo.cpp](d:/GithubRepos/The-Fly/src/push_to_talk_demo.cpp)",
+      "- [src/mic_sd_recorder_demo.cpp](d:/GithubRepos/The-Fly/src/mic_sd_recorder_demo.cpp)",
+      "- [src/bt_audio_demo.cpp](d:/GithubRepos/The-Fly/src/bt_audio_demo.cpp)",
+      "- [lib/AudioManager/AudioManager.cpp](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp)",
+      "",
+      "I also fixed the Bluetooth name deprecation in:",
+      "",
+      "- [src/bt_audio_demo.cpp](d:/GithubRepos/The-Fly/src/bt_audio_demo.cpp)",
+      "- [src/bt_pairing_demo.cpp](d:/GithubRepos/The-Fly/src/bt_pairing_demo.cpp)",
+      "",
+      "And I fixed the `WiFiGeneric.h` / `Network.h` issue by adding Arduino’s `Network/src` include path in [platformio.ini](d:/GithubRepos/The-Fly/platformio.ini).",
+      "",
+      "Verification: `pio run` passes successfully. I also checked that the old project-owned `driver/i2s.h`, legacy `i2s_*` driver calls, and deprecated `esp_bt_dev_set_device_name` calls are gone."
+    ],
+    "files": [
+      "mic_sd_recorder_demo.cpp",
+      "bt_audio_demo.cpp",
+      "AudioManager.cpp",
+      "Network.h",
+      "platformio.ini",
+      "src/mic_sd_recorder_demo.cpp",
+      "src/bt_audio_demo.cpp",
+      "lib/AudioManager/AudioManager.cpp",
+      "src/bt_pairing_demo.cpp",
+      "src/push_to_talk_demo.cpp",
+      "WiFiGeneric.h",
+      "driver/i2s.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-04T06:37:42.990Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: developer-docs/high-level-fw-design.md",
+      "",
+      "## Active selection of the file:",
+      "SPM1423",
+      "## Open tabs:",
+      "- high-level-fw-design.md: developer-docs/high-level-fw-design.md",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- main.cpp: src/main.cpp",
+      "- AudioFifo.h: lib/AudioFifo/AudioFifo.h",
+      "- PCF8563_Class.cpp: .pio/libdeps/m5stack-core2/M5Unified/src/utility/rtc/PCF8563_Class.cpp",
+      "",
+      "## My request for Codex:",
+      "Instead of refering to \"core2_speaker', use `NS4168_speaker`. Instead of \"core2_mic\", use `SPM1423_mic`. Avoid the use of the word \"core\" as it has many other meanings"
+    ],
+    "agent_reply": [
+      "Done.",
+      "",
+      "Renamed the internal speaker/mic hardware references to the actual parts:",
+      "",
+      "- `core2_speaker` style names -> `ns4168_speaker`",
+      "- `core2_mic` style names -> `spm1423_mic`",
+      "- Pin constants now use `kNS4168Speaker...` and `kSPM1423Mic...`",
+      "- `Hardware::Core2Internal` is now `Hardware::M5StackInternal`",
+      "- Updated related log labels/readme wording",
+      "",
+      "Touched:",
+      "- [AudioManager.cpp](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp)",
+      "- [AudioManager.h](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.h)",
+      "- [bt_audio_demo.cpp](d:/GithubRepos/The-Fly/src/bt_audio_demo.cpp)",
+      "- [push_to_talk_demo.cpp](d:/GithubRepos/The-Fly/src/push_to_talk_demo.cpp)",
+      "- [mic_sd_recorder_demo.cpp](d:/GithubRepos/The-Fly/src/mic_sd_recorder_demo.cpp)",
+      "- [AudioManager/readme.md](d:/GithubRepos/The-Fly/lib/AudioManager/readme.md)",
+      "",
+      "`pio run` passed."
+    ],
+    "files": [
+      "lib/AudioManager/AudioManager.h",
+      "lib/AudioManager/AudioManager.cpp",
+      "src/bt_audio_demo.cpp",
+      "src/push_to_talk_demo.cpp",
+      "src/mic_sd_recorder_demo.cpp",
+      "lib/AudioManager/readme.md"
+    ]
   }
 ]

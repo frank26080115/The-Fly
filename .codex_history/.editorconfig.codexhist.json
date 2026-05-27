@@ -1,0 +1,65 @@
+[
+  {
+    "timestamp": "2026-05-03T07:14:11Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "37471f5d99727676ebcaee90085bb7e9b6cfa054"
+  },
+  {
+    "timestamp": "2026-05-26T03:35:32.993Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: .gitattributes",
+      "",
+      "## Open tabs:",
+      "- .gitattributes: .gitattributes",
+      "- platformio.ini: platformio.ini",
+      "- index.html: html/index.html",
+      "- sdkconfig.defaults: sdkconfig.defaults",
+      "- script.js: html/script.js",
+      "",
+      "## My request for Codex:",
+      "make it for windows"
+    ],
+    "agent_reply": [
+      "Done. I made the line-ending setup Windows-oriented:",
+      "",
+      "- [.gitattributes](D:/GithubRepos/The-Fly/.gitattributes) now uses `eol=crlf`",
+      "- [.editorconfig](D:/GithubRepos/The-Fly/.editorconfig) now uses `end_of_line = crlf`",
+      "- Updated the generators so they keep producing CRLF:",
+      "  - [tools/generate_version_source.py](D:/GithubRepos/The-Fly/tools/generate_version_source.py)",
+      "  - [tools/package_web_assets.py](D:/GithubRepos/The-Fly/tools/package_web_assets.py)",
+      "",
+      "I also normalized the currently generated files so the workspace matches the policy.",
+      "",
+      "`git diff --check` is clean now, with no whitespace reports and no LF-to-CRLF warnings.",
+      "",
+      "Done. I made the line-ending setup Windows-oriented:",
+      "",
+      "- [.gitattributes](D:/GithubRepos/The-Fly/.gitattributes) now uses `eol=crlf`",
+      "- [.editorconfig](D:/GithubRepos/The-Fly/.editorconfig) now uses `end_of_line = crlf`",
+      "- Updated the generators so they keep producing CRLF:",
+      "  - [tools/generate_version_source.py](D:/GithubRepos/The-Fly/tools/generate_version_source.py)",
+      "  - [tools/package_web_assets.py](D:/GithubRepos/The-Fly/tools/package_web_assets.py)",
+      "",
+      "I also normalized the currently generated files so the workspace matches the policy.",
+      "",
+      "`git diff --check` is clean now, with no whitespace reports and no LF-to-CRLF warnings."
+    ],
+    "files": [
+      ".gitattributes",
+      ".editorconfig",
+      "src/version.c",
+      "tools/package_web_assets.py",
+      "tools/generate_version_source.py"
+    ]
+  },
+  {
+    "timestamp": "2026-05-26T04:16:57Z",
+    "type": "git_commit",
+    "commit_message": "better splashview",
+    "commit_hash": "5d6e3cd59cf0a071c90542106fc384b1e1e8eab2"
+  }
+]

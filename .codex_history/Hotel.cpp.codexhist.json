@@ -75,5 +75,95 @@
       "mic_sd_recorder_demo.cpp",
       "src/mic_sd_recorder_demo.cpp"
     ]
+  },
+  {
+    "timestamp": "2026-05-20T07:06:04.707Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/Hotel/Hotel.cpp",
+      "",
+      "## Active selection of the file:",
+      "kFullShutdownAllowedByLogging",
+      "## Open tabs:",
+      "- Hotel.cpp: lib/Hotel/Hotel.cpp",
+      "- SplashView.h: lib/FlyGuiViews/SplashView.h",
+      "- SplashView.cpp: lib/FlyGuiViews/SplashView.cpp",
+      "- main.cpp: src/main.cpp",
+      "- FlyGui.cpp: lib/FlyGui/FlyGui.cpp",
+      "",
+      "## My request for Codex:",
+      "how do I fix this?"
+    ],
+    "agent_reply": [
+      "Fixed in [Hotel.cpp](D:/GithubRepos/The-Fly/lib/Hotel/Hotel.cpp:38).",
+      "",
+      "The bug was that `kFullShutdownAllowedByLogging` only blocked `State::Shutdown`; light sleep was still allowed. I added `kLightSleepAllowedByLogging` and made `state_allows_light_sleep()` return `false` when logging is above error.",
+      "",
+      "So debug/info builds can still dim/lower CPU, but they won’t call `M5.Power.lightSleep()` anymore, which is the path that preceded the `RTCWDT_RTC_RESET`.",
+      "",
+      "I did not run a full build; `git diff --check` is clean.",
+      "",
+      "Fixed in [Hotel.cpp](D:/GithubRepos/The-Fly/lib/Hotel/Hotel.cpp:38).",
+      "",
+      "The bug was that `kFullShutdownAllowedByLogging` only blocked `State::Shutdown`; light sleep was still allowed. I added `kLightSleepAllowedByLogging` and made `state_allows_light_sleep()` return `false` when logging is above error.",
+      "",
+      "So debug/info builds can still dim/lower CPU, but they won’t call `M5.Power.lightSleep()` anymore, which is the path that preceded the `RTCWDT_RTC_RESET`.",
+      "",
+      "I did not run a full build; `git diff --check` is clean."
+    ],
+    "files": [
+      "Hotel.cpp",
+      "lib/Hotel/Hotel.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-21T18:14:42.829Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: components/thefly_linker_overrides/CMakeLists.txt",
+      "",
+      "## Open tabs:",
+      "- CMakeLists.txt: components/thefly_linker_overrides/CMakeLists.txt",
+      "- linker.lf: components/thefly_linker_overrides/linker.lf",
+      "- all_tests.h: src/tests/all_tests.h",
+      "- all_tests.cpp: src/tests/all_tests.cpp",
+      "- all_init.cpp: src/all_init.cpp",
+      "",
+      "## My request for Codex:",
+      "I fixed it, all I did was disable CPU frequency changing",
+      "",
+      "so right now the only meaningful thing Hotel can do is dim the screen and shutdown, I think, look at my modification to it"
+    ],
+    "agent_reply": [
+      "I think your diagnosis is right, but I don’t see the actual CPU-disable change saved in the workspace yet.",
+      "",
+      "Right now [Hotel.cpp](</D:/GithubRepos/The-Fly/lib/Hotel/Hotel.cpp>) still calls:",
+      "",
+      "```cpp",
+      "setCpuFrequencyMhz(state_uses_max_cpu(next) ? kCpuMaxMhz : kCpuMinMhz);",
+      "setCpuFrequencyMhz(kCpuMaxMhz);",
+      "```",
+      "",
+      "So the `Hotel.cpp` change I can see is basically line-ending churn, not a semantic change. If your device test worked, the disabling may be in an unsaved editor buffer or a different file/build.",
+      "",
+      "Conceptually, yes: with CPU frequency changes removed and `kLightSleepSupported = false`, Hotel’s meaningful jobs become:",
+      "",
+      "- keep brightness full while active/blocked",
+      "- dim brightness after idle time",
+      "- optionally power off after `kShutdownMs`, only when logging allows it",
+      "- track blocked state from Bluetooth/Wi-Fi/audio so it does not dim/shutdown during active work",
+      "",
+      "The state names `ActiveDimAllowed`, `LightSleepReady`, and `DimLightSleepReady` become a bit stale because there is no CPU scaling and no light sleep. They mostly just mean “idle age bucket” and “brightness bucket” now.",
+      "",
+      "This is a very believable root cause. Changing CPU frequency while Bluedroid is in its HFP/RFCOMM setup window could absolutely produce the “ACL connected, no SLC, timeout later” shape we were seeing."
+    ],
+    "files": [
+      "lib/Hotel/Hotel.cpp",
+      "Hotel.cpp"
+    ]
   }
 ]

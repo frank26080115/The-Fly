@@ -1,0 +1,192 @@
+[
+  {
+    "timestamp": "2026-05-01T06:41:29Z",
+    "type": "git_commit",
+    "commit_message": "Initial commit",
+    "commit_hash": "60fbea01c9563e7ebff5bd9ad0d67ff5949440be"
+  },
+  {
+    "timestamp": "2026-05-01T07:33:05.965Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: .gitignore",
+      "",
+      "## Open tabs:",
+      "- .gitignore: .gitignore",
+      "- main.cpp: src/main.cpp",
+      "- platformio.ini: platformio.ini",
+      "- high-level-fw-design.md: developer-docs/high-level-fw-design.md",
+      "- ui-design.md: developer-docs/ui-design.md",
+      "",
+      "## My request for Codex:",
+      "tweak the .gitignore appropriately, keeping in mind that the \"tools\" directory might have python so ignore pycache"
+    ],
+    "agent_reply": [
+      "Done. I updated [.gitignore](d:/GithubRepos/The-Fly/.gitignore) to ignore:",
+      "",
+      "- PlatformIO build output: `.pio/`",
+      "- Python cache/bytecode for future scripts in `tools`: `__pycache__/`, `*.py[cod]`, `*$py.class`",
+      "- Generated VS Code/PlatformIO files: `.vscode/c_cpp_properties.json`, `.vscode/launch.json`, `.vscode/.browse.c_cpp.db*`",
+      "",
+      "I left `.vscode/extensions.json` trackable since that can be useful shared project metadata."
+    ],
+    "files": [
+      ".gitignore"
+    ]
+  },
+  {
+    "timestamp": "2026-05-01T08:45:00Z",
+    "type": "git_commit",
+    "commit_message": "progress",
+    "commit_hash": "384fc246aafc465d1b9dc72802ba63530501f038"
+  },
+  {
+    "timestamp": "2026-05-14T07:10:12.644Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_sdcard.cpp",
+      "",
+      "## Open tabs:",
+      "- test_sdcard.cpp: src/tests/test_sdcard.cpp",
+      "- mic_sd_recorder_demo.cpp: code_for_reference/mic_sd_recorder_demo.cpp",
+      "- mic_sd_recorder_demo.cpp: src/mic_sd_recorder_demo.cpp",
+      "- platformio.ini: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "make sure `code_for_reference` is ignored completely and no other code references anything in it",
+      "",
+      "also make sure things in `src\\tests` get built and it is included as an include search path"
+    ],
+    "agent_reply": [
+      "Done.",
+      "",
+      "Changed [platformio.ini](d:/GithubRepos/The-Fly/platformio.ini:14) to add `src/tests` as an include path, and added an explicit `build_src_filter` so `src/tests/**` is included while `../code_for_reference/**` is excluded from firmware builds.",
+      "",
+      "Changed [.gitignore](d:/GithubRepos/The-Fly/.gitignore:49) to ignore `code_for_reference/`.",
+      "",
+      "Verified:",
+      "- `rg` finds no live references to `code_for_reference` except the intentional exclusion in `platformio.ini`.",
+      "- `pio run -e m5stack-core2` succeeds.",
+      "- Build log confirms `src\\tests\\test_sdcard.cpp` is compiled: `Compiling .pio\\build\\m5stack-core2\\src\\tests\\test_sdcard.cpp.o`.",
+      "- `git diff --check` is clean.",
+      "",
+      "I left the unrelated existing workspace changes alone: `.vscode/extensions.json`, deleted demo files under `src`, and the untracked `src/tests/` directory.",
+      "",
+      "Done.",
+      "",
+      "Changed [platformio.ini](d:/GithubRepos/The-Fly/platformio.ini:14) to add `src/tests` as an include path, and added an explicit `build_src_filter` so `src/tests/**` is included while `../code_for_reference/**` is excluded from firmware builds.",
+      "",
+      "Changed [.gitignore](d:/GithubRepos/The-Fly/.gitignore:49) to ignore `code_for_reference/`.",
+      "",
+      "Verified:",
+      "- `rg` finds no live references to `code_for_reference` except the intentional exclusion in `platformio.ini`.",
+      "- `pio run -e m5stack-core2` succeeds.",
+      "- Build log confirms `src\\tests\\test_sdcard.cpp` is compiled: `Compiling .pio\\build\\m5stack-core2\\src\\tests\\test_sdcard.cpp.o`.",
+      "- `git diff --check` is clean.",
+      "",
+      "I left the unrelated existing workspace changes alone: `.vscode/extensions.json`, deleted demo files under `src`, and the untracked `src/tests/` directory."
+    ],
+    "files": [
+      "platformio.ini",
+      "src/tests/test_sdcard.cpp",
+      ".gitignore"
+    ]
+  },
+  {
+    "timestamp": "2026-05-14T09:06:33Z",
+    "type": "git_commit",
+    "commit_message": "got a physical unit, starting bringup tests",
+    "commit_hash": "9d0330a8d4292ae1c769e093080a2eba28dce43f"
+  },
+  {
+    "timestamp": "2026-05-16T08:45:13.731Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: compile_commands.json",
+      "",
+      "## Open tabs:",
+      "- compile_commands.json: compile_commands.json",
+      "- platformio.ini: platformio.ini",
+      "- sdkconfig.theflybringuptest: sdkconfig.theflybringuptest",
+      "- sdkconfig.m5stack-core2: sdkconfig.m5stack-core2",
+      "- sdkconfig.defaults: sdkconfig.defaults",
+      "",
+      "## My request for Codex:",
+      "I need a full description of `tools\\embed_managed_component_certs.py`, put it at the top of the file as a comment, I need to know what problem does it solve, how do I know if it encountered the problem (like during a build, what are some of the errors), and how it solves the problem.",
+      "",
+      "Further, I need a description of what `managed_components` is, write it as a part of the above comment. Especially point out of the files need to be commited to git in order to keep development on another PC.",
+      "",
+      "If `embed_managed_component_certs.py` is run every build, then... if `managed_components.zip` exists but the directory `managed_components` does not exist, then unzip `managed_components.zip`. If directory `managed_components` does exist but `managed_components.zip` does not exist, then zip up directory `managed_components` correctly such that it can be unzipped correctly. Add directory `managed_components` to `.gitignore` but make sure `managed_components.zip` can be committed.",
+      "",
+      "Also, I see these files",
+      "",
+      " * `CMakeLists.txt`",
+      " * `compile_commands.json`",
+      " * `dependencies.lock`",
+      " * `sdkconfig.m5stack-core2`",
+      "",
+      "that may or may not be important later, do I commit them?"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "What changed:",
+      "- Added the full explanatory comment to [embed_managed_component_certs.py](D:/GithubRepos/The-Fly/tools/embed_managed_component_certs.py:1).",
+      "- Added build-time sync behavior:",
+      "  - If `managed_components.zip` exists and `managed_components/` is missing, it extracts the zip.",
+      "  - If `managed_components/` exists and `managed_components.zip` is missing, it creates the zip.",
+      "  - The zip stores paths as `managed_components/...`, so extracting from repo root recreates the directory correctly.",
+      "- Updated [.gitignore](D:/GithubRepos/The-Fly/.gitignore:47) so `managed_components/` is ignored but `managed_components.zip` can be committed.",
+      "- Ran `pio run -e theflybringuptest`; it created `managed_components.zip` and the build passed.",
+      "",
+      "Commit guidance:",
+      "- Commit: `tools/embed_managed_component_certs.py`, `.gitignore`, `managed_components.zip`, `dependencies.lock`, `CMakeLists.txt`.",
+      "- Do not commit: `managed_components/`, `compile_commands.json`.",
+      "- Probably do not commit: `sdkconfig.m5stack-core2`, `sdkconfig.theflybringuptest`, `sdkconfig.defaults` as they currently look auto-generated. Your important SDK tweaks are already in `platformio.ini` under `custom_sdkconfig`; that is the cleaner thing to commit."
+    ],
+    "files": [
+      "tools/embed_managed_component_certs.py",
+      ".gitignore",
+      "CMakeLists.txt",
+      "dependencies.lock",
+      "compile_commands.json",
+      "platformio.ini"
+    ]
+  },
+  {
+    "timestamp": "2026-05-16T08:56:52Z",
+    "type": "git_commit",
+    "commit_message": "update the stuff for managed_components",
+    "commit_hash": "7fc34aaee0c446b065de553e9af6e66763dda1f4"
+  },
+  {
+    "timestamp": "2026-05-16T10:53:03Z",
+    "type": "git_commit",
+    "commit_message": "need to rename \"utils.h\" for build error",
+    "commit_hash": "3bcbc18d61c82a3d9ceeec927cd1c2fd3cd81584"
+  },
+  {
+    "timestamp": "2026-05-23T00:32:59Z",
+    "type": "git_commit",
+    "commit_message": "Update .gitignore",
+    "commit_hash": "2070aa3d46c56d0207ce8a7b0abe9d96db37468e"
+  },
+  {
+    "timestamp": "2026-05-26T04:16:57Z",
+    "type": "git_commit",
+    "commit_message": "better splashview",
+    "commit_hash": "5d6e3cd59cf0a071c90542106fc384b1e1e8eab2"
+  },
+  {
+    "timestamp": "2026-05-26T07:29:40Z",
+    "type": "git_commit",
+    "commit_message": "memory reset button on frontend",
+    "commit_hash": "6c323e6238d7e839e5d67bc97b2fb014d52453b8"
+  }
+]

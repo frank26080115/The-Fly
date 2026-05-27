@@ -1,5 +1,55 @@
 [
   {
+    "timestamp": "2026-05-03T08:35:26.219Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/push_to_talk_demo.cpp",
+      "",
+      "## Open tabs:",
+      "- push_to_talk_demo.cpp: src/push_to_talk_demo.cpp",
+      "- adc.h: c:\\Users\\frank\\.platformio\\packages\\framework-arduinoespressif32-libs\\esp32\\include\\driver\\deprecated\\driver\\adc.h",
+      "- platformio.ini: platformio.ini",
+      "- readme.md: lib/AudioManager/readme.md",
+      "- bt_audio_demo.cpp: src/bt_audio_demo.cpp",
+      "",
+      "## My request for Codex:",
+      "hmmm this migration task might be bigger, do it across the project, including attempts to fix the WiFiGeneric.h and Network.h issues, try not doing a test build until the very end as I want to take a shower while you think"
+    ],
+    "agent_reply": [
+      "Done. I migrated the remaining project-owned deprecated I2S usage to the ESP-IDF 5 channel API across:",
+      "",
+      "- [src/push_to_talk_demo.cpp](d:/GithubRepos/The-Fly/src/push_to_talk_demo.cpp)",
+      "- [src/mic_sd_recorder_demo.cpp](d:/GithubRepos/The-Fly/src/mic_sd_recorder_demo.cpp)",
+      "- [src/bt_audio_demo.cpp](d:/GithubRepos/The-Fly/src/bt_audio_demo.cpp)",
+      "- [lib/AudioManager/AudioManager.cpp](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp)",
+      "",
+      "I also fixed the Bluetooth name deprecation in:",
+      "",
+      "- [src/bt_audio_demo.cpp](d:/GithubRepos/The-Fly/src/bt_audio_demo.cpp)",
+      "- [src/bt_pairing_demo.cpp](d:/GithubRepos/The-Fly/src/bt_pairing_demo.cpp)",
+      "",
+      "And I fixed the `WiFiGeneric.h` / `Network.h` issue by adding Arduino’s `Network/src` include path in [platformio.ini](d:/GithubRepos/The-Fly/platformio.ini).",
+      "",
+      "Verification: `pio run` passes successfully. I also checked that the old project-owned `driver/i2s.h`, legacy `i2s_*` driver calls, and deprecated `esp_bt_dev_set_device_name` calls are gone."
+    ],
+    "files": [
+      "mic_sd_recorder_demo.cpp",
+      "bt_audio_demo.cpp",
+      "AudioManager.cpp",
+      "Network.h",
+      "platformio.ini",
+      "src/mic_sd_recorder_demo.cpp",
+      "src/bt_audio_demo.cpp",
+      "lib/AudioManager/AudioManager.cpp",
+      "src/bt_pairing_demo.cpp",
+      "src/push_to_talk_demo.cpp",
+      "WiFiGeneric.h",
+      "driver/i2s.h"
+    ]
+  },
+  {
     "timestamp": "2026-05-05T18:16:41.313Z",
     "type": "codex_task",
     "user_prompt": [

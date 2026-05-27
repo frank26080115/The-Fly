@@ -1,0 +1,51 @@
+[
+  {
+    "timestamp": "2026-05-24T06:56:36.915Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BluetoothManager/BtHostList.h",
+      "",
+      "## Active selection of the file:",
+      "last_used",
+      "## Open tabs:",
+      "- BtHostList.h: lib/BluetoothManager/BtHostList.h",
+      "- index.html: html/index.html",
+      "- main.cpp: src/main.cpp",
+      "- test_bootreadfiles.cpp: src/tests/test_bootreadfiles.cpp",
+      "- WifiManager.h: lib/WifiManager/WifiManager.h",
+      "",
+      "## My request for Codex:",
+      "cleanly remove the requirement of password for cloud uploads, the security design has changed"
+    ],
+    "agent_reply": [
+      "Implemented. Cloud upload destinations no longer require or store a password/salt.",
+      "",
+      "Changed:",
+      "- Removed `cloud_item_t::password` from non-secure config too.",
+      "- Removed cloud password parsing/preservation from `WebCfgHandlers`.",
+      "- `CloudUpload` no longer copies/stores destination password.",
+      "- Legacy non-secure upload hash is now filename + timestamp only.",
+      "- Secure upload path still uses `Aegis::hmacSha256` with the master key.",
+      "- Added secure NVS migration for old network config blobs that still had the cloud password field, dropping that field and saving the new layout.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_bringuptest",
+      "```",
+      "",
+      "Build passed. I restored the generated `src/version.c` churn afterward."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.h",
+      "lib/WifiManager/WifiManager.cpp",
+      "lib/WifiManager/CloudUpload.h",
+      "lib/WifiManager/CloudUpload.cpp",
+      "lib/WifiManager/WebCfgHandlers.cpp",
+      "src/version.c",
+      "CloudUpload.h"
+    ]
+  }
+]

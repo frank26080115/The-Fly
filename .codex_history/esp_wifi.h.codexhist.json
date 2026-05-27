@@ -1,0 +1,54 @@
+[
+  {
+    "timestamp": "2026-05-26T09:28:23.646Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: tools/sterile_rebuild.py",
+      "",
+      "## Open tabs:",
+      "- sterile_rebuild.py: tools/sterile_rebuild.py",
+      "- platformio.ini: platformio.ini",
+      "- WifiApModeView.cpp: lib/FlyGuiViews/WifiApModeView.cpp",
+      "- sdkconfig.defaults: sdkconfig.defaults",
+      "- WebCfgHandlers.cpp: lib/WifiManager/WebCfgHandlers.cpp",
+      "",
+      "## My request for Codex:",
+      "in `lib\\FlyGuiViews\\WifiApModeView.cpp`, probably at x=104 and y just below the top bar, show two lines of text, in the smallest font",
+      "",
+      "the text should be \"<mac of connected wifi client or nobody>\" then next line is just a number",
+      "",
+      "the number is the number of times any client has connected"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "`WifiApModeView` now draws two smallest-font lines at the top-right area starting at `x=104`:",
+      "- connected SoftAP client MAC, formatted with hyphens, or `nobody`",
+      "- total client connection count",
+      "",
+      "`WifiManager` now tracks the current SoftAP client via `esp_wifi_ap_get_sta_list()` and increments the count whenever a client appears after no client, or a different client appears. The tracking resets when Wi-Fi/AP starts or stops.",
+      "",
+      "Verification: `pio run -e thefly_sec0` succeeded. The first build run had a transient missing `version.c.o` artifact, rerunning regenerated it and linked cleanly.",
+      "",
+      "Implemented.",
+      "",
+      "`WifiApModeView` now draws two smallest-font lines at the top-right area starting at `x=104`:",
+      "- connected SoftAP client MAC, formatted with hyphens, or `nobody`",
+      "- total client connection count",
+      "",
+      "`WifiManager` now tracks the current SoftAP client via `esp_wifi_ap_get_sta_list()` and increments the count whenever a client appears after no client, or a different client appears. The tracking resets when Wi-Fi/AP starts or stops.",
+      "",
+      "Verification: `pio run -e thefly_sec0` succeeded. The first build run had a transient missing `version.c.o` artifact, rerunning regenerated it and linked cleanly."
+    ],
+    "files": [
+      "esp_wifi.h",
+      "lib/WifiManager/WifiManager.h",
+      "lib/WifiManager/WifiManager.cpp",
+      "lib/FlyGuiViews/WifiApModeView.h",
+      "lib/FlyGuiViews/WifiApModeView.cpp",
+      "src/version.c"
+    ]
+  }
+]

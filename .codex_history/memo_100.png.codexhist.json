@@ -1,0 +1,52 @@
+[
+  {
+    "timestamp": "2026-05-21T07:55:06.221Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## Open tabs:",
+      "- platformio.ini: platformio.ini",
+      "- graphics_resizer.py: tools/graphics_resizer.py",
+      "- .gitignore: gfx-assets/.gitignore",
+      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
+      "- all_tests.cpp: src/tests/all_tests.cpp",
+      "",
+      "## My request for Codex:",
+      "that went acceptably well",
+      "",
+      "but you swapped my memo button with a mic button, that's wrong",
+      "",
+      "also, now that the icons are smaller, it shows that the unload function for the splash screen does not clear the screen, so it shows up through the cracks when mainscreenview is loaded",
+      "",
+      "the same problem is happening when exiting out of scrollview, the old exit door graphic is slipping through the crack",
+      "",
+      "I believe we solved this twice with drawing a gigantic black rectangle in the unload function"
+    ],
+    "agent_reply": [
+      "Fixed both issues.",
+      "",
+      "The main memo button now uses the proper generated `sprit_memo_100` asset in [MainScreenView.cpp](d:/GithubRepos/The-Fly/lib/FlyGuiViews/MainScreenView.cpp:49). I copied `memo_100.png` into `gfx-assets/sprites/` and regenerated `inc/sprites.h` / `src/sprites.cpp`, so the symbol exists cleanly.",
+      "",
+      "I also added unload clears:",
+      "- [SplashView.cpp](d:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:15) now clears the full screen on unload.",
+      "- [ScrollView.cpp](d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:184) now clears the content area below the top bar on unload, which should stop the old exit-door pixels showing through.",
+      "",
+      "Verification: `pio run -e thefly` succeeded. I also restored the generated `src/version.c` hash afterward, because that file keeps begging us to leave it alone."
+    ],
+    "files": [
+      "gfx-assets/sprites_resized/memo_100.png",
+      "memo_100.png",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "lib/FlyGuiViews/SplashView.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollView.h",
+      "lib/FlyGuiViews/SplashView.h",
+      "lib/FlyGuiViews/MainScreenView.cpp",
+      "src/version.c",
+      "inc/sprites.h",
+      "src/sprites.cpp"
+    ]
+  }
+]

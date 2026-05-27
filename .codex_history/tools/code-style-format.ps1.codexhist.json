@@ -1,0 +1,41 @@
+[
+  {
+    "timestamp": "2026-05-03T07:02:29.491Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: .clang-format",
+      "",
+      "## Open tabs:",
+      "- .clang-format: .clang-format",
+      "- .editorconfig: .editorconfig",
+      "- code-style-check-format.sh: tools/code-style-check-format.sh",
+      "- code-style-format.sh: tools/code-style-format.sh",
+      "- agentic-ai-rules.md: developer-docs/agentic-ai-rules.md",
+      "",
+      "## My request for Codex:",
+      "make windows or powershell compatible versions of `tools\\code-style-format.sh` and `tools\\code-style-check-format.sh`"
+    ],
+    "agent_reply": [
+      "Added PowerShell equivalents:",
+      "",
+      "- [tools/code-style-format.ps1](d:/GithubRepos/The-Fly/tools/code-style-format.ps1)",
+      "- [tools/code-style-check-format.ps1](d:/GithubRepos/The-Fly/tools/code-style-check-format.ps1)",
+      "",
+      "They mirror the Bash scripts: scan `src`, `include`, `lib`, and `test` for `.c/.cpp/.h/.hpp`, then run `clang-format -i` or `clang-format --dry-run --Werror`.",
+      "",
+      "I also added a clear error if `clang-format` is not on `PATH`. I verified the scripts execute under PowerShell; on this machine they stop at that expected missing-`clang-format` message."
+    ],
+    "files": [
+      "tools/code-style-format.ps1",
+      "tools/code-style-check-format.ps1"
+    ]
+  },
+  {
+    "timestamp": "2026-05-03T07:14:11Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "37471f5d99727676ebcaee90085bb7e9b6cfa054"
+  }
+]

@@ -1,0 +1,65 @@
+[
+  {
+    "timestamp": "2026-05-22T04:00:41.556Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_webserver.cpp",
+      "",
+      "## Active selection of the file:",
+      "void test_webserver()",
+      "## Open tabs:",
+      "- test_webserver.cpp: src/tests/test_webserver.cpp",
+      "- platformio.ini: platformio.ini",
+      "- readme.md: lib/FtpServer/readme.md",
+      "- package_web_assets.py: tools/package_web_assets.py",
+      "- sprites.cpp: src/sprites.cpp",
+      "",
+      "## My request for Codex:",
+      "Inside `lib\\FtpServer` implement a `lib\\FtpServer\\FtpServer.cpp` and `lib\\FtpServer\\FtpServer.h` that's simply a wrapper so that the `kastenklicker/ESP-FTP-Server` library is serving the microSD card. Wire it into `void test_webserver()`, put some comments on how to make it secure, like setting a username and password and if it is using sftp or not."
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "The new wrapper is in [FtpServer.h](/d:/GithubRepos/The-Fly/lib/FtpServer/FtpServer.h:1) and [FtpServer.cpp](/d:/GithubRepos/The-Fly/lib/FtpServer/FtpServer.cpp:1). It:",
+      "- mounts one Arduino `FS` filesystem as `microSD`",
+      "- requires a username and password",
+      "- exposes `FtpServer::start()`, `FtpServer::poll()`, and `FtpServer::started()`",
+      "- documents that this is plain FTP, not SFTP or FTPS, so credentials do not encrypt the transport: [FtpServer.cpp](/d:/GithubRepos/The-Fly/lib/FtpServer/FtpServer.cpp:29)",
+      "",
+      "I wired it into [test_webserver.cpp](/d:/GithubRepos/The-Fly/src/tests/test_webserver.cpp:1):",
+      "- starts FTP after the SoftAP and HTTP server",
+      "- mounts the card through Arduino `SD` for the FTP library",
+      "- services FTP from the test loop every 10 ms",
+      "- adds explicit comments for the future security work and the `SdFat` vs Arduino `SD` wrinkle: [test_webserver.cpp](/d:/GithubRepos/The-Fly/src/tests/test_webserver.cpp:64)",
+      "",
+      "One important caveat is left in the code on purpose: `kastenklicker/ESP-FTP-Server` 0.14.2 takes Arduino `FS`, while the main firmware microSD path uses `SdFat::SdFs`. In this bring-up test, HTTP is still using `MicroSdCard`/SdFat and FTP mounts the same card through Arduino `SD`. That is fine for proving the wrapper, but I would not keep two writable filesystem stacks pointed at the same card in the real Wi-Fi path.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_bringuptest",
+      "```",
+      "",
+      "Build passed. The build still emits existing warnings from `lib/sbc`, plus a dependency warning that `ESP-FTP-Server` calls deprecated `NetworkServer::available()`.",
+      "",
+      "There are unrelated worktree changes still present in [web_assets.h](/d:/GithubRepos/The-Fly/inc/web_assets.h) and [package_web_assets.py](/d:/GithubRepos/The-Fly/tools/package_web_assets.py); I left those alone."
+    ],
+    "files": [
+      "platformio.ini",
+      "src/tests/test_webserver.cpp",
+      "lib/FtpServer/FtpServer.h",
+      "lib/FtpServer/FtpServer.cpp",
+      "src/version.c",
+      "inc/web_assets.h",
+      "tools/package_web_assets.py"
+    ]
+  },
+  {
+    "timestamp": "2026-05-22T04:56:41Z",
+    "type": "git_commit",
+    "commit_message": "ftp server works",
+    "commit_hash": "999c2544883494dd08561819dc74e913ba45cd35"
+  }
+]

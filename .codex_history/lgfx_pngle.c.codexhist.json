@@ -1,0 +1,38 @@
+[
+  {
+    "timestamp": "2026-05-19T07:50:08.830Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/SpriteDraw/SpriteDraw.cpp",
+      "",
+      "## Active selection of the file:",
+      "lgfx_pngle_new",
+      "## Open tabs:",
+      "- SpriteDraw.cpp: lib/SpriteDraw/SpriteDraw.cpp",
+      "- lgfx_pngle.c: .pio/libdeps/theflybringuptest/M5GFX/src/lgfx/utility/lgfx_pngle.c",
+      "- lgfx_pngle.h: .pio/libdeps/theflybringuptest/M5GFX/src/lgfx/utility/lgfx_pngle.h",
+      "- platformio.ini: platformio.ini",
+      "- FlyGui.cpp: lib/FlyGui/FlyGui.cpp",
+      "",
+      "## My request for Codex:",
+      "don't patch the symptoms away, why is the allocation failing? debug print heap size before and after `lgfx_pngle_new`, do not test build"
+    ],
+    "agent_reply": [
+      "Added heap diagnostics directly around `lgfx_pngle_new()` in [SpriteDraw.cpp](/d:/GithubRepos/The-Fly/lib/SpriteDraw/SpriteDraw.cpp:202).",
+      "",
+      "The logs now print:",
+      "",
+      "`free8`, `largest8`, `free_internal`, `largest_internal`, and `min_free8` before and after the allocation.",
+      "",
+      "The likely reason: `lgfx_pngle_new()` does one large `malloc(sizeof(pngle_t))`. In M5GFX’s `lgfx_pngle.c`, that object includes a 32 KB LZ buffer plus an inflater noted as about 11 KB, so it needs a large contiguous heap block, not just enough total free heap. Watch `largest8` / `largest_internal`; if those are below roughly 44-46 KB, allocation will fail.",
+      "",
+      "I did not run a build."
+    ],
+    "files": [
+      "lib/SpriteDraw/SpriteDraw.cpp",
+      "lgfx_pngle.c"
+    ]
+  }
+]

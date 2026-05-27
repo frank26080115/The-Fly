@@ -1,0 +1,129 @@
+[
+  {
+    "timestamp": "2026-05-03T09:03:36Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "29745920c6cf847fb4135d8f0efdf47683bcba94"
+  },
+  {
+    "timestamp": "2026-05-04T06:37:42.990Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: developer-docs/high-level-fw-design.md",
+      "",
+      "## Active selection of the file:",
+      "SPM1423",
+      "## Open tabs:",
+      "- high-level-fw-design.md: developer-docs/high-level-fw-design.md",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- main.cpp: src/main.cpp",
+      "- AudioFifo.h: lib/AudioFifo/AudioFifo.h",
+      "- PCF8563_Class.cpp: .pio/libdeps/m5stack-core2/M5Unified/src/utility/rtc/PCF8563_Class.cpp",
+      "",
+      "## My request for Codex:",
+      "Instead of refering to \"core2_speaker', use `NS4168_speaker`. Instead of \"core2_mic\", use `SPM1423_mic`. Avoid the use of the word \"core\" as it has many other meanings"
+    ],
+    "agent_reply": [
+      "Done.",
+      "",
+      "Renamed the internal speaker/mic hardware references to the actual parts:",
+      "",
+      "- `core2_speaker` style names -> `ns4168_speaker`",
+      "- `core2_mic` style names -> `spm1423_mic`",
+      "- Pin constants now use `kNS4168Speaker...` and `kSPM1423Mic...`",
+      "- `Hardware::Core2Internal` is now `Hardware::M5StackInternal`",
+      "- Updated related log labels/readme wording",
+      "",
+      "Touched:",
+      "- [AudioManager.cpp](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp)",
+      "- [AudioManager.h](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.h)",
+      "- [bt_audio_demo.cpp](d:/GithubRepos/The-Fly/src/bt_audio_demo.cpp)",
+      "- [push_to_talk_demo.cpp](d:/GithubRepos/The-Fly/src/push_to_talk_demo.cpp)",
+      "- [mic_sd_recorder_demo.cpp](d:/GithubRepos/The-Fly/src/mic_sd_recorder_demo.cpp)",
+      "- [AudioManager/readme.md](d:/GithubRepos/The-Fly/lib/AudioManager/readme.md)",
+      "",
+      "`pio run` passed."
+    ],
+    "files": [
+      "lib/AudioManager/AudioManager.h",
+      "lib/AudioManager/AudioManager.cpp",
+      "src/bt_audio_demo.cpp",
+      "src/push_to_talk_demo.cpp",
+      "src/mic_sd_recorder_demo.cpp",
+      "lib/AudioManager/readme.md"
+    ]
+  },
+  {
+    "timestamp": "2026-05-04T06:41:38.030Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "pump_bt2s",
+      "## Open tabs:",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- high-level-fw-design.md: developer-docs/high-level-fw-design.md",
+      "- main.cpp: src/main.cpp",
+      "- AudioFifo.h: lib/AudioFifo/AudioFifo.h",
+      "- PCF8563_Class.cpp: .pio/libdeps/m5stack-core2/M5Unified/src/utility/rtc/PCF8563_Class.cpp",
+      "",
+      "## My request for Codex:",
+      "rename `g_bt_to_speaker` to `g_fifo_bt2spk`",
+      "",
+      "rename `g_bt_to_file` to `g_fifo_bt2file`",
+      "",
+      "rename `g_mic_to_bt` to `g_fifo_mic2bt`",
+      "",
+      "rename `g_mic_to_file` to `g_fifo_mic2file`",
+      "",
+      "rename `pump_bt2s` to `pump_bt2spk`"
+    ],
+    "agent_reply": [
+      "Renamed the AudioManager internals and public pump function:",
+      "",
+      "- `g_bt_to_speaker` -> `g_fifo_bt2spk`",
+      "- `g_bt_to_file` -> `g_fifo_bt2file`",
+      "- `g_mic_to_bt` -> `g_fifo_mic2bt`",
+      "- `g_mic_to_file` -> `g_fifo_mic2file`",
+      "- `pump_bt2s()` -> `pump_bt2spk()`",
+      "",
+      "Updated [AudioManager.h](/d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.h), [AudioManager.cpp](/d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp), and the README reference.",
+      "",
+      "Verification: `pio run` passes successfully.",
+      "",
+      "Renamed the AudioManager internals and public pump function:",
+      "",
+      "- `g_bt_to_speaker` -> `g_fifo_bt2spk`",
+      "- `g_bt_to_file` -> `g_fifo_bt2file`",
+      "- `g_mic_to_bt` -> `g_fifo_mic2bt`",
+      "- `g_mic_to_file` -> `g_fifo_mic2file`",
+      "- `pump_bt2s()` -> `pump_bt2spk()`",
+      "",
+      "Updated [AudioManager.h](/d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.h), [AudioManager.cpp](/d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp), and the README reference.",
+      "",
+      "Verification: `pio run` passes successfully."
+    ],
+    "files": [
+      "lib/AudioManager/readme.md",
+      "lib/AudioManager/AudioManager.h",
+      "lib/AudioManager/AudioManager.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-04T07:46:20Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "0065bdba2a9c72d3ebef8982804023dd796267c9"
+  },
+  {
+    "timestamp": "2026-05-04T22:18:38Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
+  }
+]
