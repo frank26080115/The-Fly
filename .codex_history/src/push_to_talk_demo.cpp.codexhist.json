@@ -50,6 +50,34 @@
     ]
   },
   {
+    "timestamp": "2026-05-01T18:04:11.211Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: developer-docs/high-level-fw-design.md",
+      "",
+      "## My request for Codex:",
+      "ok change the demo to use 16 kHz because I think this SBC library only works from 16 KHz and up anyways, verify this if you need to"
+    ],
+    "agent_reply": [
+      "Changed [src/bt_audio_demo.cpp](c:/GitHubRepos/The-Fly/src/bt_audio_demo.cpp) to make the HFP audio demo 16 kHz-oriented.",
+      "",
+      "What changed:",
+      "",
+      "- Replaced the 8 kHz/16 kHz split with a single `kHfpDemoSampleRate = 16000`.",
+      "- mSBC/wideband now configures the local I2S/PDM path at 16 kHz.",
+      "- CVSD/narrowband no longer pipes audio directly; it logs a warning and keeps audio disabled, since that native path is 8 kHz and would need resampling or a separate CVSD path.",
+      "- Updated comments to note that `libsbc` starts at `SBC_FREQ_16000`.",
+      "",
+      "Verified locally: `libsbc` supports `16000`, `32000`, `44100`, and `48000` sample-rate modes, and the PlatformIO build passes."
+    ],
+    "files": [
+      "src/bt_audio_demo.cpp",
+      "src/push_to_talk_demo.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-05-01T18:42:55.334Z",
     "type": "codex_task",
     "user_prompt": [

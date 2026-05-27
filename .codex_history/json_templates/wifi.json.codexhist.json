@@ -101,6 +101,39 @@
     "commit_hash": "020c08d34800ca31f015dab33b52d5a0092f8327"
   },
   {
+    "timestamp": "2026-05-18T18:51:39.104Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_bootreadfiles.cpp",
+      "",
+      "## Active selection of the file:",
+      "void test_bootreadfiles()",
+      "",
+      "## My request for Codex:",
+      "implement `void test_bootreadfiles()`, initialize the serial port, then initialize both `WifiManager` and `BtHostList` and have them load the JSON files, they should have an internal summary reporting feature, I just want a test function to show those outputs. Then `idle_forever`"
+    ],
+    "agent_reply": [
+      "Implemented `test_bootreadfiles()` in [src/tests/test_bootreadfiles.cpp](c:/GitHubRepos/The-Fly/src/tests/test_bootreadfiles.cpp:1).",
+      "",
+      "It now starts Serial, initializes M5 just enough for board support while leaving mic/speaker off, starts `MicroSdCard`, loads `wifi.json` through `WifiManager`, loads `bluetooth.json` through `BtHostList`, prints their public load summaries/results, then calls `idle_forever()`.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "src/tests/test_bootreadfiles.cpp",
+      "json_templates/wifi.json",
+      "json_templates/bluetooth.json"
+    ]
+  },
+  {
     "timestamp": "2026-05-22T02:56:13.275Z",
     "type": "codex_task",
     "user_prompt": [

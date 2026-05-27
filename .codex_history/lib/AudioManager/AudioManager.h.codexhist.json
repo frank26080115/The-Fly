@@ -456,6 +456,43 @@
     ]
   },
   {
+    "timestamp": "2026-05-04T20:31:05.859Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## My request for Codex:",
+      "I removed references to WM8960 because it is obsolete, new hardware target is SGTL5000 but I renamed a ton of stuff as external I2S codec",
+      "",
+      "review these changes"
+    ],
+    "agent_reply": [
+      "**Findings**",
+      "",
+      "1. [platformio.ini](c:/GitHubRepos/The-Fly/platformio.ini:29) still depends on `SparkFun_WM8960_Arduino_Library`.",
+      "   If WM8960 is obsolete, this dependency should be removed or replaced with the SGTL5000/control library you actually plan to use. Right now the build still pulls WM8960-specific code.",
+      "",
+      "2. [high-level-fw-design.md](c:/GitHubRepos/The-Fly/developer-docs/high-level-fw-design.md:9) still says “WM8960 or SGTL5000 available.”",
+      "   That conflicts with the new direction. If WM8960 is no longer valid hardware, this doc should say only SGTL5000 or generic external I2S codec.",
+      "",
+      "3. [AudioManager.cpp](c:/GitHubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:385) and [AudioManager.cpp](c:/GitHubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:391) still make `ExternalI2SCodec` unusable.",
+      "   Both `enable_exti2scodec_speaker()` and `enable_exti2scodec_mic()` return `false`, so selecting `Hardware::ExternalI2SCodec` cannot currently enable speaker or mic mode. If the rename was meant to preserve behavior while swapping codec hardware, this is the main functional gap.",
+      "",
+      "4. [AudioManager.cpp](c:/GitHubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:553) assumes every external I2S codec mic stream is stereo.",
+      "   That matches what you described, but it should be considered part of the external codec contract. If SGTL5000 is ever configured mono at the codec or I2S slot level, this path will incorrectly halve the frame count and mix adjacent mono samples as L/R.",
+      "",
+      "**Notes**",
+      "",
+      "The broad rename to `ExternalI2SCodec` looks consistent in `AudioManager.h/.cpp`; I don’t see leftover `WM8960` identifiers in that module. The stale references are mainly dependency/docs, plus the external codec setup stubs. I couldn’t use `git diff` because this shell reported the directory as not a git repo."
+    ],
+    "files": [
+      "platformio.ini",
+      "developer-docs/high-level-fw-design.md",
+      "lib/AudioManager/AudioManager.cpp",
+      "lib/AudioManager/AudioManager.h"
+    ]
+  },
+  {
     "timestamp": "2026-05-04T22:18:38Z",
     "type": "git_commit",
     "commit_message": "work in progress",

@@ -1806,5 +1806,56 @@
     "type": "git_commit",
     "commit_message": "good progress on front end, organized the js files a bit, password and memory reset implemented",
     "commit_hash": "b338b968a3e7d8ae40716584d19bbabe6c5d77d1"
+  },
+  {
+    "timestamp": "2026-05-27T16:44:03Z",
+    "type": "git_commit",
+    "commit_message": "added mdns",
+    "commit_hash": "316c40dfddd7d52fded92b739ee8508d9b48cccf"
+  },
+  {
+    "timestamp": "2026-05-27T20:50:14.200Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "kSoftApChannel",
+      "",
+      "## My request for Codex:",
+      "does the change you just made effect how the ESPAsyncWebServer and AsyncTCP works?"
+    ],
+    "agent_reply": [
+      "Yes, but probably not the way you’re most worried about.",
+      "",
+      "`ESPAsyncWebServer` / `AsyncTCP` should still work at the TCP socket level because the new path still creates the ESP netif through `wifiLowLevelInit(false)`, applies `esp_wifi_set_mode(WIFI_MODE_AP)`, configures `WIFI_IF_AP`, then calls `esp_wifi_start()`. AsyncTCP listens through lwIP, not through `WiFi.softAP()` specifically.",
+      "",
+      "The risky part is Arduino’s AP wrapper bookkeeping. Because we now bypass `WiFi.softAP()` / `WiFi.AP.begin()`, helpers like `WiFi.softAPIP()` may return `0.0.0.0` or stale data even though the AP itself is up. I already dodged that in the new log line, but I found existing uses here that may need the same treatment:",
+      "",
+      "- [WebServer.cpp](C:/GitHubRepos/The-Fly/lib/WifiManager/WebServer.cpp:401) for `/get_info` `self_ip`",
+      "- [WifiApModeView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:266) for the displayed AP IP",
+      "- [main.cpp](C:/GitHubRepos/The-Fly/src/main.cpp:762) for the Wi-Fi info dialog",
+      "",
+      "So: the web server should still accept connections by IP, but the UI/API may report the wrong AP IP unless we move those call sites to a lower-level AP IP helper too. Also, mDNS is the one “keep an eye on it” item, since it can be sensitive to interface/event setup.",
+      "",
+      "Yes, but probably not the way you’re most worried about.",
+      "",
+      "`ESPAsyncWebServer` / `AsyncTCP` should still work at the TCP socket level because the new path still creates the ESP netif through `wifiLowLevelInit(false)`, applies `esp_wifi_set_mode(WIFI_MODE_AP)`, configures `WIFI_IF_AP`, then calls `esp_wifi_start()`. AsyncTCP listens through lwIP, not through `WiFi.softAP()` specifically.",
+      "",
+      "The risky part is Arduino’s AP wrapper bookkeeping. Because we now bypass `WiFi.softAP()` / `WiFi.AP.begin()`, helpers like `WiFi.softAPIP()` may return `0.0.0.0` or stale data even though the AP itself is up. I already dodged that in the new log line, but I found existing uses here that may need the same treatment:",
+      "",
+      "- [WebServer.cpp](C:/GitHubRepos/The-Fly/lib/WifiManager/WebServer.cpp:401) for `/get_info` `self_ip`",
+      "- [WifiApModeView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:266) for the displayed AP IP",
+      "- [main.cpp](C:/GitHubRepos/The-Fly/src/main.cpp:762) for the Wi-Fi info dialog",
+      "",
+      "So: the web server should still accept connections by IP, but the UI/API may report the wrong AP IP unless we move those call sites to a lower-level AP IP helper too. Also, mDNS is the one “keep an eye on it” item, since it can be sensitive to interface/event setup."
+    ],
+    "files": [
+      "lib/WifiManager/WebServer.cpp",
+      "lib/FlyGuiViews/WifiApModeView.cpp",
+      "src/main.cpp"
+    ]
   }
 ]

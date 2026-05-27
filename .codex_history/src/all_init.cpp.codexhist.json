@@ -1377,7 +1377,8 @@
       "src/all_init.cpp",
       "src/main.cpp",
       "tools/sterile_rebuild.py",
-      "firmware.bin"
+      "firmware.bin",
+      "managed_components/espressif__esp-serial-flasher/examples/binaries/ESP32_AT_Firmware/Firmware.bin"
     ]
   },
   {
@@ -1385,5 +1386,11 @@
     "type": "git_commit",
     "commit_message": "cloud upload progress view",
     "commit_hash": "38364a2ef3264fa32292357993ee56caf3c7d0c9"
+  },
+  {
+    "timestamp": "2026-05-27T07:01:52Z",
+    "type": "git_commit",
+    "commit_message": "splash screen format",
+    "commit_hash": "de317286a885ee6fe19210498dfd686348c7a342"
   }
 ]

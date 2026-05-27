@@ -188,7 +188,46 @@
       "src/all_init.cpp",
       "src/main.cpp",
       "tools/sterile_rebuild.py",
-      "firmware.bin"
+      "firmware.bin",
+      "managed_components/espressif__esp-serial-flasher/examples/binaries/ESP32_AT_Firmware/Firmware.bin"
+    ]
+  },
+  {
+    "timestamp": "2026-05-27T17:44:07.744Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "// configure first for enforced security, then start the softAP using low level calls",
+      "",
+      "## My request for Codex:",
+      "execute the highlighted comment"
+    ],
+    "agent_reply": [
+      "Implemented the highlighted comment in [WifiManager.cpp](C:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:414).",
+      "",
+      "What changed:",
+      "- Replaced post-start `enforce_soft_ap_security()` with `configure_soft_ap_security(...)`.",
+      "- Added `start_secure_soft_ap(...)`, which:",
+      "  - initializes Wi-Fi low-level state,",
+      "  - stops Wi-Fi if already running,",
+      "  - sets `WIFI_MODE_AP`,",
+      "  - applies the WPA3-only AP config,",
+      "  - then starts Wi-Fi.",
+      "- Removed the old `WiFi.softAP(...)` path from `startSoftAp()`.",
+      "- Added a low-level AP IP lookup for the log message since this path no longer relies on Arduino’s `softAP()` wrapper.",
+      "",
+      "Verification:",
+      "- A normal `pio run -e thefly_sec0` compiled `WifiManager.cpp` and reached link, then failed with IRAM overflow by 40 bytes.",
+      "- I tried `tools\\sterile_rebuild.py -e thefly_sec0`; it regenerated `sdkconfig.defaults` and `sdkconfig.thefly_sec0`, but the rebuild wedged during the long PlatformIO compile stage, so I stopped the processes I started.",
+      "- I normalized `WifiManager.cpp` back to CRLF."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.cpp",
+      "tools/sterile_rebuild.py"
     ]
   }
 ]

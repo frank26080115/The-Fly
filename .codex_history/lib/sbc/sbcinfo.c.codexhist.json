@@ -1,5 +1,39 @@
 [
   {
+    "timestamp": "2026-05-01T18:17:05.600Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: .pio/libdeps/m5stack-core2/libsbc/src/sbc/sbc.c",
+      "",
+      "## My request for Codex:",
+      "remove the libsbc from platformio.ini, as I have made a copy in `lib\\sbc`, no code changes so far but verify what I did is valid"
+    ],
+    "agent_reply": [
+      "Removed the external `arduino-libsbc` dependency from [platformio.ini](c:/GitHubRepos/The-Fly/platformio.ini).",
+      "",
+      "Your `lib\\sbc` copy is valid for PlatformIO as-is: the build now detects it as a local project library named `sbc`, compiles it, and `#include \"sbc.h\"` resolves correctly.",
+      "",
+      "Verified with PlatformIO: build passes.",
+      "",
+      "One small note: PlatformIO is compiling the copied command-line/test files too:",
+      "",
+      "- `sbcdec.c`",
+      "- `sbcenc.c`",
+      "- `sbcinfo.c`",
+      "- `sbctester.c`",
+      "",
+      "They appear to compile into tiny object files and don’t break anything, but they aren’t needed for firmware. Later we may want a `library.json` or source filter to include only the codec files."
+    ],
+    "files": [
+      "platformio.ini",
+      "lib/sbc/sbcenc.c",
+      "lib/sbc/sbcinfo.c",
+      "managed_components/joltwallet__littlefs/library.json"
+    ]
+  },
+  {
     "timestamp": "2026-05-01T18:23:15.568Z",
     "type": "codex_task",
     "user_prompt": [

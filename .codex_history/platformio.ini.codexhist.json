@@ -133,7 +133,10 @@
       "sbcenc.c",
       "sbcinfo.c",
       "sbctester.c",
-      "library.json"
+      "library.json",
+      "lib/sbc/sbcenc.c",
+      "lib/sbc/sbcinfo.c",
+      "managed_components/joltwallet__littlefs/library.json"
     ]
   },
   {
@@ -504,7 +507,8 @@
       "platformio.ini",
       "developer-docs/high-level-fw-design.md",
       "lib/AudioManager/AudioManager.cpp",
-      "AudioManager.h"
+      "AudioManager.h",
+      "lib/AudioManager/AudioManager.h"
     ]
   },
   {
@@ -4211,5 +4215,11 @@
     "type": "git_commit",
     "commit_message": "mpu features enabled",
     "commit_hash": "535afd107850806c58a3294dc35ee37da47076f9"
+  },
+  {
+    "timestamp": "2026-05-27T16:44:03Z",
+    "type": "git_commit",
+    "commit_message": "added mdns",
+    "commit_hash": "316c40dfddd7d52fded92b739ee8508d9b48cccf"
   }
 ]

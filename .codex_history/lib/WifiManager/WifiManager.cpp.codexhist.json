@@ -2276,5 +2276,116 @@
     "type": "git_commit",
     "commit_message": "expose connected mac and cnts in ap view",
     "commit_hash": "e486cd8c44f77f484940b29cfd1db4b676546f90"
+  },
+  {
+    "timestamp": "2026-05-27T07:01:40Z",
+    "type": "git_commit",
+    "commit_message": "random ssid",
+    "commit_hash": "5c9b914bad3269a859975bdd022dbb88ff9f20d3"
+  },
+  {
+    "timestamp": "2026-05-27T17:39:12.836Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "enforce_soft_ap_security",
+      "",
+      "## My request for Codex:",
+      "why is `enforce_soft_ap_security` called after starting the softAP?"
+    ],
+    "agent_reply": [
+      "`enforce_soft_ap_security()` is called after `WiFi.softAP(...)` because it is hardening the live ESP-IDF AP config that Arduino just created.",
+      "",
+      "In [WifiManager.cpp](C:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:414), it reads the active AP config with `esp_wifi_get_config(WIFI_IF_AP, &config)`, then forces things Arduino’s `WiFi.softAP(...)` call does not fully expose/control:",
+      "",
+      "- `WIFI_AUTH_WPA3_PSK`",
+      "- PMF capable + required",
+      "- max connection count",
+      "- CCMP cipher when available",
+      "- SAE PWE mode when available",
+      "",
+      "Then [startSoftAp](C:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:833) tears the AP back down if that enforcement fails. So the ordering is basically:",
+      "",
+      "1. Use Arduino wrapper to bring up the AP.",
+      "2. Read the AP config that actually got installed.",
+      "3. Patch it to WPA3-only hardened settings.",
+      "4. Refuse to keep running if that patch does not stick.",
+      "",
+      "Could some of it happen before `softAP()`? In theory, yes with a lower-level pure ESP-IDF AP setup. But with the Arduino wrapper, `WiFi.softAP(...)` is likely to overwrite parts of the AP config, so doing the enforcement afterward is the practical reason.",
+      "",
+      "Tiny caveat: there is a very small window where the AP exists before the hardening call completes. If that matters, the cleaner design would be to stop using `WiFi.softAP(...)` for this path and configure/start the AP fully through ESP-IDF.",
+      "",
+      "`enforce_soft_ap_security()` is called after `WiFi.softAP(...)` because it is hardening the live ESP-IDF AP config that Arduino just created.",
+      "",
+      "In [WifiManager.cpp](C:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:414), it reads the active AP config with `esp_wifi_get_config(WIFI_IF_AP, &config)`, then forces things Arduino’s `WiFi.softAP(...)` call does not fully expose/control:",
+      "",
+      "- `WIFI_AUTH_WPA3_PSK`",
+      "- PMF capable + required",
+      "- max connection count",
+      "- CCMP cipher when available",
+      "- SAE PWE mode when available",
+      "",
+      "Then [startSoftAp](C:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:833) tears the AP back down if that enforcement fails. So the ordering is basically:",
+      "",
+      "1. Use Arduino wrapper to bring up the AP.",
+      "2. Read the AP config that actually got installed.",
+      "3. Patch it to WPA3-only hardened settings.",
+      "4. Refuse to keep running if that patch does not stick.",
+      "",
+      "Could some of it happen before `softAP()`? In theory, yes with a lower-level pure ESP-IDF AP setup. But with the Arduino wrapper, `WiFi.softAP(...)` is likely to overwrite parts of the AP config, so doing the enforcement afterward is the practical reason.",
+      "",
+      "Tiny caveat: there is a very small window where the AP exists before the hardening call completes. If that matters, the cleaner design would be to stop using `WiFi.softAP(...)` for this path and configure/start the AP fully through ESP-IDF."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-27T17:44:07.744Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "// configure first for enforced security, then start the softAP using low level calls",
+      "",
+      "## My request for Codex:",
+      "execute the highlighted comment"
+    ],
+    "agent_reply": [
+      "Implemented the highlighted comment in [WifiManager.cpp](C:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:414).",
+      "",
+      "What changed:",
+      "- Replaced post-start `enforce_soft_ap_security()` with `configure_soft_ap_security(...)`.",
+      "- Added `start_secure_soft_ap(...)`, which:",
+      "  - initializes Wi-Fi low-level state,",
+      "  - stops Wi-Fi if already running,",
+      "  - sets `WIFI_MODE_AP`,",
+      "  - applies the WPA3-only AP config,",
+      "  - then starts Wi-Fi.",
+      "- Removed the old `WiFi.softAP(...)` path from `startSoftAp()`.",
+      "- Added a low-level AP IP lookup for the log message since this path no longer relies on Arduino’s `softAP()` wrapper.",
+      "",
+      "Verification:",
+      "- A normal `pio run -e thefly_sec0` compiled `WifiManager.cpp` and reached link, then failed with IRAM overflow by 40 bytes.",
+      "- I tried `tools\\sterile_rebuild.py -e thefly_sec0`; it regenerated `sdkconfig.defaults` and `sdkconfig.thefly_sec0`, but the rebuild wedged during the long PlatformIO compile stage, so I stopped the processes I started.",
+      "- I normalized `WifiManager.cpp` back to CRLF."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.cpp",
+      "tools/sterile_rebuild.py"
+    ]
+  },
+  {
+    "timestamp": "2026-05-27T20:47:16Z",
+    "type": "git_commit",
+    "commit_message": "low level soft ap startup",
+    "commit_hash": "ac4ec57217cd509c382c25a843a98cc0803dcc4e"
   }
 ]

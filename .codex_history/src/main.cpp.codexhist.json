@@ -379,6 +379,36 @@
     "commit_hash": "dcdf504ad0b634fb1b6629ede78526be42cdf96e"
   },
   {
+    "timestamp": "2026-05-04T21:24:36.775Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/ActiveRecordingView.h",
+      "",
+      "## My request for Codex:",
+      "Add a new view to `lib\\FlyGuiViews` called `SplashView`",
+      "",
+      "It is optionally the first view that is shown.",
+      "",
+      "It loads `splash.png` from the internal LittleFS. It is a full screen 320x240 image. It writes it to screen. Then add a placeholder with a short delay, then hand off to `MainScreenView`"
+    ],
+    "agent_reply": [
+      "Added `SplashView` in [lib/FlyGuiViews/SplashView.h](c:/GitHubRepos/The-Fly/lib/FlyGuiViews/SplashView.h) and [lib/FlyGuiViews/SplashView.cpp](c:/GitHubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp).",
+      "",
+      "It uses new `FLYGUI_VIEW_SPLASH = 0`, streams `/splash.png` from LittleFS to the full `320x240` display, waits `800ms`, then hands off to `FLYGUI_VIEW_MAIN`. If the image or filesystem load fails, it clears to black before handing off.",
+      "",
+      "I couldn’t run a PlatformIO build because neither `pio` nor `python -m platformio` is available in this shell."
+    ],
+    "files": [
+      "lib/FlyGuiViews/SplashView.h",
+      "lib/FlyGuiViews/SplashView.cpp",
+      "lib/FlyGui/FlyGui.h",
+      "src/main.cpp",
+      "gfx-assets/sprites/splash.png"
+    ]
+  },
+  {
     "timestamp": "2026-05-05T18:16:41.313Z",
     "type": "codex_task",
     "user_prompt": [
@@ -4393,7 +4423,8 @@
       "src/all_init.cpp",
       "src/main.cpp",
       "tools/sterile_rebuild.py",
-      "firmware.bin"
+      "firmware.bin",
+      "managed_components/espressif__esp-serial-flasher/examples/binaries/ESP32_AT_Firmware/Firmware.bin"
     ]
   },
   {
@@ -4401,5 +4432,50 @@
     "type": "git_commit",
     "commit_message": "cloud upload progress view",
     "commit_hash": "38364a2ef3264fa32292357993ee56caf3c7d0c9"
+  },
+  {
+    "timestamp": "2026-05-27T20:50:14.200Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "kSoftApChannel",
+      "",
+      "## My request for Codex:",
+      "does the change you just made effect how the ESPAsyncWebServer and AsyncTCP works?"
+    ],
+    "agent_reply": [
+      "Yes, but probably not the way you’re most worried about.",
+      "",
+      "`ESPAsyncWebServer` / `AsyncTCP` should still work at the TCP socket level because the new path still creates the ESP netif through `wifiLowLevelInit(false)`, applies `esp_wifi_set_mode(WIFI_MODE_AP)`, configures `WIFI_IF_AP`, then calls `esp_wifi_start()`. AsyncTCP listens through lwIP, not through `WiFi.softAP()` specifically.",
+      "",
+      "The risky part is Arduino’s AP wrapper bookkeeping. Because we now bypass `WiFi.softAP()` / `WiFi.AP.begin()`, helpers like `WiFi.softAPIP()` may return `0.0.0.0` or stale data even though the AP itself is up. I already dodged that in the new log line, but I found existing uses here that may need the same treatment:",
+      "",
+      "- [WebServer.cpp](C:/GitHubRepos/The-Fly/lib/WifiManager/WebServer.cpp:401) for `/get_info` `self_ip`",
+      "- [WifiApModeView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:266) for the displayed AP IP",
+      "- [main.cpp](C:/GitHubRepos/The-Fly/src/main.cpp:762) for the Wi-Fi info dialog",
+      "",
+      "So: the web server should still accept connections by IP, but the UI/API may report the wrong AP IP unless we move those call sites to a lower-level AP IP helper too. Also, mDNS is the one “keep an eye on it” item, since it can be sensitive to interface/event setup.",
+      "",
+      "Yes, but probably not the way you’re most worried about.",
+      "",
+      "`ESPAsyncWebServer` / `AsyncTCP` should still work at the TCP socket level because the new path still creates the ESP netif through `wifiLowLevelInit(false)`, applies `esp_wifi_set_mode(WIFI_MODE_AP)`, configures `WIFI_IF_AP`, then calls `esp_wifi_start()`. AsyncTCP listens through lwIP, not through `WiFi.softAP()` specifically.",
+      "",
+      "The risky part is Arduino’s AP wrapper bookkeeping. Because we now bypass `WiFi.softAP()` / `WiFi.AP.begin()`, helpers like `WiFi.softAPIP()` may return `0.0.0.0` or stale data even though the AP itself is up. I already dodged that in the new log line, but I found existing uses here that may need the same treatment:",
+      "",
+      "- [WebServer.cpp](C:/GitHubRepos/The-Fly/lib/WifiManager/WebServer.cpp:401) for `/get_info` `self_ip`",
+      "- [WifiApModeView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:266) for the displayed AP IP",
+      "- [main.cpp](C:/GitHubRepos/The-Fly/src/main.cpp:762) for the Wi-Fi info dialog",
+      "",
+      "So: the web server should still accept connections by IP, but the UI/API may report the wrong AP IP unless we move those call sites to a lower-level AP IP helper too. Also, mDNS is the one “keep an eye on it” item, since it can be sensitive to interface/event setup."
+    ],
+    "files": [
+      "lib/WifiManager/WebServer.cpp",
+      "lib/FlyGuiViews/WifiApModeView.cpp",
+      "src/main.cpp"
+    ]
   }
 ]

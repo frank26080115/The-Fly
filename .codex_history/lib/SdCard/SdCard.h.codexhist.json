@@ -197,5 +197,63 @@
       "lib/SdCard/SdCard.cpp",
       "lib/SdCard/SdCard.h"
     ]
+  },
+  {
+    "timestamp": "2026-05-05T18:55:00.172Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/MicroSdCard/MicroSdCard.h",
+      "",
+      "## My request for Codex:",
+      "fix `lib/BluetoothManager/BluetoothManager.cpp:40:46: error: array must be initialized with a brace-enclosed initializer`, where it says `char g_legacy_pin[kLegacyPinMaxLength + 1] = kLegacyPin;`"
+    ],
+    "agent_reply": [
+      "Fixed the Bluetooth initializer:",
+      "",
+      "```cpp",
+      "char g_legacy_pin[kLegacyPinMaxLength + 1] = { '0', '0', '0', '0', '\\0' };",
+      "```",
+      "",
+      "I also fixed the stale SD wrapper includes after the folder/header rename to `MicroSdCard`.",
+      "",
+      "Updated:",
+      "- [BluetoothManager.cpp](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:40)",
+      "- [MicroSdCard.cpp](C:/GitHubRepos/The-Fly/lib/MicroSdCard/MicroSdCard.cpp:1)",
+      "- [mic_sd_recorder_demo.cpp](C:/GitHubRepos/The-Fly/src/mic_sd_recorder_demo.cpp:9)",
+      "- [AudioFileRecorder.cpp](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:9)",
+      "- [MostRecentFiles.cpp](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/MostRecentFiles.cpp:5)",
+      "- [FlyGui.cpp](C:/GitHubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:5)",
+      "",
+      "Verification: `pio run` now succeeds.",
+      "",
+      "Fixed the Bluetooth initializer:",
+      "",
+      "```cpp",
+      "char g_legacy_pin[kLegacyPinMaxLength + 1] = { '0', '0', '0', '0', '\\0' };",
+      "```",
+      "",
+      "I also fixed the stale SD wrapper includes after the folder/header rename to `MicroSdCard`.",
+      "",
+      "Updated:",
+      "- [BluetoothManager.cpp](C:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:40)",
+      "- [MicroSdCard.cpp](C:/GitHubRepos/The-Fly/lib/MicroSdCard/MicroSdCard.cpp:1)",
+      "- [mic_sd_recorder_demo.cpp](C:/GitHubRepos/The-Fly/src/mic_sd_recorder_demo.cpp:9)",
+      "- [AudioFileRecorder.cpp](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:9)",
+      "- [MostRecentFiles.cpp](C:/GitHubRepos/The-Fly/lib/AudioFileRecorder/MostRecentFiles.cpp:5)",
+      "- [FlyGui.cpp](C:/GitHubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:5)",
+      "",
+      "Verification: `pio run` now succeeds."
+    ],
+    "files": [
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "lib/AudioFileRecorder/MostRecentFiles.cpp",
+      "lib/FlyGui/FlyGui.cpp",
+      "lib/MicroSdCard/MicroSdCard.cpp",
+      "src/mic_sd_recorder_demo.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/SdCard/SdCard.h"
+    ]
   }
 ]

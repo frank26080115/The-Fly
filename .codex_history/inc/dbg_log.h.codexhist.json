@@ -26,7 +26,8 @@
     ],
     "files": [
       "inc/dbg_log.h",
-      "esp_log.h"
+      "esp_log.h",
+      "managed_components/espressif__esp_modem/port/linux/esp_system_protocols_linux/include/esp_log.h"
     ]
   },
   {
@@ -34,6 +35,31 @@
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "c31536e76af6564fcf9e33fe1e79c3fef9bf8e36"
+  },
+  {
+    "timestamp": "2026-05-07T00:48:16.082Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/dbg_log.h",
+      "",
+      "## Active selection of the file:",
+      "ESP_",
+      "",
+      "## My request for Codex:",
+      "inside `lib\\AudioFileRecorder\\AudioFileRecorder.cpp` only, use `inc\\dbg_log.h`, replace all calls to `ESP_*` macros with the ones in `inc\\dbg_log.h`"
+    ],
+    "agent_reply": [
+      "Done in [AudioFileRecorder.cpp](c:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp).",
+      "",
+      "I replaced `#include \"esp_log.h\"` with `#include \"dbg_log.h\"` and changed all local `ESP_LOGE/I/W` calls to `DBG_LOGE/I/W`. A targeted grep confirms there are no remaining `ESP_LOG` or `esp_log.h` references in that file."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "managed_components/espressif__esp_modem/port/linux/esp_system_protocols_linux/include/esp_log.h",
+      "inc/dbg_log.h"
+    ]
   },
   {
     "timestamp": "2026-05-07T00:54:23Z",
