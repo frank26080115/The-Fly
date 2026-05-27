@@ -139,9 +139,10 @@
     ],
     "files": [
       "platformio.ini",
-      "sdkconfig.h",
       "sdkconfig.m5stack-core2",
-      "sdkconfig.defaults"
+      "sdkconfig.defaults",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "config/sdkconfig.h"
     ]
   }
 ]

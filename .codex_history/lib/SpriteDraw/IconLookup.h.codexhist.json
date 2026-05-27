@@ -143,6 +143,50 @@
     "commit_hash": "b6b89e5847d7bc25ba28221a7c11ba0dce2e94c9"
   },
   {
+    "timestamp": "2026-05-19T06:01:07.611Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main.cpp",
+      "",
+      "## Active selection of the file:",
+      "loopTask_core0",
+      "## Open tabs:",
+      "- main.cpp: src/main.cpp",
+      "- all_init.cpp: src/all_init.cpp",
+      "- sprites.cpp: src/sprites.cpp",
+      "- sprites.h: inc/sprites.h",
+      "- all_tests.cpp: src/tests/all_tests.cpp",
+      "",
+      "## My request for Codex:",
+      "hmmmm I'm getting a watchdog expiry crash in `loopTask_core0`, reset that task watchdog at the bottom of the loop"
+    ],
+    "agent_reply": [
+      "Added the watchdog reset at the bottom of `loopTask_core0()` in [src/main.cpp](D:/GithubRepos/The-Fly/src/main.cpp), after `taskYIELD()`:",
+      "",
+      "```cpp",
+      "esp_task_wdt_reset();",
+      "```",
+      "",
+      "I also restored the missing `sprite_desc_t` definition in [inc/sprites.h](D:/GithubRepos/The-Fly/inc/sprites.h), because the build was blocked by `IconLookup.h` needing that type.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_bringuptest",
+      "```",
+      "",
+      "Build passed. If the watchdog still trips, that means `AudioManager::pump_task()` or `Hotel::pollCore0()` is blocking long enough that execution never reaches the reset call."
+    ],
+    "files": [
+      "src/main.cpp",
+      "inc/sprites.h",
+      "src/version.c",
+      "lib/SpriteDraw/IconLookup.h"
+    ]
+  },
+  {
     "timestamp": "2026-05-19T06:08:35.665Z",
     "type": "codex_task",
     "user_prompt": [
@@ -397,7 +441,8 @@
       "lib/BluetoothManager/BtHostList.h",
       "test_bootreadfiles.cpp",
       "lib/WifiManager/WifiManager.h",
-      "src/version.c"
+      "src/version.c",
+      "src/tests/test_bootreadfiles.cpp"
     ]
   },
   {

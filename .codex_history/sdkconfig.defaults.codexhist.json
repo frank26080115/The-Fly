@@ -139,9 +139,10 @@
     ],
     "files": [
       "platformio.ini",
-      "sdkconfig.h",
       "sdkconfig.m5stack-core2",
-      "sdkconfig.defaults"
+      "sdkconfig.defaults",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "config/sdkconfig.h"
     ]
   },
   {
@@ -258,13 +259,15 @@
       "One small note: the build regenerated `src/version.c`, and the new `components/thefly_linker_overrides` files are untracked, so those need to be included when you commit this fix."
     ],
     "files": [
-      "all_tests.cpp",
       "platformio.ini",
       "sdkconfig.defaults",
       "components/thefly_linker_overrides/linker.lf",
       "components/thefly_linker_overrides/CMakeLists.txt",
       "CMakeLists.txt",
-      "src/version.c"
+      "src/version.c",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "managed_components/espressif__libsodium/CMakeLists.txt",
+      "src/tests/all_tests.cpp"
     ]
   },
   {
@@ -397,10 +400,10 @@
       "That is present in all three."
     ],
     "files": [
-      "platformio.ini",
       "sdkconfig.defaults",
       "sdkconfig.thefly",
-      "sdkconfig.thefly_bringuptest"
+      "sdkconfig.thefly_bringuptest",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   }
 ]

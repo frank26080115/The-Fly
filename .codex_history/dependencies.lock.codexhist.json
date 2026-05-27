@@ -50,10 +50,10 @@
     "files": [
       "tools/embed_managed_component_certs.py",
       ".gitignore",
-      "CMakeLists.txt",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "managed_components/espressif__libsodium/CMakeLists.txt",
       "dependencies.lock",
-      "compile_commands.json",
-      "platformio.ini"
+      "compile_commands.json"
     ]
   },
   {
@@ -89,6 +89,7 @@
     ],
     "files": [
       "CMakeLists.txt",
+      "managed_components/espressif__libsodium/CMakeLists.txt",
       "dependencies.lock"
     ]
   },

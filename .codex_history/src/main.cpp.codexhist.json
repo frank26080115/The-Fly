@@ -264,6 +264,50 @@
     "commit_hash": "3d9ea7744be0307aa3f036911a5433b7fb358ce2"
   },
   {
+    "timestamp": "2026-05-03T09:00:07.657Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: .pio/packages/framework-arduinoespressif32/cores/esp32/main.cpp",
+      "",
+      "## Active selection of the file:",
+      "void loopTask(void *pvParameters)",
+      "## Open tabs:",
+      "- main.cpp: .pio/packages/framework-arduinoespressif32/cores/esp32/main.cpp",
+      "- main.cpp: src/main.cpp",
+      "- platformio.ini: platformio.ini",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- readme.md: lib/AudioManager/readme.md",
+      "",
+      "## My request for Codex:",
+      "so `void loopTask(void *pvParameters)`, under some configurations, will never ever call taskYIELD?"
+    ],
+    "agent_reply": [
+      "Yes, in this `main.cpp`, `loopTask()` itself never directly calls `taskYIELD()`.",
+      "",
+      "It only does this:",
+      "",
+      "```cpp",
+      "#if CONFIG_FREERTOS_UNICORE",
+      "    yieldIfNecessary();",
+      "#endif",
+      "```",
+      "",
+      "So:",
+      "",
+      "- **UNICORE build:** it may call `vTaskDelay(5)` every ~2 seconds via `yieldIfNecessary()`.",
+      "- **Dual-core build:** that block is compiled out, so `loopTask()` has no built-in yield/delay at all.",
+      "",
+      "But that does **not** mean the task can never be preempted. FreeRTOS can still preempt it on tick interrupts if `CONFIG_FREERTOS_HZ` / preemption are enabled, and calls inside your `loop()` may block/yield/delay. It just means Arduino’s wrapper loop does not voluntarily yield for you on dual-core ESP32.",
+      "",
+      "So if your `loop()` is a tight CPU-bound loop on dual core, it can keep its core busy indefinitely unless your code calls `delay()`, `vTaskDelay()`, `taskYIELD()`, blocks on I/O/queues, etc."
+    ],
+    "files": [
+      "src/main.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-05-04T06:20:06.294Z",
     "type": "codex_task",
     "user_prompt": [
@@ -679,7 +723,56 @@
       "src/main.cpp",
       "M5Unified.h",
       "lib/MicroSdCard/MicroSdCard.cpp",
-      "lib/AudioFileRecorder/AudioFileRecorder.cpp"
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
+    ]
+  },
+  {
+    "timestamp": "2026-05-14T07:46:33.226Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main.cpp",
+      "",
+      "## Open tabs:",
+      "- main.cpp: src/main.cpp",
+      "- platformio.ini: platformio.ini",
+      "- test_sdcard.cpp: src/tests/test_sdcard.cpp",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- dbg_log.h: inc/dbg_log.h",
+      "",
+      "## My request for Codex:",
+      "hey how about not ripping apart the project for one little issue?"
+    ],
+    "agent_reply": [
+      "You’re right. I got too aggressive there. I backed out the “strip the firmware down” direction and kept the project intact.",
+      "",
+      "The actual targeted fix is in [platformio.ini](d:/GithubRepos/The-Fly/platformio.ini:16): I added the Arduino `Wire` include path so M5GFX sees `Wire.h` during compilation and uses the Arduino/legacy I2C path instead of pulling in the new IDF `i2c_master` driver.",
+      "",
+      "I also added:",
+      "",
+      "```ini",
+      "monitor_filters = esp32_exception_decoder",
+      "```",
+      "",
+      "Why this should fix the boot crash: before the change, the map showed both sides linked:",
+      "",
+      "```text",
+      "libM5GFX.a(common.cpp.o) -> i2c_new_master_bus",
+      "libFrameworkArduino.a(esp32-hal-i2c.c.o) -> i2c_driver_install",
+      "```",
+      "",
+      "After the change, `i2c_new_master_bus` is gone from the map. Only the Arduino legacy I2C side remains, so IDF should no longer abort on the old/new driver conflict.",
+      "",
+      "I kept the normal project libraries and flow in place. Build passes with `pio run -e m5stack-core2`."
+    ],
+    "files": [
+      "platformio.ini",
+      "lib/MicroSdCard/MicroSdCard.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "src/main.cpp"
     ]
   },
   {
@@ -845,7 +938,8 @@
       "lib/WifiManager/WifiManager.cpp",
       "main.cpp",
       "src/main.cpp",
-      "WifiManager.h"
+      "WifiManager.h",
+      "json_templates/wifi.json"
     ]
   },
   {
@@ -953,7 +1047,8 @@
       "main.cpp",
       "FlyGui.h",
       "src/main.cpp",
-      "src/version.c"
+      "src/version.c",
+      "lib/FlyGui/FlyGui.h"
     ]
   },
   {
@@ -1063,7 +1158,8 @@
       "src/main.cpp",
       "IconLookup.h",
       "inc/sprites.h",
-      "src/version.c"
+      "src/version.c",
+      "lib/SpriteDraw/IconLookup.h"
     ]
   },
   {
@@ -1361,6 +1457,47 @@
     "type": "git_commit",
     "commit_message": "ConnWaitingView",
     "commit_hash": "bfcb6fb2ae99b36477cb3952cbffd6ee8f2e6e41"
+  },
+  {
+    "timestamp": "2026-05-20T04:04:22.989Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGui/FlyGui.cpp",
+      "",
+      "## Active selection of the file:",
+      "void FlyGuiItem::setFaded(bool faded)",
+      "## Open tabs:",
+      "- FlyGui.cpp: lib/FlyGui/FlyGui.cpp",
+      "- BtHostList.cpp: lib/BluetoothManager/BtHostList.cpp",
+      "- MainScreenView.cpp: lib/FlyGuiViews/MainScreenView.cpp",
+      "- ConnWaitingView.cpp: lib/FlyGuiViews/ConnWaitingView.cpp",
+      "- fix_espidf_pythonexe.py: tools/fix_espidf_pythonexe.py",
+      "",
+      "## My request for Codex:",
+      "`MainScreenView` creates `smartphoneItem_` and `laptopItem_`, now, I want that if `BtHostList` reports that `getFirstPhone` or `getFirstLaptop` returns null, then the `smartphoneItem_` and `laptopItem_` are created as faded (new feature added recently `void FlyGuiItem::setFaded(bool faded)`) instead of normal"
+    ],
+    "agent_reply": [
+      "Implemented. `MainScreenView` now fades the smartphone and laptop buttons when `bt_host_list->getFirstPhone()` or `getFirstLaptop()` returns `nullptr`.",
+      "",
+      "I also made it re-check on load/redraw, because the view can be created before the Bluetooth host list is loaded from microSD during boot. That keeps the UI from getting stuck in the wrong faded state.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e m5stack-core2",
+      "```",
+      "",
+      "The first build run timed out while rebuilding a lot of dependencies, but the second run completed successfully. Note: the build regenerated `src/version.c`."
+    ],
+    "files": [
+      "lib/FlyGuiViews/MainScreenView.h",
+      "lib/FlyGuiViews/MainScreenView.cpp",
+      "src/version.c",
+      "src/main.cpp",
+      "json_templates/bluetooth.json"
+    ]
   },
   {
     "timestamp": "2026-05-20T05:49:38.809Z",
@@ -2299,6 +2436,43 @@
     ]
   },
   {
+    "timestamp": "2026-05-21T03:30:43.511Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BluetoothManager/BtHostList.h",
+      "",
+      "## Open tabs:",
+      "- BtHostList.h: lib/BluetoothManager/BtHostList.h",
+      "- BtHostList.cpp: lib/BluetoothManager/BtHostList.cpp",
+      "- main.cpp: src/main.cpp",
+      "- ConnWaitingView.cpp: lib/FlyGuiViews/ConnWaitingView.cpp",
+      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "",
+      "## My request for Codex:",
+      "does M5 stuff need some sort of poll? Remember when we had problems using the Vbus signal for charging? does that call only read from a cache and need a poll to update?",
+      "",
+      "do not change code"
+    ],
+    "agent_reply": [
+      "Yes: M5 as a whole needs polling via `M5.update()`, especially for buttons/touch. In this project that already happens inside `FlyGui::poll()`, and `main.cpp` calls `gui->poll()` in the main loop.",
+      "",
+      "For the charging/VBUS question specifically: `M5.Power.isCharging()` does **not** look like a cached value that only updates after `M5.update()`. In M5Unified it routes into the PMIC-specific implementation, like AXP192/AXP2101/IP5306, and reads the power chip state directly.",
+      "",
+      "The cache to watch out for is **our** `BattTracker`: it reads M5 power state in `BattTracker::poll()`, but I don’t see `BattTracker::poll()` being called anywhere right now. So:",
+      "",
+      "- `M5.Power.isCharging()` should update when called.",
+      "- `BattTracker::isCharging()` / `BattTracker::status()` may be stale after init unless `BattTracker::poll()` runs.",
+      "- The current FlyGui top bar bypasses `BattTracker` and calls `M5.Power.getBatteryLevel()` plus `M5.Power.isCharging()` directly.",
+      "",
+      "So if the charging icon is wrong, I would not blame missing `M5.update()` first. More likely suspects are `isCharging()` vs “USB/VBUS present” semantics, top-bar redraw throttling/state caching, or some code path using stale `BattTracker` values."
+    ],
+    "files": [
+      "src/main.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-05-21T03:55:02.320Z",
     "type": "codex_task",
     "user_prompt": [
@@ -2430,7 +2604,8 @@
       "lib/BluetoothManager/BluetoothManager.cpp",
       "src/main.cpp",
       "main.cpp",
-      "bluetooth.json"
+      "bluetooth.json",
+      "json_templates/bluetooth.json"
     ]
   },
   {
@@ -2485,7 +2660,8 @@
     "files": [
       "lib/BluetoothManager/BtHostList.cpp",
       "src/main.cpp",
-      "bluetooth.json"
+      "bluetooth.json",
+      "json_templates/bluetooth.json"
     ]
   },
   {
@@ -2525,7 +2701,8 @@
     ],
     "files": [
       "bluetooth.json",
-      "src/main.cpp"
+      "src/main.cpp",
+      "json_templates/bluetooth.json"
     ]
   },
   {
@@ -3520,7 +3697,9 @@
       "lib/AudioFifo/AudioFifo.h",
       "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
       "lib/WifiManager/WifiManager.cpp",
-      "lib/FlyGui/FlyGui.cpp"
+      "lib/FlyGui/FlyGui.cpp",
+      "json_templates/bluetooth.json",
+      "json_templates/wifi.json"
     ]
   },
   {
@@ -3602,7 +3781,9 @@
       "version.c",
       "all_tests.cpp",
       "platformio.ini",
-      "src/version.c"
+      "src/version.c",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "src/tests/all_tests.cpp"
     ]
   },
   {
@@ -3752,7 +3933,91 @@
       "BluetoothManager.cpp",
       "wifi.json",
       "bluetooth.json",
-      "test_bootreadfiles.cpp"
+      "test_bootreadfiles.cpp",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "json_templates/bluetooth.json",
+      "json_templates/wifi.json",
+      "lib/WifiManager/CloudUpload.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-23T07:38:44.792Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/Security/security-policies-specifications.md",
+      "",
+      "## Active selection of the file:",
+      "time",
+      "## Open tabs:",
+      "- security-policies-specifications.md: lib/Security/security-policies-specifications.md",
+      "- Aegis.h: lib/Security/Aegis.h",
+      "- WifiManager.h: lib/WifiManager/WifiManager.h",
+      "- BtHostList.h: lib/BluetoothManager/BtHostList.h",
+      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## My request for Codex:",
+      "edit `void send_cfg(AsyncWebServerRequest* request)`, it might need to turn into a streaming response",
+      "",
+      "without using ArduinoJson, construct a big JSON object with \"network\" and \"bluetooth\" as two main objects. For \"network\", populate it with the loaded `network_cfg_t` data, DO NOT INCLUDE THE PASSWORD. For \"bluetooth\", populate it with the loaded `bt_host_list_t` data.",
+      "",
+      "But the trick here is, as you construct one string using maybe `snprintf`, encrypt it in-place immediately with mbedtls AES-GCM and `Aegis::getMasterKey`, stream that chunk out"
+    ],
+    "agent_reply": [
+      "Implemented `/get_cfg` as an authenticated encrypted config stream in [WebServer.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp:1268).",
+      "",
+      "It now builds JSON manually, without ArduinoJson, containing:",
+      "",
+      "- `network`: timezone, NTP servers, stations, access points, cloud upload endpoints",
+      "- `bluetooth`: host entries",
+      "- Wi-Fi and cloud passwords are intentionally omitted",
+      "",
+      "The response is `application/octet-stream`, streamed as AES-256-GCM records using `Aegis::getMasterKey()`:",
+      "",
+      "```text",
+      "u16be ciphertext_len | nonce[12] | ciphertext | tag[16]",
+      "```",
+      "",
+      "Headers identify the format:",
+      "",
+      "```text",
+      "X-TheFly-Content: config-json",
+      "X-TheFly-Encryption: aes-256-gcm-records-v1",
+      "X-TheFly-Record-Format: u16be-ciphertext-len|nonce12|ciphertext|tag16",
+      "```",
+      "",
+      "Verification: `pio run -e thefly_bringuptest` passes. I also restored the generated `src/version.c` churn after the build.",
+      "",
+      "Implemented `/get_cfg` as an authenticated encrypted config stream in [WebServer.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp:1268).",
+      "",
+      "It now builds JSON manually, without ArduinoJson, containing:",
+      "",
+      "- `network`: timezone, NTP servers, stations, access points, cloud upload endpoints",
+      "- `bluetooth`: host entries",
+      "- Wi-Fi and cloud passwords are intentionally omitted",
+      "",
+      "The response is `application/octet-stream`, streamed as AES-256-GCM records using `Aegis::getMasterKey()`:",
+      "",
+      "```text",
+      "u16be ciphertext_len | nonce[12] | ciphertext | tag[16]",
+      "```",
+      "",
+      "Headers identify the format:",
+      "",
+      "```text",
+      "X-TheFly-Content: config-json",
+      "X-TheFly-Encryption: aes-256-gcm-records-v1",
+      "X-TheFly-Record-Format: u16be-ciphertext-len|nonce12|ciphertext|tag16",
+      "```",
+      "",
+      "Verification: `pio run -e thefly_bringuptest` passes. I also restored the generated `src/version.c` churn after the build."
+    ],
+    "files": [
+      "lib/WifiManager/WebServer.cpp",
+      "src/version.c",
+      "src/main.cpp"
     ]
   },
   {
@@ -3838,7 +4103,10 @@
       "lib/AudioFileRecorder/AudioFileRecorder.cpp",
       "lib/WifiManager/WifiManager.h",
       "src/version.c",
-      "WifiManager.h"
+      "WifiManager.h",
+      "inc/thefly_common.h",
+      "lib/BluetoothManager/BtHostList.cpp",
+      "lib/Security/Aegis.h"
     ]
   },
   {
@@ -4080,7 +4348,8 @@
     ],
     "files": [
       "src/main.cpp",
-      "BluetoothManager.cpp"
+      "BluetoothManager.cpp",
+      "lib/BluetoothManager/BluetoothManager.cpp"
     ]
   },
   {

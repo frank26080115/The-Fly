@@ -121,7 +121,10 @@
       "bluedroid_sbc.h",
       "platformio.ini",
       "inc/conf.h",
-      "lib/bluedroid/bluedroid_sbc.c"
+      "lib/bluedroid/bluedroid_sbc.c",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "lib/sbc/sbc.h",
+      "lib/bluedroid/bluedroid_sbc.h"
     ]
   },
   {
@@ -177,7 +180,62 @@
       "src/tests/test_btpairing.cpp",
       "src/tests/test_btspeakerphone.cpp",
       "lib/bluedroid/bluedroid_sbc.c",
-      "platformio.ini"
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
+    ]
+  },
+  {
+    "timestamp": "2026-05-15T07:01:15.156Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## Open tabs:",
+      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
+      "- all_tests.cpp: src/tests/all_tests.cpp",
+      "- all_tests.h: src/tests/all_tests.h",
+      "- test_speaker.cpp: src/tests/test_speaker.cpp",
+      "- test_btspeakerphone.cpp: src/tests/test_btspeakerphone.cpp",
+      "",
+      "## My request for Codex:",
+      "explain what happened",
+      "",
+      "if I understand correctly, IRAM is the instructions that are always in IRAM and never fetched, so they have super low latency?"
+    ],
+    "agent_reply": [
+      "Yes, your understanding is basically right, with one small wording tweak.",
+      "",
+      "IRAM is internal instruction RAM. Code placed there is loaded into RAM at boot and the CPU fetches it directly from internal RAM instead of fetching it through the SPI flash cache. That makes it fast and predictable, but more importantly on ESP32, some code must live there because the flash cache is sometimes unavailable, especially during flash/PSRAM/cache operations and certain interrupts.",
+      "",
+      "Most normal firmware code does not live in IRAM. It lives in flash as `IROM`, and the CPU executes it through cache. That is usually fine, but it is not always available and it consumes no scarce IRAM.",
+      "",
+      "What happened here:",
+      "",
+      "1. Classic Bluetooth pulled in a lot of IRAM-resident controller/PHY/coexist code.",
+      "2. The M5Stack Core2 board definition also defines `BOARD_HAS_PSRAM`.",
+      "3. PSRAM support pulls in more cache/PSRAM support code that also needs IRAM.",
+      "4. Together, that overflowed the ESP32’s limited IRAM region by about `3960` bytes.",
+      "",
+      "So the linker was saying: “I can fit your flash code fine, but the always-in-internal-RAM instruction section is too large.”",
+      "",
+      "The fix I made was scoped to the bringup test env:",
+      "",
+      "```ini",
+      "[env:theflybringuptest]",
+      "build_unflags =",
+      "    -DBOARD_HAS_PSRAM",
+      "```",
+      "",
+      "That stops the Arduino core from enabling PSRAM support for this test build, which freed enough IRAM. The base environment still has PSRAM.",
+      "",
+      "There was a second unrelated issue too: our `bluedroid_sbc.c` called `OI_CODEC_mSBC_DecoderReset`, but our current library setup does not compile the decoder source file that defines that symbol. I replaced it with the regular decoder reset call plus manually setting the `mSBCEnabled` flag, which is what that helper does internally.",
+      "",
+      "Longer term, the warning sign is real: “Classic BT + PSRAM + WiFi/web/display/everything” can get tight on original ESP32 IRAM. For production we may want slimmer envs, fewer always-linked modules, less debug build baggage, or a clean separation between bringup tests and the full app."
+    ],
+    "files": [
+      "lib/bluedroid/bluedroid_sbc.c"
     ]
   },
   {
@@ -237,7 +295,8 @@
       "lib/bluedroid/bluedroid_sbc.c",
       "lib/bluedroid/encoder/include/sbc_symbol_prefix.h",
       "lib/bluedroid/encoder/include/sbc_encoder.h",
-      "library.json"
+      "library.json",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   }
 ]

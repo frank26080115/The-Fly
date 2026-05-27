@@ -91,9 +91,10 @@
       "I left the unrelated existing workspace changes alone: `.vscode/extensions.json`, deleted demo files under `src`, and the untracked `src/tests/` directory."
     ],
     "files": [
-      "platformio.ini",
       "src/tests/test_sdcard.cpp",
-      ".gitignore"
+      "platformio.ini",
+      ".gitignore",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -153,10 +154,10 @@
     "files": [
       "tools/embed_managed_component_certs.py",
       ".gitignore",
-      "CMakeLists.txt",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "managed_components/espressif__libsodium/CMakeLists.txt",
       "dependencies.lock",
-      "compile_commands.json",
-      "platformio.ini"
+      "compile_commands.json"
     ]
   },
   {

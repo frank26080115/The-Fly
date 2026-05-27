@@ -489,6 +489,43 @@
     ]
   },
   {
+    "timestamp": "2026-05-19T05:38:11.332Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main.cpp",
+      "",
+      "## Active selection of the file:",
+      "xTaskCreateUniversal",
+      "## Open tabs:",
+      "- main.cpp: src/main.cpp",
+      "- all_init.cpp: src/all_init.cpp",
+      "- SplashView.cpp: lib/FlyGuiViews/SplashView.cpp",
+      "- readme.md: lib/FlyGui/readme.md",
+      "- FileHistory.h: lib/AudioFileRecorder/FileHistory.h",
+      "",
+      "## My request for Codex:",
+      "in `setup`, before `xTaskCreateUniversal`, the gui needs to transition to the main screen"
+    ],
+    "agent_reply": [
+      "Done. In [src/main.cpp](D:/GithubRepos/The-Fly/src/main.cpp), `setup()` now transitions FlyGui to `FLYGUI_VIEW_MAIN` immediately before `xTaskCreateUniversal`, with an `ESP_LOGE` if it fails.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_bringuptest",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "src/main.cpp",
+      "src/version.c",
+      "lib/FlyGui/FlyGui.h"
+    ]
+  },
+  {
     "timestamp": "2026-05-19T05:48:22.053Z",
     "type": "codex_task",
     "user_prompt": [
@@ -1563,7 +1600,8 @@
       "lib/BluetoothManager/BtHostList.h",
       "test_bootreadfiles.cpp",
       "lib/WifiManager/WifiManager.h",
-      "src/version.c"
+      "src/version.c",
+      "src/tests/test_bootreadfiles.cpp"
     ]
   },
   {

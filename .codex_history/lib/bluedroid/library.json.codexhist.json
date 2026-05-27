@@ -38,7 +38,8 @@
       "platformio.ini",
       "bt_target.h",
       "lib/bluedroid/library.json",
-      "Network.h"
+      "Network.h",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -214,7 +215,9 @@
       "bluedroid_sbc.h",
       "platformio.ini",
       "library.json",
-      "lib/bluedroid/library.json"
+      "lib/bluedroid/library.json",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "lib/bluedroid/bluedroid_sbc.h"
     ]
   },
   {
@@ -270,7 +273,8 @@
       "src/tests/test_btpairing.cpp",
       "src/tests/test_btspeakerphone.cpp",
       "lib/bluedroid/bluedroid_sbc.c",
-      "platformio.ini"
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -354,7 +358,11 @@
       "lib/ClockAgent/ClockAgent.cpp",
       "AudioManager.cpp",
       "oi_codec_sbc.h",
-      "lib/bluedroid/bluedroid_sbc.h"
+      "lib/bluedroid/bluedroid_sbc.h",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "lib/AudioManager/AudioManager.cpp",
+      "managed_components/espressif__libsodium/CMakeLists.txt",
+      "managed_components/espressif__libsodium/port_include/utils.h"
     ]
   },
   {
@@ -414,7 +422,125 @@
       "lib/bluedroid/bluedroid_sbc.c",
       "lib/bluedroid/encoder/include/sbc_symbol_prefix.h",
       "lib/bluedroid/encoder/include/sbc_encoder.h",
-      "library.json"
+      "library.json",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
+    ]
+  },
+  {
+    "timestamp": "2026-05-22T04:14:49.024Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## Open tabs:",
+      "- platformio.ini: platformio.ini",
+      "- MicroSdCard.cpp: lib/MicroSdCard/MicroSdCard.cpp",
+      "- MicroSdCard.h: lib/MicroSdCard/MicroSdCard.h",
+      "- test_webserver.cpp: src/tests/test_webserver.cpp",
+      "- FtpServer.cpp: lib/FtpServer/FtpServer.cpp",
+      "",
+      "## My request for Codex:",
+      "review platformio.ini and `lib\\ESP-FTP-Server-Lib\\library.json` and `lib\\ESP-FTP-Server-Lib\\platformio.ini` and make sure this builds right now with no code changes"
+    ],
+    "agent_reply": [
+      "**Findings**",
+      "",
+      "1. **The default project build does not succeed right now.**  ",
+      "   I ran `pio run -e thefly`, which matches the default environment in [platformio.ini](/d:/GithubRepos/The-Fly/platformio.ini:2). The build gets through compilation and fails at link time with an IRAM overflow:",
+      "   ```text",
+      "   .iram0.text will not fit in region iram0_0_seg",
+      "   IRAM0 segment data does not fit",
+      "   region iram0_0_seg overflowed by 2920 bytes",
+      "   ```",
+      "   So the current PlatformIO/library setup is not a dependency-resolution blocker, but the project still does not produce a firmware image right now.",
+      "",
+      "2. **The FTP library is being picked up from the local `lib/` copy as intended.**  ",
+      "   In the tested build, PlatformIO compiled objects from `lib/ESP-FTP-Server-Lib`, including the FTP server sources. The root [platformio.ini](/d:/GithubRepos/The-Fly/platformio.ini:121) no longer lists the registry dependency for `kastenklicker/ESP-FTP-Server`, so the vendored library is the one in play for this build.",
+      "",
+      "3. **The vendored library metadata disagrees with itself.**  ",
+      "   [library.json](/d:/GithubRepos/The-Fly/lib/ESP-FTP-Server-Lib/library.json:2) says:",
+      "   - name: `ESP-FTP-Server`",
+      "   - version: `0.14.2`",
+      "",
+      "   But [library.properties](/d:/GithubRepos/The-Fly/lib/ESP-FTP-Server-Lib/library.properties:1) says:",
+      "   - name: `ESP-FTP-Server-Lib`",
+      "   - version: `0.14.1`",
+      "",
+      "   That mismatch did **not** stop this PlatformIO build from finding and compiling the library, but it is worth cleaning up later because it makes the library identity/version ambiguous.",
+      "",
+      "4. **The library’s own `platformio.ini` is not the parent build configuration.**  ",
+      "   [lib/ESP-FTP-Server-Lib/platformio.ini](/d:/GithubRepos/The-Fly/lib/ESP-FTP-Server-Lib/platformio.ini:1) defines standalone library test/example environments. The parent firmware build uses the root [platformio.ini](/d:/GithubRepos/The-Fly/platformio.ini:1), so the vendored library’s `platformio.ini` is not what controls `pio run -e thefly`.",
+      "",
+      "5. **There is a non-fatal FTP library compatibility warning.**  ",
+      "   The build warns at [ESP-FTP-Server-Lib.cpp](/d:/GithubRepos/The-Fly/lib/ESP-FTP-Server-Lib/src/ESP-FTP-Server-Lib.cpp:40) that `NetworkServer::available()` is deprecated and has been renamed to `accept()`. That is not today’s failure, but it is a sign the vendored library is rubbing against the current networking API.",
+      "",
+      "**Assumptions / Notes**",
+      "",
+      "- I reviewed and built without making code changes.",
+      "- I treated `thefly` as the build that matters because it is the root config’s `default_envs`.",
+      "- The immediate failure is memory placement at link time, not a malformed `library.json` or a bad `lib_deps` entry.",
+      "",
+      "**Summary**",
+      "",
+      "The PlatformIO setup is currently resolving the local `lib/ESP-FTP-Server-Lib` and compiling it. The build still fails now because `thefly` exceeds IRAM by 2920 bytes. The metadata mismatch between `library.json` and `library.properties` is a cleanup item, but it is not the build-stopper I observed."
+    ],
+    "files": [
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/library.json",
+      "lib/ESP-FTP-Server-Lib/library.properties",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "lib/ESP-FTP-Server-Lib/src/ESP-FTP-Server-Lib.cpp",
+      "lib/bluedroid/library.json"
+    ]
+  },
+  {
+    "timestamp": "2026-05-22T04:50:24.288Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_webserver.cpp",
+      "",
+      "## Active selection of the file:",
+      "replace-me",
+      "## Open tabs:",
+      "- test_webserver.cpp: src/tests/test_webserver.cpp",
+      "- platformio.ini: platformio.ini",
+      "- STAT.h: lib/ESP-FTP-Server-Lib/src/Commands/STAT.h",
+      "- NLST.h: lib/ESP-FTP-Server-Lib/src/Commands/NLST.h",
+      "- MLSD.h: lib/ESP-FTP-Server-Lib/src/Commands/MLSD.h",
+      "",
+      "## My request for Codex:",
+      "was there a reason why we used `KastenKlicker`'s fork? is it because it's made to work on platformio?"
+    ],
+    "agent_reply": [
+      "Yes, **probably**.",
+      "",
+      "From what is in the repo:",
+      "",
+      "- The local `library.json` points at **KastenKlicker’s** repo and has PlatformIO metadata: [library.json](/d:/GithubRepos/The-Fly/lib/ESP-FTP-Server-Lib/library.json:1).",
+      "- The Arduino-style metadata still points at **Peter Buchegger’s** original repo: [library.properties](/d:/GithubRepos/The-Fly/lib/ESP-FTP-Server-Lib/library.properties:1).",
+      "- Before vendoring it locally, your root `platformio.ini` had the dependency form:",
+      "  ```ini",
+      "  kastenklicker/ESP-FTP-Server @ 0.14.2",
+      "  ```",
+      "  That is a PlatformIO Registry package name, so KastenKlicker’s fork was the directly convenient PlatformIO dependency.",
+      "",
+      "So my read is:",
+      "",
+      "1. **Peterus appears to be the original library lineage.**",
+      "2. **KastenKlicker’s fork/package is the PlatformIO-facing version you pulled in.**",
+      "3. We did not choose it for an SdFat feature or passive FTP feature. We chose it because it was the library/package already being resolved by PlatformIO in this project.",
+      "",
+      "It is also plausible KastenKlicker carried newer ESP32 compatibility or registry maintenance beyond the original Arduino package, but I have not compared the upstream histories yet."
+    ],
+    "files": [
+      "lib/ESP-FTP-Server-Lib/library.json",
+      "lib/ESP-FTP-Server-Lib/library.properties",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "lib/bluedroid/library.json"
     ]
   }
 ]

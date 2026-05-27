@@ -58,7 +58,8 @@
     "files": [
       "lib/BluetoothManager/BtHostList.h",
       "lib/BluetoothManager/BtHostList.cpp",
-      "bluetooth.json"
+      "bluetooth.json",
+      "json_templates/bluetooth.json"
     ]
   },
   {
@@ -169,7 +170,8 @@
       "bluetooth.json",
       "lib/BluetoothManager/BtHostList.h",
       "lib/BluetoothManager/BtHostList.cpp",
-      "BtHostList.h"
+      "BtHostList.h",
+      "json_templates/bluetooth.json"
     ]
   },
   {
@@ -248,7 +250,8 @@
     "files": [
       "bluetooth.json",
       "lib/BluetoothManager/BtHostList.h",
-      "lib/BluetoothManager/BtHostList.cpp"
+      "lib/BluetoothManager/BtHostList.cpp",
+      "json_templates/bluetooth.json"
     ]
   },
   {
@@ -554,7 +557,8 @@
     "files": [
       "lib/BluetoothManager/BtHostList.cpp",
       "src/main.cpp",
-      "bluetooth.json"
+      "bluetooth.json",
+      "json_templates/bluetooth.json"
     ]
   },
   {
@@ -614,7 +618,8 @@
       "lib/BluetoothManager/BtHostList.cpp",
       "lib/FlyGuiViews/ScrollView/ScrollView.h",
       "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
-      "bluetooth.json"
+      "bluetooth.json",
+      "json_templates/bluetooth.json"
     ]
   },
   {
@@ -966,7 +971,93 @@
       "BluetoothManager.cpp",
       "wifi.json",
       "bluetooth.json",
-      "test_bootreadfiles.cpp"
+      "test_bootreadfiles.cpp",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "json_templates/bluetooth.json",
+      "json_templates/wifi.json",
+      "lib/WifiManager/CloudUpload.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-23T08:25:24.629Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## Open tabs:",
+      "- conf.h: inc/conf.h",
+      "- test_sdcard.cpp: src/tests/test_sdcard.cpp",
+      "- Aegis.cpp: lib/Security/Aegis.cpp",
+      "- Aegis.h: lib/Security/Aegis.h",
+      "- FlyGuiText.cpp: lib/FlyGui/FlyGuiText.cpp",
+      "",
+      "## My request for Codex:",
+      "I want to run `void test_sdcard()` to test performance of the recorder with encryption enabled",
+      "",
+      "make sure everything is wired so that it works with encryption actually built and active"
+    ],
+    "agent_reply": [
+      "Wired `test_sdcard()` so it should actually test encrypted recorder performance now.",
+      "",
+      "Changed:",
+      "- `run_test()` now calls `test_sdcard()`.",
+      "- `setup()` now calls `all_init()` before bring-up tests, so NVS/M5/gui basics exist before `Aegis` and SD setup.",
+      "- `test_sdcard()` now:",
+      "  - confirms `BUILD_WITH_SECURITY`,",
+      "  - initializes `Aegis`,",
+      "  - installs a deterministic test master key only if no key already exists,",
+      "  - initializes the microSD card,",
+      "  - forces `AudioFileRecorder::setPurePcmMode(false)` so it does not bypass encryption.",
+      "- Fixed security-build wiring:",
+      "  - `AudioFileRecorder` now includes `Aegis` by relative path so PlatformIO library discovery works.",
+      "  - `BtHostList.h` and `WifiManager.h` now include `conf.h`, so their security-mode structs match their `.cpp` files.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_bringuptest",
+      "```",
+      "",
+      "Build passed. I restored the generated `src/version.c` bump afterward.",
+      "",
+      "Wired `test_sdcard()` so it should actually test encrypted recorder performance now.",
+      "",
+      "Changed:",
+      "- `run_test()` now calls `test_sdcard()`.",
+      "- `setup()` now calls `all_init()` before bring-up tests, so NVS/M5/gui basics exist before `Aegis` and SD setup.",
+      "- `test_sdcard()` now:",
+      "  - confirms `BUILD_WITH_SECURITY`,",
+      "  - initializes `Aegis`,",
+      "  - installs a deterministic test master key only if no key already exists,",
+      "  - initializes the microSD card,",
+      "  - forces `AudioFileRecorder::setPurePcmMode(false)` so it does not bypass encryption.",
+      "- Fixed security-build wiring:",
+      "  - `AudioFileRecorder` now includes `Aegis` by relative path so PlatformIO library discovery works.",
+      "  - `BtHostList.h` and `WifiManager.h` now include `conf.h`, so their security-mode structs match their `.cpp` files.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_bringuptest",
+      "```",
+      "",
+      "Build passed. I restored the generated `src/version.c` bump afterward."
+    ],
+    "files": [
+      "inc/conf.h",
+      "src/main.cpp",
+      "src/tests/all_tests.cpp",
+      "src/tests/test_sdcard.cpp",
+      "lib/BluetoothManager/BtHostList.h",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/WifiManager/WifiManager.h",
+      "src/version.c",
+      "inc/thefly_common.h",
+      "lib/BluetoothManager/BtHostList.cpp",
+      "lib/Security/Aegis.h"
     ]
   },
   {
@@ -1358,7 +1449,8 @@
       "lib/BluetoothManager/BtHostList.h",
       "test_bootreadfiles.cpp",
       "lib/WifiManager/WifiManager.h",
-      "src/version.c"
+      "src/version.c",
+      "src/tests/test_bootreadfiles.cpp"
     ]
   },
   {
@@ -1520,7 +1612,9 @@
       "lib/BluetoothManager/BtHostList.cpp",
       "src/version.c",
       "wifi.json",
-      "bluetooth.json"
+      "bluetooth.json",
+      "json_templates/bluetooth.json",
+      "json_templates/wifi.json"
     ]
   },
   {
@@ -1636,7 +1730,9 @@
       "lib/WifiManager/WifiManager.cpp",
       "bluetooth.json",
       "lib/BluetoothManager/BtHostList.cpp",
-      "src/version.c"
+      "src/version.c",
+      "json_templates/bluetooth.json",
+      "json_templates/wifi.json"
     ]
   },
   {

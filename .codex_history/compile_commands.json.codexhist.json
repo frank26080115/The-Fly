@@ -50,10 +50,10 @@
     "files": [
       "tools/embed_managed_component_certs.py",
       ".gitignore",
-      "CMakeLists.txt",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "managed_components/espressif__libsodium/CMakeLists.txt",
       "dependencies.lock",
-      "compile_commands.json",
-      "platformio.ini"
+      "compile_commands.json"
     ]
   },
   {
@@ -111,7 +111,6 @@
       "lib/Security/Aegis.h",
       "lib/Security/Aegis.cpp",
       "src/version.c",
-      "Aegis.cpp",
       "compile_commands.json"
     ]
   }

@@ -193,6 +193,54 @@
     "commit_hash": "421a041f801f5f993b55e85fd21fbb828bf995c0"
   },
   {
+    "timestamp": "2026-05-23T23:00:43.086Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_btramusage.cpp",
+      "",
+      "## Active selection of the file:",
+      "void test_btramusage()",
+      "## Open tabs:",
+      "- test_btramusage.cpp: src/tests/test_btramusage.cpp",
+      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
+      "- test_webserver.cpp: src/tests/test_webserver.cpp",
+      "- WebServer.h: lib/WifiManager/WebServer.h",
+      "- WebServer.cpp: lib/WifiManager/WebServer.cpp",
+      "",
+      "## My request for Codex:",
+      "implement `void test_btramusage()`"
+    ],
+    "agent_reply": [
+      "Implemented `void test_btramusage()` in `src/tests/test_btramusage.cpp`.",
+      "",
+      "It now:",
+      "- Starts serial and waits 3 seconds.",
+      "- Reports heap/internal/PSRAM free, minimum free, and largest block.",
+      "- Initializes Bluetooth, opens pairing mode, waits/polls, reports memory.",
+      "- Calls `BtManager::shutdown()`, waits, reports memory.",
+      "- Starts generated SoftAP, initializes `WebServer`, waits/polls, reports memory.",
+      "- Spins forever while polling Wi-Fi.",
+      "",
+      "I also wired it into `run_test()` and added the prototype in `all_tests.h`.",
+      "",
+      "Build note: `test_btramusage.cpp` compiled, but `pio run -e thefly_bringuptest` failed at link with the recurring IRAM0 overflow:",
+      "",
+      "```text",
+      ".iram0.text will not fit in region `iram0_0_seg`",
+      "region `iram0_0_seg' overflowed by 2148 bytes",
+      "```",
+      "",
+      "I restored the generated `src/version.c` change afterward."
+    ],
+    "files": [
+      "src/tests/test_btramusage.cpp",
+      "src/version.c",
+      "src/tests/all_tests.h"
+    ]
+  },
+  {
     "timestamp": "2026-05-24T00:09:46Z",
     "type": "git_commit",
     "commit_message": "added \"set_cfg\" request handler",

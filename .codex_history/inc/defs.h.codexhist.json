@@ -198,7 +198,8 @@
       "lib/UtilFuncs/utilfuncs.cpp",
       "lib/UtilFuncs/utilfuncs.h",
       "lib/FlyGuiViews/RecordingView/MemoTypeButton.h",
-      "thefly_common.h"
+      "thefly_common.h",
+      "inc/thefly_common.h"
     ]
   },
   {
@@ -485,6 +486,57 @@
     ]
   },
   {
+    "timestamp": "2026-05-22T00:33:09.152Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/defs.h",
+      "",
+      "## Active selection of the file:",
+      "typedef enum",
+      "{",
+      "    MEMO_TYPE_NOTE = 0,",
+      "    MEMO_TYPE_TODO,",
+      "    MEMO_TYPE_JOURNAL,",
+      "    MEMO_TYPE_IDEA,",
+      "    MEMO_TYPE_REMINDER,",
+      "} MemoType;",
+      "## Open tabs:",
+      "- defs.h: inc/defs.h",
+      "- package_web_assets.py: tools/package_web_assets.py",
+      "- index.html: html/index.html",
+      "- styles.css: html/styles.css",
+      "- style.css: html/style.css",
+      "",
+      "## My request for Codex:",
+      "I made the change, it is highlighted, go through the project and edit old references to it"
+    ],
+    "agent_reply": [
+      "Updated the old `MemoType::...` references to the new C-compatible `MEMO_TYPE_*` constants in:",
+      "",
+      "- [MemoTypeButton.cpp](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/RecordingView/MemoTypeButton.cpp)",
+      "- [MemoTypeButton.h](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/RecordingView/MemoTypeButton.h)",
+      "- [utilfuncs.cpp](/D:/GithubRepos/The-Fly/lib/UtilFuncs/utilfuncs.cpp)",
+      "",
+      "I also checked for remaining scoped `MemoType::` references and didn’t find any.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_bringuptest -j 4",
+      "```",
+      "",
+      "Build succeeded. It still prints the existing dependency warnings from SBC and ESP-FTP-Server, but no new errors from the enum change."
+    ],
+    "files": [
+      "lib/FlyGuiViews/RecordingView/MemoTypeButton.cpp",
+      "lib/FlyGuiViews/RecordingView/MemoTypeButton.h",
+      "lib/UtilFuncs/utilfuncs.cpp",
+      "inc/defs.h"
+    ]
+  },
+  {
     "timestamp": "2026-05-22T01:09:17.258Z",
     "type": "codex_task",
     "user_prompt": [
@@ -620,7 +672,10 @@
       "platformio.ini",
       "index.html",
       "inc/web_assets.h",
-      "styles.css"
+      "styles.css",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "html/index.html",
+      "html/styles.css"
     ]
   },
   {
@@ -761,7 +816,9 @@
       "lib/AudioFifo/AudioFifo.h",
       "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
       "lib/WifiManager/WifiManager.cpp",
-      "lib/FlyGui/FlyGui.cpp"
+      "lib/FlyGui/FlyGui.cpp",
+      "json_templates/bluetooth.json",
+      "json_templates/wifi.json"
     ]
   },
   {
@@ -905,7 +962,8 @@
       "lib/BluetoothManager/BtHostList.h",
       "test_bootreadfiles.cpp",
       "lib/WifiManager/WifiManager.h",
-      "src/version.c"
+      "src/version.c",
+      "src/tests/test_bootreadfiles.cpp"
     ]
   },
   {
