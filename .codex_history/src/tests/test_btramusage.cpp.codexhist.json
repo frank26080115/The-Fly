@@ -9,12 +9,6 @@
       "",
       "## Active selection of the file:",
       "void test_btramusage()",
-      "## Open tabs:",
-      "- test_btramusage.cpp: src/tests/test_btramusage.cpp",
-      "- WifiManager.cpp: lib/WifiManager/WifiManager.cpp",
-      "- test_webserver.cpp: src/tests/test_webserver.cpp",
-      "- WebServer.h: lib/WifiManager/WebServer.h",
-      "- WebServer.cpp: lib/WifiManager/WebServer.cpp",
       "",
       "## My request for Codex:",
       "implement `void test_btramusage()`"

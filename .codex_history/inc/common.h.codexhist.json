@@ -9,12 +9,6 @@
       "",
       "## Active selection of the file:",
       "kMaxGrowFileBytes",
-      "## Open tabs:",
-      "- mic_sd_recorder_demo.cpp: src/mic_sd_recorder_demo.cpp",
-      "- utilfuncs.cpp: lib/UtilFuncs/utilfuncs.cpp",
-      "- AudioFifo.h: lib/AudioFifo/AudioFifo.h",
-      "- FlyGui.h: lib/FlyGui/FlyGui.h",
-      "- FlyGui.cpp: lib/FlyGui/FlyGui.cpp",
       "",
       "## My request for Codex:",
       "move both `kHalfGiB` and `kMaxGrowFileBytes` into `inc\\conf.h`"

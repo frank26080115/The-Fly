@@ -9,12 +9,6 @@
       "",
       "## Active selection of the file:",
       "-I $PROJECT_PACKAGES_DIR/framework-arduinoespressif32/libraries/Network/src",
-      "## Open tabs:",
-      "- platformio.ini: platformio.ini",
-      "- AudioManager.h: lib/AudioManager/AudioManager.h",
-      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
-      "- readme.md: lib/sbc/readme.md",
-      "- bluedroid_sbc.h: lib/bluedroid/bluedroid_sbc.h",
       "",
       "## My request for Codex:",
       "I thought we fixed the `Network.h` issue with `-I $PROJECT_PACKAGES_DIR/framework-arduinoespressif32/libraries/Network/src`?"

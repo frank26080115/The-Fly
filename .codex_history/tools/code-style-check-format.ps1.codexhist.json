@@ -7,13 +7,6 @@
       "",
       "## Active file: .clang-format",
       "",
-      "## Open tabs:",
-      "- .clang-format: .clang-format",
-      "- .editorconfig: .editorconfig",
-      "- code-style-check-format.sh: tools/code-style-check-format.sh",
-      "- code-style-format.sh: tools/code-style-format.sh",
-      "- agentic-ai-rules.md: developer-docs/agentic-ai-rules.md",
-      "",
       "## My request for Codex:",
       "make windows or powershell compatible versions of `tools\\code-style-format.sh` and `tools\\code-style-check-format.sh`"
     ],

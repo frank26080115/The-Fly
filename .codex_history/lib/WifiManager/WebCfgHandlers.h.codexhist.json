@@ -7,13 +7,6 @@
       "",
       "## Active file: lib/WifiManager/WebFileHandlers.h",
       "",
-      "## Open tabs:",
-      "- WebFileHandlers.h: lib/WifiManager/WebFileHandlers.h",
-      "- WebFileHandlers.cpp: lib/WifiManager/WebFileHandlers.cpp",
-      "- WebCfgHandlers.h: lib/WifiManager/WebCfgHandlers.h",
-      "- WebCfgHandlers.cpp: lib/WifiManager/WebCfgHandlers.cpp",
-      "- WebServer.cpp: lib/WifiManager/WebServer.cpp",
-      "",
       "## My request for Codex:",
       "`lib\\WifiManager\\WebServer.cpp` is getting too long",
       "",
@@ -23,8 +16,7 @@
       "",
       "Move the stuff related to file upload, download, file list retrieval, into `WebFileHandlers`",
       "",
-      "Server setup, management, authentication, can still use `WebServer`. I think you can understand how to handle what I haven't mentioned",
-      ""
+      "Server setup, management, authentication, can still use `WebServer`. I think you can understand how to handle what I haven't mentioned"
     ],
     "agent_reply": [
       "Done. `WebServer.cpp` is now mostly auth, asset serving, routing, and FTP startup. Config endpoints moved into [WebCfgHandlers.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebCfgHandlers.cpp), and file upload/download/delete/list endpoints moved into [WebFileHandlers.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebFileHandlers.cpp).",

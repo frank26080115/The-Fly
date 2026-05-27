@@ -7,13 +7,6 @@
       "",
       "## Active file: lib/AudioFileRecorder/FileHistory.h",
       "",
-      "## Open tabs:",
-      "- FileHistory.h: lib/AudioFileRecorder/FileHistory.h",
-      "- FileHistory.cpp: lib/AudioFileRecorder/FileHistory.cpp",
-      "- generate_version_source.py: tools/generate_version_source.py",
-      "- AudioFileRecorder.cpp: lib/AudioFileRecorder/AudioFileRecorder.cpp",
-      "- wifi-workflow.md: developer-docs/wifi-workflow.md",
-      "",
       "## My request for Codex:",
       "can you please move the pruning function in `lib\\AudioFileRecorder\\AudioFileRecorder.cpp` and the private related helpers to `lib\\AudioFileRecorder\\FileHistory.cpp` and `lib\\AudioFileRecorder\\FileHistory.h`?"
     ],

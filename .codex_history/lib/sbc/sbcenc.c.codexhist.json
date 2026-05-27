@@ -7,13 +7,6 @@
       "",
       "## Active file: lib/sbc/sbcinfo.c",
       "",
-      "## Open tabs:",
-      "- sbcinfo.c: lib/sbc/sbcinfo.c",
-      "- sbcenc.c: lib/sbc/sbcenc.c",
-      "- sbc.c: lib/sbc/sbc.c",
-      "- bt_audio_demo.cpp: src/bt_audio_demo.cpp",
-      "- push_to_talk_demo.cpp: src/push_to_talk_demo.cpp",
-      "",
       "## My request for Codex:",
       "I put a ton of ` // TODO: handle SBC_BLK_15` inside `lib\\sbc`, handle them for me please"
     ],

@@ -7,13 +7,6 @@
       "",
       "## Active file: lib/AudioManager/SpeakerPeakActivity.h",
       "",
-      "## Open tabs:",
-      "- SpeakerPeakActivity.h: lib/AudioManager/SpeakerPeakActivity.h",
-      "- SpeakerPeakActivity.cpp: lib/AudioManager/SpeakerPeakActivity.cpp",
-      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
-      "- MicGainManager.cpp: lib/AudioManager/MicGainManager.cpp",
-      "- FlyGui.cpp: lib/FlyGui/FlyGui.cpp",
-      "",
       "## My request for Codex:",
       "implement in `lib\\AudioManager\\SpeakerPeakActivity.cpp` and `lib\\AudioManager\\SpeakerPeakActivity.h` a peak level tracker that works exactly like the one used for mic peak level in `lib\\AudioManager\\MicGainManager.cpp`, have it analyze samples as they arrive from the bluetooth callback so that they are raw when they are analyzed"
     ],

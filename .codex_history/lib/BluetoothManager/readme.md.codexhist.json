@@ -13,18 +13,10 @@
       "",
       "## Active file: developer-docs/wifi-workflow.md",
       "",
-      "## Open tabs:",
-      "- wifi-workflow.md: developer-docs/wifi-workflow.md",
-      "- user-stories.md: developer-docs/user-stories.md",
-      "- ui-design.md: developer-docs/ui-design.md",
-      "- recording-file-format.md: developer-docs/recording-file-format.md",
-      "- high-level-fw-design.md: developer-docs/high-level-fw-design.md",
-      "",
       "## My request for Codex:",
       "ok, I want to make a general usage flow change. the device will always be connectable but not discoverable, pairing mode will make it discoverable. Activating Wi-Fi will shut everything down. There will no longer need to be a waiting mode in addition to pairing mode.",
       "",
-      "I don't see this mentioned in my design brainstorm documents, if I did and I missed it, warn me",
-      ""
+      "I don't see this mentioned in my design brainstorm documents, if I did and I missed it, warn me"
     ],
     "agent_reply": [
       "Implemented the flow change.",

@@ -9,12 +9,6 @@
       "",
       "## Active selection of the file:",
       "ESP_HF_CLIENT_AUDIO_STATE_DISCONNECTED",
-      "## Open tabs:",
-      "- bt_audio_demo.cpp: src/bt_audio_demo.cpp",
-      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
-      "- high-level-fw-design.md: developer-docs/high-level-fw-design.md",
-      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
-      "- bluetooth-workflow.md: developer-docs/bluetooth-workflow.md",
       "",
       "## My request for Codex:",
       "add the downsampling feature to AudioFifo upon dequeuing, since it already has upsampling as a feature"

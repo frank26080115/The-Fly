@@ -7,13 +7,6 @@
       "",
       "## Active file: platformio.ini",
       "",
-      "## Open tabs:",
-      "- platformio.ini: platformio.ini",
-      "- MicroSdCard.cpp: lib/MicroSdCard/MicroSdCard.cpp",
-      "- MicroSdCard.h: lib/MicroSdCard/MicroSdCard.h",
-      "- test_webserver.cpp: src/tests/test_webserver.cpp",
-      "- FtpServer.cpp: lib/FtpServer/FtpServer.cpp",
-      "",
       "## My request for Codex:",
       "review platformio.ini and `lib\\ESP-FTP-Server-Lib\\library.json` and `lib\\ESP-FTP-Server-Lib\\platformio.ini` and make sure this builds right now with no code changes"
     ],

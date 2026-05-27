@@ -7,13 +7,6 @@
       "",
       "## Active file: lib/FlyGui/readme.md",
       "",
-      "## Open tabs:",
-      "- readme.md: lib/FlyGui/readme.md",
-      "- FlyGuiText.h: lib/FlyGui/FlyGuiText.h",
-      "- FlyGui.h: lib/FlyGui/FlyGui.h",
-      "- SpriteCache.cpp: lib/FlyGui/SpriteCache.cpp",
-      "- SpriteCache.h: lib/FlyGui/SpriteCache.h",
-      "",
       "## My request for Codex:",
       "read `lib\\FlyGui\\readme.md` and implement the design, make sure to comment where something is implemented according to a part of my design"
     ],

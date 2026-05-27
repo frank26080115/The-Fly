@@ -7,13 +7,6 @@
       "",
       "## Active file: src/tests/test_btspeakerphone.cpp",
       "",
-      "## Open tabs:",
-      "- test_btspeakerphone.cpp: src/tests/test_btspeakerphone.cpp",
-      "- test_btpairing.cpp: src/tests/test_btpairing.cpp",
-      "- size-files.csv: .pio/build/theflybringuptest/size-files.csv",
-      "- esp32-hal-bt.c: .pio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal-bt.c",
-      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
-      "",
       "## My request for Codex:",
       "scan `.pio\\libdeps` simply for functions with the IRAM attribute"
     ],

@@ -9,12 +9,6 @@
       "",
       "## Active selection of the file:",
       "CONFIG_BTDM_CONTROLLER_MODE_BTDM",
-      "## Open tabs:",
-      "- esp32-hal-bt.c: .pio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal-bt.c",
-      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
-      "- platformio.ini: platformio.ini",
-      "- bluedroid_sbc.c: lib/bluedroid/bluedroid_sbc.c",
-      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
       "",
       "## My request for Codex:",
       "run `idf.py size-files`, the docs say it'll break down iram usage by file"

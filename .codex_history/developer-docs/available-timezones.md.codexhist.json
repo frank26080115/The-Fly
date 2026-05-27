@@ -7,13 +7,6 @@
       "",
       "## Active file: developer-docs/available-timezones.md",
       "",
-      "## Open tabs:",
-      "- available-timezones.md: developer-docs/available-timezones.md",
-      "- Rtc.ino: .pio/libdeps/m5stack-core2/M5Unified/examples/Basic/Rtc/Rtc.ino",
-      "- ui-design.md: developer-docs/ui-design.md",
-      "- high-level-fw-design.md: developer-docs/high-level-fw-design.md",
-      "- file-system-and-ftp-server-design.md: developer-docs/file-system-and-ftp-server-design.md",
-      "",
       "## My request for Codex:",
       "open `developer-docs\\available-timezones.md` and execute the TODO item please"
     ],

@@ -9,12 +9,6 @@
       "",
       "## Active selection of the file:",
       "USE_BLUEDROID_MSBC",
-      "## Open tabs:",
-      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
-      "- embed_managed_component_certs.py: tools/embed_managed_component_certs.py",
-      "- platformio.ini: platformio.ini",
-      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
-      "- all_tests.cpp: src/tests/all_tests.cpp",
       "",
       "## My request for Codex:",
       "you know how we are using `USE_BLUEDROID_MSBC`? add a switch for `USE_LIBSBC_MSBC`, and if neither are used, do the \"assume it's PCM\" way"

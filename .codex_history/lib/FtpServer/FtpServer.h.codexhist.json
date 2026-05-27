@@ -9,12 +9,6 @@
       "",
       "## Active selection of the file:",
       "void test_webserver()",
-      "## Open tabs:",
-      "- test_webserver.cpp: src/tests/test_webserver.cpp",
-      "- platformio.ini: platformio.ini",
-      "- readme.md: lib/FtpServer/readme.md",
-      "- package_web_assets.py: tools/package_web_assets.py",
-      "- sprites.cpp: src/sprites.cpp",
       "",
       "## My request for Codex:",
       "Inside `lib\\FtpServer` implement a `lib\\FtpServer\\FtpServer.cpp` and `lib\\FtpServer\\FtpServer.h` that's simply a wrapper so that the `kastenklicker/ESP-FTP-Server` library is serving the microSD card. Wire it into `void test_webserver()`, put some comments on how to make it secure, like setting a username and password and if it is using sftp or not."

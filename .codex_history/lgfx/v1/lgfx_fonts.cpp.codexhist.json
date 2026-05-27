@@ -7,13 +7,6 @@
       "",
       "## Active file: .pio/libdeps/m5stack-core2/M5GFX/src/lgfx/Fonts/Font16.h",
       "",
-      "## Open tabs:",
-      "- Font16.h: .pio/libdeps/m5stack-core2/M5GFX/src/lgfx/Fonts/Font16.h",
-      "- RTC_Class.hpp: .pio/libdeps/m5stack-core2/M5Unified/src/utility/RTC_Class.hpp",
-      "- RTC_Class.cpp: .pio/libdeps/m5stack-core2/M5Unified/src/utility/RTC_Class.cpp",
-      "- RTC_Base.hpp: .pio/libdeps/m5stack-core2/M5Unified/src/utility/rtc/RTC_Base.hpp",
-      "- RTC_Base.cpp: .pio/libdeps/m5stack-core2/M5Unified/src/utility/rtc/RTC_Base.cpp",
-      "",
       "## My request for Codex:",
       "are these all available by default? or is there a config file or preprocessor switch to enable them?"
     ],

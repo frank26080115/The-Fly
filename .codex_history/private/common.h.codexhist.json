@@ -7,13 +7,6 @@
       "",
       "## Active file: .gitignore",
       "",
-      "## Open tabs:",
-      "- .gitignore: .gitignore",
-      "- AudioManager.cpp: lib/AudioManager/AudioManager.cpp",
-      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
-      "- BluetoothManager.h: lib/BluetoothManager/BluetoothManager.h",
-      "- test_btspeakerphone.cpp: src/tests/test_btspeakerphone.cpp",
-      "",
       "## My request for Codex:",
       "I don't understand what introduced a build error"
     ],

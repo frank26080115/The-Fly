@@ -9,12 +9,6 @@
       "",
       "## Active selection of the file:",
       "void test_imu()",
-      "## Open tabs:",
-      "- test_imu.cpp: src/tests/test_imu.cpp",
-      "- all_tests.cpp: src/tests/all_tests.cpp",
-      "- all_tests.h: src/tests/all_tests.h",
-      "- all_init.cpp: src/all_init.cpp",
-      "- ImuOrientation.h: lib/ImuOrientation/ImuOrientation.h",
       "",
       "## My request for Codex:",
       "implement `void test_imu()`, start the Serial port, loop and poll ImuOrientation repeatedly, every 200ms provide a printout of all available data with millisecond timestamps"

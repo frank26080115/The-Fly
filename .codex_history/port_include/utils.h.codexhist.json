@@ -9,12 +9,6 @@
       "",
       "## Active selection of the file:",
       "[env:theflybringuptest]",
-      "## Open tabs:",
-      "- platformio.ini: platformio.ini",
-      "- all_tests.cpp: src/tests/all_tests.cpp",
-      "- graphics_resizer.py: tools/graphics_resizer.py",
-      "- .gitignore: gfx-assets/.gitignore",
-      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
       "",
       "## My request for Codex:",
       "I am trying to run code from an older commit, but it won't build, can you please resolve this error when building `[env:theflybringuptest]`? thanks"

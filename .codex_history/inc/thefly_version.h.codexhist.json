@@ -13,13 +13,6 @@
       "",
       "## Active file: platformio.ini",
       "",
-      "## Open tabs:",
-      "- platformio.ini: platformio.ini",
-      "- BluetoothManager.cpp: lib/BluetoothManager/BluetoothManager.cpp",
-      "- all_tests.cpp: src/tests/all_tests.cpp",
-      "- test_btspeakerphone.cpp: src/tests/test_btspeakerphone.cpp",
-      "- utilfuncs.cpp: lib/UtilFuncs/utilfuncs.cpp",
-      "",
       "## My request for Codex:",
       "do that"
     ],
