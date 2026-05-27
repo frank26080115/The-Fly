@@ -19,9 +19,12 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_mac.h"
+#include "esp_netif.h"
 #include "esp_wifi.h"
 #include "nvs.h"
 #include "utilfuncs.h"
+
+bool wifiLowLevelInit(bool persistent);
 
 namespace
 {
@@ -411,16 +414,16 @@ void format_generated_soft_ap_password(char* password, size_t password_size)
     snprintf(password, password_size, "%08lu", static_cast<unsigned long>(generate_8_digit_nonce()));
 }
 
-bool enforce_soft_ap_security()
+void configure_soft_ap_security(wifi_config_t& config, const char* ssid, const char* password)
 {
-    wifi_config_t config = {};
-    esp_err_t err = esp_wifi_get_config(WIFI_IF_AP, &config);
-    if (err != ESP_OK)
-    {
-        ESP_LOGW(TAG, "could not read SoftAP config for security enforcement: %s", esp_err_to_name(err));
-        return false;
-    }
+    memset(&config, 0, sizeof(config));
 
+    strlcpy(reinterpret_cast<char*>(config.ap.ssid), ssid, sizeof(config.ap.ssid));
+    strlcpy(reinterpret_cast<char*>(config.ap.password), password, sizeof(config.ap.password));
+
+    config.ap.ssid_len       = strlen(ssid);
+    config.ap.channel        = kSoftApChannel;
+    config.ap.ssid_hidden    = kSoftApSsidHidden;
     config.ap.authmode       = WIFI_AUTH_WPA3_PSK;
     config.ap.max_connection = kSoftApMaxConnection;
     config.ap.pmf_cfg.capable = true;
@@ -432,15 +435,65 @@ bool enforce_soft_ap_security()
     config.ap.sae_pwe_h2e = WPA3_SAE_PWE_BOTH; // if missing, possible client compatibility issue, not obvious insecurity
 #endif
     // security review of these optional settings: all 4 configurations are safe
+}
+
+bool start_secure_soft_ap(const char* ssid, const char* password)
+{
+    wifi_config_t config = {};
+    configure_soft_ap_security(config, ssid, password);
+
+    if (!wifiLowLevelInit(false))
+    {
+        ESP_LOGW(TAG, "could not initialize Wi-Fi before SoftAP security configuration");
+        return false;
+    }
+
+    esp_err_t err = esp_wifi_stop();
+    if (err != ESP_OK && err != ESP_ERR_WIFI_NOT_STARTED)
+    {
+        ESP_LOGW(TAG, "could not stop Wi-Fi before SoftAP security configuration: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    err = esp_wifi_set_mode(WIFI_MODE_AP);
+    if (err != ESP_OK)
+    {
+        ESP_LOGW(TAG, "could not set Wi-Fi access point mode: %s", esp_err_to_name(err));
+        return false;
+    }
 
     err = esp_wifi_set_config(WIFI_IF_AP, &config);
     if (err != ESP_OK)
     {
-        ESP_LOGW(TAG, "could not enforce WPA3-only SoftAP config: %s", esp_err_to_name(err));
+        ESP_LOGW(TAG, "could not configure WPA3-only SoftAP: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    err = esp_wifi_start();
+    if (err != ESP_OK)
+    {
+        ESP_LOGW(TAG, "could not start WPA3-only SoftAP: %s", esp_err_to_name(err));
         return false;
     }
 
     return true;
+}
+
+IPAddress current_soft_ap_ip()
+{
+    esp_netif_t* netif = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
+    if (!netif)
+    {
+        return IPAddress();
+    }
+
+    esp_netif_ip_info_t ip_info = {};
+    if (esp_netif_get_ip_info(netif, &ip_info) != ESP_OK)
+    {
+        return IPAddress();
+    }
+
+    return IPAddress(ip_info.ip.addr);
 }
 
 } // namespace
@@ -811,14 +864,6 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     }
 
     WiFi.disconnect(true, false);
-    if (!WiFi.mode(WIFI_AP))
-    {
-        resetSoftApClientTracking();
-        m_status      = Status::AccessPointFailed;
-        m_active_wifi = nullptr;
-        ESP_LOGW(TAG, "could not switch Wi-Fi to access point mode");
-        return false;
-    }
 
     const char* password = access_point->password && access_point->password[0] != '\0' ? access_point->password : nullptr;
     if (!password || strlen(password) < 8)
@@ -830,22 +875,13 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
         return false;
     }
 
-    const bool started = WiFi.softAP(access_point->ssid, password, kSoftApChannel, kSoftApSsidHidden, kSoftApMaxConnection);
-    if (!started)
-    {
-        resetSoftApClientTracking();
-        m_status      = Status::AccessPointFailed;
-        m_active_wifi = nullptr;
-        ESP_LOGW(TAG, "could not start Wi-Fi access point \"%s\"", access_point->ssid);
-        return false;
-    }
-    if (!enforce_soft_ap_security())
+    if (!start_secure_soft_ap(access_point->ssid, password))
     {
         WiFi.softAPdisconnect(true);
         resetSoftApClientTracking();
         m_status      = Status::AccessPointFailed;
         m_active_wifi = nullptr;
-        ESP_LOGW(TAG, "stopped Wi-Fi access point \"%s\" because WPA3-only security could not be enforced", access_point->ssid);
+        ESP_LOGW(TAG, "could not start WPA3-only Wi-Fi access point \"%s\"", access_point->ssid);
         return false;
     }
 
@@ -853,7 +889,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     m_status      = Status::AccessPoint;
     resetWebCounters();
     notifyConnected(access_point);
-    ESP_LOGI(TAG, "started Wi-Fi access point \"%s\" at %s", access_point->ssid, WiFi.softAPIP().toString().c_str());
+    ESP_LOGI(TAG, "started Wi-Fi access point \"%s\" at %s", access_point->ssid, current_soft_ap_ip().toString().c_str());
     return true;
 }
 
