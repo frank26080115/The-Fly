@@ -20,18 +20,19 @@ constexpr int16_t  kSecurityIconX    = 54;
 constexpr int16_t  kEyeSize          = 100;
 constexpr int16_t  kEyeX             = 220;
 constexpr int16_t  kEyeY             = 140;
-constexpr int16_t  kClientInfoX      = 104;
+constexpr int16_t  kClientInfoX      = 108;
 constexpr int16_t  kClientInfoY      = FlyGui::kTopBarHeight + 2;
 constexpr int16_t  kClientInfoWidth  = 212;
+constexpr int16_t  kClientInfoLineHeight = 16;
 constexpr int16_t  kTextX            = 8;
 constexpr int16_t  kTextY            = 68;
 constexpr int16_t  kTextWidth        = 206;
 constexpr int16_t  kCredentialLabelLineHeight = 18;
 constexpr int16_t  kCredentialValueLineHeight = 28;
 constexpr int16_t  kStatsY           = 190;
-constexpr int16_t  kHintY            = 204;
 constexpr int16_t  kSmallLineHeight  = 10;
 constexpr uint8_t  kNormalTextFont   = 2;
+constexpr uint8_t  kClientInfoTextFont = kNormalTextFont;
 constexpr uint8_t  kCredentialValueTextFont = 4;
 constexpr uint8_t  kSmallTextFont    = 1;
 constexpr uint32_t kClientInfoDrawMs = 500;
@@ -213,30 +214,47 @@ void WifiApModeView::drawClientInfo(bool forced)
     }
     lastClientDrawMs_ = now;
 
-    char client_text[18] = "nobody";
+    const bool secureAp = wifi_manager && wifi_manager->isGeneratedSoftApActive();
+
+    char client_text[24] = "TO: nobody";
     uint8_t client_mac[6] = {};
     if (wifi_manager && wifi_manager->softApClientMac(client_mac))
     {
-        format_mac_hyphen(client_mac, client_text, sizeof(client_text));
+        char mac_text[18] = {};
+        format_mac_hyphen(client_mac, mac_text, sizeof(mac_text));
+        snprintf(client_text, sizeof(client_text), "TO: %s", mac_text);
     }
 
-    char count_text[16] = {};
+    const uint32_t connectionCount = wifi_manager ? wifi_manager->softApClientConnectionCount() : 0;
+    char count_text[24] = {};
     snprintf(count_text,
              sizeof(count_text),
-             "%lu",
-             static_cast<unsigned long>(wifi_manager ? wifi_manager->softApClientConnectionCount() : 0));
+             "%lux %s",
+             static_cast<unsigned long>(connectionCount),
+             connectionCount > 1 ? "reconnections" : "connections");
 
     thefly_display.fillRect(kClientInfoX,
                             kClientInfoY,
                             kClientInfoWidth,
-                            static_cast<int16_t>(kSmallLineHeight * 2),
+                            static_cast<int16_t>(kClientInfoLineHeight * 3),
                             TFT_BLACK);
-    draw_fit_line(client_text, kClientInfoX, kClientInfoY, kClientInfoWidth, kSmallTextFont, TFT_WHITE);
+    draw_fit_line(secureAp ? "Secure AP Mode" : "AP mode",
+                  kClientInfoX,
+                  kClientInfoY,
+                  kClientInfoWidth,
+                  kClientInfoTextFont,
+                  TFT_WHITE);
+    draw_fit_line(client_text,
+                  kClientInfoX,
+                  static_cast<int16_t>(kClientInfoY + kClientInfoLineHeight),
+                  kClientInfoWidth,
+                  kClientInfoTextFont,
+                  TFT_WHITE);
     draw_fit_line(count_text,
                   kClientInfoX,
-                  static_cast<int16_t>(kClientInfoY + kSmallLineHeight),
+                  static_cast<int16_t>(kClientInfoY + (kClientInfoLineHeight * 2)),
                   kClientInfoWidth,
-                  kSmallTextFont,
+                  kClientInfoTextFont,
                   TFT_WHITE);
 }
 
@@ -268,8 +286,9 @@ void WifiApModeView::drawCredentials()
     snprintf(ipLine, sizeof(ipLine), "IP: %s", ipText.c_str());
     draw_fit_line(ipLine, kTextX, y, kTextWidth, kNormalTextFont, TFT_WHITE);
 
-    thefly_display.fillRect(kTextX, kHintY, kTextWidth, kSmallLineHeight, TFT_BLACK);
-    draw_fit_line(kExitHint, kTextX, kHintY, kTextWidth, kSmallTextFont, TFT_RED);
+    const int16_t hintY = static_cast<int16_t>(thefly_display.height() - kSmallLineHeight);
+    thefly_display.fillRect(kTextX, hintY, kTextWidth, kSmallLineHeight, TFT_BLACK);
+    draw_fit_line(kExitHint, kTextX, hintY, kTextWidth, kSmallTextFont, TFT_RED);
 }
 
 void WifiApModeView::drawStatsLine(bool forced)
