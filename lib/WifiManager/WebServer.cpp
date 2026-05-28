@@ -7,10 +7,12 @@
 #include <esp_system.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "Aegis.h"
 #include "BluetoothManager.h"
 #include "BtHostList.h"
+#include "ClockAgent.h"
 #include "DiskStats.h"
 #if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
 #include "FtpServer.h"
@@ -386,6 +388,13 @@ void append_json_u64(String& json, uint64_t value)
     json += text;
 }
 
+void append_json_i64(String& json, int64_t value)
+{
+    char text[32] = {};
+    snprintf(text, sizeof(text), "%lld", static_cast<long long>(value));
+    json += text;
+}
+
 bool ip_is_zero(const IPAddress& ip)
 {
     return static_cast<uint32_t>(ip) == 0;
@@ -430,6 +439,8 @@ void send_info(AsyncWebServerRequest* request)
                               free_bytes == 0 ? MicroSdCard::healthName(MicroSdCard::Health::Full) :
                               MicroSdCard::healthName(MicroSdCard::Health::Ready);
     const bool default_soft_ap = wifi_manager && wifi_manager->isGeneratedSoftApActive();
+    time_t current_time = 0;
+    const bool current_time_valid = Clock.getUnixTime(&current_time);
 
     String session_challenge_hex;
     String session_response_hex;
@@ -458,6 +469,15 @@ void send_info(AsyncWebServerRequest* request)
     json += security_ready ? "true" : "false";
     json += ",\"security-level\":";
     json += BUILD_WITH_SECURITY_LEVEL;
+    json += ",\"current-time\":";
+    if (current_time_valid)
+    {
+        append_json_i64(json, static_cast<int64_t>(current_time));
+    }
+    else
+    {
+        json += "null";
+    }
     json += ",\"config_limits\":{";
     json += "\"stations\":";
     append_json_u64(json, kNetworkConfigMaxEntries);
@@ -908,6 +928,9 @@ bool WebServer::init()
 
     g_server.on(AsyncURIMatcher::exact("/set_cfg"), HTTP_POST, WebCfgHandlers::finishSetCfg, nullptr, WebCfgHandlers::writeSetCfgBody);
     ESP_LOGI(TAG, "registered encrypted config POST /set_cfg");
+
+    g_server.on(AsyncURIMatcher::exact("/time_sync"), HTTP_POST, WebCfgHandlers::timeSync);
+    ESP_LOGI(TAG, "registered time sync POST /time_sync");
 
     g_server.on(AsyncURIMatcher::exact("/reset_password"), HTTP_POST, reset_password);
     ESP_LOGI(TAG, "registered password reset POST /reset_password");

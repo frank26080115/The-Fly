@@ -4,9 +4,11 @@ const get_cfg_version = 2;
 const set_cfg_magic = [0x54, 0x46, 0x47, 0x43];
 const set_cfg_version = 1;
 const stored_password_placeholder = "********";
+const time_sync_offset_threshold_seconds = 60;
 
 let file_row_template = null;
 let current_default_soft_ap = true;
+let latest_info = null;
 
 function body_onload()
 {
@@ -22,6 +24,7 @@ function body_onload()
 
 function handle_info(info)
 {
+    latest_info = info || {};
     current_default_soft_ap = !info || info.default_soft_ap !== false;
     remember_session_info(info);
     render_info(info);
@@ -266,6 +269,64 @@ function append_info_row(parent, label, value)
     row.appendChild(label_node);
     row.appendChild(value_node);
     parent.appendChild(row);
+    return row;
+}
+
+function time_sync_allowed()
+{
+    return Number.isFinite(current_security_level) &&
+           (current_security_level < 2 || current_default_soft_ap !== false);
+}
+
+function format_signed_seconds(seconds)
+{
+    return (seconds > 0 ? "+" : "") + seconds + " seconds";
+}
+
+function append_time_sync_button(parent)
+{
+    const row = document.createElement("div");
+    row.className = "info-row info-action-row";
+
+    const label_node = document.createElement("div");
+    label_node.className = "info-label";
+
+    const value_node = document.createElement("div");
+    value_node.className = "info-value";
+
+    const button = document.createElement("button");
+    button.id = "btn_time_sync";
+    button.className = "button time-sync-button";
+    button.type = "button";
+    button.textContent = "Sync Time";
+    button.onclick = time_sync_onsubmit;
+
+    value_node.appendChild(button);
+    row.appendChild(label_node);
+    row.appendChild(value_node);
+    parent.appendChild(row);
+}
+
+function append_time_offset_info(parent, info)
+{
+    const device_time = Number(info ? info["current-time"] : NaN);
+    if (!Number.isFinite(device_time) || device_time <= 0)
+    {
+        append_info_row(parent, "Time Offset", "Unknown");
+        return;
+    }
+
+    const browser_time = Math.floor(Date.now() / 1000);
+    const offset_seconds = Math.round(device_time - browser_time);
+    const row = append_info_row(parent, "Time Offset", format_signed_seconds(offset_seconds));
+    if (Math.abs(offset_seconds) > time_sync_offset_threshold_seconds)
+    {
+        row.classList.add("info-row-error");
+        if (time_sync_allowed())
+        {
+            append_time_sync_button(parent);
+        }
+    }
 }
 
 function disk_summary(disk)
@@ -422,6 +483,7 @@ function render_info(info)
     append_info_row(container, "Firmware", info.firmware);
     append_info_row(container, "Compiled", info.compiled);
     append_info_row(container, "Security", "Level " + (Number.isFinite(current_security_level) ? current_security_level : "unknown"));
+    append_time_offset_info(container, info);
     if (current_security_level !== 0)
     {
         append_info_row(container, "Session Security", info.security_ready ? "Ready" : "Network key unavailable");
@@ -1141,6 +1203,55 @@ function memreset_onsubmit()
     };
     request.onerror = () => set_memory_reset_message("Memory reset failed.", false);
     request.ontimeout = () => set_memory_reset_message("Memory reset timed out.", false);
+    request.onloadend = function() {
+        if (button)
+        {
+            button.disabled = false;
+        }
+    };
+    request.send("");
+}
+
+function time_sync_onsubmit()
+{
+    if (!time_sync_allowed())
+    {
+        window.alert("Time sync requires the default secure soft AP at this security level.");
+        return;
+    }
+
+    const button = document.getElementById("btn_time_sync");
+    const unix_time = Math.floor(Date.now() / 1000);
+    if (button)
+    {
+        button.disabled = true;
+    }
+
+    const request = new XMLHttpRequest();
+    request.open("POST", "/time_sync?time=" + encodeURIComponent(String(unix_time)), true);
+    request.responseType = "json";
+    request.timeout = 10000;
+    request.onload = function() {
+        if (request.status >= 200 && request.status < 300)
+        {
+            try
+            {
+                const response = request.response || (request.responseText ? JSON.parse(request.responseText) : {});
+                const reported_time = Number(response["current-time"]);
+                latest_info = latest_info || {};
+                latest_info["current-time"] = Number.isFinite(reported_time) ? reported_time : unix_time;
+                render_info(latest_info);
+            }
+            catch (error)
+            {
+                window.alert("Time sync response was invalid.");
+            }
+            return;
+        }
+        window.alert(request.responseText || ("Time sync failed: " + request.status));
+    };
+    request.onerror = () => window.alert("Time sync failed.");
+    request.ontimeout = () => window.alert("Time sync timed out.");
     request.onloadend = function() {
         if (button)
         {

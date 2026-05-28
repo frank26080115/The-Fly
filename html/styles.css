@@ -72,6 +72,20 @@ details > div {
   overflow-wrap: anywhere;
 }
 
+.info-row-error .info-value {
+  color: #ff8a96;
+  font-weight: 700;
+}
+
+.info-action-row {
+  align-items: center;
+}
+
+.time-sync-button {
+  max-width: 180px;
+  margin-top: 0;
+}
+
 a,
 a:visited {
   color: #9bb8ff;

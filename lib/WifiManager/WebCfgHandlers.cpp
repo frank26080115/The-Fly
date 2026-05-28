@@ -3,13 +3,16 @@
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
 
+#include <errno.h>
 #include <memory>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "Aegis.h"
 #include "BtHostList.h"
+#include "ClockAgent.h"
 #include "IconLookup.h"
 #include "WebServer.h"
 #include "WifiManager.h"
@@ -125,6 +128,63 @@ bool cfg_mac_is_empty(const esp_bd_addr_t bdaddr)
             return false;
         }
     }
+    return true;
+}
+
+bool parse_unix_time_text(const String& text, time_t& out)
+{
+    if (text.isEmpty())
+    {
+        return false;
+    }
+
+    const char* begin = text.c_str();
+    char*       end   = nullptr;
+    errno             = 0;
+    const long long parsed = strtoll(begin, &end, 10);
+    if (errno != 0 || end == begin || *end != '\0' || parsed <= 0)
+    {
+        return false;
+    }
+
+    out = static_cast<time_t>(parsed);
+    return static_cast<long long>(out) == parsed;
+}
+
+bool read_unix_time_param(AsyncWebServerRequest* request, time_t& out, String& error)
+{
+    const AsyncWebParameter* param = WebServer::findRequestParam(request, "time");
+    if (!param)
+    {
+        param = WebServer::findRequestParam(request, "current-time");
+    }
+    if (!param)
+    {
+        param = WebServer::findRequestParam(request, "unix_time");
+    }
+    if (!param)
+    {
+        error = "Missing Unix time";
+        return false;
+    }
+
+    if (!parse_unix_time_text(param->value(), out))
+    {
+        error = "Unix time is invalid";
+        return false;
+    }
+    return true;
+}
+
+bool time_sync_allowed(String& error)
+{
+    #if BUILD_WITH_SECURITY_LEVEL >= 2
+    if (!wifi_manager || !wifi_manager->isGeneratedSoftApActive())
+    {
+        error = "Time sync is only available from the generated soft AP";
+        return false;
+    }
+    #endif
     return true;
 }
 
@@ -1274,6 +1334,53 @@ void finishSetCfg(AsyncWebServerRequest* request)
     note_web_save();
     ESP_LOGI(TAG, "updated config from encrypted web upload");
     request->send(200, "application/json", "{\"status\":\"ok\"}");
+}
+
+void timeSync(AsyncWebServerRequest* request)
+{
+    if (!request)
+    {
+        return;
+    }
+
+    String error;
+    if (!time_sync_allowed(error))
+    {
+        note_web_error();
+        request->send(403, "text/plain", error);
+        return;
+    }
+
+    time_t unix_time = 0;
+    if (!read_unix_time_param(request, unix_time, error))
+    {
+        note_web_error();
+        request->send(400, "text/plain", error);
+        return;
+    }
+
+    if (!Clock.setUnixTime(unix_time))
+    {
+        note_web_error();
+        request->send(400, "text/plain", "Unix time is outside the RTC-supported range");
+        return;
+    }
+
+    time_t verified_time = 0;
+    if (!Clock.getUnixTime(&verified_time))
+    {
+        note_web_error();
+        request->send(500, "text/plain", "Time sync failed");
+        return;
+    }
+
+    note_web_save();
+    String json;
+    json.reserve(48);
+    json += "{\"status\":\"ok\",\"current-time\":";
+    append_json_i64(json, static_cast<long long>(verified_time));
+    json += "}";
+    request->send(200, "application/json", json);
 }
 
 } // namespace WebCfgHandlers

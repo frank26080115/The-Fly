@@ -335,6 +335,23 @@ m5::rtc_time_t ClockAgent::getTime()
     return time;
 }
 
+bool ClockAgent::getUnixTime(time_t* epoch_seconds)
+{
+    if (!epoch_seconds || !ensureSynced())
+    {
+        return false;
+    }
+
+    return datetime_to_local_epoch_seconds(currentDateTime(), *epoch_seconds);
+}
+
+time_t ClockAgent::getUnixTime()
+{
+    time_t epoch_seconds = 0;
+    getUnixTime(&epoch_seconds);
+    return epoch_seconds;
+}
+
 void ClockAgent::setDateTime(const tm* datetime)
 {
     if (!datetime)
@@ -400,6 +417,24 @@ void ClockAgent::setTime(const m5::rtc_time_t* time)
 void ClockAgent::setTime(const m5::rtc_time_t& time)
 {
     setTime(&time);
+}
+
+bool ClockAgent::setUnixTime(time_t epoch_seconds)
+{
+    tm value = {};
+    if (!localtime_r(&epoch_seconds, &value))
+    {
+        return false;
+    }
+
+    const m5::rtc_datetime_t datetime(value);
+    if (!valid_date(datetime.date) || !valid_time(datetime.time))
+    {
+        return false;
+    }
+
+    setDateTime(datetime);
+    return synced_;
 }
 
 bool ClockAgent::isSynced() const
