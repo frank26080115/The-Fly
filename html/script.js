@@ -783,9 +783,8 @@ function fill_bluetooth_rows(items)
     rows.forEach((row, index) => {
         const item = list[index] || {};
         set_input_by_id("bt_bdaddr_" + (index + 1), item.mac || "");
-        set_input_by_id("bt_name_custom_" + (index + 1), item.name_custom || item.name || "");
+        set_input_by_id("bt_name_custom_" + (index + 1), item.name_custom || item.name_reported || item.name || "");
         set_select_by_id("bt_icon_" + (index + 1), item.icon || "unknown");
-        set_readonly_value(row, "bluetooth-reported-field", item.name_reported || "");
         set_readonly_value(row, "bluetooth-last-used-field", format_last_used(item.last_used));
 
         const bonded = row.querySelector(".bonded-indicator");
