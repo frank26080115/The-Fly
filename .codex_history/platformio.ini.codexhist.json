@@ -26,7 +26,8 @@
       "I also ran `pio run` successfully. PlatformIO resolved all three dependencies and built the firmware for `M5Stack Core2`."
     ],
     "files": [
-      "platformio.ini"
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -58,7 +59,8 @@
       "I verified it with `pio run`; the build succeeds and PlatformIO shows `ArduinoJson @ 7.4.3` in the dependency graph."
     ],
     "files": [
-      "platformio.ini"
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -162,7 +164,8 @@
       "Verified with `pio run`: build succeeds, and the dependency graph now includes `ArduinoHttpClient @ 0.6.1`. There are a few existing warnings from the local `lib/sbc` code, but nothing from the new HTTP dependency."
     ],
     "files": [
-      "platformio.ini"
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -186,7 +189,8 @@
       "I didn’t run a PlatformIO build since this may need network access to fetch the GitHub dependency."
     ],
     "files": [
-      "platformio.ini"
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -296,7 +300,8 @@
       "I used the Git URL plus tag format PlatformIO expects, matching the existing pinned GitHub library style."
     ],
     "files": [
-      "platformio.ini"
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -336,7 +341,8 @@
       "platformio.ini",
       "AsyncTCP.h",
       "ESPAsyncWebServer.h",
-      "EspFileManager.h"
+      "EspFileManager.h",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -464,7 +470,8 @@
       "src/bt_pairing_demo.cpp",
       "src/push_to_talk_demo.cpp",
       "WiFiGeneric.h",
-      "driver/i2s.h"
+      "driver/i2s.h",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -639,7 +646,8 @@
       "platformio.ini",
       "bt_target.h",
       "lib/bluedroid/library.json",
-      "Network.h"
+      "Network.h",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -687,7 +695,10 @@
       "bluedroid_sbc.h",
       "platformio.ini",
       "inc/conf.h",
-      "lib/bluedroid/bluedroid_sbc.c"
+      "lib/bluedroid/bluedroid_sbc.c",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "lib/sbc/sbc.h",
+      "lib/bluedroid/bluedroid_sbc.h"
     ]
   },
   {
@@ -762,7 +773,8 @@
     "files": [
       "platformio.ini",
       "scripts/add_arduino_network_include.py",
-      "Network.h"
+      "Network.h",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -822,7 +834,8 @@
     "files": [
       "platformio.ini",
       "src/tests/test_sdcard.cpp",
-      ".gitignore"
+      ".gitignore",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -912,7 +925,8 @@
       "src/main.cpp",
       "M5Unified.h",
       "lib/MicroSdCard/MicroSdCard.cpp",
-      "lib/AudioFileRecorder/AudioFileRecorder.cpp"
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -953,7 +967,9 @@
       "platformio.ini",
       "lib/MicroSdCard/MicroSdCard.cpp",
       "lib/AudioFileRecorder/AudioFileRecorder.cpp",
-      "Wire.h"
+      "Wire.h",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "src/main.cpp"
     ]
   },
   {
@@ -1080,7 +1096,8 @@
       "Verified with `pio run -e theflydebuglog`: build succeeds."
     ],
     "files": [
-      "platformio.ini"
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -1223,7 +1240,9 @@
       "bluedroid_sbc.h",
       "platformio.ini",
       "library.json",
-      "lib/bluedroid/library.json"
+      "lib/bluedroid/library.json",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "lib/bluedroid/bluedroid_sbc.h"
     ]
   },
   {
@@ -1272,7 +1291,8 @@
       "src/tests/test_btpairing.cpp",
       "src/tests/test_btspeakerphone.cpp",
       "lib/bluedroid/bluedroid_sbc.c",
-      "platformio.ini"
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -1618,7 +1638,8 @@
       "Verified with `pio run -e theflybringuptest`: build succeeds."
     ],
     "files": [
-      "platformio.ini"
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -1890,7 +1911,11 @@
       "lib/ClockAgent/ClockAgent.cpp",
       "AudioManager.cpp",
       "oi_codec_sbc.h",
-      "lib/bluedroid/bluedroid_sbc.h"
+      "lib/bluedroid/bluedroid_sbc.h",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "lib/AudioManager/AudioManager.cpp",
+      "managed_components/espressif__libsodium/CMakeLists.txt",
+      "managed_components/espressif__libsodium/port_include/utils.h"
     ]
   },
   {
@@ -1936,7 +1961,8 @@
       "lib/AudioManager/AudioManager.cpp",
       "conf.h",
       "lib/sbc/library.json",
-      "platformio.ini"
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -2046,7 +2072,8 @@
       "lib/bluedroid/bluedroid_sbc.c",
       "lib/bluedroid/encoder/include/sbc_symbol_prefix.h",
       "lib/bluedroid/encoder/include/sbc_encoder.h",
-      "library.json"
+      "library.json",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -2372,7 +2399,10 @@
       "platformio.ini",
       "sdkconfig.h",
       "sdkconfig.m5stack-core2",
-      "sdkconfig.defaults"
+      "sdkconfig.defaults",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "config/sdkconfig.h",
+      "iram0_overflow_problem/good_working_build/config/sdkconfig.h"
     ]
   },
   {
@@ -2475,7 +2505,8 @@
       "On the next run, look for `BT_APPL` / HFP lines around the failing connection, especially `AT+BRSF`, `bta_hf_client_slc_seq`, parser responses like `+BRSF`, or timeout-looking messages. That will tell us whether the ESP32 is sending the first HFP AT command and Android is ignoring it, or whether Bluedroid never starts the SLC sequence."
     ],
     "files": [
-      "platformio.ini"
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -2686,7 +2717,10 @@
       "components/thefly_linker_overrides/linker.lf",
       "components/thefly_linker_overrides/CMakeLists.txt",
       "CMakeLists.txt",
-      "src/version.c"
+      "src/version.c",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "managed_components/espressif__libsodium/CMakeLists.txt",
+      "src/tests/all_tests.cpp"
     ]
   },
   {
@@ -2764,7 +2798,9 @@
       "sdkconfig.thefly_bringuptest",
       "sdkconfig.h",
       "config/sdkconfig.h",
-      "lib/BluetoothManager/BluetoothManager.cpp"
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "iram0_overflow_problem/good_working_build/config/sdkconfig.h"
     ]
   },
   {
@@ -2909,7 +2945,10 @@
       "platformio.ini",
       "index.html",
       "inc/web_assets.h",
-      "styles.css"
+      "styles.css",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "html/index.html",
+      "html/styles.css"
     ]
   },
   {
@@ -3028,7 +3067,8 @@
       "lib/ESP-FTP-Server-Lib/library.properties",
       "lib/ESP-FTP-Server-Lib/platformio.ini",
       "lib/ESP-FTP-Server-Lib/src/ESP-FTP-Server-Lib.cpp",
-      "library.json"
+      "library.json",
+      "lib/bluedroid/library.json"
     ]
   },
   {
@@ -3116,7 +3156,8 @@
     ],
     "files": [
       "platformio.ini",
-      "src/version.c"
+      "src/version.c",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -3326,7 +3367,8 @@
       "The problem is not “FTP changed IRAM again.” The fragile bit is that your IRAM-saving settings live in pioarduino’s generated `sdkconfig` pipeline, and stale `sdkconfig.*` state can temporarily put the build back into a bad IRAM layout. Your `.gitignore` already treats those files as disposable generated state, which is the right instinct."
     ],
     "files": [
-      "platformio.ini"
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -4083,7 +4125,8 @@
       "lib/AudioManager/AudioManager.h",
       "src/tests/test_btspeakerphone.cpp",
       "lib/AudioManager/AudioManager.cpp",
-      "inc/web_assets.h"
+      "inc/web_assets.h",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -4217,9 +4260,226 @@
     "commit_hash": "535afd107850806c58a3294dc35ee37da47076f9"
   },
   {
+    "timestamp": "2026-05-27T07:56:20.808Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "add `ESPmDNS.h` to `platformio.ini`"
+    ],
+    "agent_reply": [
+      "Added the ESPmDNS include path to [platformio.ini](D:/GithubRepos/The-Fly/platformio.ini:94):",
+      "",
+      "```ini",
+      "-I $PROJECT_PACKAGES_DIR/framework-arduinoespressif32/libraries/ESPmDNS/src",
+      "```",
+      "",
+      "I didn’t build. Note: the diff also shows pre-existing debug flag changes in `platformio.ini`; I left those untouched.",
+      "",
+      "Added the ESPmDNS include path to [platformio.ini](D:/GithubRepos/The-Fly/platformio.ini:94):",
+      "",
+      "```ini",
+      "-I $PROJECT_PACKAGES_DIR/framework-arduinoespressif32/libraries/ESPmDNS/src",
+      "```",
+      "",
+      "I didn’t build. Note: the diff also shows pre-existing debug flag changes in `platformio.ini`; I left those untouched."
+    ],
+    "files": [
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
+    ]
+  },
+  {
+    "timestamp": "2026-05-27T08:53:32.965Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WebServer.cpp",
+      "",
+      "## My request for Codex:",
+      "`C:/Users/frank/.platformio/packages/framework-arduinoespressif32/libraries/ESPmDNS/src/ESPmDNS.h:45:10: fatal error: IPv6Address.h: No such file or directory `"
+    ],
+    "agent_reply": [
+      "Added the Arduino core include path that contains `IPv6Address.h`:",
+      "",
+      "```ini",
+      "-I $PROJECT_PACKAGES_DIR/framework-arduinoespressif32/cores/esp32",
+      "```",
+      "",
+      "So `platformio.ini` now exposes both:",
+      "",
+      "```ini",
+      "-I $PROJECT_PACKAGES_DIR/framework-arduinoespressif32/cores/esp32",
+      "-I $PROJECT_PACKAGES_DIR/framework-arduinoespressif32/libraries/ESPmDNS/src",
+      "```",
+      "",
+      "That should address the `IPv6Address.h` missing include."
+    ],
+    "files": [
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
+    ]
+  },
+  {
     "timestamp": "2026-05-27T16:44:03Z",
     "type": "git_commit",
     "commit_message": "added mdns",
     "commit_hash": "316c40dfddd7d52fded92b739ee8508d9b48cccf"
+  },
+  {
+    "timestamp": "2026-05-27T19:08:56.804Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "fix the build error, then run the sterile rebuild"
+    ],
+    "agent_reply": "",
+    "files": [
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
+    ]
+  },
+  {
+    "timestamp": "2026-05-28T06:18:04.171Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: iram0_overflow_problem/bad_build_with_default_config/build_error.txt",
+      "",
+      "## Active selection of the file:",
+      "esp_hf_client_outgoing_data_ready",
+      "",
+      "## My request for Codex:",
+      "recall that we have a reoccuring problem where we build the project and suddenly iram0 overflows by like 2000+ bytes",
+      "",
+      "we solve this by having a `custom_sdkconfig` in the `platformio.ini` with some settings that solve this problem (along with settings that enable hands-free-profile)",
+      "",
+      "but still, during some builds, it seems like those settings become ignored and the default config is used, and iram0 overflows.",
+      "",
+      "so I was suspecting that something is either being unzipped without us knowing and overwriting the custom built objects.",
+      "",
+      "so I thought the problem was to just put good prebuilt files into packages that get downloaded and unzipped. I've hosted this on my own github, and pointed at them using `platformio.ini` under `platform_packages =`",
+      "",
+      "look at the `iram0_overflow_problem` directory",
+      "",
+      "`iram0_overflow_problem\\good_working_build` is the build done with the `custom_sdkconfig`, you can see the `platformio.ini` and the `custom_sdkconfig` there. There is also a `firmware.map` file to analyze.",
+      "",
+      "`iram0_overflow_problem\\bad_build_with_default_config` is the build artifacts from the default config build, you can see `iram0_overflow_problem\\bad_build_with_default_config\\build_error.txt` that says `region `iram0_0_seg' overflowed by 308 bytes`, plus a missing function `esp_hf_client_outgoing_data_ready`. As before, the `firmware.map` file is available to analyze, and also `platformio.ini`",
+      "",
+      "`iram0_overflow_problem\\bad_build_with_custom_framework_files` are the built files from when the custom framework zip files are used. The zip file contents are available at `iram0_overflow_problem\\custom-framework-arduinoespressif32` and `iram0_overflow_problem\\custom-framework-arduinoespressif32-libs`. I don't know if I made these correctly. The `firmware.map` file is available, as well as the `platformio.ini` and `build_error.txt` as before.",
+      "",
+      "analyze all of these, especially figure out where the iram0 differences are, see how I can fix this, hopefully I swap out some bad files with good files, zip everything up, upload, and it all works.",
+      "",
+      "",
+      ""
+    ],
+    "agent_reply": [
+      "Yep, the culprit is pretty clear now.",
+      "",
+      "**IRAM sizes**",
+      "",
+      "| Build | `.iram0.text` | Result |",
+      "|---|---:|---|",
+      "| good custom sdkconfig | `0x1dd73` / 122,227 B | fits, about 7.8 KB headroom |",
+      "| bad default config | `0x1fd2f` / 130,351 B | overflows by 308 B |",
+      "| bad custom framework zips | `0x1ff43` / 130,883 B | overflows by 840 B |",
+      "",
+      "The big IRAM delta is not mainly Bluetooth. It is `libc.a` being pulled into IRAM. In the bad/custom-package map, about 8.9 KB extra comes from routines like `mktime`, `tzset_r`, `findfp`, `fvwrite`, `fflush`, `strtol`, etc. That matches the `CONFIG_SPIRAM_CACHE_LIB*IN_IRAM` settings being effectively “on” in the linker script.",
+      "",
+      "The custom package fixes the missing HFP symbol: `esp_hf_client_outgoing_data_ready` is present in the custom-package map, while the default build only has the unresolved reference from `BluetoothManager.cpp`.",
+      "",
+      "The remaining failure is this file:",
+      "",
+      "[custom sections.ld](D:/GithubRepos/The-Fly/iram0_overflow_problem/custom-framework-arduinoespressif32-libs/esp32/ld/sections.ld:232)",
+      "",
+      "It is still default/upstream and explicitly places lots of `libc.a:*` objects into `.iram0.text`. The good build’s generated linker script does not:",
+      "",
+      "[good sections.ld](D:/GithubRepos/The-Fly/iram0_overflow_problem/good_working_build/sections.ld:235)",
+      "",
+      "**Fix**",
+      "",
+      "For the custom zip approach, replace these files in both package trees, then publish as a new release tag like `r2`:",
+      "",
+      "1. Copy good linker script:",
+      "   - from `iram0_overflow_problem/good_working_build/sections.ld`",
+      "   - to `custom-framework-arduinoespressif32-libs/esp32/ld/sections.ld`",
+      "   - and also to `custom-framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/ld/sections.ld`",
+      "",
+      "2. Copy good sdkconfig header for consistency:",
+      "   - from `iram0_overflow_problem/good_working_build/config/sdkconfig.h`",
+      "   - to both `esp32/dio_qspi/include/sdkconfig.h` and `esp32/qio_qspi/include/sdkconfig.h` in the libs package",
+      "   - also update the nested copy under `custom-framework-arduinoespressif32/tools/esp32-arduino-libs/...`",
+      "",
+      "3. Do not package `.piopm` files if you can avoid it. Let PlatformIO regenerate them.",
+      "",
+      "4. Use a new URL/tag in `platformio.ini`; do not overwrite the same `r1` asset and expect PlatformIO to notice reliably.",
+      "",
+      "Also, current [platformio.ini](D:/GithubRepos/The-Fly/platformio.ini:8) has the custom package URLs but the `custom_sdkconfig` block was removed. That is why the build no longer regenerates the good `sections.ld`. Either restore the `custom_sdkconfig` block as a safety net, or make the custom package fully self-contained by fixing `sections.ld` as above. My preference: do both until this is boringly stable.",
+      "",
+      "Yep, the culprit is pretty clear now.",
+      "",
+      "**IRAM sizes**",
+      "",
+      "| Build | `.iram0.text` | Result |",
+      "|---|---:|---|",
+      "| good custom sdkconfig | `0x1dd73` / 122,227 B | fits, about 7.8 KB headroom |",
+      "| bad default config | `0x1fd2f` / 130,351 B | overflows by 308 B |",
+      "| bad custom framework zips | `0x1ff43` / 130,883 B | overflows by 840 B |",
+      "",
+      "The big IRAM delta is not mainly Bluetooth. It is `libc.a` being pulled into IRAM. In the bad/custom-package map, about 8.9 KB extra comes from routines like `mktime`, `tzset_r`, `findfp`, `fvwrite`, `fflush`, `strtol`, etc. That matches the `CONFIG_SPIRAM_CACHE_LIB*IN_IRAM` settings being effectively “on” in the linker script.",
+      "",
+      "The custom package fixes the missing HFP symbol: `esp_hf_client_outgoing_data_ready` is present in the custom-package map, while the default build only has the unresolved reference from `BluetoothManager.cpp`.",
+      "",
+      "The remaining failure is this file:",
+      "",
+      "[custom sections.ld](D:/GithubRepos/The-Fly/iram0_overflow_problem/custom-framework-arduinoespressif32-libs/esp32/ld/sections.ld:232)",
+      "",
+      "It is still default/upstream and explicitly places lots of `libc.a:*` objects into `.iram0.text`. The good build’s generated linker script does not:",
+      "",
+      "[good sections.ld](D:/GithubRepos/The-Fly/iram0_overflow_problem/good_working_build/sections.ld:235)",
+      "",
+      "**Fix**",
+      "",
+      "For the custom zip approach, replace these files in both package trees, then publish as a new release tag like `r2`:",
+      "",
+      "1. Copy good linker script:",
+      "   - from `iram0_overflow_problem/good_working_build/sections.ld`",
+      "   - to `custom-framework-arduinoespressif32-libs/esp32/ld/sections.ld`",
+      "   - and also to `custom-framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/ld/sections.ld`",
+      "",
+      "2. Copy good sdkconfig header for consistency:",
+      "   - from `iram0_overflow_problem/good_working_build/config/sdkconfig.h`",
+      "   - to both `esp32/dio_qspi/include/sdkconfig.h` and `esp32/qio_qspi/include/sdkconfig.h` in the libs package",
+      "   - also update the nested copy under `custom-framework-arduinoespressif32/tools/esp32-arduino-libs/...`",
+      "",
+      "3. Do not package `.piopm` files if you can avoid it. Let PlatformIO regenerate them.",
+      "",
+      "4. Use a new URL/tag in `platformio.ini`; do not overwrite the same `r1` asset and expect PlatformIO to notice reliably.",
+      "",
+      "Also, current [platformio.ini](D:/GithubRepos/The-Fly/platformio.ini:8) has the custom package URLs but the `custom_sdkconfig` block was removed. That is why the build no longer regenerates the good `sections.ld`. Either restore the `custom_sdkconfig` block as a safety net, or make the custom package fully self-contained by fixing `sections.ld` as above. My preference: do both until this is boringly stable."
+    ],
+    "files": [
+      "esp32/ld/sections.ld",
+      "iram0_overflow_problem/custom-framework-arduinoespressif32-libs/esp32/ld/sections.ld",
+      "iram0_overflow_problem/good_working_build/sections.ld",
+      "platformio.ini",
+      "custom-framework-arduinoespressif32-libs/esp32/ld/sections.ld",
+      "custom-framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/ld/sections.ld",
+      "iram0_overflow_problem/good_working_build/config/sdkconfig.h",
+      "esp32/dio_qspi/include/sdkconfig.h",
+      "esp32/qio_qspi/include/sdkconfig.h",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "iram0_overflow_problem/custom-framework-arduinoespressif32/tools/esp32-arduino-libs/esp32/ld/sections.ld"
+    ]
   }
 ]

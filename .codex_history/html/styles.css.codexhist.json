@@ -1008,6 +1008,36 @@
     "commit_hash": "b338b968a3e7d8ae40716584d19bbabe6c5d77d1"
   },
   {
+    "timestamp": "2026-05-27T06:53:38.148Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WebServer.cpp",
+      "",
+      "## My request for Codex:",
+      "Inside `index.html`, implement a file uploader inside `#file_upload_panel`, it uploads a file to `/file_upload` in the backend ",
+      "",
+      "it has to look like it fits in, it doesn't have to be fancy, we don't need drag and drop. But show a sub panel with a progress and completion/error message"
+    ],
+    "agent_reply": [
+      "Implemented the file uploader in [index.html](D:/GithubRepos/The-Fly/html/index.html:217).",
+      "",
+      "It now has a native file picker, Upload button, progress bar, percent text, and completion/error status panel. The JS posts the raw file body to `/file_upload?file_name=...`, refreshes the file list after success, and surfaces backend error text when upload fails.",
+      "",
+      "Styling was added in [styles.css](D:/GithubRepos/The-Fly/html/styles.css:219), and upload behavior in [script.js](D:/GithubRepos/The-Fly/html/script.js:96).",
+      "",
+      "Verified:",
+      "`node --check html\\script.js` passed  ",
+      "`git diff --check` passed, aside from existing LF/CRLF warnings."
+    ],
+    "files": [
+      "html/index.html",
+      "html/script.js",
+      "html/styles.css"
+    ]
+  },
+  {
     "timestamp": "2026-05-27T07:01:32Z",
     "type": "git_commit",
     "commit_message": "more icons",

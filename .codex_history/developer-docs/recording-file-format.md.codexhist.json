@@ -130,7 +130,9 @@
       "lib/AudioFifo/AudioFifo.h",
       "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
       "lib/WifiManager/WifiManager.cpp",
-      "lib/FlyGui/FlyGui.cpp"
+      "lib/FlyGui/FlyGui.cpp",
+      "json_templates/bluetooth.json",
+      "json_templates/wifi.json"
     ]
   },
   {
@@ -138,5 +140,11 @@
     "type": "git_commit",
     "commit_message": "minor documentation realignment",
     "commit_hash": "f2c709ecce52380184bf7572afec748da37a5039"
+  },
+  {
+    "timestamp": "2026-05-27T06:57:04Z",
+    "type": "git_commit",
+    "commit_message": "documentation update",
+    "commit_hash": "57dc5a2f4f0cef3e419f9ea5591534a223f89dad"
   }
 ]

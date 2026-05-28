@@ -51,7 +51,8 @@
     "files": [
       "index.html",
       "lib/WifiManager/WebServer.h",
-      "lib/WifiManager/WebServer.cpp"
+      "lib/WifiManager/WebServer.cpp",
+      "html/index.html"
     ]
   },
   {
@@ -202,7 +203,8 @@
       "lib/WifiManager/WebServer.cpp",
       "list_files.json",
       "cloud_history.txt",
-      "wifi.json"
+      "wifi.json",
+      "json_templates/wifi.json"
     ]
   },
   {
@@ -336,7 +338,9 @@
       "lib/AudioFifo/AudioFifo.h",
       "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
       "lib/WifiManager/WifiManager.cpp",
-      "lib/FlyGui/FlyGui.cpp"
+      "lib/FlyGui/FlyGui.cpp",
+      "json_templates/bluetooth.json",
+      "json_templates/wifi.json"
     ]
   },
   {
@@ -630,7 +634,8 @@
     "files": [
       "main.cpp",
       "lib/WifiManager/WebServer.cpp",
-      "src/version.c"
+      "src/version.c",
+      "src/main.cpp"
     ]
   },
   {
@@ -1017,7 +1022,8 @@
       "html/styles.css",
       "src/version.c",
       "tools/package_web_assets.py",
-      "inc/web_assets.h"
+      "inc/web_assets.h",
+      "html/index.html"
     ]
   },
   {
@@ -1808,6 +1814,49 @@
     "commit_hash": "b338b968a3e7d8ae40716584d19bbabe6c5d77d1"
   },
   {
+    "timestamp": "2026-05-27T07:53:47.782Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WebServer.cpp",
+      "",
+      "## My request for Codex:",
+      "Inside `lib\\WifiManager\\WebServer.cpp` implement a mDNS server that:",
+      "",
+      " * makes the domain \"the-fly-<4 hex from MAC>\" work as the URL, or something to that effect ",
+      " * advertises \"the-fly\" as a service that it can provide, or something to that effect, so that another computer can see that one of \"the-fly\" is available and where ",
+      "",
+      "do not build"
+    ],
+    "agent_reply": [
+      "Implemented mDNS startup in [WebServer.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp:106).",
+      "",
+      "It now:",
+      "",
+      "- Starts mDNS as `the-fly-<last 4 MAC hex>.local`, e.g. `http://the-fly-a1b2.local/`",
+      "- Advertises normal `_http._tcp` on port 80",
+      "- Advertises custom `_the-fly._tcp` on port 80",
+      "- Adds TXT metadata for path and firmware version",
+      "",
+      "I did not build. I only ran `git diff --check`, which passed apart from the existing LF/CRLF warning.",
+      "",
+      "Implemented mDNS startup in [WebServer.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp:106).",
+      "",
+      "It now:",
+      "",
+      "- Starts mDNS as `the-fly-<last 4 MAC hex>.local`, e.g. `http://the-fly-a1b2.local/`",
+      "- Advertises normal `_http._tcp` on port 80",
+      "- Advertises custom `_the-fly._tcp` on port 80",
+      "- Adds TXT metadata for path and firmware version",
+      "",
+      "I did not build. I only ran `git diff --check`, which passed apart from the existing LF/CRLF warning."
+    ],
+    "files": [
+      "lib/WifiManager/WebServer.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-05-27T16:44:03Z",
     "type": "git_commit",
     "commit_message": "added mdns",
@@ -1857,5 +1906,11 @@
       "lib/FlyGuiViews/WifiApModeView.cpp",
       "src/main.cpp"
     ]
+  },
+  {
+    "timestamp": "2026-05-27T22:01:12Z",
+    "type": "git_commit",
+    "commit_message": "serving pages over soft AP works, had a hiccup about disk space retrieval too slow tripping the wdt",
+    "commit_hash": "ed520c430d839d309262fb9c545eeca56856e91b"
   }
 ]

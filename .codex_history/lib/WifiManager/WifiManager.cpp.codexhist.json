@@ -59,7 +59,8 @@
       "lib/WifiManager/WifiManager.cpp",
       "main.cpp",
       "src/main.cpp",
-      "WifiManager.h"
+      "WifiManager.h",
+      "json_templates/wifi.json"
     ]
   },
   {
@@ -723,7 +724,9 @@
       "lib/AudioFifo/AudioFifo.h",
       "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
       "lib/WifiManager/WifiManager.cpp",
-      "lib/FlyGui/FlyGui.cpp"
+      "lib/FlyGui/FlyGui.cpp",
+      "json_templates/bluetooth.json",
+      "json_templates/wifi.json"
     ]
   },
   {
@@ -1219,7 +1222,12 @@
       "BluetoothManager.cpp",
       "wifi.json",
       "bluetooth.json",
-      "test_bootreadfiles.cpp"
+      "test_bootreadfiles.cpp",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "json_templates/bluetooth.json",
+      "json_templates/wifi.json",
+      "lib/WifiManager/CloudUpload.cpp"
     ]
   },
   {
@@ -1603,7 +1611,8 @@
       "lib/BluetoothManager/BtHostList.h",
       "test_bootreadfiles.cpp",
       "lib/WifiManager/WifiManager.h",
-      "src/version.c"
+      "src/version.c",
+      "src/tests/test_bootreadfiles.cpp"
     ]
   },
   {
@@ -1828,7 +1837,9 @@
       "lib/BluetoothManager/BtHostList.cpp",
       "src/version.c",
       "wifi.json",
-      "bluetooth.json"
+      "bluetooth.json",
+      "json_templates/bluetooth.json",
+      "json_templates/wifi.json"
     ]
   },
   {
@@ -1937,7 +1948,9 @@
       "lib/WifiManager/WifiManager.cpp",
       "bluetooth.json",
       "lib/BluetoothManager/BtHostList.cpp",
-      "src/version.c"
+      "src/version.c",
+      "json_templates/bluetooth.json",
+      "json_templates/wifi.json"
     ]
   },
   {
@@ -2387,5 +2400,11 @@
     "type": "git_commit",
     "commit_message": "low level soft ap startup",
     "commit_hash": "ac4ec57217cd509c382c25a843a98cc0803dcc4e"
+  },
+  {
+    "timestamp": "2026-05-27T21:46:33Z",
+    "type": "git_commit",
+    "commit_message": "seem to fix the bad IP display issue",
+    "commit_hash": "4a4c8ca7e541b554b344e5c9040f4d24b07187cb"
   }
 ]

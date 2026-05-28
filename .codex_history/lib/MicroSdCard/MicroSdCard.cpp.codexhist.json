@@ -157,7 +157,8 @@
       "src/main.cpp",
       "M5Unified.h",
       "lib/MicroSdCard/MicroSdCard.cpp",
-      "lib/AudioFileRecorder/AudioFileRecorder.cpp"
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -198,7 +199,9 @@
       "platformio.ini",
       "lib/MicroSdCard/MicroSdCard.cpp",
       "lib/AudioFileRecorder/AudioFileRecorder.cpp",
-      "Wire.h"
+      "Wire.h",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "src/main.cpp"
     ]
   },
   {
@@ -490,7 +493,9 @@
       "lib/AudioFifo/AudioFifo.h",
       "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
       "lib/WifiManager/WifiManager.cpp",
-      "lib/FlyGui/FlyGui.cpp"
+      "lib/FlyGui/FlyGui.cpp",
+      "json_templates/bluetooth.json",
+      "json_templates/wifi.json"
     ]
   },
   {
@@ -624,7 +629,9 @@
       "version.c",
       "all_tests.cpp",
       "platformio.ini",
-      "src/version.c"
+      "src/version.c",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "src/tests/all_tests.cpp"
     ]
   },
   {
@@ -683,5 +690,11 @@
     "type": "git_commit",
     "commit_message": "recording works great now, tweaked the ui",
     "commit_hash": "62765d1d8b21f98b4d6f07736b3fb63a966637c5"
+  },
+  {
+    "timestamp": "2026-05-27T22:01:12Z",
+    "type": "git_commit",
+    "commit_message": "serving pages over soft AP works, had a hiccup about disk space retrieval too slow tripping the wdt",
+    "commit_hash": "ed520c430d839d309262fb9c545eeca56856e91b"
   }
 ]

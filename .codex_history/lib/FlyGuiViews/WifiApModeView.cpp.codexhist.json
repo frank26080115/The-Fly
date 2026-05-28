@@ -177,6 +177,68 @@
     "commit_hash": "d99d619f239d7b74081421ba1f8a0c9eb9386994"
   },
   {
+    "timestamp": "2026-05-27T07:09:50.885Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/WifiApModeView.cpp",
+      "",
+      "## Active selection of the file:",
+      "void WifiApModeView::drawClientInfo(bool forced)",
+      "",
+      "## My request for Codex:",
+      "`void WifiApModeView::drawClientInfo(bool forced)`, use a bigger font, adjust line spacing accordingly",
+      "",
+      "make the first line say \"AP mode\", or \"Secure AP Mode\"",
+      "",
+      "make the second line say \"TO: <MAC>\"",
+      "",
+      "make the connection counter say \"1x connections\" or \"1x reconnections\"",
+      "",
+      "I'll test it to see if it fits",
+      "",
+      "so do not build"
+    ],
+    "agent_reply": [
+      "Updated [WifiApModeView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:207).",
+      "",
+      "`drawClientInfo()` now uses font 2 with 16px line spacing and draws:",
+      "",
+      "- `AP mode` or `Secure AP Mode`",
+      "- `TO: <MAC>` or `TO: nobody`",
+      "- `<n>x connections` for 0/1, `<n>x reconnections` for 2+",
+      "",
+      "No build run, per your request."
+    ],
+    "files": [
+      "lib/FlyGuiViews/WifiApModeView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-27T07:16:46.863Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/WifiApModeView.cpp",
+      "",
+      "## Active selection of the file:",
+      "kExitHint",
+      "",
+      "## My request for Codex:",
+      "draw `kExitHint` at a y coordinate calculated to be at the bottom of the screen no matter what the other texts end up being"
+    ],
+    "agent_reply": [
+      "Updated [WifiApModeView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:289): `kExitHint` now draws at `display.height() - kSmallLineHeight`, so it stays anchored to the bottom of the screen.",
+      "",
+      "No build run."
+    ],
+    "files": [
+      "lib/FlyGuiViews/WifiApModeView.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-05-27T07:19:54Z",
     "type": "git_commit",
     "commit_message": "cosmetic changes to the AP view",

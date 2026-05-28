@@ -57,7 +57,8 @@
       "inc/sprites.h",
       "src/sprites.cpp",
       "tools/graphics_converter.py",
-      "splash.fw.png"
+      "splash.fw.png",
+      "gfx-assets/sprites/splash.fw.png"
     ]
   },
   {
@@ -213,7 +214,8 @@
       "src/main.cpp",
       "IconLookup.h",
       "inc/sprites.h",
-      "src/version.c"
+      "src/version.c",
+      "lib/SpriteDraw/IconLookup.h"
     ]
   },
   {
@@ -426,5 +428,11 @@
     "type": "git_commit",
     "commit_message": "implement the wifi ap view",
     "commit_hash": "d8fe002743fef62a02f8317b0e30b6a57eebd666"
+  },
+  {
+    "timestamp": "2026-05-27T07:01:32Z",
+    "type": "git_commit",
+    "commit_message": "more icons",
+    "commit_hash": "85ea670fbb96bddad0494a3ef75e7ec65c09adbf"
   }
 ]

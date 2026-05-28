@@ -113,5 +113,11 @@
     "type": "git_commit",
     "commit_message": "more gui work, auto bt reconnect",
     "commit_hash": "c002fb0767624f8362097c9328ec1d3f695a20db"
+  },
+  {
+    "timestamp": "2026-05-27T22:01:12Z",
+    "type": "git_commit",
+    "commit_message": "serving pages over soft AP works, had a hiccup about disk space retrieval too slow tripping the wdt",
+    "commit_hash": "ed520c430d839d309262fb9c545eeca56856e91b"
   }
 ]
