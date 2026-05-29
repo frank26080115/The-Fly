@@ -16,11 +16,13 @@ namespace AudioFileRecorder
 
 enum class RecordingType : char
 {
-    Meeting = 'C',
-    Memo    = 'M',
-    Todo    = 'T',
-    Journal = 'J',
-    Unknown = 'U',
+    Meeting  = 'C',
+    Memo     = 'M',
+    Todo     = 'T',
+    Journal  = 'J',
+    Idea     = 'I',
+    Reminder = 'R',
+    Unknown  = 'U',
 };
 
 enum PacketFlags : uint8_t
