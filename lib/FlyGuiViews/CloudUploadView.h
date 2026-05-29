@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../FlyGui/ProgressBar.h"
 #include "CloudUpload.h"
 #include "ConnWaitingView.h"
 
@@ -17,9 +18,10 @@ protected:
 
 private:
     void drawProgress();
-    uint8_t progressPercent() const;
-    uint16_t progressColor() const;
+    float   progressPercent() const;
+    uint8_t roundedProgressPercent() const;
 
     CloudUpload*        uploader_ = nullptr;
     CloudUpload::Status status_ = {};
+    ProgressBar         progressBar_;
 };

@@ -15,81 +15,34 @@ constexpr int16_t kProgressTextHeight  = 18;
 constexpr uint8_t kTextFont            = 2;
 constexpr uint8_t kSmallTextFont       = 1;
 constexpr float   kTextSize            = 1.0f;
-constexpr uint16_t kHueRed             = 0;
-constexpr uint16_t kHueGreen           = 120;
 
 int16_t progress_x()
 {
     return static_cast<int16_t>((thefly_display.width() - kProgressWidth) / 2);
 }
 
-uint8_t clamp_percent(uint64_t bytes_uploaded, uint64_t bytes_total)
+float progress_percent(uint64_t bytes_uploaded, uint64_t bytes_total)
 {
     if (bytes_total == 0)
     {
-        return 0;
+        return 0.0f;
     }
 
-    const uint64_t percent = (bytes_uploaded * 100ULL) / bytes_total;
-    return percent > 100ULL ? 100 : static_cast<uint8_t>(percent);
-}
-
-uint16_t hsv_to_rgb565(uint16_t hue, uint8_t saturation, uint8_t value)
-{
-    hue %= 360U;
-
-    const uint8_t region    = hue / 60U;
-    const uint8_t remainder = static_cast<uint8_t>(((hue % 60U) * 255U) / 60U);
-
-    const uint8_t p = static_cast<uint8_t>((static_cast<uint16_t>(value) * (255U - saturation)) / 255U);
-    const uint8_t q = static_cast<uint8_t>((static_cast<uint16_t>(value) * (255U - ((static_cast<uint16_t>(saturation) * remainder) / 255U))) / 255U);
-    const uint8_t t = static_cast<uint8_t>((static_cast<uint16_t>(value) * (255U - ((static_cast<uint16_t>(saturation) * (255U - remainder)) / 255U))) / 255U);
-
-    uint8_t r = 0;
-    uint8_t g = 0;
-    uint8_t b = 0;
-
-    switch (region)
+    const float percent = (static_cast<float>(bytes_uploaded) * 100.0f) / static_cast<float>(bytes_total);
+    if (percent <= 0.0f)
     {
-    case 0:
-        r = value;
-        g = t;
-        b = p;
-        break;
-    case 1:
-        r = q;
-        g = value;
-        b = p;
-        break;
-    case 2:
-        r = p;
-        g = value;
-        b = t;
-        break;
-    case 3:
-        r = p;
-        g = q;
-        b = value;
-        break;
-    case 4:
-        r = t;
-        g = p;
-        b = value;
-        break;
-    default:
-        r = value;
-        g = p;
-        b = q;
-        break;
+        return 0.0f;
     }
 
-    return thefly_display.color565(r, g, b);
+    return percent >= 100.0f ? 100.0f : percent;
 }
 } // namespace
 
 CloudUploadView::CloudUploadView(FlyGuiItemCallback cancelCallback)
-    : ConnWaitingView(CONN_WAITING_CLOUD, "", cancelCallback, FLYGUI_VIEW_UPLOAD_PROGRESS)
+    : ConnWaitingView(CONN_WAITING_CLOUD, "", cancelCallback, FLYGUI_VIEW_UPLOAD_PROGRESS),
+      progressBar_(0, kProgressY, kProgressWidth, kProgressHeight)
 {
+    addItem(progressBar_);
 }
 
 void CloudUploadView::configureUpload(CloudUpload* uploader, const char* targetName)
@@ -128,29 +81,10 @@ bool CloudUploadView::updateHourglass(uint32_t now, bool forced)
 
 void CloudUploadView::drawProgress()
 {
-    const int16_t x = progress_x();
-    const int16_t inner_x = static_cast<int16_t>(x + 1);
-    const int16_t inner_y = static_cast<int16_t>(kProgressY + 1);
-    const int16_t inner_width = static_cast<int16_t>(kProgressWidth - 2);
-    const int16_t inner_height = static_cast<int16_t>(kProgressHeight - 2);
-    const uint8_t percent = progressPercent();
-    const int16_t filled_width = static_cast<int16_t>((static_cast<int32_t>(inner_width) * percent) / 100);
-    const int16_t empty_width = static_cast<int16_t>(inner_width - filled_width);
+    progressBar_.relocate(progress_x(), kProgressY, kProgressWidth, kProgressHeight);
+    progressBar_.update(progressPercent());
 
-    thefly_display.drawFastHLine(x, kProgressY, kProgressWidth, TFT_WHITE);
-    thefly_display.drawFastHLine(x, static_cast<int16_t>(kProgressY + kProgressHeight - 1), kProgressWidth, TFT_WHITE);
-    thefly_display.drawFastVLine(x, kProgressY, kProgressHeight, TFT_WHITE);
-    thefly_display.drawFastVLine(static_cast<int16_t>(x + kProgressWidth - 1), kProgressY, kProgressHeight, TFT_WHITE);
-
-    if (filled_width > 0)
-    {
-        thefly_display.fillRect(inner_x, inner_y, filled_width, inner_height, progressColor());
-    }
-    if (empty_width > 0)
-    {
-        thefly_display.fillRect(static_cast<int16_t>(inner_x + filled_width), inner_y, empty_width, inner_height, TFT_BLACK);
-    }
-
+    const uint8_t percent = roundedProgressPercent();
     char text[48];
     snprintf(text,
              sizeof(text),
@@ -176,14 +110,23 @@ void CloudUploadView::drawProgress()
     thefly_display.drawString(text, 1, kProgressTextY);
 }
 
-uint8_t CloudUploadView::progressPercent() const
+float CloudUploadView::progressPercent() const
 {
-    return clamp_percent(status_.bytes_uploaded, status_.bytes_total);
+    return progress_percent(status_.bytes_uploaded, status_.bytes_total);
 }
 
-uint16_t CloudUploadView::progressColor() const
+uint8_t CloudUploadView::roundedProgressPercent() const
 {
-    const uint8_t percent = progressPercent();
-    const uint16_t hue = percent >= 50 ? kHueGreen : static_cast<uint16_t>(kHueRed + ((static_cast<uint32_t>(kHueGreen - kHueRed) * percent) / 50U));
-    return hsv_to_rgb565(hue, 255, 255);
+    const float percent = progressPercent();
+    if (percent <= 0.0f)
+    {
+        return 0;
+    }
+
+    if (percent >= 100.0f)
+    {
+        return 100;
+    }
+
+    return static_cast<uint8_t>(percent + 0.5f);
 }
