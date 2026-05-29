@@ -750,17 +750,17 @@ static BatterySprite batterySpriteForStatus(int32_t status)
     switch (status)
     {
     case 0x00:
-        return { sprit_batt_low, SPRIT_BATT_LOW_WIDTH, SPRIT_BATT_LOW_HEIGHT, SPRIT_BATT_LOW_BYTES };
+        return { sprite_batt_low, SPRITE_BATT_LOW_WIDTH, SPRITE_BATT_LOW_HEIGHT, SPRITE_BATT_LOW_BYTES };
     case 0x01:
-        return { sprit_batt_medium, SPRIT_BATT_MEDIUM_WIDTH, SPRIT_BATT_MEDIUM_HEIGHT, SPRIT_BATT_MEDIUM_BYTES };
+        return { sprite_batt_medium, SPRITE_BATT_MEDIUM_WIDTH, SPRITE_BATT_MEDIUM_HEIGHT, SPRITE_BATT_MEDIUM_BYTES };
     case 0x02:
-        return { sprit_batt_full, SPRIT_BATT_FULL_WIDTH, SPRIT_BATT_FULL_HEIGHT, SPRIT_BATT_FULL_BYTES };
+        return { sprite_batt_full, SPRITE_BATT_FULL_WIDTH, SPRITE_BATT_FULL_HEIGHT, SPRITE_BATT_FULL_BYTES };
     case 0x04:
-        return { sprit_batt_low_charging, SPRIT_BATT_LOW_CHARGING_WIDTH, SPRIT_BATT_LOW_CHARGING_HEIGHT, SPRIT_BATT_LOW_CHARGING_BYTES };
+        return { sprite_batt_low_charging, SPRITE_BATT_LOW_CHARGING_WIDTH, SPRITE_BATT_LOW_CHARGING_HEIGHT, SPRITE_BATT_LOW_CHARGING_BYTES };
     case 0x05:
-        return { sprit_batt_medium_charging, SPRIT_BATT_MEDIUM_CHARGING_WIDTH, SPRIT_BATT_MEDIUM_CHARGING_HEIGHT, SPRIT_BATT_MEDIUM_CHARGING_BYTES };
+        return { sprite_batt_medium_charging, SPRITE_BATT_MEDIUM_CHARGING_WIDTH, SPRITE_BATT_MEDIUM_CHARGING_HEIGHT, SPRITE_BATT_MEDIUM_CHARGING_BYTES };
     case 0x06:
-        return { sprit_batt_full_charging, SPRIT_BATT_FULL_CHARGING_WIDTH, SPRIT_BATT_FULL_CHARGING_HEIGHT, SPRIT_BATT_FULL_CHARGING_BYTES };
+        return { sprite_batt_full_charging, SPRITE_BATT_FULL_CHARGING_WIDTH, SPRITE_BATT_FULL_CHARGING_HEIGHT, SPRITE_BATT_FULL_CHARGING_BYTES };
     default:
         return {};
     }

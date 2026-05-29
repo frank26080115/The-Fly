@@ -4,7 +4,7 @@
 #include "utilfuncs.h"
 
 MemoTypeButton::MemoTypeButton(int16_t x, int16_t y)
-    : FlyGuiItem(x, y, SPRIT_MEMOTYPE_NOTE_WIDTH, SPRIT_MEMOTYPE_NOTE_HEIGHT)
+    : FlyGuiItem(x, y, SPRITE_MEMOTYPE_NOTE_WIDTH, SPRITE_MEMOTYPE_NOTE_HEIGHT)
 {
     setMemoType(MEMO_TYPE_NOTE);
 }
@@ -20,20 +20,20 @@ void MemoTypeButton::setMemoType(MemoType type)
     switch (type_)
     {
     case MEMO_TYPE_TODO:
-        setSprite(sprit_memotype_todo, SPRIT_MEMOTYPE_TODO_WIDTH, SPRIT_MEMOTYPE_TODO_HEIGHT, SPRIT_MEMOTYPE_TODO_BYTES);
+        setSprite(sprite_memotype_todo, SPRITE_MEMOTYPE_TODO_WIDTH, SPRITE_MEMOTYPE_TODO_HEIGHT, SPRITE_MEMOTYPE_TODO_BYTES);
         break;
     case MEMO_TYPE_JOURNAL:
-        setSprite(sprit_memotype_journal, SPRIT_MEMOTYPE_JOURNAL_WIDTH, SPRIT_MEMOTYPE_JOURNAL_HEIGHT, SPRIT_MEMOTYPE_JOURNAL_BYTES);
+        setSprite(sprite_memotype_journal, SPRITE_MEMOTYPE_JOURNAL_WIDTH, SPRITE_MEMOTYPE_JOURNAL_HEIGHT, SPRITE_MEMOTYPE_JOURNAL_BYTES);
         break;
     case MEMO_TYPE_IDEA:
-        setSprite(sprit_memotype_idea, SPRIT_MEMOTYPE_IDEA_WIDTH, SPRIT_MEMOTYPE_IDEA_HEIGHT, SPRIT_MEMOTYPE_IDEA_BYTES);
+        setSprite(sprite_memotype_idea, SPRITE_MEMOTYPE_IDEA_WIDTH, SPRITE_MEMOTYPE_IDEA_HEIGHT, SPRITE_MEMOTYPE_IDEA_BYTES);
         break;
     case MEMO_TYPE_REMINDER:
-        setSprite(sprit_memotype_reminder, SPRIT_MEMOTYPE_REMINDER_WIDTH, SPRIT_MEMOTYPE_REMINDER_HEIGHT, SPRIT_MEMOTYPE_REMINDER_BYTES);
+        setSprite(sprite_memotype_reminder, SPRITE_MEMOTYPE_REMINDER_WIDTH, SPRITE_MEMOTYPE_REMINDER_HEIGHT, SPRITE_MEMOTYPE_REMINDER_BYTES);
         break;
     case MEMO_TYPE_NOTE:
     default:
-        setSprite(sprit_memotype_note, SPRIT_MEMOTYPE_NOTE_WIDTH, SPRIT_MEMOTYPE_NOTE_HEIGHT, SPRIT_MEMOTYPE_NOTE_BYTES);
+        setSprite(sprite_memotype_note, SPRITE_MEMOTYPE_NOTE_WIDTH, SPRITE_MEMOTYPE_NOTE_HEIGHT, SPRITE_MEMOTYPE_NOTE_BYTES);
         break;
     }
 }

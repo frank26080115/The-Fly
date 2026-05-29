@@ -39,27 +39,27 @@ MainScreenView::MainScreenView()
       laptopItem_(kCol1, kRow1, kSpriteSize, kSpriteSize),
       wifiItem_(kCol2, kRow1, kSpriteSize, kSpriteSize)
 {
-    bluetoothItem_.setSprite(sprit_bluetooth_100, SPRIT_BLUETOOTH_100_WIDTH, SPRIT_BLUETOOTH_100_HEIGHT, SPRIT_BLUETOOTH_100_BYTES);
+    bluetoothItem_.setSprite(sprite_bluetooth_100, SPRITE_BLUETOOTH_100_WIDTH, SPRITE_BLUETOOTH_100_HEIGHT, SPRITE_BLUETOOTH_100_BYTES);
     bluetoothItem_.setCallback(onclick_main_bluetooth);
     addItem(bluetoothItem_);
 
-    infoItem_.setSprite(sprit_info_100, SPRIT_INFO_100_WIDTH, SPRIT_INFO_100_HEIGHT, SPRIT_INFO_100_BYTES);
+    infoItem_.setSprite(sprite_info_100, SPRITE_INFO_100_WIDTH, SPRITE_INFO_100_HEIGHT, SPRITE_INFO_100_BYTES);
     infoItem_.setCallback(onclick_main_info);
     addItem(infoItem_);
 
-    memoItem_.setSprite(sprit_memo_100, SPRIT_MEMO_100_WIDTH, SPRIT_MEMO_100_HEIGHT, SPRIT_MEMO_100_BYTES);
+    memoItem_.setSprite(sprite_memo_100, SPRITE_MEMO_100_WIDTH, SPRITE_MEMO_100_HEIGHT, SPRITE_MEMO_100_BYTES);
     memoItem_.setCallback(onclick_main_memo);
     addItem(memoItem_);
 
-    smartphoneItem_.setSprite(sprit_smartphone_bt_100, SPRIT_SMARTPHONE_BT_100_WIDTH, SPRIT_SMARTPHONE_BT_100_HEIGHT, SPRIT_SMARTPHONE_BT_100_BYTES);
+    smartphoneItem_.setSprite(sprite_smartphone_bt_100, SPRITE_SMARTPHONE_BT_100_WIDTH, SPRITE_SMARTPHONE_BT_100_HEIGHT, SPRITE_SMARTPHONE_BT_100_BYTES);
     smartphoneItem_.setCallback(onclick_main_smartphone);
     addItem(smartphoneItem_);
 
-    laptopItem_.setSprite(sprit_laptop_bt_100, SPRIT_LAPTOP_BT_100_WIDTH, SPRIT_LAPTOP_BT_100_HEIGHT, SPRIT_LAPTOP_BT_100_BYTES);
+    laptopItem_.setSprite(sprite_laptop_bt_100, SPRITE_LAPTOP_BT_100_WIDTH, SPRITE_LAPTOP_BT_100_HEIGHT, SPRITE_LAPTOP_BT_100_BYTES);
     laptopItem_.setCallback(onclick_main_laptop);
     addItem(laptopItem_);
 
-    wifiItem_.setSprite(sprit_wifi_100, SPRIT_WIFI_100_WIDTH, SPRIT_WIFI_100_HEIGHT, SPRIT_WIFI_100_BYTES);
+    wifiItem_.setSprite(sprite_wifi_100, SPRITE_WIFI_100_WIDTH, SPRITE_WIFI_100_HEIGHT, SPRITE_WIFI_100_BYTES);
     wifiItem_.setCallback(onclick_main_wifi);
     addItem(wifiItem_);
 }
@@ -96,15 +96,15 @@ void MainScreenView::showMemoStartingFeedback()
     FlyGui::quickScreenFade();
 
     const int16_t hourglassX = memoItem_.x() +
-                               static_cast<int16_t>((memoItem_.width() - static_cast<int32_t>(SPRIT_HOURGLASS_30_OVERLAY_WIDTH)) / 2);
+                               static_cast<int16_t>((memoItem_.width() - static_cast<int32_t>(SPRITE_HOURGLASS_30_OVERLAY_WIDTH)) / 2);
     const int16_t hourglassY = memoItem_.y() +
-                               static_cast<int16_t>((memoItem_.height() - static_cast<int32_t>(SPRIT_HOURGLASS_30_OVERLAY_HEIGHT)) / 2);
-    SpriteDraw::drawPng(sprit_hourglass_30_overlay,
-                        SPRIT_HOURGLASS_30_OVERLAY_BYTES,
+                               static_cast<int16_t>((memoItem_.height() - static_cast<int32_t>(SPRITE_HOURGLASS_30_OVERLAY_HEIGHT)) / 2);
+    SpriteDraw::drawPng(sprite_hourglass_30_overlay,
+                        SPRITE_HOURGLASS_30_OVERLAY_BYTES,
                         hourglassX,
                         hourglassY,
-                        SPRIT_HOURGLASS_30_OVERLAY_WIDTH,
-                        SPRIT_HOURGLASS_30_OVERLAY_HEIGHT,
+                        SPRITE_HOURGLASS_30_OVERLAY_WIDTH,
+                        SPRITE_HOURGLASS_30_OVERLAY_HEIGHT,
                         true);
 }
 

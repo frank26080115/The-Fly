@@ -108,14 +108,14 @@ WifiApModeView* WifiApModeView::activeView_ = nullptr;
 
 WifiApModeView::WifiApModeView()
     : FlyGuiView(FLYGUI_VIEW_AP_MODE),
-      wifiIcon_(kWifiIconX, kWifiIconY, SPRIT_WIFI_50_WIDTH, SPRIT_WIFI_50_HEIGHT),
-      securityIcon_(kSecurityIconX, kWifiIconY, SPRIT_SECURITY_50_WIDTH, SPRIT_SECURITY_50_HEIGHT),
+      wifiIcon_(kWifiIconX, kWifiIconY, SPRITE_WIFI_50_WIDTH, SPRITE_WIFI_50_HEIGHT),
+      securityIcon_(kSecurityIconX, kWifiIconY, SPRITE_SECURITY_50_WIDTH, SPRITE_SECURITY_50_HEIGHT),
       eyeItem_(kEyeX, kEyeY, kEyeSize, kEyeSize)
 {
-    wifiIcon_.setSprite(sprit_wifi_50, SPRIT_WIFI_50_WIDTH, SPRIT_WIFI_50_HEIGHT, SPRIT_WIFI_50_BYTES);
+    wifiIcon_.setSprite(sprite_wifi_50, SPRITE_WIFI_50_WIDTH, SPRITE_WIFI_50_HEIGHT, SPRITE_WIFI_50_BYTES);
     addItem(wifiIcon_);
 
-    securityIcon_.setSprite(sprit_security_50, SPRIT_SECURITY_50_WIDTH, SPRIT_SECURITY_50_HEIGHT, SPRIT_SECURITY_50_BYTES);
+    securityIcon_.setSprite(sprite_security_50, SPRITE_SECURITY_50_WIDTH, SPRITE_SECURITY_50_HEIGHT, SPRITE_SECURITY_50_BYTES);
     addItem(securityIcon_);
 
     eyeItem_.setCallback(onEyeTriggered);
@@ -183,11 +183,11 @@ void WifiApModeView::syncEyeSprite()
 {
     if (showSensitive_)
     {
-        eyeItem_.setSprite(sprit_eye_open_100, SPRIT_EYE_OPEN_100_WIDTH, SPRIT_EYE_OPEN_100_HEIGHT, SPRIT_EYE_OPEN_100_BYTES);
+        eyeItem_.setSprite(sprite_eye_open_100, SPRITE_EYE_OPEN_100_WIDTH, SPRITE_EYE_OPEN_100_HEIGHT, SPRITE_EYE_OPEN_100_BYTES);
         return;
     }
 
-    eyeItem_.setSprite(sprit_eye_closed_100, SPRIT_EYE_CLOSED_100_WIDTH, SPRIT_EYE_CLOSED_100_HEIGHT, SPRIT_EYE_CLOSED_100_BYTES);
+    eyeItem_.setSprite(sprite_eye_closed_100, SPRITE_EYE_CLOSED_100_WIDTH, SPRITE_EYE_CLOSED_100_HEIGHT, SPRITE_EYE_CLOSED_100_BYTES);
 }
 
 void WifiApModeView::drawStaticContent()

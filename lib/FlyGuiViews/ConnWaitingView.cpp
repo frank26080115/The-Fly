@@ -36,15 +36,15 @@ SpriteRef main_sprite_for_mode(ConnWaitingMode mode)
     switch (mode)
     {
     case CONN_WAITING_BLUETOOTH_CONNECTING:
-        return { sprit_bluetooth_100, SPRIT_BLUETOOTH_100_WIDTH, SPRIT_BLUETOOTH_100_HEIGHT, SPRIT_BLUETOOTH_100_BYTES };
+        return { sprite_bluetooth_100, SPRITE_BLUETOOTH_100_WIDTH, SPRITE_BLUETOOTH_100_HEIGHT, SPRITE_BLUETOOTH_100_BYTES };
     case CONN_WAITING_BLUETOOTH_PAIRING:
-        return { sprit_btpairing_100, SPRIT_BTPAIRING_100_WIDTH, SPRIT_BTPAIRING_100_HEIGHT, SPRIT_BTPAIRING_100_BYTES };
+        return { sprite_btpairing_100, SPRITE_BTPAIRING_100_WIDTH, SPRITE_BTPAIRING_100_HEIGHT, SPRITE_BTPAIRING_100_BYTES };
     case CONN_WAITING_WIFI:
-        return { sprit_wifi_100, SPRIT_WIFI_100_WIDTH, SPRIT_WIFI_100_HEIGHT, SPRIT_WIFI_100_BYTES };
+        return { sprite_wifi_100, SPRITE_WIFI_100_WIDTH, SPRITE_WIFI_100_HEIGHT, SPRITE_WIFI_100_BYTES };
     case CONN_WAITING_CLOUD:
-        return { sprit_cloudupload_100, SPRIT_CLOUDUPLOAD_100_WIDTH, SPRIT_CLOUDUPLOAD_100_HEIGHT, SPRIT_CLOUDUPLOAD_100_BYTES };
+        return { sprite_cloudupload_100, SPRITE_CLOUDUPLOAD_100_WIDTH, SPRITE_CLOUDUPLOAD_100_HEIGHT, SPRITE_CLOUDUPLOAD_100_BYTES };
     case CONN_WAITING_NTP_SYNC:
-        return { sprit_ntpsync_100, SPRIT_NTPSYNC_100_WIDTH, SPRIT_NTPSYNC_100_HEIGHT, SPRIT_NTPSYNC_100_BYTES };
+        return { sprite_ntpsync_100, SPRITE_NTPSYNC_100_WIDTH, SPRITE_NTPSYNC_100_HEIGHT, SPRITE_NTPSYNC_100_BYTES };
     default:
         return {};
     }
@@ -55,11 +55,11 @@ SpriteRef hourglass_sprite_for_frame(uint8_t frame)
     switch (frame % 3)
     {
     case 0:
-        return { sprit_hourglass_60_1, SPRIT_HOURGLASS_60_1_WIDTH, SPRIT_HOURGLASS_60_1_HEIGHT, SPRIT_HOURGLASS_60_1_BYTES };
+        return { sprite_hourglass_60_1, SPRITE_HOURGLASS_60_1_WIDTH, SPRITE_HOURGLASS_60_1_HEIGHT, SPRITE_HOURGLASS_60_1_BYTES };
     case 1:
-        return { sprit_hourglass_60_2, SPRIT_HOURGLASS_60_2_WIDTH, SPRIT_HOURGLASS_60_2_HEIGHT, SPRIT_HOURGLASS_60_2_BYTES };
+        return { sprite_hourglass_60_2, SPRITE_HOURGLASS_60_2_WIDTH, SPRITE_HOURGLASS_60_2_HEIGHT, SPRITE_HOURGLASS_60_2_BYTES };
     default:
-        return { sprit_hourglass_60_3, SPRIT_HOURGLASS_60_3_WIDTH, SPRIT_HOURGLASS_60_3_HEIGHT, SPRIT_HOURGLASS_60_3_BYTES };
+        return { sprite_hourglass_60_3, SPRITE_HOURGLASS_60_3_WIDTH, SPRITE_HOURGLASS_60_3_HEIGHT, SPRITE_HOURGLASS_60_3_BYTES };
     }
 }
 } // namespace
@@ -72,7 +72,7 @@ ConnWaitingView::ConnWaitingView(ConnWaitingMode mode, const char* targetName, F
     strncpy(targetName_, targetName ? targetName : "", sizeof(targetName_) - 1);
     targetName_[sizeof(targetName_) - 1] = '\0';
 
-    cancelItem_.setSprite(sprit_cancel_60, SPRIT_CANCEL_60_WIDTH, SPRIT_CANCEL_60_HEIGHT, SPRIT_CANCEL_60_BYTES);
+    cancelItem_.setSprite(sprite_cancel_60, SPRITE_CANCEL_60_WIDTH, SPRITE_CANCEL_60_HEIGHT, SPRITE_CANCEL_60_BYTES);
     cancelItem_.setCallback(cancelCallback);
     addItem(cancelItem_);
 }

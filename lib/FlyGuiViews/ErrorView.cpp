@@ -60,13 +60,13 @@ void ErrorView::redraw(bool forced)
         gui()->requestTopBarFullRedraw();
     }
 
-    const int16_t icon_x = static_cast<int16_t>((thefly_display.width() - static_cast<int32_t>(SPRIT_WARNING_100_WIDTH)) / 2);
-    SpriteDraw::drawPng(sprit_warning_100,
-                        SPRIT_WARNING_100_BYTES,
+    const int16_t icon_x = static_cast<int16_t>((thefly_display.width() - static_cast<int32_t>(SPRITE_WARNING_100_WIDTH)) / 2);
+    SpriteDraw::drawPng(sprite_warning_100,
+                        SPRITE_WARNING_100_BYTES,
                         icon_x,
                         kIconY,
-                        SPRIT_WARNING_100_WIDTH,
-                        SPRIT_WARNING_100_HEIGHT,
+                        SPRITE_WARNING_100_WIDTH,
+                        SPRITE_WARNING_100_HEIGHT,
                         true);
 
     thefly_display.setTextFont(kTextFont);
@@ -74,7 +74,7 @@ void ErrorView::redraw(bool forced)
     thefly_display.setTextDatum(top_left);
     thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
 
-    const int16_t text_y = static_cast<int16_t>(kIconY + SPRIT_WARNING_100_HEIGHT + kTextGap);
+    const int16_t text_y = static_cast<int16_t>(kIconY + SPRITE_WARNING_100_HEIGHT + kTextGap);
     const int16_t footer_y = static_cast<int16_t>(thefly_display.height() - kFooterLineHeight - kTextPadding);
     FlyGuiTextUtil::drawWrappedText(message_,
                                      kTextX,

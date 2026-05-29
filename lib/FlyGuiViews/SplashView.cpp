@@ -38,7 +38,7 @@ void SplashView::redraw(bool forced)
     }
 
     const SpriteDraw::DrawResult result =
-        SpriteDraw::drawPng(sprit_splash, SPRIT_SPLASH_BYTES, 0, 0, SPRIT_SPLASH_WIDTH, SPRIT_SPLASH_HEIGHT, true);
+        SpriteDraw::drawPng(sprite_splash, SPRITE_SPLASH_BYTES, 0, 0, SPRITE_SPLASH_WIDTH, SPRITE_SPLASH_HEIGHT, true);
     if (!result.ok)
     {
         thefly_display.fillScreen(TFT_BLACK);

@@ -10,9 +10,9 @@ constexpr int16_t kButtonSize = 100;
 
 void draw_muted_overlay(const FlyGuiItem& item)
 {
-    const int16_t x = item.x() + (item.width() - static_cast<int16_t>(SPRIT_MUTED_X_WIDTH)) / 2;
-    const int16_t y = item.y() + (item.height() - static_cast<int16_t>(SPRIT_MUTED_X_HEIGHT)) / 2;
-    SpriteDraw::drawPng(sprit_muted_x, SPRIT_MUTED_X_BYTES, x, y, SPRIT_MUTED_X_WIDTH, SPRIT_MUTED_X_HEIGHT, true);
+    const int16_t x = item.x() + (item.width() - static_cast<int16_t>(SPRITE_MUTED_X_WIDTH)) / 2;
+    const int16_t y = item.y() + (item.height() - static_cast<int16_t>(SPRITE_MUTED_X_HEIGHT)) / 2;
+    SpriteDraw::drawPng(sprite_muted_x, SPRITE_MUTED_X_BYTES, x, y, SPRITE_MUTED_X_WIDTH, SPRITE_MUTED_X_HEIGHT, true);
 }
 
 uint16_t meter_color(uint8_t level)
@@ -39,11 +39,11 @@ AudioDeviceButton::AudioDeviceButton(Device device, int16_t x, int16_t y)
 {
     if (device_ == Device::Mic)
     {
-        setSprite(sprit_mic_100, SPRIT_MIC_100_WIDTH, SPRIT_MIC_100_HEIGHT, SPRIT_MIC_100_BYTES);
+        setSprite(sprite_mic_100, SPRITE_MIC_100_WIDTH, SPRITE_MIC_100_HEIGHT, SPRITE_MIC_100_BYTES);
     }
     else
     {
-        setSprite(sprit_speaker_100, SPRIT_SPEAKER_100_WIDTH, SPRIT_SPEAKER_100_HEIGHT, SPRIT_SPEAKER_100_BYTES);
+        setSprite(sprite_speaker_100, SPRITE_SPEAKER_100_WIDTH, SPRITE_SPEAKER_100_HEIGHT, SPRITE_SPEAKER_100_BYTES);
     }
 }
 

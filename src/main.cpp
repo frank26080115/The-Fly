@@ -371,10 +371,10 @@ static void handle_pending_cloud_upload_complete()
                  "Cloud upload complete\n%lu/%lu files uploaded.",
                  static_cast<unsigned long>(status.files_succeeded),
                  static_cast<unsigned long>(status.files_total));
-        dialog->configure(sprit_thumbsup_100,
-                          SPRIT_THUMBSUP_100_BYTES,
-                          SPRIT_THUMBSUP_100_WIDTH,
-                          SPRIT_THUMBSUP_100_HEIGHT,
+        dialog->configure(sprite_thumbsup_100,
+                          SPRITE_THUMBSUP_100_BYTES,
+                          SPRITE_THUMBSUP_100_WIDTH,
+                          SPRITE_THUMBSUP_100_HEIGHT,
                           text,
                           FLYGUI_VIEW_MAIN,
                           on_cloud_upload_dialog_dismissed);
@@ -388,10 +388,10 @@ static void handle_pending_cloud_upload_complete()
                  static_cast<unsigned long>(status.files_succeeded),
                  static_cast<unsigned long>(status.files_total),
                  static_cast<unsigned long>(status.files_failed));
-        dialog->configure(sprit_warning_100,
-                          SPRIT_WARNING_100_BYTES,
-                          SPRIT_WARNING_100_WIDTH,
-                          SPRIT_WARNING_100_HEIGHT,
+        dialog->configure(sprite_warning_100,
+                          SPRITE_WARNING_100_BYTES,
+                          SPRITE_WARNING_100_WIDTH,
+                          SPRITE_WARNING_100_HEIGHT,
                           text,
                           FLYGUI_VIEW_MAIN,
                           on_cloud_upload_dialog_dismissed);
@@ -802,10 +802,10 @@ static bool show_info_dialog(const char* text, uint16_t next_view)
     char        dialog_text[256] = {};
     const char* shown_text = info_dialog_text_with_tamper_code(text, dialog_text, sizeof(dialog_text));
 
-    dialog->configure(sprit_info_100,
-                      SPRIT_INFO_100_BYTES,
-                      SPRIT_INFO_100_WIDTH,
-                      SPRIT_INFO_100_HEIGHT,
+    dialog->configure(sprite_info_100,
+                      SPRITE_INFO_100_BYTES,
+                      SPRITE_INFO_100_WIDTH,
+                      SPRITE_INFO_100_HEIGHT,
                       shown_text,
                       next_view);
     return gui->showView(FLYGUI_VIEW_MODAL_DIALOG);
@@ -839,10 +839,10 @@ static bool show_error_dialog(const char* text, uint16_t next_view)
         return false;
     }
 
-    dialog->configure(sprit_warning_100,
-                      SPRIT_WARNING_100_BYTES,
-                      SPRIT_WARNING_100_WIDTH,
-                      SPRIT_WARNING_100_HEIGHT,
+    dialog->configure(sprite_warning_100,
+                      SPRITE_WARNING_100_BYTES,
+                      SPRITE_WARNING_100_WIDTH,
+                      SPRITE_WARNING_100_HEIGHT,
                       text,
                       next_view);
     return gui->showView(FLYGUI_VIEW_MODAL_DIALOG);
@@ -860,10 +860,10 @@ static bool show_pairing_success_dialog(const BtManager::PairedDevice& device)
     char        text[160];
     snprintf(text, sizeof(text), "Pairing complete\n%s is now saved.", name);
 
-    dialog->configure(sprit_thumbsup_100,
-                      SPRIT_THUMBSUP_100_BYTES,
-                      SPRIT_THUMBSUP_100_WIDTH,
-                      SPRIT_THUMBSUP_100_HEIGHT,
+    dialog->configure(sprite_thumbsup_100,
+                      SPRITE_THUMBSUP_100_BYTES,
+                      SPRITE_THUMBSUP_100_WIDTH,
+                      SPRITE_THUMBSUP_100_HEIGHT,
                       text,
                       FLYGUI_VIEW_SCROLL,
                       on_pairing_success_dialog_dismissed);

@@ -54,15 +54,15 @@ void test_pngdecode()
     {
         thefly_display.fillScreen(TFT_BLACK);
 
-        const int32_t splash_x = (thefly_display.width() - static_cast<int32_t>(SPRIT_SPLASH_WIDTH)) / 2;
-        const int32_t splash_y = (thefly_display.height() - static_cast<int32_t>(SPRIT_SPLASH_HEIGHT)) / 2;
+        const int32_t splash_x = (thefly_display.width() - static_cast<int32_t>(SPRITE_SPLASH_WIDTH)) / 2;
+        const int32_t splash_y = (thefly_display.height() - static_cast<int32_t>(SPRITE_SPLASH_HEIGHT)) / 2;
         const SpriteDraw::DrawResult result =
-            SpriteDraw::drawPng(sprit_splash,
-                                SPRIT_SPLASH_BYTES,
+            SpriteDraw::drawPng(sprite_splash,
+                                SPRITE_SPLASH_BYTES,
                                 splash_x,
                                 splash_y,
-                                SPRIT_SPLASH_WIDTH,
-                                SPRIT_SPLASH_HEIGHT,
+                                SPRITE_SPLASH_WIDTH,
+                                SPRITE_SPLASH_HEIGHT,
                                 use_fast,
                                 SpriteDraw::PNG_BRTNESS_100,
                                 on_sprite_draw_callback

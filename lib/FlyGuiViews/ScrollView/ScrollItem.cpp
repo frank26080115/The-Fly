@@ -11,7 +11,7 @@ constexpr int16_t kScrollItemHeight = 114;
 
 void fallback_sprite(sprite_desc_t& sprite)
 {
-    sprite = { sprit_warning_100, SPRIT_WARNING_100_WIDTH, SPRIT_WARNING_100_HEIGHT, SPRIT_WARNING_100_BYTES };
+    sprite = { sprite_warning_100, SPRITE_WARNING_100_WIDTH, SPRITE_WARNING_100_HEIGHT, SPRITE_WARNING_100_BYTES };
 }
 } // namespace
 

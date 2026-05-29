@@ -295,10 +295,10 @@ ScrollView::ScrollView(uint16_t viewId, FlyGuiItemCallback exitCallback)
       exitCallback_(exitCallback)
 {
     activeDeleteView_ = this;
-    exitItem_.setSprite(sprit_canceldoor_50, SPRIT_CANCELDOOR_50_WIDTH, SPRIT_CANCELDOOR_50_HEIGHT, SPRIT_CANCELDOOR_50_BYTES);
+    exitItem_.setSprite(sprite_canceldoor_50, SPRITE_CANCELDOOR_50_WIDTH, SPRITE_CANCELDOOR_50_HEIGHT, SPRITE_CANCELDOOR_50_BYTES);
     exitItem_.setCallback(exitCallback_);
 
-    deleteItem_.setSprite(sprit_trash_50, SPRIT_TRASH_50_WIDTH, SPRIT_TRASH_50_HEIGHT, SPRIT_TRASH_50_BYTES);
+    deleteItem_.setSprite(sprite_trash_50, SPRITE_TRASH_50_WIDTH, SPRITE_TRASH_50_HEIGHT, SPRITE_TRASH_50_BYTES);
     deleteItem_.setCallback(onDeleteButtonTriggered);
 }
 
@@ -335,7 +335,7 @@ bool ScrollView::populateBluetooth(BtHostList* hostList)
     bool ok = appendSpriteScrollItem(SCROLL_ITEM_BLUETOOTH_SHOW_SELF_INFO,
                                      SCROLL_TASK_BLUETOOTH_SHOW_SELF_INFO,
                                      "Bluetooth Info",
-                                     make_sprite(sprit_info_100, SPRIT_INFO_100_WIDTH, SPRIT_INFO_100_HEIGHT, SPRIT_INFO_100_BYTES));
+                                     make_sprite(sprite_info_100, SPRITE_INFO_100_WIDTH, SPRITE_INFO_100_HEIGHT, SPRITE_INFO_100_BYTES));
 
     if (hostList)
     {
@@ -363,7 +363,7 @@ bool ScrollView::populateBluetooth(BtHostList* hostList)
     ok = appendSpriteScrollItem(SCROLL_ITEM_BLUETOOTH_PAIRING,
                                 SCROLL_TASK_BLUETOOTH_PAIRING,
                                 "Pair New Device",
-                                make_sprite(sprit_btpairing_100, SPRIT_BTPAIRING_100_WIDTH, SPRIT_BTPAIRING_100_HEIGHT, SPRIT_BTPAIRING_100_BYTES)) && ok;
+                                make_sprite(sprite_btpairing_100, SPRITE_BTPAIRING_100_WIDTH, SPRITE_BTPAIRING_100_HEIGHT, SPRITE_BTPAIRING_100_BYTES)) && ok;
     return ok;
 }
 
@@ -377,15 +377,15 @@ bool ScrollView::populateWifi(const WifiManager* wifiManager)
     bool ok = appendSpriteScrollItem(SCROLL_ITEM_WIFI_SCAN_AND_CONNECT,
                                      SCROLL_TASK_WIFI_SCAN_AND_CONNECT,
                                      "Scan and Connect",
-                                     make_sprite(sprit_wifisearch_100, SPRIT_WIFISEARCH_100_WIDTH, SPRIT_WIFISEARCH_100_HEIGHT, SPRIT_WIFISEARCH_100_BYTES));
+                                     make_sprite(sprite_wifisearch_100, SPRITE_WIFISEARCH_100_WIDTH, SPRITE_WIFISEARCH_100_HEIGHT, SPRITE_WIFISEARCH_100_BYTES));
 
     ok = appendSpriteScrollItem(SCROLL_ITEM_WIFI_AP,
                                 SCROLL_TASK_WIFI_GENERATED_AP,
                                 "Default Secure AP",
-                                make_sprite(sprit_default_wifi_ap,
-                                            SPRIT_DEFAULT_WIFI_AP_WIDTH,
-                                            SPRIT_DEFAULT_WIFI_AP_HEIGHT,
-                                            SPRIT_DEFAULT_WIFI_AP_BYTES)) && ok;
+                                make_sprite(sprite_default_wifi_ap,
+                                            SPRITE_DEFAULT_WIFI_AP_WIDTH,
+                                            SPRITE_DEFAULT_WIFI_AP_HEIGHT,
+                                            SPRITE_DEFAULT_WIFI_AP_BYTES)) && ok;
 
     if (wifiManager)
     {
@@ -433,7 +433,7 @@ bool ScrollView::populateCloud(const WifiManager* wifiManager)
     bool ok = appendSpriteScrollItem(SCROLL_ITEM_WIFI_SHOW_SELF_INFO,
                                      SCROLL_TASK_WIFI_SHOW_SELF_INFO,
                                      "Wi-Fi Info",
-                                     make_sprite(sprit_wifi_100, SPRIT_WIFI_100_WIDTH, SPRIT_WIFI_100_HEIGHT, SPRIT_WIFI_100_BYTES));
+                                     make_sprite(sprite_wifi_100, SPRITE_WIFI_100_WIDTH, SPRITE_WIFI_100_HEIGHT, SPRITE_WIFI_100_BYTES));
 
     if (wifiManager)
     {
@@ -456,7 +456,7 @@ bool ScrollView::populateCloud(const WifiManager* wifiManager)
     ok = appendSpriteScrollItem(SCROLL_ITEM_NTP_SYNC,
                                 SCROLL_TASK_NTP_SYNC,
                                 "Sync Time",
-                                make_sprite(sprit_ntpsync_100, SPRIT_NTPSYNC_100_WIDTH, SPRIT_NTPSYNC_100_HEIGHT, SPRIT_NTPSYNC_100_BYTES)) && ok;
+                                make_sprite(sprite_ntpsync_100, SPRITE_NTPSYNC_100_WIDTH, SPRITE_NTPSYNC_100_HEIGHT, SPRITE_NTPSYNC_100_BYTES)) && ok;
     return ok;
 }
 
@@ -937,10 +937,10 @@ bool ScrollView::deleteArmedBluetoothHost()
         {
             snprintf(message, sizeof(message), "%s\nhas been un-paired", hostName);
             activeDeleteView_ = this;
-            dialog->configure(sprit_thumbsup_100,
-                              SPRIT_THUMBSUP_100_BYTES,
-                              SPRIT_THUMBSUP_100_WIDTH,
-                              SPRIT_THUMBSUP_100_HEIGHT,
+            dialog->configure(sprite_thumbsup_100,
+                              SPRITE_THUMBSUP_100_BYTES,
+                              SPRITE_THUMBSUP_100_WIDTH,
+                              SPRITE_THUMBSUP_100_HEIGHT,
                               message,
                               FLYGUI_VIEW_SCROLL,
                               onBluetoothDeleteDialogDismissed);
@@ -951,10 +951,10 @@ bool ScrollView::deleteArmedBluetoothHost()
                      sizeof(message),
                      "Bluetooth un-pair failed\n%s",
                      bluetoothHostList_ ? bluetoothHostList_->lastLoadResultName() : "No host list");
-            dialog->configure(sprit_warning_100,
-                              SPRIT_WARNING_100_BYTES,
-                              SPRIT_WARNING_100_WIDTH,
-                              SPRIT_WARNING_100_HEIGHT,
+            dialog->configure(sprite_warning_100,
+                              SPRITE_WARNING_100_BYTES,
+                              SPRITE_WARNING_100_WIDTH,
+                              SPRITE_WARNING_100_HEIGHT,
                               message,
                               FLYGUI_VIEW_SCROLL);
         }

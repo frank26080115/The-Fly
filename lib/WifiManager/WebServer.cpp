@@ -147,10 +147,10 @@ void show_reset_reboot_dialog(const char* reset_name, const char* text)
         return;
     }
 
-    dialog->configure(sprit_thumbsup_100,
-                      SPRIT_THUMBSUP_100_BYTES,
-                      SPRIT_THUMBSUP_100_WIDTH,
-                      SPRIT_THUMBSUP_100_HEIGHT,
+    dialog->configure(sprite_thumbsup_100,
+                      SPRITE_THUMBSUP_100_BYTES,
+                      SPRITE_THUMBSUP_100_WIDTH,
+                      SPRITE_THUMBSUP_100_HEIGHT,
                       text,
                       FLYGUI_VIEW_MAIN,
                       reboot_after_reset_dialog);

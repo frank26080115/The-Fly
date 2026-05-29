@@ -68,8 +68,8 @@ RecordingView::RecordingView()
     : FlyGuiView(FLYGUI_VIEW_RECORDING),
       micButton_(AudioDeviceButton::Device::Mic, kMicButtonX, kButtonY),
       speakerButton_(AudioDeviceButton::Device::Speaker, kMidButtonX, kButtonY),
-      exitButton_(kExitButtonX, kButtonY, SPRIT_XCIRCLE_100_WIDTH, SPRIT_XCIRCLE_100_HEIGHT),
-      bluetoothIcon_(kSideButtonX, kBluetoothY, SPRIT_BLUETOOTH_50_WIDTH, SPRIT_BLUETOOTH_50_HEIGHT),
+      exitButton_(kExitButtonX, kButtonY, SPRITE_XCIRCLE_100_WIDTH, SPRITE_XCIRCLE_100_HEIGHT),
+      bluetoothIcon_(kSideButtonX, kBluetoothY, SPRITE_BLUETOOTH_50_WIDTH, SPRITE_BLUETOOTH_50_HEIGHT),
       answerCallButton_(kSideButtonX, kSideButtonY),
       memoTypeButton_(kSideButtonX, kSideButtonY),
       fileNameText_(kTextX, kFileTextY, kTextWidth, kTextHeight, kFileTextSize, kFileTextFont, 64),
@@ -84,11 +84,11 @@ RecordingView::RecordingView()
     speakerButton_.setCallback(speakerThunk);
     addItem(speakerButton_);
 
-    exitButton_.setSprite(sprit_xcircle_100, SPRIT_XCIRCLE_100_WIDTH, SPRIT_XCIRCLE_100_HEIGHT, SPRIT_XCIRCLE_100_BYTES);
+    exitButton_.setSprite(sprite_xcircle_100, SPRITE_XCIRCLE_100_WIDTH, SPRITE_XCIRCLE_100_HEIGHT, SPRITE_XCIRCLE_100_BYTES);
     exitButton_.setCallback(exitThunk);
     addItem(exitButton_);
 
-    bluetoothIcon_.setSprite(sprit_bluetooth_50, SPRIT_BLUETOOTH_50_WIDTH, SPRIT_BLUETOOTH_50_HEIGHT, SPRIT_BLUETOOTH_50_BYTES);
+    bluetoothIcon_.setSprite(sprite_bluetooth_50, SPRITE_BLUETOOTH_50_WIDTH, SPRITE_BLUETOOTH_50_HEIGHT, SPRITE_BLUETOOTH_50_BYTES);
     addItem(bluetoothIcon_);
 
     answerCallButton_.setCallback(answerCallThunk);
@@ -270,10 +270,10 @@ void RecordingView::handleExitButton()
         {
             char message[128];
             snprintf(message, sizeof(message), "%s\nhas been recorded", fileName);
-            dialog->configure(sprit_thumbsup_100,
-                              SPRIT_THUMBSUP_100_BYTES,
-                              SPRIT_THUMBSUP_100_WIDTH,
-                              SPRIT_THUMBSUP_100_HEIGHT,
+            dialog->configure(sprite_thumbsup_100,
+                              SPRITE_THUMBSUP_100_BYTES,
+                              SPRITE_THUMBSUP_100_WIDTH,
+                              SPRITE_THUMBSUP_100_HEIGHT,
                               message,
                               FLYGUI_VIEW_MAIN);
             gui()->showView(FLYGUI_VIEW_MODAL_DIALOG);
@@ -375,11 +375,11 @@ void RecordingView::syncBluetoothIcon()
     bluetoothIconConnected_ = connected;
     if (connected)
     {
-        bluetoothIcon_.setSprite(sprit_bluetooth_50, SPRIT_BLUETOOTH_50_WIDTH, SPRIT_BLUETOOTH_50_HEIGHT, SPRIT_BLUETOOTH_50_BYTES);
+        bluetoothIcon_.setSprite(sprite_bluetooth_50, SPRITE_BLUETOOTH_50_WIDTH, SPRITE_BLUETOOTH_50_HEIGHT, SPRITE_BLUETOOTH_50_BYTES);
     }
     else
     {
-        bluetoothIcon_.setSprite(sprit_bluetooth_x_50, SPRIT_BLUETOOTH_X_50_WIDTH, SPRIT_BLUETOOTH_X_50_HEIGHT, SPRIT_BLUETOOTH_X_50_BYTES);
+        bluetoothIcon_.setSprite(sprite_bluetooth_x_50, SPRITE_BLUETOOTH_X_50_WIDTH, SPRITE_BLUETOOTH_X_50_HEIGHT, SPRITE_BLUETOOTH_X_50_BYTES);
     }
 }
 
