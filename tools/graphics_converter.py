@@ -55,7 +55,7 @@ def symbol_name(path: Path) -> str:
     if not base:
         base = "image"
 
-    return f"sprit_{base}"
+    return f"sprite_{base}"
 
 
 def stripped_png(path: Path) -> tuple[int, int, bytes]:
