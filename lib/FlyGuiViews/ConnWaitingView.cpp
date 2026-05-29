@@ -166,6 +166,10 @@ void ConnWaitingView::drawBottomCenter()
     {
         snprintf(text, sizeof(text), "Scanning for:\n%s", targetName_);
     }
+    else if (mode_ == CONN_WAITING_NTP_SYNC)
+    {
+        snprintf(text, sizeof(text), "Syncing time:\n%s", targetName_);
+    }
     else
     {
         snprintf(text, sizeof(text), "Connecting to:\n%s", targetName_);

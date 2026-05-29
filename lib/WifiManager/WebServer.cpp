@@ -152,7 +152,7 @@ void show_reset_reboot_dialog(const char* reset_name, const char* text)
                       SPRITE_THUMBSUP_100_WIDTH,
                       SPRITE_THUMBSUP_100_HEIGHT,
                       text,
-                      FLYGUI_VIEW_MAIN,
+                      FLYGUI_VIEW_MODAL_DIALOG,
                       reboot_after_reset_dialog);
     if (!gui->showView(FLYGUI_VIEW_MODAL_DIALOG))
     {

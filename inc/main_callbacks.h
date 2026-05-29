@@ -6,6 +6,7 @@
 
 #include "BluetoothManager.h"
 #include "CloudUpload.h"
+#include "NtpSync.h"
 #include "WifiManager.h"
 
 void onclick_main_bluetooth(uint32_t pressDurationMs);
@@ -30,6 +31,7 @@ void conn_waiting_cancel(uint32_t pressDurationMs);
 void on_bluetooth_state_changed(BtManager::State state);
 void on_bluetooth_paired(const BtManager::PairedDevice& device);
 void on_wifi_scan_finished(const wifi_item_t* item);
+void on_ntp_sync_complete(const NtpSync::Result& result);
 void on_pairing_success_dialog_dismissed();
 
 #ifdef BUILD_CLOUD_FEATURES

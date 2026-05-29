@@ -432,7 +432,7 @@ bool ScrollView::populateCloud(const WifiManager* wifiManager)
 
     bool ok = appendSpriteScrollItem(SCROLL_ITEM_WIFI_SHOW_SELF_INFO,
                                      SCROLL_TASK_WIFI_SHOW_SELF_INFO,
-                                     "Information",
+                                     "Wi-Fi Info",
                                      make_sprite(sprite_wifi_100, SPRITE_WIFI_100_WIDTH, SPRITE_WIFI_100_HEIGHT, SPRITE_WIFI_100_BYTES));
 
     if (wifiManager)
@@ -530,6 +530,7 @@ void ScrollView::setExitCallback(FlyGuiItemCallback exitCallback)
 
 void ScrollView::selectIndex(size_t index)
 {
+    resetBluetoothDeleteHold();
     exitDeleteMode();
     if (itemCount_ == 0)
     {
@@ -553,6 +554,7 @@ void ScrollView::scrollLeft()
         return;
     }
 
+    resetBluetoothDeleteHold();
     exitDeleteMode();
     selectedIndex_ = selectedIndex_ == 0 ? itemCount_ - 1 : selectedIndex_ - 1;
     setDirty();
@@ -565,6 +567,7 @@ void ScrollView::scrollRight()
         return;
     }
 
+    resetBluetoothDeleteHold();
     exitDeleteMode();
     selectedIndex_ = (selectedIndex_ + 1) % itemCount_;
     setDirty();
@@ -596,6 +599,11 @@ bool ScrollView::handleTouch(const FlyGuiTouchEvent& event)
     FlyGuiItem* selected = selectedItem();
     if (selected && (containsSlot(SLOT_CENTER, event.x, event.y) || selected->isPressed()))
     {
+        const ScrollItem* scrollItem = generatedScrollItemFor(selected);
+        if (updateBluetoothDeleteHold(event, scrollItem, containsSlot(SLOT_CENTER, event.x, event.y)))
+        {
+            return true;
+        }
         return selected->handleTouch(event);
     }
 
@@ -868,6 +876,7 @@ bool ScrollView::appendSpriteScrollItem(ScrollItemKind kind, int32_t callbackVal
 
 void ScrollView::clearGeneratedItems()
 {
+    resetBluetoothDeleteHold();
     FlyGuiView::removeAllItems();
 
     GeneratedItemNode* node = generatedHead_;
@@ -886,6 +895,54 @@ void ScrollView::clearGeneratedItems()
     setDirty();
 }
 
+bool ScrollView::updateBluetoothDeleteHold(const FlyGuiTouchEvent& event, const ScrollItem* item, bool centerHit)
+{
+    if (context_ != CONTEXT_BLUETOOTH || deleteMode_ || !item || item->kind() != SCROLL_ITEM_BLUETOOTH_HOST)
+    {
+        if (event.justReleased || !event.pressed)
+        {
+            resetBluetoothDeleteHold();
+        }
+        return false;
+    }
+
+    if (event.justPressed && centerHit)
+    {
+        deleteHoldActive_ = true;
+        deleteHoldShown_ = false;
+        deleteHoldHostIndex_ = item->callbackValue();
+        deleteHoldStartMs_ = millis();
+    }
+
+    if (!event.pressed)
+    {
+        resetBluetoothDeleteHold();
+        return false;
+    }
+
+    if (!deleteHoldActive_ || deleteHoldHostIndex_ != item->callbackValue())
+    {
+        return false;
+    }
+
+    if (!deleteHoldShown_ && static_cast<uint32_t>(millis() - deleteHoldStartMs_) >= kBluetoothDeleteLongPressMs)
+    {
+        deleteHoldShown_ = true;
+        enterBluetoothDeleteMode(deleteHoldHostIndex_);
+        return true;
+    }
+
+    return false;
+}
+
+void ScrollView::resetBluetoothDeleteHold()
+{
+    deleteHoldActive_ = false;
+    deleteHoldShown_ = false;
+    deleteHoldHostIndex_ = -1;
+    deleteHoldStartMs_ = 0;
+}
+
 void ScrollView::enterBluetoothDeleteMode(int32_t hostIndex)
 {
     if (context_ != CONTEXT_BLUETOOTH || hostIndex < 0)
@@ -895,6 +952,7 @@ void ScrollView::enterBluetoothDeleteMode(int32_t hostIndex)
 
     deleteMode_      = true;
     deleteHostIndex_ = hostIndex;
+    deleteHoldShown_ = true;
     deleteItem_.setDirty();
     setDirty();
 }
@@ -908,6 +966,7 @@ void ScrollView::exitDeleteMode()
 
     deleteMode_      = false;
     deleteHostIndex_ = -1;
+    resetBluetoothDeleteHold();
     deleteItem_.setDirty();
     setDirty();
 }
@@ -928,10 +987,6 @@ bool ScrollView::deleteArmedBluetoothHost()
 
     const bool unpaired = bluetoothHostList_->unpair(hostIndex);
     bool       ok       = unpaired;
-    if (unpaired)
-    {
-        ok = bluetoothHostList_->saveToMicroSd(true);
-    }
 
     exitDeleteMode();
 

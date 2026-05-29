@@ -7,6 +7,7 @@
 #include "BtHostList.h"
 #include "DiskStats.h"
 #include "FlyGui.h"
+#include "NtpSync.h"
 #include "ScrollView/ScrollView.h"
 #include "WebServer.h"
 #include "WifiManager.h"
@@ -30,6 +31,11 @@ extern volatile bool g_bluetooth_connect_waiting;
 extern volatile bool g_pending_bluetooth_connect_failed;
 extern volatile bool g_suppress_bluetooth_auto_recording;
 extern bool g_wifi_connect_waiting;
+extern NtpSync g_ntp_sync;
+extern bool g_ntp_sync_waiting;
+extern bool g_ntp_sync_completion_suppressed;
+extern volatile bool g_pending_ntp_sync_complete;
+extern NtpSync::Result g_pending_ntp_sync_result;
 extern BtManager::PairedDevice g_pending_paired_device;
 
 extern ScrollView* get_scroll_view();
@@ -39,6 +45,7 @@ extern bool show_conn_waiting_bluetooth(const char* targetName);
 extern bool show_conn_waiting_bluetooth_pairing();
 extern bool show_conn_waiting_wifi_connecting(const char* targetName);
 extern bool show_conn_waiting_wifi_scanning(const char* targetName);
+extern bool show_conn_waiting_ntp_sync(const char* targetName);
 extern void update_conn_waiting_wifi_target(const char* targetName);
 extern bool show_recording_view_memo();
 extern bool show_wifi_ap_mode_view();
@@ -82,6 +89,7 @@ void on_bluetooth_state_changed(BtManager::State state)
 
 void on_bluetooth_paired(const BtManager::PairedDevice& device)
 {
+    g_suppress_bluetooth_auto_recording = true;
     g_pending_paired_device = device;
     g_pending_bluetooth_pairing = true;
 }
@@ -237,8 +245,25 @@ void conn_waiting_cancel(uint32_t pressDurationMs)
         return;
     }
 
+    if (g_ntp_sync_waiting)
+    {
+        g_ntp_sync_waiting = false;
+        g_ntp_sync_completion_suppressed = true;
+        g_ntp_sync.cancel();
+        if (gui)
+        {
+            const uint16_t return_view = conn_waiting_return_view_id();
+            if (!gui->showView(return_view))
+            {
+                gui->showView(FLYGUI_VIEW_SCROLL);
+            }
+        }
+        return;
+    }
+
     g_bluetooth_connect_waiting = false;
     g_pending_bluetooth_connect_failed = false;
+    g_suppress_bluetooth_auto_recording = false;
     if (gui)
     {
         const uint16_t return_view = conn_waiting_return_view_id();
@@ -292,9 +317,11 @@ void onclick_bluetooth_pair(int32_t value, uint32_t pressDurationMs)
     (void)pressDurationMs;
     ESP_LOGI(MAINTAG, "scroll bluetooth pair selected: task=%ld", static_cast<long>(value));
 
+    g_suppress_bluetooth_auto_recording = true;
     const BtManager::Result result = BtManager::startPairing();
     if (result != BtManager::Result::Ok)
     {
+        g_suppress_bluetooth_auto_recording = false;
         ESP_LOGW(MAINTAG, "Bluetooth pairing start failed: %s", BtManager::resultName(result));
         show_fatal_error_f(false, "Bluetooth pairing failed: %s", BtManager::resultName(result));
         return;
@@ -304,6 +331,7 @@ void onclick_bluetooth_pair(int32_t value, uint32_t pressDurationMs)
     {
         ESP_LOGE(MAINTAG, "failed to show Bluetooth pairing waiting view");
         BtManager::disconnect();
+        g_suppress_bluetooth_auto_recording = false;
         show_fatal_error_f(false, "Bluetooth pairing view failed");
     }
 }
@@ -462,6 +490,34 @@ void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     ESP_LOGI(MAINTAG, "scroll ntp sync selected: task=%ld", static_cast<long>(value));
+
+    if (!wifi_manager)
+    {
+        show_error_dialog("NTP sync unavailable", FLYGUI_VIEW_SCROLL);
+        return;
+    }
+
+    const char* primary_server = wifi_manager->ntpServer(0);
+    g_pending_ntp_sync_complete = false;
+    g_ntp_sync_completion_suppressed = false;
+    g_ntp_sync_waiting = true;
+    g_ntp_sync.setOnCompleteCallback(on_ntp_sync_complete);
+    if (!g_ntp_sync.start(*wifi_manager, NtpSync::kDefaultTimeoutMs, true))
+    {
+        g_ntp_sync_waiting = false;
+        char text[128];
+        snprintf(text, sizeof(text), "NTP sync failed\n%s", g_ntp_sync.errorName());
+        show_error_dialog(text, FLYGUI_VIEW_SCROLL);
+        return;
+    }
+
+    if (!show_conn_waiting_ntp_sync(primary_server && primary_server[0] != '\0' ? primary_server : "NTP server"))
+    {
+        g_ntp_sync_waiting = false;
+        g_ntp_sync_completion_suppressed = true;
+        g_ntp_sync.cancel();
+        show_fatal_error_f(false, "NTP sync view failed");
+    }
 }
 
 void onclick_bt_show_info(int32_t value, uint32_t pressDurationMs)
@@ -531,7 +587,8 @@ void on_pairing_success_dialog_dismissed()
 {
     ESP_LOGI(MAINTAG, "pairing confirmation dismissed; rebooting to restart Bluetooth cleanly");
     g_suppress_bluetooth_auto_recording = false;
-    delay(50);
+    Serial.flush();
+    delay(100);
     esp_restart();
 }
 
@@ -549,6 +606,12 @@ void on_cloud_upload_dialog_dismissed()
     esp_restart();
 }
 #endif
+
+void on_ntp_sync_complete(const NtpSync::Result& result)
+{
+    g_pending_ntp_sync_result = result;
+    g_pending_ntp_sync_complete = true;
+}
 
 void on_wifi_scan_finished(const wifi_item_t* item)
 {

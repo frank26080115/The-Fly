@@ -182,7 +182,7 @@ bool make_bluetooth_non_connectable()
 
 void settle_outbound_connect_scan_mode()
 {
-    ESP_LOGI(TAG, "settling non-connectable radio mode before outbound HFP connect for %" PRIu32 " ms", kOutboundConnectScanModeSettleMs);
+    ESP_LOGI(TAG, "settling radio scan mode before outbound HFP connect for %" PRIu32 " ms", kOutboundConnectScanModeSettleMs);
     vTaskDelay(pdMS_TO_TICKS(kOutboundConnectScanModeSettleMs));
 }
 
@@ -1302,9 +1302,9 @@ void poll()
     ESP_LOGI(TAG, "automatic HFP reconnect attempt %" PRIu32, g_reconnect_attempt_count);
     log_bda("reconnecting HFP to", g_reconnect_target_mac);
 
-    if (!make_bluetooth_non_connectable())
+    if (!close_pairing_window())
     {
-        ESP_LOGW(TAG, "automatic HFP reconnect could not force non-connectable mode first");
+        ESP_LOGW(TAG, "automatic HFP reconnect could not close discovery window first");
         return;
     }
     settle_outbound_connect_scan_mode();
@@ -1401,7 +1401,7 @@ Result connectToMac(const esp_bd_addr_t mac)
     g_hfp_slc_connected = false;
     g_disconnect_requested = false;
     set_state(State::Connecting);
-    if (!make_bluetooth_non_connectable())
+    if (!close_pairing_window())
     {
         set_state(State::Idle);
         return Result::EspError;
@@ -1419,7 +1419,7 @@ Result connectToMac(const esp_bd_addr_t mac)
 
 Result startPairing()
 {
-    if (!init_bluetooth(nullptr, nullptr))
+    if (!init_hfp(nullptr, nullptr))
     {
         return Result::InitFailed;
     }
@@ -1428,11 +1428,6 @@ Result startPairing()
     if (hfp_control_connected() || g_state == State::Connecting)
     {
         return Result::Busy;
-    }
-
-    if (!deinit_hfp_for_pairing())
-    {
-        return Result::EspError;
     }
 
     g_disconnect_requested   = false;

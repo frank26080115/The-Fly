@@ -90,6 +90,8 @@ private:
     bool        appendIconScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon, IconLookup::IconContext iconContext);
     bool        appendSpriteScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, const sprite_desc_t& sprite);
     void        clearGeneratedItems();
+    bool        updateBluetoothDeleteHold(const FlyGuiTouchEvent& event, const ScrollItem* item, bool centerHit);
+    void        resetBluetoothDeleteHold();
     void        enterBluetoothDeleteMode(int32_t hostIndex);
     void        exitDeleteMode();
     bool        deleteArmedBluetoothHost();
@@ -113,6 +115,10 @@ private:
     size_t          selectedIndex_   = 0;
     bool            deleteMode_      = false;
     int32_t         deleteHostIndex_ = -1;
+    bool            deleteHoldActive_ = false;
+    bool            deleteHoldShown_  = false;
+    int32_t         deleteHoldHostIndex_ = -1;
+    uint32_t        deleteHoldStartMs_ = 0;
     GeneratedItemNode* generatedHead_ = nullptr;
     GeneratedItemNode* generatedTail_ = nullptr;
     ScrollViewClickCallback onBluetoothHost_    = nullptr;

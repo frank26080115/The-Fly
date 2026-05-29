@@ -18,6 +18,7 @@
 #include "MainScreenView.h"
 #include "MicroSdCard.h"
 #include "ModalDialog.h"
+#include "NtpSync.h"
 #include "RecordingView/RecordingView.h"
 #include "RecordingView/RecordingViewCallbacks.h"
 #include "ScrollView/ScrollView.h"
@@ -65,12 +66,14 @@ static void  handle_pending_bluetooth_connect_failed();
 #ifdef BUILD_CLOUD_FEATURES
 static void  handle_pending_cloud_upload_complete();
 #endif
+static void  handle_pending_ntp_sync_complete();
 static void  handle_wifi_connection_waiting();
 static void  handle_wifi_station_connected();
 void         show_wifi_connection_failed(const char* text);
 bool         connect_to_bluetooth_host(const bt_host_item_t* host, const char* source);
 void         request_bluetooth_disconnect();
 static const char* info_dialog_text_with_tamper_code(const char* text, char* buffer, size_t buffer_size);
+static const char* ntp_error_name(NtpSync::Error error);
 
 FlyGui* gui;
 M5GFX& thefly_display = M5.Display;
@@ -83,6 +86,11 @@ volatile bool g_bluetooth_connect_waiting = false;
 volatile bool g_pending_bluetooth_connect_failed = false;
 volatile bool g_suppress_bluetooth_auto_recording = false;
 bool g_wifi_connect_waiting = false;
+NtpSync g_ntp_sync;
+bool g_ntp_sync_waiting = false;
+bool g_ntp_sync_completion_suppressed = false;
+volatile bool g_pending_ntp_sync_complete = false;
+NtpSync::Result g_pending_ntp_sync_result = {};
 static uint16_t g_conn_waiting_return_view_id = FLYGUI_VIEW_MAIN;
 BtManager::PairedDevice g_pending_paired_device = {};
 
@@ -158,6 +166,11 @@ bool show_conn_waiting_wifi_connecting(const char* targetName)
 bool show_conn_waiting_wifi_scanning(const char* targetName)
 {
     return show_conn_waiting_mode(CONN_WAITING_WIFI_SCANNING, targetName);
+}
+
+bool show_conn_waiting_ntp_sync(const char* targetName)
+{
+    return show_conn_waiting_mode(CONN_WAITING_NTP_SYNC, targetName);
 }
 
 void update_conn_waiting_wifi_target(const char* targetName)
@@ -291,7 +304,7 @@ void setup()
     BtManager::setAudioCallbacks(AudioManager::hfp_incoming_audio, AudioManager::hfp_outgoing_audio);
     BtManager::generateLegacyPinFromMac();
     ESP_LOGI(MAINTAG, "Bluetooth legacy pairing PIN: %s", BtManager::generatedLegacyPin());
-    if (!BtManager::initBluetoothOnly(nullptr, BtManager::generatedLegacyPin()))
+    if (!BtManager::init(nullptr, AudioManager::hfp_incoming_audio, AudioManager::hfp_outgoing_audio, BtManager::generatedLegacyPin()))
     {
         show_fatal_error_f(true, "BluetoothManager init failed");
     }
@@ -342,6 +355,7 @@ void loop()
     #ifdef BUILD_CLOUD_FEATURES
     handle_pending_cloud_upload_complete();
     #endif
+    handle_pending_ntp_sync_complete();
     gui->poll();
     if (AudioFileRecorder::needsPump())
     {
@@ -522,7 +536,7 @@ static void handle_pending_cloud_upload_complete()
                           SPRITE_THUMBSUP_100_WIDTH,
                           SPRITE_THUMBSUP_100_HEIGHT,
                           text,
-                          FLYGUI_VIEW_MAIN,
+                          FLYGUI_VIEW_MODAL_DIALOG,
                           on_cloud_upload_dialog_dismissed);
     }
     else
@@ -539,13 +553,76 @@ static void handle_pending_cloud_upload_complete()
                           SPRITE_WARNING_100_WIDTH,
                           SPRITE_WARNING_100_HEIGHT,
                           text,
-                          FLYGUI_VIEW_MAIN,
+                          FLYGUI_VIEW_MODAL_DIALOG,
                           on_cloud_upload_dialog_dismissed);
     }
 
     gui->showView(FLYGUI_VIEW_MODAL_DIALOG);
 }
 #endif
+
+static void handle_pending_ntp_sync_complete()
+{
+    if (!g_pending_ntp_sync_complete)
+    {
+        return;
+    }
+    g_pending_ntp_sync_complete = false;
+
+    const NtpSync::Result result = g_pending_ntp_sync_result;
+    const bool            suppress_dialog = g_ntp_sync_completion_suppressed;
+    g_ntp_sync_waiting = false;
+    g_ntp_sync_completion_suppressed = false;
+
+    if (suppress_dialog)
+    {
+        return;
+    }
+
+    ModalDialog* dialog = get_modal_dialog();
+    if (!dialog || !gui)
+    {
+        ESP_LOGW(MAINTAG, "NTP sync complete but modal dialog is unavailable");
+        return;
+    }
+
+    char text[160] = {};
+    if (result.status == NtpSync::Status::Done && result.error == NtpSync::Error::None)
+    {
+        snprintf(text,
+                 sizeof(text),
+                 "Time synchronized\n%s\nOffset: %+llds",
+                 result.rtc_write_succeeded ? "RTC updated" : "RTC not updated",
+                 static_cast<long long>(result.rtc_offset_seconds));
+        dialog->configure(sprite_thumbsup_100,
+                          SPRITE_THUMBSUP_100_BYTES,
+                          SPRITE_THUMBSUP_100_WIDTH,
+                          SPRITE_THUMBSUP_100_HEIGHT,
+                          text,
+                          FLYGUI_VIEW_SCROLL);
+    }
+    else if (result.status == NtpSync::Status::Cancelled || result.error == NtpSync::Error::Cancelled)
+    {
+        dialog->configure(sprite_info_100,
+                          SPRITE_INFO_100_BYTES,
+                          SPRITE_INFO_100_WIDTH,
+                          SPRITE_INFO_100_HEIGHT,
+                          "NTP sync cancelled",
+                          FLYGUI_VIEW_SCROLL);
+    }
+    else
+    {
+        snprintf(text, sizeof(text), "NTP sync failed\n%s", ntp_error_name(result.error));
+        dialog->configure(sprite_warning_100,
+                          SPRITE_WARNING_100_BYTES,
+                          SPRITE_WARNING_100_WIDTH,
+                          SPRITE_WARNING_100_HEIGHT,
+                          text,
+                          FLYGUI_VIEW_SCROLL);
+    }
+
+    gui->showView(FLYGUI_VIEW_MODAL_DIALOG);
+}
 
 static void handle_wifi_connection_waiting()
 {
@@ -722,6 +799,37 @@ static const char* info_dialog_text_with_tamper_code(const char* text, char* buf
     return buffer;
 }
 
+static const char* ntp_error_name(NtpSync::Error error)
+{
+    switch (error)
+    {
+    case NtpSync::Error::None:
+        return "None";
+    case NtpSync::Error::AlreadyBusy:
+        return "Already busy";
+    case NtpSync::Error::InvalidArgument:
+        return "Invalid configuration";
+    case NtpSync::Error::WifiNotConnected:
+        return "Wi-Fi is not connected";
+    case NtpSync::Error::TaskCreateFailed:
+        return "Task could not start";
+    case NtpSync::Error::Cancelled:
+        return "Cancelled";
+    case NtpSync::Error::Timeout:
+        return "Timed out";
+    case NtpSync::Error::RtcReadFailed:
+        return "RTC read failed";
+    case NtpSync::Error::NtpReadFailed:
+        return "NTP read failed";
+    case NtpSync::Error::RtcWriteFailed:
+        return "RTC write failed";
+    case NtpSync::Error::NoNtpResult:
+        return "No NTP result";
+    default:
+        return "Unknown error";
+    }
+}
+
 bool show_error_dialog(const char* text, uint16_t next_view)
 {
     ModalDialog* dialog = get_modal_dialog();
@@ -756,7 +864,7 @@ static bool show_pairing_success_dialog(const BtManager::PairedDevice& device)
                       SPRITE_THUMBSUP_100_WIDTH,
                       SPRITE_THUMBSUP_100_HEIGHT,
                       text,
-                      FLYGUI_VIEW_SCROLL,
+                      FLYGUI_VIEW_MODAL_DIALOG,
                       on_pairing_success_dialog_dismissed);
     return gui->showView(FLYGUI_VIEW_MODAL_DIALOG);
 }

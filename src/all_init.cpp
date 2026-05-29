@@ -54,6 +54,7 @@ void init_m5();
 void init_gui();
 void draw_splash_boot_info();
 static void format_mac_hyphen(const uint8_t mac[6], char* out, size_t out_size);
+static void format_default_bt_name(const uint8_t mac[6], char* out, size_t out_size);
 static void draw_splash_mac_info();
 static void draw_splash_tamper_code();
 
@@ -256,20 +257,41 @@ static void format_mac_hyphen(const uint8_t mac[6], char* out, size_t out_size)
              mac[5]);
 }
 
+static void format_default_bt_name(const uint8_t mac[6], char* out, size_t out_size)
+{
+    if (!out || out_size == 0)
+    {
+        return;
+    }
+
+    if (!mac)
+    {
+        strlcpy(out, "The Fly", out_size);
+        return;
+    }
+
+    snprintf(out, out_size, "The Fly %02X%02X", mac[4], mac[5]);
+}
+
 static void draw_splash_mac_info()
 {
-    static constexpr int16_t kTextX          = 144;
-    static constexpr int16_t kTextY          = 60;
-    static constexpr int16_t kTextLineHeight = 9;
-    static constexpr float   kTextSize       = 1.0f;
-    static constexpr uint8_t kTextFont       = 1;
+    static constexpr int16_t kTextX        = 144;
+    static constexpr int16_t kBluetoothY   = 60;
+    static constexpr int16_t kBtNameY      = 77;
+    static constexpr int16_t kBdaddrY      = 94;
+    static constexpr int16_t kWifiLabelY   = 116;
+    static constexpr int16_t kWifiMacY     = 133;
+    static constexpr float   kTextSize     = 1.0f;
+    static constexpr uint8_t kTextFont     = 2;
 
     uint8_t bdaddr[6] = {};
     uint8_t wifi_mac[6] = {};
+    char    bt_name[32] = "The Fly";
     char    bdaddr_text[18] = "unknown";
     char    wifi_text[18] = "unknown";
     if (esp_read_mac(bdaddr, ESP_MAC_BT) == ESP_OK)
     {
+        format_default_bt_name(bdaddr, bt_name, sizeof(bt_name));
         format_mac_hyphen(bdaddr, bdaddr_text, sizeof(bdaddr_text));
     }
     if (esp_read_mac(wifi_mac, ESP_MAC_WIFI_STA) == ESP_OK)
@@ -281,10 +303,12 @@ static void draw_splash_mac_info()
     thefly_display.setTextSize(kTextSize);
     thefly_display.setTextDatum(top_left);
     thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
-    thefly_display.drawString("BT:", kTextX, kTextY);
-    thefly_display.drawString(bdaddr_text, static_cast<int16_t>(kTextX + 21), kTextY);
-    thefly_display.drawString("WI:", kTextX, static_cast<int16_t>(kTextY + kTextLineHeight));
-    thefly_display.drawString(wifi_text, static_cast<int16_t>(kTextX + 21), static_cast<int16_t>(kTextY + kTextLineHeight));
+
+    thefly_display.drawString("Bluetooth:", kTextX, kBluetoothY);
+    thefly_display.drawString(bt_name, kTextX, kBtNameY);
+    thefly_display.drawString(bdaddr_text, kTextX, kBdaddrY);
+    thefly_display.drawString("Wi-Fi MAC:", kTextX, kWifiLabelY);
+    thefly_display.drawString(wifi_text, kTextX, kWifiMacY);
 }
 
 static void draw_splash_tamper_code()
