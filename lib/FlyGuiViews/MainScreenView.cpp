@@ -2,16 +2,10 @@
 
 #include "BtHostList.h"
 #include "SpriteDraw.h"
+#include "main_callbacks.h"
 #include "sprites.h"
 
 extern BtHostList* bt_host_list;
-
-extern void onclick_main_bluetooth(uint32_t pressDurationMs);
-extern void onclick_main_info(uint32_t pressDurationMs);
-extern void onclick_main_wifi(uint32_t pressDurationMs);
-extern void onclick_main_memo(uint32_t pressDurationMs);
-extern void onclick_main_smartphone(uint32_t pressDurationMs);
-extern void onclick_main_laptop(uint32_t pressDurationMs);
 
 namespace
 {

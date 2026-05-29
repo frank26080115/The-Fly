@@ -438,7 +438,11 @@ void send_info(AsyncWebServerRequest* request)
     json += ",\"access_points\":";
     append_json_u64(json, kNetworkConfigAllowedEntriesAP);
     json += ",\"cloud_uploads\":";
+    #ifdef BUILD_CLOUD_FEATURES
     append_json_u64(json, kNetworkConfigCloudAllowedEntries);
+    #else
+    json += "false";
+    #endif
     json += ",\"bluetooth_hosts\":";
     append_json_u64(json, kBtHostListMaxEntries);
     json += ",\"ntp_servers\":";

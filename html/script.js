@@ -354,12 +354,32 @@ function config_limit(info, key, fallback)
     return Number.isFinite(value) && value >= 0 ? value : fallback;
 }
 
+function cloud_uploads_enabled(info)
+{
+    const source = info || latest_info || {};
+    const limits = source.config_limits || {};
+    return limits.cloud_uploads !== false;
+}
+
+function apply_cloud_destination_visibility(info)
+{
+    const panel = document.getElementById("cloud_dest_panel");
+    if (panel)
+    {
+        panel.hidden = !cloud_uploads_enabled(info);
+    }
+}
+
 function setup_config_tables_from_info(info)
 {
     make_rows_from_template("bluetooth_devices", "bt_row_1", Math.max(2, config_limit(info, "bluetooth_hosts", 8)));
     make_rows_from_template("wifi_routers", "wifi_routers_row_1", Math.max(2, config_limit(info, "stations", 8)));
     make_rows_from_template("wifi_ap_row_1", document.querySelector("#wifi_ap_row_1 .wifi-config-row"), Math.max(1, config_limit(info, "access_points", 1)));
-    make_rows_from_template("cloud_dest", "cloud_row_1", Math.max(1, config_limit(info, "cloud_uploads", 1)));
+    apply_cloud_destination_visibility(info);
+    if (cloud_uploads_enabled(info))
+    {
+        make_rows_from_template("cloud_dest", "cloud_row_1", Math.max(1, config_limit(info, "cloud_uploads", 1)));
+    }
     apply_security_level_visibility();
 }
 
@@ -819,6 +839,11 @@ function fill_wifi_rows(container_id, row_class, id_prefix, items, minimum_rows)
 
 function fill_cloud_rows(items)
 {
+    if (!cloud_uploads_enabled())
+    {
+        return;
+    }
+
     const list = Array.isArray(items) ? items : [];
     const container = document.getElementById("cloud_dest");
     const existing_count = container ? container.querySelectorAll(".cloud-dest-row").length : 0;
@@ -868,7 +893,10 @@ function fill_config_page(config)
     fill_time_config(network);
     fill_wifi_rows("wifi_routers", "wifi-config-row", "wifi", network.stations, 2);
     fill_wifi_rows("wifi_ap_row_1", "wifi-config-row", "wifi_ap", network.access_points, 1);
-    fill_cloud_rows(network.cloud_uploads);
+    if (network.cloud_uploads !== false)
+    {
+        fill_cloud_rows(network.cloud_uploads);
+    }
     fill_bluetooth_rows(bluetooth.hosts);
     hide_logged_out_markers();
     apply_security_level_visibility();
@@ -1299,6 +1327,11 @@ function collect_wifi_rows(container_id, id_prefix)
 
 function collect_cloud_rows()
 {
+    if (!cloud_uploads_enabled())
+    {
+        return false;
+    }
+
     const container = document.getElementById("cloud_dest");
     const rows = container ? Array.from(container.querySelectorAll(".cloud-dest-row")) : [];
     const items = [];

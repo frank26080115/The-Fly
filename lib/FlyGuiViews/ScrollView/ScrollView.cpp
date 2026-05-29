@@ -437,6 +437,7 @@ bool ScrollView::populateCloud(const WifiManager* wifiManager)
 
     if (wifiManager)
     {
+        #ifdef BUILD_CLOUD_FEATURES
         for (size_t i = 0; i < wifiManager->cloudEndpointCount(); ++i)
         {
             const cloud_item_t* endpoint = wifiManager->cloudEndpoint(i);
@@ -451,6 +452,7 @@ bool ScrollView::populateCloud(const WifiManager* wifiManager)
                                       endpoint->icon,
                                       IconLookup::ICON_CONTEXT_CLOUD) && ok;
         }
+        #endif
     }
 
     ok = appendSpriteScrollItem(SCROLL_ITEM_NTP_SYNC,

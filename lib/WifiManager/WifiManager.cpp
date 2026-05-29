@@ -581,7 +581,9 @@ bool WifiManager::loadFromMicroSd(const char* path)
 
     m_station_count = m_network_cfg.station_count;
     m_access_point_count = m_network_cfg.access_point_count;
+    #ifdef BUILD_CLOUD_FEATURES
     m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
+    #endif
 
     if (!saveToNvs())
     {
@@ -670,7 +672,9 @@ bool WifiManager::loadFromNvs()
     m_network_cfg = cfg;
     m_station_count = m_network_cfg.station_count;
     m_access_point_count = m_network_cfg.access_point_count;
+    #ifdef BUILD_CLOUD_FEATURES
     m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
+    #endif
     m_last_load_result = LoadResult::Ok;
     if (!cache_network_config_hash(m_network_cfg))
     {
@@ -693,7 +697,9 @@ bool WifiManager::saveToNvs()
     sanitize_network_config(m_network_cfg);
     m_station_count = m_network_cfg.station_count;
     m_access_point_count = m_network_cfg.access_point_count;
+    #ifdef BUILD_CLOUD_FEATURES
     m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
+    #endif
 
     nvs_handle_t handle = 0;
     esp_err_t err = nvs_open(kNetworkNvsNamespace, NVS_READWRITE, &handle);
@@ -1278,17 +1284,29 @@ void WifiManager::notifyScanFinished(const wifi_item_t* item)
 
 size_t WifiManager::cloudEndpointCount() const
 {
+    #ifdef BUILD_CLOUD_FEATURES
     return m_cloud_endpoint_count;
+    #else
+    return 0;
+    #endif
 }
 
 cloud_item_t* WifiManager::cloudEndpoint(size_t index)
 {
+    #ifdef BUILD_CLOUD_FEATURES
     return const_cast<cloud_item_t*>(static_cast<const WifiManager*>(this)->cloudEndpoint(index));
+    #else
+    return NULL;
+    #endif
 }
 
 const cloud_item_t* WifiManager::cloudEndpoint(size_t index) const
 {
+    #ifdef BUILD_CLOUD_FEATURES
     return index < m_cloud_endpoint_count ? &m_network_cfg.cloud[index] : nullptr;
+    #else
+    return NULL;
+    #endif
 }
 
 WifiManager::LoadResult WifiManager::lastLoadResult() const

@@ -308,14 +308,19 @@ bool build_cfg_json(String& json)
         append_cfg_wifi_item(json, wifi_manager->accessPoint(i), first);
     }
 
+    #ifdef BUILD_CLOUD_FEATURES
     json += "],\"cloud_uploads\":[";
     first = true;
     for (size_t i = 0; wifi_manager && i < wifi_manager->cloudEndpointCount(); ++i)
     {
         append_cfg_cloud_item(json, wifi_manager->cloudEndpoint(i), first);
     }
+    json += "]},";
+    #else
+    json += "],\"cloud_uploads\":false},";
+    #endif
 
-    json += "]},\"bluetooth\":{\"hosts\":[";
+    json += "\"bluetooth\":{\"hosts\":[";
     first = true;
     for (size_t i = 0; bt_host_list && i < bt_host_list->size(); ++i)
     {
@@ -600,6 +605,7 @@ bool parse_cloud_config_array(JsonObject network,
                               uint8_t& target_count,
                               String& error)
 {
+    #ifdef BUILD_CLOUD_FEATURES
     JsonVariant array_value = network["cloud_uploads"];
     if (array_value.isNull())
     {
@@ -666,6 +672,7 @@ bool parse_cloud_config_array(JsonObject network,
         item.icon = parse_json_icon(item_json["icon"], ICON_UNKNOWN);
         ++target_count;
     }
+    #endif
 
     return true;
 }
@@ -756,12 +763,14 @@ bool parse_network_object(JsonObject network, const network_cfg_t& existing, net
                                    staged.access_point_count,
                                    ICON_UNKNOWN,
                                    error) &&
+           #ifdef BUILD_CLOUD_FEATURES
            parse_cloud_config_array(network,
                                     existing.cloud,
                                     existing.cloud_endpoint_count,
                                     staged.cloud,
                                     staged.cloud_endpoint_count,
                                     error) &&
+           #endif
            validate_wifi_config_list(staged.station, staged.station_count, "stations", error) &&
            validate_wifi_config_list(staged.access_point, staged.access_point_count, "access_points", error);
 }

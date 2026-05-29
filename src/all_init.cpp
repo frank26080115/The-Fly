@@ -13,6 +13,7 @@
 #include "SplashView.h"
 #include "WifiApModeView.h"
 #include "WifiStaModeView.h"
+#include "main_callbacks.h"
 #include "thefly_version.h"
 #include "Aegis.h"
 #include "esp_mac.h"
@@ -27,18 +28,6 @@ RTC_DATA_ATTR uint32_t reset_magic = 0;
 bool reset_was_magic = false;
 
 extern FlyGui* gui;
-extern void conn_waiting_cancel(uint32_t pressDurationMs);
-extern void onclick_scroll_exit(uint32_t pressDurationMs);
-extern void onclick_bluetooth_host(int32_t value, uint32_t pressDurationMs);
-extern void onclick_bluetooth_pair(int32_t value, uint32_t pressDurationMs);
-extern void onclick_wifi_scan_and_connect(int32_t value, uint32_t pressDurationMs);
-extern void onclick_wifi_station(int32_t value, uint32_t pressDurationMs);
-extern void onclick_wifi_ap(int32_t value, uint32_t pressDurationMs);
-extern void onclick_cloud_upload(int32_t value, uint32_t pressDurationMs);
-extern void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs);
-extern void onclick_bt_show_info(int32_t value, uint32_t pressDurationMs);
-extern void onclick_wifi_show_info(int32_t value, uint32_t pressDurationMs);
-extern void cloud_upload_cancel(uint32_t pressDurationMs);
 
 class CloudUpload;
 
@@ -50,11 +39,12 @@ RecordingView       g_recording_view;
 ErrorView           g_error_view;
 ModalDialog         g_modal_dialog;
 ConnWaitingView     g_conn_waiting_view(CONN_WAITING_BLUETOOTH_CONNECTING, "", conn_waiting_cancel);
-CloudUploadView     g_cloud_upload_view(cloud_upload_cancel);
 ScrollView          g_scroll_view(FLYGUI_VIEW_SCROLL, onclick_scroll_exit);
 WifiApModeView      g_wifi_ap_mode_view;
 WifiStaModeView     g_wifi_sta_mode_view;
-uint16_t            g_conn_waiting_return_view_id = FLYGUI_VIEW_MAIN;
+#ifdef BUILD_CLOUD_FEATURES
+CloudUploadView     g_cloud_upload_view(cloud_upload_cancel);
+#endif
 } // namespace
 
 bool init_nvs();
@@ -134,7 +124,6 @@ void init_gui()
     gui->addView(g_error_view);
     gui->addView(g_modal_dialog);
     gui->addView(g_conn_waiting_view);
-    gui->addView(g_cloud_upload_view);
     gui->addView(g_scroll_view);
     gui->addView(g_wifi_ap_mode_view);
     gui->addView(g_wifi_sta_mode_view);
@@ -144,162 +133,50 @@ void init_gui()
     g_scroll_view.setOnClickWifiScanAndConnect(onclick_wifi_scan_and_connect);
     g_scroll_view.setOnClickWifiStation(onclick_wifi_station);
     g_scroll_view.setOnClickWifiAp(onclick_wifi_ap);
-    g_scroll_view.setOnClickCloudUpload(onclick_cloud_upload);
     g_scroll_view.setOnClickNtpSync(onclick_ntp_sync);
     g_scroll_view.setOnClickBtShowInfo(onclick_bt_show_info);
     g_scroll_view.setOnClickWifiShowInfo(onclick_wifi_show_info);
+    #ifdef BUILD_CLOUD_FEATURES
+    gui->addView(g_cloud_upload_view);
+    g_scroll_view.setOnClickCloudUpload(onclick_cloud_upload);
+    #endif
 }
 
-ScrollView* get_scroll_view()
+ScrollView* all_init_scroll_view()
 {
     return &g_scroll_view;
 }
 
-ModalDialog* get_modal_dialog()
+ModalDialog* all_init_modal_dialog()
 {
     return &g_modal_dialog;
 }
 
-void show_main_memo_starting_feedback()
+MainScreenView* all_init_main_screen_view()
 {
-    g_main_screen_view.showMemoStartingFeedback();
+    return &g_main_screen_view;
 }
 
-uint16_t conn_waiting_return_view_id()
+RecordingView* all_init_recording_view()
 {
-    return g_conn_waiting_return_view_id;
+    return &g_recording_view;
 }
 
-void remember_conn_waiting_return_view()
+ConnWaitingView* all_init_conn_waiting_view()
 {
-    if (!gui || !gui->currentView() || gui->currentView()->id() == FLYGUI_VIEW_CONN_WAITING)
-    {
-        g_conn_waiting_return_view_id = FLYGUI_VIEW_MAIN;
-        return;
-    }
-
-    g_conn_waiting_return_view_id = gui->currentView()->id();
+    return &g_conn_waiting_view;
 }
 
-bool show_conn_waiting_bluetooth(const char* targetName)
+#ifdef BUILD_CLOUD_FEATURES
+CloudUploadView* all_init_cloud_upload_view()
 {
-    if (!gui)
-    {
-        return false;
-    }
-
-    remember_conn_waiting_return_view();
-    g_conn_waiting_view.configure(CONN_WAITING_BLUETOOTH_CONNECTING, targetName);
-    g_conn_waiting_view.setCancelCallback(conn_waiting_cancel);
-    return gui->showView(FLYGUI_VIEW_CONN_WAITING);
+    return &g_cloud_upload_view;
 }
+#endif
 
-bool show_conn_waiting_bluetooth_pairing()
+WifiStaModeView* all_init_wifi_sta_mode_view()
 {
-    if (!gui)
-    {
-        return false;
-    }
-
-    remember_conn_waiting_return_view();
-    g_conn_waiting_view.configure(CONN_WAITING_BLUETOOTH_PAIRING, "");
-    g_conn_waiting_view.setCancelCallback(conn_waiting_cancel);
-    return gui->showView(FLYGUI_VIEW_CONN_WAITING);
-}
-
-static bool show_conn_waiting_wifi_mode(ConnWaitingMode mode, const char* targetName)
-{
-    if (!gui)
-    {
-        return false;
-    }
-
-    remember_conn_waiting_return_view();
-    g_conn_waiting_view.configure(mode, targetName);
-    g_conn_waiting_view.setCancelCallback(conn_waiting_cancel);
-    return gui->showView(FLYGUI_VIEW_CONN_WAITING);
-}
-
-bool show_conn_waiting_wifi_connecting(const char* targetName)
-{
-    return show_conn_waiting_wifi_mode(CONN_WAITING_WIFI_CONNECTING, targetName);
-}
-
-bool show_conn_waiting_wifi_scanning(const char* targetName)
-{
-    return show_conn_waiting_wifi_mode(CONN_WAITING_WIFI_SCANNING, targetName);
-}
-
-void update_conn_waiting_wifi_target(const char* targetName)
-{
-    g_conn_waiting_view.configure(CONN_WAITING_WIFI_CONNECTING, targetName);
-    g_conn_waiting_view.setCancelCallback(conn_waiting_cancel);
-}
-
-bool show_cloud_upload_view(CloudUpload* uploader, const char* targetName)
-{
-    if (!gui)
-    {
-        return false;
-    }
-
-    g_cloud_upload_view.configureUpload(uploader, targetName);
-    g_cloud_upload_view.setCancelCallback(cloud_upload_cancel);
-    return gui->showView(FLYGUI_VIEW_UPLOAD_PROGRESS);
-}
-
-bool show_recording_view_bluetooth()
-{
-    if (!gui)
-    {
-        return false;
-    }
-
-    g_recording_view.configureBluetoothMode();
-    return gui->showView(FLYGUI_VIEW_RECORDING);
-}
-
-bool promote_recording_view_memo_to_bluetooth()
-{
-    if (!gui || !g_recording_view.promoteMemoToBluetoothMode())
-    {
-        return false;
-    }
-
-    if (gui->currentView() && gui->currentView()->id() == FLYGUI_VIEW_RECORDING)
-    {
-        gui->redraw(true);
-        return true;
-    }
-
-    return gui->showView(FLYGUI_VIEW_RECORDING);
-}
-
-bool show_recording_view_memo()
-{
-    if (!gui)
-    {
-        return false;
-    }
-
-    const bool started = g_recording_view.beginMemoRecording();
-    return started && gui->showView(FLYGUI_VIEW_RECORDING);
-}
-
-bool show_wifi_ap_mode_view()
-{
-    return gui && gui->showView(FLYGUI_VIEW_AP_MODE);
-}
-
-bool show_wifi_sta_mode_view(bool showDismissButton)
-{
-    if (!gui)
-    {
-        return false;
-    }
-
-    g_wifi_sta_mode_view.configure(showDismissButton);
-    return gui->showView(FLYGUI_VIEW_STA_MODE);
+    return &g_wifi_sta_mode_view;
 }
 
 void show_splash()
