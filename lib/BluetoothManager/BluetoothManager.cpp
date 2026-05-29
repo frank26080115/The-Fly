@@ -31,6 +31,7 @@ constexpr uint32_t    kAudioConnectRetryMs = 1000;
 constexpr uint32_t    kAudioConnectTimeoutMs = 3000;
 constexpr uint32_t    kAudioConnectTaskStack = 4096;
 constexpr UBaseType_t kAudioConnectTaskPriority = 1;
+constexpr uint32_t    kHfpProfileInitTimeoutMs = 2000;
 constexpr uint32_t    kShutdownDisconnectWaitMs = 1500;
 constexpr uint32_t    kReconnectAttemptIntervalMs = 2000;
 constexpr uint32_t    kOutboundConnectScanModeSettleMs = 200;
@@ -49,6 +50,8 @@ volatile bool         g_has_pending_paired_device = false;
 bool                  g_bt_ready               = false;
 bool                  g_hfp_ready              = false;
 bool                  g_data_callback_ready    = false;
+volatile bool         g_hfp_profile_ready      = false;
+volatile bool         g_hfp_profile_failed     = false;
 bool                  g_disconnect_requested   = false;
 volatile bool         g_hfp_audio_connecting   = false;
 volatile bool         g_hfp_audio_connected    = false;
@@ -533,6 +536,28 @@ bool register_data_callbacks_if_ready()
 
     g_data_callback_ready = true;
     return true;
+}
+
+bool wait_for_hfp_profile_ready()
+{
+    const uint32_t start = millis();
+    while (!g_hfp_profile_ready && !g_hfp_profile_failed)
+    {
+        if (static_cast<uint32_t>(millis() - start) >= kHfpProfileInitTimeoutMs)
+        {
+            ESP_LOGE(TAG, "timed out waiting for HFP profile init");
+            return false;
+        }
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+
+    return g_hfp_profile_ready && !g_hfp_profile_failed;
+}
+
+void reset_hfp_profile_ready()
+{
+    g_hfp_profile_ready = false;
+    g_hfp_profile_failed = false;
 }
 
 bool hfp_audio_connect_timed_out()
@@ -1101,7 +1126,22 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
                  static_cast<int>(param->prof_stat.state));
         if (param->prof_stat.state == ESP_HF_INIT_SUCCESS || param->prof_stat.state == ESP_HF_INIT_ALREADY)
         {
+            g_hfp_profile_ready = true;
+            g_hfp_profile_failed = false;
             configure_eir_data();
+        }
+        else if (param->prof_stat.state == ESP_HF_INIT_FAIL)
+        {
+            g_hfp_profile_ready = false;
+            g_hfp_profile_failed = true;
+            g_hfp_ready = false;
+            g_data_callback_ready = false;
+        }
+        else if (param->prof_stat.state == ESP_HF_DEINIT_SUCCESS || param->prof_stat.state == ESP_HF_DEINIT_ALREADY)
+        {
+            reset_hfp_profile_ready();
+            g_hfp_ready = false;
+            g_data_callback_ready = false;
         }
         break;
 
@@ -1180,14 +1220,42 @@ bool init_hfp(const char* device_name, const char* pin_code)
 
     if (!g_hfp_ready)
     {
-        if (!ok(esp_hf_client_register_callback(hfp_event), "hfp callback") || !register_data_callbacks_if_ready() || !ok(esp_hf_client_init(), "hfp init"))
+        reset_hfp_profile_ready();
+        if (!ok(esp_hf_client_register_callback(hfp_event), "hfp callback") || !ok(esp_hf_client_init(), "hfp init"))
         {
             return false;
         }
         g_hfp_ready = true;
     }
 
+    if (!wait_for_hfp_profile_ready())
+    {
+        ok(esp_hf_client_deinit(), "hfp deinit after init timeout");
+        g_hfp_ready = false;
+        g_data_callback_ready = false;
+        reset_hfp_profile_ready();
+        return false;
+    }
+
     return register_data_callbacks_if_ready();
+}
+
+bool deinit_hfp_for_pairing()
+{
+    if (!g_hfp_ready)
+    {
+        return true;
+    }
+
+    if (!ok(esp_hf_client_deinit(), "hfp deinit before pairing"))
+    {
+        return false;
+    }
+
+    g_hfp_ready = false;
+    g_data_callback_ready = false;
+    reset_hfp_profile_ready();
+    return true;
 }
 
 } // namespace
@@ -1199,11 +1267,19 @@ bool init(const char* deviceName, IncomingAudioCallback incomingAudio, OutgoingA
     return init_hfp(deviceName, pin);
 }
 
+bool initBluetoothOnly(const char* deviceName, const char* pin)
+{
+    return init_bluetooth(deviceName, pin);
+}
+
 void setAudioCallbacks(IncomingAudioCallback incomingAudio, OutgoingAudioCallback outgoingAudio)
 {
     g_incoming_audio = incomingAudio;
     g_outgoing_audio = outgoingAudio;
-    register_data_callbacks_if_ready();
+    if (g_hfp_ready)
+    {
+        register_data_callbacks_if_ready();
+    }
 }
 
 void poll()
@@ -1343,7 +1419,7 @@ Result connectToMac(const esp_bd_addr_t mac)
 
 Result startPairing()
 {
-    if (!init_hfp(nullptr, nullptr))
+    if (!init_bluetooth(nullptr, nullptr))
     {
         return Result::InitFailed;
     }
@@ -1352,6 +1428,11 @@ Result startPairing()
     if (hfp_control_connected() || g_state == State::Connecting)
     {
         return Result::Busy;
+    }
+
+    if (!deinit_hfp_for_pairing())
+    {
+        return Result::EspError;
     }
 
     g_disconnect_requested   = false;

@@ -37,6 +37,7 @@ bool startRecording(char typeCode);
 void setRecordingType(RecordingType type);
 void setRecordingType(char typeCode);
 void setMemoType(MemoType type);
+bool needsPump();
 void pump();
 bool stopRecording(bool estop = false);
 bool isRecording();

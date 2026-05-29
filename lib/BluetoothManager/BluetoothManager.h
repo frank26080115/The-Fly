@@ -48,6 +48,7 @@ using PairedCallback        = void (*)(const PairedDevice& device);
 using StateChangedCallback  = void (*)(State state);
 
 bool init(const char* deviceName = nullptr, IncomingAudioCallback incomingAudio = AudioManager::hfp_incoming_audio, OutgoingAudioCallback outgoingAudio = AudioManager::hfp_outgoing_audio, const char* pin = nullptr);
+bool initBluetoothOnly(const char* deviceName = nullptr, const char* pin = nullptr);
 void setAudioCallbacks(IncomingAudioCallback incomingAudio = AudioManager::hfp_incoming_audio, OutgoingAudioCallback outgoingAudio = AudioManager::hfp_outgoing_audio);
 void poll();
 

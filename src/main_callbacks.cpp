@@ -529,13 +529,10 @@ void onclick_wifi_show_info(int32_t value, uint32_t pressDurationMs)
 
 void on_pairing_success_dialog_dismissed()
 {
-    ESP_LOGI(MAINTAG, "pairing confirmation dismissed; Bluetooth auto-record can resume");
+    ESP_LOGI(MAINTAG, "pairing confirmation dismissed; rebooting to restart Bluetooth cleanly");
     g_suppress_bluetooth_auto_recording = false;
-    if (bluetooth_recording_state(BtManager::state()))
-    {
-        ESP_LOGI(MAINTAG, "Bluetooth was connected while pairing confirmation was shown; queueing recording start");
-        g_pending_bluetooth_recording = true;
-    }
+    delay(50);
+    esp_restart();
 }
 
 #ifdef BUILD_CLOUD_FEATURES

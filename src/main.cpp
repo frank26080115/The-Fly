@@ -288,9 +288,10 @@ void setup()
 
     BtManager::setStateChangedCallback(on_bluetooth_state_changed);
     BtManager::setPairedCallback(on_bluetooth_paired);
+    BtManager::setAudioCallbacks(AudioManager::hfp_incoming_audio, AudioManager::hfp_outgoing_audio);
     BtManager::generateLegacyPinFromMac();
     ESP_LOGI(MAINTAG, "Bluetooth legacy pairing PIN: %s", BtManager::generatedLegacyPin());
-    if (!BtManager::init(nullptr, AudioManager::hfp_incoming_audio, AudioManager::hfp_outgoing_audio, BtManager::generatedLegacyPin()))
+    if (!BtManager::initBluetoothOnly(nullptr, BtManager::generatedLegacyPin()))
     {
         show_fatal_error_f(true, "BluetoothManager init failed");
     }
@@ -342,7 +343,10 @@ void loop()
     handle_pending_cloud_upload_complete();
     #endif
     gui->poll();
-    AudioFileRecorder::pump();
+    if (AudioFileRecorder::needsPump())
+    {
+        AudioFileRecorder::pump();
+    }
     if (wifi_manager) {
         wifi_manager->poll();
         handle_wifi_connection_waiting();

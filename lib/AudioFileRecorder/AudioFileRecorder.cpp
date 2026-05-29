@@ -1,6 +1,7 @@
 #include "AudioFileRecorder.h"
 
 #include <M5Unified.h>
+#include <atomic>
 #include <mutex>
 #include <stdio.h>
 #include <string.h>
@@ -62,7 +63,7 @@ MemoType   g_memo_type                              = MEMO_TYPE_NOTE;
 uint64_t   g_bytes_written                          = 0;
 uint32_t   g_sequence_num                           = 0;
 uint32_t   g_last_flush_ms                          = 0;
-bool       g_recording                              = false;
+std::atomic<bool> g_recording                       = { false };
 bool       g_pure_pcm_mode                          = false; // for testing only
 bool       g_write_duration_average_valid           = false;
 float      g_write_duration_average_us              = 0.0f;
@@ -277,6 +278,16 @@ void reset_fifo_flags(AudioFifo& fifo)
 
 bool recording_file_ready_locked();
 
+bool recording_active()
+{
+    return g_recording.load(std::memory_order_relaxed);
+}
+
+void set_recording_active(bool active)
+{
+    g_recording.store(active, std::memory_order_relaxed);
+}
+
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 void store_u32_be(uint8_t* dst, uint32_t value)
 {
@@ -430,7 +441,7 @@ void flush_if_due()
 
 bool recording_file_ready_locked()
 {
-    return g_recording && g_file;
+    return recording_active() && g_file;
 }
 
 bool recording_file_ready()
@@ -457,7 +468,7 @@ bool note_write_failure_locked()
     }
 
     g_card_failure_reported = true;
-    g_recording             = false;
+    set_recording_active(false);
     return true;
 }
 
@@ -521,7 +532,7 @@ bool write_packet(AudioFifo& fifo, filepkt_src_e source)
         if (!encrypt_file_packet_locked(packet, encrypted_packet))
         {
             DBG_LOGE(TAG, "packet encryption failed");
-            g_recording = false;
+            set_recording_active(false);
             lock.unlock();
             show_fatal_error_f(true, "recording encryption failed");
             return false;
@@ -750,7 +761,7 @@ bool startRecording(char typeCode)
                 g_recording_type_code        = typeCode;
                 memo_type_from_code(typeCode, g_memo_type);
                 clear_queued_meta_text_locked();
-                g_recording      = true;
+                set_recording_active(true);
                 recording_file_opened = true;
                 strncpy(started_path, g_sd_path, sizeof(started_path) - 1);
             }
@@ -798,8 +809,18 @@ void setMemoType(MemoType type)
     }
 }
 
+bool needsPump()
+{
+    return recording_active();
+}
+
 void pump()
 {
+    if (!needsPump())
+    {
+        return;
+    }
+
     std::unique_lock<std::mutex> pump_lock(g_pump_mutex, std::try_to_lock);
     if (!pump_lock.owns_lock())
     {
@@ -831,7 +852,7 @@ bool stopRecording(bool estop)
 
     {
         std::lock_guard<std::mutex> lock(g_recorder_mutex);
-        if (!g_recording && !g_file)
+        if (!recording_active() && !g_file)
         {
             return true;
         }
@@ -855,7 +876,7 @@ bool stopRecording(bool estop)
     MemoType stopped_memo_type = MEMO_TYPE_NOTE;
     {
         std::lock_guard<std::mutex> lock(g_recorder_mutex);
-        if (!g_recording && !g_file)
+        if (!recording_active() && !g_file)
         {
             return true;
         }
@@ -867,7 +888,7 @@ bool stopRecording(bool estop)
 
     {
         std::lock_guard<std::mutex> lock(g_recorder_mutex);
-        if (!g_recording && !g_file)
+        if (!recording_active() && !g_file)
         {
             return true;
         }
@@ -877,7 +898,7 @@ bool stopRecording(bool estop)
             ok = false;
         }
 
-        g_recording = false;
+        set_recording_active(false);
         stopped_bytes = g_bytes_written;
         strncpy(stopped_path, g_sd_path, sizeof(stopped_path) - 1);
 
@@ -923,8 +944,7 @@ bool stopRecording(bool estop)
 
 bool isRecording()
 {
-    std::lock_guard<std::mutex> lock(g_recorder_mutex);
-    return g_recording;
+    return recording_active();
 }
 
 bool purePcmMode()
