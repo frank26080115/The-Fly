@@ -7,6 +7,7 @@
 
 #include "ClockAgent.h"
 #include "esp_log.h"
+#include "esp_sntp.h"
 
 namespace
 {
@@ -118,6 +119,12 @@ int64_t datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime)
     return days * 86400LL + static_cast<int64_t>(datetime.time.hours) * 3600LL + static_cast<int64_t>(datetime.time.minutes) * 60LL + datetime.time.seconds;
 }
 
+int64_t datetime_delta_seconds(const m5::rtc_datetime_t& lhs, const m5::rtc_datetime_t& rhs)
+{
+    int64_t delta = datetime_to_epoch_seconds(lhs) - datetime_to_epoch_seconds(rhs);
+    return delta < 0 ? -delta : delta;
+}
+
 m5::rtc_datetime_t tm_to_datetime(const tm& value)
 {
     m5::rtc_datetime_t datetime = {};
@@ -159,7 +166,7 @@ bool write_rtc_datetime(const m5::rtc_datetime_t& datetime)
     Clock.setDateTime(datetime);
 
     m5::rtc_datetime_t verified = {};
-    return M5.Rtc.getDateTime(&verified) && valid_datetime(verified);
+    return M5.Rtc.getDateTime(&verified) && valid_datetime(verified) && datetime_delta_seconds(datetime, verified) <= 2;
 }
 
 } // namespace
@@ -448,6 +455,7 @@ void NtpSync::taskMain()
         return;
     }
 
+    esp_sntp_set_sync_status(SNTP_SYNC_STATUS_RESET);
     configTzTime(m_timezone,
                  m_servers[0][0] ? m_servers[0] : nullptr,
                  m_servers[1][0] ? m_servers[1] : nullptr,
@@ -469,16 +477,20 @@ void NtpSync::taskMain()
             return;
         }
 
-        time_t now = time(nullptr);
-        tm     local_tm = {};
-        if (now > 0 && localtime_r(&now, &local_tm))
+        const sntp_sync_status_t sync_status = esp_sntp_get_sync_status();
+        if (sync_status == SNTP_SYNC_STATUS_COMPLETED)
         {
-            local_result.ntp_time = tm_to_datetime(local_tm);
-            if (valid_datetime(local_result.ntp_time))
+            time_t now      = time(nullptr);
+            tm     local_tm = {};
+            if (now > 0 && localtime_r(&now, &local_tm))
             {
-                local_result.ntp_time_valid     = true;
-                local_result.rtc_offset_seconds = datetime_to_epoch_seconds(local_result.ntp_time) - datetime_to_epoch_seconds(local_result.rtc_time);
-                break;
+                local_result.ntp_time = tm_to_datetime(local_tm);
+                if (valid_datetime(local_result.ntp_time))
+                {
+                    local_result.ntp_time_valid     = true;
+                    local_result.rtc_offset_seconds = datetime_to_epoch_seconds(local_result.ntp_time) - datetime_to_epoch_seconds(local_result.rtc_time);
+                    break;
+                }
             }
         }
 
