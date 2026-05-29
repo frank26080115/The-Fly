@@ -11,6 +11,7 @@
 #include "../AudioFileRecorder/AudioFileRecorder.h"
 #include "../AudioManager/AudioManager.h"
 #include "../BluetoothManager/BluetoothManager.h"
+#include "../FlyGuiViews/ShutdownView.h"
 
 namespace Hotel
 {
@@ -264,14 +265,7 @@ void poll_core(uint8_t core)
     if (shutdown)
     {
         ESP_LOGD(TAG, "powering off");
-        if (m5_ready())
-        {
-            M5.Power.powerOff();
-        }
-        else
-        {
-            esp_deep_sleep_start();
-        }
+        ShutdownView::showSleepAndShutdown();
     }
 
     if (sleep)

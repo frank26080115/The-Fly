@@ -4,12 +4,15 @@
 #include <M5Unified.h>
 #include <math.h>
 
+#include "../FlyGuiViews/ShutdownView.h"
+
 namespace BattTracker
 {
 namespace
 {
 constexpr uint32_t kPollIntervalMs = 1000;
 constexpr float kLowThreshold = 3.40f;
+constexpr float kEmergencyShutdownThreshold = 3.00f;
 constexpr float kHighThreshold = 3.95f;
 constexpr float kChargeHysteresis = 0.10f;
 constexpr float kUnknownVoltage = -1.0f;
@@ -19,6 +22,7 @@ float tracked_voltage = kUnknownVoltage;
 bool charging = false;
 ChargeLevel tracked_level = ChargeLevel::unknown;
 bool initialized = false;
+uint32_t start_time = 0;
 
 ChargeLevel levelFromVoltage(float volts)
 {
@@ -109,6 +113,7 @@ void init()
     tracked_voltage = kUnknownVoltage;
     charging = false;
     tracked_level = ChargeLevel::unknown;
+    start_time = last_poll_ms;
     updateNow();
 }
 
@@ -117,6 +122,7 @@ void poll()
     if (!initialized)
     {
         init();
+        shutdownIfNeeded();
         return;
     }
 
@@ -128,6 +134,24 @@ void poll()
 
     last_poll_ms = now;
     updateNow();
+    shutdownIfNeeded();
+}
+
+bool shutdownRequired()
+{
+    return initialized &&
+           !charging &&
+           isfinite(tracked_voltage) &&
+           tracked_voltage > 0.0f &&
+           tracked_voltage <= kEmergencyShutdownThreshold;
+}
+
+void shutdownIfNeeded()
+{
+    if (shutdownRequired())
+    {
+        ShutdownView::showLowBatteryAndShutdown();
+    }
 }
 
 Status status()
@@ -174,7 +198,20 @@ float voltage()
 
 float halReadBatteryVoltage()
 {
-    const int16_t millivolts = M5.Power.getBatteryVoltage();
+    int16_t millivolts;
+    #ifndef TEST_SIM_BATTERY
+    millivolts = M5.Power.getBatteryVoltage();
+    #else
+    constexpr uint32_t kSimDrainDurationMs = 2 * 60 * 1000UL;
+    constexpr int32_t  kSimFullMv = 4300;
+    constexpr int32_t  kSimEmptyMv = 2800;
+
+    const uint32_t t_since = millis() - start_time;
+    const uint32_t clamped_t = t_since < kSimDrainDurationMs ? t_since : kSimDrainDurationMs;
+    const int32_t  drained_mv = ((kSimFullMv - kSimEmptyMv) * static_cast<int32_t>(clamped_t)) /
+                               static_cast<int32_t>(kSimDrainDurationMs);
+    millivolts = static_cast<int16_t>(kSimFullMv - drained_mv);
+    #endif
     if (millivolts <= 0)
     {
         return kUnknownVoltage;
@@ -184,6 +221,10 @@ float halReadBatteryVoltage()
 
 bool halReadUsbAvailable()
 {
+    #ifndef TEST_SIM_BATTERY
     return M5.Power.isCharging() == m5::Power_Class::is_charging;
+    #else
+    return false;
+    #endif
 }
 }

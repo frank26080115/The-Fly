@@ -21,6 +21,7 @@
 #include "RecordingView/RecordingView.h"
 #include "RecordingView/RecordingViewCallbacks.h"
 #include "ScrollView/ScrollView.h"
+#include "ShutdownView.h"
 #include "WebServer.h"
 #include "WifiManager.h"
 #include "WifiStaModeView.h"
@@ -249,6 +250,9 @@ void setup()
     run_test();
     #endif
 
+    BattTracker::init();
+    BattTracker::shutdownIfNeeded();
+
     if (reset_was_magic == false) {
         show_splash();
         draw_splash_boot_info();
@@ -305,8 +309,6 @@ void setup()
         show_fatal_error_f(false, "Bluetooth bond pruning failed: %s", bt_host_list->lastLoadResultName());
     }
 
-    BattTracker::init();
-
     if (!gui)
     {
         show_fatal_error_f(true, "GUI init failed");
@@ -325,6 +327,14 @@ void setup()
 void loop()
 {
     // this is running on core 1
+    if (ShutdownView::shutdownInProgress())
+    {
+        delay(1000);
+        return;
+    }
+
+    BattTracker::poll();
+
     handle_pending_bluetooth_pairing();
     handle_pending_bluetooth_connect_failed();
     handle_pending_bluetooth_recording();
@@ -346,6 +356,12 @@ static void loopTask_core0(void* pvParameters)
     // this is running on core 0
     while (true)
     {
+        if (ShutdownView::shutdownInProgress())
+        {
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            continue;
+        }
+
         if (g_pending_bluetooth_disconnect)
         {
             g_pending_bluetooth_disconnect = false;

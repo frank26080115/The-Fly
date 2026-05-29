@@ -1,5 +1,7 @@
 #pragma once
 
+#include "thefly_common.h"
+
 #include <stdint.h>
 
 namespace BattTracker
@@ -27,6 +29,8 @@ enum Status : uint8_t
 
 void init();
 void poll();
+bool shutdownRequired();
+void shutdownIfNeeded();
 
 Status status();
 ChargeLevel level();

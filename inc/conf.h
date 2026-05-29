@@ -7,6 +7,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 */
 
 //#define BUILD_CLOUD_FEATURES
+//#define TEST_SIM_BATTERY
 
 #if !defined(BUILD_WITH_SECURITY_LEVEL)
 #error BUILD_WITH_SECURITY_LEVEL must be defined!

@@ -1,6 +1,7 @@
 #include "FlyGui.h"
 
 #include "../Buttons/Buttons.h"
+#include "../BattTracker/BattTracker.h"
 #include "../Hotel/Hotel.h"
 #include "../SpriteDraw/IconLookup.h"
 #include "DiskStats.h"
@@ -30,8 +31,7 @@ struct BatterySprite
     size_t         byte_cnt = 0;
 };
 
-static bool isBatteryCharging();
-static int32_t batteryStatusCode(int32_t percent, bool charging);
+static int32_t batteryStatusCode();
 static BatterySprite batterySpriteForStatus(int32_t status);
 static const char* drawFailureStageName(SpriteDraw::DrawFailureStage stage);
 
@@ -671,7 +671,7 @@ static const char* drawFailureStageName(SpriteDraw::DrawFailureStage stage)
 
 void FlyGui::drawTopBar(bool forced)
 {
-    const int32_t  battery    = batteryStatusCode(M5.Power.getBatteryLevel(), isBatteryCharging());
+    const int32_t  battery    = batteryStatusCode();
     const uint32_t currentMs  = millis();
     const bool     fullRedraw = forced || topBarNeedsFullRedraw_;
 
@@ -713,36 +713,26 @@ void FlyGui::drawTopBar(bool forced)
     topBarNeedsFullRedraw_ = false;
 }
 
-static bool isBatteryCharging()
+static int32_t batteryStatusCode()
 {
-#if !defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(CONFIG_IDF_TARGET_ESP32C3) && !defined(CONFIG_IDF_TARGET_ESP32C6) && !defined(CONFIG_IDF_TARGET_ESP32P4)
-    if (M5.Power.getType() == m5::Power_Class::pmic_axp192 && M5.Power.Axp192.isACIN())
+    int32_t level = -1;
+    switch (BattTracker::level())
     {
-        return true;
-    }
-#endif
-
-    return M5.Power.isCharging() == m5::Power_Class::is_charging;
-}
-
-static int32_t batteryStatusCode(int32_t percent, bool charging)
-{
-    if (percent < 0)
-    {
+    case BattTracker::ChargeLevel::low:
+        level = 0;
+        break;
+    case BattTracker::ChargeLevel::medium:
+        level = 1;
+        break;
+    case BattTracker::ChargeLevel::high:
+        level = 2;
+        break;
+    case BattTracker::ChargeLevel::unknown:
+    default:
         return -1;
     }
 
-    int32_t level = 0;
-    if (percent >= 67)
-    {
-        level = 2;
-    }
-    else if (percent >= 34)
-    {
-        level = 1;
-    }
-
-    return level | (charging ? 0x04 : 0x00);
+    return level | (BattTracker::isCharging() ? 0x04 : 0x00);
 }
 
 static BatterySprite batterySpriteForStatus(int32_t status)

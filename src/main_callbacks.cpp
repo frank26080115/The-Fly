@@ -264,6 +264,7 @@ void onclick_scroll_exit(uint32_t pressDurationMs)
     }
     if (scroll_view && scroll_view->isWifiContext() && wifi_manager && wifi_manager->wifiHasStarted())
     {
+        thefly_display.fillScreen(TFT_BLACK);
         ESP_LOGI(MAINTAG, "Wi-Fi scroll exit selected after Wi-Fi start; rebooting");
         delay(50);
         esp_restart();
