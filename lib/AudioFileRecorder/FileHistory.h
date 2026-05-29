@@ -1,5 +1,6 @@
 #pragma once
 
+#include "thefly_common.h"
 #include <cstdint>
 
 namespace AudioFileRecorder

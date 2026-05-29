@@ -15,6 +15,7 @@
 #include "Hotel.h"
 #include "FlyGui.h"
 #include "Display.h"
+#include "FirmwareUpdateView.h"
 #include "MainScreenView.h"
 #include "MicroSdCard.h"
 #include "ModalDialog.h"
@@ -49,6 +50,7 @@ extern MainScreenView* all_init_main_screen_view();
 extern RecordingView* all_init_recording_view();
 extern ConnWaitingView* all_init_conn_waiting_view();
 extern WifiStaModeView* all_init_wifi_sta_mode_view();
+extern FirmwareUpdateView* all_init_firmware_update_view();
 
 #ifdef BUILD_CLOUD_FEATURES
 extern CloudUploadView* all_init_cloud_upload_view();
@@ -69,6 +71,8 @@ static void  handle_pending_cloud_upload_complete();
 static void  handle_pending_ntp_sync_complete();
 static void  handle_wifi_connection_waiting();
 static void  handle_wifi_station_connected();
+static void  handle_firmware_update_on_boot();
+static bool  battery_fullish_for_firmware_update();
 void         show_wifi_connection_failed(const char* text);
 bool         connect_to_bluetooth_host(const bt_host_item_t* host, const char* source);
 void         request_bluetooth_disconnect();
@@ -272,12 +276,14 @@ void setup()
         draw_splash_boot_info();
     }
 
-    wifi_manager = new WifiManager();
-
     if (!MicroSdCard::begin())
     {
         show_fatal_error_f(true, "microSD init failed");
     }
+
+    handle_firmware_update_on_boot();
+
+    wifi_manager = new WifiManager();
 
     if (!g_nvs_ready)
     {
@@ -406,6 +412,46 @@ static void loopTask_core0(void* pvParameters)
         Hotel::pollCore0();
         vTaskDelay(pdMS_TO_TICKS(1));
     }
+}
+
+static void handle_firmware_update_on_boot()
+{
+    DiskStats::refreshDiskSpace();
+    if (!DiskStats::firmwareUpdateFileExists())
+    {
+        return;
+    }
+
+    FirmwareUpdateView* view = all_init_firmware_update_view();
+    if (!gui || !view)
+    {
+        show_fatal_error_f(true, "Firmware update view unavailable");
+        return;
+    }
+
+    const uint16_t return_view = gui->currentView() ? gui->currentView()->id() : FLYGUI_VIEW_MAIN;
+    view->configure(battery_fullish_for_firmware_update());
+    if (!gui->showView(FLYGUI_VIEW_FIRMWARE_UPDATE))
+    {
+        show_fatal_error_f(true, "Firmware update view failed");
+        return;
+    }
+
+    while (!view->dismissed())
+    {
+        gui->poll();
+        delay(10);
+    }
+
+    if (gui->currentView() && gui->currentView()->id() == FLYGUI_VIEW_FIRMWARE_UPDATE)
+    {
+        gui->showView(return_view);
+    }
+}
+
+static bool battery_fullish_for_firmware_update()
+{
+    return BattTracker::level() == BattTracker::ChargeLevel::high;
 }
 
 bool bluetooth_recording_state(BtManager::State state)

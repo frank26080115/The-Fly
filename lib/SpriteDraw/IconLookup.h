@@ -1,9 +1,10 @@
 #pragma once
 
+#include "thefly_common.h"
+
 #include <stddef.h>
 #include <stdint.h>
 
-#include "defs.h"
 #include "sprites.h"
 
 struct sprite_desc_t

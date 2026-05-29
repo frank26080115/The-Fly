@@ -1,5 +1,7 @@
 #pragma once
 
+#include "thefly_common.h"
+
 #include <Arduino.h>
 #include <M5Unified.h>
 #include "Display.h"
@@ -48,6 +50,7 @@ enum FlyGuiViewId : uint16_t
     FLYGUI_VIEW_SCROLL,
     FLYGUI_VIEW_MODAL_DIALOG,
     FLYGUI_VIEW_STA_MODE,
+    FLYGUI_VIEW_FIRMWARE_UPDATE,
 };
 
 class FlyGui

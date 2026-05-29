@@ -131,6 +131,11 @@ extern const uint8_t sprite_genericwifirouter_100[];
 #define SPRITE_GREENCHECKMARK_100_BYTES 8216u
 extern const uint8_t sprite_greencheckmark_100[];
 
+#define SPRITE_GREENCHECKMARK_50_WIDTH 50u
+#define SPRITE_GREENCHECKMARK_50_HEIGHT 50u
+#define SPRITE_GREENCHECKMARK_50_BYTES 2854u
+extern const uint8_t sprite_greencheckmark_50[];
+
 #define SPRITE_HOME_100_WIDTH 100u
 #define SPRITE_HOME_100_HEIGHT 100u
 #define SPRITE_HOME_100_BYTES 13241u

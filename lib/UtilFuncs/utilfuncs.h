@@ -1,11 +1,12 @@
 #pragma once
 
+#include "thefly_common.h"
+
 #include <stddef.h>
 #include <stdint.h>
 
 #include <M5Unified.h>
 
-#include "defs.h"
 #include "esp_err.h"
 #include "esp_gap_bt_api.h"
 

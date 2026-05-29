@@ -5,6 +5,7 @@
 #include "FlyGui.h"
 #include "ConnWaitingView.h"
 #include "ErrorView.h"
+#include "FirmwareUpdateView.h"
 #include "MainScreenView.h"
 #include "ModalDialog.h"
 #include "RecordingView/RecordingView.h"
@@ -47,6 +48,7 @@ ConnWaitingView     g_conn_waiting_view(CONN_WAITING_BLUETOOTH_CONNECTING, "", c
 ScrollView          g_scroll_view(FLYGUI_VIEW_SCROLL, onclick_scroll_exit);
 WifiApModeView      g_wifi_ap_mode_view;
 WifiStaModeView     g_wifi_sta_mode_view;
+FirmwareUpdateView  g_firmware_update_view;
 #ifdef BUILD_CLOUD_FEATURES
 CloudUploadView     g_cloud_upload_view(cloud_upload_cancel);
 #endif
@@ -128,6 +130,7 @@ void init_gui()
     gui->addView(g_scroll_view);
     gui->addView(g_wifi_ap_mode_view);
     gui->addView(g_wifi_sta_mode_view);
+    gui->addView(g_firmware_update_view);
 
     g_scroll_view.setOnClickBluetoothHost(onclick_bluetooth_host);
     g_scroll_view.setOnClickBluetoothPair(onclick_bluetooth_pair);
@@ -178,6 +181,11 @@ CloudUploadView* all_init_cloud_upload_view()
 WifiStaModeView* all_init_wifi_sta_mode_view()
 {
     return &g_wifi_sta_mode_view;
+}
+
+FirmwareUpdateView* all_init_firmware_update_view()
+{
+    return &g_firmware_update_view;
 }
 
 void show_splash()

@@ -18,6 +18,7 @@ namespace
 {
 
 constexpr const char* kCloudHistoryPath = "/cloud_history.txt";
+constexpr const char* kFirmwareUpdatePath = "/firmware.bin";
 constexpr size_t      kPathMaxLength    = 192;
 constexpr size_t      kFileNameMaxLength = 64;
 constexpr size_t      kDateTimeMaxLength = 24;
@@ -47,6 +48,7 @@ std::mutex g_mutex;
 uint64_t   g_total_disk_space = 0;
 uint64_t   g_free_disk_space  = 0;
 bool       g_disk_space_valid = false;
+bool       g_firmware_update_file_exists = false;
 uint32_t   g_total_rec_files  = 0;
 uint32_t   g_total_rec_files_not_uploaded = 0;
 char       g_last_upload_datetime[kDateTimeMaxLength] = {};
@@ -387,6 +389,28 @@ uint8_t percent_u8(uint64_t numerator, uint64_t denominator)
     return static_cast<uint8_t>(value);
 }
 
+bool firmware_update_file_exists()
+{
+    #ifndef TEST_MOCK_FW_UPDATE
+    if (!MicroSdCard::isReady())
+    {
+        return false;
+    }
+
+    FsFile file;
+    if (!file.open(kFirmwareUpdatePath, O_RDONLY))
+    {
+        return false;
+    }
+
+    const bool exists = file.isFile();
+    file.close();
+    return exists;
+    #else
+    return true;
+    #endif
+}
+
 void draw_disk_space_warning(bool valid, uint64_t free_bytes)
 {
     thefly_display.fillRect(kDiskWarningX, 0, kDiskWarningWidth, FlyGui::kTopBarHeight, TFT_BLACK);
@@ -409,17 +433,20 @@ bool refreshDiskSpace()
 {
     uint64_t total = 0;
     uint64_t free  = 0;
+    bool     firmware_exists = false;
     const bool ok = MicroSdCard::isReady();
     if (ok)
     {
         total = MicroSdCard::totalBytes();
         free  = MicroSdCard::freeBytes();
+        firmware_exists = firmware_update_file_exists();
     }
 
     std::lock_guard<std::mutex> lock(g_mutex);
     g_total_disk_space = total;
     g_free_disk_space  = free;
     g_disk_space_valid = ok;
+    g_firmware_update_file_exists = firmware_exists;
     draw_disk_space_warning(g_disk_space_valid, g_free_disk_space);
     return ok;
 }
@@ -436,10 +463,12 @@ bool refreshRecordingUploadStats()
     UploadedPathNode* uploaded_head = nullptr;
     UploadedPathNode* uploaded_tail = nullptr;
     uint64_t          latest_key = 0;
+    bool              firmware_exists = false;
 
     bool ok = MicroSdCard::isReady();
     if (ok)
     {
+        firmware_exists = firmware_update_file_exists();
         #ifdef BUILD_CLOUD_FEATURES
         ok = load_uploaded_paths(uploaded_head, uploaded_tail, stats) &&
              scan_recording_directory("/", uploaded_head, stats, latest_key);
@@ -465,6 +494,7 @@ bool refreshRecordingUploadStats()
         g_last_upload_datetime[0] = '\0';
         g_latest_recorded_file_name[0] = '\0';
     }
+    g_firmware_update_file_exists = firmware_exists;
     return ok;
 }
 
@@ -492,6 +522,12 @@ uint8_t freeDiskSpacePercent()
 {
     std::lock_guard<std::mutex> lock(g_mutex);
     return percent_u8(g_free_disk_space, g_total_disk_space);
+}
+
+bool firmwareUpdateFileExists()
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+    return g_firmware_update_file_exists;
 }
 
 uint32_t totalRecFilesStored()
