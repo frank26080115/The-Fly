@@ -86,6 +86,7 @@ volatile bool g_bluetooth_connect_waiting = false;
 volatile bool g_pending_bluetooth_connect_failed = false;
 volatile bool g_suppress_bluetooth_auto_recording = false;
 bool g_wifi_connect_waiting = false;
+extern bool g_nvs_ready;
 NtpSync g_ntp_sync;
 bool g_ntp_sync_waiting = false;
 bool g_ntp_sync_completion_suppressed = false;
@@ -271,12 +272,18 @@ void setup()
         draw_splash_boot_info();
     }
 
+    wifi_manager = new WifiManager();
+
     if (!MicroSdCard::begin())
     {
         show_fatal_error_f(true, "microSD init failed");
     }
 
-    wifi_manager = new WifiManager();
+    if (!g_nvs_ready)
+    {
+        show_fatal_error_f(true, "NVS init failed");
+    }
+
     #if BUILD_WITH_SECURITY_LEVEL <= 0
     if (wifi_manager && !wifi_manager->loadFromMicroSd())
     #else
@@ -322,6 +329,14 @@ void setup()
     {
         show_fatal_error_f(false, "Bluetooth bond pruning failed: %s", bt_host_list->lastLoadResultName());
     }
+
+#ifdef TEST_BOOT_ERROR_NONFATAL
+    show_fatal_error_f(false, "test non fatal error");
+#endif
+
+#ifdef TEST_BOOT_ERROR_FATAL
+    show_fatal_error_f(true, "test fatal error");
+#endif
 
     if (!gui)
     {

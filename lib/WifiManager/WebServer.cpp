@@ -36,6 +36,7 @@ extern WifiManager* wifi_manager;
 extern BtHostList*  bt_host_list;
 extern FlyGui*      gui;
 extern ModalDialog* get_modal_dialog();
+extern bool         g_nvs_ready;
 
 namespace
 {
@@ -92,6 +93,17 @@ void note_web_error()
     {
         wifi_manager->noteWebError();
     }
+}
+
+void send_nvs_unavailable(AsyncWebServerRequest* request)
+{
+    if (!request)
+    {
+        return;
+    }
+
+    note_web_error();
+    request->send(503, "application/json", "{\"error\":\"NVS is unavailable\"}");
 }
 
 void make_mdns_hostname(char* out, size_t out_size)
@@ -373,6 +385,12 @@ void send_info(AsyncWebServerRequest* request)
         return;
     }
 
+    if (!g_nvs_ready)
+    {
+        send_nvs_unavailable(request);
+        return;
+    }
+
     note_web_page_load();
     const bool security_ready = begin_new_session(request->header(kHeaderSessionSaltFromClient));
 
@@ -483,6 +501,12 @@ void reset_password(AsyncWebServerRequest* request)
         return;
     }
 
+    if (!g_nvs_ready)
+    {
+        send_nvs_unavailable(request);
+        return;
+    }
+
     #if BUILD_WITH_SECURITY_LEVEL <= 0
     note_web_error();
     request->send(501, "text/plain", "Password reset is not implemented for security level 0");
@@ -575,6 +599,12 @@ void reset_memory(AsyncWebServerRequest* request)
 {
     if (!request)
     {
+        return;
+    }
+
+    if (!g_nvs_ready)
+    {
+        send_nvs_unavailable(request);
         return;
     }
 

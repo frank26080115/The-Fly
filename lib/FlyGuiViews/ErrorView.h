@@ -18,13 +18,24 @@ public:
     }
 
     void onLoad() override;
+    void onUnload() override;
     bool handleTouch(const FlyGuiTouchEvent& event) override;
     void redraw(bool forced) override;
+    void onPressRight() override;
 
 private:
     static constexpr size_t kMessageMax = 255;
 
+    static void onActionTriggered(uint32_t pressDurationMs);
+
+    void syncActionButton();
+    void dismiss();
+    void launchDefaultSoftAp();
+
     char message_[kMessageMax + 1] = {};
     bool fatal_                    = true;
     bool dismissed_                = false;
+    FlyGuiItem actionItem_;
+
+    static ErrorView* activeView_;
 };

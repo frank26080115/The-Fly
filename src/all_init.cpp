@@ -15,6 +15,8 @@
 #include "main_callbacks.h"
 #include "thefly_version.h"
 #include "Aegis.h"
+#include "BattTracker.h"
+#include "WifiManager.h"
 #include "esp_mac.h"
 #include <stdarg.h>
 #include <stdio.h>
@@ -29,8 +31,10 @@ constexpr const char* TAG = "all_init.cpp";
 RTC_DATA_ATTR uint32_t reset_flag  = 0;
 RTC_DATA_ATTR uint32_t reset_magic = 0;
 bool reset_was_magic = false;
+bool g_nvs_ready = false;
 
 extern FlyGui* gui;
+extern WifiManager* wifi_manager;
 
 namespace
 {
@@ -61,15 +65,10 @@ static void draw_splash_tamper_code();
 void all_init()
 {
     Serial.begin(115200);
-    const bool nvs_ok = init_nvs();
+    g_nvs_ready = init_nvs();
     check_reset_flag();
     init_m5();
     init_gui();
-
-    if (!nvs_ok)
-    {
-        show_fatal_error_f(true, "NVS init failed");
-    }
 }
 
 bool init_nvs()
@@ -371,8 +370,10 @@ void show_fatal_error_f(bool fatal, const char* format, ...)
         return;
     }
 
-    FlyGuiView* previous_view    = gui->currentView();
-    const uint16_t previous_view_id = previous_view ? previous_view->id() : FLYGUI_VIEW_MAIN;
+    FlyGuiView* previous_view       = gui->currentView();
+    const uint16_t previous_view_id = previous_view && previous_view->id() != FLYGUI_VIEW_SPLASH
+                                          ? previous_view->id()
+                                          : FLYGUI_VIEW_MAIN;
 
     g_error_view.setMessage(message, fatal);
     if (!gui->showView(FLYGUI_VIEW_ERROR))
@@ -389,6 +390,11 @@ void show_fatal_error_f(bool fatal, const char* format, ...)
     while (fatal || !g_error_view.dismissed())
     {
         gui->poll();
+        BattTracker::poll();
+        if (wifi_manager)
+        {
+            wifi_manager->poll();
+        }
         delay(10);
     }
 

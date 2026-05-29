@@ -73,7 +73,7 @@ extern const uint8_t sprite_cancel_60[];
 
 #define SPRITE_CANCELDOOR_50_WIDTH 50u
 #define SPRITE_CANCELDOOR_50_HEIGHT 50u
-#define SPRITE_CANCELDOOR_50_BYTES 4390u
+#define SPRITE_CANCELDOOR_50_BYTES 4075u
 extern const uint8_t sprite_canceldoor_50[];
 
 #define SPRITE_CLOUDUPLOAD_100_WIDTH 100u
@@ -85,6 +85,11 @@ extern const uint8_t sprite_cloudupload_100[];
 #define SPRITE_DEFAULT_WIFI_AP_HEIGHT 100u
 #define SPRITE_DEFAULT_WIFI_AP_BYTES 13728u
 extern const uint8_t sprite_default_wifi_ap[];
+
+#define SPRITE_DOORRETURN_50_WIDTH 50u
+#define SPRITE_DOORRETURN_50_HEIGHT 50u
+#define SPRITE_DOORRETURN_50_BYTES 3491u
+extern const uint8_t sprite_doorreturn_50[];
 
 #define SPRITE_ENROLL_50_WIDTH 50u
 #define SPRITE_ENROLL_50_HEIGHT 50u
@@ -100,6 +105,16 @@ extern const uint8_t sprite_eye_closed_100[];
 #define SPRITE_EYE_OPEN_100_HEIGHT 100u
 #define SPRITE_EYE_OPEN_100_BYTES 7997u
 extern const uint8_t sprite_eye_open_100[];
+
+#define SPRITE_FIRSTAIDWIFI_50_WIDTH 50u
+#define SPRITE_FIRSTAIDWIFI_50_HEIGHT 50u
+#define SPRITE_FIRSTAIDWIFI_50_BYTES 3575u
+extern const uint8_t sprite_firstaidwifi_50[];
+
+#define SPRITE_FWUPDATE_WIDTH 100u
+#define SPRITE_FWUPDATE_HEIGHT 100u
+#define SPRITE_FWUPDATE_BYTES 12806u
+extern const uint8_t sprite_fwupdate[];
 
 #define SPRITE_GENERICDEVICE_BT_100_WIDTH 100u
 #define SPRITE_GENERICDEVICE_BT_100_HEIGHT 100u

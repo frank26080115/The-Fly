@@ -24,6 +24,7 @@
 
 extern WifiManager* wifi_manager;
 extern BtHostList*  bt_host_list;
+extern bool         g_nvs_ready;
 
 namespace WebCfgHandlers
 {
@@ -117,6 +118,29 @@ void send_set_cfg_error(AsyncWebServerRequest* request)
     const long    status_code = request->getAttribute(kSetCfgStatusAttribute, 500L);
     note_web_error();
     request->send(static_cast<int>(status_code), "text/plain", error.isEmpty() ? "Config update failed" : error);
+}
+
+bool config_runtime_available(String& error)
+{
+    if (!g_nvs_ready)
+    {
+        error = "NVS is unavailable";
+        return false;
+    }
+
+    if (!wifi_manager || wifi_manager->lastLoadResult() != WifiManager::LoadResult::Ok)
+    {
+        error = "Wi-Fi config is unavailable";
+        return false;
+    }
+
+    if (!bt_host_list || bt_host_list->lastLoadResult() != BtHostList::LoadResult::Ok)
+    {
+        error = "Bluetooth config is unavailable";
+        return false;
+    }
+
+    return true;
 }
 
 bool cfg_mac_is_empty(const esp_bd_addr_t bdaddr)
@@ -1153,6 +1177,13 @@ bool begin_set_cfg_upload(AsyncWebServerRequest* request, size_t total)
         reset_set_cfg_upload();
     });
 
+    String runtime_error;
+    if (!config_runtime_available(runtime_error))
+    {
+        set_cfg_error(request, 503, runtime_error.c_str());
+        return false;
+    }
+
     const size_t expected_size = total != 0 ? total : request->contentLength();
     if (expected_size == 0)
     {
@@ -1197,6 +1228,14 @@ void sendCfg(AsyncWebServerRequest* request)
 {
     if (!request)
     {
+        return;
+    }
+
+    String runtime_error;
+    if (!config_runtime_available(runtime_error))
+    {
+        note_web_error();
+        request->send(503, "text/plain", runtime_error);
         return;
     }
 
@@ -1307,6 +1346,15 @@ void finishSetCfg(AsyncWebServerRequest* request)
 {
     if (!request)
     {
+        return;
+    }
+
+    String runtime_error;
+    if (!config_runtime_available(runtime_error))
+    {
+        reset_set_cfg_upload(request);
+        note_web_error();
+        request->send(503, "text/plain", runtime_error);
         return;
     }
 
