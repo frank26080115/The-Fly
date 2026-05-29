@@ -45,6 +45,8 @@ public:
         return selectedIndex_;
     }
     FlyGuiItem* selectedItem() const;
+    bool isWifiContext() const;
+    bool isCloudContext() const;
 
     void setExitCallback(FlyGuiItemCallback exitCallback);
     void selectIndex(size_t index);

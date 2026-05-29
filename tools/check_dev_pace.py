@@ -364,7 +364,7 @@ def verbose_print_rate_headers(verbose: bool, headers: Any) -> None:
 
 
 def verbose_print_response_body(verbose: bool, status_code: Optional[int], response_body: bytes) -> None:
-    if not verbose or not response_body or status_code is None or status_code < 400:
+    if not verbose or not response_body or status_code is None: # or status_code < 400:
         return
 
     text = response_body.decode("utf-8", errors="replace").strip()

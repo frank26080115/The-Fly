@@ -47,6 +47,7 @@ enum FlyGuiViewId : uint16_t
     FLYGUI_VIEW_CONN_WAITING,
     FLYGUI_VIEW_SCROLL,
     FLYGUI_VIEW_MODAL_DIALOG,
+    FLYGUI_VIEW_STA_MODE,
 };
 
 class FlyGui

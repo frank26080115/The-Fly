@@ -116,6 +116,7 @@ public:
     bool startGeneratedSoftAp();
     bool scanAndConnect();
     bool disconnect();
+    bool wifiHasStarted() const;
     void poll();
     Status status() const;
     const char* statusName() const;
@@ -164,6 +165,7 @@ private:
     Status        m_status                         = Status::Idle;
     const wifi_item_t* m_active_wifi               = nullptr;
     const wifi_item_t* m_connected_wifi            = nullptr;
+    bool          m_wifi_has_started               = false;
     bool          m_reported_connected             = false;
     ConnectionCallback m_on_connect                = nullptr;
     ConnectionCallback m_on_disconnect             = nullptr;

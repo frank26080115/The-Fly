@@ -836,6 +836,7 @@ bool WifiManager::connectToHotspot(const wifi_item_t* hotspot, bool shutdown_fir
         ESP_LOGW(TAG, "could not switch Wi-Fi to station mode");
         return false;
     }
+    m_wifi_has_started = true;
 
     const char* password = hotspot->password && hotspot->password[0] != '\0' ? hotspot->password : nullptr;
     WiFi.begin(hotspot->ssid, password);
@@ -889,6 +890,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
 
     m_active_wifi = access_point;
     m_status      = Status::AccessPoint;
+    m_wifi_has_started = true;
     resetWebCounters();
     notifyConnected(access_point);
     ESP_LOGI(TAG, "started Wi-Fi access point \"%s\" at %s", access_point->ssid, current_soft_ap_ip().toString().c_str());
@@ -938,6 +940,7 @@ bool WifiManager::scanAndConnect()
         ESP_LOGW(TAG, "could not switch Wi-Fi to station mode for scan");
         return false;
     }
+    m_wifi_has_started = true;
 
     const int scan_result = WiFi.scanNetworks(true);
     if (scan_result != WIFI_SCAN_RUNNING)
@@ -972,6 +975,11 @@ bool WifiManager::disconnect()
     m_status      = Status::Idle;
     resetSoftApClientTracking();
     return station_disconnected || ap_disconnected;
+}
+
+bool WifiManager::wifiHasStarted() const
+{
+    return m_wifi_has_started;
 }
 
 void WifiManager::poll()

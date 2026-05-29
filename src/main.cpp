@@ -34,12 +34,16 @@ extern void show_splash();
 extern void draw_splash_boot_info();
 extern bool show_conn_waiting_bluetooth(const char* targetName);
 extern bool show_conn_waiting_bluetooth_pairing();
+extern bool show_conn_waiting_wifi_connecting(const char* targetName);
+extern bool show_conn_waiting_wifi_scanning(const char* targetName);
+extern void update_conn_waiting_wifi_target(const char* targetName);
 extern bool show_cloud_upload_view(CloudUpload* uploader, const char* targetName);
 extern uint16_t conn_waiting_return_view_id();
 extern bool show_recording_view_bluetooth();
 extern bool show_recording_view_memo();
 extern bool promote_recording_view_memo_to_bluetooth();
 extern bool show_wifi_ap_mode_view();
+extern bool show_wifi_sta_mode_view(bool showDismissButton);
 extern ScrollView* get_scroll_view();
 extern ModalDialog* get_modal_dialog();
 extern void show_main_memo_starting_feedback();
@@ -69,6 +73,9 @@ static void  handle_pending_bluetooth_recording();
 static void  handle_pending_bluetooth_pairing();
 static void  handle_pending_bluetooth_connect_failed();
 static void  handle_pending_cloud_upload_complete();
+static void  handle_wifi_connection_waiting();
+static void  handle_wifi_station_connected();
+static void  show_wifi_connection_failed(const char* text);
 static bool  connect_to_bluetooth_host(const bt_host_item_t* host, const char* source);
 static void  on_wifi_scan_finished(const wifi_item_t* item);
 static void  request_bluetooth_disconnect();
@@ -88,6 +95,7 @@ static volatile bool g_bluetooth_connect_waiting = false;
 static volatile bool g_pending_bluetooth_connect_failed = false;
 static volatile bool g_pending_cloud_upload_complete = false;
 static volatile bool g_suppress_bluetooth_auto_recording = false;
+static bool g_wifi_connect_waiting = false;
 static BtManager::PairedDevice g_pending_paired_device = {};
 static CloudUpload::Status g_pending_cloud_upload_status = {};
 
@@ -183,6 +191,7 @@ void loop()
     AudioFileRecorder::pump();
     if (wifi_manager) {
         wifi_manager->poll();
+        handle_wifi_connection_waiting();
     }
     Hotel::pollCore1();
     taskYIELD();
@@ -400,6 +409,97 @@ static void handle_pending_cloud_upload_complete()
     gui->showView(FLYGUI_VIEW_MODAL_DIALOG);
 }
 
+static void handle_wifi_connection_waiting()
+{
+    if (!g_wifi_connect_waiting || !wifi_manager)
+    {
+        return;
+    }
+
+    switch (wifi_manager->status())
+    {
+    case WifiManager::Status::StationConnected:
+        g_wifi_connect_waiting = false;
+        handle_wifi_station_connected();
+        break;
+    case WifiManager::Status::NoKnownNetwork:
+        show_wifi_connection_failed("No configured Wi-Fi was found");
+        break;
+    case WifiManager::Status::ScanFailed:
+        show_wifi_connection_failed("Wi-Fi scan failed");
+        break;
+    case WifiManager::Status::ConnectFailed:
+        show_wifi_connection_failed("Wi-Fi connection failed");
+        break;
+    default:
+        break;
+    }
+}
+
+static void handle_wifi_station_connected()
+{
+    if (!wifi_manager)
+    {
+        return;
+    }
+
+    ESP_LOGI(MAINTAG,
+             "Wi-Fi station connected: ssid=%s ip=%s gateway=%s",
+             wifi_manager->connectedWifi() ? wifi_manager->connectedWifi()->ssid : "",
+             WiFi.localIP().toString().c_str(),
+             WiFi.gatewayIP().toString().c_str());
+
+    if (!WebServer::init())
+    {
+        show_fatal_error_f(false, "Wi-Fi web server failed to start");
+        return;
+    }
+
+    const bool hasCloudDestinations = wifi_manager->cloudEndpointCount() > 0;
+    if (!hasCloudDestinations)
+    {
+        if (!show_wifi_sta_mode_view(false))
+        {
+            show_fatal_error_f(false, "Wi-Fi station view failed");
+        }
+        return;
+    }
+
+    ScrollView* scroll_view = get_scroll_view();
+    if (!scroll_view || !gui)
+    {
+        show_fatal_error_f(false, "Cloud upload view is unavailable");
+        return;
+    }
+
+    if (!scroll_view->populateCloud(wifi_manager))
+    {
+        show_fatal_error_f(false, "Cloud upload list failed");
+        return;
+    }
+
+    if (!gui->showView(FLYGUI_VIEW_SCROLL))
+    {
+        show_fatal_error_f(false, "Cloud upload view failed");
+    }
+}
+
+static void show_wifi_connection_failed(const char* text)
+{
+    g_wifi_connect_waiting = false;
+
+    ScrollView* scroll_view = get_scroll_view();
+    if (scroll_view)
+    {
+        scroll_view->populateWifi(wifi_manager);
+    }
+
+    if (!show_error_dialog(text ? text : "Wi-Fi connection failed", FLYGUI_VIEW_SCROLL) && gui)
+    {
+        gui->showView(FLYGUI_VIEW_SCROLL);
+    }
+}
+
 static bool connect_to_bluetooth_host(const bt_host_item_t* host, const char* source)
 {
     if (!host)
@@ -561,6 +661,24 @@ void conn_waiting_cancel(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     ESP_LOGI(MAINTAG, "connection waiting cancel selected");
+    if (g_wifi_connect_waiting)
+    {
+        g_wifi_connect_waiting = false;
+        if (wifi_manager)
+        {
+            wifi_manager->disconnect();
+        }
+        if (gui)
+        {
+            const uint16_t return_view = conn_waiting_return_view_id();
+            if (!gui->showView(return_view))
+            {
+                gui->showView(FLYGUI_VIEW_SCROLL);
+            }
+        }
+        return;
+    }
+
     g_bluetooth_connect_waiting = false;
     g_pending_bluetooth_connect_failed = false;
     if (gui)
@@ -583,6 +701,22 @@ void onclick_scroll_exit(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     ESP_LOGI(MAINTAG, "scroll view exit selected");
+    ScrollView* scroll_view = get_scroll_view();
+    if (scroll_view && scroll_view->isCloudContext())
+    {
+        ESP_LOGI(MAINTAG, "cloud scroll exit selected; rebooting");
+        delay(50);
+        esp_restart();
+        return;
+    }
+    if (scroll_view && scroll_view->isWifiContext() && wifi_manager && wifi_manager->wifiHasStarted())
+    {
+        ESP_LOGI(MAINTAG, "Wi-Fi scroll exit selected after Wi-Fi start; rebooting");
+        delay(50);
+        esp_restart();
+        return;
+    }
+
     if (gui)
     {
         gui->showView(FLYGUI_VIEW_MAIN);
@@ -633,6 +767,16 @@ void onclick_wifi_scan_and_connect(int32_t value, uint32_t pressDurationMs)
     if (!wifi_manager->scanAndConnect())
     {
         ESP_LOGW(MAINTAG, "could not start Wi-Fi scan/connect: %s", wifi_manager->statusName());
+        show_wifi_connection_failed("Wi-Fi scan failed to start");
+        return;
+    }
+
+    g_wifi_connect_waiting = true;
+    if (!show_conn_waiting_wifi_scanning("known Wi-Fi"))
+    {
+        g_wifi_connect_waiting = false;
+        wifi_manager->disconnect();
+        show_fatal_error_f(false, "Wi-Fi connection view failed");
     }
 }
 
@@ -640,6 +784,33 @@ void onclick_wifi_station(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     ESP_LOGI(MAINTAG, "scroll wifi station selected: index=%ld", static_cast<long>(value));
+    if (value < 0 || !wifi_manager)
+    {
+        show_fatal_error_f(false, "Wi-Fi station selection is invalid");
+        return;
+    }
+
+    const wifi_item_t* station = wifi_manager->station(static_cast<size_t>(value));
+    if (!station)
+    {
+        show_fatal_error_f(false, "Wi-Fi station index is invalid");
+        return;
+    }
+
+    if (!wifi_manager->connectToHotspot(station))
+    {
+        ESP_LOGW(MAINTAG, "could not start Wi-Fi station connection: %s", wifi_manager->statusName());
+        show_wifi_connection_failed("Wi-Fi connection failed to start");
+        return;
+    }
+
+    g_wifi_connect_waiting = true;
+    if (!show_conn_waiting_wifi_connecting(station->ssid))
+    {
+        g_wifi_connect_waiting = false;
+        wifi_manager->disconnect();
+        show_fatal_error_f(false, "Wi-Fi connection view failed");
+    }
 }
 
 void onclick_wifi_ap(int32_t value, uint32_t pressDurationMs)
@@ -762,6 +933,15 @@ void onclick_wifi_show_info(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     ESP_LOGI(MAINTAG, "scroll wifi info selected: task=%ld", static_cast<long>(value));
+
+    if (wifi_manager && wifi_manager->status() == WifiManager::Status::StationConnected)
+    {
+        if (!show_wifi_sta_mode_view(wifi_manager->cloudEndpointCount() > 0))
+        {
+            show_fatal_error_f(false, "Wi-Fi station view failed");
+        }
+        return;
+    }
 
     const wifi_item_t* item = wifi_manager ? (wifi_manager->connectedWifi() ? wifi_manager->connectedWifi() : wifi_manager->activeWifi()) : nullptr;
     const bool         is_ap = wifi_manager && wifi_manager->status() == WifiManager::Status::AccessPoint;
@@ -908,8 +1088,10 @@ static void on_wifi_scan_finished(const wifi_item_t* item)
     }
 
     ESP_LOGI(MAINTAG, "Wi-Fi scan/connect found \"%s\", starting connection", item->ssid ? item->ssid : "");
+    update_conn_waiting_wifi_target(item->ssid);
     if (!wifi_manager->connectToHotspot(item))
     {
         ESP_LOGW(MAINTAG, "could not connect to scanned Wi-Fi station: %s", wifi_manager->statusName());
+        show_wifi_connection_failed("Wi-Fi connection failed to start");
     }
 }

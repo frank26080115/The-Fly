@@ -432,7 +432,7 @@ bool ScrollView::populateCloud(const WifiManager* wifiManager)
 
     bool ok = appendSpriteScrollItem(SCROLL_ITEM_WIFI_SHOW_SELF_INFO,
                                      SCROLL_TASK_WIFI_SHOW_SELF_INFO,
-                                     "Wi-Fi Info",
+                                     "Information",
                                      make_sprite(sprite_wifi_100, SPRITE_WIFI_100_WIDTH, SPRITE_WIFI_100_HEIGHT, SPRITE_WIFI_100_BYTES));
 
     if (wifiManager)
@@ -508,6 +508,16 @@ void ScrollView::setOnClickWifiShowInfo(ScrollViewClickCallback callback)
 FlyGuiItem* ScrollView::selectedItem() const
 {
     return itemAt(selectedIndex_);
+}
+
+bool ScrollView::isWifiContext() const
+{
+    return context_ == CONTEXT_WIFI;
+}
+
+bool ScrollView::isCloudContext() const
+{
+    return context_ == CONTEXT_CLOUD;
 }
 
 void ScrollView::setExitCallback(FlyGuiItemCallback exitCallback)

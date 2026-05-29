@@ -12,6 +12,7 @@
 #include "ScrollView/ScrollView.h"
 #include "SplashView.h"
 #include "WifiApModeView.h"
+#include "WifiStaModeView.h"
 #include "thefly_version.h"
 #include "Aegis.h"
 #include "esp_mac.h"
@@ -52,6 +53,7 @@ ConnWaitingView     g_conn_waiting_view(CONN_WAITING_BLUETOOTH_CONNECTING, "", c
 CloudUploadView     g_cloud_upload_view(cloud_upload_cancel);
 ScrollView          g_scroll_view(FLYGUI_VIEW_SCROLL, onclick_scroll_exit);
 WifiApModeView      g_wifi_ap_mode_view;
+WifiStaModeView     g_wifi_sta_mode_view;
 uint16_t            g_conn_waiting_return_view_id = FLYGUI_VIEW_MAIN;
 } // namespace
 
@@ -135,6 +137,7 @@ void init_gui()
     gui->addView(g_cloud_upload_view);
     gui->addView(g_scroll_view);
     gui->addView(g_wifi_ap_mode_view);
+    gui->addView(g_wifi_sta_mode_view);
 
     g_scroll_view.setOnClickBluetoothHost(onclick_bluetooth_host);
     g_scroll_view.setOnClickBluetoothPair(onclick_bluetooth_pair);
@@ -204,6 +207,35 @@ bool show_conn_waiting_bluetooth_pairing()
     return gui->showView(FLYGUI_VIEW_CONN_WAITING);
 }
 
+static bool show_conn_waiting_wifi_mode(ConnWaitingMode mode, const char* targetName)
+{
+    if (!gui)
+    {
+        return false;
+    }
+
+    remember_conn_waiting_return_view();
+    g_conn_waiting_view.configure(mode, targetName);
+    g_conn_waiting_view.setCancelCallback(conn_waiting_cancel);
+    return gui->showView(FLYGUI_VIEW_CONN_WAITING);
+}
+
+bool show_conn_waiting_wifi_connecting(const char* targetName)
+{
+    return show_conn_waiting_wifi_mode(CONN_WAITING_WIFI_CONNECTING, targetName);
+}
+
+bool show_conn_waiting_wifi_scanning(const char* targetName)
+{
+    return show_conn_waiting_wifi_mode(CONN_WAITING_WIFI_SCANNING, targetName);
+}
+
+void update_conn_waiting_wifi_target(const char* targetName)
+{
+    g_conn_waiting_view.configure(CONN_WAITING_WIFI_CONNECTING, targetName);
+    g_conn_waiting_view.setCancelCallback(conn_waiting_cancel);
+}
+
 bool show_cloud_upload_view(CloudUpload* uploader, const char* targetName)
 {
     if (!gui)
@@ -257,6 +289,17 @@ bool show_recording_view_memo()
 bool show_wifi_ap_mode_view()
 {
     return gui && gui->showView(FLYGUI_VIEW_AP_MODE);
+}
+
+bool show_wifi_sta_mode_view(bool showDismissButton)
+{
+    if (!gui)
+    {
+        return false;
+    }
+
+    g_wifi_sta_mode_view.configure(showDismissButton);
+    return gui->showView(FLYGUI_VIEW_STA_MODE);
 }
 
 void show_splash()

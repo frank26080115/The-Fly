@@ -39,8 +39,10 @@ SpriteRef main_sprite_for_mode(ConnWaitingMode mode)
         return { sprite_bluetooth_100, SPRITE_BLUETOOTH_100_WIDTH, SPRITE_BLUETOOTH_100_HEIGHT, SPRITE_BLUETOOTH_100_BYTES };
     case CONN_WAITING_BLUETOOTH_PAIRING:
         return { sprite_btpairing_100, SPRITE_BTPAIRING_100_WIDTH, SPRITE_BTPAIRING_100_HEIGHT, SPRITE_BTPAIRING_100_BYTES };
-    case CONN_WAITING_WIFI:
+    case CONN_WAITING_WIFI_CONNECTING:
         return { sprite_wifi_100, SPRITE_WIFI_100_WIDTH, SPRITE_WIFI_100_HEIGHT, SPRITE_WIFI_100_BYTES };
+    case CONN_WAITING_WIFI_SCANNING:
+        return { sprite_wifisearch_100, SPRITE_WIFISEARCH_100_WIDTH, SPRITE_WIFISEARCH_100_HEIGHT, SPRITE_WIFISEARCH_100_BYTES };
     case CONN_WAITING_CLOUD:
         return { sprite_cloudupload_100, SPRITE_CLOUDUPLOAD_100_WIDTH, SPRITE_CLOUDUPLOAD_100_HEIGHT, SPRITE_CLOUDUPLOAD_100_BYTES };
     case CONN_WAITING_NTP_SYNC:
@@ -160,7 +162,14 @@ void ConnWaitingView::drawBottomCenter()
     }
 
     char text[128];
-    snprintf(text, sizeof(text), "Connecting to:\n%s", targetName_);
+    if (mode_ == CONN_WAITING_WIFI_SCANNING)
+    {
+        snprintf(text, sizeof(text), "Scanning for:\n%s", targetName_);
+    }
+    else
+    {
+        snprintf(text, sizeof(text), "Connecting to:\n%s", targetName_);
+    }
 
     thefly_display.setTextFont(kTextFont);
     thefly_display.setTextSize(kTextSize);
