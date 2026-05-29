@@ -416,7 +416,6 @@ static void loopTask_core0(void* pvParameters)
 
 static void handle_firmware_update_on_boot()
 {
-    DiskStats::refreshDiskSpace();
     if (!DiskStats::firmwareUpdateFileExists())
     {
         return;
@@ -429,7 +428,6 @@ static void handle_firmware_update_on_boot()
         return;
     }
 
-    const uint16_t return_view = gui->currentView() ? gui->currentView()->id() : FLYGUI_VIEW_MAIN;
     view->configure(battery_fullish_for_firmware_update());
     if (!gui->showView(FLYGUI_VIEW_FIRMWARE_UPDATE))
     {
@@ -445,7 +443,7 @@ static void handle_firmware_update_on_boot()
 
     if (gui->currentView() && gui->currentView()->id() == FLYGUI_VIEW_FIRMWARE_UPDATE)
     {
-        gui->showView(return_view);
+        gui->showView(FLYGUI_VIEW_MAIN);
     }
 }
 

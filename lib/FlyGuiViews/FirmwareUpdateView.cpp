@@ -23,8 +23,10 @@ constexpr int16_t kTextY = FlyGui::kTopBarHeight + 118;
 constexpr int16_t kTextWidth = 284;
 constexpr int16_t kTextLineHeight = 17;
 constexpr int16_t kButtonSize = 50;
-constexpr int16_t kGoX = 10;
-constexpr int16_t kCancelX = 260;
+constexpr int16_t kScreenWidth = 320;
+constexpr int16_t kButtonColumnWidth = kScreenWidth / 3;
+constexpr int16_t kGoX = (kButtonColumnWidth - kButtonSize) / 2;
+constexpr int16_t kCancelX = kScreenWidth - kButtonColumnWidth + (kButtonColumnWidth - kButtonSize) / 2;
 constexpr int16_t kButtonY = 185;
 constexpr int16_t kHourglassSize = 60;
 constexpr int16_t kHourglassY = 130;
@@ -252,8 +254,8 @@ void FirmwareUpdateView::drawPrompt()
     drawTopSprite(sprite_fwupdate, SPRITE_FWUPDATE_BYTES, SPRITE_FWUPDATE_WIDTH, SPRITE_FWUPDATE_HEIGHT);
 
     drawMessage(batteryFullish_
-                    ? "Do you want to update firmware?"
-                    : "To perform a firmware update, battery needs to be fully charged",
+                    ? "Firmware file detected\nDo you want to update firmware?"
+                    : "Firmware file detected\nTo perform a firmware update, battery needs to be fully charged",
                 static_cast<int16_t>(kButtonY - 4));
 
     if (batteryFullish_)
