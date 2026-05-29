@@ -5,7 +5,6 @@
 #include <WiFi.h>
 #include "BluetoothManager.h"
 #include "BtHostList.h"
-#include "CloudUpload.h"
 #include "DiskStats.h"
 #include "FlyGui.h"
 #include "ScrollView/ScrollView.h"
@@ -16,21 +15,22 @@
 #include "utilfuncs.h"
 #include <stdio.h>
 
+#ifdef BUILD_CLOUD_FEATURES
+#include "CloudUpload.h"
+#endif
+
 constexpr const char* MAINTAG = "main_callbacks.cpp";
 
 extern FlyGui* gui;
 extern BtHostList* bt_host_list;
 extern WifiManager* wifi_manager;
-extern CloudUpload g_cloud_upload;
 extern volatile bool g_pending_bluetooth_recording;
 extern volatile bool g_pending_bluetooth_pairing;
 extern volatile bool g_bluetooth_connect_waiting;
 extern volatile bool g_pending_bluetooth_connect_failed;
-extern volatile bool g_pending_cloud_upload_complete;
 extern volatile bool g_suppress_bluetooth_auto_recording;
 extern bool g_wifi_connect_waiting;
 extern BtManager::PairedDevice g_pending_paired_device;
-extern CloudUpload::Status g_pending_cloud_upload_status;
 
 extern ScrollView* get_scroll_view();
 extern uint16_t conn_waiting_return_view_id();
@@ -52,6 +52,9 @@ extern void show_wifi_connection_failed(const char* text);
 extern void show_fatal_error_f(bool fatal, const char* format, ...);
 
 #ifdef BUILD_CLOUD_FEATURES
+extern CloudUpload g_cloud_upload;
+extern volatile bool g_pending_cloud_upload_complete;
+extern CloudUpload::Status g_pending_cloud_upload_status;
 extern bool show_cloud_upload_view(CloudUpload* uploader, const char* targetName);
 #endif
 
@@ -123,6 +126,7 @@ void onclick_main_info(uint32_t pressDurationMs)
     }
 
     char text[192];
+    #ifdef BUILD_CLOUD_FEATURES
     if (disk_ok && rec_ok)
     {
         snprintf(text,
@@ -144,6 +148,26 @@ void onclick_main_info(uint32_t pressDurationMs)
                  last_upload,
                  latest_file);
     }
+    #else
+    if (disk_ok && rec_ok)
+    {
+        snprintf(text,
+                 sizeof(text),
+                 "Disk: %s/%s free (%u%%)\nFiles: %lu total\nLatest: %s",
+                 free_text,
+                 total_text,
+                 static_cast<unsigned>(DiskStats::freeDiskSpacePercent()),
+                 static_cast<unsigned long>(DiskStats::totalRecFilesStored()),
+                 latest_file);
+    }
+    else
+    {
+        snprintf(text,
+                 sizeof(text),
+                 "System Info\nDisk: unavailable\nREC scan: unavailable\nLatest: %s",
+                 latest_file);
+    }
+    #endif
 
     show_info_dialog(text, FLYGUI_VIEW_MAIN);
 }

@@ -2,7 +2,6 @@
 #include <Arduino.h>
 #include "nvs_flash.h"
 #include "M5Unified.h"
-#include "CloudUploadView.h"
 #include "FlyGui.h"
 #include "ConnWaitingView.h"
 #include "ErrorView.h"
@@ -21,6 +20,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef BUILD_CLOUD_FEATURES
+#include "CloudUploadView.h"
+#endif
+
 constexpr const char* TAG = "all_init.cpp";
 
 RTC_DATA_ATTR uint32_t reset_flag  = 0;
@@ -28,8 +31,6 @@ RTC_DATA_ATTR uint32_t reset_magic = 0;
 bool reset_was_magic = false;
 
 extern FlyGui* gui;
-
-class CloudUpload;
 
 namespace
 {

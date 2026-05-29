@@ -672,6 +672,13 @@ bool parse_cloud_config_array(JsonObject network,
         item.icon = parse_json_icon(item_json["icon"], ICON_UNKNOWN);
         ++target_count;
     }
+    #else
+    (void)network;
+    (void)existing;
+    (void)existing_count;
+    (void)target;
+    (void)error;
+    target_count = 0;
     #endif
 
     return true;
@@ -745,32 +752,36 @@ bool parse_network_object(JsonObject network, const network_cfg_t& existing, net
         }
     }
 
-    return parse_wifi_config_array(network,
-                                   "stations",
-                                   existing.station,
-                                   existing.station_count,
-                                   staged.station,
-                                   kNetworkConfigMaxEntries,
-                                   staged.station_count,
-                                   ICON_UNKNOWN,
-                                   error) &&
-           parse_wifi_config_array(network,
-                                   "access_points",
-                                   existing.access_point,
-                                   existing.access_point_count,
-                                   staged.access_point,
-                                   kNetworkConfigAllowedEntriesAP,
-                                   staged.access_point_count,
-                                   ICON_UNKNOWN,
-                                   error) &&
-           #ifdef BUILD_CLOUD_FEATURES
-           parse_cloud_config_array(network,
-                                    existing.cloud,
-                                    existing.cloud_endpoint_count,
-                                    staged.cloud,
-                                    staged.cloud_endpoint_count,
-                                    error) &&
-           #endif
+    bool ok = parse_wifi_config_array(network,
+                                      "stations",
+                                      existing.station,
+                                      existing.station_count,
+                                      staged.station,
+                                      kNetworkConfigMaxEntries,
+                                      staged.station_count,
+                                      ICON_UNKNOWN,
+                                      error) &&
+              parse_wifi_config_array(network,
+                                      "access_points",
+                                      existing.access_point,
+                                      existing.access_point_count,
+                                      staged.access_point,
+                                      kNetworkConfigAllowedEntriesAP,
+                                      staged.access_point_count,
+                                      ICON_UNKNOWN,
+                                      error);
+    #ifdef BUILD_CLOUD_FEATURES
+    ok = ok && parse_cloud_config_array(network,
+                                        existing.cloud,
+                                        existing.cloud_endpoint_count,
+                                        staged.cloud,
+                                        staged.cloud_endpoint_count,
+                                        error);
+    #else
+    staged.cloud_endpoint_count = 0;
+    #endif
+
+    return ok &&
            validate_wifi_config_list(staged.station, staged.station_count, "stations", error) &&
            validate_wifi_config_list(staged.access_point, staged.access_point_count, "access_points", error);
 }

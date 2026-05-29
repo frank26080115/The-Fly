@@ -17,13 +17,14 @@ use this file for preprocessor definitions that are used to configure parts of t
 // storage stays the same, up to max, but for secure setups, only 1 is allowed, as we need to track enrollment
 #ifdef BUILD_CLOUD_FEATURES
 #define CLOUD_SERVER_CNT_MAX        8
-#else
-#define CLOUD_SERVER_CNT_MAX        1
-#endif
 #if BUILD_WITH_SECURITY_LEVEL >= 2
 #define CLOUD_SERVER_CNT_ALLOWED    CLOUD_SERVER_CNT_MAX
 #else
 #define CLOUD_SERVER_CNT_ALLOWED    1
+#endif
+#else
+#define CLOUD_SERVER_CNT_MAX        1
+#define CLOUD_SERVER_CNT_ALLOWED    0
 #endif
 
 // storage stays the same, up to max, but allowed customizable soft-AP configurations varies based on security levels

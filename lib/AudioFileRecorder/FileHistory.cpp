@@ -182,6 +182,7 @@ void finish_prune_history(PruneHistoryState state, PruneHistoryError error)
 
 void prune_history_task(void*)
 {
+    #ifdef BUILD_CLOUD_FEATURES
     if (!MicroSdCard::isReady())
     {
         finish_prune_history(PruneHistoryState::Error, PruneHistoryError::SdNotReady);
@@ -307,6 +308,8 @@ void prune_history_task(void*)
     }
 
     finish_prune_history(PruneHistoryState::Done, PruneHistoryError::None);
+    #endif
+
     vTaskDelete(nullptr);
 }
 
@@ -314,6 +317,7 @@ void prune_history_task(void*)
 
 bool prune_history()
 {
+    #ifdef BUILD_CLOUD_FEATURES
     {
         std::lock_guard<std::mutex> lock(g_prune_mutex);
         if (g_prune_status.state == PruneHistoryState::Busy)
@@ -353,6 +357,23 @@ bool prune_history()
         }
         return false;
     }
+    #else
+    PruneHistoryCallback callback = nullptr;
+    PruneHistoryStatus   status   = {};
+    {
+        std::lock_guard<std::mutex> lock(g_prune_mutex);
+        g_prune_status          = {};
+        g_prune_status.state    = PruneHistoryState::Done;
+        g_prune_status.error    = PruneHistoryError::None;
+        g_prune_status.finished = true;
+        callback                = g_prune_callback;
+        status                  = g_prune_status;
+    }
+    if (callback)
+    {
+        callback(status);
+    }
+    #endif
 
     return true;
 }

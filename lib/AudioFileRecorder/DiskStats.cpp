@@ -440,8 +440,13 @@ bool refreshRecordingUploadStats()
     bool ok = MicroSdCard::isReady();
     if (ok)
     {
+        #ifdef BUILD_CLOUD_FEATURES
         ok = load_uploaded_paths(uploaded_head, uploaded_tail, stats) &&
              scan_recording_directory("/", uploaded_head, stats, latest_key);
+        #else
+        ok = scan_recording_directory("/", nullptr, stats, latest_key);
+        stats.total_rec_files_not_uploaded = 0;
+        #endif
     }
     free_uploaded_paths(uploaded_head);
 
@@ -497,8 +502,12 @@ uint32_t totalRecFilesStored()
 
 uint32_t totalRecFilesNotUploaded()
 {
+    #ifdef BUILD_CLOUD_FEATURES
     std::lock_guard<std::mutex> lock(g_mutex);
     return g_total_rec_files_not_uploaded;
+    #else
+    return 0;
+    #endif
 }
 
 const char* lastUploadDateTime()

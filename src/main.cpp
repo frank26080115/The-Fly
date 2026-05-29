@@ -10,8 +10,6 @@
 #include "BluetoothManager.h"
 #include "BtHostList.h"
 #include "Aegis.h"
-#include "CloudUpload.h"
-#include "CloudUploadView.h"
 #include "ConnWaitingView.h"
 #include "DiskStats.h"
 #include "Hotel.h"
@@ -32,6 +30,11 @@
 #include "utilfuncs.h"
 #include "all_tests.h"
 #include <string.h>
+
+#ifdef BUILD_CLOUD_FEATURES
+#include "CloudUpload.h"
+#include "CloudUploadView.h"
+#endif
 
 constexpr const char* MAINTAG = "main.cpp";
 
@@ -58,7 +61,9 @@ bool         bluetooth_recording_state(BtManager::State state);
 static void  handle_pending_bluetooth_recording();
 static void  handle_pending_bluetooth_pairing();
 static void  handle_pending_bluetooth_connect_failed();
+#ifdef BUILD_CLOUD_FEATURES
 static void  handle_pending_cloud_upload_complete();
+#endif
 static void  handle_wifi_connection_waiting();
 static void  handle_wifi_station_connected();
 void         show_wifi_connection_failed(const char* text);
@@ -70,18 +75,21 @@ FlyGui* gui;
 M5GFX& thefly_display = M5.Display;
 BtHostList* bt_host_list;
 WifiManager* wifi_manager;
-CloudUpload g_cloud_upload;
 volatile bool g_pending_bluetooth_recording = false;
 volatile bool g_pending_bluetooth_disconnect = false;
 volatile bool g_pending_bluetooth_pairing = false;
 volatile bool g_bluetooth_connect_waiting = false;
 volatile bool g_pending_bluetooth_connect_failed = false;
-volatile bool g_pending_cloud_upload_complete = false;
 volatile bool g_suppress_bluetooth_auto_recording = false;
 bool g_wifi_connect_waiting = false;
 static uint16_t g_conn_waiting_return_view_id = FLYGUI_VIEW_MAIN;
 BtManager::PairedDevice g_pending_paired_device = {};
+
+#ifdef BUILD_CLOUD_FEATURES
+CloudUpload g_cloud_upload;
+volatile bool g_pending_cloud_upload_complete = false;
 CloudUpload::Status g_pending_cloud_upload_status = {};
+#endif
 
 ScrollView* get_scroll_view()
 {

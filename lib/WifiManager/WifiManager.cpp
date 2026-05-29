@@ -179,7 +179,11 @@ void sanitize_network_config(network_cfg_t& cfg)
 
     cfg.station_count = cfg.station_count > kNetworkConfigMaxEntries ? static_cast<uint8_t>(kNetworkConfigMaxEntries) : cfg.station_count;
     cfg.access_point_count = cfg.access_point_count > kNetworkConfigAllowedEntriesAP ? static_cast<uint8_t>(kNetworkConfigAllowedEntriesAP) : cfg.access_point_count;
+    #ifdef BUILD_CLOUD_FEATURES
     cfg.cloud_endpoint_count = cfg.cloud_endpoint_count > kNetworkConfigCloudAllowedEntries ? static_cast<uint8_t>(kNetworkConfigCloudAllowedEntries) : cfg.cloud_endpoint_count;
+    #else
+    cfg.cloud_endpoint_count = 0;
+    #endif
 
     for (size_t i = 0; i < kNetworkConfigMaxEntries; ++i)
     {
@@ -189,6 +193,10 @@ void sanitize_network_config(network_cfg_t& cfg)
         {
             cfg.station[i].icon = ICON_UNKNOWN;
         }
+    }
+
+    for (size_t i = 0; i < kNetworkConfigCloudMaxEntries; ++i)
+    {
         cfg.cloud[i].password[sizeof(cfg.cloud[i].password) - 1] = '\0';
         cfg.cloud[i].url[sizeof(cfg.cloud[i].url) - 1] = '\0';
         if (cfg.cloud[i].icon >= ICON_LAST)
@@ -267,6 +275,7 @@ bool parse_network_wifi_array(JsonDocument& doc,
 bool parse_network_cloud_array(JsonDocument& doc, cloud_item_t* items, uint8_t& count, size_t& skipped)
 {
     count = 0;
+    #ifdef BUILD_CLOUD_FEATURES
     JsonArray array = doc["cloud_uploads"].as<JsonArray>();
     if (!array.isNull())
     {
@@ -302,6 +311,10 @@ bool parse_network_cloud_array(JsonDocument& doc, cloud_item_t* items, uint8_t& 
             ++count;
         }
     }
+    #else
+    (void)doc;
+    (void)skipped;
+    #endif
 
     for (size_t i = count; i < kNetworkConfigCloudMaxEntries; ++i)
     {
@@ -346,7 +359,9 @@ bool parse_network_config_json(JsonDocument& doc, network_cfg_t& cfg, size_t& sk
 
     parse_network_wifi_array(doc, "stations", cfg.station, kNetworkConfigMaxEntries, cfg.station_count, ICON_UNKNOWN, skipped);
     parse_network_wifi_array(doc, "access_points", cfg.access_point, kNetworkConfigAllowedEntriesAP, cfg.access_point_count, ICON_UNKNOWN, skipped);
+    #ifdef BUILD_CLOUD_FEATURES
     parse_network_cloud_array(doc, cfg.cloud, cfg.cloud_endpoint_count, skipped);
+    #endif
     sanitize_network_config(cfg);
     return skipped == 0;
 }
@@ -743,7 +758,11 @@ bool WifiManager::replaceConfig(const network_cfg_t& config)
     m_network_cfg = staged;
     m_station_count = m_network_cfg.station_count;
     m_access_point_count = m_network_cfg.access_point_count;
+    #ifdef BUILD_CLOUD_FEATURES
     m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
+    #else
+    m_cloud_endpoint_count = 0;
+    #endif
     m_active_wifi = nullptr;
     m_connected_wifi = nullptr;
     m_reported_connected = false;
