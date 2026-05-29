@@ -377,6 +377,24 @@ const char* memo_type_to_string(MemoType type)
     }
 }
 
+char memo_type_to_code(MemoType type)
+{
+    switch (type)
+    {
+    case MEMO_TYPE_TODO:
+        return 'T';
+    case MEMO_TYPE_JOURNAL:
+        return 'J';
+    case MEMO_TYPE_IDEA:
+        return 'I';
+    case MEMO_TYPE_REMINDER:
+        return 'R';
+    case MEMO_TYPE_NOTE:
+    default:
+        return 'M';
+    }
+}
+
 size_t upsample_s16_mono_2x_duplicate(const int16_t* src, size_t src_samples, int16_t* dst)
 {
     if (!src || !dst)

@@ -34,6 +34,9 @@ enum PacketFlags : uint8_t
 bool init(AudioFifo& hostFifo, AudioFifo& micFifo);
 bool startRecording(RecordingType type);
 bool startRecording(char typeCode);
+void setRecordingType(RecordingType type);
+void setRecordingType(char typeCode);
+void setMemoType(MemoType type);
 void pump();
 bool stopRecording(bool estop = false);
 bool isRecording();

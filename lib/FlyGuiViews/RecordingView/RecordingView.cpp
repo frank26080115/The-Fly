@@ -259,11 +259,10 @@ void RecordingView::handleExitButton()
     FlyGui::quickScreenFade();
 
     char fileName[80] = {};
+    RecordingViewCallbacks::stopRecording(mode_ == Mode::Bluetooth);
     const char* name = path_basename(AudioFileRecorder::currentSdPath());
     strncpy(fileName, name && name[0] != '\0' ? name : "Recording", sizeof(fileName) - 1);
     fileName[sizeof(fileName) - 1] = '\0';
-
-    RecordingViewCallbacks::stopRecording(mode_ == Mode::Bluetooth);
     if (gui())
     {
         ModalDialog* dialog = get_modal_dialog();
@@ -302,6 +301,7 @@ void RecordingView::handleMemoTypeButton()
     }
 
     memoTypeButton_.cycleNext();
+    AudioFileRecorder::setMemoType(memoTypeButton_.memoType());
 }
 
 void RecordingView::micThunk(uint32_t pressDurationMs)

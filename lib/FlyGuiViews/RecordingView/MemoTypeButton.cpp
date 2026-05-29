@@ -1,6 +1,7 @@
 #include "MemoTypeButton.h"
 
 #include "sprites.h"
+#include "utilfuncs.h"
 
 MemoTypeButton::MemoTypeButton(int16_t x, int16_t y)
     : FlyGuiItem(x, y, SPRIT_MEMOTYPE_NOTE_WIDTH, SPRIT_MEMOTYPE_NOTE_HEIGHT)
@@ -62,18 +63,5 @@ void MemoTypeButton::cycleNext()
 
 char MemoTypeButton::typeCode() const
 {
-    switch (type_)
-    {
-    case MEMO_TYPE_TODO:
-        return 'T';
-    case MEMO_TYPE_JOURNAL:
-        return 'J';
-    case MEMO_TYPE_IDEA:
-        return 'I';
-    case MEMO_TYPE_REMINDER:
-        return 'R';
-    case MEMO_TYPE_NOTE:
-    default:
-        return 'M';
-    }
+    return memo_type_to_code(type_);
 }

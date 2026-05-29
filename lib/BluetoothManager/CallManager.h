@@ -36,6 +36,8 @@ PhoneUiState uiState();
 PhoneState   phoneState();
 const char*  uiStateName(PhoneUiState state);
 
+bool formatCallMetaText(char* out, size_t outSize);
+
 bool        addCallerInfo(const char* text);
 void        clearCallerInfo();
 size_t      getCallerInfoCnt();

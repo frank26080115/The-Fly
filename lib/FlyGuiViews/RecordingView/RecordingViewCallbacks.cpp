@@ -66,7 +66,12 @@ bool promoteMemoRecordingToBluetooth()
 {
     restore_memo_bt_fifo();
     setSpeakerMuted(false);
-    return AudioManager::mode() == AudioManager::P2TMode::Mic || AudioManager::enableMicMode();
+    const bool promoted = AudioManager::mode() == AudioManager::P2TMode::Mic || AudioManager::enableMicMode();
+    if (promoted)
+    {
+        AudioFileRecorder::setRecordingType(AudioFileRecorder::RecordingType::Meeting);
+    }
+    return promoted;
 }
 
 bool stopRecording(bool disconnectBluetooth)

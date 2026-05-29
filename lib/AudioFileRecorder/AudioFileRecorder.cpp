@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 #include <mutex>
+#include <stdio.h>
 #include <string.h>
 
 #if BUILD_WITH_SECURITY_LEVEL >= 1
@@ -11,11 +12,13 @@
 #endif
 
 #include "ClockAgent.h"
+#include "CallManager.h"
 #include "DiskStats.h"
 #include "MicroSdCard.h"
 #include "dbg_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "utilfuncs.h"
 
 namespace AudioFileRecorder
 {
@@ -54,6 +57,8 @@ char       g_sd_path[48]                            = {};
 char       g_queued_meta_text[kMetaTextPayloadMaxBytes + 1] = {};
 size_t     g_queued_meta_text_length                = 0;
 bool       g_meta_text_queued                       = false;
+char       g_recording_type_code                    = static_cast<char>(RecordingType::Unknown);
+MemoType   g_memo_type                              = MEMO_TYPE_NOTE;
 uint64_t   g_bytes_written                          = 0;
 uint32_t   g_sequence_num                           = 0;
 uint32_t   g_last_flush_ms                          = 0;
@@ -102,6 +107,153 @@ void make_recording_path(char type_code)
         now.time.seconds = 0;
     }
     snprintf(g_sd_path, sizeof(g_sd_path), "/%c-%04d-%02d-%02d-%02d-%02d-%02d-U.%s", type_code, now.date.year, now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds, g_pure_pcm_mode ? "pcm" : "rec");
+}
+
+bool memo_type_from_code(char type_code, MemoType& type)
+{
+    switch (type_code)
+    {
+    case 'T':
+        type = MEMO_TYPE_TODO;
+        return true;
+    case 'J':
+        type = MEMO_TYPE_JOURNAL;
+        return true;
+    case 'I':
+        type = MEMO_TYPE_IDEA;
+        return true;
+    case 'R':
+        type = MEMO_TYPE_REMINDER;
+        return true;
+    case 'M':
+        type = MEMO_TYPE_NOTE;
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool recording_type_is_call(char type_code)
+{
+    return type_code == static_cast<char>(RecordingType::Meeting);
+}
+
+bool recording_type_is_memo(char type_code)
+{
+    MemoType ignored = MEMO_TYPE_NOTE;
+    return memo_type_from_code(type_code, ignored);
+}
+
+void clear_queued_meta_text_locked()
+{
+    g_queued_meta_text[0]     = '\0';
+    g_queued_meta_text_length = 0;
+    g_meta_text_queued        = false;
+}
+
+bool prepare_stop_meta_text(char type_code, MemoType memo_type)
+{
+    char text[kMetaTextPayloadMaxBytes + 1] = {};
+    bool text_fits = true;
+
+    if (recording_type_is_call(type_code))
+    {
+        text_fits = CallManager::formatCallMetaText(text, sizeof(text));
+    }
+    else if (recording_type_is_memo(type_code))
+    {
+        snprintf(text, sizeof(text), "memo-type:%s", memo_type_to_string(memo_type));
+    }
+
+    if (text[0] == '\0')
+    {
+        return true;
+    }
+
+    if (!text_fits)
+    {
+        DBG_LOGW(TAG, "recording metadata text was truncated");
+    }
+
+    if (!queueMetaText(text))
+    {
+        DBG_LOGW(TAG, "recording metadata text was too long for one packet");
+        return false;
+    }
+
+    return true;
+}
+
+char* basename_for_path(char* path)
+{
+    if (!path)
+    {
+        return nullptr;
+    }
+
+    char* name = path;
+    for (char* cursor = path; *cursor; ++cursor)
+    {
+        if (*cursor == '/' || *cursor == '\\')
+        {
+            name = cursor + 1;
+        }
+    }
+
+    return name;
+}
+
+bool make_path_with_type_code(const char* source_path, char type_code, char* out_path, size_t out_path_size)
+{
+    if (!source_path || !out_path || out_path_size == 0)
+    {
+        return false;
+    }
+
+    strncpy(out_path, source_path, out_path_size - 1);
+    out_path[out_path_size - 1] = '\0';
+
+    char* name = basename_for_path(out_path);
+    if (!name || name[0] == '\0' || name[0] == type_code)
+    {
+        return false;
+    }
+
+    name[0] = type_code;
+    return strcmp(out_path, source_path) != 0;
+}
+
+bool rename_stopped_recording(char* stopped_path, size_t stopped_path_size, char type_code)
+{
+    char renamed_path[sizeof(g_sd_path)] = {};
+    if (!make_path_with_type_code(stopped_path, type_code, renamed_path, sizeof(renamed_path)))
+    {
+        return false;
+    }
+
+    SdFs& fs = MicroSdCard::fs();
+    if (fs.exists(renamed_path))
+    {
+        DBG_LOGW(TAG, "recording rename skipped, target exists: %s", renamed_path);
+        return false;
+    }
+
+    if (!fs.rename(stopped_path, renamed_path))
+    {
+        DBG_LOGW(TAG, "recording rename failed: %s -> %s", stopped_path, renamed_path);
+        return false;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(g_recorder_mutex);
+        strncpy(g_sd_path, renamed_path, sizeof(g_sd_path) - 1);
+        g_sd_path[sizeof(g_sd_path) - 1] = '\0';
+    }
+
+    strncpy(stopped_path, renamed_path, stopped_path_size - 1);
+    stopped_path[stopped_path_size - 1] = '\0';
+    DBG_LOGI(TAG, "recording renamed: %s", stopped_path);
+    return true;
 }
 
 uint8_t flags_for_fifo(AudioFifo& fifo)
@@ -595,6 +747,9 @@ bool startRecording(char typeCode)
                 g_last_flush_ms  = millis();
                 g_consecutive_write_failures = 0;
                 g_card_failure_reported      = false;
+                g_recording_type_code        = typeCode;
+                memo_type_from_code(typeCode, g_memo_type);
+                clear_queued_meta_text_locked();
                 g_recording      = true;
                 recording_file_opened = true;
                 strncpy(started_path, g_sd_path, sizeof(started_path) - 1);
@@ -619,6 +774,28 @@ bool startRecording(char typeCode)
     set_queue_enabled(true); // actually start recording
     DBG_LOGI(TAG, "recording started: %s", started_path);
     return true;
+}
+
+void setRecordingType(RecordingType type)
+{
+    setRecordingType(static_cast<char>(type));
+}
+
+void setRecordingType(char typeCode)
+{
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
+    g_recording_type_code = typeCode;
+    memo_type_from_code(typeCode, g_memo_type);
+}
+
+void setMemoType(MemoType type)
+{
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
+    g_memo_type = type;
+    if (recording_type_is_memo(g_recording_type_code))
+    {
+        g_recording_type_code = memo_type_to_code(type);
+    }
 }
 
 void pump()
@@ -674,6 +851,20 @@ bool stopRecording(bool estop)
         }
     }
 
+    char     stopped_type_code = static_cast<char>(RecordingType::Unknown);
+    MemoType stopped_memo_type = MEMO_TYPE_NOTE;
+    {
+        std::lock_guard<std::mutex> lock(g_recorder_mutex);
+        if (!g_recording && !g_file)
+        {
+            return true;
+        }
+
+        stopped_type_code = g_recording_type_code;
+        stopped_memo_type = g_memo_type;
+    }
+    prepare_stop_meta_text(stopped_type_code, stopped_memo_type);
+
     {
         std::lock_guard<std::mutex> lock(g_recorder_mutex);
         if (!g_recording && !g_file)
@@ -712,6 +903,11 @@ bool stopRecording(bool estop)
 
     if (closed_file)
     {
+        if (recording_type_is_memo(stopped_type_code))
+        {
+            rename_stopped_recording(stopped_path, sizeof(stopped_path), memo_type_to_code(stopped_memo_type));
+        }
+
         DiskStats::refreshDiskSpace();
     }
 
