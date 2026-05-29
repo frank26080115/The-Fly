@@ -17,8 +17,14 @@ from typing import Any, Mapping, Optional, Sequence
 #DEFAULT_MODEL = "gpt-4o-transcribe"
 DEFAULT_MODEL = "gpt-4o-transcribe-diarize"
 DEFAULT_API_URL = "https://api.openai.com/v1/audio/transcriptions"
-MEETING_TYPE_CODES = {"C"}
-MEMO_TYPE_CODES = {"M", "T", "J", "I", "R"}
+FILENAME_TYPE_COMMENTS = {
+    "C": "recording-type:call",
+    "M": "memo-type:note",
+    "T": "memo-type:todo",
+    "J": "memo-type:journal",
+    "I": "memo-type:idea",
+    "R": "memo-type:reminder",
+}
 
 
 class TranscriptionError(ValueError):
@@ -34,21 +40,39 @@ def content_type_for_path(path: Path) -> str:
     return guessed or "audio/wav"
 
 
-def recording_type_from_filename(path: Path) -> str:
+def metadata_comment_from_filename(path: Path) -> str:
     stem = path.stem
     type_code = stem[:1].upper()
     if len(stem) >= 2 and stem[1] == "-":
-        if type_code in MEETING_TYPE_CODES:
-            return "meeting"
-        if type_code in MEMO_TYPE_CODES:
-            return "memo"
+        return FILENAME_TYPE_COMMENTS.get(type_code, "")
+    return ""
 
-    lower_name = path.name.lower()
-    if any(word in lower_name for word in ("meeting", "call")):
+
+def recording_type_from_metadata(comment: str) -> str:
+    values = metadata_values(comment)
+
+    recording_type = values.get("recording-type", "")
+    if recording_type in ("call", "meeting"):
         return "meeting"
-    if "memo" in lower_name:
+    if recording_type == "memo":
         return "memo"
+
+    if values.get("memo-type") in ("note", "todo", "journal", "idea", "reminder"):
+        return "memo"
+
+    if any(key in values for key in ("call-state", "call", "callsetup", "callheld", "caller-info", "sco-audio")):
+        return "meeting"
+
     return "unknown"
+
+
+def metadata_values(comment: str) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for line in comment.splitlines():
+        key, separator, value = line.partition(":")
+        if separator:
+            values[key.strip().lower()] = value.strip().lower()
+    return values
 
 
 def read_wav_info_icmt(wav_path: Path) -> str:
@@ -100,8 +124,12 @@ def read_info_list_icmt(payload: bytes) -> str:
 
 
 def add_recording_metadata(result: dict[str, Any], input_path: Path) -> None:
-    result["meta_type"] = recording_type_from_filename(input_path)
-    result["meta_comment"] = read_wav_info_icmt(input_path)
+    meta_comment = read_wav_info_icmt(input_path)
+    if not meta_comment:
+        meta_comment = metadata_comment_from_filename(input_path)
+
+    result["meta_type"] = recording_type_from_metadata(meta_comment)
+    result["meta_comment"] = meta_comment
 
 
 def multipart_form_data(fields: Mapping[str, str], file_field: str, file_path: Path) -> tuple[bytes, str]:
