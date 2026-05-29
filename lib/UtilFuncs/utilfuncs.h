@@ -22,6 +22,9 @@ void format_bdaddr(const uint8_t bdaddr[ESP_BD_ADDR_LEN], char* out, size_t out_
 bool bda_equal(const uint8_t a[ESP_BD_ADDR_LEN], const uint8_t b[ESP_BD_ADDR_LEN]);
 void format_bytes(uint64_t bytes, char* out, size_t out_size);
 void format_uint64_alphanumeric(uint64_t value, bool allow_lowercase, size_t min_length, char* out, size_t out_size);
+void bytes_to_hex(const uint8_t* data, size_t size, String& out);
+int8_t hex_nibble(char ch);
+bool hex_to_bytes(const String& hex, uint8_t* out, size_t out_size);
 bool parse_hex_byte(const char* text, uint8_t& value);
 bool parse_mac(const char* mac, esp_bd_addr_t out);
 bool parse_datetime(const char* text, m5::rtc_datetime_t& out);

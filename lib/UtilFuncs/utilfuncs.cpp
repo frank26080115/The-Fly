@@ -13,6 +13,7 @@
 namespace
 {
 constexpr const char* TAG = "utilfuncs";
+constexpr char        kHexChars[] = "0123456789abcdef";
 
 bool is_leap_year(int32_t year)
 {
@@ -277,6 +278,52 @@ void format_uint64_alphanumeric(uint64_t value, bool allow_lowercase, size_t min
     }
 
     out[written] = '\0';
+}
+
+void bytes_to_hex(const uint8_t* data, size_t size, String& out)
+{
+    for (size_t i = 0; data && i < size; ++i)
+    {
+        out += kHexChars[data[i] >> 4];
+        out += kHexChars[data[i] & 0x0F];
+    }
+}
+
+int8_t hex_nibble(char ch)
+{
+    if (ch >= '0' && ch <= '9')
+    {
+        return ch - '0';
+    }
+    if (ch >= 'a' && ch <= 'f')
+    {
+        return ch - 'a' + 10;
+    }
+    if (ch >= 'A' && ch <= 'F')
+    {
+        return ch - 'A' + 10;
+    }
+    return -1;
+}
+
+bool hex_to_bytes(const String& hex, uint8_t* out, size_t out_size)
+{
+    if (!out || hex.length() != out_size * 2)
+    {
+        return false;
+    }
+
+    for (size_t i = 0; i < out_size; ++i)
+    {
+        const int8_t high = hex_nibble(hex[i * 2]);
+        const int8_t low = hex_nibble(hex[i * 2 + 1]);
+        if (high < 0 || low < 0)
+        {
+            return false;
+        }
+        out[i] = static_cast<uint8_t>((high << 4) | low);
+    }
+    return true;
 }
 
 bool parse_hex_byte(const char* text, uint8_t& value)

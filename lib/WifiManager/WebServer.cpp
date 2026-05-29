@@ -29,6 +29,7 @@
 #include "nvs.h"
 #include "sprites.h"
 #include "thefly_version.h"
+#include "utilfuncs.h"
 #include "web_assets.h"
 
 extern WifiManager* wifi_manager;
@@ -40,7 +41,6 @@ namespace
 {
 
 constexpr const char* TAG = "WebServer";
-constexpr char        kHexChars[] = "0123456789abcdef";
 constexpr const char* kHeaderSessionSaltFromClient = "X-TheFly-Session-Salt-From-Client";
 constexpr const char* kHeaderSessionResponseFromClient = "X-TheFly-Session-Response-From-Client";
 constexpr const char* kBluedroidNvsNamespace = "bt_config.conf";
@@ -168,52 +168,6 @@ void show_password_reset_reboot_dialog()
 void show_memory_reset_reboot_dialog()
 {
     show_reset_reboot_dialog("memory reset", "Memory reset successful\nDismiss to reboot.");
-}
-
-void bytes_to_hex(const uint8_t* data, size_t size, String& out)
-{
-    for (size_t i = 0; data && i < size; ++i)
-    {
-        out += kHexChars[data[i] >> 4];
-        out += kHexChars[data[i] & 0x0F];
-    }
-}
-
-int8_t hex_nibble(char ch)
-{
-    if (ch >= '0' && ch <= '9')
-    {
-        return ch - '0';
-    }
-    if (ch >= 'a' && ch <= 'f')
-    {
-        return ch - 'a' + 10;
-    }
-    if (ch >= 'A' && ch <= 'F')
-    {
-        return ch - 'A' + 10;
-    }
-    return -1;
-}
-
-bool hex_to_bytes(const String& hex, uint8_t* out, size_t out_size)
-{
-    if (!out || hex.length() != out_size * 2)
-    {
-        return false;
-    }
-
-    for (size_t i = 0; i < out_size; ++i)
-    {
-        const int8_t high = hex_nibble(hex[i * 2]);
-        const int8_t low = hex_nibble(hex[i * 2 + 1]);
-        if (high < 0 || low < 0)
-        {
-            return false;
-        }
-        out[i] = static_cast<uint8_t>((high << 4) | low);
-    }
-    return true;
 }
 
 bool read_hex_key_param(AsyncWebServerRequest* request, const char* name, uint8_t* key, size_t key_size, String& error)
