@@ -23,3 +23,4 @@ extern void test_webserver();
 extern void test_btramusage();
 extern void test_nvsloadsave();
 extern void test_decoderbenchmark();
+extern void test_filelistbenchmark();

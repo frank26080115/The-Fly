@@ -54,24 +54,37 @@ uint32_t   g_total_rec_files_not_uploaded = 0;
 char       g_last_upload_datetime[kDateTimeMaxLength] = {};
 char       g_latest_recorded_file_name[kFileNameMaxLength] = {};
 
-bool ends_with_rec(const char* path)
+bool ends_with_extension(const char* path, const char* extension)
 {
-    if (!path)
+    if (!path || !extension)
     {
         return false;
     }
 
     const size_t length = strlen(path);
-    if (length < 4)
+    const size_t extension_length = strlen(extension);
+    if (length < extension_length)
     {
         return false;
     }
 
-    const char* suffix = path + length - 4;
-    return suffix[0] == '.' &&
-           tolower(static_cast<unsigned char>(suffix[1])) == 'r' &&
-           tolower(static_cast<unsigned char>(suffix[2])) == 'e' &&
-           tolower(static_cast<unsigned char>(suffix[3])) == 'c';
+    const char* suffix = path + length - extension_length;
+    for (size_t i = 0; i < extension_length; ++i)
+    {
+        if (tolower(static_cast<unsigned char>(suffix[i])) !=
+            tolower(static_cast<unsigned char>(extension[i])))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool is_recording_path(const char* path)
+{
+    return ends_with_extension(path, ".rec") ||
+           ends_with_extension(path, ".wav");
 }
 
 bool make_child_path(const char* parent, const char* child, char* out, size_t out_size)
@@ -221,7 +234,7 @@ bool extract_success_history_path(const char* line, char* path, size_t path_size
     memcpy(path, line, path_length);
     path[path_length] = '\0';
     datetime = separator + 1;
-    return ends_with_rec(path);
+    return is_recording_path(path);
 }
 
 bool append_uploaded_path(UploadedPathNode*& head, UploadedPathNode*& tail, const char* path)
@@ -351,7 +364,7 @@ bool scan_recording_directory(const char* path, const UploadedPathNode* uploaded
             continue;
         }
 
-        if (child.isFile() && ends_with_rec(child_path))
+        if (child.isFile() && is_recording_path(child_path))
         {
             ++stats.total_rec_files;
             if (!uploaded_path_contains(uploaded_paths, child_path))
