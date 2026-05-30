@@ -106,10 +106,20 @@ extern const uint8_t sprite_eye_closed_100[];
 #define SPRITE_EYE_OPEN_100_BYTES 7997u
 extern const uint8_t sprite_eye_open_100[];
 
+#define SPRITE_FILEUNKNOWN_100_WIDTH 100u
+#define SPRITE_FILEUNKNOWN_100_HEIGHT 100u
+#define SPRITE_FILEUNKNOWN_100_BYTES 10157u
+extern const uint8_t sprite_fileunknown_100[];
+
 #define SPRITE_FIRSTAIDWIFI_50_WIDTH 50u
 #define SPRITE_FIRSTAIDWIFI_50_HEIGHT 50u
 #define SPRITE_FIRSTAIDWIFI_50_BYTES 3575u
 extern const uint8_t sprite_firstaidwifi_50[];
+
+#define SPRITE_FLOPPY_100_WIDTH 100u
+#define SPRITE_FLOPPY_100_HEIGHT 100u
+#define SPRITE_FLOPPY_100_BYTES 11213u
+extern const uint8_t sprite_floppy_100[];
 
 #define SPRITE_FWUPDATE_WIDTH 100u
 #define SPRITE_FWUPDATE_HEIGHT 100u
@@ -305,6 +315,11 @@ extern const uint8_t sprite_pickup[];
 #define SPRITE_PICKUPDOWN_HEIGHT 50u
 #define SPRITE_PICKUPDOWN_BYTES 2727u
 extern const uint8_t sprite_pickupdown[];
+
+#define SPRITE_RECORD_100_WIDTH 100u
+#define SPRITE_RECORD_100_HEIGHT 100u
+#define SPRITE_RECORD_100_BYTES 15164u
+extern const uint8_t sprite_record_100[];
 
 #define SPRITE_SECURITY_50_WIDTH 50u
 #define SPRITE_SECURITY_50_HEIGHT 50u
