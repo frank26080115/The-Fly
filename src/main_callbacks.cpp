@@ -15,6 +15,7 @@
 #include "esp_system.h"
 #include "utilfuncs.h"
 #include <stdio.h>
+#include <string.h>
 
 #ifdef BUILD_CLOUD_FEATURES
 #include "CloudUpload.h"
@@ -50,6 +51,7 @@ extern void update_conn_waiting_wifi_target(const char* targetName);
 extern bool show_recording_view_memo();
 extern bool show_wifi_ap_mode_view();
 extern bool show_wifi_sta_mode_view(bool showDismissButton);
+extern bool show_playback_view(const char* path);
 extern bool show_info_dialog(const char* text, uint16_t next_view);
 extern bool show_error_dialog(const char* text, uint16_t next_view);
 extern bool bluetooth_recording_state(BtManager::State state);
@@ -106,11 +108,8 @@ void onclick_main_bluetooth(uint32_t pressDurationMs)
     }
 }
 
-void onclick_main_info(uint32_t pressDurationMs)
+static void show_system_info_dialog(uint16_t next_view)
 {
-    (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "main screen info selected");
-
     // Fade quickly as feedback because the analysis calls can take a moment.
     FlyGui::quickScreenFade();
 
@@ -177,7 +176,26 @@ void onclick_main_info(uint32_t pressDurationMs)
     }
     #endif
 
-    show_info_dialog(text, FLYGUI_VIEW_MAIN);
+    show_info_dialog(text, next_view);
+}
+
+void onclick_main_info(uint32_t pressDurationMs)
+{
+    (void)pressDurationMs;
+    ESP_LOGI(MAINTAG, "main screen info selected");
+    show_system_info_dialog(FLYGUI_VIEW_MAIN);
+}
+
+void onclick_main_files(uint32_t pressDurationMs)
+{
+    (void)pressDurationMs;
+    ESP_LOGI(MAINTAG, "main screen files selected");
+    ScrollView* scroll_view = get_scroll_view();
+    if (scroll_view && gui)
+    {
+        scroll_view->populateFiles();
+        gui->showView(FLYGUI_VIEW_SCROLL);
+    }
 }
 
 void onclick_main_wifi(uint32_t pressDurationMs)
@@ -581,6 +599,41 @@ void onclick_wifi_show_info(int32_t value, uint32_t pressDurationMs)
     }
 
     show_info_dialog(text, FLYGUI_VIEW_SCROLL);
+}
+
+void onclick_file_wav(int32_t value, uint32_t pressDurationMs)
+{
+    (void)pressDurationMs;
+    ESP_LOGI(MAINTAG, "scroll wav file selected: index=%ld", static_cast<long>(value));
+    ScrollView* scroll_view = get_scroll_view();
+    const char* file_name = scroll_view ? scroll_view->selectedItemLabel() : "";
+    if (!file_name || file_name[0] == '\0')
+    {
+        show_error_dialog("Playback file is unavailable", FLYGUI_VIEW_SCROLL);
+        return;
+    }
+
+    char path[96] = {};
+    if (file_name[0] == '/')
+    {
+        strlcpy(path, file_name, sizeof(path));
+    }
+    else
+    {
+        snprintf(path, sizeof(path), "/%s", file_name);
+    }
+
+    if (!show_playback_view(path))
+    {
+        show_error_dialog("Unable to open playback view", FLYGUI_VIEW_SCROLL);
+    }
+}
+
+void onclick_file_show_info(int32_t value, uint32_t pressDurationMs)
+{
+    (void)pressDurationMs;
+    ESP_LOGI(MAINTAG, "scroll file info selected: task=%ld", static_cast<long>(value));
+    show_system_info_dialog(FLYGUI_VIEW_SCROLL);
 }
 
 void on_pairing_success_dialog_dismissed()

@@ -1,10 +1,12 @@
 #include "ScrollView.h"
 
+#include "../../AudioFileRecorder/MostRecentFiles.h"
 #include "../../BluetoothManager/BtHostList.h"
 #include "../../FlyGui/FlyGuiText.h"
 #include "../../WifiManager/WifiManager.h"
 #include "../ModalDialog.h"
 #include "sprites.h"
+#include "esp_system.h"
 #include <new>
 #include <string.h>
 
@@ -222,6 +224,51 @@ bool starts_with_case_insensitive(const char* text, const char* prefix)
     }
 
     return true;
+}
+
+bool equals_case_insensitive(const char* lhs, const char* rhs)
+{
+    if (!lhs || !rhs)
+    {
+        return false;
+    }
+
+    while (*lhs && *rhs)
+    {
+        char l = *lhs++;
+        char r = *rhs++;
+        if (l >= 'A' && l <= 'Z')
+        {
+            l = static_cast<char>(l - 'A' + 'a');
+        }
+        if (r >= 'A' && r <= 'Z')
+        {
+            r = static_cast<char>(r - 'A' + 'a');
+        }
+        if (l != r)
+        {
+            return false;
+        }
+    }
+
+    return *lhs == '\0' && *rhs == '\0';
+}
+
+bool ends_with_case_insensitive(const char* text, const char* suffix)
+{
+    if (!text || !suffix)
+    {
+        return false;
+    }
+
+    const size_t text_length   = strlen(text);
+    const size_t suffix_length = strlen(suffix);
+    if (text_length < suffix_length)
+    {
+        return false;
+    }
+
+    return equals_case_insensitive(text + text_length - suffix_length, suffix);
 }
 
 bool is_secure_url(const char* text)
@@ -462,6 +509,57 @@ bool ScrollView::populateCloud(const WifiManager* wifiManager)
     return ok;
 }
 
+bool ScrollView::populateFiles()
+{
+    context_           = CONTEXT_FILE_LIST;
+    bluetoothHostList_ = nullptr;
+    exitDeleteMode();
+    clearGeneratedItems();
+
+    bool ok = appendSpriteScrollItem(SCROLL_ITEM_FILE_SHOW_INFO,
+                                     SCROLL_TASK_FILE_SHOW_INFO,
+                                     "Storage Info",
+                                     make_sprite(sprite_info_100, SPRITE_INFO_100_WIDTH, SPRITE_INFO_100_HEIGHT, SPRITE_INFO_100_BYTES));
+
+    MostRecentFiles::FileList files = MostRecentFiles::get(16);
+    for (size_t i = 0; i < files.count; ++i)
+    {
+        const char* file_name = files[i];
+        if (!file_name || file_name[0] == '\0')
+        {
+            continue;
+        }
+
+        ScrollItemKind kind = SCROLL_ITEM_FILE_UNKNOWN;
+        int32_t        callback_value = list_callback_value(i);
+        sprite_desc_t  sprite = make_sprite(sprite_fileunknown_100,
+                                           SPRITE_FILEUNKNOWN_100_WIDTH,
+                                           SPRITE_FILEUNKNOWN_100_HEIGHT,
+                                           SPRITE_FILEUNKNOWN_100_BYTES);
+
+        if (equals_case_insensitive(file_name, "firmware.bin"))
+        {
+            kind           = SCROLL_ITEM_FILE_FIRMWARE;
+            callback_value = SCROLL_TASK_FILE_FIRMWARE_UPDATE;
+            sprite         = make_sprite(sprite_fwupdate, SPRITE_FWUPDATE_WIDTH, SPRITE_FWUPDATE_HEIGHT, SPRITE_FWUPDATE_BYTES);
+        }
+        else if (ends_with_case_insensitive(file_name, ".wav"))
+        {
+            kind   = SCROLL_ITEM_FILE_WAV;
+            sprite = make_sprite(sprite_record_100, SPRITE_RECORD_100_WIDTH, SPRITE_RECORD_100_HEIGHT, SPRITE_RECORD_100_BYTES);
+        }
+        else if (ends_with_case_insensitive(file_name, ".rec"))
+        {
+            kind   = SCROLL_ITEM_FILE_REC;
+            sprite = make_sprite(sprite_recordenc_100, SPRITE_RECORDENC_100_WIDTH, SPRITE_RECORDENC_100_HEIGHT, SPRITE_RECORDENC_100_BYTES);
+        }
+
+        ok = appendSpriteScrollItem(kind, callback_value, file_name, sprite) && ok;
+    }
+
+    return ok;
+}
+
 void ScrollView::setOnClickBluetoothHost(ScrollViewClickCallback callback)
 {
     onBluetoothHost_ = callback;
@@ -507,9 +605,31 @@ void ScrollView::setOnClickWifiShowInfo(ScrollViewClickCallback callback)
     onWifiShowInfo_ = callback;
 }
 
+void ScrollView::setOnClickFileWav(ScrollViewClickCallback callback)
+{
+    onFileWav_ = callback;
+}
+
+void ScrollView::setOnClickFileShowInfo(ScrollViewClickCallback callback)
+{
+    onFileShowInfo_ = callback;
+}
+
 FlyGuiItem* ScrollView::selectedItem() const
 {
     return itemAt(selectedIndex_);
+}
+
+const char* ScrollView::selectedItemLabel() const
+{
+    const FlyGuiItem* item = selectedItem();
+    const ScrollItem* scrollItem = generatedScrollItemFor(item);
+    if (scrollItem)
+    {
+        return scrollItem->label();
+    }
+
+    return item && item->mainText() ? item->mainText() : "";
 }
 
 bool ScrollView::isWifiContext() const
@@ -520,6 +640,11 @@ bool ScrollView::isWifiContext() const
 bool ScrollView::isCloudContext() const
 {
     return context_ == CONTEXT_CLOUD;
+}
+
+bool ScrollView::isFileListContext() const
+{
+    return context_ == CONTEXT_FILE_LIST;
 }
 
 void ScrollView::setExitCallback(FlyGuiItemCallback exitCallback)
@@ -1100,6 +1225,23 @@ void ScrollView::handleScrollItem(ScrollItem& item, uint32_t pressDurationMs)
         if (onWifiShowInfo_)
         {
             onWifiShowInfo_(value, pressDurationMs);
+        }
+        break;
+    case SCROLL_ITEM_FILE_WAV:
+        if (onFileWav_)
+        {
+            onFileWav_(value, pressDurationMs);
+        }
+        break;
+    case SCROLL_ITEM_FILE_FIRMWARE:
+        FlyGui::quickScreenFade();
+        delay(50);
+        esp_restart();
+        break;
+    case SCROLL_ITEM_FILE_SHOW_INFO:
+        if (onFileShowInfo_)
+        {
+            onFileShowInfo_(value, pressDurationMs);
         }
         break;
     default:

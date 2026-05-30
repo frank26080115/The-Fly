@@ -11,6 +11,7 @@
 
 void onclick_main_bluetooth(uint32_t pressDurationMs);
 void onclick_main_info(uint32_t pressDurationMs);
+void onclick_main_files(uint32_t pressDurationMs);
 void onclick_main_wifi(uint32_t pressDurationMs);
 void onclick_main_memo(uint32_t pressDurationMs);
 void onclick_main_smartphone(uint32_t pressDurationMs);
@@ -25,6 +26,8 @@ void onclick_wifi_ap(int32_t value, uint32_t pressDurationMs);
 void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs);
 void onclick_bt_show_info(int32_t value, uint32_t pressDurationMs);
 void onclick_wifi_show_info(int32_t value, uint32_t pressDurationMs);
+void onclick_file_wav(int32_t value, uint32_t pressDurationMs);
+void onclick_file_show_info(int32_t value, uint32_t pressDurationMs);
 
 void conn_waiting_cancel(uint32_t pressDurationMs);
 

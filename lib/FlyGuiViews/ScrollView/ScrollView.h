@@ -25,6 +25,7 @@ public:
     bool populateBluetooth(BtHostList* hostList);
     bool populateWifi(const WifiManager* wifiManager);
     bool populateCloud(const WifiManager* wifiManager);
+    bool populateFiles();
 
     void setOnClickBluetoothHost(ScrollViewClickCallback callback);
     void setOnClickBluetoothPair(ScrollViewClickCallback callback);
@@ -35,6 +36,8 @@ public:
     void setOnClickNtpSync(ScrollViewClickCallback callback);
     void setOnClickBtShowInfo(ScrollViewClickCallback callback);
     void setOnClickWifiShowInfo(ScrollViewClickCallback callback);
+    void setOnClickFileWav(ScrollViewClickCallback callback);
+    void setOnClickFileShowInfo(ScrollViewClickCallback callback);
 
     size_t itemCount() const
     {
@@ -45,8 +48,10 @@ public:
         return selectedIndex_;
     }
     FlyGuiItem* selectedItem() const;
+    const char* selectedItemLabel() const;
     bool isWifiContext() const;
     bool isCloudContext() const;
+    bool isFileListContext() const;
 
     void setExitCallback(FlyGuiItemCallback exitCallback);
     void selectIndex(size_t index);
@@ -68,6 +73,7 @@ private:
         CONTEXT_BLUETOOTH,
         CONTEXT_WIFI,
         CONTEXT_CLOUD,
+        CONTEXT_FILE_LIST,
     };
 
     enum Slot
@@ -130,5 +136,7 @@ private:
     ScrollViewClickCallback onNtpSync_          = nullptr;
     ScrollViewClickCallback onBtShowInfo_       = nullptr;
     ScrollViewClickCallback onWifiShowInfo_     = nullptr;
+    ScrollViewClickCallback onFileWav_          = nullptr;
+    ScrollViewClickCallback onFileShowInfo_     = nullptr;
     static ScrollView* activeDeleteView_;
 };

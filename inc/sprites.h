@@ -316,10 +316,30 @@ extern const uint8_t sprite_pickup[];
 #define SPRITE_PICKUPDOWN_BYTES 2727u
 extern const uint8_t sprite_pickupdown[];
 
+#define SPRITE_PLAYBACK_PAUSE_50_WIDTH 50u
+#define SPRITE_PLAYBACK_PAUSE_50_HEIGHT 50u
+#define SPRITE_PLAYBACK_PAUSE_50_BYTES 2253u
+extern const uint8_t sprite_playback_pause_50[];
+
+#define SPRITE_PLAYBACK_PLAY_50_WIDTH 50u
+#define SPRITE_PLAYBACK_PLAY_50_HEIGHT 50u
+#define SPRITE_PLAYBACK_PLAY_50_BYTES 1895u
+extern const uint8_t sprite_playback_play_50[];
+
 #define SPRITE_RECORD_100_WIDTH 100u
 #define SPRITE_RECORD_100_HEIGHT 100u
 #define SPRITE_RECORD_100_BYTES 15164u
 extern const uint8_t sprite_record_100[];
+
+#define SPRITE_RECORD_50_WIDTH 50u
+#define SPRITE_RECORD_50_HEIGHT 50u
+#define SPRITE_RECORD_50_BYTES 4567u
+extern const uint8_t sprite_record_50[];
+
+#define SPRITE_RECORDENC_100_WIDTH 100u
+#define SPRITE_RECORDENC_100_HEIGHT 100u
+#define SPRITE_RECORDENC_100_BYTES 16491u
+extern const uint8_t sprite_recordenc_100[];
 
 #define SPRITE_SECURITY_50_WIDTH 50u
 #define SPRITE_SECURITY_50_HEIGHT 50u
@@ -346,15 +366,40 @@ extern const uint8_t sprite_smartphone_ap_100[];
 #define SPRITE_SMARTPHONE_BT_100_BYTES 12393u
 extern const uint8_t sprite_smartphone_bt_100[];
 
+#define SPRITE_SPEAKER_00_50_WIDTH 50u
+#define SPRITE_SPEAKER_00_50_HEIGHT 50u
+#define SPRITE_SPEAKER_00_50_BYTES 3116u
+extern const uint8_t sprite_speaker_00_50[];
+
 #define SPRITE_SPEAKER_100_WIDTH 100u
 #define SPRITE_SPEAKER_100_HEIGHT 100u
 #define SPRITE_SPEAKER_100_BYTES 11664u
 extern const uint8_t sprite_speaker_100[];
 
+#define SPRITE_SPEAKER_33_50_WIDTH 50u
+#define SPRITE_SPEAKER_33_50_HEIGHT 50u
+#define SPRITE_SPEAKER_33_50_BYTES 3112u
+extern const uint8_t sprite_speaker_33_50[];
+
+#define SPRITE_SPEAKER_50_WIDTH 50u
+#define SPRITE_SPEAKER_50_HEIGHT 50u
+#define SPRITE_SPEAKER_50_BYTES 3415u
+extern const uint8_t sprite_speaker_50[];
+
+#define SPRITE_SPEAKER_66_50_WIDTH 50u
+#define SPRITE_SPEAKER_66_50_HEIGHT 50u
+#define SPRITE_SPEAKER_66_50_BYTES 3228u
+extern const uint8_t sprite_speaker_66_50[];
+
 #define SPRITE_SPLASH_WIDTH 320u
 #define SPRITE_SPLASH_HEIGHT 240u
 #define SPRITE_SPLASH_BYTES 48938u
 extern const uint8_t sprite_splash[];
+
+#define SPRITE_SQUAREX_50_WIDTH 50u
+#define SPRITE_SQUAREX_50_HEIGHT 50u
+#define SPRITE_SQUAREX_50_BYTES 2365u
+extern const uint8_t sprite_squarex_50[];
 
 #define SPRITE_TABLET_100_WIDTH 100u
 #define SPRITE_TABLET_100_HEIGHT 100u

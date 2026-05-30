@@ -8,6 +8,7 @@
 #include "FirmwareUpdateView.h"
 #include "MainScreenView.h"
 #include "ModalDialog.h"
+#include "PlaybackView.h"
 #include "RecordingView/RecordingView.h"
 #include "ScrollView/ScrollView.h"
 #include "SplashView.h"
@@ -49,6 +50,7 @@ ScrollView          g_scroll_view(FLYGUI_VIEW_SCROLL, onclick_scroll_exit);
 WifiApModeView      g_wifi_ap_mode_view;
 WifiStaModeView     g_wifi_sta_mode_view;
 FirmwareUpdateView  g_firmware_update_view;
+PlaybackView        g_playback_view;
 #ifdef BUILD_CLOUD_FEATURES
 CloudUploadView     g_cloud_upload_view(cloud_upload_cancel);
 #endif
@@ -131,6 +133,7 @@ void init_gui()
     gui->addView(g_wifi_ap_mode_view);
     gui->addView(g_wifi_sta_mode_view);
     gui->addView(g_firmware_update_view);
+    gui->addView(g_playback_view);
 
     g_scroll_view.setOnClickBluetoothHost(onclick_bluetooth_host);
     g_scroll_view.setOnClickBluetoothPair(onclick_bluetooth_pair);
@@ -140,6 +143,8 @@ void init_gui()
     g_scroll_view.setOnClickNtpSync(onclick_ntp_sync);
     g_scroll_view.setOnClickBtShowInfo(onclick_bt_show_info);
     g_scroll_view.setOnClickWifiShowInfo(onclick_wifi_show_info);
+    g_scroll_view.setOnClickFileWav(onclick_file_wav);
+    g_scroll_view.setOnClickFileShowInfo(onclick_file_show_info);
     #ifdef BUILD_CLOUD_FEATURES
     gui->addView(g_cloud_upload_view);
     g_scroll_view.setOnClickCloudUpload(onclick_cloud_upload);
@@ -186,6 +191,11 @@ WifiStaModeView* all_init_wifi_sta_mode_view()
 FirmwareUpdateView* all_init_firmware_update_view()
 {
     return &g_firmware_update_view;
+}
+
+PlaybackView* all_init_playback_view()
+{
+    return &g_playback_view;
 }
 
 void show_splash()

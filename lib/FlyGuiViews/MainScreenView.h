@@ -20,7 +20,7 @@ private:
     void syncBluetoothHostButtonFades();
 
     FlyGuiItem bluetoothItem_;
-    FlyGuiItem infoItem_;
+    FlyGuiItem filesItem_;
     FlyGuiItem memoItem_;
     FlyGuiItem smartphoneItem_;
     FlyGuiItem laptopItem_;

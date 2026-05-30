@@ -24,10 +24,10 @@ constexpr int16_t kRow1         = kGridY + kButtonHeight + kSpriteYInset;
 } // namespace
 
 MainScreenView::MainScreenView()
-    : // Design: main screen lets the user choose bluetooth, info, memo, or files.
+    : // Design: main screen lets the user choose bluetooth, files, memo, or hosts.
       FlyGuiView(FLYGUI_VIEW_MAIN),
       bluetoothItem_(kCol0, kRow0, kSpriteSize, kSpriteSize),
-      infoItem_(kCol1, kRow0, kSpriteSize, kSpriteSize),
+      filesItem_(kCol1, kRow0, kSpriteSize, kSpriteSize),
       memoItem_(kCol2, kRow0, kSpriteSize, kSpriteSize),
       smartphoneItem_(kCol0, kRow1, kSpriteSize, kSpriteSize),
       laptopItem_(kCol1, kRow1, kSpriteSize, kSpriteSize),
@@ -37,9 +37,9 @@ MainScreenView::MainScreenView()
     bluetoothItem_.setCallback(onclick_main_bluetooth);
     addItem(bluetoothItem_);
 
-    infoItem_.setSprite(sprite_info_100, SPRITE_INFO_100_WIDTH, SPRITE_INFO_100_HEIGHT, SPRITE_INFO_100_BYTES);
-    infoItem_.setCallback(onclick_main_info);
-    addItem(infoItem_);
+    filesItem_.setSprite(sprite_floppy_100, SPRITE_FLOPPY_100_WIDTH, SPRITE_FLOPPY_100_HEIGHT, SPRITE_FLOPPY_100_BYTES);
+    filesItem_.setCallback(onclick_main_files);
+    addItem(filesItem_);
 
     memoItem_.setSprite(sprite_memo_100, SPRITE_MEMO_100_WIDTH, SPRITE_MEMO_100_HEIGHT, SPRITE_MEMO_100_BYTES);
     memoItem_.setCallback(onclick_main_memo);

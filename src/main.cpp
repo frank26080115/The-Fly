@@ -19,12 +19,14 @@
 #include "MainScreenView.h"
 #include "MicroSdCard.h"
 #include "ModalDialog.h"
+#include "PlaybackView.h"
 #include "NtpSync.h"
 #include "RecordingView/RecordingView.h"
 #include "RecordingView/RecordingViewCallbacks.h"
 #include "ScrollView/ScrollView.h"
 #include "ShutdownView.h"
 #include "WebServer.h"
+#include "WavPlayback.h"
 #include "WifiManager.h"
 #include "WifiStaModeView.h"
 #include "esp_log.h"
@@ -51,6 +53,7 @@ extern RecordingView* all_init_recording_view();
 extern ConnWaitingView* all_init_conn_waiting_view();
 extern WifiStaModeView* all_init_wifi_sta_mode_view();
 extern FirmwareUpdateView* all_init_firmware_update_view();
+extern PlaybackView* all_init_playback_view();
 
 #ifdef BUILD_CLOUD_FEATURES
 extern CloudUploadView* all_init_cloud_upload_view();
@@ -76,6 +79,7 @@ static bool  battery_fullish_for_firmware_update();
 void         show_wifi_connection_failed(const char* text);
 bool         connect_to_bluetooth_host(const bt_host_item_t* host, const char* source);
 void         request_bluetooth_disconnect();
+bool         show_playback_view(const char* path);
 static const char* info_dialog_text_with_tamper_code(const char* text, char* buffer, size_t buffer_size);
 static const char* ntp_error_name(NtpSync::Error error);
 
@@ -109,9 +113,9 @@ void setup()
 {
     all_init();
 
-    //#ifdef RUN_BRINGUP_TEST
+    #ifdef RUN_BRINGUP_TEST
     run_test();
-    //#endif
+    #endif
 
     BattTracker::init();
     BattTracker::shutdownIfNeeded();
@@ -227,6 +231,7 @@ void loop()
     {
         AudioFileRecorder::pump();
     }
+    WavPlayback::pump();
     if (wifi_manager) {
         wifi_manager->poll();
         handle_wifi_connection_waiting();
@@ -397,6 +402,18 @@ bool show_recording_view_memo()
     return started && gui->showView(FLYGUI_VIEW_RECORDING);
 }
 
+bool show_playback_view(const char* path)
+{
+    PlaybackView* view = all_init_playback_view();
+    if (!gui || !view || !path || path[0] == '\0')
+    {
+        return false;
+    }
+
+    view->configureFile(path);
+    return gui->showView(FLYGUI_VIEW_PLAYBACK);
+}
+
 bool show_wifi_ap_mode_view()
 {
     return gui && gui->showView(FLYGUI_VIEW_AP_MODE);
@@ -521,6 +538,11 @@ static void handle_pending_bluetooth_recording()
             }
         }
         return;
+    }
+
+    if (WavPlayback::active())
+    {
+        WavPlayback::stop();
     }
 
     ESP_LOGI(MAINTAG, "Bluetooth recording trigger accepted at state: %s", BtManager::stateName(BtManager::state()));
