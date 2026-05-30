@@ -105,6 +105,160 @@ volatile bool g_pending_cloud_upload_complete = false;
 CloudUpload::Status g_pending_cloud_upload_status = {};
 #endif
 
+void setup()
+{
+    all_init();
+
+    #ifdef RUN_BRINGUP_TEST
+    run_test();
+    #endif
+
+    BattTracker::init();
+    BattTracker::shutdownIfNeeded();
+
+    if (reset_was_magic == false) {
+        show_splash();
+        draw_splash_boot_info();
+    }
+
+    if (!MicroSdCard::begin())
+    {
+        show_fatal_error_f(true, "microSD init failed");
+    }
+
+    handle_firmware_update_on_boot();
+
+    wifi_manager = new WifiManager();
+
+    if (!g_nvs_ready)
+    {
+        show_fatal_error_f(true, "NVS init failed");
+    }
+
+    #if BUILD_WITH_SECURITY_LEVEL <= 0
+    if (wifi_manager && !wifi_manager->loadFromMicroSd())
+    #else
+    if (wifi_manager && !wifi_manager->loadFromNvs())
+    #endif
+    {
+        show_fatal_error_f(false, "Wi-Fi configuration load failed: %s", wifi_manager->lastLoadResultName());
+    }
+    if (wifi_manager)
+    {
+        wifi_manager->setOnScanFinished(on_wifi_scan_finished);
+    }
+    if (gui && gui->currentView() && gui->currentView()->id() == FLYGUI_VIEW_SPLASH)
+    {
+        draw_splash_boot_info();
+    }
+
+    if (!AudioManager::init())
+    {
+        show_fatal_error_f(true, "AudioManager init failed");
+    }
+
+    BtManager::setStateChangedCallback(on_bluetooth_state_changed);
+    BtManager::setPairedCallback(on_bluetooth_paired);
+    BtManager::setAudioCallbacks(AudioManager::hfp_incoming_audio, AudioManager::hfp_outgoing_audio);
+    BtManager::generateLegacyPinFromMac();
+    ESP_LOGI(MAINTAG, "Bluetooth legacy pairing PIN: %s", BtManager::generatedLegacyPin());
+    if (!BtManager::init(nullptr, AudioManager::hfp_incoming_audio, AudioManager::hfp_outgoing_audio, BtManager::generatedLegacyPin()))
+    {
+        show_fatal_error_f(true, "BluetoothManager init failed");
+    }
+
+    bt_host_list = new BtHostList();
+    #if BUILD_WITH_SECURITY_LEVEL <= 0
+    if (!bt_host_list->loadFromMicroSd())
+    #else
+    if (!bt_host_list->loadFromNvs())
+    #endif
+    {
+        show_fatal_error_f(false, "Bluetooth host list load failed");
+    }
+    if (!bt_host_list->pruneBonds())
+    {
+        show_fatal_error_f(false, "Bluetooth bond pruning failed: %s", bt_host_list->lastLoadResultName());
+    }
+
+#ifdef TEST_BOOT_ERROR_NONFATAL
+    show_fatal_error_f(false, "test non fatal error");
+#endif
+
+#ifdef TEST_BOOT_ERROR_FATAL
+    show_fatal_error_f(true, "test fatal error");
+#endif
+
+    if (!gui)
+    {
+        show_fatal_error_f(true, "GUI init failed");
+    }
+    else if (!gui->currentView())
+    {
+        if (!gui->showView(FLYGUI_VIEW_MAIN))
+        {
+            show_fatal_error_f(true, "Failed to show main view");
+        }
+    }
+
+    xTaskCreateUniversal(loopTask_core0, "loopTask_core0", getArduinoLoopTaskStackSize(), NULL, 1, &loopTask_core0_Handle, 0);
+}
+
+void loop()
+{
+    // this is running on core 1
+    if (ShutdownView::shutdownInProgress())
+    {
+        delay(1000);
+        return;
+    }
+
+    BattTracker::poll();
+
+    handle_pending_bluetooth_pairing();
+    handle_pending_bluetooth_connect_failed();
+    handle_pending_bluetooth_recording();
+    #ifdef BUILD_CLOUD_FEATURES
+    handle_pending_cloud_upload_complete();
+    #endif
+    handle_pending_ntp_sync_complete();
+    gui->poll();
+    if (AudioFileRecorder::needsPump())
+    {
+        AudioFileRecorder::pump();
+    }
+    if (wifi_manager) {
+        wifi_manager->poll();
+        handle_wifi_connection_waiting();
+    }
+    Hotel::pollCore1();
+    taskYIELD();
+}
+
+static void loopTask_core0(void* pvParameters)
+{
+    // this is running on core 0
+    while (true)
+    {
+        if (ShutdownView::shutdownInProgress())
+        {
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            continue;
+        }
+
+        if (g_pending_bluetooth_disconnect)
+        {
+            g_pending_bluetooth_disconnect = false;
+            BtManager::disconnect();
+        }
+
+        BtManager::poll();
+        AudioManager::pump_task();
+        Hotel::pollCore0();
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
+}
+
 ScrollView* get_scroll_view()
 {
     return all_init_scroll_view();
@@ -258,160 +412,6 @@ bool show_wifi_sta_mode_view(bool showDismissButton)
 
     view->configure(showDismissButton);
     return gui->showView(FLYGUI_VIEW_STA_MODE);
-}
-
-void setup()
-{
-    all_init();
-
-    #ifdef RUN_BRINGUP_TEST
-    run_test();
-    #endif
-
-    BattTracker::init();
-    BattTracker::shutdownIfNeeded();
-
-    if (reset_was_magic == false) {
-        show_splash();
-        draw_splash_boot_info();
-    }
-
-    if (!MicroSdCard::begin())
-    {
-        show_fatal_error_f(true, "microSD init failed");
-    }
-
-    handle_firmware_update_on_boot();
-
-    wifi_manager = new WifiManager();
-
-    if (!g_nvs_ready)
-    {
-        show_fatal_error_f(true, "NVS init failed");
-    }
-
-    #if BUILD_WITH_SECURITY_LEVEL <= 0
-    if (wifi_manager && !wifi_manager->loadFromMicroSd())
-    #else
-    if (wifi_manager && !wifi_manager->loadFromNvs())
-    #endif
-    {
-        show_fatal_error_f(false, "Wi-Fi configuration load failed: %s", wifi_manager->lastLoadResultName());
-    }
-    if (wifi_manager)
-    {
-        wifi_manager->setOnScanFinished(on_wifi_scan_finished);
-    }
-    if (gui && gui->currentView() && gui->currentView()->id() == FLYGUI_VIEW_SPLASH)
-    {
-        draw_splash_boot_info();
-    }
-
-    if (!AudioManager::init())
-    {
-        show_fatal_error_f(true, "AudioManager init failed");
-    }
-
-    BtManager::setStateChangedCallback(on_bluetooth_state_changed);
-    BtManager::setPairedCallback(on_bluetooth_paired);
-    BtManager::setAudioCallbacks(AudioManager::hfp_incoming_audio, AudioManager::hfp_outgoing_audio);
-    BtManager::generateLegacyPinFromMac();
-    ESP_LOGI(MAINTAG, "Bluetooth legacy pairing PIN: %s", BtManager::generatedLegacyPin());
-    if (!BtManager::init(nullptr, AudioManager::hfp_incoming_audio, AudioManager::hfp_outgoing_audio, BtManager::generatedLegacyPin()))
-    {
-        show_fatal_error_f(true, "BluetoothManager init failed");
-    }
-
-    bt_host_list = new BtHostList();
-    #if BUILD_WITH_SECURITY_LEVEL <= 0
-    if (!bt_host_list->loadFromMicroSd())
-    #else
-    if (!bt_host_list->loadFromNvs())
-    #endif
-    {
-        show_fatal_error_f(false, "Bluetooth host list load failed");
-    }
-    if (!bt_host_list->pruneBonds())
-    {
-        show_fatal_error_f(false, "Bluetooth bond pruning failed: %s", bt_host_list->lastLoadResultName());
-    }
-
-#ifdef TEST_BOOT_ERROR_NONFATAL
-    show_fatal_error_f(false, "test non fatal error");
-#endif
-
-#ifdef TEST_BOOT_ERROR_FATAL
-    show_fatal_error_f(true, "test fatal error");
-#endif
-
-    if (!gui)
-    {
-        show_fatal_error_f(true, "GUI init failed");
-    }
-    else if (!gui->currentView())
-    {
-        if (!gui->showView(FLYGUI_VIEW_MAIN))
-        {
-            show_fatal_error_f(true, "Failed to show main view");
-        }
-    }
-
-    xTaskCreateUniversal(loopTask_core0, "loopTask_core0", getArduinoLoopTaskStackSize(), NULL, 1, &loopTask_core0_Handle, 0);
-}
-
-void loop()
-{
-    // this is running on core 1
-    if (ShutdownView::shutdownInProgress())
-    {
-        delay(1000);
-        return;
-    }
-
-    BattTracker::poll();
-
-    handle_pending_bluetooth_pairing();
-    handle_pending_bluetooth_connect_failed();
-    handle_pending_bluetooth_recording();
-    #ifdef BUILD_CLOUD_FEATURES
-    handle_pending_cloud_upload_complete();
-    #endif
-    handle_pending_ntp_sync_complete();
-    gui->poll();
-    if (AudioFileRecorder::needsPump())
-    {
-        AudioFileRecorder::pump();
-    }
-    if (wifi_manager) {
-        wifi_manager->poll();
-        handle_wifi_connection_waiting();
-    }
-    Hotel::pollCore1();
-    taskYIELD();
-}
-
-static void loopTask_core0(void* pvParameters)
-{
-    // this is running on core 0
-    while (true)
-    {
-        if (ShutdownView::shutdownInProgress())
-        {
-            vTaskDelay(pdMS_TO_TICKS(1000));
-            continue;
-        }
-
-        if (g_pending_bluetooth_disconnect)
-        {
-            g_pending_bluetooth_disconnect = false;
-            BtManager::disconnect();
-        }
-
-        BtManager::poll();
-        AudioManager::pump_task();
-        Hotel::pollCore0();
-        vTaskDelay(pdMS_TO_TICKS(1));
-    }
 }
 
 static void handle_firmware_update_on_boot()

@@ -387,6 +387,26 @@ public:
         return watermarkSamples_;
     }
 
+    void setWatermark(size_t watermarkSamples)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        watermarkSamples_ = watermarkSamples > capacitySamples_ ? capacitySamples_ : watermarkSamples;
+
+        if (watermarkSamples_ == 0)
+        {
+            state_ = State::Draining;
+            return;
+        }
+
+        if (usedSamples_ == 0)
+        {
+            state_ = State::Filling;
+            return;
+        }
+
+        state_ = usedSamples_ >= watermarkSamples_ ? State::Draining : State::Filling;
+    }
+
     State state() const
     {
         std::lock_guard<std::mutex> lock(mutex_);
