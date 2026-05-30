@@ -55,9 +55,15 @@ constexpr uint16_t kVolumeGainByLevel[kMaxVolume] = {
 };
 
 AudioFifo g_fifo_bt2spk   (1024 * 4, kFifoWatermarkSamples);
-AudioFifo g_fifo_bt2file  (1024 * 8, 0);
 AudioFifo g_fifo_mic2bt   (1024 * 4, kFifoWatermarkSamples);
+
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+AudioFifo g_fifo_bt2file  (1024 * 8, 0);
 AudioFifo g_fifo_mic2file (1024 * 8, 0);
+#else
+AudioFifo g_fifo_bt2file  (1024 * 8, 512);
+AudioFifo g_fifo_mic2file (1024 * 8, 512);
+#endif
 
 Hardware          g_hardware               = Hardware::M5StackInternal;
 P2TMode           g_mode                   = P2TMode::Stopped;
@@ -79,6 +85,42 @@ size_t            g_pending_speaker_bytes = 0;
 int16_t g_mono_buffer[kPumpSamples];
 int16_t g_stereo_buffer[kPumpSamples * 2];
 uint8_t g_pending_speaker_buffer[kPumpSamples * 2 * sizeof(int16_t)];
+
+#if BUILD_WITH_SECURITY_LEVEL == 0
+constexpr size_t kFileFifoCatchupStartSamples  = 1024;
+constexpr size_t kFileFifoCatchupTargetSamples = 512;
+
+bool mic_file_source_active()
+{
+    return g_mode == P2TMode::Mic && g_i2s_rx != nullptr;
+}
+
+void queue_silence_to_match(AudioFifo& lagging_fifo, AudioFifo& leading_fifo)
+{
+    const size_t leading = leading_fifo.usedSamples();
+    const size_t lagging = lagging_fifo.usedSamples();
+    if (leading > lagging)
+    {
+        lagging_fifo.queueSilence(leading - lagging);
+    }
+}
+
+void queue_silence_to_reduce_lag(AudioFifo& lagging_fifo, AudioFifo& leading_fifo)
+{
+    const size_t leading = leading_fifo.usedSamples();
+    const size_t lagging = lagging_fifo.usedSamples();
+    if (leading <= lagging + kFileFifoCatchupStartSamples)
+    {
+        return;
+    }
+
+    const size_t target_lagging = leading - kFileFifoCatchupTargetSamples;
+    if (target_lagging > lagging)
+    {
+        lagging_fifo.queueSilence(target_lagging - lagging);
+    }
+}
+#endif
 
 #ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
 HfpAudioDiagnostics g_hfp_diag     = {};
@@ -133,6 +175,18 @@ void queue_hfp_pcm(const uint8_t* buf, uint32_t len)
     SpeakerPeakActivity::process(pcm, samples);
     const size_t queued_spk  = g_fifo_bt2spk.queue(pcm, samples, g_hfp_rate_hz);
     const size_t queued_file = g_fifo_bt2file.queue(pcm, samples, g_hfp_rate_hz);
+
+    #if BUILD_WITH_SECURITY_LEVEL == 0
+    if (!mic_file_source_active())
+    {
+        queue_silence_to_match(g_fifo_mic2file, g_fifo_bt2file);
+    }
+    else
+    {
+        queue_silence_to_reduce_lag(g_fifo_mic2file, g_fifo_bt2file);
+    }
+    #endif
+
     HFP_AUDIO_DIAG([len, samples, queued_spk, queued_file](HfpAudioDiagnostics& diag) {
         diag.incomingConsumedBytes += len;
         diag.incomingPcmSamples += samples;
@@ -771,6 +825,10 @@ void pump_mic2bt()
         });
         notify_ready = notify_ready || should_notify_hfp_outgoing_ready(queued_bt, true);
     }
+
+    #if BUILD_WITH_SECURITY_LEVEL == 0
+    queue_silence_to_reduce_lag(g_fifo_bt2file, g_fifo_mic2file);
+    #endif
 
     lock.unlock();
     notify_hfp_outgoing_ready(notify_ready);

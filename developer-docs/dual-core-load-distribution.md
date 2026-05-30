@@ -110,7 +110,7 @@ Preferred core: Core 1.
 Responsibilities:
 
 * own the open recording file handle
-* write queued audio packets to the pre-grown `.rec` file
+* write queued audio to the pre-grown recording file (`.wav` for unencrypted builds, `.rec` for encrypted builds)
 * track actual recorded byte count
 * flush on stop, truncate to actual length, and close
 * write the `.meta.json` file after audio is closed

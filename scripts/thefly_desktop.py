@@ -152,6 +152,10 @@ def is_rec_file(file_name: str) -> bool:
     return Path(file_name).suffix.lower() == ".rec"
 
 
+def is_wav_file(file_name: str) -> bool:
+    return Path(file_name).suffix.lower() == ".wav"
+
+
 def download_remote_file(base_url: str, remote_name: str, output_path: Path, timeout: float) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     url = endpoint_url(base_url, "/download_file", {"file_name": remote_name})
@@ -171,6 +175,23 @@ def download_remote_file(base_url: str, remote_name: str, output_path: Path, tim
             temp_path.unlink()
         except FileNotFoundError:
             pass
+
+
+def save_wav_directly(source_path: Path, wav_path: Path) -> Path:
+    wav_path.parent.mkdir(parents=True, exist_ok=True)
+    if source_path.resolve() == wav_path.resolve():
+        return wav_path
+
+    temp_path = wav_path.with_name(wav_path.name + ".download")
+    try:
+        shutil.copy2(source_path, temp_path)
+        temp_path.replace(wav_path)
+    finally:
+        try:
+            temp_path.unlink()
+        except FileNotFoundError:
+            pass
+    return wav_path
 
 
 def delete_remote_file(base_url: str, remote_name: str, timeout: float) -> None:
@@ -292,7 +313,8 @@ def handle_transcribe_file(input_path: Path, paths: DbPaths, key: Optional[bytes
         decode_rec_to_wav(source, wav_path, key, args.gap_threshold_ms)
         transcribe_and_summarize_wav(wav_path, paths, args.api_timeout, args.max_output_tokens, force=args.force_transcribe)
     elif suffix == ".wav":
-        transcribe_and_summarize_wav(source, paths, args.api_timeout, args.max_output_tokens, force=args.force_transcribe)
+        wav_path = save_wav_directly(source, paths.wav / source.name)
+        transcribe_and_summarize_wav(wav_path, paths, args.api_timeout, args.max_output_tokens, force=args.force_transcribe)
     elif suffix == ".json":
         summary_path = summary_path_for_transcript(source, paths.summarized)
         if args.force_transcribe or not summary_path.exists():
@@ -320,26 +342,50 @@ def transcribe_all_missing(paths: DbPaths, args: argparse.Namespace) -> None:
 def sync_device_files(base_url: str, paths: DbPaths, key: Optional[bytes], args: argparse.Namespace) -> list[Path]:
     remote_files = list_remote_files(base_url, args.device_timeout)
     remote_rec_files = [name for name in remote_files if is_rec_file(name)]
+    remote_wav_files = [name for name in remote_files if is_wav_file(name)]
+    remote_recording_files = remote_rec_files + remote_wav_files
     downloaded_wavs: list[Path] = []
 
-    print(f"device files: {len(remote_files)} total, {len(remote_rec_files)} .rec")
+    print(f"device files: {len(remote_files)} total, {len(remote_rec_files)} .rec, {len(remote_wav_files)} .wav")
 
-    for remote_name in remote_rec_files:
+    for remote_name in remote_recording_files:
         local_name = safe_local_name(remote_name)
-        raw_path = paths.raw_rec / local_name
-        wav_path = paths.wav / f"{Path(local_name).stem}.wav"
-        needs_download = not raw_path.exists() or not wav_path.exists()
+        suffix = Path(local_name).suffix.lower()
 
-        if needs_download:
-            print(f"downloading {remote_name} -> {raw_path}")
-            download_remote_file(base_url, remote_name, raw_path, args.device_timeout)
-            print(f"decoding {raw_path.name} -> {wav_path}")
-            decode_rec_to_wav(raw_path, wav_path, key, args.gap_threshold_ms)
+        if suffix == ".rec":
+            raw_path = paths.raw_rec / local_name
+            wav_path = paths.wav / f"{Path(local_name).stem}.wav"
+            processed = False
+
+            if not raw_path.exists():
+                print(f"downloading {remote_name} -> {raw_path}")
+                download_remote_file(base_url, remote_name, raw_path, args.device_timeout)
+                processed = True
+            else:
+                print(f"already local: {raw_path.name}")
+
+            if not wav_path.exists():
+                print(f"decoding {raw_path.name} -> {wav_path}")
+                decode_rec_to_wav(raw_path, wav_path, key, args.gap_threshold_ms)
+                processed = True
+
+            if processed and wav_path.exists():
+                downloaded_wavs.append(wav_path)
+
+            if args.clean and raw_path.exists():
+                print(f"deleting device copy: {remote_name}")
+                delete_remote_file(base_url, remote_name, args.device_timeout)
+            continue
+
+        wav_path = paths.wav / local_name
+        if not wav_path.exists():
+            print(f"downloading {remote_name} -> {wav_path}")
+            download_remote_file(base_url, remote_name, wav_path, args.device_timeout)
             downloaded_wavs.append(wav_path)
         else:
-            print(f"already local: {raw_path.name}")
+            print(f"already local: {wav_path.name}")
 
-        if args.clean and raw_path.exists():
+        if args.clean and wav_path.exists():
             print(f"deleting device copy: {remote_name}")
             delete_remote_file(base_url, remote_name, args.device_timeout)
 

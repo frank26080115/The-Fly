@@ -92,6 +92,28 @@ public:
         return queue16kLocked(samples, sampleCount);
     }
 
+    size_t queueSilence(size_t sampleCount)
+    {
+        if (sampleCount == 0)
+        {
+            return 0;
+        }
+
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (!buffer_)
+        {
+            return 0;
+        }
+        if (!queueEnabled_ || choked_)
+        {
+            upsampleHasPrev_ = false;
+            upsamplePrev_    = 0;
+            return sampleCount;
+        }
+
+        return queueSilenceLocked(sampleCount);
+    }
+
     size_t queueStereo(const int16_t* interleavedSamples, size_t frameCount, uint32_t sampleRateHz = kInternalSampleRateHz)
     {
         if (interleavedSamples == nullptr || frameCount == 0)
@@ -279,6 +301,12 @@ public:
             return capacitySamples_;
         }
         return capacitySamples_ - usedSamples_;
+    }
+
+    size_t usedSamples() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return buffer_ ? usedSamples_ : 0;
     }
 
     uint8_t getFillPercentage() const
@@ -527,6 +555,35 @@ private:
             {
                 std::memcpy(buffer_.get(), samples + first, second * sizeof(int16_t));
             }
+        }
+
+        writeIndex_ = (writeIndex_ + toWrite) % capacitySamples_;
+        usedSamples_ += toWrite;
+        upsampleHasPrev_ = false;
+        upsamplePrev_    = 0;
+        updateWatermarkLocked();
+        return toWrite;
+    }
+
+    size_t queueSilenceLocked(size_t sampleCount)
+    {
+        const size_t toWrite = minSize(sampleCount, capacitySamples_ - usedSamples_);
+        if (toWrite < sampleCount)
+        {
+            overflowed_ = true;
+        }
+        if (toWrite == 0)
+        {
+            return 0;
+        }
+
+        const size_t first = minSize(toWrite, capacitySamples_ - writeIndex_);
+        std::memset(&buffer_[writeIndex_], 0, first * sizeof(int16_t));
+
+        const size_t second = toWrite - first;
+        if (second > 0)
+        {
+            std::memset(buffer_.get(), 0, second * sizeof(int16_t));
         }
 
         writeIndex_ = (writeIndex_ + toWrite) % capacitySamples_;

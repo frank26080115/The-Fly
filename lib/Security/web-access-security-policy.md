@@ -53,7 +53,7 @@ I understand this is insecure, this does not expose keys. This makes it easy for
 
 Requires no authentication
 
-Data is transported in plain-text but the recording files are encrypted themselves, any other file will be in plain-text.
+Data is transported in plain-text. Encrypted-build recording files are encrypted themselves; security-level-0 `.wav` recordings and any other file are plain-text.
 
 I understand this is insecure, this does not expose keys. This makes it easy for people to automate local network workflows. A master-key is still required to decrypt any of the files.
 

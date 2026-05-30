@@ -8,10 +8,10 @@ there will be a function to start recording a new file. If a previous file is al
 
 When the file is created, use the currently existing `bool grow_file(File &file, uint64_t size)`, move that function into here
 
-There is a pump function that is called as often as possible. It pumps audio data from the two FIFOs into the file, using `file_packet_t`. Interleave the two FIFOs. In Bluetooth recordings, both FIFOs are used, interleave their packets. In memo (or similar) modes, only the mic FIFO will have data. It's fine to not care about this as the dequeue function of the FIFO will simply return nothing.
+There is a pump function that is called as often as possible. For encrypted builds, it pumps audio data from the two FIFOs into the file using `file_packet_t`. For unencrypted builds, it writes stereo 16-bit PCM directly into a `.wav` file, with mic on the left channel and Bluetooth on the right channel.
 
 The policy for pumping is that it should drain the FIFOs at least below 10% on each call. But it must also track the time passing and never take more than 20ms per call. (if 20ms per call isn't enough then the FIFO will eventually overflow and an error flag will be set)
 
-There is a stopping function, which marks the FIFOs as "do not queue", then drains the FIFOs into the file, then truncates the file to the correct size and closes the file (or which ever order these actions needs to take). The file starting function should just use this for convenience.
+There is a stopping function, which marks the FIFOs as "do not queue", then drains the FIFOs into the file, finalizes any required file header, then truncates the file to the correct size and closes the file (or which ever order these actions needs to take). The file starting function should just use this for convenience.
 
 The pump function might be called even though no file is open, it should immediate return if this is the case. The caller of the pump function does not know the state of the device.

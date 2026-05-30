@@ -86,7 +86,7 @@ There is a copy of the filecrypt-key and the network-key stored in NVS.
 
 The contents of the NVS is not further encrypted by the running firmware. But changing network-key will trigger NVS to be erased.
 
-The microSD card does not use full-disk-encryption. All `*.rec` files are encrypted, but the timestamps are exposed. `cloud_history.txt` is also not encrypted. If a firmware update file is present, it is not encrypted, it contains no secrets, and the firmware file is probably signed.
+The microSD card does not use full-disk-encryption. Security-level-0 `.wav` recordings are not encrypted. All `*.rec` files are encrypted, but the timestamps are exposed. `cloud_history.txt` is also not encrypted. If a firmware update file is present, it is not encrypted, it contains no secrets, and the firmware file is probably signed.
 
 The local device runs a web server, which can be used to administer the device (change settings, change passwords) and to manage files. All the HTTP requests to this server needs to be authenticated through methods involving request parameters. For transmitting secrets, such as Wi-Fi credentials, explicit encryption is involved in the transport. For file downloads, the file is assumed to be already encrypted. For file uploads, the file is not protected, as the only uploads expected are either a cleaned up history file or a firmware update. HTTPS is not practical to implement. SFTP is impractical to implement.
 
@@ -236,7 +236,7 @@ If Stolen: leaking the session key can leak Wi-Fi passwords; the network-key and
 
 ## File Encryption
 
-The `*.rec` files that are recorded have fixed size packets. Each packet is encrypted entirely, using the filecrypt-key.
+Encrypted `*.rec` recordings have fixed size packets. Each packet is encrypted entirely, using the filecrypt-key. Security-level-0 recordings are plain stereo PCM `.wav` files and do not use this packet format.
 
 The packet header has some static features like a magic and source identifier, some parts that are dynamic like a timestamp and sequence number, plus 64 bits of random nonce.
 

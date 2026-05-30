@@ -36,6 +36,16 @@ constexpr uint32_t kTimedFlushIntervalMs            = 2000;
 constexpr size_t   kMetaTextPayloadMaxBytes         = FILE_PACKET_PAYLOAD_MAX * sizeof(uint16_t);
 constexpr uint8_t  kMaxConsecutiveWriteFailures     = 3;
 
+#if BUILD_WITH_SECURITY_LEVEL == 0
+constexpr uint32_t kWavSampleRateHz             = 16000;
+constexpr uint16_t kWavChannels                 = 2;
+constexpr uint16_t kWavBitsPerSample            = 16;
+constexpr size_t   kWavHeaderSize               = 44;
+constexpr size_t   kWavPumpFrames               = FILE_PACKET_PAYLOAD_MAX;
+constexpr uint32_t kWavPlaceholderDataBytes     = 0x7FFFFFFF;
+constexpr uint32_t kWavMaxDataBytes             = 0xFFFFFFFFUL - 36UL;
+#endif
+
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 constexpr size_t kGcmNonceSize = 12;
 constexpr size_t kGcmTagSize   = 16;
@@ -80,6 +90,11 @@ bool                g_packet_gcm_ready              = false;
 #endif
 std::mutex g_recorder_mutex;
 std::mutex g_pump_mutex;
+#if BUILD_WITH_SECURITY_LEVEL == 0
+int16_t g_wav_mic_samples[kWavPumpFrames];
+int16_t g_wav_host_samples[kWavPumpFrames];
+int16_t g_wav_stereo_samples[kWavPumpFrames * kWavChannels];
+#endif
 
 uint64_t max_prealloc_size()
 {
@@ -107,7 +122,23 @@ void make_recording_path(char type_code)
         now.time.minutes = 0;
         now.time.seconds = 0;
     }
-    snprintf(g_sd_path, sizeof(g_sd_path), "/%c-%04d-%02d-%02d-%02d-%02d-%02d-U.%s", type_code, now.date.year, now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds, g_pure_pcm_mode ? "pcm" : "rec");
+    #if BUILD_WITH_SECURITY_LEVEL >= 1
+    const char* extension = g_pure_pcm_mode ? "pcm" : "rec";
+    #else
+    const char* extension = "wav";
+    #endif
+
+    snprintf(g_sd_path,
+             sizeof(g_sd_path),
+             "/%c-%04d-%02d-%02d-%02d-%02d-%02d-U.%s",
+             type_code,
+             now.date.year,
+             now.date.month,
+             now.date.date,
+             now.time.hours,
+             now.time.minutes,
+             now.time.seconds,
+             extension);
 }
 
 bool memo_type_from_code(char type_code, MemoType& type)
@@ -372,6 +403,75 @@ bool encrypt_file_packet_locked(const file_packet_t& packet, encrypted_file_pack
 }
 #endif
 
+#if BUILD_WITH_SECURITY_LEVEL == 0
+void write_le16(uint8_t* dst, uint16_t value)
+{
+    dst[0] = static_cast<uint8_t>(value & 0xFF);
+    dst[1] = static_cast<uint8_t>((value >> 8) & 0xFF);
+}
+
+void write_le32(uint8_t* dst, uint32_t value)
+{
+    dst[0] = static_cast<uint8_t>(value & 0xFF);
+    dst[1] = static_cast<uint8_t>((value >> 8) & 0xFF);
+    dst[2] = static_cast<uint8_t>((value >> 16) & 0xFF);
+    dst[3] = static_cast<uint8_t>((value >> 24) & 0xFF);
+}
+
+bool write_wav_header_locked(uint32_t data_bytes)
+{
+    uint8_t header[kWavHeaderSize] = {};
+
+    memcpy(header + 0, "RIFF", 4);
+    write_le32(header + 4, data_bytes + 36);
+    memcpy(header + 8, "WAVE", 4);
+    memcpy(header + 12, "fmt ", 4);
+    write_le32(header + 16, 16);
+    write_le16(header + 20, 1);
+    write_le16(header + 22, kWavChannels);
+    write_le32(header + 24, kWavSampleRateHz);
+    write_le32(header + 28, kWavSampleRateHz * kWavChannels * (kWavBitsPerSample / 8));
+    write_le16(header + 32, kWavChannels * (kWavBitsPerSample / 8));
+    write_le16(header + 34, kWavBitsPerSample);
+    memcpy(header + 36, "data", 4);
+    write_le32(header + 40, data_bytes);
+
+    return g_file.seekSet(0) && g_file.write(header, sizeof(header)) == sizeof(header);
+}
+
+bool write_placeholder_wav_header_locked()
+{
+    if (!write_wav_header_locked(kWavPlaceholderDataBytes))
+    {
+        return false;
+    }
+    if (!g_file.seekSet(kWavHeaderSize))
+    {
+        return false;
+    }
+
+    g_bytes_written = kWavHeaderSize;
+    return true;
+}
+
+bool finish_wav_header_locked()
+{
+    if (g_bytes_written < kWavHeaderSize)
+    {
+        return false;
+    }
+
+    const uint64_t data_bytes = g_bytes_written - kWavHeaderSize;
+    if (data_bytes > kWavMaxDataBytes)
+    {
+        DBG_LOGE(TAG, "WAV data is too large: %llu bytes", static_cast<unsigned long long>(data_bytes));
+        return false;
+    }
+
+    return write_wav_header_locked(static_cast<uint32_t>(data_bytes)) && g_file.seekSet(g_bytes_written);
+}
+#endif
+
 void fatal_recording_storage_failure(const char* context, const char* readyMessage)
 {
     const MicroSdCard::Health health = MicroSdCard::health();
@@ -566,6 +666,46 @@ bool write_packet(AudioFifo& fifo, filepkt_src_e source)
     return true;
 }
 
+#if BUILD_WITH_SECURITY_LEVEL == 0
+bool write_samples(const int16_t* samples, size_t byte_count)
+{
+    std::unique_lock<std::mutex> lock(g_recorder_mutex);
+    if (!recording_file_ready_locked())
+    {
+        return false;
+    }
+
+    if (!samples || byte_count == 0)
+    {
+        return false;
+    }
+
+    const uint32_t started_us = micros();
+    const uint8_t* data_ptr = reinterpret_cast<const uint8_t*>(samples);
+
+    if (g_file.write(data_ptr, byte_count) != byte_count)
+    {
+        DBG_LOGE(TAG, "samples write failed");
+        const bool fatal_card_failure = note_write_failure_locked();
+        lock.unlock();
+        if (fatal_card_failure)
+        {
+            fatal_recording_storage_failure("writing recording samples", "microSD recording write failed");
+        }
+        return false;
+    }
+    note_write_success_locked();
+
+    // assume automatic cache flushing will happen when required, do not call flush manually
+
+    g_bytes_written += byte_count;
+
+    update_write_duration_stats(static_cast<uint32_t>(micros() - started_us));
+
+    return true;
+}
+#endif
+
 bool write_queued_meta_text_locked()
 {
     if (!g_meta_text_queued)
@@ -648,6 +788,83 @@ bool pump_one_packet_locked()
     return false;
 }
 
+#if BUILD_WITH_SECURITY_LEVEL == 0
+bool pump_two_packets_locked(bool force)
+{
+    if (!g_host_fifo || !g_mic_fifo || !recording_file_ready())
+    {
+        return false;
+    }
+
+    const size_t mic_available  = force ? g_mic_fifo->usedSamples()  : g_mic_fifo->availableToRead();
+    const size_t host_available = force ? g_host_fifo->usedSamples() : g_host_fifo->availableToRead();
+
+    if (force)
+    {
+        if (mic_available == 0 && host_available == 0)
+        {
+            return false;
+        }
+    }
+    else if (mic_available == 0 || host_available == 0)
+    {
+        return false;
+    }
+
+    const size_t paired_frames = mic_available < host_available ? mic_available : host_available;
+    const size_t forced_frames = mic_available > host_available ? mic_available : host_available;
+    const size_t wanted_frames = force ? forced_frames : paired_frames;
+    const size_t frames        = wanted_frames < kWavPumpFrames ? wanted_frames : kWavPumpFrames;
+    if (frames == 0)
+    {
+        return false;
+    }
+
+    size_t mic_read = 0;
+    if (mic_available > 0)
+    {
+        mic_read = force ? g_mic_fifo->dequeueMonoImmediate(g_wav_mic_samples, frames)
+                         : g_mic_fifo->dequeueMono(g_wav_mic_samples, frames);
+    }
+    if (mic_read < frames)
+    {
+        memset(g_wav_mic_samples + mic_read, 0, (frames - mic_read) * sizeof(g_wav_mic_samples[0]));
+    }
+
+    size_t host_read = 0;
+    if (host_available > 0)
+    {
+        host_read = force ? g_host_fifo->dequeueMonoImmediate(g_wav_host_samples, frames)
+                          : g_host_fifo->dequeueMono(g_wav_host_samples, frames);
+    }
+    if (host_read < frames)
+    {
+        memset(g_wav_host_samples + host_read, 0, (frames - host_read) * sizeof(g_wav_host_samples[0]));
+    }
+
+    if (!force && (mic_read == 0 || host_read == 0))
+    {
+        return false;
+    }
+
+    for (size_t i = 0; i < frames; ++i)
+    {
+        g_wav_stereo_samples[i * 2]     = g_wav_mic_samples[i];
+        g_wav_stereo_samples[i * 2 + 1] = g_wav_host_samples[i];
+    }
+
+    if (!write_samples(g_wav_stereo_samples, frames * kWavChannels * sizeof(g_wav_stereo_samples[0])))
+    {
+        return false;
+    }
+
+    g_mic_fifo->resetFlowFlags();
+    g_host_fifo->resetFlowFlags();
+
+    return true;
+}
+#endif
+
 bool fifos_below_pump_target()
 {
     // during file recording, the file recording task has more priority than the GUI task
@@ -722,6 +939,7 @@ bool startRecording(char typeCode)
     char started_path[sizeof(g_sd_path)] = {};
     bool recording_file_opened = false;
     bool encryption_setup_failed = false;
+    bool wav_header_failed = false;
     {
         std::lock_guard<std::mutex> pump_lock(g_pump_mutex);
         g_next_source_toggle = true;
@@ -761,9 +979,22 @@ bool startRecording(char typeCode)
                 g_recording_type_code        = typeCode;
                 memo_type_from_code(typeCode, g_memo_type);
                 clear_queued_meta_text_locked();
-                set_recording_active(true);
-                recording_file_opened = true;
-                strncpy(started_path, g_sd_path, sizeof(started_path) - 1);
+
+                #if BUILD_WITH_SECURITY_LEVEL == 0
+                if (!write_placeholder_wav_header_locked())
+                {
+                    DBG_LOGE(TAG, "WAV header write failed: %s", g_sd_path);
+                    g_file.close();
+                    g_sd_path[0] = '\0';
+                    wav_header_failed = true;
+                }
+                else
+                #endif
+                {
+                    set_recording_active(true);
+                    recording_file_opened = true;
+                    strncpy(started_path, g_sd_path, sizeof(started_path) - 1);
+                }
             }
         }
     }
@@ -778,7 +1009,8 @@ bool startRecording(char typeCode)
         std::lock_guard<std::mutex> lock(g_recorder_mutex);
         stop_recording_encryption_locked();
 #endif
-        fatal_recording_storage_failure("opening recording file", "microSD recording file open failed");
+        fatal_recording_storage_failure(wav_header_failed ? "writing WAV header" : "opening recording file",
+                                        wav_header_failed ? "microSD WAV header write failed" : "microSD recording file open failed");
         return false;
     }
 
@@ -839,7 +1071,11 @@ void pump()
     // pump until no data or until too much time has passed
     do
     {
+        #if BUILD_WITH_SECURITY_LEVEL >= 1
         if (!pump_one_packet_locked())
+        #else
+        if (!pump_two_packets_locked(false))
+        #endif
         {
             return;
         }
@@ -866,7 +1102,11 @@ bool stopRecording(bool estop)
     if (!estop)
     {
         // drain the last bit of the FIFO out, there is less pressure now since the FIFOs have been signalled to stop queuing
+        #if BUILD_WITH_SECURITY_LEVEL >= 1
         while (pump_one_packet_locked())
+        #else
+        while (pump_two_packets_locked(true))
+        #endif
         {
             taskYIELD();
         }
@@ -884,7 +1124,9 @@ bool stopRecording(bool estop)
         stopped_type_code = g_recording_type_code;
         stopped_memo_type = g_memo_type;
     }
+    #if BUILD_WITH_SECURITY_LEVEL >= 1
     prepare_stop_meta_text(stopped_type_code, stopped_memo_type);
+    #endif
 
     {
         std::lock_guard<std::mutex> lock(g_recorder_mutex);
@@ -893,10 +1135,12 @@ bool stopRecording(bool estop)
             return true;
         }
 
+        #if BUILD_WITH_SECURITY_LEVEL >= 1
         if (!write_queued_meta_text_locked())
         {
             ok = false;
         }
+        #endif
 
         set_recording_active(false);
         stopped_bytes = g_bytes_written;
@@ -904,6 +1148,13 @@ bool stopRecording(bool estop)
 
         if (g_file)
         {
+            #if BUILD_WITH_SECURITY_LEVEL == 0
+            if (!finish_wav_header_locked())
+            {
+                ok = false;
+            }
+            #endif
+
             g_file.flush(); // this makes sure the buffer actually makes it onto the card
             g_last_flush_ms = millis();
 
@@ -934,7 +1185,7 @@ bool stopRecording(bool estop)
 
     if (!ok)
     {
-        DBG_LOGE(TAG, "truncate failed");
+        DBG_LOGE(TAG, "recording close failed");
         return false;
     }
 

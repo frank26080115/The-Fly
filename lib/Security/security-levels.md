@@ -14,6 +14,8 @@ Equivalent to a plain consumer voice recorder.
 
 Files are not encrypted.
 
+Audio is recorded directly to `*.wav`.
+
 FTP server is allowed
 
 Wi-Fi credentials are write-only without authentication. Encryption depends on being on a Wi-Fi soft AP that uses WPA3, only allowing one client.

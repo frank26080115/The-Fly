@@ -1,3 +1,7 @@
+For unencrypted audio recording files, the `.wav` file format is used directly. The file is 16 kHz, stereo, 16-bit little-endian PCM. The left channel is microphone audio and the right channel is Bluetooth audio; unavailable channels are filled with silence.
+
+For encrypted audio recording files, see this document below.
+
 There is an upstream and downstream sound source. It is possible that the two streams don't have matching sample rates or bit depths. It is also very desirable for the two streams to be recorded separately, but into one file.
 
 The file will be a sequence of packets, and each packets has a header and a payload. The header describes the payload, and the payload is raw.
