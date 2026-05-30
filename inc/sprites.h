@@ -426,6 +426,11 @@ extern const uint8_t sprite_trash_100[];
 #define SPRITE_TRASH_50_BYTES 3604u
 extern const uint8_t sprite_trash_50[];
 
+#define SPRITE_TRASHCONFIRM_50_WIDTH 50u
+#define SPRITE_TRASHCONFIRM_50_HEIGHT 50u
+#define SPRITE_TRASHCONFIRM_50_BYTES 4064u
+extern const uint8_t sprite_trashconfirm_50[];
+
 #define SPRITE_UNKNOWN_BT_100_WIDTH 100u
 #define SPRITE_UNKNOWN_BT_100_HEIGHT 100u
 #define SPRITE_UNKNOWN_BT_100_BYTES 15032u

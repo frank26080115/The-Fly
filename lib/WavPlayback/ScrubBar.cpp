@@ -279,7 +279,7 @@ void ScrubBar::drawText(bool forced)
     formatTime(endMs_, endText, sizeof(endText));
 
     const int16_t screenW = thefly_display.width();
-    const int16_t totalY = static_cast<int16_t>(y() - 17);
+    const int16_t totalY = static_cast<int16_t>(y() + height() + 9);
     thefly_display.fillRect(static_cast<int16_t>(screenW - 96), totalY, 94, 16, TFT_BLACK);
     thefly_display.setTextDatum(top_right);
     thefly_display.setTextFont(2);
