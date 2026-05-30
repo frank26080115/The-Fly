@@ -138,6 +138,44 @@ size_t trimmed_length(const char* text)
     return len;
 }
 
+const char* basename_for_path(const char* path)
+{
+    if (!path)
+    {
+        return "";
+    }
+
+    const char* name = path;
+    for (const char* cursor = path; *cursor; ++cursor)
+    {
+        if (*cursor == '/' || *cursor == '\\')
+        {
+            name = cursor + 1;
+        }
+    }
+
+    return name;
+}
+
+void basename_for_path_no_ext(const char* path, char* out, size_t out_size)
+{
+    if (!out || out_size == 0)
+    {
+        return;
+    }
+
+    const char* name = basename_for_path(path);
+    const char* dot  = strrchr(name, '.');
+    size_t      len  = dot && dot != name ? static_cast<size_t>(dot - name) : strlen(name);
+    if (len >= out_size)
+    {
+        len = out_size - 1;
+    }
+
+    memcpy(out, name, len);
+    out[len] = '\0';
+}
+
 char* clone_string(const char* text)
 {
     const char* safe_text = text ? text : "";

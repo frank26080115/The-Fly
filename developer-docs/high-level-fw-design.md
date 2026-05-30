@@ -20,7 +20,7 @@ Assume the microSD card is permanently attached, always available. Unavailabilit
 
 ### File name conventions
 
-All unencrypted audio recordings are written as `.wav` files. All encrypted audio recordings use a `.rec` extension. The file name will look like `T-YYYY-MM-DD-HH-MM-SS-U`. Where `T` is a letter code representing the categorization of the recording. The rest is the time according to the RTC.
+All unencrypted audio recordings are written as `.wav` files. All encrypted audio recordings use a `.rec` extension. The file name will look like `T-YYYY-MM-DD-HH-MM-SS`. Where `T` is a letter code representing the categorization of the recording. The rest is the time according to the RTC.
 
 ### Audio Data Formats
 

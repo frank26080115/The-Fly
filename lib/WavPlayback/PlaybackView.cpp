@@ -9,6 +9,7 @@
 #include "WavPlayback.h"
 #include "esp_log.h"
 #include "sprites.h"
+#include "utilfuncs.h"
 
 namespace
 {
@@ -18,39 +19,168 @@ constexpr int16_t kIconX       = 4;
 constexpr int16_t kIconY       = FlyGui::kTopBarHeight;
 constexpr int16_t kIconSize    = 50;
 constexpr int16_t kFileTextX   = 60;
-constexpr int16_t kFileTextY   = FlyGui::kTopBarHeight + 5;
+constexpr int16_t kFileTextY   = FlyGui::kTopBarHeight + 7;
 constexpr int16_t kFileTextMaxY = FlyGui::kTopBarHeight + kIconSize;
 constexpr int16_t kFileLineHeight = 15;
 constexpr int16_t kScrubWidth  = 300;
-constexpr int16_t kScrubHeight = 12;
-constexpr int16_t kScrubY      = 60;
-constexpr int16_t kPrecisionScrubY = 126;
+constexpr int16_t kScrubHeight = 20;
+constexpr int16_t kScrubY      = 64;
+constexpr int16_t kPrecisionScrubY = 124;
 constexpr int16_t kButtonY     = 180;
 constexpr int16_t kButtonSize  = 50;
 constexpr uint8_t kNormalFont  = 2;
+constexpr uint8_t kLargeFileFont = 4;
+constexpr int16_t kLargeFileLineGap = 2;
 constexpr float   kTextSize    = 1.0f;
 constexpr uint32_t kLongFilePrecisionThresholdMs = 120000;
 constexpr uint32_t kPrecisionWindowMs = 60000;
 constexpr uint32_t kPrecisionHalfWindowMs = kPrecisionWindowMs / 2;
 constexpr uint32_t kPrecisionCatchupMs = 1000;
+constexpr uint16_t kPrecisionScrubColor = 0xFDE0; // #FCBC00 converted to RGB565. 0xFF20 might also work
 
-const char* basename_for_path(const char* path)
+constexpr size_t kWrapLineMax = 128;
+constexpr size_t kNoSpace = static_cast<size_t>(-1);
+
+void trim_leading_spaces(char* line, size_t& len)
 {
-    if (!path)
+    size_t first = 0;
+    while (first < len && line[first] == ' ')
     {
-        return "";
+        ++first;
     }
 
-    const char* name = path;
-    for (const char* cursor = path; *cursor; ++cursor)
+    if (first == 0)
     {
-        if (*cursor == '/' || *cursor == '\\')
+        return;
+    }
+
+    memmove(line, line + first, len - first);
+    len -= first;
+    line[len] = '\0';
+}
+
+void recalc_last_space(const char* line, size_t len, size_t& lastSpace)
+{
+    lastSpace = kNoSpace;
+    for (size_t i = 0; i < len; ++i)
+    {
+        if (line[i] == ' ')
         {
-            name = cursor + 1;
+            lastSpace = i;
+        }
+    }
+}
+
+bool count_wrapped_line(char* line, size_t& len, int16_t& y, int16_t maxY, int16_t lineHeight)
+{
+    trim_leading_spaces(line, len);
+    while (len > 0 && line[len - 1] == ' ')
+    {
+        line[--len] = '\0';
+    }
+
+    if (len == 0)
+    {
+        return true;
+    }
+
+    if (y + lineHeight > maxY)
+    {
+        return false;
+    }
+
+    y += lineHeight;
+    len = 0;
+    line[0] = '\0';
+    return true;
+}
+
+bool wrapped_text_fits(const char* text, int16_t width, int16_t y, int16_t maxY, int16_t lineHeight)
+{
+    if (!text || width <= 0 || lineHeight <= 0)
+    {
+        return false;
+    }
+
+    char line[kWrapLineMax] = {};
+    size_t len = 0;
+    size_t lastSpace = kNoSpace;
+    bool canFit = true;
+
+    for (const char* p = text; *p && canFit; ++p)
+    {
+        const char c = *p;
+        if (c == '\r')
+        {
+            continue;
+        }
+
+        if (c == '\n')
+        {
+            canFit = count_wrapped_line(line, len, y, maxY, lineHeight);
+            lastSpace = kNoSpace;
+            continue;
+        }
+
+        if (len + 1 >= sizeof(line))
+        {
+            canFit = count_wrapped_line(line, len, y, maxY, lineHeight);
+            lastSpace = kNoSpace;
+            if (!canFit)
+            {
+                break;
+            }
+        }
+
+        line[len++] = c;
+        line[len] = '\0';
+        if (c == ' ')
+        {
+            lastSpace = len - 1;
+        }
+
+        while (thefly_display.textWidth(line) > width && len > 0 && canFit)
+        {
+            if (lastSpace != kNoSpace && lastSpace > 0)
+            {
+                char remainder[kWrapLineMax] = {};
+                strncpy(remainder, line + lastSpace + 1, sizeof(remainder) - 1);
+
+                line[lastSpace] = '\0';
+                size_t lineLen = lastSpace;
+                canFit = count_wrapped_line(line, lineLen, y, maxY, lineHeight);
+
+                strncpy(line, remainder, sizeof(line) - 1);
+                line[sizeof(line) - 1] = '\0';
+                len = strlen(line);
+                recalc_last_space(line, len, lastSpace);
+            }
+            else if (len > 1)
+            {
+                const char overflow = line[len - 1];
+                line[len - 1] = '\0';
+                size_t lineLen = len - 1;
+                canFit = count_wrapped_line(line, lineLen, y, maxY, lineHeight);
+
+                line[0] = overflow;
+                line[1] = '\0';
+                len = 1;
+                lastSpace = overflow == ' ' ? 0 : kNoSpace;
+            }
+            else
+            {
+                canFit = count_wrapped_line(line, len, y, maxY, lineHeight);
+                lastSpace = kNoSpace;
+            }
         }
     }
 
-    return name;
+    if (canFit && len > 0)
+    {
+        canFit = count_wrapped_line(line, len, y, maxY, lineHeight);
+    }
+
+    return canFit;
 }
 
 int16_t scrub_x()
@@ -151,7 +281,7 @@ PlaybackView::PlaybackView()
     scrubBar_.setScrubCallback(scrubThunk, this);
     addItem(scrubBar_);
 
-    precisionScrubBar_.setColors(TFT_YELLOW, TFT_BLACK, TFT_WHITE);
+    precisionScrubBar_.setColors(kPrecisionScrubColor, TFT_BLACK, TFT_WHITE);
     precisionScrubBar_.setHitboxYOffsets(0, 40);
     precisionScrubBar_.setShowText(false);
     precisionScrubBar_.setScrubCallback(precisionScrubThunk, this);
@@ -163,7 +293,7 @@ PlaybackView::PlaybackView()
 void PlaybackView::configureFile(const char* path)
 {
     strlcpy(path_, path ? path : "", sizeof(path_));
-    strlcpy(fileName_, basename_for_path(path_), sizeof(fileName_));
+    basename_for_path_no_ext(path_, fileName_, sizeof(fileName_));
     statusText_[0] = '\0';
     frameDirty_ = true;
     setDirty();
@@ -486,14 +616,22 @@ void PlaybackView::drawFrame(bool forced)
 
 void PlaybackView::drawFileName() const
 {
+    const char* text = fileName_[0] != '\0' ? fileName_ : "No file";
+    const int16_t textWidth = static_cast<int16_t>(thefly_display.width() - kFileTextX - 4);
+
     thefly_display.setTextDatum(top_left);
-    thefly_display.setTextFont(kNormalFont);
     thefly_display.setTextSize(kTextSize);
     thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
-    FlyGuiTextUtil::drawWrappedText(fileName_[0] != '\0' ? fileName_ : "No file",
+
+    thefly_display.setTextFont(kLargeFileFont);
+    const int16_t largeLineHeight = static_cast<int16_t>(thefly_display.fontHeight() + kLargeFileLineGap);
+    const bool useLargeFont = wrapped_text_fits(text, textWidth, kFileTextY, kFileTextMaxY, largeLineHeight);
+
+    thefly_display.setTextFont(useLargeFont ? kLargeFileFont : kNormalFont);
+    FlyGuiTextUtil::drawWrappedText(text,
                                     kFileTextX,
                                     kFileTextY,
-                                    static_cast<int16_t>(thefly_display.width() - kFileTextX - 4),
+                                    textWidth,
                                     kFileTextMaxY,
-                                    kFileLineHeight);
+                                    useLargeFont ? largeLineHeight : kFileLineHeight);
 }

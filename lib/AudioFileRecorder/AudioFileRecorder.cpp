@@ -130,7 +130,7 @@ void make_recording_path(char type_code)
 
     snprintf(g_sd_path,
              sizeof(g_sd_path),
-             "/%c-%04d-%02d-%02d-%02d-%02d-%02d-U.%s",
+             "/%c-%04d-%02d-%02d-%02d-%02d-%02d.%s",
              type_code,
              now.date.year,
              now.date.month,

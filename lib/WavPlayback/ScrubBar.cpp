@@ -288,7 +288,7 @@ void ScrubBar::drawText(bool forced)
     thefly_display.drawString(endText, static_cast<int16_t>(screenW - 4), totalY);
 
     const int16_t currentX = 4;
-    const int16_t currentY = static_cast<int16_t>(y() + height() + 5);
+    const int16_t currentY = static_cast<int16_t>(y() + height() + 9);
     thefly_display.fillRect(currentX, currentY, 150, 30, TFT_BLACK);
     thefly_display.setTextDatum(top_left);
     thefly_display.setTextFont(4);

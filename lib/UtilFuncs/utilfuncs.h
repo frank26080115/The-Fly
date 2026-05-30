@@ -33,6 +33,8 @@ const char* memo_type_to_string(MemoType type);
 char memo_type_to_code(MemoType type);
 const char* trim_start(const char* text);
 size_t trimmed_length(const char* text);
+const char* basename_for_path(const char* path);
+void basename_for_path_no_ext(const char* path, char* out, size_t out_size);
 // WARNING: the returned cloned string is allocated with malloc and must be free'ed by the caller.
 char* clone_string(const char* text);
 // WARNING: the returned cloned string is allocated with malloc and must be free'ed by the caller.
