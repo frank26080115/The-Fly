@@ -47,7 +47,8 @@
       "lib/FtpServer/FtpServer.cpp",
       "src/version.c",
       "inc/web_assets.h",
-      "tools/package_web_assets.py"
+      "tools/package_web_assets.py",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -55,5 +56,11 @@
     "type": "git_commit",
     "commit_message": "ftp server works",
     "commit_hash": "999c2544883494dd08561819dc74e913ba45cd35"
+  },
+  {
+    "timestamp": "2026-05-29T20:41:49Z",
+    "type": "git_commit",
+    "commit_message": "firmware update kinda implemented",
+    "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
   }
 ]

@@ -59,7 +59,8 @@
       "lib/WifiManager/WifiManager.cpp",
       "main.cpp",
       "src/main.cpp",
-      "WifiManager.h"
+      "WifiManager.h",
+      "json_templates/wifi.json"
     ]
   },
   {
@@ -787,7 +788,12 @@
       "BluetoothManager.cpp",
       "wifi.json",
       "bluetooth.json",
-      "test_bootreadfiles.cpp"
+      "test_bootreadfiles.cpp",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "json_templates/bluetooth.json",
+      "json_templates/wifi.json",
+      "lib/WifiManager/CloudUpload.cpp"
     ]
   },
   {
@@ -866,7 +872,10 @@
       "lib/AudioFileRecorder/AudioFileRecorder.cpp",
       "lib/WifiManager/WifiManager.h",
       "src/version.c",
-      "WifiManager.h"
+      "WifiManager.h",
+      "inc/thefly_common.h",
+      "lib/BluetoothManager/BtHostList.cpp",
+      "lib/Security/Aegis.h"
     ]
   },
   {
@@ -1094,7 +1103,8 @@
       "lib/BluetoothManager/BtHostList.h",
       "test_bootreadfiles.cpp",
       "lib/WifiManager/WifiManager.h",
-      "src/version.c"
+      "src/version.c",
+      "src/tests/test_bootreadfiles.cpp"
     ]
   },
   {
@@ -1440,5 +1450,39 @@
     "type": "git_commit",
     "commit_message": "expose connected mac and cnts in ap view",
     "commit_hash": "e486cd8c44f77f484940b29cfd1db4b676546f90"
+  },
+  {
+    "timestamp": "2026-05-29T03:17:02.494Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: tools/check_dev_pace.py",
+      "",
+      "## My request for Codex:",
+      "make it so that, even if Wi-Fi connection has failed or cancelled, clicking the back button inside the ScrollView for Wi-Fi items will cause the microcontroller to reset. Have some sort of Wifi-has-started indication from WifiManager to do this"
+    ],
+    "agent_reply": [
+      "Done. I added a sticky `WifiManager::wifiHasStarted()` flag in [WifiManager.h](</d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.h>) / [WifiManager.cpp](</d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp>) that flips true once STA connect, STA scan, or AP mode actually starts. It is intentionally not cleared by `disconnect()`, so cancel/fail still counts until reset.",
+      "",
+      "Then [ScrollView](</d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.h>) exposes `isWifiContext()`, and [main.cpp](</d:/GithubRepos/The-Fly/src/main.cpp>) now resets when the ScrollView back button is pressed from Wi-Fi context after `wifiHasStarted()` is true.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passed. Existing dirty sprite/check_dev_pace/version files were already in the worktree, and I left them alone."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.h",
+      "lib/WifiManager/WifiManager.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollView.h",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "src/main.cpp",
+      "src/version.c",
+      "tools/check_dev_pace.py"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T03:55:25Z",
+    "type": "git_commit",
+    "commit_message": "work on wifi workflow",
+    "commit_hash": "b4a10916d5b7ea69c537dd11e62033af5ee67a64"
   }
 ]

@@ -120,7 +120,8 @@
     "files": [
       "AudioManager.h",
       "BluetoothManager.h",
-      "lib/BluetoothManager/BluetoothManager.h"
+      "lib/BluetoothManager/BluetoothManager.h",
+      "lib/AudioManager/AudioManager.h"
     ]
   },
   {
@@ -697,5 +698,41 @@
     "type": "git_commit",
     "commit_message": "tested SD card with encryption",
     "commit_hash": "aa5a8d695449da500eedafc4b596671f4ac49351"
+  },
+  {
+    "timestamp": "2026-05-29T06:43:41.883Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "the crash was upon completion of pairing"
+    ],
+    "agent_reply": [
+      "Yep, that explains the stack traces. Pairing completion was letting the phone immediately kick off HFP service setup, which is the fragile Bluedroid path.",
+      "",
+      "I changed it so boot/pairing use Bluetooth GAP only, and HFP is initialized lazily when you actually connect to a saved host:",
+      "",
+      "- Added `BtManager::initBluetoothOnly()` in [BluetoothManager.h](D:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.h).",
+      "- Changed `setup()` in [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp) to use GAP-only init, while still storing audio callbacks.",
+      "- Changed `startPairing()` in [BluetoothManager.cpp](D:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp) to avoid HFP during pairing, and deinit HFP before pairing if it was already up.",
+      "- Left the internal HFP debug flags disabled in [platformio.ini](D:/GithubRepos/The-Fly/platformio.ini), since they’re still too close to the WDT path for comfort.",
+      "",
+      "Verified with `pio run -e thefly_sec0`, build passes."
+    ],
+    "files": [
+      "lib/BluetoothManager/BluetoothManager.h",
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "src/main.cpp",
+      "platformio.ini"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T08:00:46Z",
+    "type": "git_commit",
+    "commit_message": "fixed crashing BT connection",
+    "commit_hash": "96977720a364b68ccd0cbc2bc2f5cc4cb7c0b431"
   }
 ]

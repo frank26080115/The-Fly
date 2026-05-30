@@ -425,5 +425,50 @@
     "type": "git_commit",
     "commit_message": "bt host delete, debug shown on top bar",
     "commit_hash": "faf2c6341baa36a0f9941de6378b0a239fcfab7a"
+  },
+  {
+    "timestamp": "2026-05-29T05:28:04.736Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main.cpp",
+      "",
+      "## Active selection of the file:",
+      "BattTracker::init();",
+      "",
+      "## My request for Codex:",
+      "when `Hotel` decides to shutdown, blank out the screen, draw `sprite_sleep_100` right in the center of the screen, wait 3 seconds, then shutdown. During this, `FlyGui` is not polling, nothing is polling or pumping.",
+      "",
+      "the battery reading mechanism can issue a shutdown if the batter is too low, similarly blank out the screen, prevent any more polling from anything, draw `sprite_lowbatt_100` in the center of the screen",
+      "",
+      "On boot, after `BattTracker::init();`, do one check of battery level to see if it needs to shutdown in the above way.",
+      "",
+      "I would suggest the actual functionality of these be implemented in `lib\\FlyGuiViews` under a file called `ShutdownView.cpp` but it doesn't have to be a class object, it's just like... 2 draw calls."
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "Added [ShutdownView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ShutdownView.cpp:70) / [ShutdownView.h](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ShutdownView.h:6) to blank the display, center either `sprite_sleep_100` or `sprite_lowbatt_100`, wait 3 seconds, then power off/deep sleep. It sets a shared shutdown-in-progress flag first.",
+      "",
+      "Routed Hotel shutdown through the sleep icon path in [Hotel.cpp](D:/GithubRepos/The-Fly/lib/Hotel/Hotel.cpp:268). Added BattTracker low-battery shutdown checks in [BattTracker.cpp](D:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:137), with shutdown triggered when the tracked level is low and not charging. Added the boot check right after `BattTracker::init();` and loop guards in [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:310), so both cores stop GUI/audio/Wi-Fi/Bluetooth polling once shutdown begins.",
+      "",
+      "Verified with `pio run -e thefly_sec0`: build succeeded. `src/version.c` still has its pre-existing generated dirty diff; I left it alone."
+    ],
+    "files": [
+      "lib/FlyGuiViews/ShutdownView.h",
+      "lib/FlyGuiViews/ShutdownView.cpp",
+      "lib/Hotel/Hotel.cpp",
+      "lib/BattTracker/BattTracker.h",
+      "lib/BattTracker/BattTracker.cpp",
+      "src/main.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T06:27:46Z",
+    "type": "git_commit",
+    "commit_message": "some uncommon shutdown scenarios",
+    "commit_hash": "1bf925875d692a6196248b1d63e8e03cc8b0afe7"
   }
 ]

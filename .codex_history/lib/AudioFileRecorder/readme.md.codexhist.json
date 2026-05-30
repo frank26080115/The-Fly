@@ -1,0 +1,76 @@
+[
+  {
+    "timestamp": "2026-05-03T07:14:11Z",
+    "type": "git_commit",
+    "commit_message": "work in progress",
+    "commit_hash": "37471f5d99727676ebcaee90085bb7e9b6cfa054"
+  },
+  {
+    "timestamp": "2026-05-30T03:48:53.736Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "we are making a big change",
+      "",
+      "for unencrypted audio recordings, instead of recording to a custom format file with a `*.rec` extension, instead, we will record to a plain `*.wav` file extension.",
+      "",
+      "we will do some things to make it easy to assemble a stereo 16 bit PCM file in real time even though the mic is optionally on or off and the bluetooth data might be unreliable as well.",
+      "",
+      "first, I've already asked you to add a `queueSilence` to the `AudioFifo`. This is useful for the next change",
+      "",
+      "when writing to the bt2file FIFO, if we know that the mic is off, then we insert silence into mic2file automatically.",
+      "",
+      "when writing to the mic2file FIFO, and we see the bt2file FIFO is significantly behind, then we insert some silence to let it catch up.",
+      "",
+      "when writing to the file, we only write if both FIFO has data so that the data can be mixed into stereo. Since the enqueuing mechanism now attempts to keep both FIFOs at the same level, this should work.",
+      "",
+      "When opening the file, since it is a `*.wav` file in this case, we put a placeholder for the RIFF header. When the file is about to be closed, we put in the correct data into the RIFF header",
+      "",
+      "I've made changes myself, make sure I didn't make mistakes. I've placed comments around the code too, to indicate my intentions. Some documentation have been edited but I might've missed some.",
+      "",
+      "Basically, if `BUILD_WITH_SECURITY_LEVEL` is 0, it records to `*.wav` files directly.",
+      "",
+      "Also please make sure that, inside `scripts\\thefly_desktop.py`, if the script sees a `*.wav` file instead of a `*.rec` file, it is saved directly to the folder meant for `*.wav` files, skipping the decoding, and if the user asked for it, do the transcription and summarization.",
+      "",
+      "warn me if something is seriously wrong"
+    ],
+    "agent_reply": [
+      "Implemented the direct `.wav` recording path for `BUILD_WITH_SECURITY_LEVEL == 0`.",
+      "",
+      "What changed:",
+      "- [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:40) now writes `.wav` files for sec0, including placeholder RIFF headers on open and final RIFF headers/truncation on close.",
+      "- [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:790) now pumps both file FIFOs into stereo PCM: mic left, BT right, with forced stop-drain using silence for a missing side.",
+      "- [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:108) now balances the sec0 file FIFOs with silence: exact match when mic is off, catch-up padding when one side falls behind.",
+      "- [AudioFifo.h](D:/GithubRepos/The-Fly/lib/AudioFifo/AudioFifo.h:95) has `queueSilence()` and [AudioFifo.h](D:/GithubRepos/The-Fly/lib/AudioFifo/AudioFifo.h:306) has `usedSamples()`.",
+      "- [thefly_desktop.py](D:/GithubRepos/The-Fly/scripts/thefly_desktop.py:180) now saves `.wav` files directly into the `wav` folder and skips decoding; downloaded `.wav` files participate in `--transcribe`.",
+      "- Updated the recorder/security docs to reflect `.wav` for unencrypted builds and `.rec` for encrypted builds.",
+      "",
+      "Verification passed:",
+      "- `python -c \"import ast, pathlib; ast.parse(...thefly_desktop.py...)\"`",
+      "- `pio run -e thefly_sec0`",
+      "- `pio run -e thefly_sec1`",
+      "- `git diff --check`",
+      "",
+      "I did not find anything seriously wrong after the pass. The one thing still worth watching on device is real timing behavior during long one-sided streams, since that depends on callback cadence and SD write latency, not just compile-time correctness."
+    ],
+    "files": [
+      "lib/AudioFifo/AudioFifo.h",
+      "lib/AudioManager/AudioManager.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "scripts/thefly_desktop.py",
+      "developer-docs/high-level-fw-design.md",
+      "developer-docs/recording-file-format.md",
+      "lib/AudioFileRecorder/readme.md",
+      "developer-docs/dual-core-load-distribution.md",
+      "lib/Security/web-access-security-policy.md",
+      "lib/Security/security-policies-specifications.md",
+      "lib/Security/security-levels.md",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-05-30T04:06:18Z",
+    "type": "git_commit",
+    "commit_message": "direct to wav file recording",
+    "commit_hash": "64f9f8e6f7cc8677283c2f4afdfbd22660041ff6"
+  }
+]

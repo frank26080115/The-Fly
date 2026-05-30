@@ -37,5 +37,38 @@
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
+  },
+  {
+    "timestamp": "2026-05-29T20:41:49Z",
+    "type": "git_commit",
+    "commit_message": "firmware update kinda implemented",
+    "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
+  },
+  {
+    "timestamp": "2026-05-30T04:08:16.203Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "Thanks, that worked, I tested it with a quick call to my voicemail",
+      "",
+      "Can you make `lib\\AudioFileRecorder\\MostRecentFiles.cpp` dynamically sized? Not like linked list, but with a initializer that allocates memory and a destructor that frees memory."
+    ],
+    "agent_reply": [
+      "Done. `MostRecentFiles::FileList` now owns a dynamically allocated name table via `init()` and releases it in the destructor, with copy/move handling so returning from `get()` stays safe.",
+      "",
+      "I also changed `get()` to allocate its candidate buffer dynamically instead of using a fixed stack array, and added `get(size_t maxFiles = kDefaultMaxFiles)` so callers can request a different capacity while existing `get()` calls still work.",
+      "",
+      "Verified with `pio run -e thefly_sec0`."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/MostRecentFiles.h",
+      "lib/AudioFileRecorder/MostRecentFiles.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-05-30T04:13:58Z",
+    "type": "git_commit",
+    "commit_message": "most recent file lister now dynamic",
+    "commit_hash": "b79ebd28a52eeb2ee7d8e79a31483299aa31b930"
   }
 ]

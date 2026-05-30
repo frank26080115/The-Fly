@@ -291,7 +291,8 @@
       "lib/BluetoothManager/BtHostList.h",
       "test_bootreadfiles.cpp",
       "lib/WifiManager/WifiManager.h",
-      "src/version.c"
+      "src/version.c",
+      "src/tests/test_bootreadfiles.cpp"
     ]
   },
   {
@@ -436,5 +437,84 @@
     "type": "git_commit",
     "commit_message": "implement the wifi ap view",
     "commit_hash": "d8fe002743fef62a02f8317b0e30b6a57eebd666"
+  },
+  {
+    "timestamp": "2026-05-30T05:13:22.971Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "add a `ScrollView::populateFiles` function, along with enums to give it a `File List` context",
+      "",
+      "it uses `lib\\AudioFileRecorder\\MostRecentFiles.cpp`, to populate up to 16 most recent files",
+      "",
+      "it uses `sprite_record_100` for `.wav` files, these are the only type that needs a callback, make the callback a placeholder for now, but later, we will implement a playback function with a view",
+      "",
+      "it uses `sprite_recordenc_100` for `.rec` files, clicking causes no reaction",
+      "",
+      "it uses `sprite_fwupdate` for files matching `firmware.bin`, clicking on it causes the screen to immediately fade (the horizontal stripe routine) and then reboot (which will trigger a firmware update)",
+      "",
+      "it uses `sprite_fileunknown_100` for all other file types, clicking causes no reaction",
+      "",
+      "the file names are displayed as the text associated with the item",
+      "",
+      "also insert a button with `sprite_info_100` for getting a summary of information. This dialog is already implemented. Reuse it",
+      "",
+      "right now, on the `MainScreenView`, the top center item is the information item, switch it out for showing this new `ScrollView` with the file list context, use the icon `sprite_floppy_100`"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "Key pieces:",
+      "- Added file-list ScrollView context and file item enums in [ScrollItem.h](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollItem.h:18).",
+      "- Added `ScrollView::populateFiles()` in [ScrollView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:512), using `MostRecentFiles::get(16)`.",
+      "- Wired icons/actions:",
+      "  - `.wav` -> `sprite_record_100`, placeholder callback",
+      "  - `.rec` -> `sprite_recordenc_100`, no action",
+      "  - `firmware.bin` -> `sprite_fwupdate`, quick stripe fade then `esp_restart()`",
+      "  - other files -> `sprite_fileunknown_100`, no action",
+      "  - storage info item -> `sprite_info_100`, reuses the existing info dialog",
+      "- Swapped MainScreen top-center item to the file list using `sprite_floppy_100` in [MainScreenView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/MainScreenView.cpp:40).",
+      "- Added callback wiring in [all_init.cpp](D:/GithubRepos/The-Fly/src/all_init.cpp:143) and [main_callbacks.cpp](D:/GithubRepos/The-Fly/src/main_callbacks.cpp:187).",
+      "",
+      "Verification: `pio run -e thefly_sec0` passed.",
+      "",
+      "No serious issue jumped out. Note: the sprite generated files/assets were already modified in the worktree; I used the symbols present there and left the unrelated untracked doc alone.",
+      "",
+      "Implemented.",
+      "",
+      "Key pieces:",
+      "- Added file-list ScrollView context and file item enums in [ScrollItem.h](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollItem.h:18).",
+      "- Added `ScrollView::populateFiles()` in [ScrollView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:512), using `MostRecentFiles::get(16)`.",
+      "- Wired icons/actions:",
+      "  - `.wav` -> `sprite_record_100`, placeholder callback",
+      "  - `.rec` -> `sprite_recordenc_100`, no action",
+      "  - `firmware.bin` -> `sprite_fwupdate`, quick stripe fade then `esp_restart()`",
+      "  - other files -> `sprite_fileunknown_100`, no action",
+      "  - storage info item -> `sprite_info_100`, reuses the existing info dialog",
+      "- Swapped MainScreen top-center item to the file list using `sprite_floppy_100` in [MainScreenView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/MainScreenView.cpp:40).",
+      "- Added callback wiring in [all_init.cpp](D:/GithubRepos/The-Fly/src/all_init.cpp:143) and [main_callbacks.cpp](D:/GithubRepos/The-Fly/src/main_callbacks.cpp:187).",
+      "",
+      "Verification: `pio run -e thefly_sec0` passed.",
+      "",
+      "No serious issue jumped out. Note: the sprite generated files/assets were already modified in the worktree; I used the symbols present there and left the unrelated untracked doc alone."
+    ],
+    "files": [
+      "lib/FlyGuiViews/ScrollView/ScrollItem.h",
+      "lib/FlyGuiViews/ScrollView/ScrollView.h",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "lib/FlyGuiViews/MainScreenView.h",
+      "lib/FlyGuiViews/MainScreenView.cpp",
+      "inc/main_callbacks.h",
+      "src/main_callbacks.cpp",
+      "src/all_init.cpp",
+      "src/version.c",
+      "lib/FlyGui/FlyGui.h",
+      "managed_components/espressif__esp-serial-flasher/examples/binaries/ESP32_AT_Firmware/Firmware.bin"
+    ]
+  },
+  {
+    "timestamp": "2026-05-30T08:35:05Z",
+    "type": "git_commit",
+    "commit_message": "playback mechanism",
+    "commit_hash": "813aab87ffb853eb373d960af6a773dbf5f74642"
   }
 ]

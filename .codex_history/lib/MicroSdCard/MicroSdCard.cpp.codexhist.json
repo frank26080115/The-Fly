@@ -696,5 +696,66 @@
     "type": "git_commit",
     "commit_message": "serving pages over soft AP works, had a hiccup about disk space retrieval too slow tripping the wdt",
     "commit_hash": "ed520c430d839d309262fb9c545eeca56856e91b"
+  },
+  {
+    "timestamp": "2026-05-29T20:41:49Z",
+    "type": "git_commit",
+    "commit_message": "firmware update kinda implemented",
+    "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
+  },
+  {
+    "timestamp": "2026-05-30T04:26:18.235Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "how is it so slow to calculate DiskStats but sorting 50 files only took 17 milliseconds?"
+    ],
+    "agent_reply": [
+      "Because they’re measuring very different things.",
+      "",
+      "`MostRecentFiles::get()` is cheap:",
+      "- It only opens `/`.",
+      "- It walks root directory entries once.",
+      "- It reads metadata already in the directory entry: archive bit, create date/time, name.",
+      "- It keeps only the top `N` candidates in a small array.",
+      "- Sorting 50 names is basically nothing compared with SD I/O.",
+      "",
+      "See [MostRecentFiles.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/MostRecentFiles.cpp:207): it is just `openNext()`, `getCreateDateTime()`, `getName()`, then insertion.",
+      "",
+      "`DiskStats` can be slow for two separate reasons:",
+      "",
+      "1. `refreshDiskSpace()` calls `MicroSdCard::freeBytes()`, which calls `SdFat::freeClusterCount()`.",
+      "",
+      "That may scan filesystem allocation structures, so its cost is related to card/filesystem size and FAT/exFAT metadata, not just “number of files.” The code even warns this is slow at [MicroSdCard.cpp](D:/GithubRepos/The-Fly/lib/MicroSdCard/MicroSdCard.cpp:177).",
+      "",
+      "2. `refreshRecordingUploadStats()` recursively scans directories and, with cloud features, loads `cloud_history.txt` and checks upload status. That can become much heavier than a flat 50-file root scan.",
+      "",
+      "Also: important catch. `DiskStats::refreshRecordingUploadStats()` currently only recognizes `.rec` files via `ends_with_rec()` at [DiskStats.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/DiskStats.cpp:57). So new direct `.wav` recordings are **not counted** as recorded files there right now. `refreshDiskSpace()` still sees their bytes, but the recording-count/latest-recording stats won’t.",
+      "",
+      "Because they’re measuring very different things.",
+      "",
+      "`MostRecentFiles::get()` is cheap:",
+      "- It only opens `/`.",
+      "- It walks root directory entries once.",
+      "- It reads metadata already in the directory entry: archive bit, create date/time, name.",
+      "- It keeps only the top `N` candidates in a small array.",
+      "- Sorting 50 names is basically nothing compared with SD I/O.",
+      "",
+      "See [MostRecentFiles.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/MostRecentFiles.cpp:207): it is just `openNext()`, `getCreateDateTime()`, `getName()`, then insertion.",
+      "",
+      "`DiskStats` can be slow for two separate reasons:",
+      "",
+      "1. `refreshDiskSpace()` calls `MicroSdCard::freeBytes()`, which calls `SdFat::freeClusterCount()`.",
+      "",
+      "That may scan filesystem allocation structures, so its cost is related to card/filesystem size and FAT/exFAT metadata, not just “number of files.” The code even warns this is slow at [MicroSdCard.cpp](D:/GithubRepos/The-Fly/lib/MicroSdCard/MicroSdCard.cpp:177).",
+      "",
+      "2. `refreshRecordingUploadStats()` recursively scans directories and, with cloud features, loads `cloud_history.txt` and checks upload status. That can become much heavier than a flat 50-file root scan.",
+      "",
+      "Also: important catch. `DiskStats::refreshRecordingUploadStats()` currently only recognizes `.rec` files via `ends_with_rec()` at [DiskStats.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/DiskStats.cpp:57). So new direct `.wav` recordings are **not counted** as recorded files there right now. `refreshDiskSpace()` still sees their bytes, but the recording-count/latest-recording stats won’t."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/MostRecentFiles.cpp",
+      "lib/MicroSdCard/MicroSdCard.cpp",
+      "lib/AudioFileRecorder/DiskStats.cpp"
+    ]
   }
 ]

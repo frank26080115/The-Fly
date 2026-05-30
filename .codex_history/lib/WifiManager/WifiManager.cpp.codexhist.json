@@ -2406,5 +2406,109 @@
     "type": "git_commit",
     "commit_message": "seem to fix the bad IP display issue",
     "commit_hash": "4a4c8ca7e541b554b344e5c9040f4d24b07187cb"
+  },
+  {
+    "timestamp": "2026-05-29T03:17:02.494Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: tools/check_dev_pace.py",
+      "",
+      "## My request for Codex:",
+      "make it so that, even if Wi-Fi connection has failed or cancelled, clicking the back button inside the ScrollView for Wi-Fi items will cause the microcontroller to reset. Have some sort of Wifi-has-started indication from WifiManager to do this"
+    ],
+    "agent_reply": [
+      "Done. I added a sticky `WifiManager::wifiHasStarted()` flag in [WifiManager.h](</d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.h>) / [WifiManager.cpp](</d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp>) that flips true once STA connect, STA scan, or AP mode actually starts. It is intentionally not cleared by `disconnect()`, so cancel/fail still counts until reset.",
+      "",
+      "Then [ScrollView](</d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.h>) exposes `isWifiContext()`, and [main.cpp](</d:/GithubRepos/The-Fly/src/main.cpp>) now resets when the ScrollView back button is pressed from Wi-Fi context after `wifiHasStarted()` is true.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passed. Existing dirty sprite/check_dev_pace/version files were already in the worktree, and I left them alone."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.h",
+      "lib/WifiManager/WifiManager.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollView.h",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "src/main.cpp",
+      "src/version.c",
+      "tools/check_dev_pace.py"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T03:55:25Z",
+    "type": "git_commit",
+    "commit_message": "work on wifi workflow",
+    "commit_hash": "b4a10916d5b7ea69c537dd11e62033af5ee67a64"
+  },
+  {
+    "timestamp": "2026-05-29T04:55:49Z",
+    "type": "git_commit",
+    "commit_message": "code neatened, remove cloud features with a predefine",
+    "commit_hash": "d24eb445de9566caf462ed97068368a51fbd6009"
+  },
+  {
+    "timestamp": "2026-05-29T05:08:26.537Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/DiskStats.cpp",
+      "",
+      "## Active selection of the file:",
+      "BUILD_CLOUD_FEATURES",
+      "",
+      "## My request for Codex:",
+      "clean up bugs I've introduced when I wrote in `BUILD_CLOUD_FEATURES`"
+    ],
+    "agent_reply": [
+      "Cleaned up the `BUILD_CLOUD_FEATURES` fallout.",
+      "",
+      "Main fixes:",
+      "- Fixed a real overflow in `WifiManager::sanitize_network_config()` when cloud is disabled: it was iterating cloud entries using the station count.",
+      "- Made cloud-disabled builds use `CLOUD_SERVER_CNT_ALLOWED = 0` while keeping a legal one-slot storage array.",
+      "- Kept `DiskStats::refreshRecordingUploadStats()` scanning local recordings even when cloud upload is disabled.",
+      "- Made cloud-history pruning a clean no-op `Done` result when cloud is disabled.",
+      "- Guarded cloud upload globals/includes/callbacks/views behind `BUILD_CLOUD_FEATURES`.",
+      "- Cleaned `WebCfgHandlers` so disabled cloud config returns/parses as `cloud_uploads:false` without awkward `#ifdef` expression bugs.",
+      "",
+      "Verification:",
+      "- `pio run -e thefly_sec0` passed with cloud disabled.",
+      "- Temporarily enabled `BUILD_CLOUD_FEATURES`, rebuilt `pio run -e thefly_sec0`, and it passed too.",
+      "- Restored the switch to commented-out afterward, and restored generated `src/version.c`.",
+      "",
+      "Cleaned up the `BUILD_CLOUD_FEATURES` fallout.",
+      "",
+      "Main fixes:",
+      "- Fixed a real overflow in `WifiManager::sanitize_network_config()` when cloud is disabled: it was iterating cloud entries using the station count.",
+      "- Made cloud-disabled builds use `CLOUD_SERVER_CNT_ALLOWED = 0` while keeping a legal one-slot storage array.",
+      "- Kept `DiskStats::refreshRecordingUploadStats()` scanning local recordings even when cloud upload is disabled.",
+      "- Made cloud-history pruning a clean no-op `Done` result when cloud is disabled.",
+      "- Guarded cloud upload globals/includes/callbacks/views behind `BUILD_CLOUD_FEATURES`.",
+      "- Cleaned `WebCfgHandlers` so disabled cloud config returns/parses as `cloud_uploads:false` without awkward `#ifdef` expression bugs.",
+      "",
+      "Verification:",
+      "- `pio run -e thefly_sec0` passed with cloud disabled.",
+      "- Temporarily enabled `BUILD_CLOUD_FEATURES`, rebuilt `pio run -e thefly_sec0`, and it passed too.",
+      "- Restored the switch to commented-out afterward, and restored generated `src/version.c`."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.cpp",
+      "lib/AudioFileRecorder/DiskStats.cpp",
+      "inc/main_callbacks.h",
+      "src/main_callbacks.cpp",
+      "src/main.cpp",
+      "src/all_init.cpp",
+      "lib/WifiManager/WebCfgHandlers.cpp",
+      "inc/conf.h",
+      "lib/AudioFileRecorder/FileHistory.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T05:15:25Z",
+    "type": "git_commit",
+    "commit_message": "more cleanup about disabling cloud",
+    "commit_hash": "42de74ba32ee5369a9a3f577c65e993d5d7d8d25"
   }
 ]

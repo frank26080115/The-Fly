@@ -134,5 +134,69 @@
       "lib/BluetoothManager/BtHostList.cpp",
       "lib/WifiManager/WifiManager.cpp"
     ]
+  },
+  {
+    "timestamp": "2026-05-29T05:08:26.537Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/DiskStats.cpp",
+      "",
+      "## Active selection of the file:",
+      "BUILD_CLOUD_FEATURES",
+      "",
+      "## My request for Codex:",
+      "clean up bugs I've introduced when I wrote in `BUILD_CLOUD_FEATURES`"
+    ],
+    "agent_reply": [
+      "Cleaned up the `BUILD_CLOUD_FEATURES` fallout.",
+      "",
+      "Main fixes:",
+      "- Fixed a real overflow in `WifiManager::sanitize_network_config()` when cloud is disabled: it was iterating cloud entries using the station count.",
+      "- Made cloud-disabled builds use `CLOUD_SERVER_CNT_ALLOWED = 0` while keeping a legal one-slot storage array.",
+      "- Kept `DiskStats::refreshRecordingUploadStats()` scanning local recordings even when cloud upload is disabled.",
+      "- Made cloud-history pruning a clean no-op `Done` result when cloud is disabled.",
+      "- Guarded cloud upload globals/includes/callbacks/views behind `BUILD_CLOUD_FEATURES`.",
+      "- Cleaned `WebCfgHandlers` so disabled cloud config returns/parses as `cloud_uploads:false` without awkward `#ifdef` expression bugs.",
+      "",
+      "Verification:",
+      "- `pio run -e thefly_sec0` passed with cloud disabled.",
+      "- Temporarily enabled `BUILD_CLOUD_FEATURES`, rebuilt `pio run -e thefly_sec0`, and it passed too.",
+      "- Restored the switch to commented-out afterward, and restored generated `src/version.c`.",
+      "",
+      "Cleaned up the `BUILD_CLOUD_FEATURES` fallout.",
+      "",
+      "Main fixes:",
+      "- Fixed a real overflow in `WifiManager::sanitize_network_config()` when cloud is disabled: it was iterating cloud entries using the station count.",
+      "- Made cloud-disabled builds use `CLOUD_SERVER_CNT_ALLOWED = 0` while keeping a legal one-slot storage array.",
+      "- Kept `DiskStats::refreshRecordingUploadStats()` scanning local recordings even when cloud upload is disabled.",
+      "- Made cloud-history pruning a clean no-op `Done` result when cloud is disabled.",
+      "- Guarded cloud upload globals/includes/callbacks/views behind `BUILD_CLOUD_FEATURES`.",
+      "- Cleaned `WebCfgHandlers` so disabled cloud config returns/parses as `cloud_uploads:false` without awkward `#ifdef` expression bugs.",
+      "",
+      "Verification:",
+      "- `pio run -e thefly_sec0` passed with cloud disabled.",
+      "- Temporarily enabled `BUILD_CLOUD_FEATURES`, rebuilt `pio run -e thefly_sec0`, and it passed too.",
+      "- Restored the switch to commented-out afterward, and restored generated `src/version.c`."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.cpp",
+      "lib/AudioFileRecorder/DiskStats.cpp",
+      "inc/main_callbacks.h",
+      "src/main_callbacks.cpp",
+      "src/main.cpp",
+      "src/all_init.cpp",
+      "lib/WifiManager/WebCfgHandlers.cpp",
+      "inc/conf.h",
+      "lib/AudioFileRecorder/FileHistory.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T05:15:25Z",
+    "type": "git_commit",
+    "commit_message": "more cleanup about disabling cloud",
+    "commit_hash": "42de74ba32ee5369a9a3f577c65e993d5d7d8d25"
   }
 ]

@@ -125,5 +125,51 @@
     "type": "git_commit",
     "commit_message": "cloud upload progress view",
     "commit_hash": "38364a2ef3264fa32292357993ee56caf3c7d0c9"
+  },
+  {
+    "timestamp": "2026-05-29T03:37:36.810Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main.cpp",
+      "",
+      "## Active selection of the file:",
+      "show_conn_waiting_wifi",
+      "",
+      "## My request for Codex:",
+      "split `show_conn_waiting_wifi` into two things so that connecting directly and scanning are different, the scanning one uses `sprite_wifisearch_100`"
+    ],
+    "agent_reply": [
+      "Done. I split the Wi-Fi waiting helper into:",
+      "",
+      "- `show_conn_waiting_wifi_connecting(...)`",
+      "- `show_conn_waiting_wifi_scanning(...)`",
+      "",
+      "`ConnWaitingView` now has separate modes for Wi-Fi connecting vs scanning. The scanning mode uses `sprite_wifisearch_100` and displays `Scanning for:`, while the direct connect mode keeps `sprite_wifi_100` and `Connecting to:`. When scan finds a station, `update_conn_waiting_wifi_target(...)` switches the view to the connecting mode.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passed.",
+      "",
+      "Done. I split the Wi-Fi waiting helper into:",
+      "",
+      "- `show_conn_waiting_wifi_connecting(...)`",
+      "- `show_conn_waiting_wifi_scanning(...)`",
+      "",
+      "`ConnWaitingView` now has separate modes for Wi-Fi connecting vs scanning. The scanning mode uses `sprite_wifisearch_100` and displays `Scanning for:`, while the direct connect mode keeps `sprite_wifi_100` and `Connecting to:`. When scan finds a station, `update_conn_waiting_wifi_target(...)` switches the view to the connecting mode.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passed."
+    ],
+    "files": [
+      "lib/FlyGuiViews/ConnWaitingView.h",
+      "lib/FlyGuiViews/ConnWaitingView.cpp",
+      "src/all_init.cpp",
+      "src/main.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T03:55:25Z",
+    "type": "git_commit",
+    "commit_message": "work on wifi workflow",
+    "commit_hash": "b4a10916d5b7ea69c537dd11e62033af5ee67a64"
   }
 ]

@@ -646,5 +646,54 @@
     "type": "git_commit",
     "commit_message": "nvs load and save test",
     "commit_hash": "203192593a6aa867a74e6bb0c74cd9cd6de4edf4"
+  },
+  {
+    "timestamp": "2026-05-30T00:53:41Z",
+    "type": "git_commit",
+    "commit_message": "added a decoder",
+    "commit_hash": "66c153975daea31fb102791f88bbb449b20add9c"
+  },
+  {
+    "timestamp": "2026-05-30T04:16:45.446Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "implement `void test_filelistbenchmark()`",
+      "",
+      "write to the microSD card new empty files until there's like 50 files in total",
+      "",
+      "then initialize `MostRecentFiles::FileList` for 10 files, measure how long that takes from allocation to completion of the population.",
+      "",
+      "then do it again for 20 files, 30 files, 40 files, 50 files.",
+      "",
+      "report the time it takes, in milliseconds, for each test iteration"
+    ],
+    "agent_reply": [
+      "Implemented `test_filelistbenchmark()` in [test_filelistbenchmark.cpp](D:/GithubRepos/The-Fly/src/tests/test_filelistbenchmark.cpp).",
+      "",
+      "It now:",
+      "- Initializes the microSD card.",
+      "- Counts root files and creates empty `/flbench-NNN.tmp` files until there are at least 50 files total.",
+      "- Runs `MostRecentFiles::get()` for capacities `10, 20, 30, 40, 50`.",
+      "- Reports elapsed time in milliseconds for each case, including populated count and newest file.",
+      "",
+      "Output lines look like:",
+      "",
+      "```text",
+      "test_filelistbenchmark: max_files=10 populated=10 elapsed=12.345 ms newest=...",
+      "```",
+      "",
+      "Verified with `pio run -e thefly_sec0`. The build passed; only a third-party FTP dependency emitted a deprecation warning."
+    ],
+    "files": [
+      "src/tests/test_filelistbenchmark.cpp",
+      "src/version.c",
+      "src/tests/all_tests.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-30T04:58:58Z",
+    "type": "git_commit",
+    "commit_message": "benchmarking file listing and sorting",
+    "commit_hash": "db2bcb144238b4b8215a303296a745cc1785c39c"
   }
 ]

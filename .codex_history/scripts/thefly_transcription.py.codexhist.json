@@ -1,0 +1,63 @@
+[
+  {
+    "timestamp": "2026-05-28T21:27:46Z",
+    "type": "git_commit",
+    "commit_message": "Create thefly_transcription.py",
+    "commit_hash": "3e6b3e226ef0af5379bf8adba67cf842d86b3bd3"
+  },
+  {
+    "timestamp": "2026-05-28T21:48:08Z",
+    "type": "git_commit",
+    "commit_message": "ai summarization",
+    "commit_hash": "fa348f9fddca092e41f57e5196b35ee1ef618215"
+  },
+  {
+    "timestamp": "2026-05-29T00:40:11.074Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "",
+      "## Active selection of the file:",
+      "write_queued_meta_text_locked",
+      "",
+      "## My request for Codex:",
+      "`scripts\\thefly_transcription.py` has the ability of extracting the meta text out of the \"*.wav\" files, but if nothing is there, the file name starting letter can be used, but only if the complete name is a single recognized letter followed by a dash."
+    ],
+    "agent_reply": [
+      "Done in [thefly_transcription.py](D:/GithubRepos/The-Fly/scripts/thefly_transcription.py:17).",
+      "",
+      "It now:",
+      "- Reads WAV `ICMT` metadata first.",
+      "- Uses that metadata to set `meta_type`.",
+      "- Only falls back to filename when the WAV metadata is blank.",
+      "- Only trusts strict one-letter dash prefixes: `C-`, `M-`, `T-`, `J-`, `I-`, `R-`.",
+      "- Synthesizes `meta_comment` like `memo-type:todo` or `recording-type:call` from that strict fallback.",
+      "- Removed the loose filename guesses like `memo.wav` or `meeting-notes.wav`.",
+      "",
+      "Verified with AST syntax parse and direct function checks. `python -m compileall` could not run because `scripts/__pycache__` denied bytecode writes, but the script parses and the metadata cases behave correctly.",
+      "",
+      "Done in [thefly_transcription.py](D:/GithubRepos/The-Fly/scripts/thefly_transcription.py:17).",
+      "",
+      "It now:",
+      "- Reads WAV `ICMT` metadata first.",
+      "- Uses that metadata to set `meta_type`.",
+      "- Only falls back to filename when the WAV metadata is blank.",
+      "- Only trusts strict one-letter dash prefixes: `C-`, `M-`, `T-`, `J-`, `I-`, `R-`.",
+      "- Synthesizes `meta_comment` like `memo-type:todo` or `recording-type:call` from that strict fallback.",
+      "- Removed the loose filename guesses like `memo.wav` or `meeting-notes.wav`.",
+      "",
+      "Verified with AST syntax parse and direct function checks. `python -m compileall` could not run because `scripts/__pycache__` denied bytecode writes, but the script parses and the metadata cases behave correctly."
+    ],
+    "files": [
+      "scripts/thefly_transcription.py"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T00:43:53Z",
+    "type": "git_commit",
+    "commit_message": "align transcription with recording meta data",
+    "commit_hash": "ecafda3ddfff20c61412034e7806e81a137b41e9"
+  }
+]

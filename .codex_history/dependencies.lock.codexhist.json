@@ -84,5 +84,11 @@
     "type": "git_commit",
     "commit_message": "stuff added when managed_components was needed",
     "commit_hash": "363b24e8afe5f8b3b5859992486853dfb80fb510"
+  },
+  {
+    "timestamp": "2026-05-29T08:00:46Z",
+    "type": "git_commit",
+    "commit_message": "fixed crashing BT connection",
+    "commit_hash": "96977720a364b68ccd0cbc2bc2f5cc4cb7c0b431"
   }
 ]

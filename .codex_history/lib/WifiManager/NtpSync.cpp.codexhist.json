@@ -120,5 +120,91 @@
     "type": "git_commit",
     "commit_message": "ntp sync",
     "commit_hash": "884cbfaa23c0534e6c9899c41dd63b855e7316d2"
+  },
+  {
+    "timestamp": "2026-05-29T08:37:41.983Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/all_init.cpp",
+      "",
+      "## My request for Codex:",
+      "Does clicking on the NTP sync button do anything right now?"
+    ],
+    "agent_reply": [
+      "No. The button is wired up, but the callback is currently just a log stub.",
+      "",
+      "Path:",
+      "- `ScrollView::populateCloud()` adds the `Sync Time` item.",
+      "- `ScrollView::handleScrollItem()` calls `onNtpSync_`.",
+      "- `all_init.cpp` wires that to `onclick_ntp_sync`.",
+      "- [main_callbacks.cpp](/d:/GithubRepos/The-Fly/src/main_callbacks.cpp:466) only does:",
+      "",
+      "```cpp",
+      "ESP_LOGI(MAINTAG, \"scroll ntp sync selected: task=%ld\", static_cast<long>(value));",
+      "```",
+      "",
+      "There is an `NtpSync` implementation in `lib/WifiManager/NtpSync.cpp`, but the button does not call `NtpSync::start()` right now.",
+      "",
+      "No. The button is wired up, but the callback is currently just a log stub.",
+      "",
+      "Path:",
+      "- `ScrollView::populateCloud()` adds the `Sync Time` item.",
+      "- `ScrollView::handleScrollItem()` calls `onNtpSync_`.",
+      "- `all_init.cpp` wires that to `onclick_ntp_sync`.",
+      "- [main_callbacks.cpp](/d:/GithubRepos/The-Fly/src/main_callbacks.cpp:466) only does:",
+      "",
+      "```cpp",
+      "ESP_LOGI(MAINTAG, \"scroll ntp sync selected: task=%ld\", static_cast<long>(value));",
+      "```",
+      "",
+      "There is an `NtpSync` implementation in `lib/WifiManager/NtpSync.cpp`, but the button does not call `NtpSync::start()` right now."
+    ],
+    "files": [
+      "src/main_callbacks.cpp",
+      "lib/WifiManager/NtpSync.cpp",
+      "src/all_init.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T09:00:42.476Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: developer-docs/custom-sdkconfig.md",
+      "",
+      "## My request for Codex:",
+      "can you double check that the NTP sync code works? it's like 2 minutes off, which still seems like the compile and upload time. Does the result get written to the ClockAgent and also to the real RTC?"
+    ],
+    "agent_reply": [
+      "Yes. The write path does go to both places:",
+      "",
+      "- [NtpSync.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/NtpSync.cpp:159) calls `Clock.setDateTime(datetime)`.",
+      "- [ClockAgent.cpp](D:/GithubRepos/The-Fly/lib/ClockAgent/ClockAgent.cpp:390) writes `M5.Rtc.setDateTime(datetime)`, updates ClockAgent’s internal base time, and applies the system clock.",
+      "",
+      "The bug was before that: `NtpSync` accepted any valid `time(nullptr)` after `configTzTime()`. Since the system clock can already be seeded from compile/RTC time, it could “sync” to the compile/upload time without waiting for SNTP. That matches your 2-minute-off symptom.",
+      "",
+      "I fixed it so `NtpSync` now resets SNTP status, waits for `SNTP_SYNC_STATUS_COMPLETED`, then reads the time. I also tightened RTC write verification so it confirms the RTC readback matches within 2 seconds.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "lib/WifiManager/NtpSync.cpp",
+      "lib/ClockAgent/ClockAgent.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T09:06:04Z",
+    "type": "git_commit",
+    "commit_message": "ntp actually works now",
+    "commit_hash": "ea6ae0fe44d2a5fca5bbb776979ee38182077918"
   }
 ]

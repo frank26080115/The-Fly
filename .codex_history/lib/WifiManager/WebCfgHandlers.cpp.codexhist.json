@@ -177,7 +177,8 @@
       "lib/BluetoothManager/BtHostList.h",
       "test_bootreadfiles.cpp",
       "lib/WifiManager/WifiManager.h",
-      "src/version.c"
+      "src/version.c",
+      "src/tests/test_bootreadfiles.cpp"
     ]
   },
   {
@@ -862,5 +863,130 @@
     "type": "git_commit",
     "commit_message": "implement the wifi ap view",
     "commit_hash": "d8fe002743fef62a02f8317b0e30b6a57eebd666"
+  },
+  {
+    "timestamp": "2026-05-28T21:04:08Z",
+    "type": "git_commit",
+    "commit_message": "time sync",
+    "commit_hash": "5db774b132e9cf144c3a894ac806918762c92684"
+  },
+  {
+    "timestamp": "2026-05-29T04:53:05.971Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "I have added a switch named `BUILD_CLOUD_FEATURES`, if this is not true, `/get_info` will say `cloud_uploads` is false instead of a number.",
+      "",
+      "in this case `#cloud_dest_panel` inside `index.html` should be hidden"
+    ],
+    "agent_reply": [
+      "Done. The web UI now treats `config_limits.cloud_uploads === false` from `/get_info` as “cloud upload feature unavailable”:",
+      "",
+      "- Hides `#cloud_dest_panel`.",
+      "- Skips creating/filling cloud destination rows.",
+      "- Sends `cloud_uploads: false` when saving config in that mode.",
+      "- Updated generated `inc/web_assets.h` via the build.",
+      "",
+      "I also fixed the disabled-cloud `/get_cfg` JSON branch so it emits valid JSON without a trailing comma.",
+      "",
+      "Verification: `pio run -e thefly_sec0` passed. PlatformIO touched `src/version.c`; I restored it afterward.",
+      "",
+      "Done. The web UI now treats `config_limits.cloud_uploads === false` from `/get_info` as “cloud upload feature unavailable”:",
+      "",
+      "- Hides `#cloud_dest_panel`.",
+      "- Skips creating/filling cloud destination rows.",
+      "- Sends `cloud_uploads: false` when saving config in that mode.",
+      "- Updated generated `inc/web_assets.h` via the build.",
+      "",
+      "I also fixed the disabled-cloud `/get_cfg` JSON branch so it emits valid JSON without a trailing comma.",
+      "",
+      "Verification: `pio run -e thefly_sec0` passed. PlatformIO touched `src/version.c`; I restored it afterward."
+    ],
+    "files": [
+      "html/script.js",
+      "lib/WifiManager/WebCfgHandlers.cpp",
+      "src/version.c",
+      "inc/web_assets.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T04:55:49Z",
+    "type": "git_commit",
+    "commit_message": "code neatened, remove cloud features with a predefine",
+    "commit_hash": "d24eb445de9566caf462ed97068368a51fbd6009"
+  },
+  {
+    "timestamp": "2026-05-29T05:08:26.537Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/DiskStats.cpp",
+      "",
+      "## Active selection of the file:",
+      "BUILD_CLOUD_FEATURES",
+      "",
+      "## My request for Codex:",
+      "clean up bugs I've introduced when I wrote in `BUILD_CLOUD_FEATURES`"
+    ],
+    "agent_reply": [
+      "Cleaned up the `BUILD_CLOUD_FEATURES` fallout.",
+      "",
+      "Main fixes:",
+      "- Fixed a real overflow in `WifiManager::sanitize_network_config()` when cloud is disabled: it was iterating cloud entries using the station count.",
+      "- Made cloud-disabled builds use `CLOUD_SERVER_CNT_ALLOWED = 0` while keeping a legal one-slot storage array.",
+      "- Kept `DiskStats::refreshRecordingUploadStats()` scanning local recordings even when cloud upload is disabled.",
+      "- Made cloud-history pruning a clean no-op `Done` result when cloud is disabled.",
+      "- Guarded cloud upload globals/includes/callbacks/views behind `BUILD_CLOUD_FEATURES`.",
+      "- Cleaned `WebCfgHandlers` so disabled cloud config returns/parses as `cloud_uploads:false` without awkward `#ifdef` expression bugs.",
+      "",
+      "Verification:",
+      "- `pio run -e thefly_sec0` passed with cloud disabled.",
+      "- Temporarily enabled `BUILD_CLOUD_FEATURES`, rebuilt `pio run -e thefly_sec0`, and it passed too.",
+      "- Restored the switch to commented-out afterward, and restored generated `src/version.c`.",
+      "",
+      "Cleaned up the `BUILD_CLOUD_FEATURES` fallout.",
+      "",
+      "Main fixes:",
+      "- Fixed a real overflow in `WifiManager::sanitize_network_config()` when cloud is disabled: it was iterating cloud entries using the station count.",
+      "- Made cloud-disabled builds use `CLOUD_SERVER_CNT_ALLOWED = 0` while keeping a legal one-slot storage array.",
+      "- Kept `DiskStats::refreshRecordingUploadStats()` scanning local recordings even when cloud upload is disabled.",
+      "- Made cloud-history pruning a clean no-op `Done` result when cloud is disabled.",
+      "- Guarded cloud upload globals/includes/callbacks/views behind `BUILD_CLOUD_FEATURES`.",
+      "- Cleaned `WebCfgHandlers` so disabled cloud config returns/parses as `cloud_uploads:false` without awkward `#ifdef` expression bugs.",
+      "",
+      "Verification:",
+      "- `pio run -e thefly_sec0` passed with cloud disabled.",
+      "- Temporarily enabled `BUILD_CLOUD_FEATURES`, rebuilt `pio run -e thefly_sec0`, and it passed too.",
+      "- Restored the switch to commented-out afterward, and restored generated `src/version.c`."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.cpp",
+      "lib/AudioFileRecorder/DiskStats.cpp",
+      "inc/main_callbacks.h",
+      "src/main_callbacks.cpp",
+      "src/main.cpp",
+      "src/all_init.cpp",
+      "lib/WifiManager/WebCfgHandlers.cpp",
+      "inc/conf.h",
+      "lib/AudioFileRecorder/FileHistory.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T05:15:25Z",
+    "type": "git_commit",
+    "commit_message": "more cleanup about disabling cloud",
+    "commit_hash": "42de74ba32ee5369a9a3f577c65e993d5d7d8d25"
+  },
+  {
+    "timestamp": "2026-05-29T19:12:05Z",
+    "type": "git_commit",
+    "commit_message": "better error screens with rescue wifi",
+    "commit_hash": "e80a4d45b429f363956cf3178c63626d5c802a88"
   }
 ]

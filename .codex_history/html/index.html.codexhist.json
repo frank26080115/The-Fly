@@ -1538,5 +1538,23 @@
     "type": "git_commit",
     "commit_message": "more icons",
     "commit_hash": "85ea670fbb96bddad0494a3ef75e7ec65c09adbf"
+  },
+  {
+    "timestamp": "2026-05-28T18:53:53Z",
+    "type": "git_commit",
+    "commit_message": "single name column for BT hosts",
+    "commit_hash": "0dc7f5510c3f05971b4e8a50538487de88946deb"
+  },
+  {
+    "timestamp": "2026-05-29T04:55:49Z",
+    "type": "git_commit",
+    "commit_message": "code neatened, remove cloud features with a predefine",
+    "commit_hash": "d24eb445de9566caf462ed97068368a51fbd6009"
+  },
+  {
+    "timestamp": "2026-05-30T08:58:27Z",
+    "type": "git_commit",
+    "commit_message": "playback cosmetics",
+    "commit_hash": "fc195cfc87e618d1f87c500b1c86a99d7d5b813d"
   }
 ]

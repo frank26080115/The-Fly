@@ -102,5 +102,158 @@
       "lib/BattTracker/BattTracker.cpp",
       "src/version.c"
     ]
+  },
+  {
+    "timestamp": "2026-05-29T05:28:04.736Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main.cpp",
+      "",
+      "## Active selection of the file:",
+      "BattTracker::init();",
+      "",
+      "## My request for Codex:",
+      "when `Hotel` decides to shutdown, blank out the screen, draw `sprite_sleep_100` right in the center of the screen, wait 3 seconds, then shutdown. During this, `FlyGui` is not polling, nothing is polling or pumping.",
+      "",
+      "the battery reading mechanism can issue a shutdown if the batter is too low, similarly blank out the screen, prevent any more polling from anything, draw `sprite_lowbatt_100` in the center of the screen",
+      "",
+      "On boot, after `BattTracker::init();`, do one check of battery level to see if it needs to shutdown in the above way.",
+      "",
+      "I would suggest the actual functionality of these be implemented in `lib\\FlyGuiViews` under a file called `ShutdownView.cpp` but it doesn't have to be a class object, it's just like... 2 draw calls."
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "Added [ShutdownView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ShutdownView.cpp:70) / [ShutdownView.h](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ShutdownView.h:6) to blank the display, center either `sprite_sleep_100` or `sprite_lowbatt_100`, wait 3 seconds, then power off/deep sleep. It sets a shared shutdown-in-progress flag first.",
+      "",
+      "Routed Hotel shutdown through the sleep icon path in [Hotel.cpp](D:/GithubRepos/The-Fly/lib/Hotel/Hotel.cpp:268). Added BattTracker low-battery shutdown checks in [BattTracker.cpp](D:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:137), with shutdown triggered when the tracked level is low and not charging. Added the boot check right after `BattTracker::init();` and loop guards in [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:310), so both cores stop GUI/audio/Wi-Fi/Bluetooth polling once shutdown begins.",
+      "",
+      "Verified with `pio run -e thefly_sec0`: build succeeded. `src/version.c` still has its pre-existing generated dirty diff; I left it alone."
+    ],
+    "files": [
+      "lib/FlyGuiViews/ShutdownView.h",
+      "lib/FlyGuiViews/ShutdownView.cpp",
+      "lib/Hotel/Hotel.cpp",
+      "lib/BattTracker/BattTracker.h",
+      "lib/BattTracker/BattTracker.cpp",
+      "src/main.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T05:44:26.410Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BattTracker/BattTracker.cpp",
+      "",
+      "## Active selection of the file:",
+      "// see here, make this test drop the battery from full to 2800mV within 2 minutes using t_since",
+      "",
+      "## My request for Codex:",
+      "execute the following highlighted comment"
+    ],
+    "agent_reply": [
+      "Implemented the test drain in [BattTracker.cpp](D:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:200).",
+      "",
+      "Under `TEST_SIM_BATTERY`, it now linearly drops from `4300 mV` to `2800 mV` over `2 minutes`, using `t_since`, then clamps at `2800 mV`.",
+      "",
+      "Verified with `pio run -e thefly_sec0`: build succeeded.",
+      "",
+      "Implemented the test drain in [BattTracker.cpp](D:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:200).",
+      "",
+      "Under `TEST_SIM_BATTERY`, it now linearly drops from `4300 mV` to `2800 mV` over `2 minutes`, using `t_since`, then clamps at `2800 mV`.",
+      "",
+      "Verified with `pio run -e thefly_sec0`: build succeeded."
+    ],
+    "files": [
+      "lib/BattTracker/BattTracker.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T05:56:17.778Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "hmmm it hits shutdown before I get to see the red level indicator",
+      "",
+      "the shutdown should be an absolute emergency, where is the threshold at right now?"
+    ],
+    "agent_reply": [
+      "Right now shutdown trips at the normal low-battery threshold: `3.40 V`.",
+      "",
+      "Specifically:",
+      "- `kLowThreshold = 3.40f` in [BattTracker.cpp](D:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:14)",
+      "- `levelFromVoltage()` marks the battery `ChargeLevel::low` at `<= 3.40 V`",
+      "- `shutdownRequired()` shuts down whenever `tracked_level == ChargeLevel::low && !charging`",
+      "",
+      "So the red icon and emergency shutdown are currently the same event. That explains why you never get to see the red level indicator. We should split this into two thresholds, e.g. red at `3.40 V`, emergency shutdown at something lower like `3.00 V` or `2.90 V`.",
+      "",
+      "Right now shutdown trips at the normal low-battery threshold: `3.40 V`.",
+      "",
+      "Specifically:",
+      "- `kLowThreshold = 3.40f` in [BattTracker.cpp](D:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:14)",
+      "- `levelFromVoltage()` marks the battery `ChargeLevel::low` at `<= 3.40 V`",
+      "- `shutdownRequired()` shuts down whenever `tracked_level == ChargeLevel::low && !charging`",
+      "",
+      "So the red icon and emergency shutdown are currently the same event. That explains why you never get to see the red level indicator. We should split this into two thresholds, e.g. red at `3.40 V`, emergency shutdown at something lower like `3.00 V` or `2.90 V`."
+    ],
+    "files": [
+      "lib/BattTracker/BattTracker.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T05:58:47.663Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "set it at 3.0V and also if a recording is happening, issue emergency stop first and give it time to finish recording, so draw the blank screen, the icon, do not let other threads run anymore, then call emergency stop, that should be blocking with a deterministic wait, then wait another 3 seconds, then shutdown"
+    ],
+    "agent_reply": [
+      "Done.",
+      "",
+      "The thresholds are now split in [BattTracker.cpp](D:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:14):",
+      "- Red/low icon: `3.40 V`",
+      "- Emergency shutdown: `3.00 V`",
+      "",
+      "`shutdownRequired()` now checks actual `tracked_voltage <= 3.00f` instead of `ChargeLevel::low`.",
+      "",
+      "I also updated [ShutdownView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ShutdownView.cpp:58) so shutdown sets the shutdown-in-progress flag, blanks/draws the icon, then calls `AudioFileRecorder::stopRecording(true)` if recording is active, then waits 3 seconds before poweroff.",
+      "",
+      "Verified with `pio run -e thefly_sec0`: build succeeded.",
+      "",
+      "Done.",
+      "",
+      "The thresholds are now split in [BattTracker.cpp](D:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:14):",
+      "- Red/low icon: `3.40 V`",
+      "- Emergency shutdown: `3.00 V`",
+      "",
+      "`shutdownRequired()` now checks actual `tracked_voltage <= 3.00f` instead of `ChargeLevel::low`.",
+      "",
+      "I also updated [ShutdownView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ShutdownView.cpp:58) so shutdown sets the shutdown-in-progress flag, blanks/draws the icon, then calls `AudioFileRecorder::stopRecording(true)` if recording is active, then waits 3 seconds before poweroff.",
+      "",
+      "Verified with `pio run -e thefly_sec0`: build succeeded."
+    ],
+    "files": [
+      "lib/BattTracker/BattTracker.cpp",
+      "lib/FlyGuiViews/ShutdownView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T06:27:46Z",
+    "type": "git_commit",
+    "commit_message": "some uncommon shutdown scenarios",
+    "commit_hash": "1bf925875d692a6196248b1d63e8e03cc8b0afe7"
   }
 ]

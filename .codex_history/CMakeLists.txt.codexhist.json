@@ -233,5 +233,65 @@
     "type": "git_commit",
     "commit_message": "build was bootlooping, got it fixed",
     "commit_hash": "2210ad25eda9a153b925d60f216707eacc3e6403"
+  },
+  {
+    "timestamp": "2026-05-29T07:29:15.970Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "fix the build error for \"thefly_sec0\""
+    ],
+    "agent_reply": [
+      "Fixed the `thefly_sec0` build error.",
+      "",
+      "Root cause was the root [CMakeLists.txt](/d:/GithubRepos/The-Fly/CMakeLists.txt:3) pinning an old generated Arduino component name. With `custom_sdkconfig`, PlatformIO rebuilds Arduino IDF libs and expects the Arduino component to be discoverable as `framework-arduinoespressif32`; the stale hashed name made PlatformIO hit that `IndexError`.",
+      "",
+      "I changed it to:",
+      "",
+      "```cmake",
+      "framework-arduinoespressif32",
+      "```",
+      "",
+      "Then I cleared the stale locked build processes from the timed-out attempt and reran:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Result: build passes. Only remaining output of note is the existing deprecated `ESP-FTP-Server` `NetworkServer::available()` warning.",
+      "",
+      "Fixed the `thefly_sec0` build error.",
+      "",
+      "Root cause was the root [CMakeLists.txt](/d:/GithubRepos/The-Fly/CMakeLists.txt:3) pinning an old generated Arduino component name. With `custom_sdkconfig`, PlatformIO rebuilds Arduino IDF libs and expects the Arduino component to be discoverable as `framework-arduinoespressif32`; the stale hashed name made PlatformIO hit that `IndexError`.",
+      "",
+      "I changed it to:",
+      "",
+      "```cmake",
+      "framework-arduinoespressif32",
+      "```",
+      "",
+      "Then I cleared the stale locked build processes from the timed-out attempt and reran:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Result: build passes. Only remaining output of note is the existing deprecated `ESP-FTP-Server` `NetworkServer::available()` warning."
+    ],
+    "files": [
+      "CMakeLists.txt",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "managed_components/espressif__libsodium/CMakeLists.txt"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T08:00:46Z",
+    "type": "git_commit",
+    "commit_message": "fixed crashing BT connection",
+    "commit_hash": "96977720a364b68ccd0cbc2bc2f5cc4cb7c0b431"
   }
 ]

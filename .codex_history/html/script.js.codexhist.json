@@ -1597,5 +1597,66 @@
     "type": "git_commit",
     "commit_message": "more icons",
     "commit_hash": "85ea670fbb96bddad0494a3ef75e7ec65c09adbf"
+  },
+  {
+    "timestamp": "2026-05-28T18:53:53Z",
+    "type": "git_commit",
+    "commit_message": "single name column for BT hosts",
+    "commit_hash": "0dc7f5510c3f05971b4e8a50538487de88946deb"
+  },
+  {
+    "timestamp": "2026-05-28T21:04:08Z",
+    "type": "git_commit",
+    "commit_message": "time sync",
+    "commit_hash": "5db774b132e9cf144c3a894ac806918762c92684"
+  },
+  {
+    "timestamp": "2026-05-29T04:53:05.971Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "I have added a switch named `BUILD_CLOUD_FEATURES`, if this is not true, `/get_info` will say `cloud_uploads` is false instead of a number.",
+      "",
+      "in this case `#cloud_dest_panel` inside `index.html` should be hidden"
+    ],
+    "agent_reply": [
+      "Done. The web UI now treats `config_limits.cloud_uploads === false` from `/get_info` as “cloud upload feature unavailable”:",
+      "",
+      "- Hides `#cloud_dest_panel`.",
+      "- Skips creating/filling cloud destination rows.",
+      "- Sends `cloud_uploads: false` when saving config in that mode.",
+      "- Updated generated `inc/web_assets.h` via the build.",
+      "",
+      "I also fixed the disabled-cloud `/get_cfg` JSON branch so it emits valid JSON without a trailing comma.",
+      "",
+      "Verification: `pio run -e thefly_sec0` passed. PlatformIO touched `src/version.c`; I restored it afterward.",
+      "",
+      "Done. The web UI now treats `config_limits.cloud_uploads === false` from `/get_info` as “cloud upload feature unavailable”:",
+      "",
+      "- Hides `#cloud_dest_panel`.",
+      "- Skips creating/filling cloud destination rows.",
+      "- Sends `cloud_uploads: false` when saving config in that mode.",
+      "- Updated generated `inc/web_assets.h` via the build.",
+      "",
+      "I also fixed the disabled-cloud `/get_cfg` JSON branch so it emits valid JSON without a trailing comma.",
+      "",
+      "Verification: `pio run -e thefly_sec0` passed. PlatformIO touched `src/version.c`; I restored it afterward."
+    ],
+    "files": [
+      "html/script.js",
+      "lib/WifiManager/WebCfgHandlers.cpp",
+      "src/version.c",
+      "inc/web_assets.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T04:55:49Z",
+    "type": "git_commit",
+    "commit_message": "code neatened, remove cloud features with a predefine",
+    "commit_hash": "d24eb445de9566caf462ed97068368a51fbd6009"
   }
 ]

@@ -224,7 +224,11 @@
       "lib/ClockAgent/ClockAgent.cpp",
       "AudioManager.cpp",
       "oi_codec_sbc.h",
-      "lib/bluedroid/bluedroid_sbc.h"
+      "lib/bluedroid/bluedroid_sbc.h",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "lib/AudioManager/AudioManager.cpp",
+      "managed_components/espressif__libsodium/CMakeLists.txt",
+      "managed_components/espressif__libsodium/port_include/utils.h"
     ]
   },
   {
@@ -279,5 +283,45 @@
     "type": "git_commit",
     "commit_message": "HTTPS cloud upload",
     "commit_hash": "b1666ed641f04db9ed2dcef198f85144bad52595"
+  },
+  {
+    "timestamp": "2026-05-28T21:04:08Z",
+    "type": "git_commit",
+    "commit_message": "time sync",
+    "commit_hash": "5db774b132e9cf144c3a894ac806918762c92684"
+  },
+  {
+    "timestamp": "2026-05-29T09:00:42.476Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: developer-docs/custom-sdkconfig.md",
+      "",
+      "## My request for Codex:",
+      "can you double check that the NTP sync code works? it's like 2 minutes off, which still seems like the compile and upload time. Does the result get written to the ClockAgent and also to the real RTC?"
+    ],
+    "agent_reply": [
+      "Yes. The write path does go to both places:",
+      "",
+      "- [NtpSync.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/NtpSync.cpp:159) calls `Clock.setDateTime(datetime)`.",
+      "- [ClockAgent.cpp](D:/GithubRepos/The-Fly/lib/ClockAgent/ClockAgent.cpp:390) writes `M5.Rtc.setDateTime(datetime)`, updates ClockAgent’s internal base time, and applies the system clock.",
+      "",
+      "The bug was before that: `NtpSync` accepted any valid `time(nullptr)` after `configTzTime()`. Since the system clock can already be seeded from compile/RTC time, it could “sync” to the compile/upload time without waiting for SNTP. That matches your 2-minute-off symptom.",
+      "",
+      "I fixed it so `NtpSync` now resets SNTP status, waits for `SNTP_SYNC_STATUS_COMPLETED`, then reads the time. I also tightened RTC write verification so it confirms the RTC readback matches within 2 seconds.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "lib/WifiManager/NtpSync.cpp",
+      "lib/ClockAgent/ClockAgent.cpp"
+    ]
   }
 ]

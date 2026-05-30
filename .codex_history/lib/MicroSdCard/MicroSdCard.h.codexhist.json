@@ -77,7 +77,9 @@
       "version.c",
       "all_tests.cpp",
       "platformio.ini",
-      "src/version.c"
+      "src/version.c",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "src/tests/all_tests.cpp"
     ]
   },
   {
@@ -85,5 +87,11 @@
     "type": "git_commit",
     "commit_message": "recording works great now, tweaked the ui",
     "commit_hash": "62765d1d8b21f98b4d6f07736b3fb63a966637c5"
+  },
+  {
+    "timestamp": "2026-05-29T20:41:49Z",
+    "type": "git_commit",
+    "commit_message": "firmware update kinda implemented",
+    "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
   }
 ]

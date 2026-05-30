@@ -1912,5 +1912,240 @@
     "type": "git_commit",
     "commit_message": "serving pages over soft AP works, had a hiccup about disk space retrieval too slow tripping the wdt",
     "commit_hash": "ed520c430d839d309262fb9c545eeca56856e91b"
+  },
+  {
+    "timestamp": "2026-05-28T21:04:08Z",
+    "type": "git_commit",
+    "commit_message": "time sync",
+    "commit_hash": "5db774b132e9cf144c3a894ac806918762c92684"
+  },
+  {
+    "timestamp": "2026-05-29T00:27:46.075Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.h",
+      "",
+      "## Active selection of the file:",
+      "RecordingType",
+      "",
+      "## My request for Codex:",
+      "When a recording is finished inside AudioFileRecorder::stopRecording , use CallManager to generate a chunk of text to write into the file with AudioFileRecorder::queueMetaText if the recording was a call. If it was a memo, figure out what RecordingView says is the memo-type, use AudioFileRecorder::queueMetaText to make it say “memo-type:<x>”. If possible, rename the file so that the first letter captures what the memo type was."
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "The recorder now queues final metadata from inside `AudioFileRecorder::stopRecording`: calls get a `CallManager`-formatted text block, and memos get `memo-type:<x>`. The recording view now reports memo-type changes to the recorder, and stopped memo files are renamed after close so the first filename letter matches the final memo type when possible. Promoted memo-to-Bluetooth recordings are marked as call recordings.",
+      "",
+      "Key spots:",
+      "[AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:154), [CallManager.cpp](D:/GithubRepos/The-Fly/lib/BluetoothManager/CallManager.cpp:240), [RecordingView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingView.cpp:304).",
+      "",
+      "Verification:",
+      "`pio run -e thefly_sec0` passed.",
+      "`pio run -e thefly_sec1` passed.",
+      "",
+      "Note: `pio run -e thefly` still fails because that env does not define `BUILD_WITH_SECURITY_LEVEL`; that is unrelated to this change. `src/version.c` was already dirty before I started, and the build script regenerated its hash."
+    ],
+    "files": [
+      "src/version.c",
+      "lib/UtilFuncs/utilfuncs.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.h",
+      "lib/UtilFuncs/utilfuncs.h",
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
+      "lib/FlyGuiViews/RecordingView/MemoTypeButton.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/BluetoothManager/CallManager.cpp",
+      "lib/BluetoothManager/CallManager.h",
+      "lib/FlyGuiViews/RecordingView/RecordingView.cpp",
+      "lib/WifiManager/WebServer.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T00:50:12.054Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WebServer.cpp",
+      "",
+      "## Active selection of the file:",
+      "void bytes_to_hex(const uint8_t* data, size_t size, String& out)",
+      "{",
+      "    for (size_t i = 0; data && i < size; ++i)",
+      "    {",
+      "        out += kHexChars[data[i] >> 4];",
+      "        out += kHexChars[data[i] & 0x0F];",
+      "    }",
+      "}",
+      "",
+      "int8_t hex_nibble(char ch)",
+      "{",
+      "    if (ch >= '0' && ch <= '9')",
+      "    {",
+      "        return ch - '0';",
+      "    }",
+      "    if (ch >= 'a' && ch <= 'f')",
+      "    {",
+      "        return ch - 'a' + 10;",
+      "    }",
+      "    if (ch >= 'A' && ch <= 'F')",
+      "    {",
+      "        return ch - 'A' + 10;",
+      "    }",
+      "    return -1;",
+      "}",
+      "",
+      "bool hex_to_bytes(const String& hex, uint8_t* out, size_t out_size)",
+      "{",
+      "    if (!out || hex.length() != out_size * 2)",
+      "    {",
+      "        return false;",
+      "    }",
+      "",
+      "    for (size_t i = 0; i < out_size; ++i)",
+      "    {",
+      "        const int8_t high = hex_nibble(hex[i * 2]);",
+      "        const int8_t low = hex_nibble(hex[i * 2 + 1]);",
+      "        if (high < 0 || low < 0)",
+      "        {",
+      "            return false;",
+      "        }",
+      "        out[i] = static_cast<uint8_t>((high << 4) | low);",
+      "    }",
+      "    return true;",
+      "}",
+      "",
+      "## My request for Codex:",
+      "move the highlighted functions to `utilfuncs.cpp`"
+    ],
+    "agent_reply": [
+      "Moved the hex helpers into shared util code.",
+      "",
+      "Changes:",
+      "- Added declarations in [utilfuncs.h](D:/GithubRepos/The-Fly/lib/UtilFuncs/utilfuncs.h:25)",
+      "- Moved implementations to [utilfuncs.cpp](D:/GithubRepos/The-Fly/lib/UtilFuncs/utilfuncs.cpp:283)",
+      "- Removed the local copies and `kHexChars` from [WebServer.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp:41)",
+      "- Added `#include \"utilfuncs.h\"` in `WebServer.cpp`",
+      "",
+      "Verification: `pio run -e thefly_sec0` passed.",
+      "",
+      "Note: the build regenerated `src/version.c`. I also see `tools/graphics_converter.py` modified in the worktree, but I did not touch it."
+    ],
+    "files": [
+      "lib/UtilFuncs/utilfuncs.cpp",
+      "lib/WifiManager/WebServer.cpp",
+      "lib/UtilFuncs/utilfuncs.h",
+      "src/version.c",
+      "tools/graphics_converter.py"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T01:26:49Z",
+    "type": "git_commit",
+    "commit_message": "moved some utility funcs",
+    "commit_hash": "fb86b0a5022c32571794dda2aba226de1cd4a2a0"
+  },
+  {
+    "timestamp": "2026-05-29T01:28:09.205Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: tools/graphics_converter.py",
+      "",
+      "## My request for Codex:",
+      "i fixed a typo in `tools\\graphics_converter.py`, `sprit` becomes `sprite`, there's going to be a lot of instances across the entire project to update."
+    ],
+    "agent_reply": [
+      "Done. I updated the project-wide generated sprite rename so references now use lowercase `sprite_*` symbols and uppercase `SPRITE_*` metadata macros across the UI/app sources, including [IconLookup.cpp](</d:/GithubRepos/The-Fly/lib/SpriteDraw/IconLookup.cpp>), [WebServer.cpp](</d:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp>), [main.cpp](</d:/GithubRepos/The-Fly/src/main.cpp>), and the FlyGui view files.",
+      "",
+      "Verification passed:",
+      "- `rg -i \"sprit\"` is clean outside ignored build/git dirs.",
+      "- No stale lowercase macro refs like `sprite_FOO` remain.",
+      "- `pio run -e thefly_sec0` succeeded.",
+      "",
+      "The build auto-touched `src/version.c`; I restored that side effect so it is not part of the diff.",
+      "",
+      "Done. I updated the project-wide generated sprite rename so references now use lowercase `sprite_*` symbols and uppercase `SPRITE_*` metadata macros across the UI/app sources, including [IconLookup.cpp](</d:/GithubRepos/The-Fly/lib/SpriteDraw/IconLookup.cpp>), [WebServer.cpp](</d:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp>), [main.cpp](</d:/GithubRepos/The-Fly/src/main.cpp>), and the FlyGui view files.",
+      "",
+      "Verification passed:",
+      "- `rg -i \"sprit\"` is clean outside ignored build/git dirs.",
+      "- No stale lowercase macro refs like `sprite_FOO` remain.",
+      "- `pio run -e thefly_sec0` succeeded.",
+      "",
+      "The build auto-touched `src/version.c`; I restored that side effect so it is not part of the diff."
+    ],
+    "files": [
+      "inc/sprites.h",
+      "src/sprites.cpp",
+      "src/version.c",
+      "lib/SpriteDraw/IconLookup.cpp",
+      "lib/WifiManager/WebServer.cpp",
+      "src/main.cpp",
+      "tools/graphics_converter.py"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T01:32:37Z",
+    "type": "git_commit",
+    "commit_message": "fix sprite typo",
+    "commit_hash": "35a2b487220fe0993a1c66c1e5833f19656055bc"
+  },
+  {
+    "timestamp": "2026-05-29T04:55:49Z",
+    "type": "git_commit",
+    "commit_message": "code neatened, remove cloud features with a predefine",
+    "commit_hash": "d24eb445de9566caf462ed97068368a51fbd6009"
+  },
+  {
+    "timestamp": "2026-05-29T08:22:37.832Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "ok that kinda works",
+      "",
+      "but the dismissal of the dialog goes back to the mainscreenview first and then reboots, so it looks more like a malfunction"
+    ],
+    "agent_reply": [
+      "Fixed the visual hop. Rebooting dialogs now keep the modal dialog on screen while the dismiss callback runs, instead of briefly showing `MainScreenView` first.",
+      "",
+      "Updated:",
+      "- Pairing success reboot dialog in [main.cpp](/d:/GithubRepos/The-Fly/src/main.cpp)",
+      "- Cloud upload reboot dialogs in [main.cpp](/d:/GithubRepos/The-Fly/src/main.cpp)",
+      "- Web reset reboot dialog in [WebServer.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp)",
+      "",
+      "Verified with `pio run -e thefly_sec0`, build passes. `src/version.c` was regenerated by the build again.",
+      "",
+      "Fixed the visual hop. Rebooting dialogs now keep the modal dialog on screen while the dismiss callback runs, instead of briefly showing `MainScreenView` first.",
+      "",
+      "Updated:",
+      "- Pairing success reboot dialog in [main.cpp](/d:/GithubRepos/The-Fly/src/main.cpp)",
+      "- Cloud upload reboot dialogs in [main.cpp](/d:/GithubRepos/The-Fly/src/main.cpp)",
+      "- Web reset reboot dialog in [WebServer.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp)",
+      "",
+      "Verified with `pio run -e thefly_sec0`, build passes. `src/version.c` was regenerated by the build again."
+    ],
+    "files": [
+      "src/main.cpp",
+      "lib/WifiManager/WebServer.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T08:57:28Z",
+    "type": "git_commit",
+    "commit_message": "major progress on usability, added ntp sync",
+    "commit_hash": "a1c937432bf18b83680cbd0120e09e8d29e67ac6"
+  },
+  {
+    "timestamp": "2026-05-29T19:12:05Z",
+    "type": "git_commit",
+    "commit_message": "better error screens with rescue wifi",
+    "commit_hash": "e80a4d45b429f363956cf3178c63626d5c802a88"
   }
 ]

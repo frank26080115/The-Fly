@@ -1682,5 +1682,51 @@
     "type": "git_commit",
     "commit_message": "clean up for security levels",
     "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
+  },
+  {
+    "timestamp": "2026-05-30T22:23:58.512Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "where is the unpair or delete confirmation dialog being configured and shown?"
+    ],
+    "agent_reply": [
+      "It’s in [ScrollView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1023).",
+      "",
+      "Flow:",
+      "",
+      "- Long-press on a Bluetooth host is detected in `ScrollView::updateBluetoothDeleteHold()` around [line 1023](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1023).",
+      "- That calls `enterBluetoothDeleteMode()` around [line 1071](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1071), which arms delete mode and shows the trash action.",
+      "- Pressing the trash button calls `ScrollView::onDeleteButtonTriggered()` around [line 1260](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1260).",
+      "- That calls `deleteArmedBluetoothHost()` around [line 1099](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1099).",
+      "",
+      "The dialog itself is configured inside `deleteArmedBluetoothHost()`:",
+      "",
+      "- Success dialog: [ScrollView.cpp line 1130](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1130), text like `\"<host>\\nhas been un-paired\"`",
+      "- Failure dialog: [ScrollView.cpp line 1142](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1142), text like `\"Bluetooth un-pair failed\\n...\"`",
+      "- It is shown via `owner->showView(FLYGUI_VIEW_MODAL_DIALOG)` at [line 1153](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1153).",
+      "",
+      "The actual unpair operation is `BtHostList::unpair()` in [BtHostList.cpp](D:/GithubRepos/The-Fly/lib/BluetoothManager/BtHostList.cpp:619).",
+      "",
+      "It’s in [ScrollView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1023).",
+      "",
+      "Flow:",
+      "",
+      "- Long-press on a Bluetooth host is detected in `ScrollView::updateBluetoothDeleteHold()` around [line 1023](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1023).",
+      "- That calls `enterBluetoothDeleteMode()` around [line 1071](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1071), which arms delete mode and shows the trash action.",
+      "- Pressing the trash button calls `ScrollView::onDeleteButtonTriggered()` around [line 1260](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1260).",
+      "- That calls `deleteArmedBluetoothHost()` around [line 1099](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1099).",
+      "",
+      "The dialog itself is configured inside `deleteArmedBluetoothHost()`:",
+      "",
+      "- Success dialog: [ScrollView.cpp line 1130](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1130), text like `\"<host>\\nhas been un-paired\"`",
+      "- Failure dialog: [ScrollView.cpp line 1142](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1142), text like `\"Bluetooth un-pair failed\\n...\"`",
+      "- It is shown via `owner->showView(FLYGUI_VIEW_MODAL_DIALOG)` at [line 1153](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1153).",
+      "",
+      "The actual unpair operation is `BtHostList::unpair()` in [BtHostList.cpp](D:/GithubRepos/The-Fly/lib/BluetoothManager/BtHostList.cpp:619)."
+    ],
+    "files": [
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "lib/BluetoothManager/BtHostList.cpp"
+    ]
   }
 ]

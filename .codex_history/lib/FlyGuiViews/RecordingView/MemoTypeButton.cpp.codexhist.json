@@ -132,7 +132,8 @@
       "lib/FlyGuiViews/RecordingView/MemoTypeButton.cpp",
       "lib/FlyGuiViews/RecordingView/MemoTypeButton.h",
       "lib/UtilFuncs/utilfuncs.cpp",
-      "defs.h"
+      "defs.h",
+      "inc/defs.h"
     ]
   },
   {
@@ -140,5 +141,59 @@
     "type": "git_commit",
     "commit_message": "starting to add a web server",
     "commit_hash": "421a041f801f5f993b55e85fd21fbb828bf995c0"
+  },
+  {
+    "timestamp": "2026-05-29T00:27:46.075Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.h",
+      "",
+      "## Active selection of the file:",
+      "RecordingType",
+      "",
+      "## My request for Codex:",
+      "When a recording is finished inside AudioFileRecorder::stopRecording , use CallManager to generate a chunk of text to write into the file with AudioFileRecorder::queueMetaText if the recording was a call. If it was a memo, figure out what RecordingView says is the memo-type, use AudioFileRecorder::queueMetaText to make it say “memo-type:<x>”. If possible, rename the file so that the first letter captures what the memo type was."
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "The recorder now queues final metadata from inside `AudioFileRecorder::stopRecording`: calls get a `CallManager`-formatted text block, and memos get `memo-type:<x>`. The recording view now reports memo-type changes to the recorder, and stopped memo files are renamed after close so the first filename letter matches the final memo type when possible. Promoted memo-to-Bluetooth recordings are marked as call recordings.",
+      "",
+      "Key spots:",
+      "[AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:154), [CallManager.cpp](D:/GithubRepos/The-Fly/lib/BluetoothManager/CallManager.cpp:240), [RecordingView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingView.cpp:304).",
+      "",
+      "Verification:",
+      "`pio run -e thefly_sec0` passed.",
+      "`pio run -e thefly_sec1` passed.",
+      "",
+      "Note: `pio run -e thefly` still fails because that env does not define `BUILD_WITH_SECURITY_LEVEL`; that is unrelated to this change. `src/version.c` was already dirty before I started, and the build script regenerated its hash."
+    ],
+    "files": [
+      "src/version.c",
+      "lib/UtilFuncs/utilfuncs.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.h",
+      "lib/UtilFuncs/utilfuncs.h",
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
+      "lib/FlyGuiViews/RecordingView/MemoTypeButton.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/BluetoothManager/CallManager.cpp",
+      "lib/BluetoothManager/CallManager.h",
+      "lib/FlyGuiViews/RecordingView/RecordingView.cpp",
+      "lib/WifiManager/WebServer.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T00:36:51Z",
+    "type": "git_commit",
+    "commit_message": "wired up the meta text stuff for recorded files",
+    "commit_hash": "c988ffe1f5c5e6f6595aa52de195fa5fb6804044"
+  },
+  {
+    "timestamp": "2026-05-29T01:32:37Z",
+    "type": "git_commit",
+    "commit_message": "fix sprite typo",
+    "commit_hash": "35a2b487220fe0993a1c66c1e5833f19656055bc"
   }
 ]

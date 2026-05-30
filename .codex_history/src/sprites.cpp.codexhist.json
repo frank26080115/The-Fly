@@ -244,5 +244,81 @@
     "type": "git_commit",
     "commit_message": "more icons",
     "commit_hash": "85ea670fbb96bddad0494a3ef75e7ec65c09adbf"
+  },
+  {
+    "timestamp": "2026-05-29T01:27:17Z",
+    "type": "git_commit",
+    "commit_message": "fixing typo",
+    "commit_hash": "42b1643fe57aa98764509adf38052986bbee0a78"
+  },
+  {
+    "timestamp": "2026-05-29T01:28:09.205Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: tools/graphics_converter.py",
+      "",
+      "## My request for Codex:",
+      "i fixed a typo in `tools\\graphics_converter.py`, `sprit` becomes `sprite`, there's going to be a lot of instances across the entire project to update."
+    ],
+    "agent_reply": [
+      "Done. I updated the project-wide generated sprite rename so references now use lowercase `sprite_*` symbols and uppercase `SPRITE_*` metadata macros across the UI/app sources, including [IconLookup.cpp](</d:/GithubRepos/The-Fly/lib/SpriteDraw/IconLookup.cpp>), [WebServer.cpp](</d:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp>), [main.cpp](</d:/GithubRepos/The-Fly/src/main.cpp>), and the FlyGui view files.",
+      "",
+      "Verification passed:",
+      "- `rg -i \"sprit\"` is clean outside ignored build/git dirs.",
+      "- No stale lowercase macro refs like `sprite_FOO` remain.",
+      "- `pio run -e thefly_sec0` succeeded.",
+      "",
+      "The build auto-touched `src/version.c`; I restored that side effect so it is not part of the diff.",
+      "",
+      "Done. I updated the project-wide generated sprite rename so references now use lowercase `sprite_*` symbols and uppercase `SPRITE_*` metadata macros across the UI/app sources, including [IconLookup.cpp](</d:/GithubRepos/The-Fly/lib/SpriteDraw/IconLookup.cpp>), [WebServer.cpp](</d:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp>), [main.cpp](</d:/GithubRepos/The-Fly/src/main.cpp>), and the FlyGui view files.",
+      "",
+      "Verification passed:",
+      "- `rg -i \"sprit\"` is clean outside ignored build/git dirs.",
+      "- No stale lowercase macro refs like `sprite_FOO` remain.",
+      "- `pio run -e thefly_sec0` succeeded.",
+      "",
+      "The build auto-touched `src/version.c`; I restored that side effect so it is not part of the diff."
+    ],
+    "files": [
+      "inc/sprites.h",
+      "src/sprites.cpp",
+      "src/version.c",
+      "lib/SpriteDraw/IconLookup.cpp",
+      "lib/WifiManager/WebServer.cpp",
+      "src/main.cpp",
+      "tools/graphics_converter.py"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T03:55:25Z",
+    "type": "git_commit",
+    "commit_message": "work on wifi workflow",
+    "commit_hash": "b4a10916d5b7ea69c537dd11e62033af5ee67a64"
+  },
+  {
+    "timestamp": "2026-05-29T19:12:05Z",
+    "type": "git_commit",
+    "commit_message": "better error screens with rescue wifi",
+    "commit_hash": "e80a4d45b429f363956cf3178c63626d5c802a88"
+  },
+  {
+    "timestamp": "2026-05-29T20:41:49Z",
+    "type": "git_commit",
+    "commit_message": "firmware update kinda implemented",
+    "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
+  },
+  {
+    "timestamp": "2026-05-30T04:59:21Z",
+    "type": "git_commit",
+    "commit_message": "file related sprites",
+    "commit_hash": "83a04173809f320e300851ba7154f4390892a314"
+  },
+  {
+    "timestamp": "2026-05-30T08:35:05Z",
+    "type": "git_commit",
+    "commit_message": "playback mechanism",
+    "commit_hash": "813aab87ffb853eb373d960af6a773dbf5f74642"
   }
 ]

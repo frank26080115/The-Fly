@@ -1939,5 +1939,39 @@
       "src/main.cpp",
       "developer-docs/ui-design.md"
     ]
+  },
+  {
+    "timestamp": "2026-05-29T01:32:37Z",
+    "type": "git_commit",
+    "commit_message": "fix sprite typo",
+    "commit_hash": "35a2b487220fe0993a1c66c1e5833f19656055bc"
+  },
+  {
+    "timestamp": "2026-05-29T05:51:16.811Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "I got the shutdown screen, so the simulation works, but the battery level icon in the top right corner isn't changing at all"
+    ],
+    "agent_reply": [
+      "Fixed it. The top-right battery icon was still using `M5.Power.getBatteryLevel()` directly, so the simulated BattTracker voltage never affected the icon.",
+      "",
+      "I changed [FlyGui.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:674) so the top bar now maps `BattTracker::level()` + `BattTracker::isCharging()` to the existing battery sprites.",
+      "",
+      "Verified with `pio run -e thefly_sec0`: build succeeded."
+    ],
+    "files": [
+      "lib/FlyGui/FlyGui.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-29T06:27:46Z",
+    "type": "git_commit",
+    "commit_message": "some uncommon shutdown scenarios",
+    "commit_hash": "1bf925875d692a6196248b1d63e8e03cc8b0afe7"
   }
 ]
