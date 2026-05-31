@@ -1279,4 +1279,26 @@ bool grow_file(FsFile& file, uint64_t size)
     return false;
 }
 
+#ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
+uint8_t* wavPlaintextAudioBuffer()
+{
+    return g_wav_plaintext_audio;
+}
+
+uint8_t* wavEncryptedAudioBuffer()
+{
+    return g_wav_encrypted_audio;
+}
+
+size_t wavPlaintextAudioBufferSize()
+{
+    return sizeof(g_wav_plaintext_audio);
+}
+
+size_t wavEncryptedAudioBufferSize()
+{
+    return sizeof(g_wav_encrypted_audio);
+}
+#endif
+
 } // namespace AudioFileRecorder

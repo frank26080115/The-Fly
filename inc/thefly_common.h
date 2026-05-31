@@ -9,7 +9,7 @@ literally every source file probably includes this file
 #include "esp_attr.h"
 
 #include "conf.h"
-#include "defs.h"
+#include "defs.h" // defs must be placed after conf
 #include "pins.h"
 #include "thefly_utils.h"
 #include "dbg_log.h"

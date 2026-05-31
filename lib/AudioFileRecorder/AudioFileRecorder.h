@@ -52,4 +52,11 @@ const char* currentSdPath();
 
 bool grow_file(FsFile& file, uint64_t size);
 
+#ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
+uint8_t* wavPlaintextAudioBuffer();
+uint8_t* wavEncryptedAudioBuffer();
+size_t   wavPlaintextAudioBufferSize();
+size_t   wavEncryptedAudioBufferSize();
+#endif
+
 } // namespace AudioFileRecorder

@@ -41,7 +41,14 @@ use this file for preprocessor definitions that are used to configure parts of t
 #define SOFTAP_CUSTOM_CFG_CNT        0
 #endif
 
+#if BUILD_WITH_SECURITY_LEVEL == 1
+#define BUILD_WITH_ENCRYPTED_PLAYBACK
+#endif
+
 #define MOST_RECENT_FILES_MAX_FILES  20
+
+// 8192 bytes is approximately 128ms worth of 16 kHz 16-bit stereo PCM data.
+#define WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH 8192
 
 #if (defined(CORE_DEBUG_LEVEL) && CORE_DEBUG_LEVEL > ESP_LOG_ERROR) || (defined(LOG_LOCAL_LEVEL) && LOG_LOCAL_LEVEL > ESP_LOG_ERROR)
 #ifndef BUILD_IS_DEBUG
