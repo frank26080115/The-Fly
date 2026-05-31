@@ -163,7 +163,12 @@ bool write_rtc_datetime(const m5::rtc_datetime_t& datetime)
         return false;
     }
 
-    Clock.setDateTime(datetime);
+    const int64_t epoch_seconds = datetime_to_epoch_seconds(datetime);
+    const time_t  unix_time     = static_cast<time_t>(epoch_seconds);
+    if (static_cast<int64_t>(unix_time) != epoch_seconds || !Clock.setUnixTime(unix_time))
+    {
+        return false;
+    }
 
     m5::rtc_datetime_t verified = {};
     return M5.Rtc.getDateTime(&verified) && valid_datetime(verified) && datetime_delta_seconds(datetime, verified) <= 2;
@@ -480,11 +485,11 @@ void NtpSync::taskMain()
         const sntp_sync_status_t sync_status = esp_sntp_get_sync_status();
         if (sync_status == SNTP_SYNC_STATUS_COMPLETED)
         {
-            time_t now      = time(nullptr);
-            tm     local_tm = {};
-            if (now > 0 && localtime_r(&now, &local_tm))
+            time_t now    = time(nullptr);
+            tm     utc_tm = {};
+            if (now > 0 && gmtime_r(&now, &utc_tm))
             {
-                local_result.ntp_time = tm_to_datetime(local_tm);
+                local_result.ntp_time = tm_to_datetime(utc_tm);
                 if (valid_datetime(local_result.ntp_time))
                 {
                     local_result.ntp_time_valid     = true;

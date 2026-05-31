@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "AudioFileRecorder.h"
 #include "AudioManager.h"
@@ -207,6 +208,14 @@ void sanitize_network_config(network_cfg_t& cfg)
             cfg.access_point[i].icon = ICON_UNKNOWN;
         }
     }
+}
+
+void apply_timezone(const char* timezone)
+{
+    const char* value = timezone && timezone[0] != '\0' ? timezone : kDefaultTimezone;
+    setenv("TZ", value, 1);
+    tzset();
+    DBG_LOGI(TAG, "applied timezone %s", value);
 }
 
 bool cache_network_config_hash(const network_cfg_t& cfg)
@@ -618,6 +627,7 @@ bool WifiManager::loadFromNvs()
     {
         m_last_load_result = LoadResult::Ok;
         DBG_LOGI(TAG, "no Wi-Fi config namespace in NVS; using defaults");
+        apply_timezone(timezone());
         return cache_network_config_hash(m_network_cfg);
     }
     if (err != ESP_OK)
@@ -635,6 +645,7 @@ bool WifiManager::loadFromNvs()
         nvs_close(handle);
         m_last_load_result = LoadResult::Ok;
         DBG_LOGI(TAG, "no Wi-Fi config in NVS; using defaults");
+        apply_timezone(timezone());
         return cache_network_config_hash(m_network_cfg);
     }
     if (err != ESP_OK)
@@ -673,6 +684,7 @@ bool WifiManager::loadFromNvs()
         init_network_config_defaults(m_network_cfg);
         m_last_load_result = LoadResult::Ok;
         DBG_LOGW(TAG, "ignoring incompatible Wi-Fi config in NVS");
+        apply_timezone(timezone());
         return cache_network_config_hash(m_network_cfg);
     }
 
@@ -684,6 +696,7 @@ bool WifiManager::loadFromNvs()
     m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
     #endif
     m_last_load_result = LoadResult::Ok;
+    apply_timezone(timezone());
     if (!cache_network_config_hash(m_network_cfg))
     {
         return false;
@@ -708,6 +721,7 @@ bool WifiManager::saveToNvs()
     #ifdef BUILD_CLOUD_FEATURES
     m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
     #endif
+    apply_timezone(timezone());
 
     nvs_handle_t handle = 0;
     esp_err_t err = nvs_open(kNetworkNvsNamespace, NVS_READWRITE, &handle);
@@ -774,6 +788,7 @@ void WifiManager::clear()
     m_reported_connected = false;
     m_last_load_result = LoadResult::Ok;
     cache_network_config_hash(m_network_cfg);
+    apply_timezone(timezone());
 }
 
 const char* WifiManager::timezone() const

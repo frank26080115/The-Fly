@@ -129,6 +129,19 @@ m5::rtc_datetime_t epoch_seconds_to_datetime(int64_t epoch_seconds)
     return datetime;
 }
 
+m5::rtc_datetime_t tm_to_datetime(const tm& value)
+{
+    m5::rtc_datetime_t datetime;
+    datetime.date.year    = static_cast<int16_t>(value.tm_year + 1900);
+    datetime.date.month   = static_cast<int8_t>(value.tm_mon + 1);
+    datetime.date.date    = static_cast<int8_t>(value.tm_mday);
+    datetime.date.weekDay = static_cast<int8_t>(value.tm_wday);
+    datetime.time.hours   = static_cast<int8_t>(value.tm_hour);
+    datetime.time.minutes = static_cast<int8_t>(value.tm_min);
+    datetime.time.seconds = static_cast<int8_t>(value.tm_sec);
+    return datetime;
+}
+
 bool parse_compiler_time(const char* text, m5::rtc_datetime_t& datetime)
 {
     char month_name[4] = {};
@@ -212,14 +225,8 @@ bool datetime_to_local_epoch_seconds(const m5::rtc_datetime_t& datetime, time_t&
     return true;
 }
 
-bool apply_system_time(const m5::rtc_datetime_t& datetime)
+bool apply_system_time(time_t epoch_seconds)
 {
-    time_t epoch_seconds = 0;
-    if (!datetime_to_local_epoch_seconds(datetime, epoch_seconds))
-    {
-        return false;
-    }
-
     struct timeval value = {};
     value.tv_sec = epoch_seconds;
     return settimeofday(&value, nullptr) == 0;
@@ -236,17 +243,17 @@ bool ClockAgent::begin()
 
 bool ClockAgent::syncFromRtc()
 {
-    m5::rtc_datetime_t datetime;
-    if (!M5.Rtc.getDateTime(&datetime) || !valid_date(datetime.date) || !valid_time(datetime.time))
+    m5::rtc_datetime_t utc_datetime;
+    if (!M5.Rtc.getDateTime(&utc_datetime) || !valid_date(utc_datetime.date) || !valid_time(utc_datetime.time))
     {
         synced_ = false;
         return false;
     }
 
-    baseEpochSeconds_ = datetime_to_epoch_seconds(datetime);
+    baseEpochSeconds_ = datetime_to_epoch_seconds(utc_datetime);
     baseMillis_       = millis();
     synced_           = true;
-    apply_system_time(datetime);
+    apply_system_time(static_cast<time_t>(baseEpochSeconds_));
     return true;
 }
 
@@ -258,20 +265,23 @@ bool ClockAgent::syncToCompileTime()
         return false;
     }
 
-    const int64_t compile_epoch_seconds = datetime_to_epoch_seconds(compile_datetime);
+    time_t compile_epoch_seconds = 0;
+    if (!datetime_to_local_epoch_seconds(compile_datetime, compile_epoch_seconds))
+    {
+        return false;
+    }
 
     m5::rtc_datetime_t rtc_datetime = {};
     const bool         rtc_valid = M5.Rtc.getDateTime(&rtc_datetime) && valid_date(rtc_datetime.date) && valid_time(rtc_datetime.time);
-    if (!rtc_valid || compile_epoch_seconds > datetime_to_epoch_seconds(rtc_datetime))
+    if (!rtc_valid || static_cast<int64_t>(compile_epoch_seconds) > datetime_to_epoch_seconds(rtc_datetime))
     {
-        setDateTime(compile_datetime);
-        return synced_;
+        return setUnixTime(compile_epoch_seconds);
     }
 
     baseEpochSeconds_ = datetime_to_epoch_seconds(rtc_datetime);
     baseMillis_       = millis();
     synced_           = true;
-    apply_system_time(rtc_datetime);
+    apply_system_time(static_cast<time_t>(baseEpochSeconds_));
     return true;
 }
 
@@ -288,6 +298,10 @@ bool ClockAgent::getDateTime(m5::rtc_date_t* date, m5::rtc_time_t* time)
     }
 
     const m5::rtc_datetime_t datetime = currentDateTime();
+    if (!valid_date(datetime.date) || !valid_time(datetime.time))
+    {
+        return false;
+    }
     if (date)
     {
         *date = datetime.date;
@@ -316,21 +330,21 @@ bool ClockAgent::getTime(m5::rtc_time_t* time)
 
 m5::rtc_datetime_t ClockAgent::getDateTime()
 {
-    m5::rtc_datetime_t datetime;
+    m5::rtc_datetime_t datetime = {};
     getDateTime(&datetime);
     return datetime;
 }
 
 m5::rtc_date_t ClockAgent::getDate()
 {
-    m5::rtc_date_t date;
+    m5::rtc_date_t date = {};
     getDate(&date);
     return date;
 }
 
 m5::rtc_time_t ClockAgent::getTime()
 {
-    m5::rtc_time_t time;
+    m5::rtc_time_t time = {};
     getTime(&time);
     return time;
 }
@@ -342,7 +356,9 @@ bool ClockAgent::getUnixTime(time_t* epoch_seconds)
         return false;
     }
 
-    return datetime_to_local_epoch_seconds(currentDateTime(), *epoch_seconds);
+    const int64_t current = currentEpochSeconds();
+    *epoch_seconds = static_cast<time_t>(current);
+    return static_cast<int64_t>(*epoch_seconds) == current;
 }
 
 time_t ClockAgent::getUnixTime()
@@ -359,7 +375,7 @@ void ClockAgent::setDateTime(const tm* datetime)
         return;
     }
 
-    const m5::rtc_datetime_t converted(*datetime);
+    const m5::rtc_datetime_t converted = tm_to_datetime(*datetime);
     setDateTime(converted);
 }
 
@@ -370,13 +386,13 @@ void ClockAgent::setDateTime(const m5::rtc_date_t* date, const m5::rtc_time_t* t
         return;
     }
 
-    m5::rtc_datetime_t       base   = getDateTime();
+    m5::rtc_datetime_t base = {};
+    if (!getDateTime(&base))
+    {
+        return;
+    }
     const m5::rtc_datetime_t merged = merge_datetime(base, date, time);
-    M5.Rtc.setDateTime(date ? &merged.date : nullptr, time ? &merged.time : nullptr);
-    baseEpochSeconds_ = datetime_to_epoch_seconds(merged);
-    baseMillis_       = millis();
-    synced_           = true;
-    apply_system_time(merged);
+    setDateTime(merged);
 }
 
 void ClockAgent::setDateTime(const m5::rtc_datetime_t* datetime)
@@ -389,14 +405,14 @@ void ClockAgent::setDateTime(const m5::rtc_datetime_t* datetime)
 
 void ClockAgent::setDateTime(const m5::rtc_datetime_t& datetime)
 {
-    M5.Rtc.setDateTime(datetime);
-    baseEpochSeconds_ = datetime_to_epoch_seconds(datetime);
-    baseMillis_       = millis();
-    synced_           = valid_date(datetime.date) && valid_time(datetime.time);
-    if (synced_)
+    time_t epoch_seconds = 0;
+    if (!datetime_to_local_epoch_seconds(datetime, epoch_seconds))
     {
-        apply_system_time(datetime);
+        synced_ = false;
+        return;
     }
+
+    setUnixTime(epoch_seconds);
 }
 
 void ClockAgent::setDate(const m5::rtc_date_t* date)
@@ -421,19 +437,17 @@ void ClockAgent::setTime(const m5::rtc_time_t& time)
 
 bool ClockAgent::setUnixTime(time_t epoch_seconds)
 {
-    tm value = {};
-    if (!localtime_r(&epoch_seconds, &value))
+    const m5::rtc_datetime_t utc_datetime = epoch_seconds_to_datetime(static_cast<int64_t>(epoch_seconds));
+    if (!valid_date(utc_datetime.date) || !valid_time(utc_datetime.time))
     {
         return false;
     }
 
-    const m5::rtc_datetime_t datetime(value);
-    if (!valid_date(datetime.date) || !valid_time(datetime.time))
-    {
-        return false;
-    }
-
-    setDateTime(datetime);
+    M5.Rtc.setDateTime(utc_datetime);
+    baseEpochSeconds_ = static_cast<int64_t>(epoch_seconds);
+    baseMillis_       = millis();
+    synced_           = true;
+    apply_system_time(epoch_seconds);
     return synced_;
 }
 
@@ -449,11 +463,24 @@ bool ClockAgent::ensureSystemTimeForTls()
         return false;
     }
 
-    return apply_system_time(currentDateTime());
+    return apply_system_time(static_cast<time_t>(currentEpochSeconds()));
+}
+
+int64_t ClockAgent::currentEpochSeconds() const
+{
+    const uint32_t elapsed_ms = millis() - baseMillis_;
+    return baseEpochSeconds_ + elapsed_ms / 1000U;
 }
 
 m5::rtc_datetime_t ClockAgent::currentDateTime() const
 {
-    const uint32_t elapsed_ms = millis() - baseMillis_;
-    return epoch_seconds_to_datetime(baseEpochSeconds_ + elapsed_ms / 1000U);
+    const int64_t epoch_seconds = currentEpochSeconds();
+    const time_t  as_time_t     = static_cast<time_t>(epoch_seconds);
+    tm            local_tm      = {};
+    if (static_cast<int64_t>(as_time_t) == epoch_seconds && localtime_r(&as_time_t, &local_tm))
+    {
+        return tm_to_datetime(local_tm);
+    }
+
+    return epoch_seconds_to_datetime(epoch_seconds);
 }

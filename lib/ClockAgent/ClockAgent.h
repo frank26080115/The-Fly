@@ -39,6 +39,7 @@ public:
 
 private:
     bool               ensureSynced();
+    int64_t            currentEpochSeconds() const;
     m5::rtc_datetime_t currentDateTime() const;
 
     int64_t  baseEpochSeconds_ = 0;
