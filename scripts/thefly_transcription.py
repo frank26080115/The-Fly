@@ -25,6 +25,36 @@ FILENAME_TYPE_COMMENTS = {
     "I": "memo-type:idea",
     "R": "memo-type:reminder",
 }
+FILENAME_TYPE_PROMPTS = {
+    "C": (
+        "This is probably a phone or Bluetooth call recording. The audio is stereo: "
+        "the left channel is usually the local device microphone and the right channel "
+        "is usually the remote Bluetooth caller. Treat the channels as likely different "
+        "speakers and use that as a strong hint for diarization, while still following "
+        "the audio if there is overlap, silence, or channel leakage."
+    ),
+    "M": (
+        "This is probably a spoken memo note. Transcribe it as a single-person note unless "
+        "the audio clearly contains multiple speakers. Preserve wording faithfully."
+    ),
+    "T": (
+        "This is probably a spoken todo memo. Transcribe task wording carefully, including "
+        "action items, deadlines, names, quantities, and any ordering words such as first, "
+        "next, or later."
+    ),
+    "J": (
+        "This is probably a spoken journal memo. Transcribe reflectively and faithfully, "
+        "preserving first-person phrasing, emotional nuance, and chronology."
+    ),
+    "I": (
+        "This is probably a spoken idea memo. Transcribe exploratory wording faithfully, "
+        "including tentative phrases, alternatives, sketches of concepts, and examples."
+    ),
+    "R": (
+        "This is probably a spoken reminder memo. Transcribe reminder details carefully, "
+        "especially dates, times, names, places, objects, and conditions."
+    ),
+}
 
 
 class TranscriptionError(ValueError):
@@ -45,6 +75,14 @@ def metadata_comment_from_filename(path: Path) -> str:
     type_code = stem[:1].upper()
     if len(stem) >= 2 and stem[1] == "-":
         return FILENAME_TYPE_COMMENTS.get(type_code, "")
+    return ""
+
+
+def default_prompt_from_filename(path: Path) -> str:
+    stem = path.stem
+    type_code = stem[:1].upper()
+    if len(stem) >= 2 and stem[1] == "-":
+        return FILENAME_TYPE_PROMPTS.get(type_code, "")
     return ""
 
 
@@ -191,6 +229,8 @@ def transcribe_wav(
     }
     if language:
         fields["language"] = language
+    if not prompt:
+        prompt = default_prompt_from_filename(input_path)
     if prompt:
         fields["prompt"] = prompt
     if chunking_strategy:
