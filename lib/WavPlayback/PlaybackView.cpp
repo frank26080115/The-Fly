@@ -10,7 +10,7 @@
 #include "../FlyGuiViews/ModalDialog.h"
 #include "../FlyGuiViews/ScrollView/ScrollView.h"
 #include "WavPlayback.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "sprites.h"
 #include "utilfuncs.h"
 
@@ -580,7 +580,7 @@ void PlaybackView::handleDelete()
 
     if (deleted)
     {
-        ESP_LOGI(TAG, "deleted playback file: %s", path_);
+        DBG_LOGI(TAG, "deleted playback file: %s", path_);
         if (ScrollView* scrollView = get_scroll_view())
         {
             scrollView->populateFiles();
@@ -588,7 +588,7 @@ void PlaybackView::handleDelete()
     }
     else
     {
-        ESP_LOGW(TAG, "failed to delete playback file: %s (%s)", path_, detail ? detail : "unknown");
+        DBG_LOGW(TAG, "failed to delete playback file: %s (%s)", path_, detail ? detail : "unknown");
     }
 
     showDeleteResultDialog(deleted, detail);
@@ -630,7 +630,7 @@ void PlaybackView::startPlayback()
     if (!WavPlayback::start(path_))
     {
         snprintf(statusText_, sizeof(statusText_), "Playback failed: %s", WavPlayback::lastError());
-        ESP_LOGW(TAG, "%s", statusText_);
+        DBG_LOGW(TAG, "%s", statusText_);
     }
 
     scrubBar_.setTotalMs(WavPlayback::durationMs());

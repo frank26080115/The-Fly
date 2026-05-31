@@ -6,7 +6,7 @@
 #include <time.h>
 
 #include "ClockAgent.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "esp_sntp.h"
 
 namespace
@@ -523,7 +523,7 @@ void NtpSync::taskMain()
     m_result = local_result;
     portEXIT_CRITICAL(&m_lock);
 
-    ESP_LOGI(TAG, "NTP sync done, RTC offset=%lld seconds", static_cast<long long>(local_result.rtc_offset_seconds));
+    DBG_LOGI(TAG, "NTP sync done, RTC offset=%lld seconds", static_cast<long long>(local_result.rtc_offset_seconds));
     finish(Status::Done, Error::None);
 }
 

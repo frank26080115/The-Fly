@@ -30,7 +30,7 @@
 #include "WavPlayback.h"
 #include "WifiManager.h"
 #include "WifiStaModeView.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "esp_system.h"
 #include "sprites.h"
 #include "utilfuncs.h"
@@ -167,7 +167,7 @@ void setup()
     BtManager::setPairedCallback(on_bluetooth_paired);
     BtManager::setAudioCallbacks(AudioManager::hfp_incoming_audio, AudioManager::hfp_outgoing_audio);
     BtManager::generateLegacyPinFromMac();
-    ESP_LOGI(MAINTAG, "Bluetooth legacy pairing PIN: %s", BtManager::generatedLegacyPin());
+    DBG_LOGI(MAINTAG, "Bluetooth legacy pairing PIN: %s", BtManager::generatedLegacyPin());
     if (!BtManager::init(nullptr, AudioManager::hfp_incoming_audio, AudioManager::hfp_outgoing_audio, BtManager::generatedLegacyPin()))
     {
         show_fatal_error_f(true, "BluetoothManager init failed");
@@ -493,12 +493,12 @@ static void handle_pending_bluetooth_pairing()
     {
         if (!bt_host_list->insert(g_pending_paired_device.name, g_pending_paired_device.mac))
         {
-            ESP_LOGW(MAINTAG, "failed to add paired Bluetooth host: %s", bt_host_list->lastLoadResultName());
+            DBG_LOGW(MAINTAG, "failed to add paired Bluetooth host: %s", bt_host_list->lastLoadResultName());
             show_fatal_error_f(false, "Bluetooth pair saved in NVS, but host list insert failed: %s", bt_host_list->lastLoadResultName());
         }
         else if (!bt_host_list->saveToNvs())
         {
-            ESP_LOGW(MAINTAG, "failed to save Bluetooth host list: %s", bt_host_list->lastLoadResultName());
+            DBG_LOGW(MAINTAG, "failed to save Bluetooth host list: %s", bt_host_list->lastLoadResultName());
             show_fatal_error_f(false, "Bluetooth pair saved in NVS, but Bluetooth host list save failed: %s", bt_host_list->lastLoadResultName());
         }
     }
@@ -538,10 +538,10 @@ static void handle_pending_bluetooth_recording()
     {
         if (promote_recording_view_memo_to_bluetooth())
         {
-            ESP_LOGI(MAINTAG, "Bluetooth connected while memo recording; promoting active recording view");
+            DBG_LOGI(MAINTAG, "Bluetooth connected while memo recording; promoting active recording view");
             if (!RecordingViewCallbacks::promoteMemoRecordingToBluetooth())
             {
-                ESP_LOGW(MAINTAG, "failed to promote memo audio routing for Bluetooth");
+                DBG_LOGW(MAINTAG, "failed to promote memo audio routing for Bluetooth");
             }
         }
         return;
@@ -552,17 +552,17 @@ static void handle_pending_bluetooth_recording()
         WavPlayback::stop();
     }
 
-    ESP_LOGI(MAINTAG, "Bluetooth recording trigger accepted at state: %s", BtManager::stateName(BtManager::state()));
+    DBG_LOGI(MAINTAG, "Bluetooth recording trigger accepted at state: %s", BtManager::stateName(BtManager::state()));
     if (!RecordingViewCallbacks::beginBluetoothRecording('C'))
     {
-        ESP_LOGE(MAINTAG, "failed to start Bluetooth recording");
+        DBG_LOGE(MAINTAG, "failed to start Bluetooth recording");
         show_fatal_error_f(false, "Bluetooth recording start failed");
         return;
     }
 
     if (!show_recording_view_bluetooth())
     {
-        ESP_LOGE(MAINTAG, "failed to show Bluetooth recording view");
+        DBG_LOGE(MAINTAG, "failed to show Bluetooth recording view");
         RecordingViewCallbacks::stopRecording();
         show_fatal_error_f(false, "Bluetooth recording view failed");
     }
@@ -576,7 +576,7 @@ static void handle_pending_bluetooth_connect_failed()
     }
     g_pending_bluetooth_connect_failed = false;
 
-    ESP_LOGW(MAINTAG, "Bluetooth host connection failed before HFP service level connection");
+    DBG_LOGW(MAINTAG, "Bluetooth host connection failed before HFP service level connection");
 
     ScrollView* scroll_view = get_scroll_view();
     if (scroll_view)
@@ -605,7 +605,7 @@ static void handle_pending_cloud_upload_complete()
     ModalDialog* dialog = get_modal_dialog();
     if (!dialog || !gui)
     {
-        ESP_LOGW(MAINTAG, "cloud upload complete but modal dialog is unavailable; rebooting");
+        DBG_LOGW(MAINTAG, "cloud upload complete but modal dialog is unavailable; rebooting");
         delay(50);
         esp_restart();
         return;
@@ -670,7 +670,7 @@ static void handle_pending_ntp_sync_complete()
     ModalDialog* dialog = get_modal_dialog();
     if (!dialog || !gui)
     {
-        ESP_LOGW(MAINTAG, "NTP sync complete but modal dialog is unavailable");
+        DBG_LOGW(MAINTAG, "NTP sync complete but modal dialog is unavailable");
         return;
     }
 
@@ -746,7 +746,7 @@ static void handle_wifi_station_connected()
         return;
     }
 
-    ESP_LOGI(MAINTAG,
+    DBG_LOGI(MAINTAG,
              "Wi-Fi station connected: ssid=%s ip=%s gateway=%s",
              wifi_manager->connectedWifi() ? wifi_manager->connectedWifi()->ssid : "",
              WiFi.localIP().toString().c_str(),
@@ -803,7 +803,7 @@ bool connect_to_bluetooth_host(const bt_host_item_t* host, const char* source)
 
     char bdaddr_text[18] = {};
     format_bdaddr(host->bdaddr, bdaddr_text, sizeof(bdaddr_text));
-    ESP_LOGI(MAINTAG,
+    DBG_LOGI(MAINTAG,
              "connecting to Bluetooth host from %s: name=%s bdaddr=%s",
              source ? source : "unknown",
              bt_host_display_name(host),
@@ -811,7 +811,7 @@ bool connect_to_bluetooth_host(const bt_host_item_t* host, const char* source)
 
     if (bluetooth_recording_state(BtManager::state()) && bda_equal(BtManager::connectedMac(), host->bdaddr))
     {
-        ESP_LOGI(MAINTAG, "Bluetooth host is already connected; starting recording without a new HFP connection");
+        DBG_LOGI(MAINTAG, "Bluetooth host is already connected; starting recording without a new HFP connection");
         g_bluetooth_connect_waiting = false;
         g_pending_bluetooth_connect_failed = false;
         g_pending_bluetooth_recording = true;
@@ -825,7 +825,7 @@ bool connect_to_bluetooth_host(const bt_host_item_t* host, const char* source)
     if (result != BtManager::Result::Ok)
     {
         g_bluetooth_connect_waiting = false;
-        ESP_LOGW(MAINTAG, "Bluetooth connection start failed: %s", BtManager::resultName(result));
+        DBG_LOGW(MAINTAG, "Bluetooth connection start failed: %s", BtManager::resultName(result));
         show_fatal_error_f(false, "Bluetooth connection failed: %s", BtManager::resultName(result));
         return false;
     }
@@ -833,7 +833,7 @@ bool connect_to_bluetooth_host(const bt_host_item_t* host, const char* source)
     if (!show_conn_waiting_bluetooth(bt_host_display_name(host)))
     {
         g_bluetooth_connect_waiting = false;
-        ESP_LOGE(MAINTAG, "failed to show Bluetooth connection waiting view");
+        DBG_LOGE(MAINTAG, "failed to show Bluetooth connection waiting view");
         BtManager::disconnect();
         show_fatal_error_f(false, "Bluetooth connection view failed");
         return false;

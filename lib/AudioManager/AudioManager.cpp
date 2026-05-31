@@ -12,7 +12,7 @@
 #include "driver/i2s_pdm.h"
 #include "driver/i2s_std.h"
 #include "esp_heap_caps.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "BluetoothManager.h"
 #include "utilfuncs.h"
 
@@ -268,7 +268,7 @@ void set_ns4168_speaker_enabled(bool enabled)
     const uint8_t result = Wire.endTransmission();
     if (result != 0)
     {
-        ESP_LOGW(TAG, "AXP192 NS4168 speaker GPIO2 write failed: %u", result);
+        DBG_LOGW(TAG, "AXP192 NS4168 speaker GPIO2 write failed: %u", result);
     }
 }
 
@@ -280,7 +280,7 @@ void update_hardware_volume()
     }
 
     // TODO: Apply g_volume to external I2S codec once its codec control path is wired up.
-    ESP_LOGD(TAG, "volume set to %u/%u", g_volume, kMaxVolume);
+    DBG_LOGD(TAG, "volume set to %u/%u", g_volume, kMaxVolume);
 }
 
 bool using_ns4168_speaker()
@@ -481,19 +481,19 @@ bool enable_spm1423_mic()
 
 bool enable_exti2scodec_speaker()
 {
-    ESP_LOGE(TAG, "ExternalI2SCodec I2S pin/codec setup is not implemented yet");
+    DBG_LOGE(TAG, "ExternalI2SCodec I2S pin/codec setup is not implemented yet");
     return false;
 }
 
 bool enable_exti2scodec_mic()
 {
-    ESP_LOGE(TAG, "ExternalI2SCodec I2S pin/codec setup is not implemented yet");
+    DBG_LOGE(TAG, "ExternalI2SCodec I2S pin/codec setup is not implemented yet");
     return false;
 }
 
 void log_heap_after_fifo_begin(const char* fifo_name, bool result)
 {
-    ESP_LOGI(TAG,
+    DBG_LOGI(TAG,
              "%s begin %s: free heap=%u, largest block=%u, internal free=%u, spiram free=%u",
              fifo_name,
              result ? "ok" : "failed",
@@ -521,7 +521,7 @@ bool begin_fifos()
 
     if (!bt2spk_ok || !bt2file_ok || !mic2bt_ok || !mic2file_ok)
     {
-        ESP_LOGE(TAG, "Audio FIFO allocation failed");
+        DBG_LOGE(TAG, "Audio FIFO allocation failed");
         return false;
     }
 
@@ -536,7 +536,7 @@ bool init(Hardware hardware)
 
     if (!begin_fifos())
     {
-        ESP_LOGE(TAG, "AudioManager begin_fifos failed");
+        DBG_LOGE(TAG, "AudioManager begin_fifos failed");
         return false;
     }
 
@@ -551,7 +551,7 @@ bool init(Hardware hardware)
 
     if (!AudioFileRecorder::init(g_fifo_bt2file, g_fifo_mic2file))
     {
-        ESP_LOGE(TAG, "AudioFileRecorder initialization failed");
+        DBG_LOGE(TAG, "AudioFileRecorder initialization failed");
         return false;
     }
 
@@ -629,7 +629,7 @@ void pump_bt2spk()
             return_i2s_tx_bytes(bytes_to_write - written);
             if (err != ESP_ERR_TIMEOUT)
             {
-                ESP_LOGW(TAG, "speaker i2s pending write failed: %s, wrote %u/%u bytes", esp_err_to_name(err), static_cast<unsigned>(written), static_cast<unsigned>(bytes_to_write));
+                DBG_LOGW(TAG, "speaker i2s pending write failed: %s, wrote %u/%u bytes", esp_err_to_name(err), static_cast<unsigned>(written), static_cast<unsigned>(bytes_to_write));
             }
             return;
         }
@@ -681,7 +681,7 @@ void pump_bt2spk()
         }
         if (err != ESP_ERR_TIMEOUT)
         {
-            ESP_LOGW(TAG, "speaker i2s write failed: %s, wrote %u/%u bytes", esp_err_to_name(err), static_cast<unsigned>(written), static_cast<unsigned>(bytes_to_write));
+            DBG_LOGW(TAG, "speaker i2s write failed: %s, wrote %u/%u bytes", esp_err_to_name(err), static_cast<unsigned>(written), static_cast<unsigned>(bytes_to_write));
         }
     }
 }
@@ -893,7 +893,7 @@ bool setHfpAudioFormat(HfpCodec codec, uint32_t sampleRateHz)
 {
     if (sampleRateHz != 8000 && sampleRateHz != kSampleRateHz)
     {
-        ESP_LOGE(TAG, "unsupported HFP sample rate: %lu", static_cast<unsigned long>(sampleRateHz));
+        DBG_LOGE(TAG, "unsupported HFP sample rate: %lu", static_cast<unsigned long>(sampleRateHz));
         return false;
     }
 
@@ -904,7 +904,7 @@ bool setHfpAudioFormat(HfpCodec codec, uint32_t sampleRateHz)
     {
         if (g_hfp_rate_hz != kSampleRateHz)
         {
-            ESP_LOGE(TAG, "mSBC requires %lu Hz audio", static_cast<unsigned long>(kSampleRateHz));
+            DBG_LOGE(TAG, "mSBC requires %lu Hz audio", static_cast<unsigned long>(kSampleRateHz));
             g_hfp_codec   = HfpCodec::Cvsd;
             g_hfp_rate_hz = 8000;
             return false;
@@ -912,11 +912,11 @@ bool setHfpAudioFormat(HfpCodec codec, uint32_t sampleRateHz)
 
         // ESP-IDF Bluedroid keeps SBC/mSBC inside the Bluetooth stack. The
         // application HFP data callbacks see raw signed 16-bit mono PCM.
-        ESP_LOGI(TAG, "HFP mSBC format set: callback PCM, %lu Hz", static_cast<unsigned long>(g_hfp_rate_hz));
+        DBG_LOGI(TAG, "HFP mSBC format set: callback PCM, %lu Hz", static_cast<unsigned long>(g_hfp_rate_hz));
         return true;
     }
 
-    ESP_LOGI(TAG, "HFP CVSD format set: callback PCM, %lu Hz", static_cast<unsigned long>(g_hfp_rate_hz));
+    DBG_LOGI(TAG, "HFP CVSD format set: callback PCM, %lu Hz", static_cast<unsigned long>(g_hfp_rate_hz));
     return true;
 }
 

@@ -13,7 +13,7 @@
 #include "esp_bt_defs.h"
 #include "esp_err.h"
 #include "esp_gap_bt_api.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "esp_mac.h"
 #include "nvs_flash.h"
 #include "utilfuncs.h"
@@ -80,7 +80,7 @@ uint64_t delta64(uint64_t current, uint64_t previous)
 
 void log_audio_diagnostics(const AudioManager::HfpAudioDiagnostics& diag, const AudioManager::HfpAudioDiagnostics& previous)
 {
-    ESP_LOGI(TAG,
+    DBG_LOGI(TAG,
              "audio diag in: cb=%" PRIu32 " (+%" PRIu32 ") bytes=%" PRIu64 " (+%" PRIu64 ") consumed=%" PRIu64 " pcm=%" PRIu64 " q_spk=%" PRIu64,
              diag.incomingCallbacks,
              delta32(diag.incomingCallbacks, previous.incomingCallbacks),
@@ -90,7 +90,7 @@ void log_audio_diagnostics(const AudioManager::HfpAudioDiagnostics& diag, const 
              diag.incomingPcmSamples,
              diag.incomingQueuedSpkSamples);
 
-    ESP_LOGI(TAG,
+    DBG_LOGI(TAG,
              "audio diag out: cb=%" PRIu32 " (+%" PRIu32 ") req=%" PRIu64 " (+%" PRIu64 ") ret=%" PRIu64 " (+%" PRIu64 ") pcm_read=%" PRIu64 " underflow=%" PRIu32,
              diag.outgoingCallbacks,
              delta32(diag.outgoingCallbacks, previous.outgoingCallbacks),
@@ -101,7 +101,7 @@ void log_audio_diagnostics(const AudioManager::HfpAudioDiagnostics& diag, const 
              diag.outgoingPcmSamplesRead,
              diag.outgoingUnderflows);
 
-    ESP_LOGI(TAG,
+    DBG_LOGI(TAG,
              "audio diag spk: i2s_bytes=%" PRIu64 " (+%" PRIu64 ") i2s_frames=%" PRIu64 " chunks=%" PRIu64 " short=%" PRIu32 " err=%" PRIu32 " fifo=%u%%/%u samples mode=%d codec=%s rate=%lu",
              diag.speakerI2sWriteBytes,
              delta64(diag.speakerI2sWriteBytes, previous.speakerI2sWriteBytes),
@@ -115,7 +115,7 @@ void log_audio_diagnostics(const AudioManager::HfpAudioDiagnostics& diag, const 
              hfp_codec_name(AudioManager::hfpAudioCodec()),
              static_cast<unsigned long>(AudioManager::hfpAudioSampleRateHz()));
 
-    ESP_LOGI(TAG,
+    DBG_LOGI(TAG,
              "audio diag mic: pump=%" PRIu32 " (+%" PRIu32 ") skip mode/no_i2s/full=%" PRIu32 "/%" PRIu32 "/%" PRIu32 " i2s=%" PRIu32 " (+%" PRIu32 ") req=%" PRIu64 " (+%" PRIu64 ") read=%" PRIu64 " (+%" PRIu64 ") empty=%" PRIu32 " err=%" PRIu32 " samp=%" PRIu64 " q_bt=%" PRIu64 " (+%" PRIu64 ") q_file=%" PRIu64 " bt_drop notready/full=%" PRIu64 "/%" PRIu64 " notify chk/ready/call=%" PRIu32 "/%" PRIu32 "/%" PRIu32 " block q/min/bt=%" PRIu32 "/%" PRIu32 "/%" PRIu32 " fifo=%u%%/%u min=%" PRIu32 " can_bt=%u",
              diag.micPumpCalls,
              delta32(diag.micPumpCalls, previous.micPumpCalls),

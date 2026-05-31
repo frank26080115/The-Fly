@@ -13,7 +13,7 @@
 
 #include "AudioManager.h"
 #include "MicroSdCard.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 
 namespace WavPlayback
 {
@@ -465,7 +465,7 @@ bool start(const char* playbackPath)
     if (!g_file.open(g_path, O_RDONLY))
     {
         set_error("open failed");
-        ESP_LOGW(TAG, "open failed: %s", g_path);
+        DBG_LOGW(TAG, "open failed: %s", g_path);
         stop_playback_decryption_locked();
         g_path[0] = '\0';
         return false;
@@ -476,7 +476,7 @@ bool start(const char* playbackPath)
     {
         if (!start_playback_decryption_locked() || !decrypt_encrypted_header_locked())
         {
-            ESP_LOGW(TAG, "encrypted playback setup failed: %s path=%s", g_error, g_path);
+            DBG_LOGW(TAG, "encrypted playback setup failed: %s path=%s", g_error, g_path);
             g_file.close();
             stop_playback_decryption_locked();
             g_path[0] = '\0';
@@ -525,7 +525,7 @@ bool start(const char* playbackPath)
         return false;
     }
 
-    ESP_LOGI(TAG,
+    DBG_LOGI(TAG,
              "started: %s bytes=%llu data=%llu duration=%lu ms",
              g_path,
              static_cast<unsigned long long>(g_file_size),

@@ -6,7 +6,7 @@
 
 #include "ClockAgent.h"
 #include "DiskStats.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 
 namespace MicroSdCard
 {
@@ -53,18 +53,18 @@ bool tryBeginAtFrequency(uint32_t frequencyMHz)
     const SdSpiConfig config(kCore2SdCs, SHARED_SPI, SD_SCK_MHZ(frequencyMHz), &SPI);
     if (!g_sd.cardBegin(config))
     {
-        ESP_LOGW(TAG, "microSD card init failed at %lu MHz: error=0x%02X data=0x%02X", static_cast<unsigned long>(frequencyMHz), g_sd.sdErrorCode(), g_sd.sdErrorData());
+        DBG_LOGW(TAG, "microSD card init failed at %lu MHz: error=0x%02X data=0x%02X", static_cast<unsigned long>(frequencyMHz), g_sd.sdErrorCode(), g_sd.sdErrorData());
         return false;
     }
 
     if (!g_sd.volumeBegin())
     {
-        ESP_LOGW(TAG, "microSD filesystem mount failed at %lu MHz: cardType=%u sectors=%lu error=0x%02X data=0x%02X", static_cast<unsigned long>(frequencyMHz), g_sd.card()->type(), static_cast<unsigned long>(g_sd.card()->sectorCount()), g_sd.sdErrorCode(), g_sd.sdErrorData());
+        DBG_LOGW(TAG, "microSD filesystem mount failed at %lu MHz: cardType=%u sectors=%lu error=0x%02X data=0x%02X", static_cast<unsigned long>(frequencyMHz), g_sd.card()->type(), static_cast<unsigned long>(g_sd.card()->sectorCount()), g_sd.sdErrorCode(), g_sd.sdErrorData());
         g_sd.end();
         return false;
     }
 
-    ESP_LOGI(TAG, "microSD initialized at %lu MHz", static_cast<unsigned long>(frequencyMHz));
+    DBG_LOGI(TAG, "microSD initialized at %lu MHz", static_cast<unsigned long>(frequencyMHz));
     g_frequency_mhz = frequencyMHz;
     return true;
 }
@@ -99,7 +99,7 @@ bool begin()
         if (tryBeginAtFrequency(frequencyMHz))
         {
             #ifdef RUN_BRINGUP_TEST
-            ESP_LOGI(TAG, "microSD space: total=%llu used=%llu free=%llu ; freq=%lu MHz", static_cast<unsigned long long>(totalBytes()), static_cast<unsigned long long>(usedBytes()), static_cast<unsigned long long>(freeBytes()), static_cast<unsigned long>(g_frequency_mhz));
+            DBG_LOGI(TAG, "microSD space: total=%llu used=%llu free=%llu ; freq=%lu MHz", static_cast<unsigned long long>(totalBytes()), static_cast<unsigned long long>(usedBytes()), static_cast<unsigned long long>(freeBytes()), static_cast<unsigned long>(g_frequency_mhz));
             #endif
             g_ready = true;
             DiskStats::refreshDiskSpace();
@@ -109,7 +109,7 @@ bool begin()
 
     DiskStats::refreshDiskSpace();
 
-    ESP_LOGE(TAG, "microSD init failed");
+    DBG_LOGE(TAG, "microSD init failed");
     return false;
 }
 
@@ -128,7 +128,7 @@ Health health()
     cid_t cid = {};
     if (!g_sd.card()->readCID(&cid))
     {
-        ESP_LOGE(TAG, "microSD card probe failed: error=0x%02X data=0x%02X", g_sd.sdErrorCode(), g_sd.sdErrorData());
+        DBG_LOGE(TAG, "microSD card probe failed: error=0x%02X data=0x%02X", g_sd.sdErrorCode(), g_sd.sdErrorData());
         return Health::MissingOrUnreadable;
     }
 

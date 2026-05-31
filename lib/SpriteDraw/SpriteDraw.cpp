@@ -5,7 +5,7 @@
 
 #include <Arduino.h>
 #include <esp_heap_caps.h>
-#include <esp_log.h>
+#include "dbg_log.h"
 #include <lgfx/utility/lgfx_pngle.h>
 #include <pgmspace.h>
 

@@ -362,7 +362,7 @@ void check_reset_flag()
 {
     if (reset_magic == RESET_MAGIC)
     {
-        ESP_LOGI(TAG, "Booted after flagged reset: flag=%u\n", reset_flag);
+        DBG_LOGI(TAG, "Booted after flagged reset: flag=%u\n", reset_flag);
 
         reset_was_magic = true;
 
@@ -372,7 +372,7 @@ void check_reset_flag()
     }
     else
     {
-        ESP_LOGI(TAG, "Normal boot / power-on / unflagged reset\n");
+        DBG_LOGI(TAG, "Normal boot / power-on / unflagged reset\n");
     }
 }
 
@@ -385,7 +385,7 @@ void show_fatal_error_f(bool fatal, const char* format, ...)
     vsnprintf(message, sizeof(message), format ? format : "", args);
     va_end(args);
 
-    ESP_LOGE(TAG, "%s", message);
+    DBG_LOGE(TAG, "%s", message);
 
     if (!gui)
     {
@@ -404,7 +404,7 @@ void show_fatal_error_f(bool fatal, const char* format, ...)
     g_error_view.setMessage(message, fatal);
     if (!gui->showView(FLYGUI_VIEW_ERROR))
     {
-        ESP_LOGE(TAG, "Failed to show error view");
+        DBG_LOGE(TAG, "Failed to show error view");
         while (fatal)
         {
             delay(1000);

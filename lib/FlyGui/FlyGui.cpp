@@ -9,7 +9,7 @@
 #include "Display.h"
 #include "SpriteDraw.h"
 #include "sprites.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>

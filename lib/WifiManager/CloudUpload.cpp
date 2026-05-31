@@ -14,7 +14,7 @@
 #include "ClockAgent.h"
 #include "MicroSdCard.h"
 #include "Aegis.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 
 namespace
 {
@@ -946,15 +946,15 @@ void CloudUpload::finish(State state, Error error, const char* message)
 
     if (state == State::Error)
     {
-        ESP_LOGE(TAG, "%s", callback_status.message);
+        DBG_LOGE(TAG, "%s", callback_status.message);
     }
     else if (state == State::Cancelled)
     {
-        ESP_LOGW(TAG, "%s", callback_status.message);
+        DBG_LOGW(TAG, "%s", callback_status.message);
     }
     else
     {
-        ESP_LOGI(TAG, "%s", callback_status.message);
+        DBG_LOGI(TAG, "%s", callback_status.message);
     }
 
     if (callback)

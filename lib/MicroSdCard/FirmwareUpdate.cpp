@@ -6,7 +6,7 @@
 
 #include "MicroSdCard.h"
 #include "esp_err.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "esp_ota_ops.h"
 #include "esp_task_wdt.h"
 #include "freertos/FreeRTOS.h"
@@ -73,7 +73,7 @@ FirmwareUpdateResult update_firmware(FirmwareUpdateProgressCallback progressCall
 
     if (bytes_total > update_partition->size)
     {
-        ESP_LOGE(TAG,
+        DBG_LOGE(TAG,
                  "firmware.bin too large: file=%llu partition=%lu",
                  static_cast<unsigned long long>(bytes_total),
                  static_cast<unsigned long>(update_partition->size));
@@ -86,7 +86,7 @@ FirmwareUpdateResult update_firmware(FirmwareUpdateProgressCallback progressCall
     esp_err_t err = esp_ota_begin(update_partition, OTA_WITH_SEQUENTIAL_WRITES, &ota_handle);
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "esp_ota_begin failed: %s", esp_err_to_name(err));
+        DBG_LOGE(TAG, "esp_ota_begin failed: %s", esp_err_to_name(err));
         firmware.close();
         return FirmwareUpdateResult::OtaBeginFailed;
     }
@@ -127,7 +127,7 @@ FirmwareUpdateResult update_firmware(FirmwareUpdateProgressCallback progressCall
         const int      read_count = firmware.read(g_buffer, to_read);
         if (read_count <= 0)
         {
-            ESP_LOGE(TAG, "firmware.bin read failed after %llu bytes", static_cast<unsigned long long>(bytes_written));
+            DBG_LOGE(TAG, "firmware.bin read failed after %llu bytes", static_cast<unsigned long long>(bytes_written));
             esp_ota_abort(ota_handle);
             firmware.close();
             return FirmwareUpdateResult::FileReadFailed;
@@ -136,7 +136,7 @@ FirmwareUpdateResult update_firmware(FirmwareUpdateProgressCallback progressCall
         err = esp_ota_write(ota_handle, g_buffer, static_cast<size_t>(read_count));
         if (err != ESP_OK)
         {
-            ESP_LOGE(TAG, "esp_ota_write failed after %llu bytes: %s", static_cast<unsigned long long>(bytes_written), esp_err_to_name(err));
+            DBG_LOGE(TAG, "esp_ota_write failed after %llu bytes: %s", static_cast<unsigned long long>(bytes_written), esp_err_to_name(err));
             esp_ota_abort(ota_handle);
             firmware.close();
             return FirmwareUpdateResult::OtaWriteFailed;
@@ -175,7 +175,7 @@ FirmwareUpdateResult update_firmware(FirmwareUpdateProgressCallback progressCall
     firmware.close();
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "esp_ota_end failed: %s", esp_err_to_name(err));
+        DBG_LOGE(TAG, "esp_ota_end failed: %s", esp_err_to_name(err));
         return FirmwareUpdateResult::OtaEndFailed;
     }
 
@@ -183,12 +183,12 @@ FirmwareUpdateResult update_firmware(FirmwareUpdateProgressCallback progressCall
     err = esp_ota_set_boot_partition(update_partition);
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "esp_ota_set_boot_partition failed: %s", esp_err_to_name(err));
+        DBG_LOGE(TAG, "esp_ota_set_boot_partition failed: %s", esp_err_to_name(err));
         return FirmwareUpdateResult::SetBootPartitionFailed;
     }
     #endif
 
-    ESP_LOGI(TAG, "firmware update staged: %llu bytes written", static_cast<unsigned long long>(bytes_written));
+    DBG_LOGI(TAG, "firmware update staged: %llu bytes written", static_cast<unsigned long long>(bytes_written));
     return FirmwareUpdateResult::Ok;
 }
 

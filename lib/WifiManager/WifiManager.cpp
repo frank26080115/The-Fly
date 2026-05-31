@@ -17,7 +17,7 @@
 #include "IconLookup.h"
 #include "MicroSdCard.h"
 #include "esp_err.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "esp_mac.h"
 #include "esp_netif.h"
 #include "esp_wifi.h"
@@ -38,15 +38,8 @@ constexpr const char* kDefaultNtpServers[] = {
     "time.nist.gov",
     "time.google.com",
 };
-#if defined(CORE_DEBUG_LEVEL)
-constexpr int kWifiCoreDebugLevel = CORE_DEBUG_LEVEL;
-#else
-constexpr int kWifiCoreDebugLevel = static_cast<int>(ESP_LOG_NONE);
-#endif
-
 constexpr bool kWifiDebugBuild =
-    static_cast<int>(LOG_LOCAL_LEVEL) > static_cast<int>(ESP_LOG_ERROR) ||
-    kWifiCoreDebugLevel > static_cast<int>(ESP_LOG_ERROR);
+    static_cast<int>(DBG_LOG_LOCAL_LEVEL) > static_cast<int>(DBG_LOG_ERROR);
 constexpr int kSoftApChannel       = 1;
 constexpr int kSoftApSsidHidden    = 0;
 constexpr int kSoftApMaxConnection = 1;
@@ -223,7 +216,7 @@ bool cache_network_config_hash(const network_cfg_t& cfg)
         return true;
     }
 
-    ESP_LOGW(TAG, "could not cache Wi-Fi config hash");
+    DBG_LOGW(TAG, "could not cache Wi-Fi config hash");
     return false;
 }
 
@@ -394,13 +387,13 @@ void shutdown_for_wifi_activation()
     const BtManager::Result bt_result = BtManager::shutdown();
     if (bt_result != BtManager::Result::Ok)
     {
-        ESP_LOGW(TAG, "Bluetooth shutdown before Wi-Fi returned: %s", BtManager::resultName(bt_result));
+        DBG_LOGW(TAG, "Bluetooth shutdown before Wi-Fi returned: %s", BtManager::resultName(bt_result));
     }
 
     AudioManager::stop();
     if (!AudioFileRecorder::stopRecording())
     {
-        ESP_LOGW(TAG, "audio file recorder did not stop cleanly before Wi-Fi activation");
+        DBG_LOGW(TAG, "audio file recorder did not stop cleanly before Wi-Fi activation");
     }
 }
 
@@ -460,28 +453,28 @@ bool start_secure_soft_ap(const char* ssid, const char* password)
     WiFi.mode(WIFI_OFF);
     if (!wifiLowLevelInit(false))
     {
-        ESP_LOGW(TAG, "could not initialize Wi-Fi before SoftAP security configuration");
+        DBG_LOGW(TAG, "could not initialize Wi-Fi before SoftAP security configuration");
         return false;
     }
 
     esp_err_t err = esp_wifi_stop();
     if (err != ESP_OK && err != ESP_ERR_WIFI_NOT_STARTED)
     {
-        ESP_LOGW(TAG, "could not stop Wi-Fi before SoftAP security configuration: %s", esp_err_to_name(err));
+        DBG_LOGW(TAG, "could not stop Wi-Fi before SoftAP security configuration: %s", esp_err_to_name(err));
         return false;
     }
 
     err = esp_wifi_set_mode(WIFI_MODE_AP);
     if (err != ESP_OK)
     {
-        ESP_LOGW(TAG, "could not set Wi-Fi access point mode: %s", esp_err_to_name(err));
+        DBG_LOGW(TAG, "could not set Wi-Fi access point mode: %s", esp_err_to_name(err));
         return false;
     }
 
     err = esp_wifi_set_config(WIFI_IF_AP, &config);
     if (err != ESP_OK)
     {
-        ESP_LOGW(TAG, "could not configure WPA3-only SoftAP: %s", esp_err_to_name(err));
+        DBG_LOGW(TAG, "could not configure WPA3-only SoftAP: %s", esp_err_to_name(err));
         return false;
     }
 
@@ -489,7 +482,7 @@ bool start_secure_soft_ap(const char* ssid, const char* password)
     // stay in sync after the low-level, config-first setup above.
     if (!WiFi.mode(WIFI_MODE_AP))
     {
-        ESP_LOGW(TAG, "could not start WPA3-only SoftAP");
+        DBG_LOGW(TAG, "could not start WPA3-only SoftAP");
         return false;
     }
 
@@ -536,14 +529,14 @@ bool WifiManager::loadFromMicroSd(const char* path)
     const char* import_path = path ? path : "/wifi.json";
     if (!MicroSdCard::isReady())
     {
-        ESP_LOGI(TAG, "microSD is not ready; keeping Wi-Fi config from NVS");
+        DBG_LOGI(TAG, "microSD is not ready; keeping Wi-Fi config from NVS");
         return true;
     }
 
     FsFile file;
     if (!file.open(import_path, O_RDONLY))
     {
-        ESP_LOGI(TAG, "no Wi-Fi JSON import found at %s; keeping Wi-Fi config from NVS", import_path);
+        DBG_LOGI(TAG, "no Wi-Fi JSON import found at %s; keeping Wi-Fi config from NVS", import_path);
         return true;
     }
 
@@ -551,7 +544,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
     if (file_size > kMaxJsonFileSize)
     {
         file.close();
-        ESP_LOGW(TAG, "Wi-Fi config import is too large: %llu bytes", static_cast<unsigned long long>(file_size));
+        DBG_LOGW(TAG, "Wi-Fi config import is too large: %llu bytes", static_cast<unsigned long long>(file_size));
         m_last_load_result = LoadResult::Ok;
         return true;
     }
@@ -560,7 +553,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
     if (!buffer)
     {
         file.close();
-        ESP_LOGW(TAG, "could not allocate Wi-Fi config import buffer");
+        DBG_LOGW(TAG, "could not allocate Wi-Fi config import buffer");
         m_last_load_result = LoadResult::Ok;
         return true;
     }
@@ -571,7 +564,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
     if (bytes_read < 0 || static_cast<uint64_t>(bytes_read) != file_size)
     {
         free(buffer);
-        ESP_LOGW(TAG, "could not read Wi-Fi config import");
+        DBG_LOGW(TAG, "could not read Wi-Fi config import");
         m_last_load_result = LoadResult::Ok;
         return true;
     }
@@ -582,7 +575,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
     free(buffer);
     if (error)
     {
-        ESP_LOGW(TAG, "could not parse Wi-Fi config import: %s", error.c_str());
+        DBG_LOGW(TAG, "could not parse Wi-Fi config import: %s", error.c_str());
         m_last_load_result = LoadResult::Ok;
         return true;
     }
@@ -591,7 +584,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
     parse_network_config_json(doc, m_network_cfg, skipped);
     if (skipped > 0)
     {
-        ESP_LOGW(TAG, "Wi-Fi config import skipped %u invalid or extra item(s)", static_cast<unsigned>(skipped));
+        DBG_LOGW(TAG, "Wi-Fi config import skipped %u invalid or extra item(s)", static_cast<unsigned>(skipped));
     }
 
     m_station_count = m_network_cfg.station_count;
@@ -606,7 +599,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
     }
 
     m_last_load_result = LoadResult::Ok;
-    ESP_LOGI(TAG,
+    DBG_LOGI(TAG,
              "imported Wi-Fi config into NVS: stations=%u access_points=%u cloud_endpoints=%u",
              static_cast<unsigned>(m_station_count),
              static_cast<unsigned>(m_access_point_count),
@@ -624,13 +617,13 @@ bool WifiManager::loadFromNvs()
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         m_last_load_result = LoadResult::Ok;
-        ESP_LOGI(TAG, "no Wi-Fi config namespace in NVS; using defaults");
+        DBG_LOGI(TAG, "no Wi-Fi config namespace in NVS; using defaults");
         return cache_network_config_hash(m_network_cfg);
     }
     if (err != ESP_OK)
     {
         m_last_load_result = LoadResult::FileOpenFailed;
-        ESP_LOGW(TAG, "could not open Wi-Fi NVS namespace: %s", esp_err_to_name(err));
+        DBG_LOGW(TAG, "could not open Wi-Fi NVS namespace: %s", esp_err_to_name(err));
         return false;
     }
 
@@ -641,21 +634,21 @@ bool WifiManager::loadFromNvs()
     {
         nvs_close(handle);
         m_last_load_result = LoadResult::Ok;
-        ESP_LOGI(TAG, "no Wi-Fi config in NVS; using defaults");
+        DBG_LOGI(TAG, "no Wi-Fi config in NVS; using defaults");
         return cache_network_config_hash(m_network_cfg);
     }
     if (err != ESP_OK)
     {
         nvs_close(handle);
         m_last_load_result = LoadResult::FileReadFailed;
-        ESP_LOGW(TAG, "could not query Wi-Fi config from NVS: %s", esp_err_to_name(err));
+        DBG_LOGW(TAG, "could not query Wi-Fi config from NVS: %s", esp_err_to_name(err));
         return false;
     }
     if (cfg_size != sizeof(network_cfg_t))
     {
         nvs_close(handle);
         m_last_load_result = LoadResult::Ok;
-        ESP_LOGW(TAG,
+        DBG_LOGW(TAG,
                  "ignoring incompatible Wi-Fi config size in NVS: stored=%u expected=%u",
                  static_cast<unsigned>(cfg_size),
                  static_cast<unsigned>(sizeof(network_cfg_t)));
@@ -670,7 +663,7 @@ bool WifiManager::loadFromNvs()
     if (err != ESP_OK || read_size != sizeof(cfg))
     {
         m_last_load_result = LoadResult::FileReadFailed;
-        ESP_LOGW(TAG, "could not load Wi-Fi config from NVS: %s size=%u", esp_err_to_name(err), static_cast<unsigned>(read_size));
+        DBG_LOGW(TAG, "could not load Wi-Fi config from NVS: %s size=%u", esp_err_to_name(err), static_cast<unsigned>(read_size));
         return false;
     }
     if (cfg.magic != kNetworkConfigMagic ||
@@ -679,7 +672,7 @@ bool WifiManager::loadFromNvs()
     {
         init_network_config_defaults(m_network_cfg);
         m_last_load_result = LoadResult::Ok;
-        ESP_LOGW(TAG, "ignoring incompatible Wi-Fi config in NVS");
+        DBG_LOGW(TAG, "ignoring incompatible Wi-Fi config in NVS");
         return cache_network_config_hash(m_network_cfg);
     }
 
@@ -696,7 +689,7 @@ bool WifiManager::loadFromNvs()
         return false;
     }
 
-    ESP_LOGI(TAG,
+    DBG_LOGI(TAG,
              "loaded Wi-Fi config from NVS: stations=%u access_points=%u cloud_endpoints=%u",
              static_cast<unsigned>(m_station_count),
              static_cast<unsigned>(m_access_point_count),
@@ -721,7 +714,7 @@ bool WifiManager::saveToNvs()
     if (err != ESP_OK)
     {
         m_last_load_result = LoadResult::FileOpenFailed;
-        ESP_LOGW(TAG, "could not open Wi-Fi NVS namespace for write: %s", esp_err_to_name(err));
+        DBG_LOGW(TAG, "could not open Wi-Fi NVS namespace for write: %s", esp_err_to_name(err));
         return false;
     }
 
@@ -735,7 +728,7 @@ bool WifiManager::saveToNvs()
     if (err != ESP_OK)
     {
         m_last_load_result = LoadResult::FileWriteFailed;
-        ESP_LOGW(TAG, "could not save Wi-Fi config to NVS: %s", esp_err_to_name(err));
+        DBG_LOGW(TAG, "could not save Wi-Fi config to NVS: %s", esp_err_to_name(err));
         return false;
     }
 
@@ -838,7 +831,7 @@ bool WifiManager::connectToHotspot(const wifi_item_t* hotspot, bool shutdown_fir
     {
         m_status      = Status::ConnectFailed;
         m_active_wifi = nullptr;
-        ESP_LOGW(TAG, "cannot connect to missing Wi-Fi hotspot");
+        DBG_LOGW(TAG, "cannot connect to missing Wi-Fi hotspot");
         return false;
     }
 
@@ -858,7 +851,7 @@ bool WifiManager::connectToHotspot(const wifi_item_t* hotspot, bool shutdown_fir
     {
         m_status      = Status::ConnectFailed;
         m_active_wifi = nullptr;
-        ESP_LOGW(TAG, "could not switch Wi-Fi to station mode");
+        DBG_LOGW(TAG, "could not switch Wi-Fi to station mode");
         return false;
     }
     m_wifi_has_started = true;
@@ -868,7 +861,7 @@ bool WifiManager::connectToHotspot(const wifi_item_t* hotspot, bool shutdown_fir
 
     m_active_wifi = hotspot;
     m_status      = Status::StationConnecting;
-    ESP_LOGI(TAG, "started Wi-Fi station connection to \"%s\"", hotspot->ssid);
+    DBG_LOGI(TAG, "started Wi-Fi station connection to \"%s\"", hotspot->ssid);
     return true;
 }
 
@@ -879,7 +872,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
         resetSoftApClientTracking();
         m_status      = Status::AccessPointFailed;
         m_active_wifi = nullptr;
-        ESP_LOGW(TAG, "cannot start missing Wi-Fi access point");
+        DBG_LOGW(TAG, "cannot start missing Wi-Fi access point");
         return false;
     }
 
@@ -899,7 +892,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
         resetSoftApClientTracking();
         m_status      = Status::AccessPointFailed;
         m_active_wifi = nullptr;
-        ESP_LOGW(TAG, "cannot start WPA3-only Wi-Fi access point \"%s\" without an 8+ character password", access_point->ssid);
+        DBG_LOGW(TAG, "cannot start WPA3-only Wi-Fi access point \"%s\" without an 8+ character password", access_point->ssid);
         return false;
     }
 
@@ -909,7 +902,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
         resetSoftApClientTracking();
         m_status      = Status::AccessPointFailed;
         m_active_wifi = nullptr;
-        ESP_LOGW(TAG, "could not start WPA3-only Wi-Fi access point \"%s\"", access_point->ssid);
+        DBG_LOGW(TAG, "could not start WPA3-only Wi-Fi access point \"%s\"", access_point->ssid);
         return false;
     }
 
@@ -918,7 +911,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     m_wifi_has_started = true;
     resetWebCounters();
     notifyConnected(access_point);
-    ESP_LOGI(TAG, "started Wi-Fi access point \"%s\" at %s", access_point->ssid, current_soft_ap_ip().toString().c_str());
+    DBG_LOGI(TAG, "started Wi-Fi access point \"%s\" at %s", access_point->ssid, current_soft_ap_ip().toString().c_str());
     return true;
 }
 
@@ -951,7 +944,7 @@ bool WifiManager::scanAndConnect()
     {
         m_status      = Status::NoKnownNetwork;
         m_active_wifi = nullptr;
-        ESP_LOGW(TAG, "cannot scan/connect: no configured Wi-Fi stations");
+        DBG_LOGW(TAG, "cannot scan/connect: no configured Wi-Fi stations");
         return false;
     }
 
@@ -962,7 +955,7 @@ bool WifiManager::scanAndConnect()
     {
         m_status      = Status::ScanFailed;
         m_active_wifi = nullptr;
-        ESP_LOGW(TAG, "could not switch Wi-Fi to station mode for scan");
+        DBG_LOGW(TAG, "could not switch Wi-Fi to station mode for scan");
         return false;
     }
     m_wifi_has_started = true;
@@ -972,14 +965,14 @@ bool WifiManager::scanAndConnect()
     {
         m_status      = Status::ScanFailed;
         m_active_wifi = nullptr;
-        ESP_LOGW(TAG, "could not start async Wi-Fi scan: %d", scan_result);
+        DBG_LOGW(TAG, "could not start async Wi-Fi scan: %d", scan_result);
         WiFi.scanDelete();
         return false;
     }
 
     m_active_wifi = nullptr;
     m_status      = Status::StationScanning;
-    ESP_LOGI(TAG, "started async Wi-Fi scan");
+    DBG_LOGI(TAG, "started async Wi-Fi scan");
     return true;
 }
 
@@ -1025,7 +1018,7 @@ void WifiManager::poll()
         {
             m_status      = Status::ScanFailed;
             m_active_wifi = nullptr;
-            ESP_LOGW(TAG, "Wi-Fi scan failed: %d", network_count);
+            DBG_LOGW(TAG, "Wi-Fi scan failed: %d", network_count);
             WiFi.scanDelete();
             return;
         }
@@ -1036,7 +1029,7 @@ void WifiManager::poll()
             const wifi_item_t* item = station(i);
             if (item && scan_has_ssid(network_count, item->ssid))
             {
-                ESP_LOGI(TAG, "found configured Wi-Fi network \"%s\"", item->ssid);
+                DBG_LOGI(TAG, "found configured Wi-Fi network \"%s\"", item->ssid);
                 found_item = item;
                 break;
             }
@@ -1051,7 +1044,7 @@ void WifiManager::poll()
         else
         {
             m_status = Status::NoKnownNetwork;
-            ESP_LOGW(TAG, "no configured Wi-Fi stations were found in scan");
+            DBG_LOGW(TAG, "no configured Wi-Fi stations were found in scan");
         }
 
         notifyScanFinished(found_item);
@@ -1085,7 +1078,7 @@ void WifiManager::poll()
         if (wifi_status == WL_CONNECT_FAILED || wifi_status == WL_NO_SSID_AVAIL || wifi_status == WL_CONNECTION_LOST)
         {
             m_status = Status::ConnectFailed;
-            ESP_LOGW(TAG, "Wi-Fi station connection failed, status=%d", static_cast<int>(wifi_status));
+            DBG_LOGW(TAG, "Wi-Fi station connection failed, status=%d", static_cast<int>(wifi_status));
         }
     }
 }

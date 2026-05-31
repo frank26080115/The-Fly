@@ -8,7 +8,7 @@
 #include "MicroSdCard.h"
 #include "WebServer.h"
 #include "WifiManager.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 
 extern WifiManager* wifi_manager;
 
@@ -368,7 +368,7 @@ void finishFileUpload(AsyncWebServerRequest* request)
     }
 
     const String& upload_path = request->getAttribute(kUploadPathAttribute);
-    ESP_LOGI(TAG, "uploaded microSD file %s", upload_path.c_str());
+    DBG_LOGI(TAG, "uploaded microSD file %s", upload_path.c_str());
     note_web_download();
     request->send(200, "application/json", "{\"status\":\"ok\"}");
 }
@@ -479,13 +479,13 @@ void deleteMicroSdFile(AsyncWebServerRequest* request)
 
     if (!file.remove())
     {
-        ESP_LOGW(TAG, "could not delete microSD file %s", file_name.c_str());
+        DBG_LOGW(TAG, "could not delete microSD file %s", file_name.c_str());
         note_web_error();
         request->send(500, "text/plain", "File delete failed");
         return;
     }
 
-    ESP_LOGI(TAG, "deleted microSD file %s", file_name.c_str());
+    DBG_LOGI(TAG, "deleted microSD file %s", file_name.c_str());
     note_web_download();
     request->send(200, "text/plain", "Deleted");
 }

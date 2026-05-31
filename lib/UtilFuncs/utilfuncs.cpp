@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "esp_random.h"
 
 namespace
@@ -88,7 +88,7 @@ bool ok(esp_err_t err, const char* what)
     {
         return true;
     }
-    ESP_LOGE(TAG, "%s failed: %s", what, esp_err_to_name(err));
+    DBG_LOGE(TAG, "%s failed: %s", what, esp_err_to_name(err));
     return false;
 }
 
@@ -96,11 +96,11 @@ bool strict_ok(esp_err_t err, const char* what)
 {
     if (err == ESP_OK)
     {
-        ESP_LOGI(TAG, "%s ok", what);
+        DBG_LOGI(TAG, "%s ok", what);
         return true;
     }
 
-    ESP_LOGE(TAG, "%s failed: %s", what, esp_err_to_name(err));
+    DBG_LOGE(TAG, "%s failed: %s", what, esp_err_to_name(err));
     return false;
 }
 
@@ -217,7 +217,7 @@ void copy_bda(uint8_t dst[ESP_BD_ADDR_LEN], const uint8_t src[ESP_BD_ADDR_LEN])
 
 void log_bda(const char* label, const uint8_t bda[ESP_BD_ADDR_LEN])
 {
-    ESP_LOGI(TAG, "%s %02x:%02x:%02x:%02x:%02x:%02x", label, bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
+    DBG_LOGI(TAG, "%s %02x:%02x:%02x:%02x:%02x:%02x", label, bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
 }
 
 void format_bdaddr(const uint8_t bdaddr[ESP_BD_ADDR_LEN], char* out, size_t out_size)

@@ -12,7 +12,7 @@
 #include "ScrollView/ScrollView.h"
 #include "WebServer.h"
 #include "WifiManager.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "esp_system.h"
 #include "utilfuncs.h"
 #include <stdio.h>
@@ -71,17 +71,17 @@ extern bool show_cloud_upload_view(CloudUpload* uploader, const char* targetName
 
 void on_bluetooth_state_changed(BtManager::State state)
 {
-    ESP_LOGI(MAINTAG, "Bluetooth state callback: %s", BtManager::stateName(state));
+    DBG_LOGI(MAINTAG, "Bluetooth state callback: %s", BtManager::stateName(state));
     if (bluetooth_recording_state(state))
     {
         g_bluetooth_connect_waiting = false;
         g_pending_bluetooth_connect_failed = false;
         if (g_suppress_bluetooth_auto_recording)
         {
-            ESP_LOGI(MAINTAG, "Bluetooth recording auto-start suppressed during pairing profile setup: %s", BtManager::stateName(state));
+            DBG_LOGI(MAINTAG, "Bluetooth recording auto-start suppressed during pairing profile setup: %s", BtManager::stateName(state));
             return;
         }
-        ESP_LOGI(MAINTAG, "queueing Bluetooth recording start from state: %s", BtManager::stateName(state));
+        DBG_LOGI(MAINTAG, "queueing Bluetooth recording start from state: %s", BtManager::stateName(state));
         g_pending_bluetooth_recording = true;
     }
     else if (state == BtManager::State::Idle && g_bluetooth_connect_waiting)
@@ -101,7 +101,7 @@ void on_bluetooth_paired(const BtManager::PairedDevice& device)
 void onclick_main_bluetooth(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "main screen bluetooth selected");
+    DBG_LOGI(MAINTAG, "main screen bluetooth selected");
     ScrollView* scroll_view = get_scroll_view();
     if (scroll_view && gui)
     {
@@ -184,7 +184,7 @@ static void show_system_info_dialog(uint16_t next_view)
 void onclick_main_info(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "main screen info selected");
+    DBG_LOGI(MAINTAG, "main screen info selected");
     show_system_info_dialog(FLYGUI_VIEW_MAIN);
 }
 
@@ -199,7 +199,7 @@ static void on_file_list_pin_success()
 
 static void on_file_list_pin_failed(uint32_t failedAttempts)
 {
-    ESP_LOGW(MAINTAG, "file list PIN failed attempt: %lu", static_cast<unsigned long>(failedAttempts));
+    DBG_LOGW(MAINTAG, "file list PIN failed attempt: %lu", static_cast<unsigned long>(failedAttempts));
 }
 
 static void on_file_list_pin_exit()
@@ -214,7 +214,7 @@ static void on_file_list_pin_exit()
 void onclick_main_files(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "main screen files selected");
+    DBG_LOGI(MAINTAG, "main screen files selected");
     ScrollView* scroll_view = get_scroll_view();
     if (scroll_view && gui)
     {
@@ -228,7 +228,7 @@ void onclick_main_files(uint32_t pressDurationMs)
             {
                 return;
             }
-            ESP_LOGW(MAINTAG, "failed to show PIN pad; falling back to file list");
+            DBG_LOGW(MAINTAG, "failed to show PIN pad; falling back to file list");
         }
         #endif
         gui->showView(FLYGUI_VIEW_SCROLL);
@@ -238,7 +238,7 @@ void onclick_main_files(uint32_t pressDurationMs)
 void onclick_main_wifi(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "main screen wifi selected");
+    DBG_LOGI(MAINTAG, "main screen wifi selected");
     ScrollView* scroll_view = get_scroll_view();
     if (scroll_view && gui)
     {
@@ -250,38 +250,38 @@ void onclick_main_wifi(uint32_t pressDurationMs)
 void onclick_main_memo(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "main screen memo selected");
+    DBG_LOGI(MAINTAG, "main screen memo selected");
     show_main_memo_starting_feedback();
     if (!show_recording_view_memo())
     {
-        ESP_LOGE(MAINTAG, "failed to start memo recording view");
+        DBG_LOGE(MAINTAG, "failed to start memo recording view");
     }
 }
 
 void onclick_main_smartphone(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "main screen smartphone selected");
+    DBG_LOGI(MAINTAG, "main screen smartphone selected");
     if (!bt_host_list || !connect_to_bluetooth_host(bt_host_list->getFirstPhone(), "smartphone button"))
     {
-        ESP_LOGW(MAINTAG, "no smartphone Bluetooth host available");
+        DBG_LOGW(MAINTAG, "no smartphone Bluetooth host available");
     }
 }
 
 void onclick_main_laptop(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "main screen laptop selected");
+    DBG_LOGI(MAINTAG, "main screen laptop selected");
     if (!bt_host_list || !connect_to_bluetooth_host(bt_host_list->getFirstLaptop(), "laptop button"))
     {
-        ESP_LOGW(MAINTAG, "no laptop Bluetooth host available");
+        DBG_LOGW(MAINTAG, "no laptop Bluetooth host available");
     }
 }
 
 void conn_waiting_cancel(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "connection waiting cancel selected");
+    DBG_LOGI(MAINTAG, "connection waiting cancel selected");
     if (g_wifi_connect_waiting)
     {
         g_wifi_connect_waiting = false;
@@ -333,11 +333,11 @@ void conn_waiting_cancel(uint32_t pressDurationMs)
 void onclick_scroll_exit(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "scroll view exit selected");
+    DBG_LOGI(MAINTAG, "scroll view exit selected");
     ScrollView* scroll_view = get_scroll_view();
     if (scroll_view && scroll_view->isCloudContext())
     {
-        ESP_LOGI(MAINTAG, "cloud scroll exit selected; rebooting");
+        DBG_LOGI(MAINTAG, "cloud scroll exit selected; rebooting");
         delay(50);
         esp_restart();
         return;
@@ -345,7 +345,7 @@ void onclick_scroll_exit(uint32_t pressDurationMs)
     if (scroll_view && scroll_view->isWifiContext() && wifi_manager && wifi_manager->wifiHasStarted())
     {
         thefly_display.fillScreen(TFT_BLACK);
-        ESP_LOGI(MAINTAG, "Wi-Fi scroll exit selected after Wi-Fi start; rebooting");
+        DBG_LOGI(MAINTAG, "Wi-Fi scroll exit selected after Wi-Fi start; rebooting");
         delay(50);
         esp_restart();
         return;
@@ -360,31 +360,31 @@ void onclick_scroll_exit(uint32_t pressDurationMs)
 void onclick_bluetooth_host(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "scroll bluetooth host selected: index=%ld", static_cast<long>(value));
+    DBG_LOGI(MAINTAG, "scroll bluetooth host selected: index=%ld", static_cast<long>(value));
     if (value < 0 || !bt_host_list || !connect_to_bluetooth_host(bt_host_list->get(static_cast<size_t>(value)), "Bluetooth host list"))
     {
-        ESP_LOGW(MAINTAG, "could not start Bluetooth host connection for index=%ld", static_cast<long>(value));
+        DBG_LOGW(MAINTAG, "could not start Bluetooth host connection for index=%ld", static_cast<long>(value));
     }
 }
 
 void onclick_bluetooth_pair(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "scroll bluetooth pair selected: task=%ld", static_cast<long>(value));
+    DBG_LOGI(MAINTAG, "scroll bluetooth pair selected: task=%ld", static_cast<long>(value));
 
     g_suppress_bluetooth_auto_recording = true;
     const BtManager::Result result = BtManager::startPairing();
     if (result != BtManager::Result::Ok)
     {
         g_suppress_bluetooth_auto_recording = false;
-        ESP_LOGW(MAINTAG, "Bluetooth pairing start failed: %s", BtManager::resultName(result));
+        DBG_LOGW(MAINTAG, "Bluetooth pairing start failed: %s", BtManager::resultName(result));
         show_fatal_error_f(false, "Bluetooth pairing failed: %s", BtManager::resultName(result));
         return;
     }
 
     if (!show_conn_waiting_bluetooth_pairing())
     {
-        ESP_LOGE(MAINTAG, "failed to show Bluetooth pairing waiting view");
+        DBG_LOGE(MAINTAG, "failed to show Bluetooth pairing waiting view");
         BtManager::disconnect();
         g_suppress_bluetooth_auto_recording = false;
         show_fatal_error_f(false, "Bluetooth pairing view failed");
@@ -394,16 +394,16 @@ void onclick_bluetooth_pair(int32_t value, uint32_t pressDurationMs)
 void onclick_wifi_scan_and_connect(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "scroll wifi scan/connect selected: task=%ld", static_cast<long>(value));
+    DBG_LOGI(MAINTAG, "scroll wifi scan/connect selected: task=%ld", static_cast<long>(value));
     if (!wifi_manager)
     {
-        ESP_LOGW(MAINTAG, "cannot scan/connect: Wi-Fi manager is not available");
+        DBG_LOGW(MAINTAG, "cannot scan/connect: Wi-Fi manager is not available");
         return;
     }
 
     if (!wifi_manager->scanAndConnect())
     {
-        ESP_LOGW(MAINTAG, "could not start Wi-Fi scan/connect: %s", wifi_manager->statusName());
+        DBG_LOGW(MAINTAG, "could not start Wi-Fi scan/connect: %s", wifi_manager->statusName());
         show_wifi_connection_failed("Wi-Fi scan failed to start");
         return;
     }
@@ -420,7 +420,7 @@ void onclick_wifi_scan_and_connect(int32_t value, uint32_t pressDurationMs)
 void onclick_wifi_station(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "scroll wifi station selected: index=%ld", static_cast<long>(value));
+    DBG_LOGI(MAINTAG, "scroll wifi station selected: index=%ld", static_cast<long>(value));
     if (value < 0 || !wifi_manager)
     {
         show_fatal_error_f(false, "Wi-Fi station selection is invalid");
@@ -436,7 +436,7 @@ void onclick_wifi_station(int32_t value, uint32_t pressDurationMs)
 
     if (!wifi_manager->connectToHotspot(station))
     {
-        ESP_LOGW(MAINTAG, "could not start Wi-Fi station connection: %s", wifi_manager->statusName());
+        DBG_LOGW(MAINTAG, "could not start Wi-Fi station connection: %s", wifi_manager->statusName());
         show_wifi_connection_failed("Wi-Fi connection failed to start");
         return;
     }
@@ -453,7 +453,7 @@ void onclick_wifi_station(int32_t value, uint32_t pressDurationMs)
 void onclick_wifi_ap(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "scroll wifi ap selected: index=%ld", static_cast<long>(value));
+    DBG_LOGI(MAINTAG, "scroll wifi ap selected: index=%ld", static_cast<long>(value));
     if (!wifi_manager)
     {
         show_fatal_error_f(false, "Wi-Fi AP is unavailable");
@@ -503,7 +503,7 @@ void onclick_wifi_ap(int32_t value, uint32_t pressDurationMs)
 void onclick_cloud_upload(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "scroll cloud upload selected: index=%ld", static_cast<long>(value));
+    DBG_LOGI(MAINTAG, "scroll cloud upload selected: index=%ld", static_cast<long>(value));
 
     if (value < 0 || !wifi_manager)
     {
@@ -536,7 +536,7 @@ void onclick_cloud_upload(int32_t value, uint32_t pressDurationMs)
 void cloud_upload_cancel(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "cloud upload cancel selected");
+    DBG_LOGI(MAINTAG, "cloud upload cancel selected");
     g_cloud_upload.cancel();
 }
 #endif
@@ -544,7 +544,7 @@ void cloud_upload_cancel(uint32_t pressDurationMs)
 void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "scroll ntp sync selected: task=%ld", static_cast<long>(value));
+    DBG_LOGI(MAINTAG, "scroll ntp sync selected: task=%ld", static_cast<long>(value));
 
     if (!wifi_manager)
     {
@@ -578,7 +578,7 @@ void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs)
 void onclick_bt_show_info(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "scroll bluetooth info selected: task=%ld", static_cast<long>(value));
+    DBG_LOGI(MAINTAG, "scroll bluetooth info selected: task=%ld", static_cast<long>(value));
 
     esp_bd_addr_t bdaddr = {};
     char          bdaddr_text[18] = "unknown";
@@ -599,7 +599,7 @@ void onclick_bt_show_info(int32_t value, uint32_t pressDurationMs)
 void onclick_wifi_show_info(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "scroll wifi info selected: task=%ld", static_cast<long>(value));
+    DBG_LOGI(MAINTAG, "scroll wifi info selected: task=%ld", static_cast<long>(value));
 
     if (wifi_manager && wifi_manager->status() == WifiManager::Status::StationConnected)
     {
@@ -641,7 +641,7 @@ void onclick_wifi_show_info(int32_t value, uint32_t pressDurationMs)
 void onclick_file_wav(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "scroll wav file selected: index=%ld", static_cast<long>(value));
+    DBG_LOGI(MAINTAG, "scroll wav file selected: index=%ld", static_cast<long>(value));
     ScrollView* scroll_view = get_scroll_view();
     const char* file_name = scroll_view ? scroll_view->selectedItemLabel() : "";
     if (!file_name || file_name[0] == '\0')
@@ -669,13 +669,13 @@ void onclick_file_wav(int32_t value, uint32_t pressDurationMs)
 void onclick_file_show_info(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
-    ESP_LOGI(MAINTAG, "scroll file info selected: task=%ld", static_cast<long>(value));
+    DBG_LOGI(MAINTAG, "scroll file info selected: task=%ld", static_cast<long>(value));
     show_system_info_dialog(FLYGUI_VIEW_SCROLL);
 }
 
 void on_pairing_success_dialog_dismissed()
 {
-    ESP_LOGI(MAINTAG, "pairing confirmation dismissed; rebooting to restart Bluetooth cleanly");
+    DBG_LOGI(MAINTAG, "pairing confirmation dismissed; rebooting to restart Bluetooth cleanly");
     g_suppress_bluetooth_auto_recording = false;
     Serial.flush();
     delay(100);
@@ -691,7 +691,7 @@ void on_cloud_upload_complete(const CloudUpload::Status& status)
 
 void on_cloud_upload_dialog_dismissed()
 {
-    ESP_LOGI(MAINTAG, "cloud upload confirmation dismissed; rebooting");
+    DBG_LOGI(MAINTAG, "cloud upload confirmation dismissed; rebooting");
     delay(50);
     esp_restart();
 }
@@ -712,15 +712,15 @@ void on_wifi_scan_finished(const wifi_item_t* item)
 
     if (!item)
     {
-        ESP_LOGW(MAINTAG, "Wi-Fi scan/connect did not find a configured station");
+        DBG_LOGW(MAINTAG, "Wi-Fi scan/connect did not find a configured station");
         return;
     }
 
-    ESP_LOGI(MAINTAG, "Wi-Fi scan/connect found \"%s\", starting connection", item->ssid ? item->ssid : "");
+    DBG_LOGI(MAINTAG, "Wi-Fi scan/connect found \"%s\", starting connection", item->ssid ? item->ssid : "");
     update_conn_waiting_wifi_target(item->ssid);
     if (!wifi_manager->connectToHotspot(item))
     {
-        ESP_LOGW(MAINTAG, "could not connect to scanned Wi-Fi station: %s", wifi_manager->statusName());
+        DBG_LOGW(MAINTAG, "could not connect to scanned Wi-Fi station: %s", wifi_manager->statusName());
         show_wifi_connection_failed("Wi-Fi connection failed to start");
     }
 }

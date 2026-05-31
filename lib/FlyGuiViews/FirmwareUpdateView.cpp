@@ -7,7 +7,7 @@
 #include "FlyGuiText.h"
 #include "MicroSdCard.h"
 #include "SpriteDraw.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "esp_system.h"
 #include "sprites.h"
 #include "utilfuncs.h"
@@ -235,7 +235,7 @@ void FirmwareUpdateView::finishUpdate(MicroSdCard::FirmwareUpdateResult result)
     {
         if (!MicroSdCard::fs().remove(kFirmwareUpdatePath))
         {
-            ESP_LOGW(TAG, "firmware update succeeded, but deleting firmware.bin failed");
+            DBG_LOGW(TAG, "firmware update succeeded, but deleting firmware.bin failed");
         }
     }
 

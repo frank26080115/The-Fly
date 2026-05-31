@@ -4,20 +4,13 @@
 #include <string.h>
 
 #include "ClockAgent.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 
 namespace
 {
 
-#if defined(CORE_DEBUG_LEVEL)
-constexpr int kFlyGuiCoreDebugLevel = CORE_DEBUG_LEVEL;
-#else
-constexpr int kFlyGuiCoreDebugLevel = static_cast<int>(ESP_LOG_NONE);
-#endif
-
 constexpr bool kFlyGuiDebugClock =
-    static_cast<int>(LOG_LOCAL_LEVEL) > static_cast<int>(ESP_LOG_ERROR) ||
-    kFlyGuiCoreDebugLevel > static_cast<int>(ESP_LOG_ERROR);
+    static_cast<int>(DBG_LOG_LOCAL_LEVEL) > static_cast<int>(DBG_LOG_ERROR);
 
 } // namespace
 

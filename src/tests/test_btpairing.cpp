@@ -5,7 +5,7 @@
 #include "esp_bt_defs.h"
 #include "esp_err.h"
 #include "esp_gap_bt_api.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "esp_mac.h"
 #include "nvs_flash.h"
 #include "utilfuncs.h"
@@ -79,7 +79,7 @@ void on_state_changed(BtManager::State state)
 
 void on_paired(const BtManager::PairedDevice& device)
 {
-    ESP_LOGI(TAG, "pairing completed");
+    DBG_LOGI(TAG, "pairing completed");
     log_bda("paired with", device.mac);
     Serial.printf("%s: paired name=\"%s\"\n", TAG, device.name);
     g_pairing_finished = true;

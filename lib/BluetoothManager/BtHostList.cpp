@@ -11,7 +11,7 @@
 #include "IconLookup.h"
 #include "MicroSdCard.h"
 #include "esp_err.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "nvs.h"
 #include "utilfuncs.h"
 
@@ -223,14 +223,14 @@ bool BtHostList::loadFromMicroSd(const char* path)
     const char* import_path = path ? path : kDefaultPath;
     if (!MicroSdCard::isReady())
     {
-        ESP_LOGI(TAG, "microSD is not ready; keeping Bluetooth host list from NVS");
+        DBG_LOGI(TAG, "microSD is not ready; keeping Bluetooth host list from NVS");
         return true;
     }
 
     FsFile file;
     if (!file.open(import_path, O_RDONLY))
     {
-        ESP_LOGI(TAG, "no Bluetooth JSON import found at %s; keeping Bluetooth host list from NVS", import_path);
+        DBG_LOGI(TAG, "no Bluetooth JSON import found at %s; keeping Bluetooth host list from NVS", import_path);
         return true;
     }
 
@@ -238,7 +238,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
     if (file_size > kMaxJsonFileSize)
     {
         file.close();
-        ESP_LOGW(TAG, "Bluetooth host import is too large: %llu bytes", static_cast<unsigned long long>(file_size));
+        DBG_LOGW(TAG, "Bluetooth host import is too large: %llu bytes", static_cast<unsigned long long>(file_size));
         m_last_load_result = LoadResult::Ok;
         return true;
     }
@@ -247,7 +247,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
     if (!buffer)
     {
         file.close();
-        ESP_LOGW(TAG, "could not allocate Bluetooth host import buffer");
+        DBG_LOGW(TAG, "could not allocate Bluetooth host import buffer");
         m_last_load_result = LoadResult::Ok;
         return true;
     }
@@ -257,7 +257,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
     if (bytes_read < 0 || static_cast<uint64_t>(bytes_read) != file_size)
     {
         free(buffer);
-        ESP_LOGW(TAG, "could not read Bluetooth host import");
+        DBG_LOGW(TAG, "could not read Bluetooth host import");
         m_last_load_result = LoadResult::Ok;
         return true;
     }
@@ -268,7 +268,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
     free(buffer);
     if (error)
     {
-        ESP_LOGW(TAG, "could not parse Bluetooth host import: %s", error.c_str());
+        DBG_LOGW(TAG, "could not parse Bluetooth host import: %s", error.c_str());
         m_last_load_result = LoadResult::Ok;
         return true;
     }
@@ -276,7 +276,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
     JsonArray hosts_json = doc["hosts"].as<JsonArray>();
     if (hosts_json.isNull())
     {
-        ESP_LOGW(TAG, "Bluetooth host import is missing hosts array");
+        DBG_LOGW(TAG, "Bluetooth host import is missing hosts array");
         m_last_load_result = LoadResult::Ok;
         return true;
     }
@@ -320,7 +320,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
 
     if (skipped > 0)
     {
-        ESP_LOGW(TAG, "Bluetooth host import skipped %u invalid or extra item(s)", static_cast<unsigned>(skipped));
+        DBG_LOGW(TAG, "Bluetooth host import skipped %u invalid or extra item(s)", static_cast<unsigned>(skipped));
     }
 
     sanitize_bt_host_list(imported);
@@ -332,7 +332,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
     }
 
     m_last_load_result = LoadResult::Ok;
-    ESP_LOGI(TAG, "imported %u Bluetooth hosts into NVS", static_cast<unsigned>(m_size));
+    DBG_LOGI(TAG, "imported %u Bluetooth hosts into NVS", static_cast<unsigned>(m_size));
     return true;
 }
 
@@ -341,14 +341,14 @@ bool BtHostList::saveToMicroSd(bool allowEmpty)
     if (m_destroyed)
     {
         m_last_load_result = LoadResult::Destroyed;
-        ESP_LOGW(TAG, "not saving Bluetooth host list after destructor");
+        DBG_LOGW(TAG, "not saving Bluetooth host list after destructor");
         return false;
     }
 
     if (m_size == 0 && !allowEmpty)
     {
         m_last_load_result = LoadResult::EmptyList;
-        ESP_LOGW(TAG, "not saving empty Bluetooth host list");
+        DBG_LOGW(TAG, "not saving empty Bluetooth host list");
         return false;
     }
 
@@ -364,13 +364,13 @@ bool BtHostList::loadFromNvs()
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         m_last_load_result = LoadResult::Ok;
-        ESP_LOGI(TAG, "no Bluetooth host list namespace in NVS; using empty list");
+        DBG_LOGI(TAG, "no Bluetooth host list namespace in NVS; using empty list");
         return true;
     }
     if (err != ESP_OK)
     {
         m_last_load_result = LoadResult::FileOpenFailed;
-        ESP_LOGW(TAG, "could not open Bluetooth host NVS namespace: %s", esp_err_to_name(err));
+        DBG_LOGW(TAG, "could not open Bluetooth host NVS namespace: %s", esp_err_to_name(err));
         return false;
     }
 
@@ -380,14 +380,14 @@ bool BtHostList::loadFromNvs()
     {
         nvs_close(handle);
         m_last_load_result = LoadResult::Ok;
-        ESP_LOGI(TAG, "no Bluetooth host list in NVS; using empty list");
+        DBG_LOGI(TAG, "no Bluetooth host list in NVS; using empty list");
         return true;
     }
     if (err != ESP_OK)
     {
         nvs_close(handle);
         m_last_load_result = LoadResult::FileReadFailed;
-        ESP_LOGW(TAG, "could not load Bluetooth host list from NVS: %s size=%u", esp_err_to_name(err), static_cast<unsigned>(hosts_size));
+        DBG_LOGW(TAG, "could not load Bluetooth host list from NVS: %s size=%u", esp_err_to_name(err), static_cast<unsigned>(hosts_size));
         return false;
     }
 
@@ -395,7 +395,7 @@ bool BtHostList::loadFromNvs()
     {
         nvs_close(handle);
         m_last_load_result = LoadResult::Ok;
-        ESP_LOGW(TAG, "could not load Bluetooth host list from NVS: unexpected size=%u", static_cast<unsigned>(hosts_size));
+        DBG_LOGW(TAG, "could not load Bluetooth host list from NVS: unexpected size=%u", static_cast<unsigned>(hosts_size));
         return true;
     }
 
@@ -406,13 +406,13 @@ bool BtHostList::loadFromNvs()
     if (err != ESP_OK || read_size != sizeof(hosts))
     {
         m_last_load_result = LoadResult::FileReadFailed;
-        ESP_LOGW(TAG, "could not load Bluetooth host list from NVS: %s size=%u", esp_err_to_name(err), static_cast<unsigned>(read_size));
+        DBG_LOGW(TAG, "could not load Bluetooth host list from NVS: %s size=%u", esp_err_to_name(err), static_cast<unsigned>(read_size));
         return false;
     }
     if (hosts.magic != kBtHostListMagic || hosts.version != kBtHostListVersion)
     {
         m_last_load_result = LoadResult::Ok;
-        ESP_LOGW(TAG, "ignoring incompatible Bluetooth host list in NVS");
+        DBG_LOGW(TAG, "ignoring incompatible Bluetooth host list in NVS");
         return true;
     }
 
@@ -421,7 +421,7 @@ bool BtHostList::loadFromNvs()
     m_size = m_hosts.count;
     m_last_load_result = LoadResult::Ok;
 
-    ESP_LOGI(TAG, "loaded %u Bluetooth hosts from NVS", static_cast<unsigned>(m_size));
+    DBG_LOGI(TAG, "loaded %u Bluetooth hosts from NVS", static_cast<unsigned>(m_size));
     return true;
 }
 
@@ -436,7 +436,7 @@ bool BtHostList::saveToNvs()
     if (err != ESP_OK)
     {
         m_last_load_result = LoadResult::FileOpenFailed;
-        ESP_LOGW(TAG, "could not open Bluetooth host NVS namespace for write: %s", esp_err_to_name(err));
+        DBG_LOGW(TAG, "could not open Bluetooth host NVS namespace for write: %s", esp_err_to_name(err));
         return false;
     }
 
@@ -450,7 +450,7 @@ bool BtHostList::saveToNvs()
     if (err != ESP_OK)
     {
         m_last_load_result = LoadResult::FileWriteFailed;
-        ESP_LOGW(TAG, "could not save Bluetooth host list to NVS: %s", esp_err_to_name(err));
+        DBG_LOGW(TAG, "could not save Bluetooth host list to NVS: %s", esp_err_to_name(err));
         return false;
     }
 
@@ -470,7 +470,7 @@ bool BtHostList::replaceHostList(const bt_host_list_t& hosts)
     if (m_destroyed)
     {
         m_last_load_result = LoadResult::Destroyed;
-        ESP_LOGW(TAG, "not replacing Bluetooth host list after destructor");
+        DBG_LOGW(TAG, "not replacing Bluetooth host list after destructor");
         return false;
     }
 
@@ -487,7 +487,7 @@ bool BtHostList::pruneBonds()
     const int bonded_count = esp_bt_gap_get_bond_device_num();
     if (bonded_count == ESP_ERR_INVALID_STATE)
     {
-        ESP_LOGW(TAG, "could not prune bluetooth bonds, gap is not initialized");
+        DBG_LOGW(TAG, "could not prune bluetooth bonds, gap is not initialized");
         return false;
     }
 
@@ -498,14 +498,14 @@ bool BtHostList::pruneBonds()
 
     if (bonded_count <= 0)
     {
-        ESP_LOGI(TAG, "no bluetooth bonds to prune");
+        DBG_LOGI(TAG, "no bluetooth bonds to prune");
         return saveToNvs();
     }
 
     esp_bd_addr_t* bonded = static_cast<esp_bd_addr_t*>(calloc(bonded_count, sizeof(esp_bd_addr_t)));
     if (!bonded)
     {
-        ESP_LOGW(TAG, "could not allocate bluetooth bond list");
+        DBG_LOGW(TAG, "could not allocate bluetooth bond list");
         return false;
     }
 
@@ -513,7 +513,7 @@ bool BtHostList::pruneBonds()
     const esp_err_t list_err = esp_bt_gap_get_bond_device_list(&listed, bonded);
     if (list_err != ESP_OK)
     {
-        ESP_LOGW(TAG, "could not get bluetooth bond list: %s", esp_err_to_name(list_err));
+        DBG_LOGW(TAG, "could not get bluetooth bond list: %s", esp_err_to_name(list_err));
         free(bonded);
         return false;
     }
@@ -534,12 +534,12 @@ bool BtHostList::pruneBonds()
         const esp_err_t remove_err = esp_bt_gap_remove_bond_device(bonded[i]);
         if (remove_err != ESP_OK)
         {
-            ESP_LOGW(TAG, "could not prune bluetooth bond %s: %s", mac, esp_err_to_name(remove_err));
+            DBG_LOGW(TAG, "could not prune bluetooth bond %s: %s", mac, esp_err_to_name(remove_err));
             ok = false;
             continue;
         }
 
-        ESP_LOGI(TAG, "pruned bluetooth bond %s", mac);
+        DBG_LOGI(TAG, "pruned bluetooth bond %s", mac);
         ++pruned;
     }
 
@@ -549,7 +549,7 @@ bool BtHostList::pruneBonds()
     {
         ok = false;
     }
-    ESP_LOGI(TAG, "pruned %d bluetooth bonds", pruned);
+    DBG_LOGI(TAG, "pruned %d bluetooth bonds", pruned);
     return ok;
 }
 
@@ -560,13 +560,13 @@ bool BtHostList::insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t ic
     if (m_destroyed)
     {
         m_last_load_result = LoadResult::Destroyed;
-        ESP_LOGW(TAG, "not inserting Bluetooth host after destructor");
+        DBG_LOGW(TAG, "not inserting Bluetooth host after destructor");
         return false;
     }
     if (name && strlen(name) >= kBtHostNameMaxLength)
     {
         m_last_load_result = LoadResult::InvalidHost;
-        ESP_LOGW(TAG, "Bluetooth reported host name is too long");
+        DBG_LOGW(TAG, "Bluetooth reported host name is too long");
         return false;
     }
 
@@ -576,7 +576,7 @@ bool BtHostList::insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t ic
         if (name && name[0] != '\0' && strlcpy(existing->name_reported, name, sizeof(existing->name_reported)) >= sizeof(existing->name_reported))
         {
             m_last_load_result = LoadResult::InvalidHost;
-            ESP_LOGW(TAG, "Bluetooth reported host name is too long");
+            DBG_LOGW(TAG, "Bluetooth reported host name is too long");
             return false;
         }
         existing->bonded = true;
@@ -623,13 +623,13 @@ bool BtHostList::unpair(size_t index)
     if (m_destroyed)
     {
         m_last_load_result = LoadResult::Destroyed;
-        ESP_LOGW(TAG, "not unpairing Bluetooth host after destructor");
+        DBG_LOGW(TAG, "not unpairing Bluetooth host after destructor");
         return false;
     }
     if (index >= m_size)
     {
         m_last_load_result = LoadResult::InvalidHost;
-        ESP_LOGW(TAG, "could not unpair Bluetooth host at index %u", static_cast<unsigned>(index));
+        DBG_LOGW(TAG, "could not unpair Bluetooth host at index %u", static_cast<unsigned>(index));
         return false;
     }
 
@@ -642,13 +642,13 @@ bool BtHostList::unpair(size_t index)
         const esp_err_t remove_err = esp_bt_gap_remove_bond_device(item.bdaddr);
         if (remove_err != ESP_OK)
         {
-            ESP_LOGW(TAG, "could not unpair Bluetooth bond %s: %s", mac, esp_err_to_name(remove_err));
+            DBG_LOGW(TAG, "could not unpair Bluetooth bond %s: %s", mac, esp_err_to_name(remove_err));
             return false;
         }
     }
 
     item.bonded = false;
-    ESP_LOGI(TAG, "unpaired Bluetooth host %s while keeping list entry", mac);
+    DBG_LOGI(TAG, "unpaired Bluetooth host %s while keeping list entry", mac);
     return true;
 }
 
@@ -659,13 +659,13 @@ bool BtHostList::remove(size_t index, bool removeBond)
     if (m_destroyed)
     {
         m_last_load_result = LoadResult::Destroyed;
-        ESP_LOGW(TAG, "not removing bluetooth host after destructor");
+        DBG_LOGW(TAG, "not removing bluetooth host after destructor");
         return false;
     }
     if (index >= m_size)
     {
         m_last_load_result = LoadResult::InvalidHost;
-        ESP_LOGW(TAG, "could not remove bluetooth host at index %u", static_cast<unsigned>(index));
+        DBG_LOGW(TAG, "could not remove bluetooth host at index %u", static_cast<unsigned>(index));
         return false;
     }
 
@@ -677,7 +677,7 @@ bool BtHostList::remove(size_t index, bool removeBond)
         const esp_err_t remove_err = esp_bt_gap_remove_bond_device(m_hosts.host[index].bdaddr);
         if (remove_err != ESP_OK)
         {
-            ESP_LOGW(TAG, "could not remove bluetooth bond %s: %s", mac, esp_err_to_name(remove_err));
+            DBG_LOGW(TAG, "could not remove bluetooth bond %s: %s", mac, esp_err_to_name(remove_err));
         }
     }
 
@@ -692,7 +692,7 @@ bool BtHostList::remove(size_t index, bool removeBond)
     memset(&m_hosts.host[m_size], 0, sizeof(m_hosts.host[m_size]));
     m_hosts.count = static_cast<uint8_t>(m_size);
 
-    ESP_LOGI(TAG, "removed bluetooth host %s", mac);
+    DBG_LOGI(TAG, "removed bluetooth host %s", mac);
     return true;
 }
 

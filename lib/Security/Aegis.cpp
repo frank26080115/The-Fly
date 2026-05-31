@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "esp_err.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "esp_random.h"
 #include "mbedtls/md.h"
 #include "mbedtls/pkcs5.h"
@@ -136,7 +136,7 @@ bool load_key_from_nvs(nvs_handle_t handle, const char* blob_name, uint8_t* key,
     mbedtls_platform_zeroize(key, key_size);
     if (err != ESP_ERR_NVS_NOT_FOUND)
     {
-        ESP_LOGW(TAG, "NVS %s load failed: %s size=%u", blob_name, esp_err_to_name(err), static_cast<unsigned>(stored_size));
+        DBG_LOGW(TAG, "NVS %s load failed: %s size=%u", blob_name, esp_err_to_name(err), static_cast<unsigned>(stored_size));
     }
     return false;
 }
@@ -147,7 +147,7 @@ bool save_key_to_nvs(const char* blob_name, const uint8_t* key, size_t key_size)
     esp_err_t err = nvs_open(kNvsNamespace, NVS_READWRITE, &handle);
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "NVS open for %s save failed: %s", blob_name, esp_err_to_name(err));
+        DBG_LOGE(TAG, "NVS open for %s save failed: %s", blob_name, esp_err_to_name(err));
         return false;
     }
 
@@ -160,7 +160,7 @@ bool save_key_to_nvs(const char* blob_name, const uint8_t* key, size_t key_size)
 
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "NVS %s save failed: %s", blob_name, esp_err_to_name(err));
+        DBG_LOGE(TAG, "NVS %s save failed: %s", blob_name, esp_err_to_name(err));
         return false;
     }
 
@@ -173,7 +173,7 @@ bool save_keys_to_nvs(const uint8_t* filecrypt_key, const uint8_t* network_key)
     esp_err_t err = nvs_open(kNvsNamespace, NVS_READWRITE, &handle);
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "NVS open for key save failed: %s", esp_err_to_name(err));
+        DBG_LOGE(TAG, "NVS open for key save failed: %s", esp_err_to_name(err));
         return false;
     }
 
@@ -193,7 +193,7 @@ bool save_keys_to_nvs(const uint8_t* filecrypt_key, const uint8_t* network_key)
 
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "NVS key save failed: %s", esp_err_to_name(err));
+        DBG_LOGE(TAG, "NVS key save failed: %s", esp_err_to_name(err));
         return false;
     }
 
@@ -220,12 +220,12 @@ bool init()
     {
         clear_all_keys();
         g_initialized = true;
-        ESP_LOGI(TAG, "NVS Aegis namespace not found; keys unavailable");
+        DBG_LOGI(TAG, "NVS Aegis namespace not found; keys unavailable");
         return true;
     }
     if (open_err != ESP_OK)
     {
-        ESP_LOGE(TAG, "NVS open failed: %s", esp_err_to_name(open_err));
+        DBG_LOGE(TAG, "NVS open failed: %s", esp_err_to_name(open_err));
         clear_all_keys();
         return false;
     }

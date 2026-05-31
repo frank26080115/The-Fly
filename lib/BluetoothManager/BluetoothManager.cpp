@@ -8,7 +8,7 @@
 #include "esp_bt.h"
 #include "esp_bt_main.h"
 #include "esp32-hal-bt.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "esp_mac.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -90,7 +90,7 @@ void set_state(State next)
         return;
     }
 
-    ESP_LOGI(TAG, "bt state: %s -> %s", stateName(g_state), stateName(next));
+    DBG_LOGI(TAG, "bt state: %s -> %s", stateName(g_state), stateName(next));
     g_state = next;
     if (g_state_changed_callback)
     {
@@ -149,7 +149,7 @@ void log_local_identity(const char* reason, const char* device_name = nullptr)
     const esp_err_t err = esp_read_mac(local, ESP_MAC_BT);
     if (err != ESP_OK)
     {
-        ESP_LOGW(TAG, "%s: could not read local Bluetooth BDADDR: %s", reason, esp_err_to_name(err));
+        DBG_LOGW(TAG, "%s: could not read local Bluetooth BDADDR: %s", reason, esp_err_to_name(err));
         return;
     }
 
@@ -157,11 +157,11 @@ void log_local_identity(const char* reason, const char* device_name = nullptr)
     format_bdaddr(local, bdaddr_text, sizeof(bdaddr_text));
     if (device_name && device_name[0] != '\0')
     {
-        ESP_LOGI(TAG, "%s: local BDADDR=%s device_name=\"%s\"", reason, bdaddr_text, device_name);
+        DBG_LOGI(TAG, "%s: local BDADDR=%s device_name=\"%s\"", reason, bdaddr_text, device_name);
     }
     else
     {
-        ESP_LOGI(TAG, "%s: local BDADDR=%s", reason, bdaddr_text);
+        DBG_LOGI(TAG, "%s: local BDADDR=%s", reason, bdaddr_text);
     }
 }
 
@@ -182,7 +182,7 @@ bool make_bluetooth_non_connectable()
 
 void settle_outbound_connect_scan_mode()
 {
-    ESP_LOGI(TAG, "settling radio scan mode before outbound HFP connect for %" PRIu32 " ms", kOutboundConnectScanModeSettleMs);
+    DBG_LOGI(TAG, "settling radio scan mode before outbound HFP connect for %" PRIu32 " ms", kOutboundConnectScanModeSettleMs);
     vTaskDelay(pdMS_TO_TICKS(kOutboundConnectScanModeSettleMs));
 }
 
@@ -356,31 +356,31 @@ bool configure_eir_data()
 bool ensure_controller_enabled()
 {
     esp_bt_controller_status_t status = esp_bt_controller_get_status();
-    ESP_LOGI(TAG, "bt controller status: %s", controller_status_name(status));
+    DBG_LOGI(TAG, "bt controller status: %s", controller_status_name(status));
 
     if (btStarted())
     {
-        ESP_LOGI(TAG, "Arduino btStarted: yes");
+        DBG_LOGI(TAG, "Arduino btStarted: yes");
         return true;
     }
 
-    ESP_LOGI(TAG, "Arduino btStart");
+    DBG_LOGI(TAG, "Arduino btStart");
     if (!btStart())
     {
         status = esp_bt_controller_get_status();
-        ESP_LOGE(TAG, "Arduino btStart failed, controller status: %s", controller_status_name(status));
+        DBG_LOGE(TAG, "Arduino btStart failed, controller status: %s", controller_status_name(status));
         return false;
     }
 
     status = esp_bt_controller_get_status();
-    ESP_LOGI(TAG, "bt controller status after Arduino btStart: %s", controller_status_name(status));
+    DBG_LOGI(TAG, "bt controller status after Arduino btStart: %s", controller_status_name(status));
     return status == ESP_BT_CONTROLLER_STATUS_ENABLED;
 }
 
 bool ensure_bluedroid_enabled()
 {
     esp_bluedroid_status_t status = esp_bluedroid_get_status();
-    ESP_LOGI(TAG, "bluedroid status: %s", bluedroid_status_name(status));
+    DBG_LOGI(TAG, "bluedroid status: %s", bluedroid_status_name(status));
 
     if (status == ESP_BLUEDROID_STATUS_UNINITIALIZED)
     {
@@ -389,7 +389,7 @@ bool ensure_bluedroid_enabled()
             return false;
         }
         status = esp_bluedroid_get_status();
-        ESP_LOGI(TAG, "bluedroid status after init: %s", bluedroid_status_name(status));
+        DBG_LOGI(TAG, "bluedroid status after init: %s", bluedroid_status_name(status));
     }
 
     if (status == ESP_BLUEDROID_STATUS_INITIALIZED)
@@ -399,7 +399,7 @@ bool ensure_bluedroid_enabled()
             return false;
         }
         status = esp_bluedroid_get_status();
-        ESP_LOGI(TAG, "bluedroid status after enable: %s", bluedroid_status_name(status));
+        DBG_LOGI(TAG, "bluedroid status after enable: %s", bluedroid_status_name(status));
     }
 
     return status == ESP_BLUEDROID_STATUS_ENABLED;
@@ -447,7 +447,7 @@ uint32_t outgoing_audio_adapter(uint8_t* buf, uint32_t len)
 
     if (should_log_audio_callback(g_outgoing_audio_callback_count, g_last_outgoing_audio_log_ms))
     {
-        ESP_LOGI(TAG,
+        DBG_LOGI(TAG,
                  "hfp outgoing audio callback: count=%" PRIu32 " requested=%" PRIu32 " returned=%" PRIu32 " total_requested=%" PRIu64 " total_returned=%" PRIu64 " state=%s audio_connected=%u",
                  g_outgoing_audio_callback_count,
                  len,
@@ -502,7 +502,7 @@ void incoming_audio_adapter(const uint8_t* buf, uint32_t len)
 
     if (should_log_audio_callback(g_incoming_audio_callback_count, g_last_incoming_audio_log_ms))
     {
-        ESP_LOGI(TAG,
+        DBG_LOGI(TAG,
                  "hfp incoming audio callback: count=%" PRIu32 " len=%" PRIu32 " total=%" PRIu64 " state=%s audio_connected=%u",
                  g_incoming_audio_callback_count,
                  len,
@@ -545,7 +545,7 @@ bool wait_for_hfp_profile_ready()
     {
         if (static_cast<uint32_t>(millis() - start) >= kHfpProfileInitTimeoutMs)
         {
-            ESP_LOGE(TAG, "timed out waiting for HFP profile init");
+            DBG_LOGE(TAG, "timed out waiting for HFP profile init");
             return false;
         }
         vTaskDelay(pdMS_TO_TICKS(10));
@@ -569,13 +569,13 @@ esp_err_t connect_hfp_audio_once(const char* reason)
 {
     if (!g_has_connected_mac)
     {
-        ESP_LOGW(TAG, "hfp audio connect skipped (%s): no connected MAC", reason);
+        DBG_LOGW(TAG, "hfp audio connect skipped (%s): no connected MAC", reason);
         return ESP_ERR_INVALID_STATE;
     }
 
     if (g_hfp_audio_connected)
     {
-        ESP_LOGI(TAG, "hfp audio connect skipped (%s): already connected", reason);
+        DBG_LOGI(TAG, "hfp audio connect skipped (%s): already connected", reason);
         return ESP_OK;
     }
 
@@ -583,16 +583,16 @@ esp_err_t connect_hfp_audio_once(const char* reason)
     {
         if (!hfp_audio_connect_timed_out())
         {
-            ESP_LOGI(TAG, "hfp audio connect skipped (%s): already connecting", reason);
+            DBG_LOGI(TAG, "hfp audio connect skipped (%s): already connecting", reason);
             return ESP_OK;
         }
 
-        ESP_LOGW(TAG, "hfp audio connect timed out while %s, retrying", reason);
+        DBG_LOGW(TAG, "hfp audio connect timed out while %s, retrying", reason);
         g_hfp_audio_connecting = false;
     }
 
     const esp_err_t err = esp_hf_client_connect_audio(g_connected_mac);
-    ESP_LOGI(TAG, "esp_hf_client_connect_audio (%s) returned: %s", reason, esp_err_to_name(err));
+    DBG_LOGI(TAG, "esp_hf_client_connect_audio (%s) returned: %s", reason, esp_err_to_name(err));
     if (err == ESP_OK)
     {
         g_hfp_audio_connecting = true;
@@ -609,7 +609,7 @@ void answer_incoming_call_once(const char* reason)
     }
 
     const esp_err_t err = esp_hf_client_answer_call();
-    ESP_LOGI(TAG, "esp_hf_client_answer_call (%s) returned: %s", reason, esp_err_to_name(err));
+    DBG_LOGI(TAG, "esp_hf_client_answer_call (%s) returned: %s", reason, esp_err_to_name(err));
     if (err == ESP_OK)
     {
         g_hfp_answer_requested = true;
@@ -618,7 +618,7 @@ void answer_incoming_call_once(const char* reason)
 
 void audio_connect_retry_task(void*)
 {
-    ESP_LOGI(TAG, "hfp audio connect retry task started");
+    DBG_LOGI(TAG, "hfp audio connect retry task started");
 
     while (hfp_control_connected() && g_has_connected_mac && !g_hfp_audio_connected && !g_disconnect_requested && g_hfp_call_active)
     {
@@ -629,7 +629,7 @@ void audio_connect_retry_task(void*)
         vTaskDelay(pdMS_TO_TICKS(kAudioConnectRetryMs));
     }
 
-    ESP_LOGI(TAG, "hfp audio connect retry task stopped");
+    DBG_LOGI(TAG, "hfp audio connect retry task stopped");
     g_audio_connect_task = nullptr;
     vTaskDelete(nullptr);
 }
@@ -650,7 +650,7 @@ void start_audio_connect_retries()
     if (created != pdPASS)
     {
         g_audio_connect_task = nullptr;
-        ESP_LOGE(TAG, "failed to create hfp audio connect retry task");
+        DBG_LOGE(TAG, "failed to create hfp audio connect retry task");
     }
 }
 
@@ -676,7 +676,7 @@ const char* connected_host_name(const esp_bd_addr_t mac)
 
 void query_call_metadata(const char* reason)
 {
-    ESP_LOGI(TAG, "querying HFP call metadata: %s", reason);
+    DBG_LOGI(TAG, "querying HFP call metadata: %s", reason);
     ok(esp_hf_client_query_current_calls(), "hfp query current calls");
 }
 
@@ -722,7 +722,7 @@ void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param)
                 }
                 used += static_cast<size_t>(written);
             }
-            ESP_LOGI(TAG,
+            DBG_LOGI(TAG,
                      "bt gap EIR config: status=%d types=%u [%s]",
                      static_cast<int>(param->config_eir_data.stat),
                      static_cast<unsigned>(param->config_eir_data.eir_type_num),
@@ -748,7 +748,7 @@ void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param)
         }
         else
         {
-            ESP_LOGW(TAG, "pairing failed, status=%d", param->auth_cmpl.stat);
+            DBG_LOGW(TAG, "pairing failed, status=%d", param->auth_cmpl.stat);
         }
         break;
 
@@ -769,7 +769,7 @@ void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param)
     case ESP_BT_GAP_CFM_REQ_EVT:
         if (param)
         {
-            ESP_LOGI(TAG, "confirming SSP numeric comparison: %" PRIu32, param->cfm_req.num_val);
+            DBG_LOGI(TAG, "confirming SSP numeric comparison: %" PRIu32, param->cfm_req.num_val);
             ok(esp_bt_gap_ssp_confirm_reply(param->cfm_req.bda, true), "ssp confirm reply");
         }
         break;
@@ -777,12 +777,12 @@ void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param)
     case ESP_BT_GAP_KEY_NOTIF_EVT:
         if (param)
         {
-            ESP_LOGI(TAG, "SSP passkey: %" PRIu32, param->key_notif.passkey);
+            DBG_LOGI(TAG, "SSP passkey: %" PRIu32, param->key_notif.passkey);
         }
         break;
 
     case ESP_BT_GAP_KEY_REQ_EVT:
-        ESP_LOGW(TAG, "remote requested passkey entry; this device has no keyboard");
+        DBG_LOGW(TAG, "remote requested passkey entry; this device has no keyboard");
         break;
 
     case ESP_BT_GAP_ACL_CONN_CMPL_STAT_EVT:
@@ -790,7 +790,7 @@ void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param)
         {
             char bdaddr_text[18] = {};
             format_bdaddr(param->acl_conn_cmpl_stat.bda, bdaddr_text, sizeof(bdaddr_text));
-            ESP_LOGI(TAG,
+            DBG_LOGI(TAG,
                      "bt gap ACL connected: status=%d handle=%u bdaddr=%s",
                      static_cast<int>(param->acl_conn_cmpl_stat.stat),
                      static_cast<unsigned>(param->acl_conn_cmpl_stat.handle),
@@ -803,7 +803,7 @@ void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param)
         {
             char bdaddr_text[18] = {};
             format_bdaddr(param->acl_disconn_cmpl_stat.bda, bdaddr_text, sizeof(bdaddr_text));
-            ESP_LOGI(TAG,
+            DBG_LOGI(TAG,
                      "bt gap ACL disconnected: reason=%d handle=%u bdaddr=%s",
                      static_cast<int>(param->acl_disconn_cmpl_stat.reason),
                      static_cast<unsigned>(param->acl_disconn_cmpl_stat.handle),
@@ -816,7 +816,7 @@ void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param)
         {
             char bdaddr_text[18] = {};
             format_bdaddr(param->mode_chg.bda, bdaddr_text, sizeof(bdaddr_text));
-            ESP_LOGI(TAG,
+            DBG_LOGI(TAG,
                      "bt gap mode changed: mode=%d interval=%u bdaddr=%s",
                      static_cast<int>(param->mode_chg.mode),
                      static_cast<unsigned>(param->mode_chg.interval),
@@ -831,18 +831,18 @@ void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param)
 
 void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
 {
-    ESP_LOGI(TAG, "hfp_event: %s (%d)", hfp_event_name(event), static_cast<int>(event));
+    DBG_LOGI(TAG, "hfp_event: %s (%d)", hfp_event_name(event), static_cast<int>(event));
 
     if (!param)
     {
-        ESP_LOGW(TAG, "hfp_event %s had null param", hfp_event_name(event));
+        DBG_LOGW(TAG, "hfp_event %s had null param", hfp_event_name(event));
         return;
     }
 
     switch (event)
     {
     case ESP_HF_CLIENT_CONNECTION_STATE_EVT:
-        ESP_LOGI(TAG,
+        DBG_LOGI(TAG,
                  "hfp connection state: %s (%d), peer_feat=0x%08" PRIx32 ", chld_feat=0x%08" PRIx32,
                  hfp_connection_state_name(param->conn_stat.state),
                  static_cast<int>(param->conn_stat.state),
@@ -860,7 +860,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             g_has_connected_mac = true;
             clear_reconnect_schedule(false);
             g_hfp_slc_connected = false;
-            ESP_LOGI(TAG, "hfp RFCOMM/control link connected; waiting for service level connection");
+            DBG_LOGI(TAG, "hfp RFCOMM/control link connected; waiting for service level connection");
             if (g_disconnect_requested)
             {
                 ok(esp_hf_client_disconnect(g_connected_mac), "hfp disconnect after canceled connect");
@@ -940,7 +940,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         break;
 
     case ESP_HF_CLIENT_AUDIO_STATE_EVT:
-        ESP_LOGI(TAG,
+        DBG_LOGI(TAG,
                  "hfp audio state: %s (%d), sync_conn_handle=%u",
                  hfp_audio_state_name(param->audio_stat.state),
                  static_cast<int>(param->audio_stat.state),
@@ -963,7 +963,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             g_hfp_audio_connected = true;
             CallManager::setScoAudioConnected(true);
             set_state(State::AudioAvailable);
-            ESP_LOGI(TAG, "HFP CVSD/narrowband audio connected");
+            DBG_LOGI(TAG, "HFP CVSD/narrowband audio connected");
         }
         else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTED_MSBC)
         {
@@ -975,11 +975,11 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             g_hfp_audio_connected = true;
             CallManager::setScoAudioConnected(true);
             set_state(State::AudioAvailable);
-            ESP_LOGI(TAG, "HFP mSBC/wideband audio connected");
+            DBG_LOGI(TAG, "HFP mSBC/wideband audio connected");
         }
         else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_DISCONNECTED && hfp_control_connected() && g_has_connected_mac)
         {
-            ESP_LOGI(TAG,
+            DBG_LOGI(TAG,
                      "hfp audio callback summary: incoming=%" PRIu32 "/%" PRIu64 " bytes outgoing=%" PRIu32 " requested=%" PRIu64 " returned=%" PRIu64,
                      g_incoming_audio_callback_count,
                      g_incoming_audio_bytes,
@@ -996,7 +996,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         break;
 
     case ESP_HF_CLIENT_CIND_CALL_EVT:
-        ESP_LOGI(TAG, "hfp call status: %d", static_cast<int>(param->call.status));
+        DBG_LOGI(TAG, "hfp call status: %d", static_cast<int>(param->call.status));
         CallManager::setCallStatus(static_cast<int>(param->call.status));
         g_hfp_call_active = param->call.status != 0;
         if (!g_hfp_call_active)
@@ -1014,7 +1014,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         break;
 
     case ESP_HF_CLIENT_CIND_CALL_SETUP_EVT:
-        ESP_LOGI(TAG, "hfp call setup status: %d", static_cast<int>(param->call_setup.status));
+        DBG_LOGI(TAG, "hfp call setup status: %d", static_cast<int>(param->call_setup.status));
         CallManager::setCallSetupStatus(static_cast<int>(param->call_setup.status));
         g_hfp_call_setup_active = param->call_setup.status != 0;
         if (param->call_setup.status == ESP_HF_CALL_SETUP_STATUS_INCOMING)
@@ -1029,26 +1029,26 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         break;
 
     case ESP_HF_CLIENT_CIND_CALL_HELD_EVT:
-        ESP_LOGI(TAG, "hfp call held status: %d", static_cast<int>(param->call_held.status));
+        DBG_LOGI(TAG, "hfp call held status: %d", static_cast<int>(param->call_held.status));
         CallManager::setCallHeldStatus(static_cast<int>(param->call_held.status));
         break;
 
     case ESP_HF_CLIENT_AT_RESPONSE_EVT:
-        ESP_LOGI(TAG, "hfp AT response: code=%d cme=%d", static_cast<int>(param->at_response.code), static_cast<int>(param->at_response.cme));
+        DBG_LOGI(TAG, "hfp AT response: code=%d cme=%d", static_cast<int>(param->at_response.code), static_cast<int>(param->at_response.cme));
         break;
 
     case ESP_HF_CLIENT_CLIP_EVT:
-        ESP_LOGI(TAG, "hfp caller id: %s", param->clip.number ? param->clip.number : "(null)");
+        DBG_LOGI(TAG, "hfp caller id: %s", param->clip.number ? param->clip.number : "(null)");
         CallManager::addCallerInfo(param->clip.number);
         break;
 
     case ESP_HF_CLIENT_CCWA_EVT:
-        ESP_LOGI(TAG, "hfp call waiting: %s", param->ccwa.number ? param->ccwa.number : "(null)");
+        DBG_LOGI(TAG, "hfp call waiting: %s", param->ccwa.number ? param->ccwa.number : "(null)");
         CallManager::addCallerInfo(param->ccwa.number);
         break;
 
     case ESP_HF_CLIENT_CLCC_EVT:
-        ESP_LOGI(TAG,
+        DBG_LOGI(TAG,
                  "hfp current call: idx=%d dir=%d status=%d mpty=%d number=%s",
                  param->clcc.idx,
                  static_cast<int>(param->clcc.dir),
@@ -1059,48 +1059,48 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         break;
 
     case ESP_HF_CLIENT_CIND_SERVICE_AVAILABILITY_EVT:
-        ESP_LOGI(TAG, "hfp service availability: %d", static_cast<int>(param->service_availability.status));
+        DBG_LOGI(TAG, "hfp service availability: %d", static_cast<int>(param->service_availability.status));
         break;
 
     case ESP_HF_CLIENT_CIND_SIGNAL_STRENGTH_EVT:
-        ESP_LOGI(TAG, "hfp signal strength: %d", param->signal_strength.value);
+        DBG_LOGI(TAG, "hfp signal strength: %d", param->signal_strength.value);
         break;
 
     case ESP_HF_CLIENT_CIND_ROAMING_STATUS_EVT:
-        ESP_LOGI(TAG, "hfp roaming status: %d", static_cast<int>(param->roaming.status));
+        DBG_LOGI(TAG, "hfp roaming status: %d", static_cast<int>(param->roaming.status));
         break;
 
     case ESP_HF_CLIENT_CIND_BATTERY_LEVEL_EVT:
-        ESP_LOGI(TAG, "hfp battery level: %d", param->battery_level.value);
+        DBG_LOGI(TAG, "hfp battery level: %d", param->battery_level.value);
         break;
 
     case ESP_HF_CLIENT_COPS_CURRENT_OPERATOR_EVT:
-        ESP_LOGI(TAG, "hfp operator: %s", param->cops.name ? param->cops.name : "(null)");
+        DBG_LOGI(TAG, "hfp operator: %s", param->cops.name ? param->cops.name : "(null)");
         break;
 
     case ESP_HF_CLIENT_BVRA_EVT:
-        ESP_LOGI(TAG, "hfp voice recognition state: %d", static_cast<int>(param->bvra.value));
+        DBG_LOGI(TAG, "hfp voice recognition state: %d", static_cast<int>(param->bvra.value));
         break;
 
     case ESP_HF_CLIENT_BTRH_EVT:
-        ESP_LOGI(TAG, "hfp response and hold status: %d", static_cast<int>(param->btrh.status));
+        DBG_LOGI(TAG, "hfp response and hold status: %d", static_cast<int>(param->btrh.status));
         break;
 
     case ESP_HF_CLIENT_CNUM_EVT:
-        ESP_LOGI(TAG, "hfp subscriber number: %s type=%d", param->cnum.number ? param->cnum.number : "(null)", static_cast<int>(param->cnum.type));
+        DBG_LOGI(TAG, "hfp subscriber number: %s type=%d", param->cnum.number ? param->cnum.number : "(null)", static_cast<int>(param->cnum.type));
         break;
 
     case ESP_HF_CLIENT_BSIR_EVT:
-        ESP_LOGI(TAG, "hfp in-band ringtone state: %d", static_cast<int>(param->bsir.state));
+        DBG_LOGI(TAG, "hfp in-band ringtone state: %d", static_cast<int>(param->bsir.state));
         break;
 
     case ESP_HF_CLIENT_BINP_EVT:
-        ESP_LOGI(TAG, "hfp voice tag number: %s", param->binp.number ? param->binp.number : "(null)");
+        DBG_LOGI(TAG, "hfp voice tag number: %s", param->binp.number ? param->binp.number : "(null)");
         CallManager::addCallerInfo(param->binp.number);
         break;
 
     case ESP_HF_CLIENT_RING_IND_EVT:
-        ESP_LOGI(TAG, "hfp ring indication");
+        DBG_LOGI(TAG, "hfp ring indication");
         g_hfp_call_setup_active = true;
         CallManager::setCallSetupStatus(ESP_HF_CALL_SETUP_STATUS_INCOMING);
         query_call_metadata("ring indication");
@@ -1108,7 +1108,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         break;
 
     case ESP_HF_CLIENT_PKT_STAT_NUMS_GET_EVT:
-        ESP_LOGI(TAG,
+        DBG_LOGI(TAG,
                  "hfp packet stats: rx_total=%" PRIu32 " rx_correct=%" PRIu32 " rx_err=%" PRIu32 " rx_none=%" PRIu32 " rx_lost=%" PRIu32 " tx_total=%" PRIu32 " tx_discarded=%" PRIu32,
                  param->pkt_nums.rx_total,
                  param->pkt_nums.rx_correct,
@@ -1120,7 +1120,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         break;
 
     case ESP_HF_CLIENT_PROF_STATE_EVT:
-        ESP_LOGI(TAG,
+        DBG_LOGI(TAG,
                  "hfp profile state: %s (%d)",
                  hfp_profile_state_name(param->prof_stat.state),
                  static_cast<int>(param->prof_stat.state));
@@ -1151,16 +1151,16 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             const int  clamped_hfp_volume = constrain(param->volume_control.volume, 0, kHfpMaxVolume);
             const auto audio_volume       = static_cast<uint8_t>(clamped_hfp_volume * 2);
             AudioManager::setVolume(audio_volume);
-            ESP_LOGI(TAG, "speaker volume set from HFP: %d -> %u", clamped_hfp_volume, audio_volume);
+            DBG_LOGI(TAG, "speaker volume set from HFP: %d -> %u", clamped_hfp_volume, audio_volume);
         }
         else if (param->volume_control.type == ESP_HF_VOLUME_CONTROL_TARGET_MIC)
         {
-            ESP_LOGI(TAG, "HFP microphone gain request ignored: %d", param->volume_control.volume);
+            DBG_LOGI(TAG, "HFP microphone gain request ignored: %d", param->volume_control.volume);
         }
         break;
 
     default:
-        ESP_LOGI(TAG, "hfp event has no detailed logger yet: %s (%d)", hfp_event_name(event), static_cast<int>(event));
+        DBG_LOGI(TAG, "hfp event has no detailed logger yet: %s (%d)", hfp_event_name(event), static_cast<int>(event));
         break;
     }
 }
@@ -1299,12 +1299,12 @@ void poll()
 
     g_next_reconnect_attempt_ms = now + kReconnectAttemptIntervalMs;
     ++g_reconnect_attempt_count;
-    ESP_LOGI(TAG, "automatic HFP reconnect attempt %" PRIu32, g_reconnect_attempt_count);
+    DBG_LOGI(TAG, "automatic HFP reconnect attempt %" PRIu32, g_reconnect_attempt_count);
     log_bda("reconnecting HFP to", g_reconnect_target_mac);
 
     if (!close_pairing_window())
     {
-        ESP_LOGW(TAG, "automatic HFP reconnect could not close discovery window first");
+        DBG_LOGW(TAG, "automatic HFP reconnect could not close discovery window first");
         return;
     }
     settle_outbound_connect_scan_mode();
@@ -1316,7 +1316,7 @@ void poll()
     }
     else
     {
-        ESP_LOGW(TAG, "automatic HFP reconnect attempt returned: %s", esp_err_to_name(err));
+        DBG_LOGW(TAG, "automatic HFP reconnect attempt returned: %s", esp_err_to_name(err));
     }
 }
 
@@ -1383,7 +1383,7 @@ Result connectToMac(const esp_bd_addr_t mac)
     char target_bdaddr_text[18] = {};
     format_bdaddr(mac, target_bdaddr_text, sizeof(target_bdaddr_text));
     log_local_identity("starting HFP connection");
-    ESP_LOGI(TAG, "starting HFP connection: remote BDADDR=%s", target_bdaddr_text);
+    DBG_LOGI(TAG, "starting HFP connection: remote BDADDR=%s", target_bdaddr_text);
 
     if (!bonded_mac_matches(mac))
     {

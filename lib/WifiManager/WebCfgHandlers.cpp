@@ -17,7 +17,7 @@
 #include "WebServer.h"
 #include "WifiManager.h"
 #include "esp_heap_caps.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/platform_util.h"
 #include "utilfuncs.h"
@@ -1137,7 +1137,7 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
         }
         if (network_config_changed)
         {
-            ESP_LOGI(TAG, "regenerated filecrypt-key after network config change");
+            DBG_LOGI(TAG, "regenerated filecrypt-key after network config change");
         }
         #endif
     }
@@ -1400,7 +1400,7 @@ void finishSetCfg(AsyncWebServerRequest* request)
     }
 
     note_web_save();
-    ESP_LOGI(TAG, "updated config from encrypted web upload");
+    DBG_LOGI(TAG, "updated config from encrypted web upload");
     request->send(200, "application/json", "{\"status\":\"ok\"}");
 }
 

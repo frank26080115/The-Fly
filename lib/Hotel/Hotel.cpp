@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <M5Unified.h>
 #include <WiFi.h>
-#include <esp_log.h>
+#include "dbg_log.h"
 #include <esp_sleep.h>
 #include <esp_timer.h>
 
@@ -30,15 +30,9 @@ constexpr uint64_t kFullBrightnessMs   = 60 * 1000ULL;
 constexpr uint64_t kShutdownMs         = 5 * 60 * 1000ULL;
 constexpr uint64_t kLightSleepWakeUs   = 50 * 1000ULL;
 constexpr uint32_t kSyncWindowMs       = 20;
-constexpr int      kHotelLocalLogLevel = static_cast<int>(LOG_LOCAL_LEVEL);
-#ifdef CORE_DEBUG_LEVEL
-constexpr int kHotelCoreLogLevel = CORE_DEBUG_LEVEL;
-#else
-constexpr int kHotelCoreLogLevel = static_cast<int>(ESP_LOG_NONE);
-#endif
+constexpr int      kHotelLocalLogLevel = static_cast<int>(DBG_LOG_LOCAL_LEVEL);
 constexpr bool kFullShutdownAllowedByLogging =
-    kHotelLocalLogLevel <= static_cast<int>(ESP_LOG_ERROR) &&
-    kHotelCoreLogLevel <= static_cast<int>(ESP_LOG_ERROR);
+    kHotelLocalLogLevel <= static_cast<int>(DBG_LOG_ERROR);
 #if defined(ENABLE_HOTEL_DEEP_POWER_SAVE)
 constexpr bool kDeepPowerSaveEnabled = true;
 #else
@@ -177,7 +171,7 @@ void apply_initialized_outputs()
     {
         thefly_display.setBrightness(kFullBrightness);
     }
-    ESP_LOGD(TAG, "initialized");
+    DBG_LOGD(TAG, "initialized");
 }
 
 void enter_light_sleep()
@@ -258,13 +252,13 @@ void poll_core(uint8_t core)
 
     if (state_changed)
     {
-        ESP_LOGD(TAG, "state transition: %s -> %s", stateName(previous), stateName(next));
+        DBG_LOGD(TAG, "state transition: %s -> %s", stateName(previous), stateName(next));
         apply_power_outputs(previous, next);
     }
 
     if (shutdown)
     {
-        ESP_LOGD(TAG, "powering off");
+        DBG_LOGD(TAG, "powering off");
         ShutdownView::showSleepAndShutdown();
     }
 

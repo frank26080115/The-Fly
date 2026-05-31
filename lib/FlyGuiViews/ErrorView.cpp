@@ -4,7 +4,7 @@
 #include "SpriteDraw.h"
 #include "WebServer.h"
 #include "WifiManager.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "sprites.h"
 #include <string.h>
 
@@ -181,18 +181,18 @@ void ErrorView::launchDefaultSoftAp()
     const bool ap_ready = wifi_manager->isGeneratedSoftApActive() || wifi_manager->startGeneratedSoftAp();
     if (!ap_ready)
     {
-        ESP_LOGW(TAG, "emergency default SoftAP start failed: %s", wifi_manager->statusName());
+        DBG_LOGW(TAG, "emergency default SoftAP start failed: %s", wifi_manager->statusName());
         return;
     }
 
     if (!WebServer::init())
     {
-        ESP_LOGW(TAG, "emergency web server start failed");
+        DBG_LOGW(TAG, "emergency web server start failed");
     }
 
     FlyGui* owner = gui();
     if (owner && !owner->showView(FLYGUI_VIEW_AP_MODE))
     {
-        ESP_LOGW(TAG, "emergency AP view show failed");
+        DBG_LOGW(TAG, "emergency AP view show failed");
     }
 }

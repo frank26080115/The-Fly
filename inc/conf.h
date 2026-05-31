@@ -1,5 +1,7 @@
 #pragma once
 
+#include "dbg_log.h"
+
 #include <cstdint>
 
 /*
@@ -50,7 +52,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 // 8192 bytes is approximately 128ms worth of 16 kHz 16-bit stereo PCM data.
 #define WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH 8192
 
-#if (defined(CORE_DEBUG_LEVEL) && CORE_DEBUG_LEVEL > ESP_LOG_ERROR) || (defined(LOG_LOCAL_LEVEL) && LOG_LOCAL_LEVEL > ESP_LOG_ERROR)
+#if defined(DBG_LOG_LOCAL_LEVEL) && DBG_LOG_LOCAL_LEVEL > DBG_LOG_ERROR
 #ifndef BUILD_IS_DEBUG
 #define BUILD_IS_DEBUG
 #endif

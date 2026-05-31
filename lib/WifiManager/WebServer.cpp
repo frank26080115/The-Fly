@@ -23,7 +23,7 @@
 #include "WebFileHandlers.h"
 #include "WifiManager.h"
 #include "esp_err.h"
-#include "esp_log.h"
+#include "dbg_log.h"
 #include "esp_random.h"
 #include "mbedtls/platform_util.h"
 #include "nvs.h"
@@ -124,13 +124,13 @@ void start_mdns()
     make_mdns_hostname(hostname, sizeof(hostname));
     if (hostname[0] == '\0')
     {
-        ESP_LOGW(TAG, "mDNS hostname generation failed");
+        DBG_LOGW(TAG, "mDNS hostname generation failed");
         return;
     }
 
     if (!MDNS.begin(hostname))
     {
-        ESP_LOGW(TAG, "mDNS start failed for %s.local", hostname);
+        DBG_LOGW(TAG, "mDNS start failed for %s.local", hostname);
         return;
     }
 
@@ -140,12 +140,12 @@ void start_mdns()
     MDNS.addService("the-fly", "tcp", kWebServerPort);
     MDNS.addServiceTxt("the-fly", "tcp", "path", "/");
     MDNS.addServiceTxt("the-fly", "tcp", "version", version_str ? version_str : "");
-    ESP_LOGI(TAG, "mDNS started: http://%s.local/ service=_the-fly._tcp", hostname);
+    DBG_LOGI(TAG, "mDNS started: http://%s.local/ service=_the-fly._tcp", hostname);
 }
 
 void reboot_after_reset_dialog()
 {
-    ESP_LOGI(TAG, "reset confirmation dismissed; rebooting");
+    DBG_LOGI(TAG, "reset confirmation dismissed; rebooting");
     delay(50);
     esp_restart();
 }
@@ -155,7 +155,7 @@ void show_reset_reboot_dialog(const char* reset_name, const char* text)
     ModalDialog* dialog = get_modal_dialog();
     if (!dialog || !gui)
     {
-        ESP_LOGW(TAG, "%s succeeded, but modal dialog is unavailable", reset_name);
+        DBG_LOGW(TAG, "%s succeeded, but modal dialog is unavailable", reset_name);
         return;
     }
 
@@ -168,7 +168,7 @@ void show_reset_reboot_dialog(const char* reset_name, const char* text)
                       reboot_after_reset_dialog);
     if (!gui->showView(FLYGUI_VIEW_MODAL_DIALOG))
     {
-        ESP_LOGW(TAG, "%s succeeded, but modal dialog could not be shown", reset_name);
+        DBG_LOGW(TAG, "%s succeeded, but modal dialog could not be shown", reset_name);
     }
 }
 
@@ -554,7 +554,7 @@ void reset_password(AsyncWebServerRequest* request)
 
     note_web_save();
     reset_session_security();
-    ESP_LOGI(TAG, "password reset updated Aegis keys");
+    DBG_LOGI(TAG, "password reset updated Aegis keys");
     request->send(200, "application/json", "{\"status\":\"ok\"}");
     show_password_reset_reboot_dialog();
     #endif
@@ -657,7 +657,7 @@ void reset_memory(AsyncWebServerRequest* request)
     wifi_manager->clear();
 
     note_web_save();
-    ESP_LOGI(TAG, "memory reset erased Bluetooth bonds, Bluetooth host list, and Wi-Fi/cloud config");
+    DBG_LOGI(TAG, "memory reset erased Bluetooth bonds, Bluetooth host list, and Wi-Fi/cloud config");
     request->send(200, "application/json", "{\"status\":\"ok\"}");
     show_memory_reset_reboot_dialog();
     #endif
@@ -890,41 +890,41 @@ bool WebServer::init()
     {
         const String route = asset_route(web_assets_list[i]);
         g_server.on(AsyncURIMatcher::exact(route), HTTP_GET, send_asset);
-        ESP_LOGI(TAG, "registered web asset GET %s", route.c_str());
+        DBG_LOGI(TAG, "registered web asset GET %s", route.c_str());
     }
 
     if (find_asset_by_name("index.html"))
     {
         g_server.on(AsyncURIMatcher::exact("/"), HTTP_GET, send_asset);
-        ESP_LOGI(TAG, "registered web asset GET /");
+        DBG_LOGI(TAG, "registered web asset GET /");
     }
 
     g_server.on(AsyncURIMatcher::exact("/get_info"), HTTP_GET, send_info);
-    ESP_LOGI(TAG, "registered device info GET /get_info");
+    DBG_LOGI(TAG, "registered device info GET /get_info");
 
     g_server.on(AsyncURIMatcher::exact("/download_file"), HTTP_GET, WebFileHandlers::sendMicroSdFile);
-    ESP_LOGI(TAG, "registered microSD download GET /download_file");
+    DBG_LOGI(TAG, "registered microSD download GET /download_file");
 
     g_server.on(AsyncURIMatcher::exact("/delete_file"), HTTP_GET, WebFileHandlers::deleteMicroSdFile);
-    ESP_LOGI(TAG, "registered microSD delete GET /delete_file");
+    DBG_LOGI(TAG, "registered microSD delete GET /delete_file");
 
     g_server.on(AsyncURIMatcher::exact("/list_files.json"), HTTP_GET, WebFileHandlers::sendMicroSdFileList);
-    ESP_LOGI(TAG, "registered microSD file list GET /list_files.json");
+    DBG_LOGI(TAG, "registered microSD file list GET /list_files.json");
 
     g_server.on(AsyncURIMatcher::exact("/get_cfg"), HTTP_GET, WebCfgHandlers::sendCfg);
-    ESP_LOGI(TAG, "registered session-encrypted config GET /get_cfg");
+    DBG_LOGI(TAG, "registered session-encrypted config GET /get_cfg");
 
     g_server.on(AsyncURIMatcher::exact("/set_cfg"), HTTP_POST, WebCfgHandlers::finishSetCfg, nullptr, WebCfgHandlers::writeSetCfgBody);
-    ESP_LOGI(TAG, "registered encrypted config POST /set_cfg");
+    DBG_LOGI(TAG, "registered encrypted config POST /set_cfg");
 
     g_server.on(AsyncURIMatcher::exact("/time_sync"), HTTP_POST, WebCfgHandlers::timeSync);
-    ESP_LOGI(TAG, "registered time sync POST /time_sync");
+    DBG_LOGI(TAG, "registered time sync POST /time_sync");
 
     g_server.on(AsyncURIMatcher::exact("/reset_password"), HTTP_POST, reset_password);
-    ESP_LOGI(TAG, "registered password reset POST /reset_password");
+    DBG_LOGI(TAG, "registered password reset POST /reset_password");
 
     g_server.on(AsyncURIMatcher::exact("/reset_memory"), HTTP_POST, reset_memory);
-    ESP_LOGI(TAG, "registered memory reset POST /reset_memory");
+    DBG_LOGI(TAG, "registered memory reset POST /reset_memory");
 
     // Uploads are not encrypted; keep this endpoint off untrusted networks until it is replaced by session encryption.
     g_server.on(AsyncURIMatcher::exact("/file_upload"),
@@ -932,16 +932,16 @@ bool WebServer::init()
                 WebFileHandlers::finishFileUpload,
                 WebFileHandlers::writeFileUploadPart,
                 WebFileHandlers::writeFileUploadBody);
-    ESP_LOGI(TAG, "registered microSD upload POST /file_upload");
+    DBG_LOGI(TAG, "registered microSD upload POST /file_upload");
 
 #if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 1
     if (!FtpServer::start(MicroSdCard::fs(), kFtpUser, kFtpPassword))
     {
-        ESP_LOGE(TAG, "FTP server start failed");
+        DBG_LOGE(TAG, "FTP server start failed");
         return false;
     }
 
-    ESP_LOGI(TAG, "FTP server started");
+    DBG_LOGI(TAG, "FTP server started");
 #endif
 
     //DiskStats::refreshDiskSpace();
@@ -949,7 +949,7 @@ bool WebServer::init()
 
     g_server.begin();
     g_initialized = true;
-    ESP_LOGI(TAG, "web server started");
+    DBG_LOGI(TAG, "web server started");
 
     return true;
 }
