@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any, Optional, Sequence
 
 import sectools
-import thefly_audio_decoder
+import thefly_audio_decryptor
 import thefly_summarize
 import thefly_transcription
 
@@ -215,26 +215,13 @@ def decode_rec_to_wav(rec_path: Path, wav_path: Path, key: Optional[bytes], gap_
     pcm_path = Path(pcm_temp.name)
     pcm_temp.close()
 
-    decrypt_temp_path: Optional[Path] = None
-    decode_input_path = rec_path
-
     try:
-        if key is not None:
-            decrypt_temp = tempfile.NamedTemporaryFile(prefix="thefly-decrypted-", suffix=".rec", delete=False)
-            decrypt_temp_path = Path(decrypt_temp.name)
-            decrypt_temp.close()
-            packet_count = sectools.decrypt_recording_file(rec_path, decrypt_temp_path, key)
-            print(f"decrypted packets: {packet_count} ({rec_path.name})")
-            decode_input_path = decrypt_temp_path
-
-        thefly_audio_decoder.decode_recording(decode_input_path, pcm_path, wav_path, gap_threshold_ms)
+        thefly_audio_decryptor.decode_recording(rec_path, pcm_path, wav_path, gap_threshold_ms, key)
     finally:
-        for temp_path in (pcm_path, decrypt_temp_path):
-            if temp_path is not None:
-                try:
-                    temp_path.unlink()
-                except FileNotFoundError:
-                    pass
+        try:
+            pcm_path.unlink()
+        except FileNotFoundError:
+            pass
 
 
 def transcript_path_for_wav(wav_path: Path, transcribed_dir: Path) -> Path:
