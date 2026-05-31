@@ -187,7 +187,7 @@ button:disabled,
   padding: 10px 0;
 }
 
-.file-table td:last-child {
+.file-table td:nth-last-child(-n + 2) {
   width: 42px;
   padding-left: 12px;
   text-align: right;
@@ -204,6 +204,53 @@ button:disabled,
 .file-link:hover {
   color: #ffffff;
   text-decoration: underline;
+}
+
+.unlock-link,
+.unlock-link:visited {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 34px;
+  margin-top: 0;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: #1d2730;
+  color: #8fd4ff;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.unlock-link::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 16px;
+  width: 15px;
+  height: 11px;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+  box-sizing: border-box;
+}
+
+.unlock-link::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  top: 8px;
+  width: 10px;
+  height: 11px;
+  border: 2px solid currentColor;
+  border-left: none;
+  border-bottom: none;
+  border-radius: 0 8px 0 0;
+  box-sizing: border-box;
+}
+
+.unlock-link:hover {
+  background: #213343;
+  color: #d3efff;
 }
 
 .delete-link,

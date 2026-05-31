@@ -10,6 +10,7 @@ const pin_code_max_length = 31;
 let file_row_template = null;
 let current_default_soft_ap = true;
 let latest_info = null;
+let unlock_buttons_authenticated = false;
 
 function body_onload()
 {
@@ -180,12 +181,22 @@ function render_file_list(files)
         const file_name = String(list[index] || "");
         const encoded_name = encodeURIComponent(file_name);
         const file_link = row.querySelector(".file-link");
+        const unlock_button = row.querySelector(".unlock-link");
         const delete_link = row.querySelector(".delete-link");
+        const can_decrypt = file_name.toLowerCase().endsWith(".rec");
 
         if (file_link)
         {
             file_link.textContent = file_name;
             file_link.href = "/download_file?file_name=" + encoded_name;
+        }
+        if (unlock_button)
+        {
+            unlock_button.dataset.canDecrypt = can_decrypt ? "true" : "false";
+            unlock_button.onclick = can_decrypt ? function() {
+                request_decrypt_file(file_name);
+            } : null;
+            unlock_button.setAttribute("aria-label", "Decrypt " + file_name);
         }
         if (delete_link)
         {
@@ -200,6 +211,36 @@ function render_file_list(files)
         please_wait.style.display = "none";
     }
     container.style.display = "";
+    hide_all_unlock_buttons();
+    if (unlock_buttons_authenticated)
+    {
+        show_all_unlock_buttons();
+    }
+}
+
+function show_all_unlock_buttons()
+{
+    for (const button of document.querySelectorAll(".unlock-link"))
+    {
+        if (button.dataset.canDecrypt === "true")
+        {
+            button.style.display = "";
+            button.disabled = false;
+        }
+    }
+}
+
+function hide_all_unlock_buttons()
+{
+    for (const button of document.querySelectorAll(".unlock-link"))
+    {
+        button.style.display = "none";
+        button.disabled = true;
+    }
+}
+
+function request_decrypt_file(_file_name)
+{
 }
 
 function fetch_info()
@@ -1113,6 +1154,8 @@ function fetch_cfg()
                     ? (request.response || JSON.parse(request.responseText))
                     : await decrypt_cfg_blob(request.response);
                 fill_config_page(config);
+                unlock_buttons_authenticated = true;
+                show_all_unlock_buttons();
                 resolve(config);
             }
             catch (error)
