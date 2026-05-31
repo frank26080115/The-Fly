@@ -5700,5 +5700,11 @@
     "type": "git_commit",
     "commit_message": "major progress on usability, added ntp sync",
     "commit_hash": "a1c937432bf18b83680cbd0120e09e8d29e67ac6"
+  },
+  {
+    "timestamp": "2026-05-31T04:24:21Z",
+    "type": "git_commit",
+    "commit_message": "made debug logging work again",
+    "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   }
 ]

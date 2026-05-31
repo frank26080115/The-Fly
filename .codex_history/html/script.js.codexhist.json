@@ -1658,5 +1658,117 @@
     "type": "git_commit",
     "commit_message": "code neatened, remove cloud features with a predefine",
     "commit_hash": "d24eb445de9566caf462ed97068368a51fbd6009"
+  },
+  {
+    "timestamp": "2026-05-31T04:49:20.846Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "during password reset through the web interface, I get `N.Pbkdf2HmacSha256 is not a function` as the error, something is wrong with the webcrypt shim?"
+    ],
+    "agent_reply": [
+      "Yep, that was the shim. Its PBKDF2 path tries to call `asmCrypto.Pbkdf2HmacSha256`, but the bundled shim does not actually provide that function, so password reset dies before it can POST the new key.",
+      "",
+      "I fixed [sec_helpers.js](D:/GithubRepos/The-Fly/html/sec_helpers.js:33) so `derive_pbkdf2_bytes()` still tries WebCrypto first, but falls back to a local JS PBKDF2-HMAC-SHA256 implementation if the shim/native path fails. I also rebuilt the packaged web asset in [web_assets.h](D:/GithubRepos/The-Fly/inc/web_assets.h:3).",
+      "",
+      "Verified the fallback against Node’s `crypto.pbkdf2Sync` for known vectors, then built:",
+      "",
+      "```text",
+      "pio run -e thefly_sec1",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Both passed. Sec0 had one transient stale `.pio` object failure on the first try, then passed cleanly on retry."
+    ],
+    "files": [
+      "html/sec_helpers.js",
+      "inc/web_assets.h",
+      "src/version.c.o",
+      "html/script.js"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T06:55:08.997Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "hold on, you've exposed both modes by a tab, that's wrong, the mode is determined by security level later, the user can't just choose between them at will"
+    ],
+    "agent_reply": [
+      "Fixed: the PIN panel no longer exposes mode choice to the user.",
+      "",
+      "I changed it to a mode-driven panel in [html/index.html](D:/GithubRepos/The-Fly/html/index.html:255), with shared action/message elements and CSS-only custom/generated sections in [html/styles.css](D:/GithubRepos/The-Fly/html/styles.css:305). Future code can switch it with `set_pin_code_panel_mode(\"custom\")` or `set_pin_code_panel_mode(\"generated\")`.",
+      "",
+      "For offline CSS preview, open `html/index.html` normally for custom mode, or add `#pin-generated` / `?pin_mode=generated` to preview generated mode. This is not a visible UI control.",
+      "",
+      "Also regenerated [inc/web_assets.h](D:/GithubRepos/The-Fly/inc/web_assets.h:1). Verified with `pio run -e thefly_sec1`."
+    ],
+    "files": [
+      "html/index.html",
+      "html/styles.css",
+      "html/script.js",
+      "inc/web_assets.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T07:15:56.221Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "### Task: pin code related web server changes and front-end changes",
+      "",
+      "The `/get_cfg` handler, specifically inside `bool build_cfg_json(String& json)`, will add a key `pincode` that exposes the raw pincode stored by `pin_code_cfg_t` but only if it is valid (active, not an empty string), otherwise it will reply with a string indicating if it was “not set” or “revoked on <date>”, depending on the other members of `pin_code_cfg_t`",
+      "",
+      "The front-end will append this as the last item of the information panel, but put it in a textbox that the user can choose to hide and unhide from view, I forgot if this is possible with a standard `password` type input.",
+      "",
+      "(the above functionality only applies for security level 1 and above)",
+      "",
+      "`/set_cfg` does not need to worry about pin code at all.",
+      "",
+      "`index.html` already has a panel for “Pin Code Reset”",
+      "",
+      "on page load, hide `#pincode_reset_panel` first, its usage depends on authentication",
+      "",
+      "when `/get_cfg`arrives to the front-end, depending on security level, configure this panel to show the correct UI, because security level 1 allows for customizable pin while level 2 and above uses a generated pin. If the security level is 0, then hide this panel completely as pin codes are not used.",
+      "",
+      "oh and this panel is also following the same rule as the password reset, it must be done on a secure default soft AP connection, otherwise, do the same thing that is done to the password reset panel (I forgot if I hide it or make it say a message)",
+      "",
+      "The backend `lib\\WifiManager\\WebCfgHandlers.cpp` needs to implement both `/set_custom_pin` and `/reset_pin_code`. This should just wire into `lib\\PinCode\\PinCode.cpp`, but both functions need to authenticate in the exact same way `/set_cfg` checks for authentication",
+      "",
+      "implement `pincodereset_onsubmit` for both security level thresholds. if the pin is custom, validate it first, notify the user if it doesn’t meet the rules or isn’t matching between the two fields. Then, depending on the security level, use either `/set_custom_pin` or `/reset_pin_code` while also remembering to use the same authentication `/set_cfg` uses",
+      "",
+      "`/set_custom_pin` and `/reset_pin_code` both reply in the exact same way that `/get_cfg` replies, exactly. the front-end javascript handles the reply in the exact same way",
+      "",
+      "the existence of `/set_custom_pin` depends on `BUILD_WITH_SECURITY_LEVEL` being == 1"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "Highlights:",
+      "- `/get_cfg` now includes `pincode` for security level 1+.",
+      "- Added `PinCode::getConfig()` for safe web-layer readout.",
+      "- Added encrypted `/set_custom_pin` for security level 1 only.",
+      "- Added encrypted `/reset_pin_code` for security level 1+.",
+      "- Both PIN POST endpoints reuse the `/set_cfg` encrypted-body auth path and return the same encrypted config reply shape as `/get_cfg`.",
+      "- Frontend now hides the PIN panel on load, configures it from `/get_cfg`, shows custom vs generated mode by security level, and appends PIN info as a password-style textbox with show/hide.",
+      "- PIN reset UI follows the generated soft AP rule, and the backend enforces that too.",
+      "- Regenerated `inc/web_assets.h`.",
+      "",
+      "Verified:",
+      "- `pio run -e thefly_sec1`",
+      "- `pio run -e thefly_sec2`",
+      "- `pio run -e thefly_sec0`",
+      "",
+      "Note: `src/version.c` changed as a normal build-generated side effect."
+    ],
+    "files": [
+      "lib/PinCode/PinCode.h",
+      "lib/PinCode/PinCode.cpp",
+      "lib/WifiManager/WebCfgHandlers.cpp",
+      "lib/WifiManager/WebCfgHandlers.h",
+      "lib/WifiManager/WebServer.cpp",
+      "html/script.js",
+      "html/styles.css",
+      "html/index.html",
+      "inc/web_assets.h",
+      "src/version.c"
+    ]
   }
 ]

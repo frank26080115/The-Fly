@@ -255,5 +255,11 @@
     "type": "git_commit",
     "commit_message": "implement the wifi ap view",
     "commit_hash": "d8fe002743fef62a02f8317b0e30b6a57eebd666"
+  },
+  {
+    "timestamp": "2026-05-31T04:24:21Z",
+    "type": "git_commit",
+    "commit_message": "made debug logging work again",
+    "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   }
 ]

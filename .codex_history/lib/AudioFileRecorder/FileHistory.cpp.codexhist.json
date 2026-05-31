@@ -198,5 +198,28 @@
     "type": "git_commit",
     "commit_message": "more cleanup about disabling cloud",
     "commit_hash": "42de74ba32ee5369a9a3f577c65e993d5d7d8d25"
+  },
+  {
+    "timestamp": "2026-05-31T03:58:31.339Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "is most of my code using DBG_LOG or ESP_LOG?"
+    ],
+    "agent_reply": [
+      "Mostly `ESP_LOG`.",
+      "",
+      "I counted actual call sites:",
+      "- `ESP_LOG*`: about **300** call sites in source/libs/tests, excluding `inc/dbg_log.h` macro definitions and docs.",
+      "- `DBG_LOG*`: **27** call sites, all currently in:",
+      "  - `lib/AudioFileRecorder/AudioFileRecorder.cpp`",
+      "  - `lib/AudioFileRecorder/FileHistory.cpp`",
+      "",
+      "Also, `DBG_LOG*` is just a wrapper over `ESP_LOG*` when enabled via [dbg_log.h](D:/GithubRepos/The-Fly/inc/dbg_log.h:20), so stylistically the repo is still overwhelmingly ESP-IDF logging."
+    ],
+    "files": [
+      "inc/dbg_log.h",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/AudioFileRecorder/FileHistory.cpp"
+    ]
   }
 ]

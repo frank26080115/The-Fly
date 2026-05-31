@@ -214,5 +214,34 @@
     "type": "git_commit",
     "commit_message": "playback cosmetics",
     "commit_hash": "fc195cfc87e618d1f87c500b1c86a99d7d5b813d"
+  },
+  {
+    "timestamp": "2026-05-30T23:22:09.574Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "you know how the blue scrub bar displays the total duration up on top of the bar on the right side? that is overlapping with the delete button",
+      "",
+      "move that text below the bar instead of above"
+    ],
+    "agent_reply": [
+      "Done. I moved the blue scrub bar’s total-duration text from above the bar to below it on the right side in [ScrubBar.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/ScrubBar.cpp:279).",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "lib/WavPlayback/ScrubBar.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-30T23:29:32Z",
+    "type": "git_commit",
+    "commit_message": "audio file delete button implemented",
+    "commit_hash": "4c130675d3f65cbce5100ad682ceea13a0552ed2"
   }
 ]

@@ -331,5 +331,88 @@
       "lib/BluetoothManager/BtHostList.cpp",
       "lib/Security/Aegis.h"
     ]
+  },
+  {
+    "timestamp": "2026-05-31T01:38:32.975Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "please move `kWavHeaderSize` to `inc/defs.h` as `WAV_RIFF_HEADER_LENGTH`"
+    ],
+    "agent_reply": [
+      "Done. I added `WAV_RIFF_HEADER_LENGTH` in [inc/defs.h](D:/GithubRepos/The-Fly/inc/defs.h:12) and updated the WAV recorder, decoder, and playback constant wrappers to use it.",
+      "",
+      "Updated references:",
+      "- [lib/WavPlayback/WavPlayback.h](D:/GithubRepos/The-Fly/lib/WavPlayback/WavPlayback.h:10)",
+      "- [lib/AudioFileRecorder/AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:44)",
+      "- [lib/AudioFileRecorder/AudioFileDecoder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileDecoder.cpp:37)",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0 -e thefly_sec1",
+      "```",
+      "",
+      "Both builds passed.",
+      "",
+      "Done. I added `WAV_RIFF_HEADER_LENGTH` in [inc/defs.h](D:/GithubRepos/The-Fly/inc/defs.h:12) and updated the WAV recorder, decoder, and playback constant wrappers to use it.",
+      "",
+      "Updated references:",
+      "- [lib/WavPlayback/WavPlayback.h](D:/GithubRepos/The-Fly/lib/WavPlayback/WavPlayback.h:10)",
+      "- [lib/AudioFileRecorder/AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:44)",
+      "- [lib/AudioFileRecorder/AudioFileDecoder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileDecoder.cpp:37)",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0 -e thefly_sec1",
+      "```",
+      "",
+      "Both builds passed."
+    ],
+    "files": [
+      "inc/defs.h",
+      "lib/AudioFileRecorder/AudioFileDecoder.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/WavPlayback/WavPlayback.h",
+      "inc/thefly_common.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T02:36:12.474Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "the encrypted block size might be too small, so the overhead is too large",
+      "",
+      "change it to 8192, make sure this is set inside `inc\\conf.h`, with a comment saying that this is approximately 128ms worth of data"
+    ],
+    "agent_reply": [
+      "Done. The encrypted plaintext block size is now configured in [inc/conf.h](D:/GithubRepos/The-Fly/inc/conf.h:51) as:",
+      "",
+      "```cpp",
+      "// 8192 bytes is approximately 128ms worth of 16 kHz 16-bit stereo PCM data.",
+      "#define WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH 8192",
+      "```",
+      "",
+      "I removed the hardcoded `1024` from [inc/defs.h](D:/GithubRepos/The-Fly/inc/defs.h:17), and `defs.h` now includes `conf.h` directly so the derived encrypted chunk sizes stay self-contained.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0 -e thefly_sec1",
+      "```",
+      "",
+      "Both passed."
+    ],
+    "files": [
+      "inc/conf.h",
+      "inc/defs.h",
+      "inc/thefly_common.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T03:56:19Z",
+    "type": "git_commit",
+    "commit_message": "encrypted playback",
+    "commit_hash": "b44ada573a1434b396178f2ddc13955d839d57f3"
   }
 ]

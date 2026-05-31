@@ -174,7 +174,8 @@
       "src/tests/test_btpairing.cpp",
       "src/tests/test_btspeakerphone.cpp",
       "lib/bluedroid/bluedroid_sbc.c",
-      "platformio.ini"
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -264,7 +265,8 @@
     "files": [
       "src/tests/test_btspeakerphone.cpp",
       "idf_size.py",
-      "index.html"
+      "index.html",
+      "html/index.html"
     ]
   },
   {
@@ -1165,7 +1167,8 @@
       "lib/AudioManager/AudioManager.h",
       "src/tests/test_btspeakerphone.cpp",
       "lib/AudioManager/AudioManager.cpp",
-      "inc/web_assets.h"
+      "inc/web_assets.h",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
   },
   {
@@ -1173,5 +1176,11 @@
     "type": "git_commit",
     "commit_message": "deleted SBC stuff",
     "commit_hash": "3161432d1a0fa698e9adc8c48bc6d9be0b51178c"
+  },
+  {
+    "timestamp": "2026-05-31T04:24:21Z",
+    "type": "git_commit",
+    "commit_message": "made debug logging work again",
+    "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   }
 ]

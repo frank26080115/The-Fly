@@ -1737,5 +1737,117 @@
       "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
       "lib/BluetoothManager/BtHostList.cpp"
     ]
+  },
+  {
+    "timestamp": "2026-05-30T23:32:34.714Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "under security level 0, `lib\\AudioFileRecorder\\MostRecentFiles.cpp` should only list `*.wav` files. under higher security levels, both `*.wav` and `*.rec` files are listed. Do not modify `ScrollView` (except remove any constants limiting the number of items), which should retain the ability to list unknown file types ",
+      "",
+      "the number of files that is being listed should be controlled by one number inside `inc\\conf.h`, set it to 20 now."
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "`inc/conf.h` now has:",
+      "",
+      "```cpp",
+      "#define MOST_RECENT_FILES_MAX_FILES  20",
+      "```",
+      "",
+      "`MostRecentFiles` uses that as its default list size, and it now filters by security level:",
+      "- security level `0`: only `*.wav`",
+      "- security level `1+`: `*.wav` and `*.rec`",
+      "",
+      "I only changed `ScrollView` to remove the hard-coded `16` from `MostRecentFiles::get(16)`, leaving its unknown-file rendering path intact.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0 -e thefly_sec1",
+      "```",
+      "",
+      "Both builds passed. Sec1 emitted a third-party FTP deprecation warning, but no build failure."
+    ],
+    "files": [
+      "inc/conf.h",
+      "lib/AudioFileRecorder/MostRecentFiles.h",
+      "lib/AudioFileRecorder/MostRecentFiles.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T01:24:59Z",
+    "type": "git_commit",
+    "commit_message": "bigger file list, with file type filters",
+    "commit_hash": "d6a25adee4657573953623be354baa1c4ea5d71b"
+  },
+  {
+    "timestamp": "2026-05-31T02:43:33.962Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "In the `ScrollView` currently any item representing an encrypted file is not clickable. Change it so that now, it launches the same playback mechanism, but only if `BUILD_WITH_ENCRYPTED_PLAYBACK` is defined",
+      "",
+      "The playback mechanism, with `BUILD_WITH_ENCRYPTED_PLAYBACK` defined, can use `*.rec` files and have it use slightly different code paths that include decryption. The RIFF header is fixed size. The file size estimates can still be done with the available constants.",
+      "",
+      "The seeking function will need to calculate the best actual file pointer for a given specified time. Do not bother going more precise than a chunk boundary.",
+      "",
+      "Make the decryption borrow `g_wav_plaintext_audio` and `g_wav_encrypted_audio`"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "`ScrollView` now routes `.rec` items through the existing playback callback only when `BUILD_WITH_ENCRYPTED_PLAYBACK` is defined: [ScrollView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1236).",
+      "",
+      "Encrypted playback support is in [WavPlayback.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/WavPlayback.cpp:134):",
+      "- Detects `.rec` paths under `BUILD_WITH_ENCRYPTED_PLAYBACK`.",
+      "- Decrypts the fixed-size encrypted RIFF header.",
+      "- Estimates plaintext duration from `WAV_ENCRYPTED_RIFF_HEADER_LENGTH`, `WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH`, and `WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH`.",
+      "- Seeks to the nearest encrypted audio chunk boundary.",
+      "- Decrypts audio chunks on demand before mixing/queueing audio.",
+      "",
+      "I exposed the recorder buffers through small accessors in [AudioFileRecorder.h](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h:56), backed by the existing `g_wav_plaintext_audio` and `g_wav_encrypted_audio` buffers in [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:1283), so playback doesn’t allocate another large pair.",
+      "",
+      "Verified:",
+      "```powershell",
+      "pio run -e thefly_sec0 -e thefly_sec1",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Both passed; the second sec1 build was after a final state-reset fix in the decrypt setup path.",
+      "",
+      "Implemented.",
+      "",
+      "`ScrollView` now routes `.rec` items through the existing playback callback only when `BUILD_WITH_ENCRYPTED_PLAYBACK` is defined: [ScrollView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1236).",
+      "",
+      "Encrypted playback support is in [WavPlayback.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/WavPlayback.cpp:134):",
+      "- Detects `.rec` paths under `BUILD_WITH_ENCRYPTED_PLAYBACK`.",
+      "- Decrypts the fixed-size encrypted RIFF header.",
+      "- Estimates plaintext duration from `WAV_ENCRYPTED_RIFF_HEADER_LENGTH`, `WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH`, and `WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH`.",
+      "- Seeks to the nearest encrypted audio chunk boundary.",
+      "- Decrypts audio chunks on demand before mixing/queueing audio.",
+      "",
+      "I exposed the recorder buffers through small accessors in [AudioFileRecorder.h](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h:56), backed by the existing `g_wav_plaintext_audio` and `g_wav_encrypted_audio` buffers in [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:1283), so playback doesn’t allocate another large pair.",
+      "",
+      "Verified:",
+      "```powershell",
+      "pio run -e thefly_sec0 -e thefly_sec1",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Both passed; the second sec1 build was after a final state-reset fix in the decrypt setup path."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.h",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "lib/WavPlayback/WavPlayback.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T03:55:58Z",
+    "type": "git_commit",
+    "commit_message": "pin pad",
+    "commit_hash": "d540172a737c01e04e839cf1e820ef3c9a8bb7ea"
   }
 ]

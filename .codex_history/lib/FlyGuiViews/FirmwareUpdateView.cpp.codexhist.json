@@ -69,5 +69,11 @@
     "type": "git_commit",
     "commit_message": "fw updater polish",
     "commit_hash": "c31d23815b0e43b18399592f62f215ce374c5b3c"
+  },
+  {
+    "timestamp": "2026-05-31T04:24:21Z",
+    "type": "git_commit",
+    "commit_message": "made debug logging work again",
+    "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   }
 ]

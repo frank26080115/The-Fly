@@ -549,5 +549,11 @@
     "type": "git_commit",
     "commit_message": "better error screens with rescue wifi",
     "commit_hash": "e80a4d45b429f363956cf3178c63626d5c802a88"
+  },
+  {
+    "timestamp": "2026-05-31T04:24:21Z",
+    "type": "git_commit",
+    "commit_message": "made debug logging work again",
+    "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   }
 ]

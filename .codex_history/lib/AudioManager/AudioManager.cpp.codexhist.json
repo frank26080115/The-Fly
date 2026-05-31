@@ -2433,5 +2433,47 @@
     "type": "git_commit",
     "commit_message": "direct to wav file recording",
     "commit_hash": "64f9f8e6f7cc8677283c2f4afdfbd22660041ff6"
+  },
+  {
+    "timestamp": "2026-05-31T04:24:21Z",
+    "type": "git_commit",
+    "commit_message": "made debug logging work again",
+    "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
+  },
+  {
+    "timestamp": "2026-05-31T05:08:20.759Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "```",
+      "I (13577) AudioFileRecorder: recording started: /M-2026-05-30-21-06-02.rec",
+      "D (13577) Hotel: state transition: RecentlyActive -> Blocked",
+      "D (19208) Hotel: state transition: Blocked -> RecentlyActive",
+      "I (23965) AudioFileRecorder: recording stopped: /M-2026-05-30-21-06-02.rec bytes=32952",
+      "I (26202) main_callbacks.cpp: main screen files selected",
+      "I (32048) main_callbacks.cpp: scroll wav file selected: index=0",
+      "I (32092) WavPlayback: started: /M-2026-05-30-21-06-02.rec bytes=32952 data=32768 duration=512 ms",
+      "```",
+      "",
+      "either the encrypted recording failed, or the decryption failed, the estimated duration is wayyyyy too short"
+    ],
+    "agent_reply": [
+      "Fixed. This was not a decryption-duration bug. Playback was estimating correctly from the actual `.rec` file size.",
+      "",
+      "The file was short because encrypted/security builds were skipping the silence-fill logic for the missing channel. In memo mode, `mic2file` filled but `bt2file` stayed empty, so the recorder would not write normal paired stereo frames during the recording. On stop, it force-drained only the last FIFO window, which is exactly why you got `32768` plaintext data bytes: `8192` stereo frames worth, or `512 ms`.",
+      "",
+      "I removed that security-level guard in [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:89), so encrypted recordings now keep the missing channel padded with silence just like WAV recordings.",
+      "",
+      "Verified:",
+      "",
+      "```text",
+      "pio run -e thefly_sec1",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Both passed. Existing short `.rec` files will still only contain the audio that was actually written, but new recordings should have sane durations."
+    ],
+    "files": [
+      "lib/AudioManager/AudioManager.cpp"
+    ]
   }
 ]

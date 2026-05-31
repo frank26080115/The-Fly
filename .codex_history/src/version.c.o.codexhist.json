@@ -76,5 +76,32 @@
       "lib/ClockAgent/ClockAgent.cpp",
       "src/version.c.o"
     ]
+  },
+  {
+    "timestamp": "2026-05-31T04:49:20.846Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "during password reset through the web interface, I get `N.Pbkdf2HmacSha256 is not a function` as the error, something is wrong with the webcrypt shim?"
+    ],
+    "agent_reply": [
+      "Yep, that was the shim. Its PBKDF2 path tries to call `asmCrypto.Pbkdf2HmacSha256`, but the bundled shim does not actually provide that function, so password reset dies before it can POST the new key.",
+      "",
+      "I fixed [sec_helpers.js](D:/GithubRepos/The-Fly/html/sec_helpers.js:33) so `derive_pbkdf2_bytes()` still tries WebCrypto first, but falls back to a local JS PBKDF2-HMAC-SHA256 implementation if the shim/native path fails. I also rebuilt the packaged web asset in [web_assets.h](D:/GithubRepos/The-Fly/inc/web_assets.h:3).",
+      "",
+      "Verified the fallback against Node’s `crypto.pbkdf2Sync` for known vectors, then built:",
+      "",
+      "```text",
+      "pio run -e thefly_sec1",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Both passed. Sec0 had one transient stale `.pio` object failure on the first try, then passed cleanly on retry."
+    ],
+    "files": [
+      "html/sec_helpers.js",
+      "inc/web_assets.h",
+      "src/version.c.o",
+      "html/script.js"
+    ]
   }
 ]

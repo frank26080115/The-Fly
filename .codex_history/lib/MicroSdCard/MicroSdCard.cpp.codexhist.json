@@ -757,5 +757,11 @@
       "lib/MicroSdCard/MicroSdCard.cpp",
       "lib/AudioFileRecorder/DiskStats.cpp"
     ]
+  },
+  {
+    "timestamp": "2026-05-31T04:24:21Z",
+    "type": "git_commit",
+    "commit_message": "made debug logging work again",
+    "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   }
 ]

@@ -290,5 +290,49 @@
       "lib/MicroSdCard/MicroSdCard.cpp",
       "lib/AudioFileRecorder/DiskStats.cpp"
     ]
+  },
+  {
+    "timestamp": "2026-05-30T23:32:34.714Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "under security level 0, `lib\\AudioFileRecorder\\MostRecentFiles.cpp` should only list `*.wav` files. under higher security levels, both `*.wav` and `*.rec` files are listed. Do not modify `ScrollView` (except remove any constants limiting the number of items), which should retain the ability to list unknown file types ",
+      "",
+      "the number of files that is being listed should be controlled by one number inside `inc\\conf.h`, set it to 20 now."
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "`inc/conf.h` now has:",
+      "",
+      "```cpp",
+      "#define MOST_RECENT_FILES_MAX_FILES  20",
+      "```",
+      "",
+      "`MostRecentFiles` uses that as its default list size, and it now filters by security level:",
+      "- security level `0`: only `*.wav`",
+      "- security level `1+`: `*.wav` and `*.rec`",
+      "",
+      "I only changed `ScrollView` to remove the hard-coded `16` from `MostRecentFiles::get(16)`, leaving its unknown-file rendering path intact.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0 -e thefly_sec1",
+      "```",
+      "",
+      "Both builds passed. Sec1 emitted a third-party FTP deprecation warning, but no build failure."
+    ],
+    "files": [
+      "inc/conf.h",
+      "lib/AudioFileRecorder/MostRecentFiles.h",
+      "lib/AudioFileRecorder/MostRecentFiles.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T01:24:59Z",
+    "type": "git_commit",
+    "commit_message": "bigger file list, with file type filters",
+    "commit_hash": "d6a25adee4657573953623be354baa1c4ea5d71b"
   }
 ]
