@@ -18,6 +18,5 @@ void run_test()
     //test_webserver();
     //test_btramusage();
     //test_nvsloadsave();
-    //test_decoderbenchmark();
     test_filelistbenchmark();
 }

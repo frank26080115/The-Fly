@@ -9,43 +9,12 @@ use this for things like enumerations, structures
 
 #define RESET_MAGIC    0x51A7C0DE
 
-#define FILE_PACKET_HEADER_MAGIC 0xDEADBEEF
-#define FILE_PACKET_PAYLOAD_MAX 256
-
-typedef enum : uint8_t
-{
-    AUDSRC_BT_16KHZ_MONO     = 0,
-    AUDSRC_MIC_16KHZ_MONO    = 1,
-    AUDSRC_BT_32KHZ_MONO     = 2,
-    AUDSRC_MIC_32KHZ_MONO    = 3,
-    AUDSRC_BT_32KHZ_STEREO   = 4,
-    AUDSRC_MIC_32KHZ_STEREO  = 5,
-    AUDSRC_BT_48KHZ_MONO     = 6,
-    AUDSRC_MIC_48KHZ_MONO    = 7,
-    AUDSRC_BT_48KHZ_STEREO   = 8,
-    AUDSRC_MIC_48KHZ_STEREO  = 9,
-    AUDSRC_META_TEXT         = 0xAA,
-}
-filepkt_src_e;
-
-// this structure is a fixed size, which makes everything less complicated, and enables easier scrubbing
-typedef struct __attribute__((packed))
-{
-    uint32_t magic;          // always FILE_PACKET_HEADER_MAGIC, makes it easier to sync
-    filepkt_src_e src;       // indicates where the audio came from (or a special type)
-    uint8_t  flags;          // indicates any warnings from the FIFO
-    uint32_t ms_timestamp;   // millis() when written to file
-    uint32_t sequence_num;   // per whole file, not per channel/FIFO
-    #if BUILD_WITH_SECURITY_LEVEL >= 1
-    // we want 12 bytes of nonce, the timestamp and seq-num takes care of 8 of them, we can do another 8 for 16 bytes of uniqueness
-    uint32_t nonce_1;        // random
-    uint32_t nonce_2;        // random
-    #endif
-    uint32_t fifo_cnt;       // count before dequeue
-    uint16_t payload_length; // length of payload, up to the max allowed
-    uint16_t payload[FILE_PACKET_PAYLOAD_MAX];
-}
-file_packet_t;
+#define WAV_RIFF_HEADER_LENGTH 44
+#define WAV_ENCRYPTED_CHUNK_NONCE_LENGTH 12
+#define WAV_ENCRYPTED_CHUNK_TAG_LENGTH 16
+#define WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH 1024
+#define WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH (WAV_ENCRYPTED_CHUNK_NONCE_LENGTH + WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH + WAV_ENCRYPTED_CHUNK_TAG_LENGTH)
+#define WAV_ENCRYPTED_RIFF_HEADER_LENGTH (WAV_ENCRYPTED_CHUNK_NONCE_LENGTH + WAV_RIFF_HEADER_LENGTH + WAV_ENCRYPTED_CHUNK_TAG_LENGTH)
 
 // strings can be parsed into one of these internally stored icons
 enum : uint8_t

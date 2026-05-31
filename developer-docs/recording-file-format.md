@@ -1,11 +1,7 @@
-For unencrypted audio recording files, the `.wav` file format is used directly. The file is 16 kHz, stereo, 16-bit little-endian PCM. The left channel is microphone audio and the right channel is Bluetooth audio; unavailable channels are filled with silence.
+For unencrypted audio recording files, the `.wav` file format is used directly. The file is 16 kHz, stereo, 16-bit little-endian signed PCM. The left channel is microphone audio and the right channel is Bluetooth audio; unavailable channels are filled with silence. Only one audio "chunk" is used.
 
-For encrypted audio recording files, see this document below.
+For encrypted audio recording files. The structure is similar but data is encrypted in chunks.
 
-There is an upstream and downstream sound source. It is possible that the two streams don't have matching sample rates or bit depths. It is also very desirable for the two streams to be recorded separately, but into one file.
+The RIFF header is the first chunk to be encrypted. The RIFF header data will reflect the same audio format, but with an unknown length.
 
-The file will be a sequence of packets, and each packets has a header and a payload. The header describes the payload, and the payload is raw.
-
-Proposed header is defined in `inc\defs.h` as `file_packet_t`
-
-When encrypted, each packet is individually encrypted, not the file as a whole
+16 bit signed PCM stereo data is 

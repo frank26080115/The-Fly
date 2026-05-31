@@ -8,7 +8,7 @@ there will be a function to start recording a new file. If a previous file is al
 
 When the file is created, use the currently existing `bool grow_file(File &file, uint64_t size)`, move that function into here
 
-There is a pump function that is called as often as possible. For encrypted builds, it pumps audio data from the two FIFOs into the file using `file_packet_t`. For unencrypted builds, it writes stereo 16-bit PCM directly into a `.wav` file, with mic on the left channel and Bluetooth on the right channel.
+There is a pump function that is called as often as possible. The recorder writes stereo 16-bit PCM with mic on the left channel and Bluetooth on the right channel. Unencrypted builds write that data directly into a `.wav` file. Encrypted builds write the same WAV-shaped data into `.rec` files by encrypting the RIFF header and then fixed-size audio chunks.
 
 The policy for pumping is that it should drain the FIFOs at least below 10% on each call. But it must also track the time passing and never take more than 20ms per call. (if 20ms per call isn't enough then the FIFO will eventually overflow and an error flag will be set)
 

@@ -7,7 +7,7 @@
 namespace WavPlayback
 {
 
-static constexpr uint32_t kWavHeaderBytes = 44;
+static constexpr uint32_t kWavHeaderBytes = WAV_RIFF_HEADER_LENGTH;
 
 bool start(const char* path);
 void stop();

@@ -25,12 +25,6 @@ enum class RecordingType : char
     Unknown  = 'U',
 };
 
-enum PacketFlags : uint8_t
-{
-    kPacketFlagFifoOverflow  = 1 << 0,
-    kPacketFlagFifoUnderflow = 1 << 1,
-};
-
 bool init(AudioFifo& hostFifo, AudioFifo& micFifo);
 bool startRecording(RecordingType type);
 bool startRecording(char typeCode);
@@ -43,7 +37,6 @@ bool stopRecording(bool estop = false);
 bool isRecording();
 bool purePcmMode();
 void setPurePcmMode(bool enabled);
-bool queueMetaText(const char* text);
 
 float writeDurationAverageMs();
 float writeDurationMaxMs();
