@@ -22,8 +22,6 @@ const session_security = {
     sessionResponseFromClientHex: "",
     sessionSaltFromServer: null,
     sessionSaltFromClient: null,
-    networkHmacKey: null,
-    networkAesKey: null,
     sessionAesKey: null,
     nonceCounter: 0,
     securityReady: false,
@@ -424,8 +422,6 @@ function remember_session_info(info)
     session_security.sessionResponseFromServer = hex_to_bytes(info.session_response_from_server || "", sha256_size);
     session_security.sessionSaltFromServer = hex_to_bytes(info.session_salt_from_server || "", session_salt_half_size);
     session_security.sessionResponseFromClientHex = "";
-    session_security.networkHmacKey = null;
-    session_security.networkAesKey = null;
     session_security.sessionAesKey = null;
     session_security.nonceCounter = 0;
     session_security.securityReady = Boolean(info.security_ready);

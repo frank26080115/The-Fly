@@ -1205,7 +1205,7 @@ async function post_encrypted_config_reply(endpoint, payload)
     {
         throw new Error("PIN codes are not used at security level 0.");
     }
-    if (!session_security.sessionAesKey || !session_security.networkAesKey || !session_security.sessionResponseFromClientHex)
+    if (!session_security.sessionAesKey || !session_security.sessionResponseFromClientHex || !session_security.sessionSaltFromClient)
     {
         throw new Error("Log in before updating the PIN code.");
     }
@@ -1268,6 +1268,7 @@ async function login_onsubmit()
 
     let password_bytes = null;
     let network_key_bytes = null;
+    let network_hmac_key = null;
     let session_key_bytes = null;
     let session_salt = null;
     let client_response = null;
@@ -1283,11 +1284,10 @@ async function login_onsubmit()
         }
 
         network_key_bytes = await derive_pbkdf2_bytes(password_bytes, network_salt);
-        session_security.networkHmacKey = await import_hmac_key(network_key_bytes);
-        session_security.networkAesKey = await import_aes_key(network_key_bytes, ["encrypt"]);
+        network_hmac_key = await import_hmac_key(network_key_bytes);
 
-        client_response = await hmac_sha256(session_security.networkHmacKey, session_security.sessionChallenge);
-        server_response = await hmac_sha256(session_security.networkHmacKey, client_response);
+        client_response = await hmac_sha256(network_hmac_key, session_security.sessionChallenge);
+        server_response = await hmac_sha256(network_hmac_key, client_response);
         if (!constant_time_equal(server_response, session_security.sessionResponseFromServer))
         {
             throw new Error("Password is wrong, or the device did not generate the expected session response.");
@@ -1297,7 +1297,7 @@ async function login_onsubmit()
         session_security.sessionSaltFromClient = secure_random_bytes(session_salt_half_size);
         session_salt = concat_bytes(session_security.sessionSaltFromServer, session_security.sessionSaltFromClient);
         session_key_bytes = await derive_pbkdf2_bytes(network_key_bytes, session_salt);
-        session_security.sessionAesKey = await import_aes_key(session_key_bytes);
+        session_security.sessionAesKey = await import_aes_key(session_key_bytes, ["encrypt", "decrypt"]);
         session_security.nonceCounter = 0;
 
         hide_login_panel();
@@ -1307,8 +1307,6 @@ async function login_onsubmit()
     catch (error)
     {
         session_security.sessionResponseFromClientHex = "";
-        session_security.networkHmacKey = null;
-        session_security.networkAesKey = null;
         session_security.sessionAesKey = null;
         set_login_error(error.message || "Login failed.");
     }
@@ -1777,16 +1775,17 @@ function collect_config()
 
 async function encrypt_set_cfg_blob(config)
 {
-    if (!session_security.networkAesKey)
+    if (!session_security.sessionAesKey)
     {
-        throw new Error("Network encryption key is not available.");
+        throw new Error("Session encryption key is not available.");
     }
 
     const nonce = secure_random_bytes(12);
+    nonce[0] |= 0x80;
     const plaintext = new TextEncoder().encode(JSON.stringify(config));
     const encrypted = new Uint8Array(await (await require_webcrypto()).encrypt(
         { name: "AES-GCM", iv: nonce, tagLength: 128 },
-        session_security.networkAesKey,
+        session_security.sessionAesKey,
         plaintext));
     const body = new Uint8Array(set_cfg_magic.length + 1 + nonce.length + encrypted.length);
     body.set(set_cfg_magic, 0);
@@ -1816,6 +1815,17 @@ async function save_config()
     request.open("POST", "/set_cfg", true);
     request.timeout = 15000;
     request.setRequestHeader("Content-Type", current_security_level === 0 ? "application/json" : "application/octet-stream");
+    if (current_security_level !== 0)
+    {
+        if (!session_security.sessionResponseFromClientHex || !session_security.sessionSaltFromClient)
+        {
+            set_login_error("Log in before saving configuration.");
+            return;
+        }
+        request.setRequestHeader(header_session_response_from_client, session_security.sessionResponseFromClientHex);
+        request.setRequestHeader(header_session_salt_from_client, bytes_to_hex(session_security.sessionSaltFromClient));
+        session_security.nonceCounter = 0;
+    }
 
     request.onload = function() {
         if (request.status >= 200 && request.status < 300)

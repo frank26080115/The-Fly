@@ -1144,6 +1144,7 @@ bool parse_bluetooth_object(JsonObject bluetooth, const bt_host_list_t& existing
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 bool decrypt_set_cfg_blob(const uint8_t* encrypted,
                           size_t encrypted_size,
+                          const uint8_t session_key[WebServer::kSessionKeySize],
                           uint8_t*& plaintext,
                           size_t& plaintext_size,
                           int& status_code,
@@ -1170,18 +1171,10 @@ bool decrypt_set_cfg_blob(const uint8_t* encrypted,
         error = "Encrypted config version is unsupported";
         return false;
     }
-    if (!Aegis::isInitialized())
+    if (!session_key)
     {
         status_code = 500;
-        error = "Network key unavailable";
-        return false;
-    }
-
-    const uint8_t* network_key = Aegis::getNetworkKey();
-    if (!network_key)
-    {
-        status_code = 500;
-        error = "Network key unavailable";
+        error = "Session key unavailable";
         return false;
     }
 
@@ -1200,7 +1193,7 @@ bool decrypt_set_cfg_blob(const uint8_t* encrypted,
 
     mbedtls_gcm_context gcm;
     mbedtls_gcm_init(&gcm);
-    const int key_result = mbedtls_gcm_setkey(&gcm, MBEDTLS_CIPHER_ID_AES, network_key, Aegis::kNetworkKeySize * 8);
+    const int key_result = mbedtls_gcm_setkey(&gcm, MBEDTLS_CIPHER_ID_AES, session_key, WebServer::kSessionKeySize * 8);
     const int decrypt_result = key_result == 0
                                    ? mbedtls_gcm_auth_decrypt(&gcm,
                                                               plaintext_size,
@@ -1352,17 +1345,30 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
     return true;
 }
 
-bool process_set_cfg_blob(const uint8_t* encrypted, size_t encrypted_size, int& status_code, String& error)
+bool process_set_cfg_blob(AsyncWebServerRequest* request, const uint8_t* encrypted, size_t encrypted_size, int& status_code, String& error)
 {
     #if BUILD_WITH_SECURITY_LEVEL <= 0
+    (void)request;
     return apply_set_cfg_json(encrypted, encrypted_size, status_code, error);
     #else
-    uint8_t* plaintext = nullptr;
-    size_t plaintext_size = 0;
-    if (!decrypt_set_cfg_blob(encrypted, encrypted_size, plaintext, plaintext_size, status_code, error))
+    uint8_t session_key[WebServer::kSessionKeySize] = {};
+    const WebServer::SessionAuthResult auth = WebServer::authenticateSessionRequest(request, session_key);
+    if (auth != WebServer::SessionAuthResult::Ok)
     {
+        mbedtls_platform_zeroize(session_key, sizeof(session_key));
+        status_code = 401;
+        error = WebServer::sessionAuthResultName(auth);
         return false;
     }
+
+    uint8_t* plaintext = nullptr;
+    size_t plaintext_size = 0;
+    if (!decrypt_set_cfg_blob(encrypted, encrypted_size, session_key, plaintext, plaintext_size, status_code, error))
+    {
+        mbedtls_platform_zeroize(session_key, sizeof(session_key));
+        return false;
+    }
+    mbedtls_platform_zeroize(session_key, sizeof(session_key));
 
     const bool ok = apply_set_cfg_json(plaintext, plaintext_size, status_code, error);
     free(plaintext);
@@ -1426,12 +1432,13 @@ bool begin_pin_code_post_upload(AsyncWebServerRequest* request, size_t total)
     return true;
 }
 
-bool decrypt_pin_code_post_body(JsonDocument& doc, int& status_code, String& error)
+bool decrypt_pin_code_post_body(const uint8_t session_key[WebServer::kSessionKeySize], JsonDocument& doc, int& status_code, String& error)
 {
     uint8_t* plaintext = nullptr;
     size_t plaintext_size = 0;
     if (!decrypt_set_cfg_blob(g_pin_code_post_upload.encrypted,
                               g_pin_code_post_upload.expected_size,
+                              session_key,
                               plaintext,
                               plaintext_size,
                               status_code,
@@ -1516,11 +1523,9 @@ bool pin_code_post_upload_complete(AsyncWebServerRequest* request)
     return true;
 }
 
-bool authenticate_pin_code_response_session(AsyncWebServerRequest* request)
+bool authenticate_pin_code_response_session(AsyncWebServerRequest* request, uint8_t session_key[WebServer::kSessionKeySize])
 {
-    uint8_t session_key[WebServer::kSessionKeySize] = {};
     const WebServer::SessionAuthResult auth = WebServer::authenticateSessionRequest(request, session_key);
-    mbedtls_platform_zeroize(session_key, sizeof(session_key));
     if (auth == WebServer::SessionAuthResult::Ok)
     {
         return true;
@@ -1670,7 +1675,8 @@ void finishSetCfg(AsyncWebServerRequest* request)
 
     int status_code = 500;
     String error;
-    const bool ok = process_set_cfg_blob(g_set_cfg_upload.encrypted,
+    const bool ok = process_set_cfg_blob(request,
+                                         g_set_cfg_upload.encrypted,
                                          g_set_cfg_upload.expected_size,
                                          status_code,
                                          error);
@@ -1736,8 +1742,10 @@ void finishSetCustomPin(AsyncWebServerRequest* request)
     {
         return;
     }
-    if (!authenticate_pin_code_response_session(request))
+    uint8_t session_key[WebServer::kSessionKeySize] = {};
+    if (!authenticate_pin_code_response_session(request, session_key))
     {
+        mbedtls_platform_zeroize(session_key, sizeof(session_key));
         reset_pin_code_post_upload(request);
         return;
     }
@@ -1745,13 +1753,15 @@ void finishSetCustomPin(AsyncWebServerRequest* request)
     int status_code = 500;
     String error;
     JsonDocument doc;
-    if (!decrypt_pin_code_post_body(doc, status_code, error))
+    if (!decrypt_pin_code_post_body(session_key, doc, status_code, error))
     {
+        mbedtls_platform_zeroize(session_key, sizeof(session_key));
         reset_pin_code_post_upload(request);
         note_web_error();
         request->send(status_code, "text/plain", error.isEmpty() ? "PIN code update failed" : error);
         return;
     }
+    mbedtls_platform_zeroize(session_key, sizeof(session_key));
 
     JsonObject root = doc.as<JsonObject>();
     const char* pin = root["pincode"].as<const char*>();
@@ -1789,8 +1799,10 @@ void finishResetPinCode(AsyncWebServerRequest* request)
     {
         return;
     }
-    if (!authenticate_pin_code_response_session(request))
+    uint8_t session_key[WebServer::kSessionKeySize] = {};
+    if (!authenticate_pin_code_response_session(request, session_key))
     {
+        mbedtls_platform_zeroize(session_key, sizeof(session_key));
         reset_pin_code_post_upload(request);
         return;
     }
@@ -1798,13 +1810,15 @@ void finishResetPinCode(AsyncWebServerRequest* request)
     int status_code = 500;
     String error;
     JsonDocument doc;
-    if (!decrypt_pin_code_post_body(doc, status_code, error))
+    if (!decrypt_pin_code_post_body(session_key, doc, status_code, error))
     {
+        mbedtls_platform_zeroize(session_key, sizeof(session_key));
         reset_pin_code_post_upload(request);
         note_web_error();
         request->send(status_code, "text/plain", error.isEmpty() ? "PIN code reset failed" : error);
         return;
     }
+    mbedtls_platform_zeroize(session_key, sizeof(session_key));
 
     if (!PinCode::regeneratePin())
     {
