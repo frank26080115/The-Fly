@@ -8,6 +8,7 @@
 #include "DiskStats.h"
 #include "FlyGui.h"
 #include "NtpSync.h"
+#include "PinPadView.h"
 #include "ScrollView/ScrollView.h"
 #include "WebServer.h"
 #include "WifiManager.h"
@@ -40,6 +41,7 @@ extern NtpSync::Result g_pending_ntp_sync_result;
 extern BtManager::PairedDevice g_pending_paired_device;
 
 extern ScrollView* get_scroll_view();
+extern PinPadView* get_pin_pad_view();
 extern uint16_t conn_waiting_return_view_id();
 extern void show_main_memo_starting_feedback();
 extern bool show_conn_waiting_bluetooth(const char* targetName);
@@ -186,6 +188,29 @@ void onclick_main_info(uint32_t pressDurationMs)
     show_system_info_dialog(FLYGUI_VIEW_MAIN);
 }
 
+#if BUILD_WITH_SECURITY_LEVEL == 1
+static void on_file_list_pin_success()
+{
+    if (gui)
+    {
+        gui->showView(FLYGUI_VIEW_SCROLL);
+    }
+}
+
+static void on_file_list_pin_failed(uint32_t failedAttempts)
+{
+    ESP_LOGW(MAINTAG, "file list PIN failed attempt: %lu", static_cast<unsigned long>(failedAttempts));
+}
+
+static void on_file_list_pin_exit()
+{
+    if (gui)
+    {
+        gui->showView(FLYGUI_VIEW_MAIN);
+    }
+}
+#endif
+
 void onclick_main_files(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
@@ -194,6 +219,18 @@ void onclick_main_files(uint32_t pressDurationMs)
     if (scroll_view && gui)
     {
         scroll_view->populateFiles();
+        #if BUILD_WITH_SECURITY_LEVEL == 1
+        PinPadView* pin_pad = get_pin_pad_view();
+        if (pin_pad)
+        {
+            pin_pad->configure("123456", on_file_list_pin_success, on_file_list_pin_failed, on_file_list_pin_exit);
+            if (gui->showView(FLYGUI_VIEW_PIN_PAD))
+            {
+                return;
+            }
+            ESP_LOGW(MAINTAG, "failed to show PIN pad; falling back to file list");
+        }
+        #endif
         gui->showView(FLYGUI_VIEW_SCROLL);
     }
 }

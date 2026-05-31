@@ -1233,6 +1233,14 @@ void ScrollView::handleScrollItem(ScrollItem& item, uint32_t pressDurationMs)
             onFileWav_(value, pressDurationMs);
         }
         break;
+    case SCROLL_ITEM_FILE_REC:
+        #ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
+        if (onFileWav_)
+        {
+            onFileWav_(value, pressDurationMs);
+        }
+        #endif
+        break;
     case SCROLL_ITEM_FILE_FIRMWARE:
         FlyGui::quickScreenFade();
         delay(50);

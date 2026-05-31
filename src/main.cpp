@@ -20,6 +20,7 @@
 #include "MicroSdCard.h"
 #include "ModalDialog.h"
 #include "PlaybackView.h"
+#include "PinPadView.h"
 #include "NtpSync.h"
 #include "RecordingView/RecordingView.h"
 #include "RecordingView/RecordingViewCallbacks.h"
@@ -54,6 +55,7 @@ extern ConnWaitingView* all_init_conn_waiting_view();
 extern WifiStaModeView* all_init_wifi_sta_mode_view();
 extern FirmwareUpdateView* all_init_firmware_update_view();
 extern PlaybackView* all_init_playback_view();
+extern PinPadView* all_init_pin_pad_view();
 
 #ifdef BUILD_CLOUD_FEATURES
 extern CloudUploadView* all_init_cloud_upload_view();
@@ -267,6 +269,11 @@ static void loopTask_core0(void* pvParameters)
 ScrollView* get_scroll_view()
 {
     return all_init_scroll_view();
+}
+
+PinPadView* get_pin_pad_view()
+{
+    return all_init_pin_pad_view();
 }
 
 ModalDialog* get_modal_dialog()

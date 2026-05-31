@@ -9,6 +9,7 @@
 #include "MainScreenView.h"
 #include "ModalDialog.h"
 #include "PlaybackView.h"
+#include "PinPadView.h"
 #include "RecordingView/RecordingView.h"
 #include "ScrollView/ScrollView.h"
 #include "SplashView.h"
@@ -51,6 +52,7 @@ WifiApModeView      g_wifi_ap_mode_view;
 WifiStaModeView     g_wifi_sta_mode_view;
 FirmwareUpdateView  g_firmware_update_view;
 PlaybackView        g_playback_view;
+PinPadView          g_pin_pad_view;
 #ifdef BUILD_CLOUD_FEATURES
 CloudUploadView     g_cloud_upload_view(cloud_upload_cancel);
 #endif
@@ -134,6 +136,7 @@ void init_gui()
     gui->addView(g_wifi_sta_mode_view);
     gui->addView(g_firmware_update_view);
     gui->addView(g_playback_view);
+    gui->addView(g_pin_pad_view);
 
     g_scroll_view.setOnClickBluetoothHost(onclick_bluetooth_host);
     g_scroll_view.setOnClickBluetoothPair(onclick_bluetooth_pair);
@@ -196,6 +199,11 @@ FirmwareUpdateView* all_init_firmware_update_view()
 PlaybackView* all_init_playback_view()
 {
     return &g_playback_view;
+}
+
+PinPadView* all_init_pin_pad_view()
+{
+    return &g_pin_pad_view;
 }
 
 void show_splash()

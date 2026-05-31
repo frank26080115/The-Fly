@@ -52,6 +52,7 @@ enum FlyGuiViewId : uint16_t
     FLYGUI_VIEW_STA_MODE,
     FLYGUI_VIEW_FIRMWARE_UPDATE,
     FLYGUI_VIEW_PLAYBACK,
+    FLYGUI_VIEW_PIN_PAD,
 };
 
 class FlyGui
