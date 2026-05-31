@@ -141,6 +141,9 @@ void setup()
     {
         show_fatal_error_f(true, "security subsystem init failed");
     }
+    #ifdef TEST_MOCK_PASSWORD
+    Aegis::setTestTempPassword("123456");
+    #endif
     if (!Aegis::hasMasterKey())
     {
         show_fatal_error_f(true, "no key, please setup a password");

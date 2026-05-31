@@ -13,8 +13,9 @@ use this file for preprocessor definitions that are used to configure parts of t
 //#define TEST_BOOT_ERROR_NONFATAL
 //#define TEST_BOOT_ERROR_FATAL
 //#define TEST_MOCK_FW_UPDATE 1
-#define TEST_MOCK_MASTER_KEY
+//#define TEST_MOCK_MASTER_KEY
 #define TEST_MOCK_PIN_CODE
+#define TEST_MOCK_PASSWORD
 
 #if !defined(BUILD_WITH_SECURITY_LEVEL)
 #error BUILD_WITH_SECURITY_LEVEL must be defined!
@@ -47,6 +48,10 @@ use this file for preprocessor definitions that are used to configure parts of t
 
 #if BUILD_WITH_SECURITY_LEVEL == 1
 #define BUILD_WITH_ENCRYPTED_PLAYBACK
+#endif
+
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+#define BUILD_WITH_DECRYPTED_DOWNLOAD
 #endif
 
 #define MOST_RECENT_FILES_MAX_FILES  20
