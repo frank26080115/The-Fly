@@ -284,4 +284,18 @@ const char* getPin()
 #endif
 }
 
+bool getConfig(pin_code_cfg_t& out)
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (!ensure_initialized_locked())
+    {
+        memset(&out, 0, sizeof(out));
+        return false;
+    }
+
+    sanitize_cfg_locked();
+    out = g_cfg;
+    return true;
+}
+
 } // namespace PinCode

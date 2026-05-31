@@ -86,6 +86,23 @@ details > div {
   margin-top: 0;
 }
 
+.pincode-info-value {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.pincode-info-value input {
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.pincode-visibility-button {
+  min-width: 72px;
+  margin-top: 0;
+}
+
 a,
 a:visited {
   color: #9bb8ff;
@@ -302,6 +319,158 @@ button:disabled,
   padding-top: 2px;
 }
 
+.pin-code-panel {
+  display: grid;
+  gap: 14px;
+  max-width: 620px;
+  margin: 0 auto;
+  padding-top: 2px;
+}
+
+.pin-code-copy {
+  color: #d8dae2;
+  line-height: 1.45;
+}
+
+.pin-code-copy p {
+  margin: 0;
+}
+
+.pin-code-copy p + p {
+  margin-top: 6px;
+  color: #b8bdca;
+}
+
+.pin-code-mode-card {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid #30333a;
+  border-radius: 8px;
+  background: #15171c;
+}
+
+.pin-mode-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #30333a;
+  border-radius: 8px;
+  background: #101114;
+}
+
+.pin-mode-kicker {
+  color: #b8bdca;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.pin-mode-title {
+  margin-top: 2px;
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 750;
+}
+
+.pin-mode-badge {
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: #263145;
+  color: #d7e1ff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pin-code-custom-only,
+.pin-code-generated-only {
+  display: none;
+}
+
+.pin-mode-custom .pin-code-custom-only,
+.pin-mode-generated .pin-code-generated-only {
+  display: grid;
+}
+
+.pin-mode-custom .pin-code-copy .pin-code-custom-only,
+.pin-mode-generated .pin-code-copy .pin-code-generated-only {
+  display: block;
+}
+
+button .pin-code-custom-only,
+button .pin-code-generated-only {
+  display: none;
+}
+
+.pin-mode-custom button .pin-code-custom-only,
+.pin-mode-generated button .pin-code-generated-only {
+  display: inline;
+}
+
+.pin-code-form {
+  display: grid;
+  grid-template-columns: max-content minmax(220px, 340px);
+  column-gap: 14px;
+  row-gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.pin-code-form label {
+  color: #c9ccd6;
+  font-size: 0.95rem;
+  font-weight: 650;
+  text-align: right;
+}
+
+.pin-code-form input {
+  min-width: 0;
+}
+
+.generated-pin-preview {
+  display: grid;
+  grid-template-columns: max-content minmax(150px, 1fr);
+  gap: 12px;
+  align-items: center;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 12px;
+  border: 1px solid #30333a;
+  border-radius: 8px;
+  background: #101114;
+}
+
+.generated-pin-label {
+  color: #c9ccd6;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.generated-pin-value {
+  color: #d7e1ff;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 1.55rem;
+  font-weight: 750;
+  letter-spacing: 0;
+  text-align: right;
+}
+
+.pin-mode-note {
+  max-width: 420px;
+  margin: 10px auto 0;
+  color: #b8bdca;
+  line-height: 1.4;
+}
+
+.pin-code-actions {
+  display: flex;
+  justify-content: center;
+}
+
 .password-reset-form {
   display: grid;
   grid-template-columns: max-content minmax(220px, 340px);
@@ -331,6 +500,7 @@ button:disabled,
 
 .login-message,
 .password-reset-message,
+.pincode-reset-message,
 .memory-reset-message {
   grid-column: 1 / -1;
   padding: 10px 12px;
@@ -342,6 +512,7 @@ button:disabled,
 
 .login-message.notice,
 .password-reset-message.notice,
+.pincode-reset-message.notice,
 .memory-reset-message.notice {
   border-color: #315d3c;
   background: #17251b;
@@ -375,6 +546,11 @@ button:disabled,
 .memory-reset-message {
   max-width: 560px;
   margin: 12px auto 0;
+}
+
+.pincode-reset-message {
+  max-width: 560px;
+  margin: 0 auto;
 }
 
 .danger-button {
@@ -530,6 +706,10 @@ button:disabled,
     grid-template-columns: 1fr;
   }
 
+  .pin-code-form {
+    grid-template-columns: 1fr;
+  }
+
   .file-upload-form {
     grid-template-columns: 1fr;
   }
@@ -542,8 +722,24 @@ button:disabled,
     text-align: left;
   }
 
+  .pin-code-form label {
+    text-align: left;
+  }
+
   .password-reset-actions {
     justify-content: stretch;
+  }
+
+  .pin-code-actions {
+    justify-content: stretch;
+  }
+
+  .generated-pin-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .generated-pin-value {
+    text-align: left;
   }
 
   .settings-form > div {

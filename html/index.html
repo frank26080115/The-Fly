@@ -252,6 +252,50 @@
                 </div>
             </div>
         </details>
+        <details id="pincode_reset_panel">
+            <summary>Pin Code Reset</summary>
+            <div id="pincode_reset_entry" class="pin-code-panel pin-mode-custom">
+                <div class="pin-code-copy">
+                    <p>A PIN code protects on-device recording playback.</p>
+                    <p class="pin-code-custom-only">Custom PINs must be at least 4 digits and may only use 1 through 9.</p>
+                    <p class="pin-code-generated-only">Regenerate the PIN to rotate the code derived from the file encryption key.</p>
+                </div>
+                <div class="pin-code-mode-card">
+                    <div class="pin-mode-heading">
+                        <div>
+                            <div class="pin-mode-kicker">PIN mode</div>
+                            <div class="pin-mode-title pin-code-custom-only">Custom PIN</div>
+                            <div class="pin-mode-title pin-code-generated-only">Generated PIN</div>
+                        </div>
+                        <div class="pin-mode-badge">Device controlled</div>
+                    </div>
+                    <div class="pin-mode-content">
+                        <div class="pin-mode-pane pin-code-custom-only">
+                            <div class="pin-code-form">
+                                <label for="new_pincode">New PIN</label>
+                                <input id="new_pincode" name="new_pincode" type="password" autocomplete="new-password" inputmode="numeric" pattern="[1-9]*" placeholder="Digits 1-9" />
+                                <label for="new_pincode_confirm">Confirm</label>
+                                <input id="new_pincode_confirm" name="new_pincode_confirm" type="password" autocomplete="new-password" inputmode="numeric" pattern="[1-9]*" placeholder="Repeat PIN" />
+                            </div>
+                        </div>
+                        <div class="pin-mode-pane pin-code-generated-only">
+                            <div class="generated-pin-preview" aria-label="Generated PIN preview">
+                                <span class="generated-pin-label">Generated PIN</span>
+                                <span id="generated_pincode_preview" class="generated-pin-value">------</span>
+                            </div>
+                            <p class="pin-mode-note">The device derives this PIN from the file encryption key and rotates it when regenerated.</p>
+                        </div>
+                    </div>
+                    <div class="pin-code-actions">
+                        <button id="btn_pincode_reset" class="button danger-button" type="button" onclick="pincodereset_onsubmit()">
+                            <span class="pin-code-custom-only">Update PIN</span>
+                            <span class="pin-code-generated-only">Regenerate PIN</span>
+                        </button>
+                    </div>
+                    <div id="pincode_reset_error" class="pincode-reset-message" role="alert" style="display:none;"></div>
+                </div>
+            </div>
+        </details>
         <details id="memory_reset_panel" class="security-level-0-only">
             <summary>Memory Reset</summary>
             <div id="memory_reset_help" class="reset-help">

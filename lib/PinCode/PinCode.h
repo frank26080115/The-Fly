@@ -33,5 +33,6 @@ bool setPin(const char* pin);
 #endif
 bool regeneratePin();
 const char* getPin();
+bool getConfig(pin_code_cfg_t& out);
 
 } // namespace PinCode

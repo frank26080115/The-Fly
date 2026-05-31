@@ -917,6 +917,24 @@ bool WebServer::init()
     g_server.on(AsyncURIMatcher::exact("/set_cfg"), HTTP_POST, WebCfgHandlers::finishSetCfg, nullptr, WebCfgHandlers::writeSetCfgBody);
     DBG_LOGI(TAG, "registered encrypted config POST /set_cfg");
 
+#if BUILD_WITH_SECURITY_LEVEL == 1
+    g_server.on(AsyncURIMatcher::exact("/set_custom_pin"),
+                HTTP_POST,
+                WebCfgHandlers::finishSetCustomPin,
+                nullptr,
+                WebCfgHandlers::writePinCodeBody);
+    DBG_LOGI(TAG, "registered encrypted custom PIN POST /set_custom_pin");
+#endif
+
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+    g_server.on(AsyncURIMatcher::exact("/reset_pin_code"),
+                HTTP_POST,
+                WebCfgHandlers::finishResetPinCode,
+                nullptr,
+                WebCfgHandlers::writePinCodeBody);
+    DBG_LOGI(TAG, "registered encrypted PIN reset POST /reset_pin_code");
+#endif
+
     g_server.on(AsyncURIMatcher::exact("/time_sync"), HTTP_POST, WebCfgHandlers::timeSync);
     DBG_LOGI(TAG, "registered time sync POST /time_sync");
 

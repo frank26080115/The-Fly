@@ -5,6 +5,7 @@ const set_cfg_magic = [0x54, 0x46, 0x47, 0x43];
 const set_cfg_version = 1;
 const stored_password_placeholder = "********";
 const time_sync_offset_threshold_seconds = 60;
+const pin_code_max_length = 31;
 
 let file_row_template = null;
 let current_default_soft_ap = true;
@@ -14,6 +15,8 @@ function body_onload()
 {
     fill_in_timezone_options();
     fill_in_icon_selectors();
+    hide_pin_code_panel();
+    apply_pin_code_panel_preview_mode();
     if (!is_offline_test())
     {
         hide_all_test_divs();
@@ -526,6 +529,157 @@ function update_password_reset_entry(default_soft_ap)
     }
 }
 
+function remove_pincode_info()
+{
+    const existing = document.getElementById("info_pincode_row");
+    if (existing)
+    {
+        existing.remove();
+    }
+}
+
+function append_pincode_info(config)
+{
+    remove_pincode_info();
+    if (current_security_level < 1)
+    {
+        return;
+    }
+
+    const container = document.getElementById("info");
+    if (!container)
+    {
+        return;
+    }
+
+    const row = document.createElement("div");
+    row.id = "info_pincode_row";
+    row.className = "info-row info-action-row pincode-info-row";
+
+    const label_node = document.createElement("div");
+    label_node.className = "info-label";
+    label_node.textContent = "PIN Code";
+
+    const value_node = document.createElement("div");
+    value_node.className = "info-value pincode-info-value";
+
+    const input = document.createElement("input");
+    input.id = "info_pincode_value";
+    input.type = "password";
+    input.readOnly = true;
+    input.autocomplete = "off";
+    input.value = String(config && config.pincode ? config.pincode : "not set");
+
+    const toggle = document.createElement("button");
+    toggle.className = "button pincode-visibility-button";
+    toggle.type = "button";
+    toggle.textContent = "Show";
+    toggle.onclick = function() {
+        const showing = input.type === "text";
+        input.type = showing ? "password" : "text";
+        toggle.textContent = showing ? "Show" : "Hide";
+    };
+
+    value_node.appendChild(input);
+    value_node.appendChild(toggle);
+    row.appendChild(label_node);
+    row.appendChild(value_node);
+    container.appendChild(row);
+}
+
+function hide_pin_code_panel()
+{
+    const panel = document.getElementById("pincode_reset_panel");
+    if (panel)
+    {
+        panel.hidden = true;
+    }
+    set_pincode_reset_message("", false);
+    remove_pincode_info();
+}
+
+function update_pin_code_reset_entry(default_soft_ap)
+{
+    const entry = document.getElementById("pincode_reset_entry");
+    if (entry)
+    {
+        entry.style.display = default_soft_ap ? "" : "none";
+    }
+}
+
+function set_pin_code_panel_mode(mode)
+{
+    const panel = document.getElementById("pincode_reset_entry");
+    if (!panel)
+    {
+        return;
+    }
+
+    const generated = mode === "generated";
+    panel.classList.toggle("pin-mode-generated", generated);
+    panel.classList.toggle("pin-mode-custom", !generated);
+}
+
+function configure_pin_code_panel(config)
+{
+    append_pincode_info(config);
+
+    const panel = document.getElementById("pincode_reset_panel");
+    if (!panel)
+    {
+        return;
+    }
+    if (current_security_level < 1)
+    {
+        hide_pin_code_panel();
+        return;
+    }
+
+    panel.hidden = false;
+    update_pin_code_reset_entry(current_default_soft_ap);
+    set_pin_code_panel_mode(current_security_level >= 2 ? "generated" : "custom");
+
+    const preview = document.getElementById("generated_pincode_preview");
+    if (preview)
+    {
+        preview.textContent = String(config && config.pincode ? config.pincode : "not set");
+    }
+}
+
+function apply_pin_code_panel_preview_mode()
+{
+    if (!is_offline_test())
+    {
+        return;
+    }
+
+    const panel = document.getElementById("pincode_reset_panel");
+    if (panel)
+    {
+        panel.hidden = false;
+    }
+    update_pin_code_reset_entry(true);
+
+    const marker = ((window.location && (window.location.search + window.location.hash)) || "").toLowerCase();
+    if (marker.includes("pin-generated") || marker.includes("pin_mode=generated") || marker.includes("pincode=generated"))
+    {
+        set_pin_code_panel_mode("generated");
+    }
+}
+
+function set_pincode_reset_message(message, notice)
+{
+    const node = document.getElementById("pincode_reset_error");
+    if (!node)
+    {
+        return;
+    }
+
+    node.textContent = message || "";
+    node.classList.toggle("notice", Boolean(notice));
+    node.style.display = message ? "" : "none";
+}
+
 function set_password_reset_message(message, notice)
 {
     const node = document.getElementById("password_reset_error");
@@ -898,6 +1052,7 @@ function fill_config_page(config)
         fill_cloud_rows(network.cloud_uploads);
     }
     fill_bluetooth_rows(bluetooth.hosts);
+    configure_pin_code_panel(config);
     hide_logged_out_markers();
     apply_security_level_visibility();
 }
@@ -969,6 +1124,82 @@ function fetch_cfg()
         request.onerror = () => reject(new Error("Config request failed"));
         request.ontimeout = () => reject(new Error("Config request timed out"));
         request.send();
+    });
+}
+
+function request_error_text(request, fallback)
+{
+    if (!request)
+    {
+        return fallback;
+    }
+    try
+    {
+        if (request.responseText)
+        {
+            return request.responseText;
+        }
+    }
+    catch (error)
+    {
+    }
+    if (request.response instanceof ArrayBuffer && request.response.byteLength > 0)
+    {
+        try
+        {
+            return new TextDecoder().decode(request.response);
+        }
+        catch (error)
+        {
+        }
+    }
+    return fallback;
+}
+
+async function post_encrypted_config_reply(endpoint, payload)
+{
+    if (current_security_level < 1)
+    {
+        throw new Error("PIN codes are not used at security level 0.");
+    }
+    if (!session_security.sessionAesKey || !session_security.networkAesKey || !session_security.sessionResponseFromClientHex)
+    {
+        throw new Error("Log in before updating the PIN code.");
+    }
+
+    const body = await encrypt_set_cfg_blob(payload || {});
+    return new Promise((resolve, reject) => {
+        const request = new XMLHttpRequest();
+        request.open("POST", endpoint, true);
+        request.responseType = "arraybuffer";
+        request.timeout = 15000;
+        request.setRequestHeader("Content-Type", "application/octet-stream");
+        request.setRequestHeader(header_session_response_from_client, session_security.sessionResponseFromClientHex);
+        request.setRequestHeader(header_session_salt_from_client, bytes_to_hex(session_security.sessionSaltFromClient));
+        session_security.nonceCounter = 0;
+
+        request.onload = async function() {
+            if (request.status < 200 || request.status >= 300)
+            {
+                reject(new Error(request_error_text(request, "PIN code update failed: " + request.status)));
+                return;
+            }
+
+            try
+            {
+                const config = await decrypt_cfg_blob(request.response);
+                fill_config_page(config);
+                resolve(config);
+            }
+            catch (error)
+            {
+                reject(error);
+            }
+        };
+
+        request.onerror = () => reject(new Error("PIN code update failed."));
+        request.ontimeout = () => reject(new Error("PIN code update timed out."));
+        request.send(body);
     });
 }
 
@@ -1195,6 +1426,104 @@ async function passreset_onsubmit()
             button.disabled = false;
         }
         set_password_reset_message(error.message || "Password reset failed.", false);
+    }
+}
+
+function pin_code_validation_error(pin_text)
+{
+    if (!pin_text)
+    {
+        return "Enter a new PIN code.";
+    }
+    if (pin_text.length < 4)
+    {
+        return "PIN code must be at least 4 digits.";
+    }
+    if (pin_text.length > pin_code_max_length)
+    {
+        return "PIN code is too long.";
+    }
+    if (!/^[1-9]+$/.test(pin_text))
+    {
+        return "PIN code may only use digits 1 through 9.";
+    }
+    return "";
+}
+
+async function pincodereset_onsubmit()
+{
+    const button = document.getElementById("btn_pincode_reset");
+    const pin_input = document.getElementById("new_pincode");
+    const confirm_input = document.getElementById("new_pincode_confirm");
+
+    set_pincode_reset_message("", false);
+    if (!Number.isFinite(current_security_level) || current_security_level < 1)
+    {
+        set_pincode_reset_message("PIN codes are not used at this security level.", false);
+        return;
+    }
+    if (!current_default_soft_ap)
+    {
+        set_pincode_reset_message("PIN code reset is only available from the generated soft AP.", false);
+        return;
+    }
+    if (!config_is_unlocked())
+    {
+        set_pincode_reset_message("Log in before updating the PIN code.", false);
+        return;
+    }
+
+    const custom_pin = current_security_level === 1;
+    const payload = {};
+    let endpoint = "/reset_pin_code";
+    if (custom_pin)
+    {
+        const pin_text = pin_input ? pin_input.value : "";
+        const confirm_text = confirm_input ? confirm_input.value : "";
+        const validation_error = pin_code_validation_error(pin_text);
+        if (validation_error)
+        {
+            set_pincode_reset_message(validation_error, false);
+            return;
+        }
+        if (pin_text !== confirm_text)
+        {
+            set_pincode_reset_message("PIN codes do not match.", false);
+            return;
+        }
+
+        endpoint = "/set_custom_pin";
+        payload.pincode = pin_text;
+    }
+
+    try
+    {
+        if (button)
+        {
+            button.disabled = true;
+        }
+
+        await post_encrypted_config_reply(endpoint, payload);
+        if (pin_input)
+        {
+            pin_input.value = "";
+        }
+        if (confirm_input)
+        {
+            confirm_input.value = "";
+        }
+        set_pincode_reset_message(custom_pin ? "PIN code updated." : "PIN code regenerated.", true);
+    }
+    catch (error)
+    {
+        set_pincode_reset_message(error.message || "PIN code update failed.", false);
+    }
+    finally
+    {
+        if (button)
+        {
+            button.disabled = false;
+        }
     }
 }
 
