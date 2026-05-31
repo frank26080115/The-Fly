@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FlyGui.h"
+#include "PinCode.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -42,8 +43,7 @@ class PinPadView : public FlyGuiView
 public:
     explicit PinPadView(uint16_t viewId = FLYGUI_VIEW_PIN_PAD);
 
-    void configure(const char* targetPin,
-                   PinPadSuccessCallback onSuccess,
+    void configure(PinPadSuccessCallback onSuccess,
                    PinPadFailedCallback onFailedAttempt,
                    PinPadExitCallback onExit);
 
@@ -70,10 +70,9 @@ private:
     size_t targetLength() const;
     bool anyButtonDirty() const;
 
-    char                  targetPin_[kMaxPinLength + 1] = {};
     char                  entry_[kMaxPinLength + 1]     = {};
     size_t                entryLength_                  = 0;
-    uint32_t              failedAttempts_               = 0;
+    bool                  hiddenFailurePending_          = false;
     bool                  cooldownActive_               = false;
     bool                  lineDirty_                    = false;
     bool                  cooldownLinePrimed_           = false;

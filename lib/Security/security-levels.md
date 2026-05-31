@@ -40,6 +40,10 @@ FTP server is allowed
 
 User allowed to set a customized Wi-Fi AP, which cannot perform administrative tasks.
 
+Pin code entry is used for on-device playback
+
+Pin code is user customizable
+
 # Level 2
 
 Includes level-1 specifications
@@ -48,8 +52,12 @@ Filecrypt-key is randomly regenerated upon any network configuration change, and
 
 Tamper evidence code is shown when requested
 
+Pin code entry is used for on-device playback
+
+Pin code is derived from filecrypt-key
+
 # Level 3
 
 Includes level-2 specifications
 
-Pin code login required, prevents tamper evidence code from being viewed
+Pin code entry is used for any device usage

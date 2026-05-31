@@ -280,19 +280,17 @@ If Stolen: attacker can make another counterfeit device that shows the same tamp
 
 ## Touch Screen Pin Login
 
-Under consideration
+Pin code entry pad allows for entry of any number of digits, each digit must be between 1 and 9.
 
-If implemented...
+Either the pin protects just the files from on-device playback, or the pin protects all functionality of the device.
 
-A 6 digit pin input is requested on boot
+Any wrong entry attempts result in a cool-down to prevent brute force, the cool-down time extends for more wrong entry attempts. The number of consecutive failed attempts is logged, too many failed attempts will cause the pin to be permanently revoked.
 
-3 quick attempts allowed, after that it will have a cooldown to prevent brute forcing. The default Wi-Fi soft-AP can be activated so that the user either review the pin or reset the whole device.
+For some security levels, the pin can be customized by the user.
 
-The pin is derived from the network-key, it can be shown on the web administrative page, it cannot be changed. To change it, the network-key must be changed, and thus, forcing the refresh of all other parts of the security chain
+For higher security implementations, the pin is derived from the filecrypt-key and a salt. In this case, if a pin is revoked and a new pin is requested, the salt would be incremented.
 
-If Stolen: network-key is not compromised (nor the filecrypt-key); attacker can connect to any bonded BT host; attacker can connect to Wi-Fi stations in memory; no keys are exposed directly; Wi-Fi passwords can be compromised by analyzing the Wi-Fi connections
-
-Implementation details are not yet fully established.
+If Stolen: network-key is not compromised (nor the filecrypt-key); the files currently on the device can be listened to; attacker can connect to any bonded BT host; attacker can connect to Wi-Fi stations in memory; no keys are exposed directly; Wi-Fi passwords can be compromised by analyzing the Wi-Fi connections
 
 ## Firmware Update
 

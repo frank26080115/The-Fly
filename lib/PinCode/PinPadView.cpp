@@ -18,6 +18,17 @@ constexpr float   kDigitTextSize   = 2.0f;
 constexpr uint32_t kShortCooldownMs = 2000;
 constexpr uint32_t kLongCooldownMs  = 5000;
 constexpr uint32_t kShortCooldownAttemptCount = 3;
+constexpr size_t   kObscuredShortPinLength = 6;
+
+bool obscure_pin_length(size_t pinLength)
+{
+    return pinLength < kObscuredShortPinLength;
+}
+
+size_t display_length_for_pin(size_t pinLength)
+{
+    return obscure_pin_length(pinLength) ? kObscuredShortPinLength : pinLength;
+}
 
 int16_t line_y()
 {
@@ -193,25 +204,13 @@ PinPadView::PinPadView(uint16_t viewId) : FlyGuiView(viewId)
     }
 }
 
-void PinPadView::configure(const char* targetPin,
-                           PinPadSuccessCallback onSuccess,
+void PinPadView::configure(PinPadSuccessCallback onSuccess,
                            PinPadFailedCallback onFailedAttempt,
                            PinPadExitCallback onExit)
 {
-    if (targetPin)
-    {
-        strncpy(targetPin_, targetPin, kMaxPinLength);
-        targetPin_[kMaxPinLength] = '\0';
-    }
-    else
-    {
-        targetPin_[0] = '\0';
-    }
-
     onSuccess_       = onSuccess;
     onFailedAttempt_ = onFailedAttempt;
     onExit_          = onExit;
-    failedAttempts_  = 0;
     cooldownActive_  = false;
     cooldownLinePrimed_ = false;
     resetEntry();
@@ -330,28 +329,43 @@ void PinPadView::registerDigit(uint8_t digit)
     }
 
     const size_t pinLength = targetLength();
-    if (pinLength == 0)
-    {
-        startFailureCooldown();
-        return;
-    }
-
-    if (entryLength_ >= pinLength || entryLength_ >= kMaxPinLength)
+    const size_t displayLength = display_length_for_pin(pinLength);
+    if (entryLength_ >= displayLength || entryLength_ >= kMaxPinLength)
     {
         return;
     }
 
     entry_[entryLength_++] = static_cast<char>('0' + digit);
     entry_[entryLength_]   = '\0';
+    lineDirty_             = true;
 
-    if (entryLength_ < pinLength)
+    if (hiddenFailurePending_)
     {
-        lineDirty_ = true;
+        if (entryLength_ >= displayLength)
+        {
+            startFailureCooldown();
+        }
         return;
     }
 
-    if (strncmp(entry_, targetPin_, pinLength) == 0)
+    if (pinLength == 0)
     {
+        hiddenFailurePending_ = true;
+        return;
+    }
+
+    if (entryLength_ < pinLength)
+    {
+        return;
+    }
+
+    const char* targetPin = PinCode::getPin();
+    if (targetPin && strncmp(entry_, targetPin, pinLength) == 0)
+    {
+        if (!PinCode::logSuccessfulUsage())
+        {
+            DBG_LOGW("PinPadView", "failed to log successful PIN usage");
+        }
         resetEntry();
         releaseButtons();
         if (onSuccess_)
@@ -361,30 +375,42 @@ void PinPadView::registerDigit(uint8_t digit)
         return;
     }
 
+    if (obscure_pin_length(pinLength))
+    {
+        hiddenFailurePending_ = true;
+        return;
+    }
+
     startFailureCooldown();
 }
 
 void PinPadView::resetEntry()
 {
-    entryLength_ = 0;
-    entry_[0]    = '\0';
-    lineDirty_   = true;
+    entryLength_          = 0;
+    entry_[0]             = '\0';
+    hiddenFailurePending_ = false;
+    lineDirty_            = true;
 }
 
 void PinPadView::startFailureCooldown()
 {
     releaseButtons();
-    failedAttempts_++;
+    uint32_t failedAttempts = 0;
+    if (!PinCode::logBadAttempt(&failedAttempts))
+    {
+        DBG_LOGW("PinPadView", "failed to log bad PIN attempt");
+        failedAttempts = 1;
+    }
     if (onFailedAttempt_)
     {
-        onFailedAttempt_(failedAttempts_);
+        onFailedAttempt_(failedAttempts);
     }
 
     cooldownActive_     = true;
     cooldownLinePrimed_ = false;
     cooldownLastWidth_  = thefly_display.width();
     cooldownStartedMs_  = millis();
-    cooldownDurationMs_ = failedAttempts_ <= kShortCooldownAttemptCount ? kShortCooldownMs : kLongCooldownMs;
+    cooldownDurationMs_ = failedAttempts <= kShortCooldownAttemptCount ? kShortCooldownMs : kLongCooldownMs;
     setButtonsDimmed(true);
 }
 
@@ -405,7 +431,8 @@ void PinPadView::drawProgressLine()
 {
     const int16_t screenW = thefly_display.width();
     const size_t  pinLength = targetLength();
-    const int16_t width = proportional_width(screenW, entryLength_, pinLength);
+    const size_t  displayLength = display_length_for_pin(pinLength);
+    const int16_t width = proportional_width(screenW, entryLength_, displayLength);
 
     thefly_display.fillRect(0, line_y(), screenW, kLineHeightPx, TFT_BLACK);
     if (width > 0)
@@ -432,6 +459,7 @@ void PinPadView::drawCooldownLine(uint32_t now)
         cooldownLastWidth_  = 0;
         entryLength_        = 0;
         entry_[0]           = '\0';
+        hiddenFailurePending_ = false;
         lineDirty_          = false;
         setButtonsDimmed(false);
         return;
@@ -475,7 +503,7 @@ void PinPadView::drawCooldownLine(uint32_t now)
 void PinPadView::drawSegmentTicks(int16_t width)
 {
     const int16_t screenW   = thefly_display.width();
-    const size_t  pinLength = targetLength();
+    const size_t  pinLength = display_length_for_pin(targetLength());
 
     if (screenW <= 0 || width <= 0 || pinLength <= 1)
     {
@@ -551,8 +579,14 @@ void PinPadView::setButtonsDimmed(bool dimmed)
 
 size_t PinPadView::targetLength() const
 {
+    const char* targetPin = PinCode::getPin();
+    if (!targetPin)
+    {
+        return 0;
+    }
+
     size_t length = 0;
-    while (length < kMaxPinLength && targetPin_[length] != '\0')
+    while (length < kMaxPinLength && targetPin[length] != '\0')
     {
         length++;
     }

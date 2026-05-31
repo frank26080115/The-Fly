@@ -223,7 +223,7 @@ void onclick_main_files(uint32_t pressDurationMs)
         PinPadView* pin_pad = get_pin_pad_view();
         if (pin_pad)
         {
-            pin_pad->configure("123456", on_file_list_pin_success, on_file_list_pin_failed, on_file_list_pin_exit);
+            pin_pad->configure(on_file_list_pin_success, on_file_list_pin_failed, on_file_list_pin_exit);
             if (gui->showView(FLYGUI_VIEW_PIN_PAD))
             {
                 return;

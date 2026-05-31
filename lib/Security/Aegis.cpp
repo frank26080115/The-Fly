@@ -11,6 +11,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/version.h"
 #include "nvs.h"
+#include "PinCode.h"
 
 namespace Aegis
 {
@@ -211,7 +212,7 @@ bool init()
 {
     if (g_initialized)
     {
-        return true;
+        return PinCode::init();
     }
 
     #ifdef TEST_MOCK_MASTER_KEY
@@ -219,7 +220,7 @@ bool init()
     g_network_key_valid = true;
     g_initialized = true;
     DBG_LOGI(TAG, "NVS Aegis using TEST_MOCK_MASTER_KEY");
-    return true;
+    return PinCode::init();
     #endif
 
     nvs_handle_t handle = 0;
@@ -229,7 +230,7 @@ bool init()
         clear_all_keys();
         g_initialized = true;
         DBG_LOGI(TAG, "NVS Aegis namespace not found; keys unavailable");
-        return true;
+        return PinCode::init();
     }
     if (open_err != ESP_OK)
     {
@@ -243,7 +244,7 @@ bool init()
     nvs_close(handle);
 
     g_initialized = true;
-    return true;
+    return PinCode::init();
 }
 
 bool deinit()
