@@ -5,11 +5,13 @@
 #include <string.h>
 
 #include "Display.h"
+#include "QrCodeView.h"
 #include "SpriteDraw.h"
 #include "WifiManager.h"
 #include "sprites.h"
 
 extern WifiManager* wifi_manager;
+extern QrCodeView* all_init_qr_code_view();
 
 namespace
 {
@@ -37,6 +39,7 @@ constexpr uint8_t  kCredentialValueTextFont = 4;
 constexpr uint8_t  kSmallTextFont    = 1;
 constexpr uint32_t kClientInfoDrawMs = 500;
 constexpr uint32_t kStatsCycleMs     = 3000;
+constexpr uint32_t kQrHoldMs         = 5000;
 constexpr const char* kHiddenText     = "**********";
 constexpr const char* kExitHint       = "power-off/reset to stop";
 
@@ -102,6 +105,48 @@ void format_mac_hyphen(const uint8_t mac[6], char* out, size_t out_size)
              mac[4],
              mac[5]);
 }
+
+bool append_char(char* out, size_t out_size, size_t& used, char value)
+{
+    if (!out || used + 1 >= out_size)
+    {
+        return false;
+    }
+
+    out[used++] = value;
+    out[used] = '\0';
+    return true;
+}
+
+bool append_text(char* out, size_t out_size, size_t& used, const char* text)
+{
+    for (const char* cursor = text ? text : ""; *cursor; ++cursor)
+    {
+        if (!append_char(out, out_size, used, *cursor))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool append_wifi_qr_text(char* out, size_t out_size, size_t& used, const char* text)
+{
+    for (const char* cursor = text ? text : ""; *cursor; ++cursor)
+    {
+        const char value = *cursor;
+        if ((value == '\\' || value == ';' || value == ',' || value == ':' || value == '"') &&
+            !append_char(out, out_size, used, '\\'))
+        {
+            return false;
+        }
+        if (!append_char(out, out_size, used, value))
+        {
+            return false;
+        }
+    }
+    return true;
+}
 } // namespace
 
 WifiApModeView* WifiApModeView::activeView_ = nullptr;
@@ -118,7 +163,6 @@ WifiApModeView::WifiApModeView()
     securityIcon_.setSprite(sprite_security_50, SPRITE_SECURITY_50_WIDTH, SPRITE_SECURITY_50_HEIGHT, SPRITE_SECURITY_50_BYTES);
     addItem(securityIcon_);
 
-    eyeItem_.setCallback(onEyeTriggered);
     syncEyeSprite();
     addItem(eyeItem_);
 }
@@ -130,6 +174,7 @@ void WifiApModeView::onLoad()
     statsIndex_ = 0;
     lastClientDrawMs_ = 0;
     lastStatsDrawMs_ = 0;
+    resetQrHold();
     syncEyeSprite();
     FlyGuiView::onLoad();
 }
@@ -140,11 +185,62 @@ void WifiApModeView::onUnload()
     {
         activeView_ = nullptr;
     }
+    resetQrHold();
     FlyGuiView::onUnload();
+}
+
+bool WifiApModeView::handleTouch(const FlyGuiTouchEvent& event)
+{
+    const bool eyeEvent = eyeItem_.contains(event.x, event.y) || qrHoldActive_;
+    if (!eyeEvent)
+    {
+        return FlyGuiView::handleTouch(event);
+    }
+
+    if (event.justPressed && eyeItem_.contains(event.x, event.y))
+    {
+        qrHoldActive_ = true;
+        qrHoldStartedMs_ = millis();
+        qrHoldFadeDrawn_ = false;
+        return true;
+    }
+
+    if (!qrHoldActive_)
+    {
+        return true;
+    }
+
+    const uint32_t held_ms = millis() - qrHoldStartedMs_;
+    if (event.pressed && held_ms >= kQrHoldMs && !qrHoldFadeDrawn_)
+    {
+        drawQrHoldFade();
+    }
+
+    if (event.justReleased)
+    {
+        const bool show_qr = held_ms >= kQrHoldMs;
+        const bool released_on_eye = eyeItem_.contains(event.x, event.y);
+        resetQrHold();
+        if (show_qr)
+        {
+            showQrCode();
+        }
+        else if (released_on_eye)
+        {
+            toggleSensitive();
+        }
+    }
+
+    return true;
 }
 
 void WifiApModeView::redraw(bool forced)
 {
+    if (qrHoldFadeDrawn_)
+    {
+        return;
+    }
+
     const bool redrawStatic = forced || dirty();
     if (redrawStatic)
     {
@@ -164,19 +260,44 @@ void WifiApModeView::onPressRight()
     toggleSensitive();
 }
 
-void WifiApModeView::onEyeTriggered(uint32_t)
-{
-    if (activeView_)
-    {
-        activeView_->toggleSensitive();
-    }
-}
-
 void WifiApModeView::toggleSensitive()
 {
     showSensitive_ = !showSensitive_;
     syncEyeSprite();
     setDirty();
+}
+
+void WifiApModeView::resetQrHold()
+{
+    qrHoldStartedMs_ = 0;
+    qrHoldActive_ = false;
+    qrHoldFadeDrawn_ = false;
+}
+
+void WifiApModeView::drawQrHoldFade()
+{
+    for (int16_t y = FlyGui::kTopBarHeight; y < thefly_display.height(); y += 3)
+    {
+        thefly_display.drawFastHLine(0, y, thefly_display.width(), TFT_WHITE);
+        thefly_display.drawFastHLine(0, y + 1, thefly_display.width(), TFT_WHITE);
+    }
+    qrHoldFadeDrawn_ = true;
+    markClean();
+}
+
+void WifiApModeView::showQrCode()
+{
+    QrCodeView* qr_view = all_init_qr_code_view();
+    FlyGui* owner = gui();
+    char qr_text[384] = {};
+    if (!qr_view || !owner || !makeWifiQrText(qr_text, sizeof(qr_text)))
+    {
+        setDirty();
+        return;
+    }
+
+    qr_view->configure(qr_text);
+    owner->showView(FLYGUI_VIEW_QR_CODE);
 }
 
 void WifiApModeView::syncEyeSprite()
@@ -370,4 +491,41 @@ void WifiApModeView::formatStatsLine(char* out, size_t out_size) const
         break;
     }
     #endif
+}
+
+bool WifiApModeView::makeWifiQrText(char* out, size_t out_size) const
+{
+    if (!out || out_size == 0)
+    {
+        return false;
+    }
+
+    out[0] = '\0';
+    const wifi_item_t* active = wifi_manager ? wifi_manager->activeWifi() : nullptr;
+    const char* ssid = active && active->ssid[0] != '\0' ? active->ssid : nullptr;
+    const char* password = wifi_manager ? wifi_manager->softApPassword() : nullptr;
+    if (!password && active && active->password[0] != '\0')
+    {
+        password = active->password;
+    }
+    if (!ssid || ssid[0] == '\0')
+    {
+        return false;
+    }
+
+    size_t used = 0;
+    if (!append_text(out, out_size, used, password && password[0] != '\0' ? "WIFI:T:WPA;S:" : "WIFI:T:nopass;S:") ||
+        !append_wifi_qr_text(out, out_size, used, ssid))
+    {
+        return false;
+    }
+
+    if (password && password[0] != '\0' &&
+        (!append_text(out, out_size, used, ";P:") ||
+         !append_wifi_qr_text(out, out_size, used, password)))
+    {
+        return false;
+    }
+
+    return append_text(out, out_size, used, ";H:false;;");
 }
