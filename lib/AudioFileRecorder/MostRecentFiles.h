@@ -6,7 +6,7 @@
 namespace MostRecentFiles
 {
 
-constexpr size_t kDefaultMaxFiles   = 6;
+constexpr size_t kDefaultMaxFiles   = MOST_RECENT_FILES_MAX_FILES;
 constexpr size_t kMaxFiles          = kDefaultMaxFiles;
 constexpr size_t kMaxFileNameLength = 48;
 

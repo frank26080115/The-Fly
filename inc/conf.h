@@ -41,6 +41,8 @@ use this file for preprocessor definitions that are used to configure parts of t
 #define SOFTAP_CUSTOM_CFG_CNT        0
 #endif
 
+#define MOST_RECENT_FILES_MAX_FILES  20
+
 #if (defined(CORE_DEBUG_LEVEL) && CORE_DEBUG_LEVEL > ESP_LOG_ERROR) || (defined(LOG_LOCAL_LEVEL) && LOG_LOCAL_LEVEL > ESP_LOG_ERROR)
 #ifndef BUILD_IS_DEBUG
 #define BUILD_IS_DEBUG

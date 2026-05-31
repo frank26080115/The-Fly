@@ -521,7 +521,7 @@ bool ScrollView::populateFiles()
                                      "Storage Info",
                                      make_sprite(sprite_info_100, SPRITE_INFO_100_WIDTH, SPRITE_INFO_100_HEIGHT, SPRITE_INFO_100_BYTES));
 
-    MostRecentFiles::FileList files = MostRecentFiles::get(16);
+    MostRecentFiles::FileList files = MostRecentFiles::get();
     for (size_t i = 0; i < files.count; ++i)
     {
         const char* file_name = files[i];

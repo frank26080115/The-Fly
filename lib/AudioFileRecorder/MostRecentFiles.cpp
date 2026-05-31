@@ -27,6 +27,65 @@ bool is_recorded_file(FsFile& file)
     return file.isFile() && attributes >= 0 && (attributes & FS_ATTRIB_ARCHIVE);
 }
 
+bool equals_case_insensitive(const char* lhs, const char* rhs)
+{
+    if (!lhs || !rhs)
+    {
+        return false;
+    }
+
+    while (*lhs && *rhs)
+    {
+        char l = *lhs++;
+        char r = *rhs++;
+        if (l >= 'A' && l <= 'Z')
+        {
+            l = static_cast<char>(l - 'A' + 'a');
+        }
+        if (r >= 'A' && r <= 'Z')
+        {
+            r = static_cast<char>(r - 'A' + 'a');
+        }
+        if (l != r)
+        {
+            return false;
+        }
+    }
+
+    return *lhs == '\0' && *rhs == '\0';
+}
+
+bool ends_with_case_insensitive(const char* text, const char* suffix)
+{
+    if (!text || !suffix)
+    {
+        return false;
+    }
+
+    const size_t textLength   = strlen(text);
+    const size_t suffixLength = strlen(suffix);
+    if (textLength < suffixLength)
+    {
+        return false;
+    }
+
+    return equals_case_insensitive(text + textLength - suffixLength, suffix);
+}
+
+bool is_listable_recording_name(const char* name)
+{
+    if (ends_with_case_insensitive(name, ".wav"))
+    {
+        return true;
+    }
+
+    #if BUILD_WITH_SECURITY_LEVEL > 0
+    return ends_with_case_insensitive(name, ".rec");
+    #else
+    return false;
+    #endif
+}
+
 bool newer_than(const Candidate& lhs, uint32_t rhsCreated, const char* rhsName)
 {
     if (rhsCreated != lhs.created)
@@ -200,7 +259,7 @@ FileList get(size_t maxFiles)
     }
 
     FsFile    file;
-    char      name[kMaxFileNameLength];
+    char      name[kMaxFileNameLength] = {};
     uint16_t  date = 0;
     uint16_t  time = 0;
 
@@ -208,8 +267,9 @@ FileList get(size_t maxFiles)
     {
         if (is_recorded_file(file) && file.getCreateDateTime(&date, &time))
         {
+            name[0] = '\0';
             file.getName(name, sizeof(name));
-            if (name[0] != '\0')
+            if (is_listable_recording_name(name))
             {
                 insert_candidate(recent, maxFiles, result.count, name, created_key(date, time));
             }
