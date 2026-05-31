@@ -239,8 +239,97 @@ function hide_all_unlock_buttons()
     }
 }
 
-function request_decrypt_file(_file_name)
+function decrypted_download_file_name(file_name)
 {
+    const text = String(file_name || "");
+    const slash = Math.max(text.lastIndexOf("/"), text.lastIndexOf("\\"));
+    const base = slash >= 0 ? text.slice(slash + 1) : text;
+    if (base.toLowerCase().endsWith(".rec"))
+    {
+        return base.slice(0, -4) + ".wav";
+    }
+    return (base || "recording") + ".wav";
+}
+
+function save_blob_as_file(blob, file_name)
+{
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = file_name;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+async function request_decrypt_file(file_name)
+{
+    const requested_file = String(file_name || "");
+    if (!requested_file.toLowerCase().endsWith(".rec"))
+    {
+        show_file_upload_status("Only .rec files can be decrypted.", "error");
+        return;
+    }
+    if (current_security_level < 1 ||
+        !session_security.sessionAesKey ||
+        !session_security.sessionResponseFromClientHex ||
+        !session_security.sessionSaltFromClient)
+    {
+        show_file_upload_status("Log in before decrypting recordings.", "error");
+        return;
+    }
+
+    let body = null;
+    const wav_name = decrypted_download_file_name(requested_file);
+    try
+    {
+        body = await encrypt_set_cfg_blob({
+            file_name: requested_file,
+            action: "download",
+        });
+    }
+    catch (error)
+    {
+        show_file_upload_status(error.message || "Could not prepare decrypted download.", "error");
+        return;
+    }
+
+    set_file_upload_progress(0);
+    show_file_upload_status("Decrypting " + wav_name + "...", "");
+
+    const request = new XMLHttpRequest();
+    request.open("POST", "/decrypted_download", true);
+    request.responseType = "arraybuffer";
+    request.setRequestHeader("Content-Type", "application/octet-stream");
+    request.setRequestHeader(header_session_response_from_client, session_security.sessionResponseFromClientHex);
+    request.setRequestHeader(header_session_salt_from_client, bytes_to_hex(session_security.sessionSaltFromClient));
+    session_security.nonceCounter = 0;
+
+    request.onprogress = function(event) {
+        if (event.lengthComputable)
+        {
+            set_file_upload_progress((event.loaded / event.total) * 100);
+        }
+    };
+
+    request.onload = function() {
+        if (request.status >= 200 && request.status < 300)
+        {
+            const content_type = request.getResponseHeader("Content-Type") || "application/octet-stream";
+            const blob = new Blob([request.response], { type: content_type });
+            save_blob_as_file(blob, wav_name);
+            set_file_upload_progress(100);
+            show_file_upload_status("Decrypted download ready.", "notice");
+            return;
+        }
+
+        show_file_upload_status(request_error_text(request, "Decrypted download failed: " + request.status), "error");
+    };
+    request.onerror = () => show_file_upload_status("Decrypted download failed.", "error");
+    request.ontimeout = () => show_file_upload_status("Decrypted download timed out.", "error");
+    request.send(body);
 }
 
 function fetch_info()

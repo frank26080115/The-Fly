@@ -272,7 +272,7 @@ bool regeneratePin()
 const char* getPin()
 {
 #ifdef TEST_MOCK_PIN_CODE
-    return "";
+    return "123456";
 #else
     std::lock_guard<std::mutex> lock(g_mutex);
     if (!ensure_initialized_locked() || !g_cfg.active)

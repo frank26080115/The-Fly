@@ -13,6 +13,7 @@
 #include "BluetoothManager.h"
 #include "BtHostList.h"
 #include "ClockAgent.h"
+#include "DecryptedDownload.h"
 #include "DiskStats.h"
 #if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
 #include "FtpServer.h"
@@ -904,6 +905,15 @@ bool WebServer::init()
 
     g_server.on(AsyncURIMatcher::exact("/download_file"), HTTP_GET, WebFileHandlers::sendMicroSdFile);
     DBG_LOGI(TAG, "registered microSD download GET /download_file");
+
+#ifdef BUILD_WITH_DECRYPTED_DOWNLOAD
+    g_server.on(AsyncURIMatcher::exact("/decrypted_download"),
+                HTTP_POST,
+                DecryptedDownload::finish,
+                nullptr,
+                DecryptedDownload::writeBody);
+    DBG_LOGI(TAG, "registered decrypted recording POST /decrypted_download");
+#endif
 
     g_server.on(AsyncURIMatcher::exact("/delete_file"), HTTP_GET, WebFileHandlers::deleteMicroSdFile);
     DBG_LOGI(TAG, "registered microSD delete GET /delete_file");
