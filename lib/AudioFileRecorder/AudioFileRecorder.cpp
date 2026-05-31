@@ -273,9 +273,9 @@ bool start_recording_encryption_locked()
 {
     stop_recording_encryption_locked();
 
-    if (!Aegis::isInitialized() && !Aegis::init())
+    if (!Aegis::isInitialized())
     {
-        DBG_LOGE(TAG, "Aegis init failed");
+        DBG_LOGE(TAG, "Aegis is not initialized");
         return false;
     }
 

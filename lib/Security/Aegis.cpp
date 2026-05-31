@@ -214,6 +214,14 @@ bool init()
         return true;
     }
 
+    #ifdef TEST_MOCK_MASTER_KEY
+    g_filecrypt_key_valid = true;
+    g_network_key_valid = true;
+    g_initialized = true;
+    DBG_LOGI(TAG, "NVS Aegis using TEST_MOCK_MASTER_KEY");
+    return true;
+    #endif
+
     nvs_handle_t handle = 0;
     const esp_err_t open_err = nvs_open(kNvsNamespace, NVS_READONLY, &handle);
     if (open_err == ESP_ERR_NVS_NOT_FOUND)

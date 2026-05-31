@@ -228,7 +228,7 @@ bool constant_time_equal(const uint8_t* lhs, const uint8_t* rhs, size_t size)
 bool load_network_key(const uint8_t*& network_key)
 {
     network_key = nullptr;
-    if (!Aegis::isInitialized() && !Aegis::init())
+    if (!Aegis::isInitialized())
     {
         return false;
     }

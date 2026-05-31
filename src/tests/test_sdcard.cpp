@@ -292,9 +292,9 @@ void test_sdcard()
 
     #if BUILD_WITH_SECURITY_LEVEL >= 1
     Serial.printf("%s: BUILD_WITH_SECURITY_LEVEL is %d; recorder WAV chunks should be AES-GCM encrypted\n", TAG, BUILD_WITH_SECURITY_LEVEL);
-    if (!Aegis::init())
+    if (!Aegis::isInitialized())
     {
-        Serial.printf("%s: Aegis init failed\n", TAG);
+        Serial.printf("%s: Aegis is not initialized\n", TAG);
         idle_forever();
     }
     if (!Aegis::hasMasterKey())

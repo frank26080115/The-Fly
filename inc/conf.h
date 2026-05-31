@@ -13,6 +13,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 //#define TEST_BOOT_ERROR_NONFATAL
 //#define TEST_BOOT_ERROR_FATAL
 //#define TEST_MOCK_FW_UPDATE 1
+#define TEST_MOCK_MASTER_KEY
 
 #if !defined(BUILD_WITH_SECURITY_LEVEL)
 #error BUILD_WITH_SECURITY_LEVEL must be defined!

@@ -970,7 +970,7 @@ bool decrypt_set_cfg_blob(const uint8_t* encrypted,
         error = "Encrypted config version is unsupported";
         return false;
     }
-    if (!Aegis::isInitialized() && !Aegis::init())
+    if (!Aegis::isInitialized())
     {
         status_code = 500;
         error = "Network key unavailable";

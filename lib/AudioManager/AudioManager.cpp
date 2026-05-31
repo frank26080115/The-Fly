@@ -86,7 +86,6 @@ int16_t g_mono_buffer[kPumpSamples];
 int16_t g_stereo_buffer[kPumpSamples * 2];
 uint8_t g_pending_speaker_buffer[kPumpSamples * 2 * sizeof(int16_t)];
 
-#if BUILD_WITH_SECURITY_LEVEL == 0
 constexpr size_t kFileFifoCatchupStartSamples  = 1024;
 constexpr size_t kFileFifoCatchupTargetSamples = 512;
 
@@ -120,7 +119,6 @@ void queue_silence_to_reduce_lag(AudioFifo& lagging_fifo, AudioFifo& leading_fif
         lagging_fifo.queueSilence(target_lagging - lagging);
     }
 }
-#endif
 
 #ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
 HfpAudioDiagnostics g_hfp_diag     = {};
@@ -176,7 +174,6 @@ void queue_hfp_pcm(const uint8_t* buf, uint32_t len)
     const size_t queued_spk  = g_fifo_bt2spk.queue(pcm, samples, g_hfp_rate_hz);
     const size_t queued_file = g_fifo_bt2file.queue(pcm, samples, g_hfp_rate_hz);
 
-    #if BUILD_WITH_SECURITY_LEVEL == 0
     if (!mic_file_source_active())
     {
         queue_silence_to_match(g_fifo_mic2file, g_fifo_bt2file);
@@ -185,7 +182,6 @@ void queue_hfp_pcm(const uint8_t* buf, uint32_t len)
     {
         queue_silence_to_reduce_lag(g_fifo_mic2file, g_fifo_bt2file);
     }
-    #endif
 
     HFP_AUDIO_DIAG([len, samples, queued_spk, queued_file](HfpAudioDiagnostics& diag) {
         diag.incomingConsumedBytes += len;
@@ -826,9 +822,7 @@ void pump_mic2bt()
         notify_ready = notify_ready || should_notify_hfp_outgoing_ready(queued_bt, true);
     }
 
-    #if BUILD_WITH_SECURITY_LEVEL == 0
     queue_silence_to_reduce_lag(g_fifo_bt2file, g_fifo_mic2file);
-    #endif
 
     lock.unlock();
     notify_hfp_outgoing_ready(notify_ready);

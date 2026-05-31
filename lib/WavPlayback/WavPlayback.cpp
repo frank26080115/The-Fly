@@ -163,9 +163,9 @@ bool start_playback_decryption_locked()
     free_playback_gcm_locked();
     reset_encrypted_chunk_locked();
 
-    if (!Aegis::isInitialized() && !Aegis::init())
+    if (!Aegis::isInitialized())
     {
-        set_error("Aegis init failed");
+        set_error("Aegis not ready");
         return false;
     }
 

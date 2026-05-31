@@ -136,10 +136,21 @@ void setup()
 
     wifi_manager = new WifiManager();
 
+    #if BUILD_WITH_SECURITY_LEVEL > 0
+    if (!g_nvs_ready || !Aegis::init())
+    {
+        show_fatal_error_f(true, "security subsystem init failed");
+    }
+    if (!Aegis::hasMasterKey())
+    {
+        show_fatal_error_f(true, "no key, please setup a password");
+    }
+    #else
     if (!g_nvs_ready)
     {
         show_fatal_error_f(true, "NVS init failed");
     }
+    #endif
 
     #if BUILD_WITH_SECURITY_LEVEL <= 0
     if (wifi_manager && !wifi_manager->loadFromMicroSd())
