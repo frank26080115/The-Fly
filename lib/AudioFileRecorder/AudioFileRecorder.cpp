@@ -35,17 +35,25 @@ constexpr uint32_t kWriteDurationThresholdUs        = 10000;
 constexpr uint32_t kTimedFlushIntervalMs            = 2000;
 constexpr uint8_t  kMaxConsecutiveWriteFailures     = 3;
 
-constexpr uint32_t kWavSampleRateHz             = 16000;
-constexpr uint16_t kWavChannels                 = 2;
-constexpr uint16_t kWavBitsPerSample            = 16;
+constexpr uint32_t kWavSampleRateHz             = AUDIO_RECORDER_SAMPLE_RATE_HZ;
+constexpr uint16_t kWavChannels                 = AUDIO_RECORDER_CHANNELS;
+constexpr uint16_t kWavBitsPerSample            = AUDIO_RECORDER_BITS_PER_SAMPLE;
 constexpr size_t   kWavHeaderSize               = WAV_RIFF_HEADER_LENGTH;
-constexpr size_t   kWavFrameBytes               = kWavChannels * (kWavBitsPerSample / 8);
-constexpr size_t   kWavPumpFrames               = WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH / kWavFrameBytes;
+constexpr size_t   kWavFrameBytes               = AUDIO_RECORDER_FRAME_BYTES;
+constexpr size_t   kWavPlaintextChunkBytes      = WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH;
+constexpr size_t   kMp3PcmFramesPerChunk        = MP3_PCM_FRAMES_PER_CHUNK;
+constexpr size_t   kMp3PcmBytesPerChunk         = MP3_PCM_BYTES_PER_CHUNK;
+constexpr size_t   kMp3OutputBufferSize         = MP3_LAME_OUTPUT_BUFFER_SIZE;
+constexpr size_t   kWavPumpFrames               = kWavPlaintextChunkBytes / kWavFrameBytes;
 constexpr uint32_t kWavPlaceholderDataBytes     = 0x7FFFFFFF;
 constexpr uint32_t kWavMaxDataBytes             = 0xFFFFFFFFUL - 36UL;
 
-static_assert(WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH % kWavFrameBytes == 0,
-              "encrypted WAV plaintext chunks must contain whole stereo frames");
+static_assert(kWavPlaintextChunkBytes % kWavFrameBytes == 0,
+              "recorder plaintext chunks must contain whole stereo frames");
+static_assert(MP3_PCM_BYTES_PER_CHUNK % kWavFrameBytes == 0,
+              "MP3 PCM chunks must contain whole stereo frames");
+static_assert(MP3_PCM_FRAMES_PER_CHUNK % MP3_LAME_PCM_FRAMES_PER_MP3_FRAME == 0,
+              "MP3 PCM chunks must contain whole LAME MP3 frames");
 static_assert(WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH ==
                   WAV_ENCRYPTED_CHUNK_NONCE_LENGTH + WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH + WAV_ENCRYPTED_CHUNK_TAG_LENGTH,
               "encrypted WAV audio chunk length must match nonce + ciphertext + tag");
