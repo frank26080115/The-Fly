@@ -268,8 +268,21 @@ void RecordingView::handleExitButton()
         ModalDialog* dialog = get_modal_dialog();
         if (dialog)
         {
-            char message[128];
-            snprintf(message, sizeof(message), "%s\nhas been recorded", fileName);
+            char message[160];
+            const uint32_t overflowEvents = AudioFileRecorder::fifoOverflowEvents();
+            if (overflowEvents > 0)
+            {
+                snprintf(message,
+                         sizeof(message),
+                         "%s\nhas been recorded\n%lu FIFO overflow event%s",
+                         fileName,
+                         static_cast<unsigned long>(overflowEvents),
+                         overflowEvents == 1 ? "" : "s");
+            }
+            else
+            {
+                snprintf(message, sizeof(message), "%s\nhas been recorded", fileName);
+            }
             dialog->configure(sprite_thumbsup_100,
                               SPRITE_THUMBSUP_100_BYTES,
                               SPRITE_THUMBSUP_100_WIDTH,

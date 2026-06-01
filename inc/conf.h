@@ -17,7 +17,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 #define TEST_MOCK_PIN_CODE
 #define TEST_MOCK_PASSWORD
 
-#define BUILD_SILENCE_GAP_REMOVAL
+//#define BUILD_SILENCE_GAP_REMOVAL
 #define BUILD_USE_MP3_COMPRESSION
 
 #if !defined(BUILD_WITH_SECURITY_LEVEL)
@@ -74,7 +74,8 @@ use this file for preprocessor definitions that are used to configure parts of t
 // At 16 kHz LAME emits MPEG-2 Layer III frames, which consume 576 PCM frames
 // per channel. 64 kbps CBR gives 288-byte MP3 frames, so four MP3 frames is
 // 144 ms of audio, 9216 bytes of source PCM, and 1152 bytes before encryption.
-#define MP3_LAME_BITRATE_KBPS                64 // also set in `lib\arduino-liblame\src\MP3EncoderLAME.h`
+#define MP3_LAME_BITRATE_KBPS                64
+#define MP3_LAME_QUALITY                     9  // 0=best/slowest, 9=fastest; embedded recorder needs real-time encode
 #define MP3_LAME_PCM_FRAMES_PER_MP3_FRAME    576
 #define MP3_LAME_MP3_FRAMES_PER_CHUNK        4
 #define MP3_PCM_FRAMES_PER_CHUNK             (MP3_LAME_PCM_FRAMES_PER_MP3_FRAME * MP3_LAME_MP3_FRAMES_PER_CHUNK)

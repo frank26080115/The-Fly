@@ -4,7 +4,7 @@ void run_test()
 {
     //test_sdcard();
     //test_speaker();
-    //test_micrec();
+    test_micrec();
     //test_screen();
     //test_btpairing();
     //test_btspeakerphone();
@@ -19,5 +19,7 @@ void run_test()
     //test_btramusage();
     //test_nvsloadsave();
     //test_filelistbenchmark();
-    test_pbkdfbenchmark();
+    //test_pbkdfbenchmark();
+    //test_mp3encode();
+    //test_rtcvsmillis();
 }

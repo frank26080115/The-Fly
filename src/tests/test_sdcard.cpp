@@ -339,7 +339,6 @@ void test_sdcard()
 
     print_card_stats();
 
-    AudioFileRecorder::setPurePcmMode(false);
     if (!AudioFileRecorder::startRecording('S'))
     {
         Serial.printf("%s: recording start failed\n", TAG);

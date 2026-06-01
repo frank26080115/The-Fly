@@ -49,6 +49,7 @@ uint32_t lastLongWriteTimestampMs();
 
 uint64_t    bytesWritten();
 const char* currentSdPath();
+uint32_t    fifoOverflowEvents();
 
 bool grow_file(FsFile& file, uint64_t size);
 

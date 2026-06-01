@@ -2,7 +2,9 @@
 
 #include <M5Unified.h>
 #include <atomic>
+#include <limits.h>
 #include <mutex>
+#include <new>
 #include <stdio.h>
 #include <string.h>
 
@@ -20,6 +22,10 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "utilfuncs.h"
+
+#if defined(BUILD_USE_MP3_COMPRESSION)
+#include "MP3EncoderLAME.h"
+#endif
 
 namespace AudioFileRecorder
 {
@@ -47,9 +53,24 @@ constexpr size_t   kMp3OutputBufferSize         = MP3_LAME_OUTPUT_BUFFER_SIZE;
 constexpr size_t   kWavPumpFrames               = kWavPlaintextChunkBytes / kWavFrameBytes;
 constexpr uint32_t kWavPlaceholderDataBytes     = 0x7FFFFFFF;
 constexpr uint32_t kWavMaxDataBytes             = 0xFFFFFFFFUL - 36UL;
+#if defined(BUILD_USE_MP3_COMPRESSION)
+constexpr size_t   kMp3PumpFrames               = MP3_LAME_PCM_FRAMES_PER_MP3_FRAME;
+constexpr size_t   kRecordingPumpFrames         = kMp3PumpFrames;
+constexpr size_t   kEncryptedAudioPlaintextBytes = MP3_ENCRYPTED_PLAINTEXT_LENGTH;
+constexpr size_t   kEncryptedAudioChunkBytes     = MP3_ENCRYPTED_CHUNK_LENGTH;
+constexpr uint8_t  kMp3CloseSilencePumpLimit     = 8;
+#else
+constexpr size_t   kRecordingPumpFrames         = kWavPumpFrames;
+constexpr size_t   kEncryptedAudioPlaintextBytes = WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH;
+constexpr size_t   kEncryptedAudioChunkBytes     = WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH;
+#endif
 
 static_assert(kWavPlaintextChunkBytes % kWavFrameBytes == 0,
               "recorder plaintext chunks must contain whole stereo frames");
+#if defined(BUILD_USE_MP3_COMPRESSION)
+static_assert(kMp3PumpFrames <= kMp3PcmFramesPerChunk,
+              "MP3 pump frames must fit inside one configured MP3 PCM chunk");
+#endif
 static_assert(MP3_PCM_BYTES_PER_CHUNK % kWavFrameBytes == 0,
               "MP3 PCM chunks must contain whole stereo frames");
 static_assert(MP3_PCM_FRAMES_PER_CHUNK % MP3_LAME_PCM_FRAMES_PER_MP3_FRAME == 0,
@@ -57,11 +78,18 @@ static_assert(MP3_PCM_FRAMES_PER_CHUNK % MP3_LAME_PCM_FRAMES_PER_MP3_FRAME == 0,
 static_assert(WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH ==
                   WAV_ENCRYPTED_CHUNK_NONCE_LENGTH + WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH + WAV_ENCRYPTED_CHUNK_TAG_LENGTH,
               "encrypted WAV audio chunk length must match nonce + ciphertext + tag");
+static_assert(MP3_ENCRYPTED_CHUNK_LENGTH ==
+                  RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH + MP3_ENCRYPTED_PLAINTEXT_LENGTH + RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH,
+              "encrypted MP3 chunk length must match nonce + ciphertext + tag");
 static_assert(WAV_ENCRYPTED_RIFF_HEADER_LENGTH ==
                   WAV_ENCRYPTED_CHUNK_NONCE_LENGTH + WAV_RIFF_HEADER_LENGTH + WAV_ENCRYPTED_CHUNK_TAG_LENGTH,
               "encrypted RIFF header length must match nonce + ciphertext + tag");
 static_assert(WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH >= WAV_ENCRYPTED_RIFF_HEADER_LENGTH,
               "encrypted audio chunk buffer must also hold the encrypted RIFF header");
+static_assert(kEncryptedAudioPlaintextBytes <= WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH,
+              "encrypted plaintext staging buffer must hold the selected recording chunk");
+static_assert(kEncryptedAudioChunkBytes <= WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH,
+              "encrypted output staging buffer must hold the selected recording chunk");
 
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 constexpr size_t kGcmNonceSize = WAV_ENCRYPTED_CHUNK_NONCE_LENGTH;
@@ -86,6 +114,14 @@ bool       g_longwrite_latched                      = false;
 uint8_t    g_consecutive_write_failures             = 0;
 bool       g_card_failure_reported                  = false;
 uint8_t    g_consecutive_silent_chunks              = 0;
+std::atomic<uint32_t> g_fifo_overflow_events        = { 0 };
+bool       g_host_fifo_overflow_latched             = false;
+bool       g_mic_fifo_overflow_latched              = false;
+#if defined(BUILD_USE_MP3_COMPRESSION)
+liblame::MP3EncoderLAME* g_mp3_encoder              = nullptr;
+std::atomic<bool>        g_mp3_callback_failed      = { false };
+bool                     g_mp3_file_write_observed  = false;
+#endif
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 mbedtls_gcm_context g_recording_gcm;
 bool                g_recording_gcm_ready           = false;
@@ -94,8 +130,11 @@ size_t              g_plaintext_audio_chunk_used    = 0;
 #endif
 std::mutex g_recorder_mutex;
 std::mutex g_pump_mutex;
-int16_t g_wav_mic_samples[kWavPumpFrames];
-int16_t g_wav_host_samples[kWavPumpFrames];
+int16_t g_wav_mic_samples[kRecordingPumpFrames];
+int16_t g_wav_host_samples[kRecordingPumpFrames];
+#if defined(BUILD_USE_MP3_COMPRESSION)
+int16_t g_mp3_stereo_samples[kMp3PumpFrames * kWavChannels];
+#endif
 alignas(int16_t) uint8_t g_wav_plaintext_audio[WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH];
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 uint8_t g_wav_encrypted_audio[WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH];
@@ -127,7 +166,11 @@ void make_recording_path(char type_code)
         now.time.minutes = 0;
         now.time.seconds = 0;
     }
-    #if BUILD_WITH_SECURITY_LEVEL >= 1
+    #if defined(BUILD_USE_MP3_COMPRESSION) && BUILD_WITH_SECURITY_LEVEL >= 1
+    const char* extension = "fly";
+    #elif defined(BUILD_USE_MP3_COMPRESSION)
+    const char* extension = "mp3";
+    #elif BUILD_WITH_SECURITY_LEVEL >= 1
     const char* extension = "rec";
     #else
     const char* extension = "wav";
@@ -583,13 +626,63 @@ bool note_write_failure_locked()
     return true;
 }
 
+void reset_fifo_overflow_tracking()
+{
+    g_fifo_overflow_events.store(0, std::memory_order_relaxed);
+    g_host_fifo_overflow_latched = false;
+    g_mic_fifo_overflow_latched  = false;
+    if (g_host_fifo)
+    {
+        g_host_fifo->resetFlowFlags();
+    }
+    if (g_mic_fifo)
+    {
+        g_mic_fifo->resetFlowFlags();
+    }
+}
+
+void note_fifo_overflow_event(AudioFifo* fifo, bool& latched)
+{
+    if (!fifo)
+    {
+        return;
+    }
+
+    const bool overflowed = fifo->overflowed();
+    if (overflowed && !latched)
+    {
+        g_fifo_overflow_events.fetch_add(1, std::memory_order_relaxed);
+    }
+    latched = overflowed;
+}
+
+void note_fifo_overflow_events()
+{
+    note_fifo_overflow_event(g_host_fifo, g_host_fifo_overflow_latched);
+    note_fifo_overflow_event(g_mic_fifo, g_mic_fifo_overflow_latched);
+}
+
+void reset_fifo_flow_flags_after_observation()
+{
+    if (g_host_fifo)
+    {
+        g_host_fifo->resetFlowFlags();
+    }
+    if (g_mic_fifo)
+    {
+        g_mic_fifo->resetFlowFlags();
+    }
+    g_host_fifo_overflow_latched = false;
+    g_mic_fifo_overflow_latched  = false;
+}
+
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 bool write_full_encrypted_audio_chunk_locked(bool& encryption_failed, bool& storage_failed)
 {
     encryption_failed = false;
     storage_failed    = false;
 
-    if (g_plaintext_audio_chunk_used != WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH)
+    if (g_plaintext_audio_chunk_used != kEncryptedAudioPlaintextBytes)
     {
         encryption_failed = true;
         return false;
@@ -597,11 +690,11 @@ bool write_full_encrypted_audio_chunk_locked(bool& encryption_failed, bool& stor
 
     size_t encrypted_size = 0;
     if (!encrypt_chunk_locked(g_wav_plaintext_audio,
-                              WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH,
+                              kEncryptedAudioPlaintextBytes,
                               g_wav_encrypted_audio,
                               sizeof(g_wav_encrypted_audio),
                               encrypted_size) ||
-        encrypted_size != WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH)
+        encrypted_size != kEncryptedAudioChunkBytes)
     {
         encryption_failed = true;
         return false;
@@ -615,6 +708,9 @@ bool write_full_encrypted_audio_chunk_locked(bool& encryption_failed, bool& stor
 
     g_bytes_written += encrypted_size;
     g_plaintext_audio_chunk_used = 0;
+#if defined(BUILD_USE_MP3_COMPRESSION)
+    g_mp3_file_write_observed = true;
+#endif
     return true;
 }
 
@@ -625,7 +721,7 @@ bool append_encrypted_audio_locked(const uint8_t* data, size_t byte_count, bool&
 
     while (byte_count > 0)
     {
-        const size_t space = WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH - g_plaintext_audio_chunk_used;
+        const size_t space = kEncryptedAudioPlaintextBytes - g_plaintext_audio_chunk_used;
         if (space == 0)
         {
             if (!write_full_encrypted_audio_chunk_locked(encryption_failed, storage_failed))
@@ -646,7 +742,7 @@ bool append_encrypted_audio_locked(const uint8_t* data, size_t byte_count, bool&
         data += copy_bytes;
         byte_count -= copy_bytes;
 
-        if (g_plaintext_audio_chunk_used == WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH &&
+        if (g_plaintext_audio_chunk_used == kEncryptedAudioPlaintextBytes &&
             !write_full_encrypted_audio_chunk_locked(encryption_failed, storage_failed))
         {
             return false;
@@ -665,8 +761,8 @@ bool finish_encrypted_audio_locked()
 
     memset(g_wav_plaintext_audio + g_plaintext_audio_chunk_used,
            0,
-           WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH - g_plaintext_audio_chunk_used);
-    g_plaintext_audio_chunk_used = WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH;
+           kEncryptedAudioPlaintextBytes - g_plaintext_audio_chunk_used);
+    g_plaintext_audio_chunk_used = kEncryptedAudioPlaintextBytes;
 
     bool encryption_failed = false;
     bool storage_failed    = false;
@@ -688,13 +784,13 @@ size_t plaintext_audio_write_offset()
 bool encrypted_audio_chunk_full()
 {
     std::lock_guard<std::mutex> lock(g_recorder_mutex);
-    return g_plaintext_audio_chunk_used == WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH;
+    return g_plaintext_audio_chunk_used == kEncryptedAudioPlaintextBytes;
 }
 
 bool retry_full_encrypted_audio_chunk()
 {
     std::unique_lock<std::mutex> lock(g_recorder_mutex);
-    if (!recording_file_ready_locked() || g_plaintext_audio_chunk_used != WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH)
+    if (!recording_file_ready_locked() || g_plaintext_audio_chunk_used != kEncryptedAudioPlaintextBytes)
     {
         return false;
     }
@@ -729,6 +825,196 @@ bool retry_full_encrypted_audio_chunk()
 size_t plaintext_audio_write_offset()
 {
     return 0;
+}
+#endif
+
+#if defined(BUILD_USE_MP3_COMPRESSION)
+void destroy_mp3_encoder_locked()
+{
+    delete g_mp3_encoder;
+    g_mp3_encoder = nullptr;
+}
+
+bool write_mp3_encoded_data(uint8_t* data, size_t byte_count);
+
+void mp3_data_callback(uint8_t* data, size_t byte_count)
+{
+    if (!write_mp3_encoded_data(data, byte_count))
+    {
+        g_mp3_callback_failed.store(true, std::memory_order_relaxed);
+    }
+}
+
+bool start_mp3_encoder_locked()
+{
+    destroy_mp3_encoder_locked();
+
+    g_mp3_encoder = new (std::nothrow) liblame::MP3EncoderLAME();
+    if (!g_mp3_encoder)
+    {
+        DBG_LOGE(TAG, "MP3 encoder allocation failed");
+        return false;
+    }
+
+    liblame::AudioInfo mp3_info;
+    mp3_info.sample_rate            = AUDIO_RECORDER_SAMPLE_RATE_HZ;
+    mp3_info.channels               = AUDIO_RECORDER_CHANNELS;
+    mp3_info.bits_per_sample        = AUDIO_RECORDER_BITS_PER_SAMPLE;
+    mp3_info.brate                  = MP3_LAME_BITRATE_KBPS;
+    mp3_info.quality                = MP3_LAME_QUALITY;
+    mp3_info.disable_bit_reservoir  = true;
+
+    g_mp3_encoder->setDataCallback(mp3_data_callback);
+    if (!g_mp3_encoder->begin(mp3_info))
+    {
+        DBG_LOGE(TAG, "MP3 encoder setup failed");
+        destroy_mp3_encoder_locked();
+        return false;
+    }
+
+    return true;
+}
+
+bool write_mp3_encoded_data(uint8_t* data, size_t byte_count)
+{
+    if (!data || byte_count == 0)
+    {
+        return true;
+    }
+
+    std::unique_lock<std::mutex> lock(g_recorder_mutex);
+    if (!recording_file_ready_locked())
+    {
+        return false;
+    }
+
+    const uint32_t started_us = micros();
+
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+    bool encryption_failed = false;
+    bool storage_failed    = false;
+    if (!append_encrypted_audio_locked(data, byte_count, encryption_failed, storage_failed))
+    {
+        if (encryption_failed)
+        {
+            DBG_LOGE(TAG, "MP3 chunk encryption failed");
+            set_recording_active(false);
+            lock.unlock();
+            show_fatal_error_f(true, "recording encryption failed");
+            return false;
+        }
+
+        DBG_LOGE(TAG, "encrypted MP3 chunk write failed");
+        const bool fatal_card_failure = note_write_failure_locked();
+        lock.unlock();
+        if (fatal_card_failure)
+        {
+            fatal_recording_storage_failure("writing encrypted MP3 recording data", "microSD recording write failed");
+        }
+        return false;
+    }
+#else
+    if (g_file.write(data, byte_count) != byte_count)
+    {
+        DBG_LOGE(TAG, "MP3 data write failed");
+        const bool fatal_card_failure = note_write_failure_locked();
+        lock.unlock();
+        if (fatal_card_failure)
+        {
+            fatal_recording_storage_failure("writing MP3 recording data", "microSD recording write failed");
+        }
+        return false;
+    }
+
+    g_bytes_written += byte_count;
+    g_mp3_file_write_observed = true;
+#endif
+
+    note_write_success_locked();
+    update_write_duration_stats(static_cast<uint32_t>(micros() - started_us));
+    return true;
+}
+
+bool write_mp3_samples(int16_t* samples, size_t byte_count)
+{
+    liblame::MP3EncoderLAME* encoder = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(g_recorder_mutex);
+        if (!recording_file_ready_locked() || !g_mp3_encoder)
+        {
+            return false;
+        }
+        g_mp3_callback_failed.store(false, std::memory_order_relaxed);
+        encoder = g_mp3_encoder;
+    }
+
+    if (byte_count > static_cast<size_t>(INT_MAX))
+    {
+        return false;
+    }
+
+    const int32_t written = encoder->write(samples, static_cast<int>(byte_count));
+    if (g_mp3_callback_failed.load(std::memory_order_relaxed))
+    {
+        return false;
+    }
+
+    return written == static_cast<int32_t>(byte_count);
+}
+
+bool flush_mp3_encoder()
+{
+    liblame::MP3EncoderLAME* encoder = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(g_recorder_mutex);
+        if (!g_mp3_encoder)
+        {
+            return true;
+        }
+        g_mp3_callback_failed.store(false, std::memory_order_relaxed);
+        encoder = g_mp3_encoder;
+    }
+
+    const bool flushed = encoder->flush();
+    return flushed && !g_mp3_callback_failed.load(std::memory_order_relaxed);
+}
+
+void reset_mp3_file_write_observed()
+{
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
+    g_mp3_file_write_observed = false;
+}
+
+bool mp3_file_write_observed()
+{
+    std::lock_guard<std::mutex> lock(g_recorder_mutex);
+    return g_mp3_file_write_observed;
+}
+
+bool write_mp3_silence_chunk()
+{
+    memset(g_mp3_stereo_samples, 0, sizeof(g_mp3_stereo_samples));
+    return write_mp3_samples(g_mp3_stereo_samples, sizeof(g_mp3_stereo_samples));
+}
+
+bool pump_mp3_silence_until_file_write()
+{
+    reset_mp3_file_write_observed();
+
+    for (uint8_t i = 0; i < kMp3CloseSilencePumpLimit && recording_file_ready(); ++i)
+    {
+        if (!write_mp3_silence_chunk())
+        {
+            return false;
+        }
+        if (mp3_file_write_observed())
+        {
+            return true;
+        }
+        taskYIELD();
+    }
+
+    return mp3_file_write_observed();
 }
 #endif
 
@@ -802,6 +1088,8 @@ bool pump_audio_chunk_locked(bool force)
         return false;
     }
 
+    note_fifo_overflow_events();
+
     #if BUILD_WITH_SECURITY_LEVEL >= 1
     if (encrypted_audio_chunk_full())
     {
@@ -827,10 +1115,15 @@ bool pump_audio_chunk_locked(bool force)
     const size_t paired_frames = mic_available < host_available ? mic_available : host_available;
     const size_t forced_frames = mic_available > host_available ? mic_available : host_available;
     const size_t wanted_frames = force ? forced_frames : paired_frames;
+
+#if defined(BUILD_USE_MP3_COMPRESSION)
+    const size_t frames = wanted_frames < kMp3PumpFrames ? wanted_frames : kMp3PumpFrames;
+#else
     const size_t buffer_offset = plaintext_audio_write_offset();
     const size_t buffer_frames = (sizeof(g_wav_plaintext_audio) - buffer_offset) / kWavFrameBytes;
     const size_t max_frames    = buffer_frames < kWavPumpFrames ? buffer_frames : kWavPumpFrames;
     const size_t frames        = wanted_frames < max_frames ? wanted_frames : max_frames;
+#endif
     if (frames == 0)
     {
         return false;
@@ -863,7 +1156,11 @@ bool pump_audio_chunk_locked(bool force)
         return false;
     }
 
+#if defined(BUILD_USE_MP3_COMPRESSION)
+    int16_t* stereo_samples = g_mp3_stereo_samples;
+#else
     int16_t* stereo_samples = reinterpret_cast<int16_t*>(g_wav_plaintext_audio + buffer_offset);
+#endif
     for (size_t i = 0; i < frames; ++i)
     {
         stereo_samples[i * 2]     = g_wav_mic_samples[i];
@@ -873,7 +1170,13 @@ bool pump_audio_chunk_locked(bool force)
     #ifdef BUILD_SILENCE_GAP_REMOVAL
     if (is_silent_chunk(stereo_samples, frames * kWavChannels))
     {
-        if (g_consecutive_silent_chunks >= 5)
+        if (g_consecutive_silent_chunks >= 
+            #if defined(BUILD_USE_MP3_COMPRESSION)
+                20
+            #else
+                5
+            #endif
+        )
         {
             return true;
         }
@@ -885,13 +1188,19 @@ bool pump_audio_chunk_locked(bool force)
     }
     #endif
 
+#if defined(BUILD_USE_MP3_COMPRESSION)
+    if (!write_mp3_samples(stereo_samples, frames * kWavFrameBytes))
+    {
+        return false;
+    }
+#else
     if (!write_samples(stereo_samples, frames * kWavFrameBytes))
     {
         return false;
     }
+#endif
 
-    g_mic_fifo->resetFlowFlags();
-    g_host_fifo->resetFlowFlags();
+    reset_fifo_flow_flags_after_observation();
 
     return true;
 }
@@ -971,6 +1280,9 @@ bool startRecording(char typeCode)
     bool recording_file_opened = false;
     bool encryption_setup_failed = false;
     bool wav_header_failed = false;
+#if defined(BUILD_USE_MP3_COMPRESSION)
+    bool mp3_encoder_setup_failed = false;
+#endif
     {
         std::lock_guard<std::mutex> lock(g_recorder_mutex);
 
@@ -1003,13 +1315,32 @@ bool startRecording(char typeCode)
                 g_consecutive_write_failures = 0;
                 g_card_failure_reported      = false;
                 g_consecutive_silent_chunks  = 0;
+                reset_fifo_overflow_tracking();
                 g_recording_type_code        = typeCode;
                 memo_type_from_code(typeCode, g_memo_type);
+#if defined(BUILD_USE_MP3_COMPRESSION)
+                g_mp3_callback_failed.store(false, std::memory_order_relaxed);
+                g_mp3_file_write_observed    = false;
+#endif
                 #if BUILD_WITH_SECURITY_LEVEL >= 1
                 g_encryption_sequence        = 0;
                 g_plaintext_audio_chunk_used = 0;
                 #endif
 
+#if defined(BUILD_USE_MP3_COMPRESSION)
+                if (!start_mp3_encoder_locked())
+                {
+                    g_file.close();
+                    g_sd_path[0] = '\0';
+                    mp3_encoder_setup_failed = true;
+                }
+                else
+                {
+                    set_recording_active(true);
+                    recording_file_opened = true;
+                    strncpy(started_path, g_sd_path, sizeof(started_path) - 1);
+                }
+#else
                 #if BUILD_WITH_SECURITY_LEVEL >= 1
                 if (!write_encrypted_placeholder_wav_header_locked())
                 #else
@@ -1027,6 +1358,7 @@ bool startRecording(char typeCode)
                     recording_file_opened = true;
                     strncpy(started_path, g_sd_path, sizeof(started_path) - 1);
                 }
+#endif
             }
         }
     }
@@ -1040,6 +1372,13 @@ bool startRecording(char typeCode)
 #if BUILD_WITH_SECURITY_LEVEL >= 1
         std::lock_guard<std::mutex> lock(g_recorder_mutex);
         stop_recording_encryption_locked();
+#endif
+#if defined(BUILD_USE_MP3_COMPRESSION)
+        if (mp3_encoder_setup_failed)
+        {
+            show_fatal_error_f(true, "MP3 encoder setup failed");
+            return false;
+        }
 #endif
         fatal_recording_storage_failure(wav_header_failed ? "writing WAV header" : "opening recording file",
                                         wav_header_failed ? "microSD WAV header write failed" : "microSD recording file open failed");
@@ -1112,6 +1451,7 @@ void pump()
 
 bool stopRecording(bool estop)
 {
+    note_fifo_overflow_events();
     set_queue_enabled(false); // tells the queues to stop recording
 
     {
@@ -1134,7 +1474,23 @@ bool stopRecording(bool estop)
         {
             taskYIELD();
         }
+
+#if defined(BUILD_USE_MP3_COMPRESSION)
+        if (!pump_mp3_silence_until_file_write())
+        {
+            DBG_LOGW(TAG, "MP3 close padding did not produce another file write");
+            ok = false;
+        }
+#endif
     }
+
+#if defined(BUILD_USE_MP3_COMPRESSION)
+    if (!flush_mp3_encoder())
+    {
+        DBG_LOGE(TAG, "MP3 encoder flush failed");
+        ok = false;
+    }
+#endif
 
     char     stopped_type_code = static_cast<char>(RecordingType::Unknown);
     MemoType stopped_memo_type = MEMO_TYPE_NOTE;
@@ -1161,6 +1517,14 @@ bool stopRecording(bool estop)
 
         if (g_file)
         {
+#if defined(BUILD_USE_MP3_COMPRESSION)
+            #if BUILD_WITH_SECURITY_LEVEL >= 1
+            if (!finish_encrypted_audio_locked())
+            {
+                ok = false;
+            }
+            #endif
+#else
             #if BUILD_WITH_SECURITY_LEVEL >= 1
             if (!finish_encrypted_audio_locked())
             {
@@ -1172,6 +1536,7 @@ bool stopRecording(bool estop)
                 ok = false;
             }
             #endif
+#endif
 
             g_file.flush(); // this makes sure the buffer actually makes it onto the card
             g_last_flush_ms = millis();
@@ -1188,6 +1553,9 @@ bool stopRecording(bool estop)
 
         stopped_bytes = g_bytes_written;
 
+#if defined(BUILD_USE_MP3_COMPRESSION)
+        destroy_mp3_encoder_locked();
+#endif
 #if BUILD_WITH_SECURITY_LEVEL >= 1
         stop_recording_encryption_locked();
 #endif
@@ -1282,6 +1650,11 @@ uint64_t bytesWritten()
 {
     std::lock_guard<std::mutex> lock(g_recorder_mutex);
     return g_bytes_written;
+}
+
+uint32_t fifoOverflowEvents()
+{
+    return g_fifo_overflow_events.load(std::memory_order_relaxed);
 }
 
 const char* currentSdPath()
