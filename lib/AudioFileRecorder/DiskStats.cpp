@@ -84,6 +84,8 @@ bool ends_with_extension(const char* path, const char* extension)
 bool is_recording_path(const char* path)
 {
     return ends_with_extension(path, ".rec") ||
+           ends_with_extension(path, ".fly") ||
+           ends_with_extension(path, ".mp3") ||
            ends_with_extension(path, ".wav");
 }
 

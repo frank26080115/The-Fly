@@ -548,9 +548,19 @@ bool ScrollView::populateFiles()
             kind   = SCROLL_ITEM_FILE_WAV;
             sprite = make_sprite(sprite_record_100, SPRITE_RECORD_100_WIDTH, SPRITE_RECORD_100_HEIGHT, SPRITE_RECORD_100_BYTES);
         }
+        else if (ends_with_case_insensitive(file_name, ".mp3"))
+        {
+            kind   = SCROLL_ITEM_FILE_MP3;
+            sprite = make_sprite(sprite_record_100, SPRITE_RECORD_100_WIDTH, SPRITE_RECORD_100_HEIGHT, SPRITE_RECORD_100_BYTES);
+        }
         else if (ends_with_case_insensitive(file_name, ".rec"))
         {
             kind   = SCROLL_ITEM_FILE_REC;
+            sprite = make_sprite(sprite_recordenc_100, SPRITE_RECORDENC_100_WIDTH, SPRITE_RECORDENC_100_HEIGHT, SPRITE_RECORDENC_100_BYTES);
+        }
+        else if (ends_with_case_insensitive(file_name, ".fly"))
+        {
+            kind   = SCROLL_ITEM_FILE_FLY;
             sprite = make_sprite(sprite_recordenc_100, SPRITE_RECORDENC_100_WIDTH, SPRITE_RECORDENC_100_HEIGHT, SPRITE_RECORDENC_100_BYTES);
         }
 
@@ -1228,12 +1238,14 @@ void ScrollView::handleScrollItem(ScrollItem& item, uint32_t pressDurationMs)
         }
         break;
     case SCROLL_ITEM_FILE_WAV:
+    case SCROLL_ITEM_FILE_MP3:
         if (onFileWav_)
         {
             onFileWav_(value, pressDurationMs);
         }
         break;
     case SCROLL_ITEM_FILE_REC:
+    case SCROLL_ITEM_FILE_FLY:
         #ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
         if (onFileWav_)
         {

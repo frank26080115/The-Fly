@@ -74,13 +74,15 @@ bool ends_with_case_insensitive(const char* text, const char* suffix)
 
 bool is_listable_recording_name(const char* name)
 {
-    if (ends_with_case_insensitive(name, ".wav"))
+    if (ends_with_case_insensitive(name, ".wav") ||
+        ends_with_case_insensitive(name, ".mp3"))
     {
         return true;
     }
 
-    #if BUILD_WITH_SECURITY_LEVEL > 0
-    return ends_with_case_insensitive(name, ".rec");
+    #ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
+    return ends_with_case_insensitive(name, ".rec") ||
+           ends_with_case_insensitive(name, ".fly");
     #else
     return false;
     #endif

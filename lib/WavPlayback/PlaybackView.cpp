@@ -9,7 +9,6 @@
 #include "../FlyGui/FlyGuiText.h"
 #include "../FlyGuiViews/ModalDialog.h"
 #include "../FlyGuiViews/ScrollView/ScrollView.h"
-#include "WavPlayback.h"
 #include "dbg_log.h"
 #include "sprites.h"
 #include "utilfuncs.h"
@@ -358,6 +357,28 @@ void PlaybackView::configureFile(const char* path)
     setDirty();
 }
 
+void PlaybackView::pumpPlayback()
+{
+    if (playback_)
+    {
+        playback_->pump();
+    }
+}
+
+bool PlaybackView::playbackActive() const
+{
+    return playback_ && playback_->active();
+}
+
+void PlaybackView::stopPlayback()
+{
+    if (playback_)
+    {
+        playback_->stop();
+        playback_.reset();
+    }
+}
+
 void PlaybackView::onLoad()
 {
     activeInstance_ = this;
@@ -372,7 +393,7 @@ void PlaybackView::onLoad()
 
 void PlaybackView::onUnload()
 {
-    WavPlayback::stop();
+    stopPlayback();
     setDeleteButtonVisible(false);
     if (gui())
     {
@@ -502,7 +523,10 @@ void PlaybackView::precisionScrubThunk(uint32_t positionMs, void* context)
 
 void PlaybackView::handlePlayPause()
 {
-    WavPlayback::togglePlaying();
+    if (playback_)
+    {
+        playback_->togglePlaying();
+    }
     syncControls();
 }
 
@@ -513,7 +537,7 @@ void PlaybackView::handleVolume()
 
 void PlaybackView::handleExit()
 {
-    WavPlayback::stop();
+    stopPlayback();
     FlyGui::quickScreenFade();
     if (gui())
     {
@@ -523,7 +547,7 @@ void PlaybackView::handleExit()
 
 void PlaybackView::handleDelete()
 {
-    if (!deleteButton_.visible() || !WavPlayback::paused())
+    if (!deleteButton_.visible() || !playback_ || !playback_->paused())
     {
         return;
     }
@@ -542,7 +566,7 @@ void PlaybackView::handleDelete()
     char deletedName[sizeof(fileName_)] = {};
     strlcpy(deletedName, fileName_[0] != '\0' ? fileName_ : "Audio file", sizeof(deletedName));
 
-    WavPlayback::stop();
+    stopPlayback();
     if (gui())
     {
         gui()->setAudioActive(false);
@@ -597,8 +621,12 @@ void PlaybackView::handleDelete()
 void PlaybackView::handleScrub(uint32_t positionMs)
 {
     setDeleteArmed(false);
-    WavPlayback::setPositionMs(positionMs);
-    const uint32_t current = WavPlayback::positionMs();
+    if (!playback_)
+    {
+        return;
+    }
+    playback_->setPositionMs(positionMs);
+    const uint32_t current = playback_->positionMs();
     scrubBar_.setPositionMs(current);
     precisionScrubBar_.setPositionMs(current);
     precisionWindowInitialized_ = false;
@@ -608,8 +636,12 @@ void PlaybackView::handleScrub(uint32_t positionMs)
 void PlaybackView::handlePrecisionScrub(uint32_t positionMs)
 {
     setDeleteArmed(false);
-    WavPlayback::setPositionMs(positionMs);
-    const uint32_t current = WavPlayback::positionMs();
+    if (!playback_)
+    {
+        return;
+    }
+    playback_->setPositionMs(positionMs);
+    const uint32_t current = playback_->positionMs();
     scrubBar_.setPositionMs(current);
     precisionScrubBar_.setPositionMs(current);
     setDirty();
@@ -627,14 +659,25 @@ void PlaybackView::startPlayback()
     precisionWindowInitialized_ = false;
     setVolumeIndex(volumeIndex_);
 
-    if (!WavPlayback::start(path_))
+    playback_ = FilePlayback::createForPath(path_);
+    if (!playback_)
     {
-        snprintf(statusText_, sizeof(statusText_), "Playback failed: %s", WavPlayback::lastError());
+        snprintf(statusText_, sizeof(statusText_), "Playback failed: unsupported file");
         DBG_LOGW(TAG, "%s", statusText_);
     }
+    else
+    {
+        const VolumeOption& option = kVolumeOptions[volumeIndex_];
+        playback_->setVolume(option.volume);
+        if (!playback_->start(path_))
+        {
+            snprintf(statusText_, sizeof(statusText_), "Playback failed: %s", playback_->lastError());
+            DBG_LOGW(TAG, "%s", statusText_);
+        }
+    }
 
-    scrubBar_.setTotalMs(WavPlayback::durationMs());
-    scrubBar_.setPositionMs(WavPlayback::positionMs());
+    scrubBar_.setTotalMs(playback_ ? playback_->durationMs() : 0);
+    scrubBar_.setPositionMs(playback_ ? playback_->positionMs() : 0);
     syncControls();
     frameDirty_ = true;
 }
@@ -652,7 +695,7 @@ void PlaybackView::layoutItems()
 
 void PlaybackView::syncControls()
 {
-    const bool shouldShowPause = WavPlayback::playing();
+    const bool shouldShowPause = playback_ && playback_->playing();
     if (shouldShowPause != playIconPause_)
     {
         playIconPause_ = shouldShowPause;
@@ -672,8 +715,8 @@ void PlaybackView::syncControls()
         }
     }
 
-    const uint32_t total   = WavPlayback::durationMs();
-    const uint32_t current = std::min(WavPlayback::positionMs(), total);
+    const uint32_t total = playback_ ? playback_->durationMs() : 0;
+    const uint32_t current = std::min(playback_ ? playback_->positionMs() : 0, total);
     scrubBar_.setTotalMs(total);
     scrubBar_.setPositionMs(current);
     syncPrecisionScrubBar(current, total, shouldShowPause);
@@ -682,7 +725,7 @@ void PlaybackView::syncControls()
 
 void PlaybackView::syncPrecisionScrubBar(uint32_t currentMs, uint32_t totalMs, bool playing)
 {
-    const bool shouldShow = !playing && WavPlayback::active() && totalMs > kLongFilePrecisionThresholdMs;
+    const bool shouldShow = !playing && playback_ && playback_->active() && totalMs > kLongFilePrecisionThresholdMs;
     if (!shouldShow)
     {
         if (precisionScrubBar_.visible())
@@ -727,7 +770,7 @@ void PlaybackView::syncPrecisionScrubBar(uint32_t currentMs, uint32_t totalMs, b
 
 void PlaybackView::syncDeleteButton(bool playing)
 {
-    setDeleteButtonVisible(!playing && WavPlayback::active());
+    setDeleteButtonVisible(!playing && playback_ && playback_->active());
 }
 
 void PlaybackView::setVolumeIndex(uint8_t index)
@@ -737,7 +780,10 @@ void PlaybackView::setVolumeIndex(uint8_t index)
 
     const VolumeOption& option = kVolumeOptions[volumeIndex_];
     volumeButton_.setSprite(option.sprite, option.width, option.height, option.bytes);
-    WavPlayback::setVolume(option.volume);
+    if (playback_)
+    {
+        playback_->setVolume(option.volume);
+    }
 }
 
 void PlaybackView::setDeleteButtonVisible(bool visible)

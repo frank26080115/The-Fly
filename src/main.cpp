@@ -27,7 +27,6 @@
 #include "ScrollView/ScrollView.h"
 #include "ShutdownView.h"
 #include "WebServer.h"
-#include "WavPlayback.h"
 #include "WifiManager.h"
 #include "WifiStaModeView.h"
 #include "dbg_log.h"
@@ -247,7 +246,10 @@ void loop()
     {
         AudioFileRecorder::pump();
     }
-    WavPlayback::pump();
+    if (PlaybackView* playback_view = all_init_playback_view())
+    {
+        playback_view->pumpPlayback();
+    }
     if (wifi_manager) {
         wifi_manager->poll();
         handle_wifi_connection_waiting();
@@ -561,9 +563,10 @@ static void handle_pending_bluetooth_recording()
         return;
     }
 
-    if (WavPlayback::active())
+    PlaybackView* playback_view = all_init_playback_view();
+    if (playback_view && playback_view->playbackActive())
     {
-        WavPlayback::stop();
+        playback_view->stopPlayback();
     }
 
     DBG_LOGI(MAINTAG, "Bluetooth recording trigger accepted at state: %s", BtManager::stateName(BtManager::state()));

@@ -4,8 +4,10 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <memory>
 
 #include "../FlyGui/FlyGui.h"
+#include "FilePlayback.h"
 #include "ScrubBar.h"
 
 class PlaybackView : public FlyGuiView
@@ -14,6 +16,9 @@ public:
     PlaybackView();
 
     void configureFile(const char* path);
+    void pumpPlayback();
+    bool playbackActive() const;
+    void stopPlayback();
 
     void onLoad() override;
     void onUnload() override;
@@ -71,4 +76,5 @@ private:
     bool     frameDirty_    = true;
     bool     precisionWindowInitialized_ = false;
     uint32_t deleteArmedAtMs_ = 0;
+    std::unique_ptr<FilePlayback> playback_;
 };
