@@ -1790,10 +1790,102 @@
     "commit_hash": "85ea670fbb96bddad0494a3ef75e7ec65c09adbf"
   },
   {
+    "timestamp": "2026-05-28T18:42:38.091Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "in `index.html`, there's a table for the bluetooth devices",
+      "",
+      "there are two columns for the name, one os for the custom name, and one is for the reported name, inside `bt_host_item_t` they are `name_custom` and `name_reported`",
+      "",
+      "I don't want to clutter the table or confuse the user",
+      "",
+      "The rule is that, on the device's LCD screen, the custom name is shown if there is one, and if not, the reported name is shown, and if there is not one, then the BDADDR",
+      "",
+      "on the web page, it should be almost the same.",
+      "",
+      "so the first policy is basically that the `name_reported` is never edited except during pairing.",
+      "",
+      "the table inside `index.html` should only have a single name column. When `/get_cfg` is received, is populated with the `name_custom` if `name_custom` is not empty, otherwise it is populated with the `name_reported`.",
+      "",
+      "if the user deletes whatever is in the textbox and hits save, `name_custom` becomes empty. the policy is, during submission, simply fill the `name_custom` item with whatever is in the textbox."
+    ],
+    "agent_reply": [
+      "Done. The Bluetooth table now has one `Name` column in [html/index.html](C:/GitHubRepos/The-Fly/html/index.html), and `/get_cfg` fills it as `name_custom || name_reported` in [html/script.js](C:/GitHubRepos/The-Fly/html/script.js). Save submission still sends exactly the textbox value as `name_custom`, including empty.",
+      "",
+      "I also adjusted the Bluetooth row grid in [html/styles.css](C:/GitHubRepos/The-Fly/html/styles.css) and regenerated [inc/web_assets.h](C:/GitHubRepos/The-Fly/inc/web_assets.h).",
+      "",
+      "Verification: `pio run -e thefly_sec0` passed. The plain default `pio run` still fails because `BUILD_WITH_SECURITY_LEVEL` is not defined for `thefly`. Also noting [src/version.c](C:/GitHubRepos/The-Fly/src/version.c) was already dirty when I started and remains modified by the build/version tooling."
+    ],
+    "files": [
+      "html/script.js",
+      "html/index.html",
+      "html/styles.css",
+      "inc/web_assets.h",
+      "src/version.c"
+    ]
+  },
+  {
     "timestamp": "2026-05-28T18:53:53Z",
     "type": "git_commit",
     "commit_message": "single name column for BT hosts",
     "commit_hash": "0dc7f5510c3f05971b4e8a50538487de88946deb"
+  },
+  {
+    "timestamp": "2026-05-28T18:55:04.939Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WebCfgHandlers.cpp",
+      "",
+      "## Active selection of the file:",
+      "p",
+      "",
+      "## My request for Codex:",
+      "Inside `WebServer.cpp`, register a handler for `/time_sync` and implement the handler inside `WebCfgHandlers.cpp`.",
+      "",
+      "But first, make sure `/get_info` contains a field called `current-time` reported by `ClockAgent`",
+      "",
+      "When the JSON gets parsed in the frontend, `current-time` is compared against the browser time. The offset is displayed as an error offset in number of seconds inside the information display. If the number exceeds 60 seconds, highlight it as red, and offer the “Sync Time” button right under it.",
+      "",
+      "When the “Sync Time” button is clicked, an ajax request to `/time_sync` is called with the browser time. The handler will set the time via `ClockAgent` and commit it to the physical RTC.",
+      "",
+      "This function is available for all security levels, but for level 2 and 3, the button and its functionality requires the default secure soft AP. Make sure both the frontend and backend enforces this.",
+      "",
+      "Transport of the time in this usage should be using Unix time integer"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "`/get_info` now includes `\"current-time\"` from `ClockAgent`, and the frontend shows a signed `Time Offset` in seconds against browser time. If the absolute offset is over 60 seconds, it highlights red and shows a `Sync Time` button directly underneath when allowed.",
+      "",
+      "Added `POST /time_sync?time=<unix>` via `WebCfgHandlers::timeSync()`. It sets the time through `ClockAgent::setUnixTime()`, which writes through to the physical RTC. For security levels 2/3, both frontend and backend require the generated/default secure soft AP.",
+      "",
+      "Touched:",
+      "`lib/WifiManager/WebServer.cpp`, `lib/WifiManager/WebCfgHandlers.cpp/.h`, `lib/ClockAgent/ClockAgent.cpp/.h`, `html/script.js`, `html/styles.css`, and regenerated `inc/web_assets.h`.",
+      "",
+      "Verification passed:",
+      "`pio run -e thefly_sec0`",
+      "`pio run -e thefly_sec2` (covers the `BUILD_WITH_SECURITY_LEVEL >= 2` backend gate)",
+      "",
+      "`src/version.c` is still modified by the build/version tooling."
+    ],
+    "files": [
+      "lib/ClockAgent/ClockAgent.h",
+      "lib/ClockAgent/ClockAgent.cpp",
+      "lib/WifiManager/WebServer.cpp",
+      "lib/WifiManager/WebCfgHandlers.h",
+      "lib/WifiManager/WebCfgHandlers.cpp",
+      "html/script.js",
+      "html/styles.css",
+      "inc/web_assets.h",
+      "src/version.c"
+    ]
   },
   {
     "timestamp": "2026-05-28T21:04:08Z",
@@ -2296,5 +2388,70 @@
     "type": "git_commit",
     "commit_message": "fixed a lot of web issues",
     "commit_hash": "a1e8949e841901b5e57b90e644f9dae0d3e50adc"
+  },
+  {
+    "timestamp": "2026-06-01T19:50:42.352Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main.cpp",
+      "",
+      "## My request for Codex:",
+      "please add to `lib\\WifiManager\\DecryptedDownload.cpp` the ability to download `fly` encrypted MP3 files, I think this is actually simpler than the `rec` files since it's just a straight up decrypt then stream without caring about the file header, just different packet sizes",
+      "",
+      "also update the front-end to support decrypted downloads for `fly` files just like `rec` files, I mean the way there's an unlock button, and when that button is shown or hidden"
+    ],
+    "agent_reply": [
+      "Implemented `.fly` decrypted downloads.",
+      "",
+      "Backend:",
+      "- `.rec` still decrypts to patched WAV output.",
+      "- `.fly` now decrypts MP3 encrypted chunks directly and streams/downloads as `.mp3`.",
+      "- The endpoint now accepts `.rec` and `.fly`, with `audio/wav` or `audio/mpeg` for inline streaming and `X-TheFly-Content` set to `decrypted-wav` / `decrypted-mp3`.",
+      "",
+      "Frontend:",
+      "- Unlock buttons now show for `.rec` and `.fly`.",
+      "- Decrypted filenames become `.wav` for `.rec` and `.mp3` for `.fly`.",
+      "- The client-side validation/error text now allows both.",
+      "",
+      "Verified:",
+      "- `pio run -e thefly_sec1` passes.",
+      "- `pio run -e thefly_sec0` passes.",
+      "- `git diff --check` passes, with only CRLF warnings.",
+      "",
+      "Build regenerated `inc/web_assets.h` and `src/version.c` changed from the version-generation step.",
+      "",
+      "Implemented `.fly` decrypted downloads.",
+      "",
+      "Backend:",
+      "- `.rec` still decrypts to patched WAV output.",
+      "- `.fly` now decrypts MP3 encrypted chunks directly and streams/downloads as `.mp3`.",
+      "- The endpoint now accepts `.rec` and `.fly`, with `audio/wav` or `audio/mpeg` for inline streaming and `X-TheFly-Content` set to `decrypted-wav` / `decrypted-mp3`.",
+      "",
+      "Frontend:",
+      "- Unlock buttons now show for `.rec` and `.fly`.",
+      "- Decrypted filenames become `.wav` for `.rec` and `.mp3` for `.fly`.",
+      "- The client-side validation/error text now allows both.",
+      "",
+      "Verified:",
+      "- `pio run -e thefly_sec1` passes.",
+      "- `pio run -e thefly_sec0` passes.",
+      "- `git diff --check` passes, with only CRLF warnings.",
+      "",
+      "Build regenerated `inc/web_assets.h` and `src/version.c` changed from the version-generation step."
+    ],
+    "files": [
+      "lib/WifiManager/DecryptedDownload.cpp",
+      "html/script.js",
+      "inc/web_assets.h",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T19:57:41Z",
+    "type": "git_commit",
+    "commit_message": "web changes to support MP3 and encrypted MP3",
+    "commit_hash": "e8a8a42ecec4da2e257d83d7b53a74d88a8de7b7"
   }
 ]

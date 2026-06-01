@@ -488,6 +488,33 @@
     "commit_hash": "b4a10916d5b7ea69c537dd11e62033af5ee67a64"
   },
   {
+    "timestamp": "2026-05-29T18:01:29.090Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main.cpp",
+      "",
+      "## Active selection of the file:",
+      "BattTracker::poll();",
+      "",
+      "## My request for Codex:",
+      "for the `ErrorView` I want a change",
+      "",
+      "I want to place a button with `sprite_doorreturn_50` for non fatal errors, clicking it or `BtnC` is now what dismisses the dialog. Remove the bottom message.",
+      "",
+      "For fatal errors, place a button with `sprite_firstaidwifi_50` and when clicking it, it does a best effort at launching the default secure soft AP and then showing the `WifiApModeView` . The polling loop for this will need to have `WifiManager` polling, and maybe `BattTracker::poll();` too.",
+      "",
+      "Only show this new Wi-Fi button if `wifi_manager` is not null.",
+      "",
+      "Make sure that the launching of the default secure softAP does not require the successful loading of NVS. I understand that a lot of the web functionality might fail, like `/get_info` or `/get_cfg`, make sure those fail gracefully with HTTP codes when NVS is not loaded. We do need the file uploader to work though."
+    ],
+    "agent_reply": "",
+    "files": [
+      "inc/sprites.h"
+    ]
+  },
+  {
     "timestamp": "2026-05-29T19:12:05Z",
     "type": "git_commit",
     "commit_message": "better error screens with rescue wifi",

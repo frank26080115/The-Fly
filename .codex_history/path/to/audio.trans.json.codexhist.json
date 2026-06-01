@@ -1,0 +1,44 @@
+[
+  {
+    "timestamp": "2026-05-28T21:18:48.133Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## My request for Codex:",
+      "Write a python script as `scripts\\thefly_transcription.py`",
+      "",
+      "Use argparse, allow the user to specify any `*.wav` file as the input, and an output path. If the output path is not specified, then the output path is the same place as the `*.wav` file but with an extension like `*.trans.json`",
+      "",
+      "Assume `OPENAI_API_KEY` is already set in the environment",
+      "",
+      "Use OpenAI’s API platform to perform the transcription."
+    ],
+    "agent_reply": [
+      "Added [scripts/thefly_transcription.py](C:/GitHubRepos/The-Fly/scripts/thefly_transcription.py).",
+      "",
+      "Usage:",
+      "```powershell",
+      "python scripts\\thefly_transcription.py path\\to\\audio.wav",
+      "python scripts\\thefly_transcription.py path\\to\\audio.wav -o path\\to\\audio.trans.json",
+      "```",
+      "",
+      "It defaults output to `input.trans.json`, reads `OPENAI_API_KEY` from the environment, uploads the WAV to OpenAI’s `/v1/audio/transcriptions` endpoint, and writes the returned JSON with pretty formatting. Default model is `gpt-4o-transcribe`, with `--model`, `--language`, `--prompt`, and `--response-format` options.",
+      "",
+      "Verified:",
+      "`python -m py_compile scripts\\thefly_transcription.py`",
+      "`python scripts\\thefly_transcription.py --help`",
+      "",
+      "I didn’t run an actual transcription call. Official API references used: OpenAI transcription endpoint and `gpt-4o-transcribe` model docs:",
+      "https://platform.openai.com/docs/api-reference/audio/create-transcription",
+      "https://platform.openai.com/docs/models/gpt-4o-transcribe"
+    ],
+    "files": [
+      "scripts/thefly_transcription.py",
+      "path/to/audio.wav",
+      "path/to/audio.trans.json"
+    ]
+  }
+]

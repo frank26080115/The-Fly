@@ -1,0 +1,53 @@
+[
+  {
+    "timestamp": "2026-05-31T21:54:50Z",
+    "type": "git_commit",
+    "commit_message": "python script rewrite for new file format",
+    "commit_hash": "69a3e8656671f00fe321856f14ee4d1420110ebe"
+  },
+  {
+    "timestamp": "2026-06-01T20:06:27.818Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: scripts/thefly_desktop.py",
+      "",
+      "## My request for Codex:",
+      "edit `scripts\\thefly_audio_decryptor.py` to support both `.rec` and `.fly` encrypted mp3 files now",
+      "",
+      "edit `scripts\\thefly_desktop.py` to handle the encountering of all cases of files, so `wav` and `mp3` and `rec` and `fly` files, but these input files can all live in the same sub folder in the database folder. remember to import stuff from `thefly_audio_decryptor` when needed"
+    ],
+    "agent_reply": [
+      "Implemented the Python side.",
+      "",
+      "In [scripts/thefly_audio_decryptor.py](C:/GitHubRepos/The-Fly/scripts/thefly_audio_decryptor.py:51), `.fly` now decrypts fixed-size encrypted MP3 chunks straight to `.mp3`, while `.rec` keeps the existing encrypted WAV-to-WAV path. It also exposes shared suffix/output helpers for `.rec`, `.fly`, `.wav`, and `.mp3`.",
+      "",
+      "In [scripts/thefly_desktop.py](C:/GitHubRepos/The-Fly/scripts/thefly_desktop.py:33), the database now uses a single `audio` subfolder for all audio cases. Device sync and `--transcribe-file` now handle `.wav`, `.mp3`, `.rec`, and `.fly`; encrypted `.rec` becomes `.wav`, encrypted `.fly` becomes `.mp3`, and transcription works against the decoded/plain audio file without PlaybackView-style type branching.",
+      "",
+      "Verification:",
+      "- `python -m py_compile scripts\\thefly_audio_decryptor.py scripts\\thefly_desktop.py`",
+      "- `python scripts\\thefly_audio_decryptor.py --help`",
+      "- `python scripts\\thefly_desktop.py --help`",
+      "",
+      "One note: the local Python env is missing `cryptography`, so I could not run an actual encrypted decrypt sample here. I made desktop crypto loading lazy, so `--help` and plain `.wav/.mp3` workflows no longer fail just because that package is absent.",
+      "",
+      "Implemented the Python side.",
+      "",
+      "In [scripts/thefly_audio_decryptor.py](C:/GitHubRepos/The-Fly/scripts/thefly_audio_decryptor.py:51), `.fly` now decrypts fixed-size encrypted MP3 chunks straight to `.mp3`, while `.rec` keeps the existing encrypted WAV-to-WAV path. It also exposes shared suffix/output helpers for `.rec`, `.fly`, `.wav`, and `.mp3`.",
+      "",
+      "In [scripts/thefly_desktop.py](C:/GitHubRepos/The-Fly/scripts/thefly_desktop.py:33), the database now uses a single `audio` subfolder for all audio cases. Device sync and `--transcribe-file` now handle `.wav`, `.mp3`, `.rec`, and `.fly`; encrypted `.rec` becomes `.wav`, encrypted `.fly` becomes `.mp3`, and transcription works against the decoded/plain audio file without PlaybackView-style type branching.",
+      "",
+      "Verification:",
+      "- `python -m py_compile scripts\\thefly_audio_decryptor.py scripts\\thefly_desktop.py`",
+      "- `python scripts\\thefly_audio_decryptor.py --help`",
+      "- `python scripts\\thefly_desktop.py --help`",
+      "",
+      "One note: the local Python env is missing `cryptography`, so I could not run an actual encrypted decrypt sample here. I made desktop crypto loading lazy, so `--help` and plain `.wav/.mp3` workflows no longer fail just because that package is absent."
+    ],
+    "files": [
+      "scripts/thefly_audio_decryptor.py",
+      "scripts/thefly_desktop.py"
+    ]
+  }
+]

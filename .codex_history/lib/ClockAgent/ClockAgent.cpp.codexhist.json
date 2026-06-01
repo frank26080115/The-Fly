@@ -285,6 +285,58 @@
     "commit_hash": "b1666ed641f04db9ed2dcef198f85144bad52595"
   },
   {
+    "timestamp": "2026-05-28T18:55:04.939Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WebCfgHandlers.cpp",
+      "",
+      "## Active selection of the file:",
+      "p",
+      "",
+      "## My request for Codex:",
+      "Inside `WebServer.cpp`, register a handler for `/time_sync` and implement the handler inside `WebCfgHandlers.cpp`.",
+      "",
+      "But first, make sure `/get_info` contains a field called `current-time` reported by `ClockAgent`",
+      "",
+      "When the JSON gets parsed in the frontend, `current-time` is compared against the browser time. The offset is displayed as an error offset in number of seconds inside the information display. If the number exceeds 60 seconds, highlight it as red, and offer the “Sync Time” button right under it.",
+      "",
+      "When the “Sync Time” button is clicked, an ajax request to `/time_sync` is called with the browser time. The handler will set the time via `ClockAgent` and commit it to the physical RTC.",
+      "",
+      "This function is available for all security levels, but for level 2 and 3, the button and its functionality requires the default secure soft AP. Make sure both the frontend and backend enforces this.",
+      "",
+      "Transport of the time in this usage should be using Unix time integer"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "`/get_info` now includes `\"current-time\"` from `ClockAgent`, and the frontend shows a signed `Time Offset` in seconds against browser time. If the absolute offset is over 60 seconds, it highlights red and shows a `Sync Time` button directly underneath when allowed.",
+      "",
+      "Added `POST /time_sync?time=<unix>` via `WebCfgHandlers::timeSync()`. It sets the time through `ClockAgent::setUnixTime()`, which writes through to the physical RTC. For security levels 2/3, both frontend and backend require the generated/default secure soft AP.",
+      "",
+      "Touched:",
+      "`lib/WifiManager/WebServer.cpp`, `lib/WifiManager/WebCfgHandlers.cpp/.h`, `lib/ClockAgent/ClockAgent.cpp/.h`, `html/script.js`, `html/styles.css`, and regenerated `inc/web_assets.h`.",
+      "",
+      "Verification passed:",
+      "`pio run -e thefly_sec0`",
+      "`pio run -e thefly_sec2` (covers the `BUILD_WITH_SECURITY_LEVEL >= 2` backend gate)",
+      "",
+      "`src/version.c` is still modified by the build/version tooling."
+    ],
+    "files": [
+      "lib/ClockAgent/ClockAgent.h",
+      "lib/ClockAgent/ClockAgent.cpp",
+      "lib/WifiManager/WebServer.cpp",
+      "lib/WifiManager/WebCfgHandlers.h",
+      "lib/WifiManager/WebCfgHandlers.cpp",
+      "html/script.js",
+      "html/styles.css",
+      "inc/web_assets.h",
+      "src/version.c"
+    ]
+  },
+  {
     "timestamp": "2026-05-28T21:04:08Z",
     "type": "git_commit",
     "commit_message": "time sync",

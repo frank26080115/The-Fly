@@ -915,5 +915,63 @@
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
+  },
+  {
+    "timestamp": "2026-06-01T19:24:31.221Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main.cpp",
+      "",
+      "## My request for Codex:",
+      "`bool equals_case_insensitive(const char* lhs, const char* rhs)` and `bool ends_with_case_insensitive(const char* text, const char* suffix)` move these to `lib\\UtilFuncs\\utilfuncs.cpp`, there may be other instances of these functions elsewhere, move all of them"
+    ],
+    "agent_reply": [
+      "Done. I moved `equals_case_insensitive` and `ends_with_case_insensitive` into `lib/UtilFuncs/utilfuncs.cpp/.h`, removed the duplicate local implementations, and updated callers in:",
+      "",
+      "- `lib/AudioFileRecorder/MostRecentFiles.cpp`",
+      "- `lib/FlyGuiViews/ScrollView/ScrollView.cpp`",
+      "- `lib/WavPlayback/FilePlayback.cpp`",
+      "- `lib/WifiManager/DecryptedDownload.cpp`",
+      "",
+      "Verified:",
+      "- `pio run -e thefly_sec0` passes",
+      "- `pio run -e thefly_sec1` passes",
+      "- `rg` now finds only the shared declarations/definitions",
+      "- `git diff --check` passes, with only the usual CRLF warnings",
+      "",
+      "`src/version.c` changed again from the PlatformIO version-generation step.",
+      "",
+      "Done. I moved `equals_case_insensitive` and `ends_with_case_insensitive` into `lib/UtilFuncs/utilfuncs.cpp/.h`, removed the duplicate local implementations, and updated callers in:",
+      "",
+      "- `lib/AudioFileRecorder/MostRecentFiles.cpp`",
+      "- `lib/FlyGuiViews/ScrollView/ScrollView.cpp`",
+      "- `lib/WavPlayback/FilePlayback.cpp`",
+      "- `lib/WifiManager/DecryptedDownload.cpp`",
+      "",
+      "Verified:",
+      "- `pio run -e thefly_sec0` passes",
+      "- `pio run -e thefly_sec1` passes",
+      "- `rg` now finds only the shared declarations/definitions",
+      "- `git diff --check` passes, with only the usual CRLF warnings",
+      "",
+      "`src/version.c` changed again from the PlatformIO version-generation step."
+    ],
+    "files": [
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "lib/AudioFileRecorder/MostRecentFiles.cpp",
+      "lib/WavPlayback/FilePlayback.cpp",
+      "lib/UtilFuncs/utilfuncs.h",
+      "lib/UtilFuncs/utilfuncs.cpp",
+      "lib/WifiManager/DecryptedDownload.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T19:48:35Z",
+    "type": "git_commit",
+    "commit_message": "a lot of duplicate string comparison implementations",
+    "commit_hash": "90dc90455dec156a8460b220ef615f3e503154ab"
   }
 ]

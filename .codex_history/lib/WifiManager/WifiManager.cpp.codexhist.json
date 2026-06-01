@@ -2402,6 +2402,40 @@
     "commit_hash": "ac4ec57217cd509c382c25a843a98cc0803dcc4e"
   },
   {
+    "timestamp": "2026-05-27T21:32:15.733Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: .pio/packages/framework-arduinoespressif32/tools/sdk/esp32/sdkconfig",
+      "",
+      "## My request for Codex:",
+      "look at `lib\\WifiManager\\WifiManager.cpp` and read `.codex_history\\lib\\WifiManager\\WifiManager.cpp.codexhist.json` for context of what you just did. I've asked you to use a low level Wi-Fi soft AP startup so the security is configured first and then the AP is started after. This works, I can connect to it and it shows that it is using WPA3.",
+      "",
+      "The problem right now is that `lib\\FlyGuiViews\\WifiApModeView.cpp` is showing `0.0.0.0` as the IP address",
+      "",
+      "I am unsure if this is a small \"change where the IP is read from\" or if it is a larger problem that affects all the networking/server code being used."
+    ],
+    "agent_reply": [
+      "Fixed in [WifiManager.cpp](c:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:445).",
+      "",
+      "This was a little larger than just “read the IP elsewhere.” The low-level AP path was calling `esp_wifi_start()` directly, which left Arduino’s `WiFi` wrapper thinking Wi-Fi was not started. That made `WiFi.softAPIP()` return `0.0.0.0`, and could also make Arduino-level AP disconnect/mode helpers unreliable later.",
+      "",
+      "I kept the config-first WPA3 flow, but changed the final start to `WiFi.mode(WIFI_MODE_AP)` after `esp_wifi_set_config(...)`. So the AP is still configured before it starts, but Arduino’s state is now synchronized again. That should fix `WifiApModeView`, the Wi-Fi info dialog, and `/get_info`’s `self_ip`.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-05-27T21:46:33Z",
     "type": "git_commit",
     "commit_message": "seem to fix the bad IP display issue",

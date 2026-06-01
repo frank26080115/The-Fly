@@ -545,6 +545,57 @@
     "commit_hash": "35a2b487220fe0993a1c66c1e5833f19656055bc"
   },
   {
+    "timestamp": "2026-05-29T18:08:51.752Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: tools/graphics_converter.py",
+      "",
+      "## Active selection of the file:",
+      "Sprite",
+      "",
+      "## My request for Codex:",
+      "ok I put the missing sprites in, let's do this again",
+      "",
+      "for the `ErrorView` I want a change",
+      "",
+      "I want to place a button with `sprite_doorreturn_50` for non fatal errors, clicking it or `BtnC` is now what dismisses the dialog. Remove the bottom message.",
+      "",
+      "For fatal errors, place a button with `sprite_firstaidwifi_50` and when clicking it, it does a best effort at launching the default secure soft AP and then showing the `WifiApModeView` . The polling loop for this will need to have `WifiManager` polling, and maybe `BattTracker::poll();` too.",
+      "",
+      "Only show this new Wi-Fi button if `wifi_manager` is not null.",
+      "",
+      "Make sure that the launching of the default secure softAP does not require the successful loading of NVS. I understand that a lot of the web functionality might fail, like `/get_info` or `/get_cfg`, make sure those fail gracefully with HTTP codes when NVS is not loaded. We do need the file uploader to work though."
+    ],
+    "agent_reply": [
+      "Implemented the `ErrorView` rescue flow.",
+      "",
+      "What changed:",
+      "- Nonfatal errors now show `sprite_doorreturn_50`; only that button or `BtnC` dismisses.",
+      "- Removed the bottom “touch screen” / fatal restart text.",
+      "- Fatal errors now show `sprite_firstaidwifi_50` when `wifi_manager` exists.",
+      "- The fatal Wi-Fi button best-effort starts the generated secure SoftAP, starts the web server, and switches to `WifiApModeView`.",
+      "- Fatal error polling now keeps `gui`, `BattTracker`, and `WifiManager` moving.",
+      "- NVS init failure now stops later, after `wifi_manager` and microSD can exist, so the rescue AP/file upload path can come up.",
+      "- `/get_info`, `/get_cfg`, `/set_cfg`, password reset, and memory reset now return `503` when NVS/config state is unavailable. File upload/list/download handlers remain independent.",
+      "",
+      "Verified:",
+      "- `pio run -e thefly_sec0` passes.",
+      "- `pio run -e thefly_sec2` passes.",
+      "",
+      "One note: plain `pio run` still fails because the default `thefly` env does not define `BUILD_WITH_SECURITY_LEVEL`; the security-specific envs are good."
+    ],
+    "files": [
+      "lib/FlyGuiViews/ErrorView.h",
+      "lib/FlyGuiViews/ErrorView.cpp",
+      "src/all_init.cpp",
+      "src/main.cpp",
+      "lib/WifiManager/WebServer.cpp",
+      "lib/WifiManager/WebCfgHandlers.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-05-29T19:12:05Z",
     "type": "git_commit",
     "commit_message": "better error screens with rescue wifi",
