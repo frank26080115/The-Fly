@@ -12,6 +12,6 @@ Then, the raw audio data is encrypted as a packet. The size is configurable thro
 
 There is a firmware build option to use MP3 files instead.
 
-The file should use 64 kbps constant bit-rate mode (CBR). The audio represented is 16 kHz sample rate, 16 bit stereo.
+The file should use 64 kbps constant bit-rate mode (CBR). The audio represented is 16 kHz sample rate, 16 bit stereo. Bit reservoir is also disabled.
 
 When encrypted, several MP3 frames are packed together into one encrypted packet. See `inc\conf.h` and `inc\defs.h` for details

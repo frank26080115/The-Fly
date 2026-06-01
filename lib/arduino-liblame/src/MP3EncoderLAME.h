@@ -22,6 +22,7 @@ struct AudioInfo {
   int quality = 7;          // 0..9.  0=best (very slow).  9=worst.
   int frame_size = 0;       // determined by decoder
   int brate = 64;           // kbps
+  bool disable_bit_reservoir = true; // avoid cross-frame MP3 dependencies
 };
 
 /**
@@ -217,6 +218,7 @@ protected:
     lame_set_quality(lame, info.quality);
 
     lame_set_brate(lame, info.brate);
+    lame_set_disable_reservoir(lame, info.disable_bit_reservoir ? 1 : 0);
 
     int initRet = lame_init_params(lame);
     if (initRet < 0) {
