@@ -77,6 +77,7 @@ bool       g_longwrite                              = false;
 bool       g_longwrite_latched                      = false;
 uint8_t    g_consecutive_write_failures             = 0;
 bool       g_card_failure_reported                  = false;
+uint8_t    g_consecutive_silent_chunks              = 0;
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 mbedtls_gcm_context g_recording_gcm;
 bool                g_recording_gcm_ready           = false;
@@ -536,6 +537,27 @@ void note_write_success_locked()
     g_consecutive_write_failures = 0;
 }
 
+bool is_silent_chunk(const int16_t* samples, size_t sample_count)
+{
+    if (!samples || sample_count == 0)
+    {
+        return false;
+    }
+
+    constexpr int16_t kSilentSampleAbsLevel = 0;
+    for (size_t i = 0; i < sample_count; ++i)
+    {
+        const int32_t sample = samples[i];
+        const int32_t absolute = sample < 0 ? -sample : sample;
+        if (absolute > kSilentSampleAbsLevel)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool note_write_failure_locked()
 {
     if (g_consecutive_write_failures < kMaxConsecutiveWriteFailures)
@@ -840,6 +862,21 @@ bool pump_audio_chunk_locked(bool force)
         stereo_samples[i * 2 + 1] = g_wav_host_samples[i];
     }
 
+    #ifdef BUILD_SILENCE_GAP_REMOVAL
+    if (is_silent_chunk(stereo_samples, frames * kWavChannels))
+    {
+        if (g_consecutive_silent_chunks >= 5)
+        {
+            return true;
+        }
+        ++g_consecutive_silent_chunks;
+    }
+    else
+    {
+        g_consecutive_silent_chunks = 0;
+    }
+    #endif
+
     if (!write_samples(stereo_samples, frames * kWavFrameBytes))
     {
         return false;
@@ -957,6 +994,7 @@ bool startRecording(char typeCode)
                 g_last_flush_ms  = millis();
                 g_consecutive_write_failures = 0;
                 g_card_failure_reported      = false;
+                g_consecutive_silent_chunks  = 0;
                 g_recording_type_code        = typeCode;
                 memo_type_from_code(typeCode, g_memo_type);
                 #if BUILD_WITH_SECURITY_LEVEL >= 1
