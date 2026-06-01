@@ -145,6 +145,21 @@ button:disabled,
   padding-top: 2px;
 }
 
+#login_panel.login-success {
+  border-color: #315d3c;
+  background: #142018;
+}
+
+#login_panel.login-success summary {
+  color: #b8f3c5;
+}
+
+#login_panel.login-success .login-form > label,
+#login_panel.login-success .login-form > input,
+#login_panel.login-success .login-form > button {
+  display: none;
+}
+
 .login-form {
   display: grid;
   grid-template-columns: max-content minmax(180px, 320px) auto;
@@ -734,6 +749,25 @@ button .pin-code-generated-only {
   margin-top: 0;
   padding-left: 18px;
   padding-right: 18px;
+}
+
+#btn_save {
+  margin-bottom: 12px;
+}
+
+.save-status {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid #6f3338;
+  border-radius: 8px;
+  background: #27171a;
+  color: #ffd3da;
+}
+
+.save-status.notice {
+  border-color: #315d3c;
+  background: #17251b;
+  color: #b8f3c5;
 }
 
 @media (max-width: 520px) {

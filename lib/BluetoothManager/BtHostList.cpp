@@ -485,10 +485,10 @@ bool BtHostList::replaceHostList(const bt_host_list_t& hosts)
 bool BtHostList::pruneBonds()
 {
     const int bonded_count = esp_bt_gap_get_bond_device_num();
-    if (bonded_count == ESP_ERR_INVALID_STATE)
+    if (bonded_count < 0 || bonded_count == ESP_ERR_INVALID_STATE)
     {
-        DBG_LOGW(TAG, "could not prune bluetooth bonds, gap is not initialized");
-        return false;
+        DBG_LOGW(TAG, "could not prune bluetooth bonds, gap is not initialized; saving host list without pruning");
+        return saveToNvs();
     }
 
     for (size_t i = 0; i < m_size; ++i)

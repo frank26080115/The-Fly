@@ -396,7 +396,7 @@ bool tamperEvidenceCode(uint32_t& out)
     return true;
 }
 
-#ifdef BUILD_IS_DEBUG
+#ifdef TEST_MOCK_PASSWORD
 void setTestTempFilecryptKey(const uint8_t* key)
 {
     if (!key)

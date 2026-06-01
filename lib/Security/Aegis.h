@@ -46,7 +46,7 @@ bool setNetworkKey(const uint8_t* key);
 bool setFilecryptKey(const uint8_t* key);
 bool setMasterKeys(const uint8_t* filecrypt_key, const uint8_t* network_key);
 bool setNetworkKeyAndGenerateFilecryptKey(const uint8_t* network_key);
-#ifdef BUILD_IS_DEBUG
+#ifdef TEST_MOCK_PASSWORD
 void setTestTempFilecryptKey(const uint8_t* key);
 void setTestTempNetworkKey(const uint8_t* key);
 void setTestTempPassword(const uint8_t* password);

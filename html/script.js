@@ -954,6 +954,7 @@ function hide_login_panel()
     const panel = document.getElementById("login_panel");
     if (panel)
     {
+        panel.classList.remove("login-success");
         panel.hidden = true;
     }
 }
@@ -963,8 +964,27 @@ function show_login_panel()
     const panel = document.getElementById("login_panel");
     if (panel)
     {
+        panel.classList.remove("login-success");
         panel.hidden = false;
     }
+}
+
+function show_login_success_panel()
+{
+    const password = document.getElementById("password");
+    if (password)
+    {
+        password.value = "";
+    }
+
+    const panel = document.getElementById("login_panel");
+    if (panel)
+    {
+        panel.hidden = false;
+        panel.open = true;
+        panel.classList.add("login-success");
+    }
+    set_login_error("Login successful. Configuration is unlocked.", true);
 }
 
 function show_save_button()
@@ -976,6 +996,28 @@ function show_save_button()
     }
 }
 
+function set_save_status(message, notice)
+{
+    let node = document.getElementById("save_status");
+    if (!node)
+    {
+        const save = document.getElementById("btn_save");
+        if (!save || !save.parentNode)
+        {
+            return;
+        }
+        node = document.createElement("div");
+        node.id = "save_status";
+        node.className = "save-status";
+        node.setAttribute("role", "status");
+        save.insertAdjacentElement("afterend", node);
+    }
+
+    node.textContent = message || "";
+    node.classList.toggle("notice", Boolean(notice));
+    node.style.display = message ? "" : "none";
+}
+
 function hide_save_button()
 {
     const save = document.getElementById("btn_save");
@@ -983,6 +1025,7 @@ function hide_save_button()
     {
         save.style.display = "none";
     }
+    set_save_status("", false);
 }
 
 function format_last_used(value)
@@ -1362,7 +1405,7 @@ async function login_onsubmit()
         session_security.sessionAesKey = await import_aes_key(session_key_bytes, ["encrypt", "decrypt"]);
         session_security.nonceCounter = 0;
 
-        hide_login_panel();
+        show_login_success_panel();
         apply_save_button_visibility();
         await fetch_cfg();
     }
@@ -1869,10 +1912,11 @@ async function save_config()
     }
     catch (error)
     {
-        set_login_error(error.message || "Config save failed.");
+        set_save_status(error.message || "Config save failed.", false);
         return;
     }
 
+    set_save_status("Saving configuration...", true);
     const request = new XMLHttpRequest();
     request.open("POST", "/set_cfg", true);
     request.timeout = 15000;
@@ -1881,7 +1925,7 @@ async function save_config()
     {
         if (!session_security.sessionResponseFromClientHex || !session_security.sessionSaltFromClient)
         {
-            set_login_error("Log in before saving configuration.");
+            set_save_status("Log in before saving configuration.", false);
             return;
         }
         request.setRequestHeader(header_session_response_from_client, session_security.sessionResponseFromClientHex);
@@ -1892,13 +1936,13 @@ async function save_config()
     request.onload = function() {
         if (request.status >= 200 && request.status < 300)
         {
-            window.alert("Configuration saved.");
-            fetch_cfg().catch((error) => set_login_error(error.message || "Config reload failed."));
+            set_save_status("Configuration saved.", true);
+            fetch_cfg().catch((error) => set_save_status(error.message || "Config reload failed.", false));
             return;
         }
-        set_login_error(request.responseText || ("Config save failed: " + request.status));
+        set_save_status(request.responseText || ("Config save failed: " + request.status), false);
     };
-    request.onerror = () => set_login_error("Config save failed.");
-    request.ontimeout = () => set_login_error("Config save timed out.");
+    request.onerror = () => set_save_status("Config save failed.", false);
+    request.ontimeout = () => set_save_status("Config save timed out.", false);
     request.send(body);
 }

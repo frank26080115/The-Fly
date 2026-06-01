@@ -1336,8 +1336,10 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
     }
     if (has_bluetooth && !bt_host_list->replaceHostList(bluetooth_staged))
     {
+        DBG_LOGW(TAG, "Bluetooth config save failed: %s", bt_host_list->lastLoadResultName());
         status_code = 500;
-        error = "Bluetooth config save failed";
+        error = "Bluetooth config save failed: ";
+        error += bt_host_list->lastLoadResultName();
         return false;
     }
 

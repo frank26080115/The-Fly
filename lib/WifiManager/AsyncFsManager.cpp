@@ -19,6 +19,7 @@ FsFile            g_walk_root;
 FsFile            g_walk_child;
 FsFile            g_download_file;
 uint64_t          g_download_file_size = 0;
+uint64_t          g_download_position = 0;
 char              g_download_path[kDownloadPathSize] = {};
 
 bool ensure_mutex()
@@ -75,6 +76,7 @@ void close_download_locked()
 {
     g_download_file.close();
     g_download_file_size = 0;
+    g_download_position = 0;
     g_download_path[0] = '\0';
 }
 
@@ -128,21 +130,37 @@ bool reopen_download_locked()
         return false;
     }
 
+    if (g_download_position != 0 && !g_download_file.seekSet(g_download_position))
+    {
+        DBG_LOGW(TAG,
+                 "reopen download failed: seek failed path=%s pos=%llu",
+                 g_download_path,
+                 static_cast<unsigned long long>(g_download_position));
+        g_download_file.close();
+        return false;
+    }
+
     return true;
 }
 
 int read_download_locked(uint64_t position, uint8_t* buffer, size_t max_len)
 {
-    if (!g_download_file.seekSet(position))
+    if (position != g_download_position)
     {
         DBG_LOGW(TAG,
-                 "read download failed: seek failed pos=%llu size=%llu",
+                 "read download failed: non-sequential read requested pos=%llu current=%llu size=%llu",
                  static_cast<unsigned long long>(position),
+                 static_cast<unsigned long long>(g_download_position),
                  static_cast<unsigned long long>(g_download_file_size));
         return -1;
     }
 
-    return g_download_file.read(buffer, max_len);
+    const int bytes_read = g_download_file.read(buffer, max_len);
+    if (bytes_read > 0)
+    {
+        g_download_position += static_cast<uint64_t>(bytes_read);
+    }
+    return bytes_read;
 }
 
 } // namespace
@@ -279,6 +297,7 @@ bool openFileForDownload(const char* path, uint64_t* file_size)
     }
 
     g_download_file_size = g_download_file.fileSize();
+    g_download_position = 0;
     strlcpy(g_download_path, path, sizeof(g_download_path));
     if (file_size)
     {

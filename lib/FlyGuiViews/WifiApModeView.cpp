@@ -170,7 +170,7 @@ WifiApModeView::WifiApModeView()
 void WifiApModeView::onLoad()
 {
     activeView_ = this;
-    showSensitive_ = false;
+    showSensitive_ = true;
     statsIndex_ = 0;
     lastClientDrawMs_ = 0;
     lastStatsDrawMs_ = 0;
