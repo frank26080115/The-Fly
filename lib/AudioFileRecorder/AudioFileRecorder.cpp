@@ -23,8 +23,10 @@
 #include "freertos/task.h"
 #include "utilfuncs.h"
 
-#if defined(BUILD_USE_MP3_COMPRESSION)
+#if defined(BUILD_USE_MP3_COMPRESSION) && defined(BUILD_MP3_USE_LIBLAME)
 #include "MP3EncoderLAME.h"
+#elif defined(BUILD_USE_MP3_COMPRESSION) && defined(BUILD_MP3_USE_SHINE)
+#include "ShineWrapper.h"
 #endif
 
 namespace AudioFileRecorder
@@ -48,14 +50,12 @@ constexpr size_t   kWavHeaderSize               = WAV_RIFF_HEADER_LENGTH;
 constexpr size_t   kWavFrameBytes               = AUDIO_RECORDER_FRAME_BYTES;
 constexpr size_t   kWavPlaintextChunkBytes      = WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH;
 constexpr size_t   kMp3PcmFramesPerChunk        = MP3_PCM_FRAMES_PER_CHUNK;
-constexpr size_t   kMp3PcmBytesPerChunk         = MP3_PCM_BYTES_PER_CHUNK;
-constexpr size_t   kMp3OutputBufferSize         = MP3_LAME_OUTPUT_BUFFER_SIZE;
 constexpr size_t   kWavPumpFrames               = kWavPlaintextChunkBytes / kWavFrameBytes;
 constexpr uint32_t kWavPlaceholderDataBytes     = 0x7FFFFFFF;
 constexpr uint32_t kWavMaxDataBytes             = 0xFFFFFFFFUL - 36UL;
 #if defined(BUILD_USE_MP3_COMPRESSION)
-constexpr size_t   kMp3PumpFrames               = MP3_LAME_PCM_FRAMES_PER_MP3_FRAME;
-constexpr size_t   kRecordingPumpFrames         = kMp3PumpFrames;
+constexpr size_t   kMp3PumpFrameCapacity        = MP3_ENCODER_MAX_SAMPLES_PER_PASS;
+constexpr size_t   kRecordingPumpFrames         = kMp3PumpFrameCapacity;
 constexpr size_t   kEncryptedAudioPlaintextBytes = MP3_ENCRYPTED_PLAINTEXT_LENGTH;
 constexpr size_t   kEncryptedAudioChunkBytes     = MP3_ENCRYPTED_CHUNK_LENGTH;
 constexpr uint8_t  kMp3CloseSilencePumpLimit     = 8;
@@ -68,13 +68,13 @@ constexpr size_t   kEncryptedAudioChunkBytes     = WAV_ENCRYPTED_AUDIO_CHUNK_LEN
 static_assert(kWavPlaintextChunkBytes % kWavFrameBytes == 0,
               "recorder plaintext chunks must contain whole stereo frames");
 #if defined(BUILD_USE_MP3_COMPRESSION)
-static_assert(kMp3PumpFrames <= kMp3PcmFramesPerChunk,
+static_assert(kMp3PumpFrameCapacity <= kMp3PcmFramesPerChunk,
               "MP3 pump frames must fit inside one configured MP3 PCM chunk");
 #endif
 static_assert(MP3_PCM_BYTES_PER_CHUNK % kWavFrameBytes == 0,
               "MP3 PCM chunks must contain whole stereo frames");
-static_assert(MP3_PCM_FRAMES_PER_CHUNK % MP3_LAME_PCM_FRAMES_PER_MP3_FRAME == 0,
-              "MP3 PCM chunks must contain whole LAME MP3 frames");
+static_assert(MP3_PCM_FRAMES_PER_CHUNK % MP3_PCM_FRAMES_PER_MP3_FRAME == 0,
+              "MP3 PCM chunks must contain whole MP3 frames");
 static_assert(WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH ==
                   WAV_ENCRYPTED_CHUNK_NONCE_LENGTH + WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH + WAV_ENCRYPTED_CHUNK_TAG_LENGTH,
               "encrypted WAV audio chunk length must match nonce + ciphertext + tag");
@@ -94,6 +94,14 @@ static_assert(kEncryptedAudioChunkBytes <= WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH,
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 constexpr size_t kGcmNonceSize = WAV_ENCRYPTED_CHUNK_NONCE_LENGTH;
 constexpr size_t kGcmTagSize   = WAV_ENCRYPTED_CHUNK_TAG_LENGTH;
+#endif
+
+#if defined(BUILD_USE_MP3_COMPRESSION)
+#if defined(BUILD_MP3_USE_LIBLAME)
+using Mp3EncoderType = liblame::MP3EncoderLAME;
+#elif defined(BUILD_MP3_USE_SHINE)
+using Mp3EncoderType = ShineWrapper;
+#endif
 #endif
 
 AudioFifo* g_host_fifo = nullptr;
@@ -118,9 +126,10 @@ std::atomic<uint32_t> g_fifo_overflow_events        = { 0 };
 bool       g_host_fifo_overflow_latched             = false;
 bool       g_mic_fifo_overflow_latched              = false;
 #if defined(BUILD_USE_MP3_COMPRESSION)
-liblame::MP3EncoderLAME* g_mp3_encoder              = nullptr;
+Mp3EncoderType*          g_mp3_encoder              = nullptr;
 std::atomic<bool>        g_mp3_callback_failed      = { false };
 bool                     g_mp3_file_write_observed  = false;
+size_t                   g_mp3_samples_per_pass     = MP3_PCM_FRAMES_PER_MP3_FRAME;
 #endif
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 mbedtls_gcm_context g_recording_gcm;
@@ -133,7 +142,7 @@ std::mutex g_pump_mutex;
 int16_t g_wav_mic_samples[kRecordingPumpFrames];
 int16_t g_wav_host_samples[kRecordingPumpFrames];
 #if defined(BUILD_USE_MP3_COMPRESSION)
-int16_t g_mp3_stereo_samples[kMp3PumpFrames * kWavChannels];
+int16_t g_mp3_stereo_samples[kMp3PumpFrameCapacity * kWavChannels];
 #endif
 alignas(int16_t) uint8_t g_wav_plaintext_audio[WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH];
 #if BUILD_WITH_SECURITY_LEVEL >= 1
@@ -848,7 +857,9 @@ void mp3_data_callback(uint8_t* data, size_t byte_count)
 bool start_mp3_encoder_locked()
 {
     destroy_mp3_encoder_locked();
+    g_mp3_samples_per_pass = MP3_PCM_FRAMES_PER_MP3_FRAME;
 
+#if defined(BUILD_MP3_USE_LIBLAME)
     g_mp3_encoder = new (std::nothrow) liblame::MP3EncoderLAME();
     if (!g_mp3_encoder)
     {
@@ -860,8 +871,8 @@ bool start_mp3_encoder_locked()
     mp3_info.sample_rate            = AUDIO_RECORDER_SAMPLE_RATE_HZ;
     mp3_info.channels               = AUDIO_RECORDER_CHANNELS;
     mp3_info.bits_per_sample        = AUDIO_RECORDER_BITS_PER_SAMPLE;
-    mp3_info.brate                  = MP3_LAME_BITRATE_KBPS;
-    mp3_info.quality                = MP3_LAME_QUALITY;
+    mp3_info.brate                  = MP3_BITRATE_KBPS;
+    mp3_info.quality                = MP3_ENCODER_QUALITY;
     mp3_info.disable_bit_reservoir  = true;
 
     g_mp3_encoder->setDataCallback(mp3_data_callback);
@@ -871,6 +882,42 @@ bool start_mp3_encoder_locked()
         destroy_mp3_encoder_locked();
         return false;
     }
+
+    const int frame_size = g_mp3_encoder->audioInfo().frame_size;
+    if (frame_size > 0)
+    {
+        g_mp3_samples_per_pass = static_cast<size_t>(frame_size);
+    }
+#elif defined(BUILD_MP3_USE_SHINE)
+    g_mp3_encoder = new (std::nothrow) ShineWrapper(AUDIO_RECORDER_SAMPLE_RATE_HZ,
+                                                    AUDIO_RECORDER_CHANNELS,
+                                                    AUDIO_RECORDER_BITS_PER_SAMPLE,
+                                                    MP3_ENCODER_QUALITY,
+                                                    MP3_BITRATE_KBPS,
+                                                    true,
+                                                    mp3_data_callback);
+    if (!g_mp3_encoder)
+    {
+        DBG_LOGE(TAG, "MP3 encoder allocation failed");
+        return false;
+    }
+
+    if (!g_mp3_encoder->begin())
+    {
+        DBG_LOGE(TAG, "MP3 encoder setup failed");
+        destroy_mp3_encoder_locked();
+        return false;
+    }
+
+    const int samples_per_pass = g_mp3_encoder->getSamplesPerPass();
+    if (samples_per_pass <= 0 || static_cast<size_t>(samples_per_pass) > kMp3PumpFrameCapacity)
+    {
+        DBG_LOGE(TAG, "MP3 encoder samples-per-pass is invalid: %d", samples_per_pass);
+        destroy_mp3_encoder_locked();
+        return false;
+    }
+    g_mp3_samples_per_pass = static_cast<size_t>(samples_per_pass);
+#endif
 
     return true;
 }
@@ -937,7 +984,7 @@ bool write_mp3_encoded_data(uint8_t* data, size_t byte_count)
 
 bool write_mp3_samples(int16_t* samples, size_t byte_count)
 {
-    liblame::MP3EncoderLAME* encoder = nullptr;
+    Mp3EncoderType* encoder = nullptr;
     {
         std::lock_guard<std::mutex> lock(g_recorder_mutex);
         if (!recording_file_ready_locked() || !g_mp3_encoder)
@@ -964,7 +1011,7 @@ bool write_mp3_samples(int16_t* samples, size_t byte_count)
 
 bool flush_mp3_encoder()
 {
-    liblame::MP3EncoderLAME* encoder = nullptr;
+    Mp3EncoderType* encoder = nullptr;
     {
         std::lock_guard<std::mutex> lock(g_recorder_mutex);
         if (!g_mp3_encoder)
@@ -979,6 +1026,7 @@ bool flush_mp3_encoder()
     return flushed && !g_mp3_callback_failed.load(std::memory_order_relaxed);
 }
 
+#if defined(BUILD_MP3_USE_LIBLAME)
 void reset_mp3_file_write_observed()
 {
     std::lock_guard<std::mutex> lock(g_recorder_mutex);
@@ -993,8 +1041,9 @@ bool mp3_file_write_observed()
 
 bool write_mp3_silence_chunk()
 {
-    memset(g_mp3_stereo_samples, 0, sizeof(g_mp3_stereo_samples));
-    return write_mp3_samples(g_mp3_stereo_samples, sizeof(g_mp3_stereo_samples));
+    const size_t byte_count = g_mp3_samples_per_pass * kWavFrameBytes;
+    memset(g_mp3_stereo_samples, 0, byte_count);
+    return write_mp3_samples(g_mp3_stereo_samples, byte_count);
 }
 
 bool pump_mp3_silence_until_file_write()
@@ -1016,6 +1065,7 @@ bool pump_mp3_silence_until_file_write()
 
     return mp3_file_write_observed();
 }
+#endif
 #endif
 
 bool write_samples(const int16_t* samples, size_t byte_count)
@@ -1117,7 +1167,12 @@ bool pump_audio_chunk_locked(bool force)
     const size_t wanted_frames = force ? forced_frames : paired_frames;
 
 #if defined(BUILD_USE_MP3_COMPRESSION)
-    const size_t frames = wanted_frames < kMp3PumpFrames ? wanted_frames : kMp3PumpFrames;
+    const size_t mp3_pump_frames = g_mp3_samples_per_pass > 0 ? g_mp3_samples_per_pass : MP3_PCM_FRAMES_PER_MP3_FRAME;
+    if (!force && wanted_frames < mp3_pump_frames)
+    {
+        return false;
+    }
+    const size_t frames = wanted_frames < mp3_pump_frames ? wanted_frames : mp3_pump_frames;
 #else
     const size_t buffer_offset = plaintext_audio_write_offset();
     const size_t buffer_frames = (sizeof(g_wav_plaintext_audio) - buffer_offset) / kWavFrameBytes;
@@ -1475,7 +1530,7 @@ bool stopRecording(bool estop)
             taskYIELD();
         }
 
-#if defined(BUILD_USE_MP3_COMPRESSION)
+#if defined(BUILD_MP3_USE_LIBLAME)
         if (!pump_mp3_silence_until_file_write())
         {
             DBG_LOGW(TAG, "MP3 close padding did not produce another file write");

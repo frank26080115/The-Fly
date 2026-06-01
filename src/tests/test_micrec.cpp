@@ -224,7 +224,7 @@ void print_recording_file_analysis(uint64_t file_bytes)
     const uint64_t whole_mp3_frames = file_bytes / MP3_CBR_BYTES_PER_MP3_FRAME;
     logf("file analysis: format=mp3-cbr file_bytes=%llu bitrate=%u kbps estimated_duration_ms=%llu (%.3f seconds) whole_mp3_frames=%llu remainder=%llu bytes",
          static_cast<unsigned long long>(file_bytes),
-         static_cast<unsigned>(MP3_LAME_BITRATE_KBPS),
+         static_cast<unsigned>(MP3_BITRATE_KBPS),
          static_cast<unsigned long long>(estimated_ms),
          static_cast<double>(estimated_ms) / 1000.0,
          static_cast<unsigned long long>(whole_mp3_frames),

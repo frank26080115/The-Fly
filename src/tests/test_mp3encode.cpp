@@ -17,7 +17,7 @@ constexpr const char* TAG = "test_mp3encode";
 constexpr uint32_t    kSampleRateHz = AUDIO_RECORDER_SAMPLE_RATE_HZ;
 constexpr uint32_t    kDurationMs   = 10000;
 constexpr uint32_t    kComfortTargetAudioMs = kDurationMs * 2;
-constexpr size_t      kChunkFrames  = MP3_LAME_PCM_FRAMES_PER_MP3_FRAME;
+constexpr size_t      kChunkFrames  = MP3_PCM_FRAMES_PER_MP3_FRAME;
 constexpr size_t      kSineTableBits = 10;
 constexpr size_t      kSineTableSize = 1U << kSineTableBits;
 constexpr float       kLeftHz       = 440.0f;
@@ -171,12 +171,12 @@ uint64_t print_duration_estimate(uint64_t file_size)
         (file_size * 1000ULL + (MP3_CBR_BYTES_PER_SECOND / 2ULL)) / MP3_CBR_BYTES_PER_SECOND;
     const uint64_t whole_mp3_frames = file_size / MP3_CBR_BYTES_PER_MP3_FRAME;
     const uint64_t frame_duration_ms =
-        (whole_mp3_frames * MP3_LAME_PCM_FRAMES_PER_MP3_FRAME * 1000ULL + (kSampleRateHz / 2ULL)) / kSampleRateHz;
+        (whole_mp3_frames * MP3_PCM_FRAMES_PER_MP3_FRAME * 1000ULL + (kSampleRateHz / 2ULL)) / kSampleRateHz;
 
     Serial.printf("%s: final file size=%llu bytes\n", TAG, static_cast<unsigned long long>(file_size));
     Serial.printf("%s: CBR bitrate=%u kbps, bytes_per_second=%u\n",
                   TAG,
-                  static_cast<unsigned>(MP3_LAME_BITRATE_KBPS),
+                  static_cast<unsigned>(MP3_BITRATE_KBPS),
                   static_cast<unsigned>(MP3_CBR_BYTES_PER_SECOND));
     Serial.printf("%s: byte-derived duration=%llu ms (%.3f seconds)\n",
                   TAG,

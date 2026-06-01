@@ -24,7 +24,7 @@
 #include "layer3.h"
 
 /* Local header */
-#include "main.h"
+#include "shine_main.h"
 #include "wave.h"
 
 /* Some global vars. */

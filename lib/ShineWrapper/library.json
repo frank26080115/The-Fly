@@ -1,0 +1,12 @@
+{
+  "name": "ShineWrapper",
+  "version": "0.1.0",
+  "build": {
+    "srcFilter": [
+      "+<ShineWrapper.cpp>",
+      "+<shine/src/lib/*.c>",
+      "-<shine/src/bin/>",
+      "-<shine/src/bin/**>"
+    ]
+  }
+}

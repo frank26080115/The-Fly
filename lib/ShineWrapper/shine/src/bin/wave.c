@@ -11,7 +11,7 @@
 /* Local header */
 #include <stdint.h>
 #include <string.h>
-#include "main.h"
+#include "shine_main.h"
 #include "wave.h"
 
 /* RISC OS specifics */
