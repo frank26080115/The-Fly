@@ -329,5 +329,11 @@
       "lib/WavPlayback/WavPlayback.h",
       "developer-docs/recording-file-format.md"
     ]
+  },
+  {
+    "timestamp": "2026-06-01T04:40:14Z",
+    "type": "git_commit",
+    "commit_message": "file download and decrypted downloads work now",
+    "commit_hash": "976ed18721b4929410684cde8839b3d62d1f7cce"
   }
 ]

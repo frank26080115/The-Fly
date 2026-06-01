@@ -1205,5 +1205,39 @@
     "type": "git_commit",
     "commit_message": "encrypted playback",
     "commit_hash": "b44ada573a1434b396178f2ddc13955d839d57f3"
+  },
+  {
+    "timestamp": "2026-05-31T09:37:26.627Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "```",
+      "        m_encrypted = allocate_download_buffer(WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH);",
+      "        m_plaintext = allocate_download_buffer(WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH);",
+      "```",
+      "",
+      "you know how the playback mechanism borrows buffers from the recording mechanism's buffers? do that here"
+    ],
+    "agent_reply": [
+      "Done. The decrypted download stream now borrows the existing recorder buffers via `AudioFileRecorder::wavEncryptedAudioBuffer()` and `AudioFileRecorder::wavPlaintextAudioBuffer()` in [WebFileHandlers.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebFileHandlers.cpp:495), instead of allocating its own encrypted/plaintext chunk buffers.",
+      "",
+      "I also removed the destructor cleanup for those two buffers, since the stream no longer owns them.",
+      "",
+      "Verification:",
+      "- `git diff --check` passed, except the repo’s usual CRLF warnings.",
+      "- `pio run -e thefly_sec1` is currently blocked by an unrelated dirty change in [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:145): `Aegis::setTestTempPassword(\"123456\")` passes `const char*` where the signature expects `const uint8_t*`. I did not touch that file.",
+      "",
+      "Done. The decrypted download stream now borrows the existing recorder buffers via `AudioFileRecorder::wavEncryptedAudioBuffer()` and `AudioFileRecorder::wavPlaintextAudioBuffer()` in [WebFileHandlers.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebFileHandlers.cpp:495), instead of allocating its own encrypted/plaintext chunk buffers.",
+      "",
+      "I also removed the destructor cleanup for those two buffers, since the stream no longer owns them.",
+      "",
+      "Verification:",
+      "- `git diff --check` passed, except the repo’s usual CRLF warnings.",
+      "- `pio run -e thefly_sec1` is currently blocked by an unrelated dirty change in [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:145): `Aegis::setTestTempPassword(\"123456\")` passes `const char*` where the signature expects `const uint8_t*`. I did not touch that file."
+    ],
+    "files": [
+      "lib/WifiManager/WebFileHandlers.cpp",
+      "src/main.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.h"
+    ]
   }
 ]

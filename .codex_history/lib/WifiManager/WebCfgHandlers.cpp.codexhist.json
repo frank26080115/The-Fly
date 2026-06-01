@@ -1092,5 +1092,112 @@
       "inc/web_assets.h",
       "src/version.c"
     ]
+  },
+  {
+    "timestamp": "2026-05-31T07:32:19Z",
+    "type": "git_commit",
+    "commit_message": "pin code web related implementation",
+    "commit_hash": "ea3196085485e85e518ad62441377ac93a503ac9"
+  },
+  {
+    "timestamp": "2026-05-31T07:55:29.706Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "is the browser time sync function completely wired up?"
+    ],
+    "agent_reply": [
+      "Yes, the browser time sync is wired end-to-end.",
+      "",
+      "Frontend path:",
+      "",
+      "- [html/script.js](/d:/GithubRepos/The-Fly/html/script.js:354) compares device `\"current-time\"` from `/get_info` to browser `Date.now()`.",
+      "- If offset is over `60` seconds, it adds a `Sync Time` button.",
+      "- [html/script.js](/d:/GithubRepos/The-Fly/html/script.js:1615) sends:",
+      "  ```js",
+      "  POST /time_sync?time=<browser unix seconds>",
+      "  ```",
+      "- On success, it reads returned `\"current-time\"` and re-renders the info panel.",
+      "",
+      "Backend path:",
+      "",
+      "- [lib/WifiManager/WebServer.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp:938) registers `POST /time_sync`.",
+      "- [lib/WifiManager/WebCfgHandlers.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WebCfgHandlers.cpp:1824) handles it.",
+      "- It accepts `time`, `current-time`, or `unix_time`, validates it, calls `Clock.setUnixTime(unix_time)`, verifies with `Clock.getUnixTime()`, then returns JSON.",
+      "- [lib/ClockAgent/ClockAgent.cpp](/d:/GithubRepos/The-Fly/lib/ClockAgent/ClockAgent.cpp:422) actually applies the Unix time into the RTC/system clock.",
+      "",
+      "One caveat: it is not session-authenticated. Access is controlled by policy instead: for security level 2+, both frontend and backend only allow it from the generated/default soft AP. So it is fully wired for the current intended behavior, but not authenticated the way `/get_cfg` or encrypted config actions are."
+    ],
+    "files": [
+      "html/script.js",
+      "lib/WifiManager/WebServer.cpp",
+      "lib/WifiManager/WebCfgHandlers.cpp",
+      "lib/ClockAgent/ClockAgent.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T08:48:53.055Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "ok hold on... you say network-key, I actually did write down that I wanted the session-key to be used for the encryption",
+      "",
+      "I see a `sessionAesKey` in the javascript but I don't see it used, and I see a `uint8_t  session_key[kSessionKeySize] = {};` in the `WebServer.h` code",
+      "",
+      "I am reading `.codex_history\\lib\\WifiManager\\WebServer.h.codexhist.json`, it says \" * encrypt the gigantic string using session-key\" in my instructions",
+      "",
+      "if my request is asking for something less secure than what you've actually implemented, you need to justify it to me, otherwise, I want minimum usage of the network-key during Wi-Fi sessions",
+      "",
+      "the network-key as a bigger role in cloud related work"
+    ],
+    "agent_reply": [
+      "You were right. I don’t think there’s a good justification for using the network key as the Wi-Fi-session transport encryption key here. It had drifted away from your original “encrypt with session-key” intent, so I changed it.",
+      "",
+      "Now the shape is:",
+      "",
+      "- Browser derives `network_key` from password only long enough to prove login and derive `session_key`.",
+      "- Browser no longer stores `networkHmacKey` or `networkAesKey` in `session_security`.",
+      "- `sessionAesKey` is imported for both encrypt/decrypt.",
+      "- `/set_cfg`, `/set_custom_pin`, and `/reset_pin_code` bodies are encrypted with the session key.",
+      "- `/set_cfg` now sends the session auth headers too.",
+      "- Backend authenticates those headers with `authenticateSessionRequest(...)`, derives `session_key`, and decrypts the request body with that session key.",
+      "- PIN reset/update uses the same session-key decrypt path.",
+      "- Client-to-server POST nonces now force a separate nonce domain from server-to-client `/get_cfg` responses.",
+      "",
+      "So the corrected documentation line is:",
+      "",
+      "> For security levels >= 1, config transport is session-authenticated and session-encrypted. The network key is used to prove the password-derived credential and derive the per-session key; the session key encrypts `/get_cfg` responses and `/set_cfg`/PIN POST bodies.",
+      "",
+      "Verified with `node --check` for both JS files, `pio run -e thefly_sec0/sec1/sec2/sec3` after the C++ change, and a final `pio run -e thefly_sec1` after the last web-asset tweak. `git diff --check` is clean aside from line-ending warnings."
+    ],
+    "files": [
+      "html/sec_helpers.js",
+      "html/script.js",
+      "lib/WifiManager/WebCfgHandlers.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T09:01:40Z",
+    "type": "git_commit",
+    "commit_message": "realigned front-end authentication method to use session key",
+    "commit_hash": "fc8c8026ddf97723bd96335c920a15b77f7310ab"
+  },
+  {
+    "timestamp": "2026-06-01T05:32:30.481Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "I clicked save and got a 500 error with `Bluetooth config save failed` as the response (not visible in the UI, I am using developer tools)"
+    ],
+    "agent_reply": "",
+    "files": [
+      "lib/BluetoothManager/BtHostList.cpp",
+      "lib/WifiManager/WebCfgHandlers.cpp",
+      "html/script.js",
+      "html/styles.css"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T06:00:34Z",
+    "type": "git_commit",
+    "commit_message": "fixed a lot of web issues",
+    "commit_hash": "a1e8949e841901b5e57b90e644f9dae0d3e50adc"
   }
 ]

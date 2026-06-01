@@ -5994,5 +5994,120 @@
     "type": "git_commit",
     "commit_message": "fixed encrypted recording being too short",
     "commit_hash": "c0bd39e506d3fee4333871e81322156d26d47a3b"
+  },
+  {
+    "timestamp": "2026-05-31T09:37:26.627Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "```",
+      "        m_encrypted = allocate_download_buffer(WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH);",
+      "        m_plaintext = allocate_download_buffer(WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH);",
+      "```",
+      "",
+      "you know how the playback mechanism borrows buffers from the recording mechanism's buffers? do that here"
+    ],
+    "agent_reply": [
+      "Done. The decrypted download stream now borrows the existing recorder buffers via `AudioFileRecorder::wavEncryptedAudioBuffer()` and `AudioFileRecorder::wavPlaintextAudioBuffer()` in [WebFileHandlers.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebFileHandlers.cpp:495), instead of allocating its own encrypted/plaintext chunk buffers.",
+      "",
+      "I also removed the destructor cleanup for those two buffers, since the stream no longer owns them.",
+      "",
+      "Verification:",
+      "- `git diff --check` passed, except the repo’s usual CRLF warnings.",
+      "- `pio run -e thefly_sec1` is currently blocked by an unrelated dirty change in [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:145): `Aegis::setTestTempPassword(\"123456\")` passes `const char*` where the signature expects `const uint8_t*`. I did not touch that file.",
+      "",
+      "Done. The decrypted download stream now borrows the existing recorder buffers via `AudioFileRecorder::wavEncryptedAudioBuffer()` and `AudioFileRecorder::wavPlaintextAudioBuffer()` in [WebFileHandlers.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebFileHandlers.cpp:495), instead of allocating its own encrypted/plaintext chunk buffers.",
+      "",
+      "I also removed the destructor cleanup for those two buffers, since the stream no longer owns them.",
+      "",
+      "Verification:",
+      "- `git diff --check` passed, except the repo’s usual CRLF warnings.",
+      "- `pio run -e thefly_sec1` is currently blocked by an unrelated dirty change in [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:145): `Aegis::setTestTempPassword(\"123456\")` passes `const char*` where the signature expects `const uint8_t*`. I did not touch that file."
+    ],
+    "files": [
+      "lib/WifiManager/WebFileHandlers.cpp",
+      "src/main.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.h"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T09:43:49.901Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "move as much of the new decrypted download functions inside `lib\\WifiManager\\DecryptedDownload.cpp` and `lib\\WifiManager\\DecryptedDownload.h`, protected by `BUILD_WITH_DECRYPTED_DOWNLOAD`",
+      "",
+      "let the front-end 404, but it should be fine, I don't want to add a \"allow_decrypted_download\" into the json yet"
+    ],
+    "agent_reply": [
+      "Done. I moved the decrypted download implementation into:",
+      "",
+      "- [DecryptedDownload.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/DecryptedDownload.cpp:1)",
+      "- [DecryptedDownload.h](D:/GithubRepos/The-Fly/lib/WifiManager/DecryptedDownload.h:1)",
+      "",
+      "`WebFileHandlers.cpp/.h` are back to raw microSD file handling only. `WebServer.cpp` now includes the new header and registers `/decrypted_download` only under `BUILD_WITH_DECRYPTED_DOWNLOAD`, calling `DecryptedDownload::finish` / `DecryptedDownload::writeBody` at [WebServer.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp:909).",
+      "",
+      "I left the frontend alone, so if `BUILD_WITH_DECRYPTED_DOWNLOAD` is not enabled, the unlock request will just hit a missing route / 404 as requested. No `allow_decrypted_download` JSON flag added.",
+      "",
+      "Verification:",
+      "- `pio run -e thefly_sec1 -t .pio\\build\\thefly_sec1\\libb6d\\WifiManager\\DecryptedDownload.cpp.o` passed.",
+      "- `pio run -e thefly_sec1 -t .pio\\build\\thefly_sec1\\libb6d\\WifiManager\\WebServer.cpp.o` passed.",
+      "- `git diff --check` passed except CRLF warnings.",
+      "- Full `pio run -e thefly_sec1` is still blocked by unrelated dirty [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:145): `Aegis::setTestTempPassword(\"123456\")` needs `const uint8_t*`, not `const char*`."
+    ],
+    "files": [
+      "inc/conf.h",
+      "lib/WifiManager/DecryptedDownload.h",
+      "lib/WifiManager/DecryptedDownload.cpp",
+      "lib/WifiManager/WebFileHandlers.cpp",
+      "lib/WifiManager/WebFileHandlers.h",
+      "lib/WifiManager/WebServer.cpp",
+      "src/main.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T19:37:50Z",
+    "type": "git_commit",
+    "commit_message": "added another mock switch",
+    "commit_hash": "47267f3e7a27b2cd750b8b26645b8496fd1f4935"
+  },
+  {
+    "timestamp": "2026-06-01T02:05:16.569Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "I am testing a security level 1 build, I have activated the default secure soft Wi-Fi AP, I have loaded the front-end web page. I attempted to login to it, the error message I got is `n is not a constructor`",
+      "",
+      "if something is seriously wrong with the webcrypto shim and requires it to be rebuilt, let me know"
+    ],
+    "agent_reply": [
+      "Yes, the WebCrypto shim was genuinely broken for this AP use case.",
+      "",
+      "The old `webcrypto-shim.min.js` expected runtime globals like `self.asmCrypto`, but the page only loaded the shim itself. On an HTTP soft AP where native `crypto.subtle` is unavailable, HMAC/AES-GCM then fell into missing shim internals, producing `n is not a constructor`.",
+      "",
+      "I rebuilt [html/webcrypto-shim.min.js](</d:/GithubRepos/The-Fly/html/webcrypto-shim.min.js>) with the crypto implementation bundled in, then regenerated [inc/web_assets.h](</d:/GithubRepos/The-Fly/inc/web_assets.h>) so firmware embeds the fixed page.",
+      "",
+      "Verified:",
+      "- `node --check html\\webcrypto-shim.min.js`",
+      "- local no-native-`subtle` smoke test: HMAC works, AES-GCM encrypt/decrypt round-trips",
+      "- `pio run -e thefly_sec1` succeeded",
+      "",
+      "I left the pre-existing edits in `lib/Security/web-access-security-policy.md`, `src/main.cpp`, and `src/version.c` alone."
+    ],
+    "files": [
+      "lib/Security/web-access-security-policy.md",
+      "src/main.cpp",
+      "src/version.c",
+      "webcrypto-liner/build/index.es.js",
+      "html/webcrypto-bundle/package.json",
+      "html/webcrypto-bundle/src/webcrypto-entry.js",
+      "html/webcrypto-shim.min.js",
+      "inc/web_assets.h",
+      "html/index.html",
+      "html/webcrypto-bundle/node_modules/webcrypto-liner/build/webcrypto-liner.shim.mjs"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T04:40:14Z",
+    "type": "git_commit",
+    "commit_message": "file download and decrypted downloads work now",
+    "commit_hash": "976ed18721b4929410684cde8839b3d62d1f7cce"
   }
 ]

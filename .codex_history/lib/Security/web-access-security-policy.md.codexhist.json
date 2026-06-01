@@ -90,5 +90,40 @@
     "type": "git_commit",
     "commit_message": "direct to wav file recording",
     "commit_hash": "64f9f8e6f7cc8677283c2f4afdfbd22660041ff6"
+  },
+  {
+    "timestamp": "2026-06-01T02:05:16.569Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "I am testing a security level 1 build, I have activated the default secure soft Wi-Fi AP, I have loaded the front-end web page. I attempted to login to it, the error message I got is `n is not a constructor`",
+      "",
+      "if something is seriously wrong with the webcrypto shim and requires it to be rebuilt, let me know"
+    ],
+    "agent_reply": [
+      "Yes, the WebCrypto shim was genuinely broken for this AP use case.",
+      "",
+      "The old `webcrypto-shim.min.js` expected runtime globals like `self.asmCrypto`, but the page only loaded the shim itself. On an HTTP soft AP where native `crypto.subtle` is unavailable, HMAC/AES-GCM then fell into missing shim internals, producing `n is not a constructor`.",
+      "",
+      "I rebuilt [html/webcrypto-shim.min.js](</d:/GithubRepos/The-Fly/html/webcrypto-shim.min.js>) with the crypto implementation bundled in, then regenerated [inc/web_assets.h](</d:/GithubRepos/The-Fly/inc/web_assets.h>) so firmware embeds the fixed page.",
+      "",
+      "Verified:",
+      "- `node --check html\\webcrypto-shim.min.js`",
+      "- local no-native-`subtle` smoke test: HMAC works, AES-GCM encrypt/decrypt round-trips",
+      "- `pio run -e thefly_sec1` succeeded",
+      "",
+      "I left the pre-existing edits in `lib/Security/web-access-security-policy.md`, `src/main.cpp`, and `src/version.c` alone."
+    ],
+    "files": [
+      "lib/Security/web-access-security-policy.md",
+      "src/main.cpp",
+      "src/version.c",
+      "webcrypto-liner/build/index.es.js",
+      "html/webcrypto-bundle/package.json",
+      "html/webcrypto-bundle/src/webcrypto-entry.js",
+      "html/webcrypto-shim.min.js",
+      "inc/web_assets.h",
+      "html/index.html",
+      "html/webcrypto-bundle/node_modules/webcrypto-liner/build/webcrypto-liner.shim.mjs"
+    ]
   }
 ]

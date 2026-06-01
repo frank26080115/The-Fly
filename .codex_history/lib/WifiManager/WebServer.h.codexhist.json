@@ -51,7 +51,8 @@
     "files": [
       "index.html",
       "lib/WifiManager/WebServer.h",
-      "lib/WifiManager/WebServer.cpp"
+      "lib/WifiManager/WebServer.cpp",
+      "html/index.html"
     ]
   },
   {
@@ -319,5 +320,66 @@
     "type": "git_commit",
     "commit_message": "I'm checking in this state before tearing it all down",
     "commit_hash": "335274e4557167c4d8346db9a0eb5ce8adc4b329"
+  },
+  {
+    "timestamp": "2026-06-01T04:32:22.350Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "no, only encrypt the file name with the session key, no other parameters, I see no reason why this wouldn't work in the backend if the backend has a full copy of the session key as well"
+    ],
+    "agent_reply": [
+      "Done. The decrypted download URL now carries only the encrypted filename:",
+      "",
+      "`/decrypted_download?file_name=<base64url(nonce || aes-gcm(filename))>`",
+      "",
+      "No session response, no session salt, no JSON/action wrapper.",
+      "",
+      "Backend changes:",
+      "- Added `WebServer::copyCachedSessionKey()` so the GET handler can use the cached session key.",
+      "- `GET /decrypted_download` now decrypts only the `file_name` parameter with that cached session key.",
+      "- It validates the decrypted name as a `.rec` path, then streams it as an attachment.",
+      "",
+      "Frontend changes:",
+      "- Encrypts just the raw filename string with the session AES key.",
+      "- Navigates to the GET URL so the browser treats it like a real download.",
+      "",
+      "Verification passed:",
+      "- `node --check html\\script.js`",
+      "- `python tools\\package_web_assets.py`",
+      "- `pio run -e thefly_sec1`",
+      "",
+      "Done. The decrypted download URL now carries only the encrypted filename:",
+      "",
+      "`/decrypted_download?file_name=<base64url(nonce || aes-gcm(filename))>`",
+      "",
+      "No session response, no session salt, no JSON/action wrapper.",
+      "",
+      "Backend changes:",
+      "- Added `WebServer::copyCachedSessionKey()` so the GET handler can use the cached session key.",
+      "- `GET /decrypted_download` now decrypts only the `file_name` parameter with that cached session key.",
+      "- It validates the decrypted name as a `.rec` path, then streams it as an attachment.",
+      "",
+      "Frontend changes:",
+      "- Encrypts just the raw filename string with the session AES key.",
+      "- Navigates to the GET URL so the browser treats it like a real download.",
+      "",
+      "Verification passed:",
+      "- `node --check html\\script.js`",
+      "- `python tools\\package_web_assets.py`",
+      "- `pio run -e thefly_sec1`"
+    ],
+    "files": [
+      "lib/WifiManager/WebServer.h",
+      "lib/WifiManager/WebServer.cpp",
+      "html/script.js",
+      "lib/WifiManager/DecryptedDownload.cpp",
+      "tools/package_web_assets.py"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T04:40:14Z",
+    "type": "git_commit",
+    "commit_message": "file download and decrypted downloads work now",
+    "commit_hash": "976ed18721b4929410684cde8839b3d62d1f7cce"
   }
 ]

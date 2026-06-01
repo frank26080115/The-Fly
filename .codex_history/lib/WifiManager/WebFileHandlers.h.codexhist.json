@@ -48,5 +48,101 @@
     "type": "git_commit",
     "commit_message": "web server related major work",
     "commit_hash": "5347b8785e4501a28ac8abae3f67111dfb8fe246"
+  },
+  {
+    "timestamp": "2026-05-31T09:07:07.432Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "### ask: decrypted download",
+      "",
+      "You’ve helped me benchmark how fast it takes to decrypt a file on-device, it was slow, like a one hour meeting recording would take maybe 20 minutes to decrypt, but, that was mostly because of the microSD card simultaneous reading and writing being a bottleneck.",
+      "",
+      "I want to implement decrypt while downloading. Hopefully this is faster.",
+      "",
+      "The framework for authentication and encrypted communication is already established in the front-end. We’ve also added a unlock button for files that are `*.rec`, right now clicking on them does nothing. This button is shown and hidden appropriately for the given file name and login state.",
+      "",
+      "So in `lib\\WifiManager\\WebFileHandlers.cpp` we will add a handler for `/decrypted_download`, registered in `lib\\WifiManager\\WebServer.cpp`",
+      "",
+      "The front-end will construct a JSON object, with “file_name” as a key to indicate which file is being requested, along with a key “action” indicating “download”. This JSON blob is encrypted with the `sessionAesKey` before being sent to `/decrypted_download`. The CPP side of `/decrypted_download` will decrypt it using `uint8_t session_key[]` , failure to decrypt would indicate not being authenticated",
+      "",
+      "Also handle when “action” is “stream”, then the mime-type is one that indicates that it is a `*.wav` audio file. If the key “action” is missing, then use mime-type being octet stream.",
+      "",
+      "If authenticated and the file exists, then stream it back to the client decrypted chunk by decrypted chunk. The indicated download file name should have a `*.wav` extension. The mime-type should be octet stream",
+      "",
+      "I believe as we have known sizes for chunks both encrypted and decrypted, estimating the unencrypted file size should be easy"
+    ],
+    "agent_reply": [
+      "Implemented decrypted download.",
+      "",
+      "The unlock button now posts an encrypted session-key request to `/decrypted_download` from [html/script.js](D:/GithubRepos/The-Fly/html/script.js:267), then saves the decrypted response as a `.wav`.",
+      "",
+      "Backend pieces:",
+      "- Registered secured POST route in [WebServer.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp:909)",
+      "- Added handler declarations in [WebFileHandlers.h](D:/GithubRepos/The-Fly/lib/WifiManager/WebFileHandlers.h:12)",
+      "- Added encrypted request parsing plus chunk-by-chunk `.rec` to WAV streaming in [WebFileHandlers.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebFileHandlers.cpp:458) and [WebFileHandlers.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebFileHandlers.cpp:1293)",
+      "",
+      "Behavior matches the ask:",
+      "- Request JSON uses `file_name` plus `action: \"download\"`, encrypted with `sessionAesKey`",
+      "- Server authenticates session headers, decrypts with `session_key`",
+      "- GCM decrypt failure returns auth-style failure",
+      "- Only `.rec` paths are accepted",
+      "- `download` or missing `action` returns `application/octet-stream`",
+      "- `stream` returns `audio/wav`",
+      "- `Content-Disposition` suggests the same filename with `.wav`",
+      "- WAV size is estimated from encrypted chunk count and the decrypted WAV header is patched accordingly",
+      "",
+      "Build/checks passed:",
+      "- `node --check html\\script.js`",
+      "- `node --check html\\sec_helpers.js`",
+      "- `pio run -e thefly_sec0`",
+      "- `pio run -e thefly_sec1`",
+      "- `pio run -e thefly_sec2 -e thefly_sec3`",
+      "- `git diff --check` clean except normal CRLF warnings",
+      "",
+      "Generated files changed from the builds: `inc/web_assets.h` and `src/version.c`."
+    ],
+    "files": [
+      "lib/WifiManager/WebFileHandlers.cpp",
+      "lib/WifiManager/WebFileHandlers.h",
+      "lib/WifiManager/WebServer.cpp",
+      "html/script.js",
+      "html/sec_helpers.js",
+      "inc/web_assets.h",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T09:43:49.901Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "move as much of the new decrypted download functions inside `lib\\WifiManager\\DecryptedDownload.cpp` and `lib\\WifiManager\\DecryptedDownload.h`, protected by `BUILD_WITH_DECRYPTED_DOWNLOAD`",
+      "",
+      "let the front-end 404, but it should be fine, I don't want to add a \"allow_decrypted_download\" into the json yet"
+    ],
+    "agent_reply": [
+      "Done. I moved the decrypted download implementation into:",
+      "",
+      "- [DecryptedDownload.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/DecryptedDownload.cpp:1)",
+      "- [DecryptedDownload.h](D:/GithubRepos/The-Fly/lib/WifiManager/DecryptedDownload.h:1)",
+      "",
+      "`WebFileHandlers.cpp/.h` are back to raw microSD file handling only. `WebServer.cpp` now includes the new header and registers `/decrypted_download` only under `BUILD_WITH_DECRYPTED_DOWNLOAD`, calling `DecryptedDownload::finish` / `DecryptedDownload::writeBody` at [WebServer.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp:909).",
+      "",
+      "I left the frontend alone, so if `BUILD_WITH_DECRYPTED_DOWNLOAD` is not enabled, the unlock request will just hit a missing route / 404 as requested. No `allow_decrypted_download` JSON flag added.",
+      "",
+      "Verification:",
+      "- `pio run -e thefly_sec1 -t .pio\\build\\thefly_sec1\\libb6d\\WifiManager\\DecryptedDownload.cpp.o` passed.",
+      "- `pio run -e thefly_sec1 -t .pio\\build\\thefly_sec1\\libb6d\\WifiManager\\WebServer.cpp.o` passed.",
+      "- `git diff --check` passed except CRLF warnings.",
+      "- Full `pio run -e thefly_sec1` is still blocked by unrelated dirty [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:145): `Aegis::setTestTempPassword(\"123456\")` needs `const uint8_t*`, not `const char*`."
+    ],
+    "files": [
+      "inc/conf.h",
+      "lib/WifiManager/DecryptedDownload.h",
+      "lib/WifiManager/DecryptedDownload.cpp",
+      "lib/WifiManager/WebFileHandlers.cpp",
+      "lib/WifiManager/WebFileHandlers.h",
+      "lib/WifiManager/WebServer.cpp",
+      "src/main.cpp"
+    ]
   }
 ]

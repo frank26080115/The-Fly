@@ -534,5 +534,68 @@
     "type": "git_commit",
     "commit_message": "password reset mechanism implementation",
     "commit_hash": "b912990e70975d6dcadba6ebc765222feaea1602"
+  },
+  {
+    "timestamp": "2026-06-01T02:37:18.810Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "uhhhh 10000 rounds took 5 seconds...",
+      "",
+      "yea we lowering this to like 100 lol"
+    ],
+    "agent_reply": [
+      "Done. Session-key PBKDF2 is now `100` rounds on both sides, while password-derived keys stay at `100000`.",
+      "",
+      "Changed:",
+      "- `Aegis::kSessionPbkdfIterations = 100`",
+      "- server `/get_cfg` session key derivation now uses that session-specific constant",
+      "- browser `derive_pbkdf2_bytes()` accepts an iteration override",
+      "- login session-key derivation passes `session_pbkdf_iterations = 100`",
+      "- repacked `inc/web_assets.h`",
+      "",
+      "Verified:",
+      "- `node --check html\\script.js`",
+      "- `node --check html\\sec_helpers.js`",
+      "- `pio run -e thefly_sec1`",
+      "- `git diff --check` passes, with only CRLF warnings",
+      "",
+      "That should turn the session derivation from “oh no” to basically instant, while keeping the expensive KDF where it actually matters: password to key.",
+      "",
+      "Done. Session-key PBKDF2 is now `100` rounds on both sides, while password-derived keys stay at `100000`.",
+      "",
+      "Changed:",
+      "- `Aegis::kSessionPbkdfIterations = 100`",
+      "- server `/get_cfg` session key derivation now uses that session-specific constant",
+      "- browser `derive_pbkdf2_bytes()` accepts an iteration override",
+      "- login session-key derivation passes `session_pbkdf_iterations = 100`",
+      "- repacked `inc/web_assets.h`",
+      "",
+      "Verified:",
+      "- `node --check html\\script.js`",
+      "- `node --check html\\sec_helpers.js`",
+      "- `pio run -e thefly_sec1`",
+      "- `git diff --check` passes, with only CRLF warnings",
+      "",
+      "That should turn the session derivation from “oh no” to basically instant, while keeping the expensive KDF where it actually matters: password to key."
+    ],
+    "files": [
+      "lib/Security/Aegis.h",
+      "lib/WifiManager/WebServer.cpp",
+      "html/sec_helpers.js",
+      "html/script.js",
+      "inc/web_assets.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T04:40:14Z",
+    "type": "git_commit",
+    "commit_message": "file download and decrypted downloads work now",
+    "commit_hash": "976ed18721b4929410684cde8839b3d62d1f7cce"
+  },
+  {
+    "timestamp": "2026-06-01T06:00:34Z",
+    "type": "git_commit",
+    "commit_message": "fixed a lot of web issues",
+    "commit_hash": "a1e8949e841901b5e57b90e644f9dae0d3e50adc"
   }
 ]

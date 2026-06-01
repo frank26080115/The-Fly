@@ -1,0 +1,54 @@
+[
+  {
+    "timestamp": "2026-06-01T05:15:20.728Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "welp, I changed it to this (see highlighted), and now the page won't load at all lol"
+    ],
+    "agent_reply": [
+      "Yep, that change compiles, but `* 8` makes the response buffer about `1436 * 8 = 11488` bytes per active response.",
+      "",
+      "That can easily make the page fail to load because the browser opens several simultaneous requests for the HTML/assets/API calls. Each response can allocate one of those buffers, so a few parallel loads suddenly need tens of KB of heap just for web response staging. Downloads may tolerate it; the initial page burst may not.",
+      "",
+      "I’d back it down and test in smaller steps:",
+      "",
+      "```cpp",
+      "#define ASYNC_RESPONCE_BUFF_SIZE (CONFIG_LWIP_TCP_MSS * 3)",
+      "```",
+      "",
+      "or:",
+      "",
+      "```cpp",
+      "#define ASYNC_RESPONCE_BUFF_SIZE (CONFIG_LWIP_TCP_MSS * 4)",
+      "```",
+      "",
+      "`* 4` is about `5744` bytes, which is a much less dramatic jump from the original `* 2` / `2872`.",
+      "",
+      "Also: this project is using the vendored copy at [lib/ESPAsyncWebServer](/d:/GithubRepos/The-Fly/lib/ESPAsyncWebServer/library.json), version `3.11.0`. `AsyncTCP` is still `3.4.10` and does not need changing for this knob.",
+      "",
+      "Yep, that change compiles, but `* 8` makes the response buffer about `1436 * 8 = 11488` bytes per active response.",
+      "",
+      "That can easily make the page fail to load because the browser opens several simultaneous requests for the HTML/assets/API calls. Each response can allocate one of those buffers, so a few parallel loads suddenly need tens of KB of heap just for web response staging. Downloads may tolerate it; the initial page burst may not.",
+      "",
+      "I’d back it down and test in smaller steps:",
+      "",
+      "```cpp",
+      "#define ASYNC_RESPONCE_BUFF_SIZE (CONFIG_LWIP_TCP_MSS * 3)",
+      "```",
+      "",
+      "or:",
+      "",
+      "```cpp",
+      "#define ASYNC_RESPONCE_BUFF_SIZE (CONFIG_LWIP_TCP_MSS * 4)",
+      "```",
+      "",
+      "`* 4` is about `5744` bytes, which is a much less dramatic jump from the original `* 2` / `2872`.",
+      "",
+      "Also: this project is using the vendored copy at [lib/ESPAsyncWebServer](/d:/GithubRepos/The-Fly/lib/ESPAsyncWebServer/library.json), version `3.11.0`. `AsyncTCP` is still `3.4.10` and does not need changing for this knob."
+    ],
+    "files": [
+      "lib/ESPAsyncWebServer/library.json",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
+    ]
+  }
+]

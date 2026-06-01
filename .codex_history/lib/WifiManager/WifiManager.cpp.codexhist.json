@@ -2598,5 +2598,110 @@
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
+  },
+  {
+    "timestamp": "2026-05-31T08:01:22.082Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "I do want the RTC to store time as UTC, I do want the Wi-Fi manager to apply the time-zone, make this happen"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "The RTC path now treats the RTC as UTC storage in [ClockAgent.cpp](D:/GithubRepos/The-Fly/lib/ClockAgent/ClockAgent.cpp): raw RTC reads become UTC epoch seconds, `setUnixTime()` writes UTC back to the RTC, and `getDateTime()` formats local wall time using the active timezone. `getUnixTime()` now returns the actual UTC epoch, which fixes the browser offset comparison.",
+      "",
+      "Wi-Fi config now applies the timezone with `setenv(\"TZ\", ...)` and `tzset()` in [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp), on defaults/load/save/clear. NTP sync now compares and writes UTC time in [NtpSync.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/NtpSync.cpp), so after sync the RTC offset should settle near zero instead of showing the timezone-sized `-28808` style number.",
+      "",
+      "Verified:",
+      "`pio run -e thefly_sec0`",
+      "`pio run -e thefly_sec1`",
+      "`pio run -e thefly_sec2`",
+      "`pio run -e thefly_sec3`",
+      "",
+      "All passed. The plain `thefly` env still fails because it does not define `BUILD_WITH_SECURITY_LEVEL`, unrelated to this change. One practical note: an RTC previously written in local time will look wrong until the next browser time sync or NTP sync rewrites it as UTC."
+    ],
+    "files": [
+      "lib/ClockAgent/ClockAgent.h",
+      "lib/ClockAgent/ClockAgent.cpp",
+      "lib/WifiManager/WifiManager.cpp",
+      "lib/WifiManager/NtpSync.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T08:15:01Z",
+    "type": "git_commit",
+    "commit_message": "internal clock needs to actually care about time zone",
+    "commit_hash": "908cedb1fdb07553f3978c6c04843c7fb8c95a1b"
+  },
+  {
+    "timestamp": "2026-06-01T03:28:52.737Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "Make a `lib\\WifiManager\\AsyncFsManager.cpp` and its associated header file",
+      "",
+      "It needs public functions",
+      "",
+      "- init, called from any activation of Wi-Fi",
+      "- reset walk, reset iterator for file listing, should always work no matter what state",
+      "- walk one, return one file from directory, the next call should return the next file, return something to indicate end of list when needed, automatically restart the walk if something is wrong",
+      "- close walk",
+      "- open file for download, closes any other file or anything else that might conflict, reset seek pointer",
+      "- read file chunk",
+      "- close file",
+      "",
+      "critically, all of these need to be thread safe",
+      "",
+      "web server code can only use methods within this manager, add thread safe functions to this manager as needed",
+      "",
+      "use it to attempt to fix the problem with listing files and the decrypted download"
+    ],
+    "agent_reply": [
+      "Implemented `AsyncFsManager` and routed the web SD access through it.",
+      "",
+      "What changed:",
+      "- Added [AsyncFsManager.h](/d:/GithubRepos/The-Fly/lib/WifiManager/AsyncFsManager.h:19) and [AsyncFsManager.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/AsyncFsManager.cpp:93).",
+      "- It owns the active walk handle and active download handle behind a recursive FreeRTOS mutex.",
+      "- `resetWalk`, `walkOne`, `closeWalk`, `openFileForDownload`, `readFileChunk`, and `closeFile` are all serialized.",
+      "- Opening a download closes any active walk; resetting a walk closes any active download.",
+      "- Added thread-safe helpers for web upload/delete/readiness: `writeFileChunk`, `removeFile`, `isFile`, `isReady`.",
+      "",
+      "I also wired:",
+      "- `/list_files.json` to use `AsyncFsManager::resetWalk()` and `walkOne()` instead of holding its own `FsFile`: [WebFileHandlers.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WebFileHandlers.cpp:221)",
+      "- `/download_file` to use `openFileForDownload()` / `readFileChunk()`: [WebFileHandlers.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WebFileHandlers.cpp:413)",
+      "- decrypted download to use the manager for encrypted recording reads: [DecryptedDownload.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/DecryptedDownload.cpp:505)",
+      "- Wi-Fi activation reset via `AsyncFsManager::init()`: [WifiManager.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:397)",
+      "",
+      "Verification: `pio run -e thefly_sec1` passes.",
+      "",
+      "Implemented `AsyncFsManager` and routed the web SD access through it.",
+      "",
+      "What changed:",
+      "- Added [AsyncFsManager.h](/d:/GithubRepos/The-Fly/lib/WifiManager/AsyncFsManager.h:19) and [AsyncFsManager.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/AsyncFsManager.cpp:93).",
+      "- It owns the active walk handle and active download handle behind a recursive FreeRTOS mutex.",
+      "- `resetWalk`, `walkOne`, `closeWalk`, `openFileForDownload`, `readFileChunk`, and `closeFile` are all serialized.",
+      "- Opening a download closes any active walk; resetting a walk closes any active download.",
+      "- Added thread-safe helpers for web upload/delete/readiness: `writeFileChunk`, `removeFile`, `isFile`, `isReady`.",
+      "",
+      "I also wired:",
+      "- `/list_files.json` to use `AsyncFsManager::resetWalk()` and `walkOne()` instead of holding its own `FsFile`: [WebFileHandlers.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WebFileHandlers.cpp:221)",
+      "- `/download_file` to use `openFileForDownload()` / `readFileChunk()`: [WebFileHandlers.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WebFileHandlers.cpp:413)",
+      "- decrypted download to use the manager for encrypted recording reads: [DecryptedDownload.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/DecryptedDownload.cpp:505)",
+      "- Wi-Fi activation reset via `AsyncFsManager::init()`: [WifiManager.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:397)",
+      "",
+      "Verification: `pio run -e thefly_sec1` passes."
+    ],
+    "files": [
+      "lib/WifiManager/AsyncFsManager.h",
+      "lib/WifiManager/AsyncFsManager.cpp",
+      "lib/WifiManager/WebFileHandlers.cpp",
+      "lib/WifiManager/DecryptedDownload.cpp",
+      "lib/WifiManager/WifiManager.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T04:40:14Z",
+    "type": "git_commit",
+    "commit_message": "file download and decrypted downloads work now",
+    "commit_hash": "976ed18721b4929410684cde8839b3d62d1f7cce"
   }
 ]

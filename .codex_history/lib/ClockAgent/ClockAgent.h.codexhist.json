@@ -240,5 +240,39 @@
     "type": "git_commit",
     "commit_message": "firmware update kinda implemented",
     "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
+  },
+  {
+    "timestamp": "2026-05-31T08:01:22.082Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "I do want the RTC to store time as UTC, I do want the Wi-Fi manager to apply the time-zone, make this happen"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "The RTC path now treats the RTC as UTC storage in [ClockAgent.cpp](D:/GithubRepos/The-Fly/lib/ClockAgent/ClockAgent.cpp): raw RTC reads become UTC epoch seconds, `setUnixTime()` writes UTC back to the RTC, and `getDateTime()` formats local wall time using the active timezone. `getUnixTime()` now returns the actual UTC epoch, which fixes the browser offset comparison.",
+      "",
+      "Wi-Fi config now applies the timezone with `setenv(\"TZ\", ...)` and `tzset()` in [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp), on defaults/load/save/clear. NTP sync now compares and writes UTC time in [NtpSync.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/NtpSync.cpp), so after sync the RTC offset should settle near zero instead of showing the timezone-sized `-28808` style number.",
+      "",
+      "Verified:",
+      "`pio run -e thefly_sec0`",
+      "`pio run -e thefly_sec1`",
+      "`pio run -e thefly_sec2`",
+      "`pio run -e thefly_sec3`",
+      "",
+      "All passed. The plain `thefly` env still fails because it does not define `BUILD_WITH_SECURITY_LEVEL`, unrelated to this change. One practical note: an RTC previously written in local time will look wrong until the next browser time sync or NTP sync rewrites it as UTC."
+    ],
+    "files": [
+      "lib/ClockAgent/ClockAgent.h",
+      "lib/ClockAgent/ClockAgent.cpp",
+      "lib/WifiManager/WifiManager.cpp",
+      "lib/WifiManager/NtpSync.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T08:15:01Z",
+    "type": "git_commit",
+    "commit_message": "internal clock needs to actually care about time zone",
+    "commit_hash": "908cedb1fdb07553f3978c6c04843c7fb8c95a1b"
   }
 ]

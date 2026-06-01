@@ -323,5 +323,74 @@
       "lib/WifiManager/NtpSync.cpp",
       "lib/ClockAgent/ClockAgent.cpp"
     ]
+  },
+  {
+    "timestamp": "2026-05-31T07:55:29.706Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "is the browser time sync function completely wired up?"
+    ],
+    "agent_reply": [
+      "Yes, the browser time sync is wired end-to-end.",
+      "",
+      "Frontend path:",
+      "",
+      "- [html/script.js](/d:/GithubRepos/The-Fly/html/script.js:354) compares device `\"current-time\"` from `/get_info` to browser `Date.now()`.",
+      "- If offset is over `60` seconds, it adds a `Sync Time` button.",
+      "- [html/script.js](/d:/GithubRepos/The-Fly/html/script.js:1615) sends:",
+      "  ```js",
+      "  POST /time_sync?time=<browser unix seconds>",
+      "  ```",
+      "- On success, it reads returned `\"current-time\"` and re-renders the info panel.",
+      "",
+      "Backend path:",
+      "",
+      "- [lib/WifiManager/WebServer.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp:938) registers `POST /time_sync`.",
+      "- [lib/WifiManager/WebCfgHandlers.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WebCfgHandlers.cpp:1824) handles it.",
+      "- It accepts `time`, `current-time`, or `unix_time`, validates it, calls `Clock.setUnixTime(unix_time)`, verifies with `Clock.getUnixTime()`, then returns JSON.",
+      "- [lib/ClockAgent/ClockAgent.cpp](/d:/GithubRepos/The-Fly/lib/ClockAgent/ClockAgent.cpp:422) actually applies the Unix time into the RTC/system clock.",
+      "",
+      "One caveat: it is not session-authenticated. Access is controlled by policy instead: for security level 2+, both frontend and backend only allow it from the generated/default soft AP. So it is fully wired for the current intended behavior, but not authenticated the way `/get_cfg` or encrypted config actions are."
+    ],
+    "files": [
+      "html/script.js",
+      "lib/WifiManager/WebServer.cpp",
+      "lib/WifiManager/WebCfgHandlers.cpp",
+      "lib/ClockAgent/ClockAgent.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T08:01:22.082Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "I do want the RTC to store time as UTC, I do want the Wi-Fi manager to apply the time-zone, make this happen"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "The RTC path now treats the RTC as UTC storage in [ClockAgent.cpp](D:/GithubRepos/The-Fly/lib/ClockAgent/ClockAgent.cpp): raw RTC reads become UTC epoch seconds, `setUnixTime()` writes UTC back to the RTC, and `getDateTime()` formats local wall time using the active timezone. `getUnixTime()` now returns the actual UTC epoch, which fixes the browser offset comparison.",
+      "",
+      "Wi-Fi config now applies the timezone with `setenv(\"TZ\", ...)` and `tzset()` in [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp), on defaults/load/save/clear. NTP sync now compares and writes UTC time in [NtpSync.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/NtpSync.cpp), so after sync the RTC offset should settle near zero instead of showing the timezone-sized `-28808` style number.",
+      "",
+      "Verified:",
+      "`pio run -e thefly_sec0`",
+      "`pio run -e thefly_sec1`",
+      "`pio run -e thefly_sec2`",
+      "`pio run -e thefly_sec3`",
+      "",
+      "All passed. The plain `thefly` env still fails because it does not define `BUILD_WITH_SECURITY_LEVEL`, unrelated to this change. One practical note: an RTC previously written in local time will look wrong until the next browser time sync or NTP sync rewrites it as UTC."
+    ],
+    "files": [
+      "lib/ClockAgent/ClockAgent.h",
+      "lib/ClockAgent/ClockAgent.cpp",
+      "lib/WifiManager/WifiManager.cpp",
+      "lib/WifiManager/NtpSync.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-05-31T08:15:01Z",
+    "type": "git_commit",
+    "commit_message": "internal clock needs to actually care about time zone",
+    "commit_hash": "908cedb1fdb07553f3978c6c04843c7fb8c95a1b"
   }
 ]

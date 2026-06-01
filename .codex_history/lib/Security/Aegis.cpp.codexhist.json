@@ -458,5 +458,74 @@
     "type": "git_commit",
     "commit_message": "pin code backend infrastructure",
     "commit_hash": "edce3fc7b1dccd8c63fb39b66975c3701aec1045"
+  },
+  {
+    "timestamp": "2026-06-01T02:16:57.295Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "",
+      "# Files mentioned by the user:",
+      "",
+      "## Pasted text.txt: C:\\Users\\frank\\.codex/attachments/7f5a7adb-f693-4fa3-919c-68b0d084ecec/pasted-text.txt",
+      "",
+      "## My request for Codex:",
+      "ok thanks, we made progress I think, I clicked login, and the interface seemed to react, some hidden elements were shown, but then, I got a WDT error in the serial port logs",
+      ""
+    ],
+    "agent_reply": [
+      "This WDT is not a fresh webcrypto-shim failure. The serial backtrace points at firmware-side PBKDF2 in `Aegis::pbkdf2HmacSha256()` while `/get_cfg` is handled on the `async_tcp` task.",
+      "",
+      "I patched it by:",
+      "- making firmware PBKDF2 run in equivalent HMAC-SHA256 chunks with `delay(1)` every 256 rounds, so the watchdog gets serviced",
+      "- caching the derived session key after the first authenticated request, so later config/save requests don’t redo the 100k-iteration KDF",
+      "",
+      "Touched files:",
+      "- `lib/Security/Aegis.cpp`",
+      "- `lib/WifiManager/WebServer.cpp`",
+      "- regenerated `inc/web_assets.h` after the existing shim cleanup",
+      "",
+      "Verified:",
+      "- `node --check html\\webcrypto-shim.min.js`",
+      "- `git diff --check` passes, only CRLF warnings",
+      "- `pio run -e thefly_sec1` passes",
+      "",
+      "Next test: flash `.pio\\build\\thefly_sec1\\firmware.bin` and try login again. The first authenticated config load may still take a noticeable moment, but it should not WDT now.",
+      "",
+      "This WDT is not a fresh webcrypto-shim failure. The serial backtrace points at firmware-side PBKDF2 in `Aegis::pbkdf2HmacSha256()` while `/get_cfg` is handled on the `async_tcp` task.",
+      "",
+      "I patched it by:",
+      "- making firmware PBKDF2 run in equivalent HMAC-SHA256 chunks with `delay(1)` every 256 rounds, so the watchdog gets serviced",
+      "- caching the derived session key after the first authenticated request, so later config/save requests don’t redo the 100k-iteration KDF",
+      "",
+      "Touched files:",
+      "- `lib/Security/Aegis.cpp`",
+      "- `lib/WifiManager/WebServer.cpp`",
+      "- regenerated `inc/web_assets.h` after the existing shim cleanup",
+      "",
+      "Verified:",
+      "- `node --check html\\webcrypto-shim.min.js`",
+      "- `git diff --check` passes, only CRLF warnings",
+      "- `pio run -e thefly_sec1` passes",
+      "",
+      "Next test: flash `.pio\\build\\thefly_sec1\\firmware.bin` and try login again. The first authenticated config load may still take a noticeable moment, but it should not WDT now."
+    ],
+    "files": [
+      "lib/Security/Aegis.cpp",
+      "lib/WifiManager/WebServer.cpp",
+      "html/webcrypto-shim.min.js",
+      "inc/web_assets.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T04:40:14Z",
+    "type": "git_commit",
+    "commit_message": "file download and decrypted downloads work now",
+    "commit_hash": "976ed18721b4929410684cde8839b3d62d1f7cce"
+  },
+  {
+    "timestamp": "2026-06-01T06:00:34Z",
+    "type": "git_commit",
+    "commit_message": "fixed a lot of web issues",
+    "commit_hash": "a1e8949e841901b5e57b90e644f9dae0d3e50adc"
   }
 ]

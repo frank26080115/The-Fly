@@ -1,0 +1,62 @@
+[
+  {
+    "timestamp": "2026-06-01T06:33:47Z",
+    "type": "git_commit",
+    "commit_message": "added a copy of arduino-liblame",
+    "commit_hash": "9424277cacbfb1bc1ebf53c9ec83ea2e331b9b87"
+  },
+  {
+    "timestamp": "2026-06-01T07:13:04.644Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "read through `lib\\arduino-liblame\\src\\liblame\\config.h` and optimize it since we are on a ESP32 with PSRAM"
+    ],
+    "agent_reply": [
+      "Optimized the ESP32/PSRAM-facing LAME config in [config.h](/d:/GithubRepos/The-Fly/lib/arduino-liblame/src/liblame/config.h:14).",
+      "",
+      "Changes made:",
+      "",
+      "- Enabled `USE_MEMORY_HACK = 1`, so big ReplayGain / psychoacoustic pieces are split instead of living in monolithic structs.",
+      "- Raised `ESP_PSRAM_ENABLE_LIMIT` from `1024` to `8 * 1024`.",
+      "  - This keeps small hot scratch buffers in internal RAM.",
+      "  - Larger encoder state/tables spill to PSRAM.",
+      "- Left risky CPU hacks off, especially `USE_HIRO_IEEE754_HACK`, since its own comment says it depends on `-fno-strict-alias`.",
+      "- Fixed a real bug exposed by `USE_MEMORY_HACK` in [gain_analysis.c](/d:/GithubRepos/The-Fly/lib/arduino-liblame/src/liblame/gain_analysis.c:279): the split ReplayGain histogram sizes were element counts but used as byte counts. They now multiply by `sizeof`.",
+      "",
+      "Verified:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "passed.",
+      "",
+      "I also did a targeted xtensa compile of the modified `gain_analysis.c`, and that passed too. Note: the normal firmware build still does not pull libLAME into the dependency graph yet, so it is not full libLAME coverage until the MP3 recorder path actually references it.",
+      "",
+      "Optimized the ESP32/PSRAM-facing LAME config in [config.h](/d:/GithubRepos/The-Fly/lib/arduino-liblame/src/liblame/config.h:14).",
+      "",
+      "Changes made:",
+      "",
+      "- Enabled `USE_MEMORY_HACK = 1`, so big ReplayGain / psychoacoustic pieces are split instead of living in monolithic structs.",
+      "- Raised `ESP_PSRAM_ENABLE_LIMIT` from `1024` to `8 * 1024`.",
+      "  - This keeps small hot scratch buffers in internal RAM.",
+      "  - Larger encoder state/tables spill to PSRAM.",
+      "- Left risky CPU hacks off, especially `USE_HIRO_IEEE754_HACK`, since its own comment says it depends on `-fno-strict-alias`.",
+      "- Fixed a real bug exposed by `USE_MEMORY_HACK` in [gain_analysis.c](/d:/GithubRepos/The-Fly/lib/arduino-liblame/src/liblame/gain_analysis.c:279): the split ReplayGain histogram sizes were element counts but used as byte counts. They now multiply by `sizeof`.",
+      "",
+      "Verified:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "passed.",
+      "",
+      "I also did a targeted xtensa compile of the modified `gain_analysis.c`, and that passed too. Note: the normal firmware build still does not pull libLAME into the dependency graph yet, so it is not full libLAME coverage until the MP3 recorder path actually references it."
+    ],
+    "files": [
+      "lib/arduino-liblame/src/liblame/config.h",
+      "lib/arduino-liblame/src/liblame/gain_analysis.c"
+    ]
+  }
+]

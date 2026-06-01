@@ -1979,5 +1979,48 @@
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
+  },
+  {
+    "timestamp": "2026-06-01T04:13:27.535Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "the shared resource is SPI, I bet it's being interrupted by a GUI redraw",
+      "",
+      "so thread safety isn't just about file system objects, it needs to work well with `FlyGuiView`'s polling calls"
+    ],
+    "agent_reply": [
+      "Agreed, and I implemented the first blunt-but-useful version of that coordination.",
+      "",
+      "What changed:",
+      "- `AsyncFsManager::guiShouldYield()` now reports when a file walk or download is active.",
+      "- `FlyGui::poll()` now returns immediately while the async FS manager is active, so GUI redraw/touch polling won’t compete with SD reads during web listing/download.",
+      "- The reopen-and-retry SD read path I added before the interruption is still in place, with SD error code/data logging.",
+      "",
+      "Build passes: `pio run -e thefly_sec1`.",
+      "",
+      "This is intentionally conservative: during a browser file download, the on-device GUI may feel frozen until the transfer ends or disconnects. If this fixes the download corruption, we can refine it into a real shared SPI arbiter or timed “download quiet mode” instead of a broad GUI yield.",
+      "",
+      "Agreed, and I implemented the first blunt-but-useful version of that coordination.",
+      "",
+      "What changed:",
+      "- `AsyncFsManager::guiShouldYield()` now reports when a file walk or download is active.",
+      "- `FlyGui::poll()` now returns immediately while the async FS manager is active, so GUI redraw/touch polling won’t compete with SD reads during web listing/download.",
+      "- The reopen-and-retry SD read path I added before the interruption is still in place, with SD error code/data logging.",
+      "",
+      "Build passes: `pio run -e thefly_sec1`.",
+      "",
+      "This is intentionally conservative: during a browser file download, the on-device GUI may feel frozen until the transfer ends or disconnects. If this fixes the download corruption, we can refine it into a real shared SPI arbiter or timed “download quiet mode” instead of a broad GUI yield."
+    ],
+    "files": [
+      "lib/WifiManager/AsyncFsManager.h",
+      "lib/WifiManager/AsyncFsManager.cpp",
+      "lib/FlyGui/FlyGui.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T04:40:14Z",
+    "type": "git_commit",
+    "commit_message": "file download and decrypted downloads work now",
+    "commit_hash": "976ed18721b4929410684cde8839b3d62d1f7cce"
   }
 ]
