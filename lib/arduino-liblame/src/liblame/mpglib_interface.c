@@ -25,7 +25,7 @@
 /* $Id: mpglib_interface.c,v 1.44 2012/02/18 13:09:00 robert Exp $ */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+# include <lame_config.h>
 #endif
 
 #if HAVE_MPGLIB

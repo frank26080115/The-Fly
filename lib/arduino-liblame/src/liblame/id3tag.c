@@ -31,7 +31,7 @@
 
 /* $Id: id3tag.c,v 1.80 2017/08/28 15:39:51 robert Exp $ */
 
-#include "config.h"
+#include "lame_config.h"
 
 #if STDC_HEADERS
 # include <stddef.h>

@@ -19,7 +19,7 @@ struct AudioInfo {
   int sample_rate = 16000;
   int channels = 2;
   int bits_per_sample = 16; // we assume int16_t
-  int quality = 7;          // 0..9.  0=best (very slow).  9=worst.
+  int quality = 9;          // 0..9.  0=best (very slow).  9=fastest.
   int frame_size = 0;       // determined by decoder
   int brate = 64;           // kbps
   bool disable_bit_reservoir = true; // avoid cross-frame MP3 dependencies
@@ -162,16 +162,43 @@ public:
   }
 
   /// closes the processing and release resources
+  bool flush() {
+    LOG_LAME(LAMEDebug, __FUNCTION__);
+    if (!active || lame == nullptr) {
+      return true;
+    }
+
+    if (!setupOutputBuffer(7200)) {
+      return false;
+    }
+
+    int mp3_len = lame_encode_flush(lame, mp3_buffer, mp3_buffer_size);
+    if (mp3_len < 0) {
+      LOG_LAME(LAMEError, "lame_encode_flush failed: %d", mp3_len);
+      return false;
+    }
+
+    if (mp3_len > 0) {
+      provideResult((uint8_t *)mp3_buffer, mp3_len);
+    }
+    active = false;
+    return true;
+  }
+
+  /// closes the processing and release resources
   void end() {
     LOG_LAME(LAMEDebug, __FUNCTION__);
-    lame_close(lame);
+    if (lame != nullptr) {
+      lame_close(lame);
+    }
     lame = nullptr;
+    active = false;
   }
 
   operator boolean() { return active; }
 
 protected:
-  bool active;
+  bool active = false;
   MP3CallbackFDK MP3Callback = nullptr;
   AudioInfo info;
   // lame
@@ -184,7 +211,7 @@ protected:
   int convert_buffer_size = 0;
 
 #ifdef ARDUINO
-  Print *out;
+  Print *out = nullptr;
 #endif
 
   bool setupOutputBuffer(int size) {
@@ -208,7 +235,9 @@ protected:
       return false;
     }
 
-    lame_set_VBR(lame, vbr_default);
+    lame_set_VBR(lame, vbr_off);
+    lame_set_bWriteVbrTag(lame, 0);
+    lame_set_write_id3tag_automatic(lame, 0);
     lame_set_num_channels(lame, info.channels);
     if (info.channels == 1) {
       lame_set_mode(lame, MONO);
@@ -216,6 +245,7 @@ protected:
     lame_set_in_samplerate(lame, info.sample_rate);
     //lame_set_out_samplerate(lame, info.sample_rate);
     lame_set_quality(lame, info.quality);
+    lame_set_no_short_blocks(lame, 1);
 
     lame_set_brate(lame, info.brate);
     lame_set_disable_reservoir(lame, info.disable_bit_reservoir ? 1 : 0);

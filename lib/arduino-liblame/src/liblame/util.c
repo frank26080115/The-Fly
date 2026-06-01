@@ -23,7 +23,7 @@
 /* $Id: util.c,v 1.159 2017/09/06 15:07:30 robert Exp $ */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+# include <lame_config.h>
 #endif
 
 #include <float.h>
@@ -38,8 +38,8 @@
 # include <machine/floatingpoint.h>
 #endif
 
-// Ugliy hack to get rid of linker error 
-#if defined(ARDUINO) && defined(ESP32) 
+// Legacy Arduino core workaround. Modern ESP32 toolchains provide this symbol.
+#if defined(ARDUINO) && defined(ESP32) && defined(LAME_DEFINE_IMPURE_PTR)
 struct _reent *_impure_ptr __ATTRIBUTE_IMPURE_PTR__ = NULL;
 #endif
 

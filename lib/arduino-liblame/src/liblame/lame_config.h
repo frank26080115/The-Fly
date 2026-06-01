@@ -48,6 +48,11 @@
 #define USE_DEBUG 0
 #endif
 
+// Print informational messages
+#ifndef USE_INFO
+#define USE_INFO 0
+#endif
+
 // Print memory allocation
 #ifndef USE_DEBUG_ALLOC
 #define USE_DEBUG_ALLOC 0

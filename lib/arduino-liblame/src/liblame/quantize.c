@@ -25,7 +25,7 @@
 /* $Id: quantize.c,v 1.219 2017/08/02 19:48:05 robert Exp $ */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+# include <lame_config.h>
 #endif
 
 #include "lame.h"
@@ -1514,6 +1514,11 @@ struct struct_VBR_iteration_loop {
     FLOAT   xrpow[2][2][576];
 };
 
+struct struct_CBR_ABR_iteration_loop {
+    FLOAT   l3_xmin[SFBMAX];
+    FLOAT   xrpow[576];
+};
+
 
 void
 VBR_old_iteration_loop(lame_internal_flags * gfc, const FLOAT pe[2][2],
@@ -1951,8 +1956,21 @@ ABR_iteration_loop(lame_internal_flags * gfc, const FLOAT pe[2][2],
     DEBUGF(gfc,__FUNCTION__);
     SessionConfig_t const *const cfg = &gfc->cfg;
     EncResult_t *const eov = &gfc->ov_enc;
-    FLOAT   l3_xmin[SFBMAX];
-    FLOAT   xrpow[576];
+#if USE_STACK_HACK
+#if USE_STACK_HACK_RECYCLE_ALLOCATION_SINGLE_THREADED
+    static struct struct_CBR_ABR_iteration_loop *data = NULL;
+    if (data == NULL)
+        data = (struct struct_CBR_ABR_iteration_loop*) lame_calloc(struct struct_CBR_ABR_iteration_loop, 1);
+#else
+    struct struct_CBR_ABR_iteration_loop *data = (struct struct_CBR_ABR_iteration_loop*) lame_calloc(struct struct_CBR_ABR_iteration_loop, 1);
+#endif
+    if (data == NULL)
+        return;
+    memset(data, 0, sizeof(*data));
+#else
+    struct struct_CBR_ABR_iteration_loop loop_data;
+    struct struct_CBR_ABR_iteration_loop *data = &loop_data;
+#endif
     int     targ_bits[2][2];
     int     mean_bits, max_frame_bits;
     int     ch, gr, ath_over;
@@ -1991,16 +2009,16 @@ ABR_iteration_loop(lame_internal_flags * gfc, const FLOAT pe[2][2],
             /*  cod_info, scalefac and xrpow get initialized in init_outer_loop
              */
             init_outer_loop(gfc, cod_info);
-            if (init_xrpow(gfc, cod_info, xrpow)) {
+            if (init_xrpow(gfc, cod_info, data->xrpow)) {
                 /*  xr contains energy we will have to encode
                  *  calculate the masking abilities
                  *  find some good quantization in outer_loop
                  */
-                ath_over = calc_xmin(gfc, &ratio[gr][ch], cod_info, l3_xmin);
+                ath_over = calc_xmin(gfc, &ratio[gr][ch], cod_info, data->l3_xmin);
                 if (0 == ath_over) /* analog silence */
                     targ_bits[gr][ch] = analog_silence_bits;
 
-                (void) outer_loop(gfc, cod_info, l3_xmin, xrpow, ch, targ_bits[gr][ch]);
+                (void) outer_loop(gfc, cod_info, data->l3_xmin, data->xrpow, ch, targ_bits[gr][ch]);
             }
             iteration_finish_one(gfc, gr, ch);
         }               /* ch */
@@ -2016,6 +2034,9 @@ ABR_iteration_loop(lame_internal_flags * gfc, const FLOAT pe[2][2],
     assert(eov->bitrate_index <= cfg->vbr_max_bitrate_index);
 
     ResvFrameEnd(gfc, mean_bits);
+#if USE_STACK_HACK && !USE_STACK_HACK_RECYCLE_ALLOCATION_SINGLE_THREADED
+    lame_free(data);
+#endif
 }
 
 
@@ -2039,8 +2060,21 @@ CBR_iteration_loop(lame_internal_flags * gfc, const FLOAT pe[2][2],
 {
     DEBUGF(gfc,__FUNCTION__);
     SessionConfig_t const *const cfg = &gfc->cfg;
-    FLOAT   l3_xmin[SFBMAX];
-    FLOAT   xrpow[576];
+#if USE_STACK_HACK
+#if USE_STACK_HACK_RECYCLE_ALLOCATION_SINGLE_THREADED
+    static struct struct_CBR_ABR_iteration_loop *data = NULL;
+    if (data == NULL)
+        data = (struct struct_CBR_ABR_iteration_loop*) lame_calloc(struct struct_CBR_ABR_iteration_loop, 1);
+#else
+    struct struct_CBR_ABR_iteration_loop *data = (struct struct_CBR_ABR_iteration_loop*) lame_calloc(struct struct_CBR_ABR_iteration_loop, 1);
+#endif
+    if (data == NULL)
+        return;
+    memset(data, 0, sizeof(*data));
+#else
+    struct struct_CBR_ABR_iteration_loop loop_data;
+    struct struct_CBR_ABR_iteration_loop *data = &loop_data;
+#endif
     int     targ_bits[2];
     int     mean_bits, max_bits;
     int     gr, ch;
@@ -2080,13 +2114,15 @@ CBR_iteration_loop(lame_internal_flags * gfc, const FLOAT pe[2][2],
             /*  init_outer_loop sets up cod_info, scalefac and xrpow
              */
             init_outer_loop(gfc, cod_info);
-            if (init_xrpow(gfc, cod_info, xrpow)) {
+            if (init_xrpow(gfc, cod_info, data->xrpow)) {
                 /*  xr contains energy we will have to encode
                  *  calculate the masking abilities
                  *  find some good quantization in outer_loop
                  */
-                (void) calc_xmin(gfc, &ratio[gr][ch], cod_info, l3_xmin);
-                (void) outer_loop(gfc, cod_info, l3_xmin, xrpow, ch, targ_bits[ch]);
+                if (cfg->noise_shaping) {
+                    (void) calc_xmin(gfc, &ratio[gr][ch], cod_info, data->l3_xmin);
+                }
+                (void) outer_loop(gfc, cod_info, data->l3_xmin, data->xrpow, ch, targ_bits[ch]);
             }
 
             iteration_finish_one(gfc, gr, ch);
@@ -2096,4 +2132,7 @@ CBR_iteration_loop(lame_internal_flags * gfc, const FLOAT pe[2][2],
     }                   /* for gr */
 
     ResvFrameEnd(gfc, mean_bits);
+#if USE_STACK_HACK && !USE_STACK_HACK_RECYCLE_ALLOCATION_SINGLE_THREADED
+    lame_free(data);
+#endif
 }

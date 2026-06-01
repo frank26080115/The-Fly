@@ -27,7 +27,7 @@
 /* $Id: lame.c,v 1.377 2017/09/26 12:14:02 robert Exp $ */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+# include <lame_config.h>
 #endif
 
 
@@ -2155,7 +2155,11 @@ lame_encode_flush(lame_global_flags * gfp, unsigned char *mp3buffer, int mp3buff
     lame_internal_flags *gfc;
     SessionConfig_t const *cfg;
     EncStateVar_t *esv;
+#if USE_STACK_HACK
+    short int (*buffer)[1152];
+#else
     short int buffer[2][1152];
+#endif
     int     imp3 = 0, mp3count, mp3buffer_size_remaining;
 
     /* we always add POSTDELAY=288 padding to make sure granule with real
@@ -2187,7 +2191,15 @@ lame_encode_flush(lame_global_flags * gfp, unsigned char *mp3buffer, int mp3buff
 
     samples_to_encode = esv->mf_samples_to_encode - POSTDELAY;
 
+#if USE_STACK_HACK
+    buffer = (short int (*)[1152]) lame_calloc(short int, 2 * 1152);
+    if (buffer == NULL) {
+        return -2;
+    }
+    memset(buffer, 0, sizeof(short int) * 2 * 1152);
+#else
     memset(buffer, 0, sizeof(buffer));
+#endif
     mp3count = 0;
 
     is_resampling_necessary = isResamplingNecessary(cfg);
@@ -2239,6 +2251,9 @@ lame_encode_flush(lame_global_flags * gfp, unsigned char *mp3buffer, int mp3buff
 
     if (imp3 < 0) {
         /* some type of fatal error */
+#if USE_STACK_HACK
+        lame_free(buffer);
+#endif
         return imp3;
     }
 
@@ -2253,6 +2268,9 @@ lame_encode_flush(lame_global_flags * gfp, unsigned char *mp3buffer, int mp3buff
     save_gain_values(gfc);
     if (imp3 < 0) {
         /* some type of fatal error */
+#if USE_STACK_HACK
+        lame_free(buffer);
+#endif
         return imp3;
     }
     mp3buffer += imp3;
@@ -2269,6 +2287,9 @@ lame_encode_flush(lame_global_flags * gfp, unsigned char *mp3buffer, int mp3buff
         imp3 = copy_buffer(gfc, mp3buffer, mp3buffer_size_remaining, 0);
 
         if (imp3 < 0) {
+#if USE_STACK_HACK
+            lame_free(buffer);
+#endif
             return imp3;
         }
         mp3count += imp3;
@@ -2287,6 +2308,9 @@ lame_encode_flush(lame_global_flags * gfp, unsigned char *mp3buffer, int mp3buff
         MSGF(gfc, "sample count=%d (%g)\n", ns, cfg->samplerate_in * duration);
         MSGF(gfc, "duration=%g sec\n", duration);
     }
+#endif
+#if USE_STACK_HACK
+    lame_free(buffer);
 #endif
     return mp3count;
 }

@@ -84,7 +84,7 @@ The initial restructured code was working prefectly with my [Arduino Simulator](
 - The memory structures were partly too big 
 - Long arrays were allocated on the stack
 
-So I needed to adjust the original code quite a bit. You can activate some micro processor specific functionaitly in config.h. 
+So I needed to adjust the original code quite a bit. You can activate some micro processor specific functionaitly in lame_config.h. 
 
 ```C++
 // use dynamically precalculated log table

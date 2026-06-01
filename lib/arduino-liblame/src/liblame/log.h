@@ -1,5 +1,5 @@
 #pragma once
-#include "config.h"
+#include "lame_config.h"
 #define MAX_LOG_LEN 512
 #ifdef __cplusplus
 extern "C" 
@@ -16,7 +16,11 @@ extern char log_msg[MAX_LOG_LEN];
     #define MSGF    lame_msgf
 
     #define lame_errorf(gfc, ...) {  snprintf(log_msg, 512, __VA_ARGS__);  print_log(__FILE__,__LINE__, "Error"); }
-    #define lame_msgf(gfc,  ...)   { snprintf(log_msg, 512, __VA_ARGS__);  print_log(__FILE__,__LINE__, "Info"); }
+    #if USE_INFO
+        #define lame_msgf(gfc,  ...)   { snprintf(log_msg, 512, __VA_ARGS__);  print_log(__FILE__,__LINE__, "Info"); }
+    #else
+        #define lame_msgf(gfc,  ...)
+    #endif
     #if USE_DEBUG
         #define lame_debugf(gfc, ...) {  snprintf(log_msg, 512, __VA_ARGS__);  print_log(__FILE__,__LINE__, "Debug"); }
     #else

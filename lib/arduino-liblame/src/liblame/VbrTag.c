@@ -22,7 +22,7 @@
 
 /* $Id: VbrTag.c,v 1.106 2017/08/06 18:15:47 robert Exp $ */
 
-#include "config.h"
+#include "lame_config.h"
 #include "log.h"
 #include "lame.h"
 #include "machine.h"

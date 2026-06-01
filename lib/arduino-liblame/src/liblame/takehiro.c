@@ -23,7 +23,7 @@
 /* $Id: takehiro.c,v 1.80 2017/09/06 15:07:30 robert Exp $ */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+# include <lame_config.h>
 #endif
 
 

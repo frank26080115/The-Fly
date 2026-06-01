@@ -22,7 +22,7 @@
 #ifndef LAME_MACHINE_H
 #define LAME_MACHINE_H
 
-#include "config.h"
+#include "lame_config.h"
 #include "version.h"
 
 #include <stdio.h>

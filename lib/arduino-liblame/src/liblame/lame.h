@@ -24,7 +24,7 @@
 #ifndef LAME_LAME_H
 #define LAME_LAME_H
 
-#include "config.h"
+#include "lame_config.h"
 /* for size_t typedef */
 #include <stddef.h>
 /* for va_list typedef */
