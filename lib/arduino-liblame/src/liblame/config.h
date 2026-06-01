@@ -12,9 +12,11 @@
 #define USE_FAST_LOG_CONST 1
 #endif
 
-// Avoid big memory allocations in replaygain_data
+// Avoid monolithic replaygain_data / psychoacoustic allocations. On the ESP32
+// these pieces are easier for the allocator to place well, and the large pieces
+// still spill to PSRAM through debug_calloc().
 #ifndef USE_MEMORY_HACK
-#define USE_MEMORY_HACK 0
+#define USE_MEMORY_HACK 1
 #endif
 
 // The stack on microcontrollers is very limited and we should avoid big objects on the stack in psymodel.c
@@ -29,14 +31,14 @@
 #define USE_STACK_HACK_RECYCLE_ALLOCATION_SINGLE_THREADED 1
 #endif
 
-// If the device is ESP32 and ESP_PSRAM_ENABLE_LIMIT is > 0, then the ESP32 will
-// be configured to use allocate any allocation above ESP_PSRAM_ENABLE_LIMIT using
-// psram, rather than scarce main memory.
+// If the device is ESP32 and ESP_PSRAM_ENABLE_LIMIT is > 0, debug_calloc()
+// places allocations above this size in PSRAM. Keep hot per-frame scratch
+// buffers in internal RAM, but move large encoder state/tables out to PSRAM.
 #ifndef ESP_PSRAM_ENABLE_LIMIT
-#define ESP_PSRAM_ENABLE_LIMIT 1024
+#define ESP_PSRAM_ENABLE_LIMIT (8 * 1024)
 #endif
 
-// Not all microcontroller support vararg methods: alternative impelemtation of logging using the preprocessor
+// Not all microcontrollers support vararg methods: alternative implementation of logging using the preprocessor
 #ifndef USE_LOGGING_HACK
 #define USE_LOGGING_HACK 1
 #endif

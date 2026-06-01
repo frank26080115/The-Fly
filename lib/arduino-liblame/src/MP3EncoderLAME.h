@@ -17,10 +17,11 @@ struct AudioInfo {
   AudioInfo() = default;
   AudioInfo(const AudioInfo &) = default;
   int sample_rate = 16000;
-  int channels = 1;
+  int channels = 2;
   int bits_per_sample = 16; // we assume int16_t
   int quality = 7;          // 0..9.  0=best (very slow).  9=worst.
   int frame_size = 0;       // determined by decoder
+  int brate = 64;           // kbps
 };
 
 /**
@@ -214,6 +215,8 @@ protected:
     lame_set_in_samplerate(lame, info.sample_rate);
     //lame_set_out_samplerate(lame, info.sample_rate);
     lame_set_quality(lame, info.quality);
+
+    lame_set_brate(lame, info.brate);
 
     int initRet = lame_init_params(lame);
     if (initRet < 0) {

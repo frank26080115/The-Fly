@@ -276,12 +276,12 @@ InitGainAnalysis(replaygain_t * rgData, long samplefreq)
 
 #if USE_MEMORY_HACK
     if (rgData->A==NULL){
-        rgData->size_A = STEPS_per_dB * MAX_dB;
+        rgData->size_A = STEPS_per_dB * MAX_dB * sizeof(*(rgData->A));
         rgData->A = debug_calloc(1, rgData->size_A);
     }
 
     if (rgData->B==NULL){
-        rgData->size_B = STEPS_per_dB * MAX_dB;
+        rgData->size_B = STEPS_per_dB * MAX_dB * sizeof(*(rgData->B));
         rgData->B = debug_calloc(1, rgData->size_B);
     } else {
         memset(rgData->B, 0, rgData->size_B );
