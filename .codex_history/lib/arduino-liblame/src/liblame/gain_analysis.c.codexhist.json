@@ -58,5 +58,48 @@
       "lib/arduino-liblame/src/liblame/config.h",
       "lib/arduino-liblame/src/liblame/gain_analysis.c"
     ]
+  },
+  {
+    "timestamp": "2026-06-01T07:24:01.058Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## My request for Codex:",
+      "what was the change in `lib\\arduino-liblame\\src\\liblame\\gain_analysis.c` about? use `.codex_history\\lib\\arduino-liblame\\src\\liblame\\gain_analysis.c.codexhist.json` for context"
+    ],
+    "agent_reply": [
+      "The `gain_analysis.c` change was a small but important size-unit fix tied to the earlier ESP32/PSRAM optimization.",
+      "",
+      "From `.codex_history`, the related task enabled `USE_MEMORY_HACK` in LAME so the ReplayGain histograms `A` and `B` are allocated separately instead of living inside one big `replaygain_data` struct.",
+      "",
+      "The bug was here: [gain_analysis.c](/d:/GithubRepos/The-Fly/lib/arduino-liblame/src/liblame/gain_analysis.c:279)",
+      "",
+      "```c",
+      "rgData->size_A = STEPS_per_dB * MAX_dB * sizeof(*(rgData->A));",
+      "rgData->size_B = STEPS_per_dB * MAX_dB * sizeof(*(rgData->B));",
+      "```",
+      "",
+      "Before that, `size_A` / `size_B` were set to just `STEPS_per_dB * MAX_dB`, which is an element count: `12000`. But those fields are later used as byte counts for `debug_calloc()` and `memset()`, and then divided by `sizeof(*A)` when calculating usable histogram length.",
+      "",
+      "Since `A` and `B` are `uint32_t *`, the intended allocation is `12000 * 4 = 48000` bytes each. Without the `sizeof`, the split heap version only allocated/tracked one quarter of the intended ReplayGain histogram, which would make analysis clamp into a much smaller bin range and produce wrong ReplayGain behavior.",
+      "",
+      "So, in plain terms: this change fixed the ReplayGain histogram allocation after enabling the memory-splitting hack for ESP32/PSRAM."
+    ],
+    "files": [
+      "lib/arduino-liblame/src/liblame/gain_analysis.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T07:26:13Z",
+    "type": "git_commit",
+    "commit_message": "liblame reconfigured",
+    "commit_hash": "4bf69da6425fc74a95f264e24c0d992103c50a9f"
+  },
+  {
+    "timestamp": "2026-06-01T11:02:55Z",
+    "type": "git_commit",
+    "commit_message": "fixed some stuff in liblame, logging, PSRAM, null ptr exception",
+    "commit_hash": "717e46f024df44a9518e453e4781787feb271d00"
   }
 ]

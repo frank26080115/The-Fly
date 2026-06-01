@@ -402,5 +402,95 @@
     "type": "git_commit",
     "commit_message": "cleaned up display as param",
     "commit_hash": "44c732408fa59c62aa9a1734f91a61315fcfe7ed"
+  },
+  {
+    "timestamp": "2026-06-01T09:44:33.703Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_micrec.cpp",
+      "",
+      "## My request for Codex:",
+      "modify `src\\tests\\test_micrec.cpp`",
+      "",
+      "add a millis timestamp to all serial output",
+      "",
+      "add a message every time a fifo goes from normal to overflow flag",
+      "",
+      "add an analysis of the output file in terms of a time estimate of how long the recording was"
+    ],
+    "agent_reply": [
+      "Updated [test_micrec.cpp](D:/GithubRepos/The-Fly/src/tests/test_micrec.cpp:32).",
+      "",
+      "What changed:",
+      "- All test serial output now goes through `logf(...)`, formatted like `test_micrec[12345]: ...`.",
+      "- Added FIFO overflow transition reporting for all four AudioManager FIFOs.",
+      "- Added final output-file duration analysis for WAV, MP3, encrypted WAV, and encrypted MP3 builds.",
+      "",
+      "The final log now includes a line like:",
+      "",
+      "```text",
+      "file analysis: format=mp3-cbr file_bytes=... estimated_duration_ms=...",
+      "```",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "src/tests/test_micrec.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T09:56:04.224Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_micrec.cpp",
+      "",
+      "## My request for Codex:",
+      "src\\tests\\test_micrec.cpp isn't initializing the microSD card, so I'm getting a message from within AudioFileRecorder that the card is missing or unreadable"
+    ],
+    "agent_reply": [
+      "Fixed [test_micrec.cpp](D:/GithubRepos/The-Fly/src/tests/test_micrec.cpp:7).",
+      "",
+      "`test_micrec()` now calls `MicroSdCard::begin()` before `AudioFileRecorder::startRecording(...)`, and logs how long microSD init took. If init fails, it logs that and idles before trying to record.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed.",
+      "",
+      "Fixed [test_micrec.cpp](D:/GithubRepos/The-Fly/src/tests/test_micrec.cpp:7).",
+      "",
+      "`test_micrec()` now calls `MicroSdCard::begin()` before `AudioFileRecorder::startRecording(...)`, and logs how long microSD init took. If init fails, it logs that and idles before trying to record.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "src/tests/test_micrec.cpp",
+      "src/main.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T11:03:22Z",
+    "type": "git_commit",
+    "commit_message": "significant work trying to get MP3 encoding to work",
+    "commit_hash": "41c73bdbaff03d906023ec27bbc082a6f5b295e6"
   }
 ]

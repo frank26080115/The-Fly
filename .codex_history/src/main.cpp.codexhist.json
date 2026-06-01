@@ -6109,5 +6109,64 @@
     "type": "git_commit",
     "commit_message": "file download and decrypted downloads work now",
     "commit_hash": "976ed18721b4929410684cde8839b3d62d1f7cce"
+  },
+  {
+    "timestamp": "2026-06-01T08:12:43.359Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/all_tests.cpp",
+      "",
+      "## My request for Codex:",
+      "is `src\\tests\\test_sdcard.cpp` ready to run with the MP3 configuration? under security level 0?"
+    ],
+    "agent_reply": "",
+    "files": [
+      "src/tests/test_sdcard.cpp",
+      "src/main.cpp",
+      "src/tests/test_mp3encode.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T09:56:04.224Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_micrec.cpp",
+      "",
+      "## My request for Codex:",
+      "src\\tests\\test_micrec.cpp isn't initializing the microSD card, so I'm getting a message from within AudioFileRecorder that the card is missing or unreadable"
+    ],
+    "agent_reply": [
+      "Fixed [test_micrec.cpp](D:/GithubRepos/The-Fly/src/tests/test_micrec.cpp:7).",
+      "",
+      "`test_micrec()` now calls `MicroSdCard::begin()` before `AudioFileRecorder::startRecording(...)`, and logs how long microSD init took. If init fails, it logs that and idles before trying to record.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed.",
+      "",
+      "Fixed [test_micrec.cpp](D:/GithubRepos/The-Fly/src/tests/test_micrec.cpp:7).",
+      "",
+      "`test_micrec()` now calls `MicroSdCard::begin()` before `AudioFileRecorder::startRecording(...)`, and logs how long microSD init took. If init fails, it logs that and idles before trying to record.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "src/tests/test_micrec.cpp",
+      "src/main.cpp"
+    ]
   }
 ]

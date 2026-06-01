@@ -1,0 +1,49 @@
+[
+  {
+    "timestamp": "2026-06-01T09:23:46.993Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_rtcvsmillis.cpp",
+      "",
+      "## Active selection of the file:",
+      "void test_rtcvsmillis()",
+      "",
+      "## My request for Codex:",
+      "implement `void test_rtcvsmillis()`",
+      "",
+      "Use the real RTC, not the ClockAgent",
+      "",
+      "every 5 seconds, print the time along with what `millis()` says"
+    ],
+    "agent_reply": [
+      "Implemented [test_rtcvsmillis.cpp](D:/GithubRepos/The-Fly/src/tests/test_rtcvsmillis.cpp:1).",
+      "",
+      "It now reads the real hardware RTC directly with `M5.Rtc.getDateTime(&now)`, prints once at startup, then every 5 seconds:",
+      "",
+      "```text",
+      "test_rtcvsmillis: rtc=YYYY-MM-DD HH:MM:SS millis=123456",
+      "```",
+      "",
+      "It does not use `ClockAgent`.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "src/tests/test_rtcvsmillis.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T11:03:22Z",
+    "type": "git_commit",
+    "commit_message": "significant work trying to get MP3 encoding to work",
+    "commit_hash": "41c73bdbaff03d906023ec27bbc082a6f5b295e6"
+  }
+]

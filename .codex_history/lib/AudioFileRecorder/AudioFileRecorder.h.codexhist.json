@@ -1239,5 +1239,58 @@
       "src/main.cpp",
       "lib/AudioFileRecorder/AudioFileRecorder.h"
     ]
+  },
+  {
+    "timestamp": "2026-06-01T10:34:29.573Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGui/FlyGui.cpp",
+      "",
+      "## My request for Codex:",
+      "during recording, track the number of overflow events in either FIFO, an event is overflow flag going up",
+      "",
+      "when the recording is finished, if this number is more than 0, after the text \"has been recorded\", add a message saying how many",
+      "",
+      "I just did a bluetooth recording, which should be the highest load the system faces, and it recorded... ok... I think? there were some very short events that I am not sure if it is a encoder problem or if my voicemail just sucks"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "`AudioFileRecorder` now tracks FIFO overflow rising edges on the two recording FIFOs and resets the count at `startRecording()`. The finished-recording modal now keeps the normal message when clean, and adds a line when needed:",
+      "",
+      "```text",
+      "<file>",
+      "has been recorded",
+      "3 FIFO overflow events",
+      "```",
+      "",
+      "It counts per FIFO flag rising edge, so if both recording FIFOs overflow in the same interval, that is 2 events.",
+      "",
+      "Touched:",
+      "- [AudioFileRecorder.h](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h:52)",
+      "- [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:114)",
+      "- [RecordingView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingView.cpp:268)",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.h",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T11:03:22Z",
+    "type": "git_commit",
+    "commit_message": "significant work trying to get MP3 encoding to work",
+    "commit_hash": "41c73bdbaff03d906023ec27bbc082a6f5b295e6"
   }
 ]

@@ -310,5 +310,113 @@
     "type": "git_commit",
     "commit_message": "Update recording-file-format.md",
     "commit_hash": "81790de1594c036cdc4a6149c2cfb760b694638f"
+  },
+  {
+    "timestamp": "2026-06-01T07:26:54Z",
+    "type": "git_commit",
+    "commit_message": "preping docs for mp3 build",
+    "commit_hash": "ca8a274ef70f1c6e966b0aa37d97726cc50bc72b"
+  },
+  {
+    "timestamp": "2026-06-01T07:28:43.295Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## My request for Codex:",
+      "about the `arduino-liblame` library we just added, it was suggested I somehow \"Disable bit reservoir in encoder\", do that for me if possible"
+    ],
+    "agent_reply": [
+      "Done. I updated [MP3EncoderLAME.h](/d:/GithubRepos/The-Fly/lib/arduino-liblame/src/MP3EncoderLAME.h:25) so `AudioInfo` defaults to `disable_bit_reservoir = true`, and [setup()](/d:/GithubRepos/The-Fly/lib/arduino-liblame/src/MP3EncoderLAME.h:221) now calls:",
+      "",
+      "```cpp",
+      "lame_set_disable_reservoir(lame, info.disable_bit_reservoir ? 1 : 0);",
+      "```",
+      "",
+      "That happens before `lame_init_params()`, which is the right point for LAME to lock in encoder settings. This should prevent MP3 frames from depending on bits borrowed from earlier frames, which is helpful for chunked/encrypted storage.",
+      "",
+      "Verification: `pio run -e thefly_sec1` passed. I left unrelated dirty files alone: `src/version.c` and `developer-docs/recording-file-format.md`."
+    ],
+    "files": [
+      "lib/arduino-liblame/src/MP3EncoderLAME.h",
+      "src/version.c",
+      "developer-docs/recording-file-format.md"
+    ]
+  },
+  {
+    "timestamp": "2026-06-01T07:34:46Z",
+    "type": "git_commit",
+    "commit_message": "mp3 encode disable reservoir",
+    "commit_hash": "89bfd1eda9c87671e3e2fc196fcd714c165e8b5c"
+  },
+  {
+    "timestamp": "2026-06-01T10:46:06.064Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGui/FlyGui.cpp",
+      "",
+      "## My request for Codex:",
+      "how many things need to change if I change the MP3 encoder to 96 kbps CBR bit rate?"
+    ],
+    "agent_reply": [
+      "Strictly: **one functional change**.",
+      "",
+      "Change this in `inc/conf.h`:",
+      "",
+      "```cpp",
+      "#define MP3_LAME_BITRATE_KBPS 96",
+      "```",
+      "",
+      "Everything important is derived from that: bytes/sec, MP3 frame bytes, encrypted chunk sizing, duration estimates in tests, and recorder configuration.",
+      "",
+      "I’d also update **three consistency/documentation spots**:",
+      "",
+      "1. `inc/conf.h` comment near `MP3_LAME_BITRATE_KBPS`",
+      "   - At 96 kbps / 16 kHz, CBR MP3 frames are **432 bytes**.",
+      "   - Four MP3 frames are **1728 bytes**.",
+      "   - Byte rate is **12000 bytes/sec**.",
+      "",
+      "2. `lib/arduino-liblame/src/MP3EncoderLAME.h`",
+      "   - Default `brate = 64` could become `96`.",
+      "   - Not required for recording, because `AudioFileRecorder` explicitly sets it from `MP3_LAME_BITRATE_KBPS`, but it prevents future confusion.",
+      "",
+      "3. `developer-docs/recording-file-format.md`",
+      "   - It currently says **64 kbps CBR**.",
+      "",
+      "No playback/download/python changes should be needed. The main side effect is files get **50% larger** than 64 kbps. The encrypted MP3 buffer math should still be fine: 1728 bytes per plaintext chunk is still comfortably under the older WAV chunk buffer size.",
+      "",
+      "Strictly: **one functional change**.",
+      "",
+      "Change this in `inc/conf.h`:",
+      "",
+      "```cpp",
+      "#define MP3_LAME_BITRATE_KBPS 96",
+      "```",
+      "",
+      "Everything important is derived from that: bytes/sec, MP3 frame bytes, encrypted chunk sizing, duration estimates in tests, and recorder configuration.",
+      "",
+      "I’d also update **three consistency/documentation spots**:",
+      "",
+      "1. `inc/conf.h` comment near `MP3_LAME_BITRATE_KBPS`",
+      "   - At 96 kbps / 16 kHz, CBR MP3 frames are **432 bytes**.",
+      "   - Four MP3 frames are **1728 bytes**.",
+      "   - Byte rate is **12000 bytes/sec**.",
+      "",
+      "2. `lib/arduino-liblame/src/MP3EncoderLAME.h`",
+      "   - Default `brate = 64` could become `96`.",
+      "   - Not required for recording, because `AudioFileRecorder` explicitly sets it from `MP3_LAME_BITRATE_KBPS`, but it prevents future confusion.",
+      "",
+      "3. `developer-docs/recording-file-format.md`",
+      "   - It currently says **64 kbps CBR**.",
+      "",
+      "No playback/download/python changes should be needed. The main side effect is files get **50% larger** than 64 kbps. The encrypted MP3 buffer math should still be fine: 1728 bytes per plaintext chunk is still comfortably under the older WAV chunk buffer size."
+    ],
+    "files": [
+      "inc/conf.h",
+      "lib/arduino-liblame/src/MP3EncoderLAME.h",
+      "developer-docs/recording-file-format.md"
+    ]
   }
 ]
