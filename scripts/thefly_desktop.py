@@ -14,9 +14,8 @@ import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional, Sequence
+from typing import Optional, Sequence
 
-import sectools
 import thefly_audio_decryptor
 import thefly_summarize
 import thefly_transcription
@@ -31,8 +30,7 @@ MDNS_GROUP = "224.0.0.251"
 MDNS_PORT = 5353
 THE_FLY_SERVICE = "_the-fly._tcp.local"
 
-DIR_RAW_REC = "raw_rec"
-DIR_WAV = "wav"
+DIR_AUDIO = "audio"
 DIR_TRANSCRIBED = "transcribed"
 DIR_SUMMARIZED = "summarized"
 
@@ -51,8 +49,7 @@ class DesktopError(ValueError):
 @dataclass
 class DbPaths:
     root: Path
-    raw_rec: Path
-    wav: Path
+    audio: Path
     transcribed: Path
     summarized: Path
 
@@ -83,15 +80,14 @@ def default_db_paths(db_dir: Path) -> DbPaths:
     root = db_dir.expanduser()
     return DbPaths(
         root=root,
-        raw_rec=root / DIR_RAW_REC,
-        wav=root / DIR_WAV,
+        audio=root / DIR_AUDIO,
         transcribed=root / DIR_TRANSCRIBED,
         summarized=root / DIR_SUMMARIZED,
     )
 
 
 def ensure_db_dirs(paths: DbPaths) -> None:
-    for directory in (paths.root, paths.raw_rec, paths.wav, paths.transcribed, paths.summarized):
+    for directory in (paths.root, paths.audio, paths.transcribed, paths.summarized):
         directory.mkdir(parents=True, exist_ok=True)
 
 
@@ -148,12 +144,16 @@ def safe_local_name(remote_name: str) -> str:
     return normalized
 
 
-def is_rec_file(file_name: str) -> bool:
-    return Path(file_name).suffix.lower() == ".rec"
+def is_audio_file(file_name: str) -> bool:
+    return Path(file_name).suffix.lower() in thefly_audio_decryptor.AUDIO_SUFFIXES
 
 
-def is_wav_file(file_name: str) -> bool:
-    return Path(file_name).suffix.lower() == ".wav"
+def is_transcribable_audio_file(file_name: str) -> bool:
+    return Path(file_name).suffix.lower() in thefly_audio_decryptor.PLAIN_AUDIO_SUFFIXES
+
+
+def output_audio_path_for(input_path: Path, audio_dir: Path) -> Path:
+    return audio_dir / f"{input_path.stem}{thefly_audio_decryptor.output_suffix_for_input(input_path)}"
 
 
 def download_remote_file(base_url: str, remote_name: str, output_path: Path, timeout: float) -> None:
@@ -177,21 +177,21 @@ def download_remote_file(base_url: str, remote_name: str, output_path: Path, tim
             pass
 
 
-def save_wav_directly(source_path: Path, wav_path: Path) -> Path:
-    wav_path.parent.mkdir(parents=True, exist_ok=True)
-    if source_path.resolve() == wav_path.resolve():
-        return wav_path
+def save_audio_directly(source_path: Path, audio_path: Path) -> Path:
+    audio_path.parent.mkdir(parents=True, exist_ok=True)
+    if source_path.resolve() == audio_path.resolve():
+        return audio_path
 
-    temp_path = wav_path.with_name(wav_path.name + ".download")
+    temp_path = audio_path.with_name(audio_path.name + ".download")
     try:
         shutil.copy2(source_path, temp_path)
-        temp_path.replace(wav_path)
+        temp_path.replace(audio_path)
     finally:
         try:
             temp_path.unlink()
         except FileNotFoundError:
             pass
-    return wav_path
+    return audio_path
 
 
 def delete_remote_file(base_url: str, remote_name: str, timeout: float) -> None:
@@ -202,30 +202,35 @@ def load_filecrypt_key(key_file: Optional[Path], password: Optional[str]) -> Opt
     if key_file is not None and password is not None:
         raise DesktopError("specify either --key or --password, not both")
     if key_file is not None:
+        sectools = thefly_audio_decryptor.load_sectools()
         return sectools.read_key_file(key_file.expanduser())
     if password is not None:
+        sectools = thefly_audio_decryptor.load_sectools()
         return sectools.derive_filecrypt_key(password)
     return None
 
 
-def decode_rec_to_wav(rec_path: Path, wav_path: Path, key: Optional[bytes], gap_threshold_ms: float) -> None:
-    wav_path.parent.mkdir(parents=True, exist_ok=True)
+def decode_audio_file(input_path: Path, output_path: Path, key: Optional[bytes], gap_threshold_ms: float) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    pcm_temp = tempfile.NamedTemporaryFile(prefix="thefly-", suffix=".pcm", dir=str(wav_path.parent), delete=False)
-    pcm_path = Path(pcm_temp.name)
-    pcm_temp.close()
+    pcm_path = output_path.with_suffix(".pcm")
+    if thefly_audio_decryptor.output_uses_pcm(input_path):
+        pcm_temp = tempfile.NamedTemporaryFile(prefix="thefly-", suffix=".pcm", dir=str(output_path.parent), delete=False)
+        pcm_path = Path(pcm_temp.name)
+        pcm_temp.close()
 
     try:
-        thefly_audio_decryptor.decode_recording(rec_path, pcm_path, wav_path, gap_threshold_ms, key)
+        thefly_audio_decryptor.decode_recording(input_path, pcm_path, output_path, gap_threshold_ms, key)
     finally:
-        try:
-            pcm_path.unlink()
-        except FileNotFoundError:
-            pass
+        if thefly_audio_decryptor.output_uses_pcm(input_path):
+            try:
+                pcm_path.unlink()
+            except FileNotFoundError:
+                pass
 
 
-def transcript_path_for_wav(wav_path: Path, transcribed_dir: Path) -> Path:
-    return transcribed_dir / f"{wav_path.stem}.trans.json"
+def transcript_path_for_audio(audio_path: Path, transcribed_dir: Path) -> Path:
+    return transcribed_dir / f"{audio_path.stem}.trans.json"
 
 
 def summary_path_for_stem(stem: str, summarized_dir: Path) -> Path:
@@ -241,10 +246,10 @@ def summary_path_for_transcript(transcript_path: Path, summarized_dir: Path) -> 
     return summary_path_for_stem(stem, summarized_dir)
 
 
-def transcribe_wav_to_json(wav_path: Path, output_path: Path, timeout: float) -> Path:
+def transcribe_audio_to_json(audio_path: Path, output_path: Path, timeout: float) -> Path:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     result = thefly_transcription.transcribe_wav(
-        input_path=wav_path,
+        input_path=audio_path,
         model=thefly_transcription.DEFAULT_MODEL,
         response_format="diarized_json",
         language=None,
@@ -253,7 +258,7 @@ def transcribe_wav_to_json(wav_path: Path, output_path: Path, timeout: float) ->
         timeout=timeout,
         chunking_strategy="auto",
     )
-    thefly_transcription.add_recording_metadata(result, wav_path)
+    thefly_transcription.add_recording_metadata(result, audio_path)
     output_path.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"transcription output: {output_path}")
     return output_path
@@ -275,14 +280,20 @@ def summarize_transcript_to_markdown(transcript_path: Path, output_path: Path, t
     return output_path
 
 
-def transcribe_and_summarize_wav(wav_path: Path, paths: DbPaths, timeout: float, max_output_tokens: int, force: bool = False) -> None:
-    transcript_path = transcript_path_for_wav(wav_path, paths.transcribed)
+def transcribe_and_summarize_audio(
+    audio_path: Path,
+    paths: DbPaths,
+    timeout: float,
+    max_output_tokens: int,
+    force: bool = False,
+) -> None:
+    transcript_path = transcript_path_for_audio(audio_path, paths.transcribed)
     if force or not transcript_path.exists():
-        transcribe_wav_to_json(wav_path, transcript_path, timeout)
+        transcribe_audio_to_json(audio_path, transcript_path, timeout)
     else:
         print(f"transcription exists: {transcript_path}")
 
-    summary_path = summary_path_for_stem(wav_path.stem, paths.summarized)
+    summary_path = summary_path_for_stem(audio_path.stem, paths.summarized)
     if force or not summary_path.exists():
         summarize_transcript_to_markdown(transcript_path, summary_path, timeout, max_output_tokens)
     else:
@@ -295,13 +306,13 @@ def handle_transcribe_file(input_path: Path, paths: DbPaths, key: Optional[bytes
         raise DesktopError(f"--transcribe-file is not a file: {source}")
 
     suffix = source.suffix.lower()
-    if suffix == ".rec":
-        wav_path = paths.wav / f"{source.stem}.wav"
-        decode_rec_to_wav(source, wav_path, key, args.gap_threshold_ms)
-        transcribe_and_summarize_wav(wav_path, paths, args.api_timeout, args.max_output_tokens, force=args.force_transcribe)
-    elif suffix == ".wav":
-        wav_path = save_wav_directly(source, paths.wav / source.name)
-        transcribe_and_summarize_wav(wav_path, paths, args.api_timeout, args.max_output_tokens, force=args.force_transcribe)
+    if suffix in thefly_audio_decryptor.ENCRYPTED_AUDIO_SUFFIXES:
+        audio_path = output_audio_path_for(source, paths.audio)
+        decode_audio_file(source, audio_path, key, args.gap_threshold_ms)
+        transcribe_and_summarize_audio(audio_path, paths, args.api_timeout, args.max_output_tokens, force=args.force_transcribe)
+    elif suffix in thefly_audio_decryptor.PLAIN_AUDIO_SUFFIXES:
+        audio_path = save_audio_directly(source, paths.audio / source.name)
+        transcribe_and_summarize_audio(audio_path, paths, args.api_timeout, args.max_output_tokens, force=args.force_transcribe)
     elif suffix == ".json":
         summary_path = summary_path_for_transcript(source, paths.summarized)
         if args.force_transcribe or not summary_path.exists():
@@ -309,74 +320,82 @@ def handle_transcribe_file(input_path: Path, paths: DbPaths, key: Optional[bytes
         else:
             print(f"summary exists: {summary_path}")
     else:
-        raise DesktopError(f"unsupported --transcribe-file extension {source.suffix!r}; expected .rec, .wav, or .json")
+        raise DesktopError(
+            f"unsupported --transcribe-file extension {source.suffix!r}; expected .rec, .fly, .wav, .mp3, or .json"
+        )
 
 
 def transcribe_all_missing(paths: DbPaths, args: argparse.Namespace) -> None:
-    wav_files = sorted(paths.wav.glob("*.wav"))
-    if not wav_files:
-        print(f"no WAV files found in {paths.wav}")
+    audio_files = sorted(
+        path for path in paths.audio.iterdir() if path.is_file() and is_transcribable_audio_file(path.name)
+    )
+    if not audio_files:
+        print(f"no WAV or MP3 files found in {paths.audio}")
         return
 
-    for wav_path in wav_files:
-        transcript_path = transcript_path_for_wav(wav_path, paths.transcribed)
-        summary_path = summary_path_for_stem(wav_path.stem, paths.summarized)
+    for audio_path in audio_files:
+        transcript_path = transcript_path_for_audio(audio_path, paths.transcribed)
+        summary_path = summary_path_for_stem(audio_path.stem, paths.summarized)
         if not args.force_transcribe and transcript_path.exists() and summary_path.exists():
             continue
-        transcribe_and_summarize_wav(wav_path, paths, args.api_timeout, args.max_output_tokens, force=args.force_transcribe)
+        transcribe_and_summarize_audio(audio_path, paths, args.api_timeout, args.max_output_tokens, force=args.force_transcribe)
 
 
 def sync_device_files(base_url: str, paths: DbPaths, key: Optional[bytes], args: argparse.Namespace) -> list[Path]:
     remote_files = list_remote_files(base_url, args.device_timeout)
-    remote_rec_files = [name for name in remote_files if is_rec_file(name)]
-    remote_wav_files = [name for name in remote_files if is_wav_file(name)]
-    remote_recording_files = remote_rec_files + remote_wav_files
-    downloaded_wavs: list[Path] = []
+    remote_recording_files = [name for name in remote_files if is_audio_file(name)]
+    downloaded_audio: list[Path] = []
 
-    print(f"device files: {len(remote_files)} total, {len(remote_rec_files)} .rec, {len(remote_wav_files)} .wav")
+    suffix_counts = {
+        suffix: sum(1 for name in remote_recording_files if Path(name).suffix.lower() == suffix)
+        for suffix in sorted(thefly_audio_decryptor.AUDIO_SUFFIXES)
+    }
+    suffix_summary = ", ".join(f"{count} {suffix}" for suffix, count in suffix_counts.items())
+    print(f"device files: {len(remote_files)} total, {suffix_summary}")
 
     for remote_name in remote_recording_files:
         local_name = safe_local_name(remote_name)
         suffix = Path(local_name).suffix.lower()
+        local_path = paths.audio / local_name
 
-        if suffix == ".rec":
-            raw_path = paths.raw_rec / local_name
-            wav_path = paths.wav / f"{Path(local_name).stem}.wav"
+        if suffix in thefly_audio_decryptor.ENCRYPTED_AUDIO_SUFFIXES:
+            audio_path = output_audio_path_for(Path(local_name), paths.audio)
             processed = False
 
-            if not raw_path.exists():
-                print(f"downloading {remote_name} -> {raw_path}")
-                download_remote_file(base_url, remote_name, raw_path, args.device_timeout)
+            if not local_path.exists():
+                print(f"downloading {remote_name} -> {local_path}")
+                download_remote_file(base_url, remote_name, local_path, args.device_timeout)
                 processed = True
             else:
-                print(f"already local: {raw_path.name}")
+                print(f"already local: {local_path.name}")
 
-            if not wav_path.exists():
-                print(f"decoding {raw_path.name} -> {wav_path}")
-                decode_rec_to_wav(raw_path, wav_path, key, args.gap_threshold_ms)
+            if not audio_path.exists():
+                print(f"decoding {local_path.name} -> {audio_path}")
+                decode_audio_file(local_path, audio_path, key, args.gap_threshold_ms)
                 processed = True
+            else:
+                print(f"already decoded: {audio_path.name}")
 
-            if processed and wav_path.exists():
-                downloaded_wavs.append(wav_path)
+            if processed and audio_path.exists():
+                downloaded_audio.append(audio_path)
 
-            if args.clean and raw_path.exists():
+            if args.clean and local_path.exists():
                 print(f"deleting device copy: {remote_name}")
                 delete_remote_file(base_url, remote_name, args.device_timeout)
             continue
 
-        wav_path = paths.wav / local_name
-        if not wav_path.exists():
-            print(f"downloading {remote_name} -> {wav_path}")
-            download_remote_file(base_url, remote_name, wav_path, args.device_timeout)
-            downloaded_wavs.append(wav_path)
+        if not local_path.exists():
+            print(f"downloading {remote_name} -> {local_path}")
+            download_remote_file(base_url, remote_name, local_path, args.device_timeout)
+            downloaded_audio.append(local_path)
         else:
-            print(f"already local: {wav_path.name}")
+            print(f"already local: {local_path.name}")
 
-        if args.clean and wav_path.exists():
+        if args.clean and local_path.exists():
             print(f"deleting device copy: {remote_name}")
             delete_remote_file(base_url, remote_name, args.device_timeout)
 
-    return downloaded_wavs
+    return downloaded_audio
 
 
 def dns_encode_name(name: str) -> bytes:
@@ -570,13 +589,22 @@ def discover_the_fly(timeout: float) -> str:
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Sync and process The-Fly recordings on this desktop")
     parser.add_argument("--device", "--url", dest="device", help="The-Fly device IP, hostname, or base URL; otherwise mDNS is used")
-    parser.add_argument("--key", type=Path, help="filecrypt key file for encrypted .rec files")
+    parser.add_argument("--key", type=Path, help="filecrypt key file for encrypted .rec and .fly files")
     parser.add_argument("--password", help="derive the filecrypt key from this password for this session")
     parser.add_argument("--db-dir", type=Path, default=DEFAULT_DB_DIR, help=f"database directory; default: {DEFAULT_DB_DIR}")
-    parser.add_argument("--clean", action="store_true", help="delete device files after a local raw_rec copy exists")
-    parser.add_argument("--transcribe", action="store_true", help="transcribe and summarize WAV files downloaded in this session")
-    parser.add_argument("--transcribe-file", type=Path, action="append", help="process one local .rec, .wav, or .json file")
-    parser.add_argument("--transcribe-all", action="store_true", help="process missing transcriptions/summaries for local wav/*.wav files")
+    parser.add_argument("--clean", action="store_true", help="delete device files after a local audio copy exists")
+    parser.add_argument("--transcribe", action="store_true", help="transcribe and summarize audio files downloaded in this session")
+    parser.add_argument(
+        "--transcribe-file",
+        type=Path,
+        action="append",
+        help="process one local .rec, .fly, .wav, .mp3, or .json file",
+    )
+    parser.add_argument(
+        "--transcribe-all",
+        action="store_true",
+        help="process missing transcriptions/summaries for local audio/*.wav and audio/*.mp3 files",
+    )
     parser.add_argument("--force-transcribe", action="store_true", help="overwrite existing transcription and summary outputs")
     parser.add_argument("--device-timeout", type=float, default=DEFAULT_DEVICE_TIMEOUT_SECONDS, help="device HTTP timeout in seconds")
     parser.add_argument("--mdns-timeout", type=float, default=DEFAULT_MDNS_TIMEOUT_SECONDS, help="mDNS discovery timeout in seconds")
@@ -620,12 +648,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         ensure_db_dirs(paths)
         print(f"database: {paths.root}")
 
-        downloaded_wavs: list[Path] = []
+        downloaded_audio: list[Path] = []
         if should_sync_device(args):
             try:
                 base_url = normalize_device_base(args.device) if args.device else discover_the_fly(args.mdns_timeout)
                 print(f"device: {base_url}")
-                downloaded_wavs = sync_device_files(base_url, paths, key, args)
+                downloaded_audio = sync_device_files(base_url, paths, key, args)
             except DesktopError:
                 if can_continue_without_device(args):
                     warn("device sync skipped because the device is not reachable")
@@ -633,10 +661,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     raise
 
         if args.transcribe:
-            if not downloaded_wavs:
-                print("no newly downloaded WAV files to transcribe")
-            for wav_path in downloaded_wavs:
-                transcribe_and_summarize_wav(wav_path, paths, args.api_timeout, args.max_output_tokens, force=args.force_transcribe)
+            if not downloaded_audio:
+                print("no newly downloaded audio files to transcribe")
+            for audio_path in downloaded_audio:
+                transcribe_and_summarize_audio(audio_path, paths, args.api_timeout, args.max_output_tokens, force=args.force_transcribe)
 
         if args.transcribe_file:
             for input_path in args.transcribe_file:

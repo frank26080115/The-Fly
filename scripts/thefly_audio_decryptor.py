@@ -2,19 +2,21 @@
 from __future__ import annotations
 
 """
-Decrypt The Fly encrypted `.rec` recordings into ordinary WAV files.
+Decrypt The Fly encrypted audio recordings.
 
-Current secure recordings are not `file_packet_t` streams. They are 16 kHz,
-16-bit, stereo WAV data encrypted in chunks:
+The legacy `.rec` format stores 16 kHz, 16-bit, stereo WAV data encrypted in
+chunks:
 
 * one encrypted 44-byte RIFF/WAVE header chunk
 * zero or more encrypted 8192-byte PCM audio chunks
 
-Each encrypted chunk is stored as nonce + ciphertext + AES-GCM tag, matching
-`AudioFileRecorder` and `WavPlayback`.
+The `.fly` format stores fixed-size encrypted MP3 payload chunks. Each encrypted
+chunk is stored as nonce + ciphertext + AES-GCM tag, matching the recorder and
+playback code.
 """
 
 import argparse
+import shutil
 import struct
 import sys
 import wave
@@ -29,20 +31,34 @@ SAMPLE_WIDTH_BYTES = 2
 OUTPUT_BITS_PER_SAMPLE = SAMPLE_WIDTH_BYTES * 8
 OUTPUT_FRAME_BYTES = OUTPUT_CHANNELS * SAMPLE_WIDTH_BYTES
 
+ENCRYPTED_CHUNK_NONCE_LENGTH = 12
+ENCRYPTED_CHUNK_TAG_LENGTH = 16
+
 WAV_RIFF_HEADER_LENGTH = 44
-WAV_ENCRYPTED_CHUNK_NONCE_LENGTH = 12
-WAV_ENCRYPTED_CHUNK_TAG_LENGTH = 16
 WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH = 8192
 WAV_ENCRYPTED_RIFF_HEADER_LENGTH = (
-    WAV_ENCRYPTED_CHUNK_NONCE_LENGTH + WAV_RIFF_HEADER_LENGTH + WAV_ENCRYPTED_CHUNK_TAG_LENGTH
+    ENCRYPTED_CHUNK_NONCE_LENGTH + WAV_RIFF_HEADER_LENGTH + ENCRYPTED_CHUNK_TAG_LENGTH
 )
 WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH = (
-    WAV_ENCRYPTED_CHUNK_NONCE_LENGTH
+    ENCRYPTED_CHUNK_NONCE_LENGTH
     + WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH
-    + WAV_ENCRYPTED_CHUNK_TAG_LENGTH
+    + ENCRYPTED_CHUNK_TAG_LENGTH
+)
+
+MP3_BIT_RATE_KBPS = 64
+MP3_FRAMES_PER_CHUNK = 4
+MP3_CBR_BYTES_PER_MP3_FRAME = (72 * MP3_BIT_RATE_KBPS * 1000) // OUTPUT_SAMPLE_RATE_HZ
+MP3_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH = MP3_CBR_BYTES_PER_MP3_FRAME * MP3_FRAMES_PER_CHUNK
+MP3_ENCRYPTED_AUDIO_CHUNK_LENGTH = (
+    ENCRYPTED_CHUNK_NONCE_LENGTH
+    + MP3_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH
+    + ENCRYPTED_CHUNK_TAG_LENGTH
 )
 
 PCM_COPY_FRAMES = 4096
+PLAIN_AUDIO_SUFFIXES = {".wav", ".mp3"}
+ENCRYPTED_AUDIO_SUFFIXES = {".rec", ".fly"}
+AUDIO_SUFFIXES = PLAIN_AUDIO_SUFFIXES | ENCRYPTED_AUDIO_SUFFIXES
 
 
 class AudioDecryptorError(ValueError):
@@ -86,13 +102,13 @@ def read_exact(stream: BinaryIO, size: int, offset: int, description: str) -> by
 
 
 def decrypt_chunk(aesgcm, invalid_tag_type, packet: bytes, plaintext_size: int, offset: int, description: str) -> bytes:
-    expected_size = WAV_ENCRYPTED_CHUNK_NONCE_LENGTH + plaintext_size + WAV_ENCRYPTED_CHUNK_TAG_LENGTH
+    expected_size = ENCRYPTED_CHUNK_NONCE_LENGTH + plaintext_size + ENCRYPTED_CHUNK_TAG_LENGTH
     if len(packet) != expected_size:
         raise AudioDecryptorError(f"invalid {description} size {len(packet)}; expected {expected_size}")
 
-    nonce = packet[:WAV_ENCRYPTED_CHUNK_NONCE_LENGTH]
-    ciphertext = packet[WAV_ENCRYPTED_CHUNK_NONCE_LENGTH : WAV_ENCRYPTED_CHUNK_NONCE_LENGTH + plaintext_size]
-    tag = packet[WAV_ENCRYPTED_CHUNK_NONCE_LENGTH + plaintext_size :]
+    nonce = packet[:ENCRYPTED_CHUNK_NONCE_LENGTH]
+    ciphertext = packet[ENCRYPTED_CHUNK_NONCE_LENGTH : ENCRYPTED_CHUNK_NONCE_LENGTH + plaintext_size]
+    tag = packet[ENCRYPTED_CHUNK_NONCE_LENGTH + plaintext_size :]
 
     try:
         return aesgcm.decrypt(nonce, ciphertext + tag, None)
@@ -134,6 +150,33 @@ def validate_plain_wav(wav: wave.Wave_read, input_path: Path) -> None:
         raise AudioDecryptorError(f"input WAV has {wav.getsampwidth()}-byte samples; expected {SAMPLE_WIDTH_BYTES}")
     if wav.getframerate() != OUTPUT_SAMPLE_RATE_HZ:
         raise AudioDecryptorError(f"input WAV has {wav.getframerate()} Hz sample rate; expected {OUTPUT_SAMPLE_RATE_HZ}")
+
+
+def is_supported_audio_path(input_path: Path) -> bool:
+    return input_path.suffix.lower() in AUDIO_SUFFIXES
+
+
+def is_encrypted_audio_path(input_path: Path) -> bool:
+    return input_path.suffix.lower() in ENCRYPTED_AUDIO_SUFFIXES
+
+
+def is_plain_audio_path(input_path: Path) -> bool:
+    return input_path.suffix.lower() in PLAIN_AUDIO_SUFFIXES
+
+
+def output_suffix_for_input(input_path: Path) -> str:
+    suffix = input_path.suffix.lower()
+    if suffix in (".fly", ".mp3"):
+        return ".mp3"
+    return ".wav"
+
+
+def default_output_path(input_path: Path) -> Path:
+    return input_path.with_suffix(output_suffix_for_input(input_path))
+
+
+def output_uses_pcm(input_path: Path) -> bool:
+    return output_suffix_for_input(input_path) == ".wav"
 
 
 def is_plain_wav_path(input_path: Path) -> bool:
@@ -186,6 +229,23 @@ def copy_plain_wav(input_path: Path, pcm_path: Path, wav_path: Path) -> tuple[in
     return total_pcm_bytes, 0
 
 
+def copy_binary_audio(input_path: Path, output_path: Path) -> int:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    if input_path.resolve() == output_path.resolve():
+        return input_path.stat().st_size
+
+    temp_path = output_path.with_name(output_path.name + ".download")
+    try:
+        shutil.copy2(input_path, temp_path)
+        temp_path.replace(output_path)
+    finally:
+        try:
+            temp_path.unlink()
+        except FileNotFoundError:
+            pass
+    return output_path.stat().st_size
+
+
 def decrypt_rec_to_pcm(input_path: Path, pcm_path: Path, key: bytes) -> tuple[int, int, int]:
     if len(key) != FILECRYPT_KEY_SIZE:
         raise AudioDecryptorError(f"AES-GCM filecrypt key must be {FILECRYPT_KEY_SIZE} bytes")
@@ -229,25 +289,90 @@ def decrypt_rec_to_pcm(input_path: Path, pcm_path: Path, key: bytes) -> tuple[in
     return total_pcm_bytes, audio_chunks, trailing_bytes
 
 
+def decrypt_fly_to_mp3(input_path: Path, mp3_path: Path, key: bytes) -> tuple[int, int, int]:
+    if len(key) != FILECRYPT_KEY_SIZE:
+        raise AudioDecryptorError(f"AES-GCM filecrypt key must be {FILECRYPT_KEY_SIZE} bytes")
+
+    file_size = input_path.stat().st_size
+    if file_size < MP3_ENCRYPTED_AUDIO_CHUNK_LENGTH:
+        raise AudioDecryptorError(
+            f"encrypted MP3 is too small: {file_size} bytes; expected at least {MP3_ENCRYPTED_AUDIO_CHUNK_LENGTH}"
+        )
+
+    audio_chunks = file_size // MP3_ENCRYPTED_AUDIO_CHUNK_LENGTH
+    trailing_bytes = file_size % MP3_ENCRYPTED_AUDIO_CHUNK_LENGTH
+    if trailing_bytes:
+        warn(f"ignoring {trailing_bytes} trailing bytes after the last complete encrypted MP3 chunk")
+
+    AESGCM, InvalidTag = load_crypto()
+    aesgcm = AESGCM(key)
+
+    mp3_path.parent.mkdir(parents=True, exist_ok=True)
+    total_mp3_bytes = 0
+    with input_path.open("rb") as src, mp3_path.open("wb") as mp3:
+        for chunk_index in range(audio_chunks):
+            offset = chunk_index * MP3_ENCRYPTED_AUDIO_CHUNK_LENGTH
+            packet = read_exact(src, MP3_ENCRYPTED_AUDIO_CHUNK_LENGTH, offset, f"encrypted MP3 chunk {chunk_index}")
+            plaintext = decrypt_chunk(
+                aesgcm,
+                InvalidTag,
+                packet,
+                MP3_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH,
+                offset,
+                f"encrypted MP3 chunk {chunk_index}",
+            )
+            mp3.write(plaintext)
+            total_mp3_bytes += len(plaintext)
+
+    return total_mp3_bytes, audio_chunks, trailing_bytes
+
+
 def decode_recording(
     input_path: Path,
     pcm_path: Path,
-    wav_path: Path,
+    output_path: Path,
     gap_threshold_ms: float,
     key: Optional[bytes] = None,
 ) -> None:
     del gap_threshold_ms  # Kept for CLI/API compatibility with the former packet decoder.
 
-    if key is None:
-        if not is_plain_wav_path(input_path):
+    suffix = input_path.suffix.lower()
+    if is_supported_audio_path(input_path):
+        expected_suffix = output_suffix_for_input(input_path)
+        if output_path.suffix.lower() != expected_suffix:
+            warn(f"output file extension is {output_path.suffix!r}; expected {expected_suffix!r} for {suffix} input")
+
+    if suffix == ".rec":
+        if key is None:
             raise AudioDecryptorError(f"encrypted recording requires --key: {input_path}")
-        total_pcm_bytes, audio_chunks = copy_plain_wav(input_path, pcm_path, wav_path)
+        total_pcm_bytes, audio_chunks, trailing_bytes = decrypt_rec_to_pcm(input_path, pcm_path, key)
+        total_pcm_bytes = wrap_pcm_as_wav(pcm_path, output_path)
+        print(f"decrypted audio chunks: {audio_chunks}")
+    elif suffix == ".fly":
+        if key is None:
+            raise AudioDecryptorError(f"encrypted MP3 recording requires --key: {input_path}")
+        total_mp3_bytes, audio_chunks, trailing_bytes = decrypt_fly_to_mp3(input_path, output_path, key)
+        duration_seconds = (total_mp3_bytes * 8) / (MP3_BIT_RATE_KBPS * 1000)
+        print(f"decrypted MP3 chunks: {audio_chunks}")
+        print(f"mp3 bytes:    {total_mp3_bytes}")
+        print(f"duration:     {duration_seconds:.3f} s ({MP3_BIT_RATE_KBPS} kbps CBR estimate)")
+        if trailing_bytes:
+            print(f"trailing:     {trailing_bytes} ignored bytes")
+        print(f"mp3 output:   {output_path}")
+        return
+    elif suffix == ".wav" or (suffix not in AUDIO_SUFFIXES and key is None and is_plain_wav_path(input_path)):
+        total_pcm_bytes, audio_chunks = copy_plain_wav(input_path, pcm_path, output_path)
         trailing_bytes = 0
         print("copied plain WAV input")
+    elif suffix == ".mp3":
+        total_mp3_bytes = copy_binary_audio(input_path, output_path)
+        print("copied plain MP3 input")
+        print(f"mp3 bytes:    {total_mp3_bytes}")
+        print(f"mp3 output:   {output_path}")
+        return
     else:
-        total_pcm_bytes, audio_chunks, trailing_bytes = decrypt_rec_to_pcm(input_path, pcm_path, key)
-        total_pcm_bytes = wrap_pcm_as_wav(pcm_path, wav_path)
-        print(f"decrypted audio chunks: {audio_chunks}")
+        expected = ", ".join(sorted(AUDIO_SUFFIXES))
+        raise AudioDecryptorError(f"unsupported input extension {input_path.suffix!r}; expected one of: {expected}")
 
     frame_count = total_pcm_bytes // OUTPUT_FRAME_BYTES
     duration_seconds = frame_count / OUTPUT_SAMPLE_RATE_HZ
@@ -257,21 +382,21 @@ def decode_recording(
     if trailing_bytes:
         print(f"trailing:     {trailing_bytes} ignored bytes")
     print(f"pcm output:   {pcm_path}")
-    print(f"wav output:   {wav_path}")
+    print(f"wav output:   {output_path}")
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Decrypt The Fly .rec audio recordings to .wav")
-    parser.add_argument("input", type=Path, help="input .rec recording")
-    parser.add_argument("-o", "--output", type=Path, help="output .wav path; defaults to input path with .wav extension")
-    parser.add_argument("--pcm-output", type=Path, help="intermediate stereo .pcm path; defaults to input path with .pcm extension")
+    parser = argparse.ArgumentParser(description="Decrypt The-Fly audio recordings")
+    parser.add_argument("input", type=Path, help="input .rec, .fly, .wav, or .mp3 recording")
+    parser.add_argument("-o", "--output", type=Path, help="output .wav or .mp3 path; defaults to input path with new extension")
+    parser.add_argument("--pcm-output", type=Path, help="intermediate stereo .pcm path for WAV outputs; defaults to input path with .pcm extension")
     parser.add_argument(
         "--gap-threshold-ms",
         type=float,
         default=200.0,
         help="accepted for compatibility with older packet recordings; unused for chunked WAV recordings",
     )
-    parser.add_argument("--key", type=Path, help="optional .key file for encrypted .rec files")
+    parser.add_argument("--key", type=Path, help="optional .key file for encrypted files")
     return parser.parse_args(argv)
 
 
@@ -282,24 +407,25 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if not input_path.exists():
         print(f"error: input file does not exist: {input_path}", file=sys.stderr)
         return 2
-    if input_path.suffix.lower() != ".rec":
-        warn(f"input file extension is {input_path.suffix!r}; expected '.rec'")
+    if not is_supported_audio_path(input_path):
+        expected = ", ".join(sorted(AUDIO_SUFFIXES))
+        warn(f"input file extension is {input_path.suffix!r}; expected one of: {expected}")
     if args.gap_threshold_ms < 0:
         print("error: --gap-threshold-ms must be non-negative", file=sys.stderr)
         return 2
 
-    wav_path = args.output if args.output is not None else input_path.with_suffix(".wav")
+    output_path = args.output if args.output is not None else default_output_path(input_path)
     pcm_path = args.pcm_output if args.pcm_output is not None else input_path.with_suffix(".pcm")
 
     resolved_input = input_path.resolve()
-    if wav_path.resolve() == resolved_input:
-        print(f"error: output WAV path would overwrite input: {wav_path}", file=sys.stderr)
+    if output_path.resolve() == resolved_input:
+        print(f"error: output path would overwrite input: {output_path}", file=sys.stderr)
         return 2
-    if pcm_path.resolve() == resolved_input:
+    if output_uses_pcm(input_path) and pcm_path.resolve() == resolved_input:
         print(f"error: intermediate PCM path would overwrite input: {pcm_path}", file=sys.stderr)
         return 2
-    if wav_path.resolve() == pcm_path.resolve():
-        print(f"error: output WAV path and intermediate PCM path are the same: {wav_path}", file=sys.stderr)
+    if output_uses_pcm(input_path) and output_path.resolve() == pcm_path.resolve():
+        print(f"error: output path and intermediate PCM path are the same: {output_path}", file=sys.stderr)
         return 2
 
     try:
@@ -308,7 +434,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             sectools = load_sectools()
             key = sectools.read_key_file(args.key)
 
-        decode_recording(input_path, pcm_path, wav_path, args.gap_threshold_ms, key)
+        decode_recording(input_path, pcm_path, output_path, args.gap_threshold_ms, key)
     except OSError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
