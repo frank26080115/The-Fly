@@ -183,7 +183,7 @@ function render_file_list(files)
         const file_link = row.querySelector(".file-link");
         const unlock_button = row.querySelector(".unlock-link");
         const delete_link = row.querySelector(".delete-link");
-        const can_decrypt = file_name.toLowerCase().endsWith(".rec");
+        const can_decrypt = is_decryptable_recording_file(file_name);
 
         if (file_link)
         {
@@ -239,6 +239,12 @@ function hide_all_unlock_buttons()
     }
 }
 
+function is_decryptable_recording_file(file_name)
+{
+    const lower = String(file_name || "").toLowerCase();
+    return lower.endsWith(".rec") || lower.endsWith(".fly");
+}
+
 function decrypted_download_file_name(file_name)
 {
     const text = String(file_name || "");
@@ -247,6 +253,10 @@ function decrypted_download_file_name(file_name)
     if (base.toLowerCase().endsWith(".rec"))
     {
         return base.slice(0, -4) + ".wav";
+    }
+    if (base.toLowerCase().endsWith(".fly"))
+    {
+        return base.slice(0, -4) + ".mp3";
     }
     return (base || "recording") + ".wav";
 }
@@ -265,9 +275,9 @@ function base64url_encode_bytes(bytes)
 async function request_decrypt_file(file_name)
 {
     const requested_file = String(file_name || "");
-    if (!requested_file.toLowerCase().endsWith(".rec"))
+    if (!is_decryptable_recording_file(requested_file))
     {
-        show_file_upload_status("Only .rec files can be decrypted.", "error");
+        show_file_upload_status("Only .rec and .fly files can be decrypted.", "error");
         return;
     }
     if (current_security_level < 1 ||
@@ -280,7 +290,7 @@ async function request_decrypt_file(file_name)
     }
 
     let encrypted_file_name = null;
-    const wav_name = decrypted_download_file_name(requested_file);
+    const download_name = decrypted_download_file_name(requested_file);
     try
     {
         const nonce = secure_random_bytes(12);
@@ -299,7 +309,7 @@ async function request_decrypt_file(file_name)
     }
 
     set_file_upload_progress(0);
-    show_file_upload_status("Starting decrypted download for " + wav_name + "...", "notice");
+    show_file_upload_status("Starting decrypted download for " + download_name + "...", "notice");
 
     const url = "/decrypted_download?file_name=" + encodeURIComponent(base64url_encode_bytes(encrypted_file_name));
     window.location.href = url;

@@ -163,9 +163,45 @@ bool normalize_download_path(const String& file_name, char* out, size_t out_size
     return true;
 }
 
+enum class DecryptedRecordingKind : uint8_t
+{
+    Unknown,
+    Wav,
+    Mp3,
+};
+
+DecryptedRecordingKind decrypted_recording_kind_for_path(const char* path)
+{
+    if (ends_with_case_insensitive(path, ".rec"))
+    {
+        return DecryptedRecordingKind::Wav;
+    }
+    if (ends_with_case_insensitive(path, ".fly"))
+    {
+        return DecryptedRecordingKind::Mp3;
+    }
+
+    return DecryptedRecordingKind::Unknown;
+}
+
 bool is_encrypted_recording_path(const char* path)
 {
-    return ends_with_case_insensitive(path, ".rec");
+    return decrypted_recording_kind_for_path(path) != DecryptedRecordingKind::Unknown;
+}
+
+const char* decrypted_content_type(DecryptedRecordingKind kind, bool stream_inline)
+{
+    if (!stream_inline)
+    {
+        return "application/octet-stream";
+    }
+
+    return kind == DecryptedRecordingKind::Mp3 ? "audio/mpeg" : "audio/wav";
+}
+
+const char* decrypted_content_header(DecryptedRecordingKind kind)
+{
+    return kind == DecryptedRecordingKind::Mp3 ? "decrypted-mp3" : "decrypted-wav";
 }
 
 bool wav_header_valid(const uint8_t* header)
@@ -220,7 +256,7 @@ String safe_content_disposition(const char* disposition, const char* filename)
     return header;
 }
 
-void decrypted_wav_filename(const char* path, char* out, size_t out_size)
+void decrypted_recording_filename(const char* path, DecryptedRecordingKind kind, char* out, size_t out_size)
 {
     if (!out || out_size == 0)
     {
@@ -231,14 +267,18 @@ void decrypted_wav_filename(const char* path, char* out, size_t out_size)
     name = name ? name + 1 : (path ? path : "recording.rec");
     strlcpy(out, name[0] ? name : "recording.rec", out_size);
 
+    const char* encrypted_ext = kind == DecryptedRecordingKind::Mp3 ? ".fly" : ".rec";
+    const char* decrypted_ext = kind == DecryptedRecordingKind::Mp3 ? ".mp3" : ".wav";
+    const size_t encrypted_ext_len = strlen(encrypted_ext);
+    const size_t decrypted_ext_len = strlen(decrypted_ext);
     const size_t len = strlen(out);
-    if (len >= 4 && equals_case_insensitive(out + len - 4, ".rec"))
+    if (len >= encrypted_ext_len && equals_case_insensitive(out + len - encrypted_ext_len, encrypted_ext))
     {
-        memcpy(out + len - 4, ".wav", 5);
+        memcpy(out + len - encrypted_ext_len, decrypted_ext, decrypted_ext_len + 1);
     }
-    else if (len + 5 <= out_size)
+    else if (len + decrypted_ext_len + 1 <= out_size)
     {
-        memcpy(out + len, ".wav", 5);
+        memcpy(out + len, decrypted_ext, decrypted_ext_len + 1);
     }
 }
 
@@ -625,11 +665,34 @@ public:
             return false;
         }
 
+        m_kind = decrypted_recording_kind_for_path(path);
+        if (m_kind == DecryptedRecordingKind::Unknown)
+        {
+            status_code = 400;
+            error = "Only .rec and .fly files can be decrypted";
+            return false;
+        }
+
+        if (m_kind == DecryptedRecordingKind::Mp3)
+        {
+            m_plaintext_chunk_size = MP3_ENCRYPTED_PLAINTEXT_LENGTH;
+            m_encrypted_chunk_size = MP3_ENCRYPTED_CHUNK_LENGTH;
+            m_audio_file_offset = 0;
+            m_output_header_size = 0;
+        }
+        else
+        {
+            m_plaintext_chunk_size = WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH;
+            m_encrypted_chunk_size = WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH;
+            m_audio_file_offset = WAV_ENCRYPTED_RIFF_HEADER_LENGTH;
+            m_output_header_size = WAV_RIFF_HEADER_LENGTH;
+        }
+
         m_encrypted = AudioFileRecorder::wavEncryptedAudioBuffer();
         m_plaintext = AudioFileRecorder::wavPlaintextAudioBuffer();
         if (!m_encrypted || !m_plaintext ||
-            AudioFileRecorder::wavEncryptedAudioBufferSize() < WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH ||
-            AudioFileRecorder::wavPlaintextAudioBufferSize() < WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH)
+            AudioFileRecorder::wavEncryptedAudioBufferSize() < m_encrypted_chunk_size ||
+            AudioFileRecorder::wavPlaintextAudioBufferSize() < m_plaintext_chunk_size)
         {
             status_code = 500;
             error = "Decrypted download buffers are unavailable";
@@ -644,7 +707,7 @@ public:
             return false;
         }
 
-        if (file_size < WAV_ENCRYPTED_RIFF_HEADER_LENGTH)
+        if (file_size < m_audio_file_offset || (m_kind == DecryptedRecordingKind::Mp3 && file_size == 0))
         {
             AsyncFsManager::closeFile();
             status_code = 400;
@@ -652,8 +715,8 @@ public:
             return false;
         }
 
-        const uint64_t encrypted_audio_bytes = file_size - WAV_ENCRYPTED_RIFF_HEADER_LENGTH;
-        if ((encrypted_audio_bytes % WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH) != 0)
+        const uint64_t encrypted_audio_bytes = file_size - m_audio_file_offset;
+        if ((encrypted_audio_bytes % m_encrypted_chunk_size) != 0)
         {
             AsyncFsManager::closeFile();
             status_code = 400;
@@ -661,9 +724,9 @@ public:
             return false;
         }
 
-        const uint64_t encrypted_chunks = encrypted_audio_bytes / WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH;
-        m_audio_plain_bytes = encrypted_chunks * static_cast<uint64_t>(WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH);
-        if (m_audio_plain_bytes > 0xFFFFFFFFULL - 36ULL)
+        const uint64_t encrypted_chunks = encrypted_audio_bytes / m_encrypted_chunk_size;
+        m_audio_plain_bytes = encrypted_chunks * static_cast<uint64_t>(m_plaintext_chunk_size);
+        if (m_kind == DecryptedRecordingKind::Wav && m_audio_plain_bytes > 0xFFFFFFFFULL - 36ULL)
         {
             AsyncFsManager::closeFile();
             status_code = 413;
@@ -671,12 +734,12 @@ public:
             return false;
         }
 
-        m_output_size = static_cast<uint64_t>(WAV_RIFF_HEADER_LENGTH) + m_audio_plain_bytes;
+        m_output_size = m_output_header_size + m_audio_plain_bytes;
         if (m_output_size != static_cast<uint64_t>(static_cast<size_t>(m_output_size)))
         {
             AsyncFsManager::closeFile();
             status_code = 413;
-            error = "Decrypted WAV is too large";
+            error = "Decrypted recording is too large";
             return false;
         }
 
@@ -692,6 +755,11 @@ public:
             return false;
         }
         m_gcm_ready = true;
+
+        if (m_kind == DecryptedRecordingKind::Mp3)
+        {
+            return true;
+        }
 
         if (!read_decrypted_block(0, WAV_RIFF_HEADER_LENGTH, m_header))
         {
@@ -710,6 +778,11 @@ public:
 
         patch_wav_header_sizes(m_header, m_audio_plain_bytes);
         return true;
+    }
+
+    DecryptedRecordingKind kind() const
+    {
+        return m_kind;
     }
 
     uint64_t outputSize() const
@@ -734,10 +807,10 @@ public:
 
         while (remaining > 0)
         {
-            if (position < WAV_RIFF_HEADER_LENGTH)
+            if (position < m_output_header_size)
             {
                 const size_t header_offset = static_cast<size_t>(position);
-                size_t copy_size = WAV_RIFF_HEADER_LENGTH - header_offset;
+                size_t copy_size = static_cast<size_t>(m_output_header_size - header_offset);
                 if (copy_size > remaining)
                 {
                     copy_size = static_cast<size_t>(remaining);
@@ -750,9 +823,9 @@ public:
                 continue;
             }
 
-            const uint64_t audio_position = position - WAV_RIFF_HEADER_LENGTH;
-            const uint64_t chunk_index = audio_position / WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH;
-            const size_t chunk_offset = static_cast<size_t>(audio_position % WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH);
+            const uint64_t audio_position = position - m_output_header_size;
+            const uint64_t chunk_index = audio_position / m_plaintext_chunk_size;
+            const size_t chunk_offset = static_cast<size_t>(audio_position % m_plaintext_chunk_size);
             if (!ensure_audio_chunk(chunk_index))
             {
                 DBG_LOGW(TAG,
@@ -766,7 +839,7 @@ public:
                 return copied;
             }
 
-            size_t copy_size = WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH - chunk_offset;
+            size_t copy_size = m_plaintext_chunk_size - chunk_offset;
             if (copy_size > remaining)
             {
                 copy_size = static_cast<size_t>(remaining);
@@ -794,15 +867,15 @@ private:
             return false;
         }
 
-        const size_t encrypted_size = WAV_ENCRYPTED_CHUNK_NONCE_LENGTH + plaintext_size + WAV_ENCRYPTED_CHUNK_TAG_LENGTH;
-        if (encrypted_size > WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH)
+        const size_t encrypted_size = RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH + plaintext_size + RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH;
+        if (encrypted_size > m_encrypted_chunk_size)
         {
             DBG_LOGW(TAG,
                      "decrypted block too large: pos=%llu plain=%u encrypted=%u max=%u",
                      static_cast<unsigned long long>(file_position),
                      static_cast<unsigned>(plaintext_size),
                      static_cast<unsigned>(encrypted_size),
-                     static_cast<unsigned>(WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH));
+                     static_cast<unsigned>(m_encrypted_chunk_size));
             return false;
         }
         const int bytes_read = AsyncFsManager::readFileChunk(file_position, m_encrypted, encrypted_size);
@@ -818,16 +891,16 @@ private:
         }
 
         const uint8_t* nonce = m_encrypted;
-        const uint8_t* ciphertext = m_encrypted + WAV_ENCRYPTED_CHUNK_NONCE_LENGTH;
+        const uint8_t* ciphertext = m_encrypted + RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH;
         const uint8_t* tag = ciphertext + plaintext_size;
         const int decrypt_result = mbedtls_gcm_auth_decrypt(&m_gcm,
                                                             plaintext_size,
                                                             nonce,
-                                                            WAV_ENCRYPTED_CHUNK_NONCE_LENGTH,
+                                                            RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH,
                                                             nullptr,
                                                             0,
                                                             tag,
-                                                            WAV_ENCRYPTED_CHUNK_TAG_LENGTH,
+                                                            RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH,
                                                             ciphertext,
                                                             plaintext);
         if (decrypt_result != 0)
@@ -854,9 +927,8 @@ private:
             return false;
         }
 
-        const uint64_t file_position = static_cast<uint64_t>(WAV_ENCRYPTED_RIFF_HEADER_LENGTH) +
-                                       chunk_index * static_cast<uint64_t>(WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH);
-        if (!read_decrypted_block(file_position, WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH, m_plaintext))
+        const uint64_t file_position = m_audio_file_offset + chunk_index * static_cast<uint64_t>(m_encrypted_chunk_size);
+        if (!read_decrypted_block(file_position, m_plaintext_chunk_size, m_plaintext))
         {
             DBG_LOGW(TAG,
                      "decrypted audio chunk failed: chunk=%llu pos=%llu",
@@ -871,10 +943,15 @@ private:
     }
 
     mbedtls_gcm_context m_gcm;
+    DecryptedRecordingKind m_kind = DecryptedRecordingKind::Unknown;
     bool m_gcm_ready = false;
     uint8_t* m_encrypted = nullptr;
     uint8_t* m_plaintext = nullptr;
     uint8_t m_header[WAV_RIFF_HEADER_LENGTH] = {};
+    size_t m_plaintext_chunk_size = 0;
+    size_t m_encrypted_chunk_size = 0;
+    uint64_t m_audio_file_offset = 0;
+    uint64_t m_output_header_size = 0;
     uint64_t m_audio_plain_bytes = 0;
     uint64_t m_output_size = 0;
     uint64_t m_loaded_chunk = kNoDecryptedChunk;
@@ -917,7 +994,7 @@ bool parse_request(const uint8_t* plaintext,
     if (!is_encrypted_recording_path(file_path))
     {
         status_code = 400;
-        error = "Only .rec files can be decrypted";
+        error = "Only .rec and .fly files can be decrypted";
         return false;
     }
 
@@ -965,10 +1042,10 @@ void send_recording(AsyncWebServerRequest* request, const char* file_path, bool 
     }
 
     char download_name[kFileNameBufferSize] = {};
-    decrypted_wav_filename(file_path, download_name, sizeof(download_name));
+    decrypted_recording_filename(file_path, stream->kind(), download_name, sizeof(download_name));
 
     AsyncWebServerResponse* response = request->beginResponse(
-        stream_inline ? "audio/wav" : "application/octet-stream",
+        decrypted_content_type(stream->kind(), stream_inline),
         static_cast<size_t>(stream->outputSize()),
         [stream](uint8_t* buffer, size_t max_len, size_t index) -> size_t {
             return stream ? stream->fill(buffer, max_len, index) : 0;
@@ -982,7 +1059,7 @@ void send_recording(AsyncWebServerRequest* request, const char* file_path, bool 
 
     response->addHeader("Content-Disposition",
                         safe_content_disposition(stream_inline ? "inline" : "attachment", download_name));
-    response->addHeader("X-TheFly-Content", "decrypted-wav");
+    response->addHeader("X-TheFly-Content", decrypted_content_header(stream->kind()));
     note_web_download();
     request->send(response);
 }
