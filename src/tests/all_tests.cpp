@@ -18,5 +18,6 @@ void run_test()
     //test_webserver();
     //test_btramusage();
     //test_nvsloadsave();
-    test_filelistbenchmark();
+    //test_filelistbenchmark();
+    test_pbkdfbenchmark();
 }

@@ -48,6 +48,7 @@ public:
 
     static bool init();
 
+    static bool              copyCachedSessionKey(uint8_t out_session_key[kSessionKeySize]);
     static SessionAuthResult authenticateSessionRequest(AsyncWebServerRequest* request, uint8_t out_session_key[kSessionKeySize]);
     static const char*       sessionAuthResultName(SessionAuthResult result);
     static uint64_t          nextSessionNonceCounter();

@@ -1,6 +1,7 @@
 #include "Aegis.h"
 
 #include <Arduino.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "esp_err.h"
@@ -581,6 +582,85 @@ bool hmacSha256(const uint8_t* key, size_t key_len, const uint8_t* data, size_t 
     return mbedtls_md_hmac(md_info, key, key_len, data, data_len, out) == 0;
 }
 
+namespace
+{
+
+constexpr size_t   kPbkdf2BlockIndexSize = 4;
+constexpr uint32_t kPbkdf2YieldInterval  = 256;
+
+void pbkdf2_yield(uint32_t completed_rounds)
+{
+    if ((completed_rounds % kPbkdf2YieldInterval) == 0)
+    {
+        delay(1);
+    }
+}
+
+bool pbkdf2_block_hmac_sha256(const uint8_t* password,
+                              size_t password_len,
+                              const uint8_t* salt,
+                              size_t salt_len,
+                              uint32_t iterations,
+                              uint32_t block_index,
+                              uint8_t out[kSha256Size])
+{
+    if (salt_len > SIZE_MAX - kPbkdf2BlockIndexSize)
+    {
+        return false;
+    }
+
+    const size_t salt_block_len = salt_len + kPbkdf2BlockIndexSize;
+    uint8_t* salt_block = static_cast<uint8_t*>(malloc(salt_block_len));
+    if (!salt_block)
+    {
+        return false;
+    }
+
+    if (salt_len > 0)
+    {
+        memcpy(salt_block, salt, salt_len);
+    }
+    salt_block[salt_len]     = static_cast<uint8_t>((block_index >> 24) & 0xFF);
+    salt_block[salt_len + 1] = static_cast<uint8_t>((block_index >> 16) & 0xFF);
+    salt_block[salt_len + 2] = static_cast<uint8_t>((block_index >> 8) & 0xFF);
+    salt_block[salt_len + 3] = static_cast<uint8_t>(block_index & 0xFF);
+
+    uint8_t u[kSha256Size] = {};
+    uint8_t next_u[kSha256Size] = {};
+    bool ok = hmacSha256(password, password_len, salt_block, salt_block_len, u);
+    free(salt_block);
+    if (!ok)
+    {
+        mbedtls_platform_zeroize(u, sizeof(u));
+        mbedtls_platform_zeroize(next_u, sizeof(next_u));
+        return false;
+    }
+
+    memcpy(out, u, kSha256Size);
+    for (uint32_t round = 1; round < iterations; ++round)
+    {
+        if (!hmacSha256(password, password_len, u, sizeof(u), next_u))
+        {
+            mbedtls_platform_zeroize(u, sizeof(u));
+            mbedtls_platform_zeroize(next_u, sizeof(next_u));
+            mbedtls_platform_zeroize(out, kSha256Size);
+            return false;
+        }
+        memcpy(u, next_u, sizeof(u));
+        for (size_t i = 0; i < kSha256Size; ++i)
+        {
+            out[i] ^= u[i];
+        }
+        pbkdf2_yield(round);
+    }
+
+    mbedtls_platform_zeroize(u, sizeof(u));
+    mbedtls_platform_zeroize(next_u, sizeof(next_u));
+    return true;
+}
+
+} // namespace
+
 bool pbkdf2HmacSha256(const uint8_t* password,
                       size_t password_len,
                       const uint8_t* salt,
@@ -594,28 +674,36 @@ bool pbkdf2HmacSha256(const uint8_t* password,
         return false;
     }
 
-#if defined(MBEDTLS_VERSION_NUMBER) && MBEDTLS_VERSION_NUMBER >= 0x03000000
-    return mbedtls_pkcs5_pbkdf2_hmac_ext(MBEDTLS_MD_SHA256, password, password_len, salt, salt_len, iterations, out_len, out) == 0;
-#else
-    const mbedtls_md_info_t* md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
-    if (!md_info)
+    static constexpr uint8_t kEmptyBuffer = 0;
+    const uint8_t* password_bytes = password ? password : &kEmptyBuffer;
+    const uint8_t* salt_bytes     = salt ? salt : &kEmptyBuffer;
+
+    size_t out_offset = 0;
+    uint32_t block_index = 1;
+    while (out_offset < out_len)
     {
-        return false;
+        uint8_t block[kSha256Size] = {};
+        if (!pbkdf2_block_hmac_sha256(password_bytes, password_len, salt_bytes, salt_len, iterations, block_index, block))
+        {
+            mbedtls_platform_zeroize(out, out_len);
+            return false;
+        }
+
+        const size_t remaining = out_len - out_offset;
+        const size_t copy_len  = remaining < sizeof(block) ? remaining : sizeof(block);
+        memcpy(out + out_offset, block, copy_len);
+        out_offset += copy_len;
+        mbedtls_platform_zeroize(block, sizeof(block));
+
+        if (out_offset < out_len && block_index == UINT32_MAX)
+        {
+            mbedtls_platform_zeroize(out, out_len);
+            return false;
+        }
+        ++block_index;
     }
 
-    mbedtls_md_context_t ctx;
-    mbedtls_md_init(&ctx);
-    const int setup_result = mbedtls_md_setup(&ctx, md_info, 1);
-    if (setup_result != 0)
-    {
-        mbedtls_md_free(&ctx);
-        return false;
-    }
-
-    const int result = mbedtls_pkcs5_pbkdf2_hmac(&ctx, password, password_len, salt, salt_len, iterations, out_len, out);
-    mbedtls_md_free(&ctx);
-    return result == 0;
-#endif
+    return true;
 }
 
 } // namespace Aegis

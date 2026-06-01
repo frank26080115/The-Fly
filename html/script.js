@@ -251,17 +251,15 @@ function decrypted_download_file_name(file_name)
     return (base || "recording") + ".wav";
 }
 
-function save_blob_as_file(blob, file_name)
+function base64url_encode_bytes(bytes)
 {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = file_name;
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+    let binary = "";
+    const view = bytes_view(bytes);
+    for (let i = 0; i < view.length; ++i)
+    {
+        binary += String.fromCharCode(view[i]);
+    }
+    return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
 async function request_decrypt_file(file_name)
@@ -281,14 +279,18 @@ async function request_decrypt_file(file_name)
         return;
     }
 
-    let body = null;
+    let encrypted_file_name = null;
     const wav_name = decrypted_download_file_name(requested_file);
     try
     {
-        body = await encrypt_set_cfg_blob({
-            file_name: requested_file,
-            action: "download",
-        });
+        const nonce = secure_random_bytes(12);
+        nonce[0] |= 0x80;
+        const plaintext = new TextEncoder().encode(requested_file);
+        const ciphertext = new Uint8Array(await (await require_webcrypto()).encrypt(
+            { name: "AES-GCM", iv: nonce, tagLength: 128 },
+            session_security.sessionAesKey,
+            plaintext));
+        encrypted_file_name = concat_bytes(nonce, ciphertext);
     }
     catch (error)
     {
@@ -297,39 +299,10 @@ async function request_decrypt_file(file_name)
     }
 
     set_file_upload_progress(0);
-    show_file_upload_status("Decrypting " + wav_name + "...", "");
+    show_file_upload_status("Starting decrypted download for " + wav_name + "...", "notice");
 
-    const request = new XMLHttpRequest();
-    request.open("POST", "/decrypted_download", true);
-    request.responseType = "arraybuffer";
-    request.setRequestHeader("Content-Type", "application/octet-stream");
-    request.setRequestHeader(header_session_response_from_client, session_security.sessionResponseFromClientHex);
-    request.setRequestHeader(header_session_salt_from_client, bytes_to_hex(session_security.sessionSaltFromClient));
-    session_security.nonceCounter = 0;
-
-    request.onprogress = function(event) {
-        if (event.lengthComputable)
-        {
-            set_file_upload_progress((event.loaded / event.total) * 100);
-        }
-    };
-
-    request.onload = function() {
-        if (request.status >= 200 && request.status < 300)
-        {
-            const content_type = request.getResponseHeader("Content-Type") || "application/octet-stream";
-            const blob = new Blob([request.response], { type: content_type });
-            save_blob_as_file(blob, wav_name);
-            set_file_upload_progress(100);
-            show_file_upload_status("Decrypted download ready.", "notice");
-            return;
-        }
-
-        show_file_upload_status(request_error_text(request, "Decrypted download failed: " + request.status), "error");
-    };
-    request.onerror = () => show_file_upload_status("Decrypted download failed.", "error");
-    request.ontimeout = () => show_file_upload_status("Decrypted download timed out.", "error");
-    request.send(body);
+    const url = "/decrypted_download?file_name=" + encodeURIComponent(base64url_encode_bytes(encrypted_file_name));
+    window.location.href = url;
 }
 
 function fetch_info()
@@ -1385,7 +1358,7 @@ async function login_onsubmit()
         session_security.sessionResponseFromClientHex = bytes_to_hex(client_response);
         session_security.sessionSaltFromClient = secure_random_bytes(session_salt_half_size);
         session_salt = concat_bytes(session_security.sessionSaltFromServer, session_security.sessionSaltFromClient);
-        session_key_bytes = await derive_pbkdf2_bytes(network_key_bytes, session_salt);
+        session_key_bytes = await derive_pbkdf2_bytes(network_key_bytes, session_salt, session_pbkdf_iterations);
         session_security.sessionAesKey = await import_aes_key(session_key_bytes, ["encrypt", "decrypt"]);
         session_security.nonceCounter = 0;
 

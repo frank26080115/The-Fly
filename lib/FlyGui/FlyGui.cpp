@@ -3,6 +3,7 @@
 #include "../Buttons/Buttons.h"
 #include "../BattTracker/BattTracker.h"
 #include "../Hotel/Hotel.h"
+#include "../WifiManager/AsyncFsManager.h"
 #include "../SpriteDraw/IconLookup.h"
 #include "DiskStats.h"
 #include "FlyGuiText.h"
@@ -96,6 +97,11 @@ void FlyGui::setAudioActive(bool active)
 
 void FlyGui::poll()
 {
+    if (AsyncFsManager::guiShouldYield())
+    {
+        return;
+    }
+
     const uint32_t       now  = millis();
     const FlyGuiPollMode mode = pollMode_;
 

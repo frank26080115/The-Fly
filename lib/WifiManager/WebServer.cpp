@@ -24,6 +24,7 @@
 #include "WebFileHandlers.h"
 #include "WifiManager.h"
 #include "esp_err.h"
+#include "esp_mac.h"
 #include "dbg_log.h"
 #include "esp_random.h"
 #include "mbedtls/platform_util.h"
@@ -379,6 +380,21 @@ String self_ip_string()
     return ip_is_zero(soft_ap_ip) ? String("") : soft_ap_ip.toString();
 }
 
+String self_wifi_mac_string()
+{
+    uint8_t mac[6] = {};
+    const bool use_station_mac = !ip_is_zero(WiFi.localIP());
+    const esp_mac_type_t mac_type = use_station_mac ? ESP_MAC_WIFI_STA : ESP_MAC_WIFI_SOFTAP;
+    if (esp_read_mac(mac, mac_type) != ESP_OK)
+    {
+        return String("");
+    }
+
+    char text[18] = {};
+    WebServer::formatMac(mac, text, sizeof(text));
+    return String(text);
+}
+
 void send_info(AsyncWebServerRequest* request)
 {
     if (!request)
@@ -412,6 +428,7 @@ void send_info(AsyncWebServerRequest* request)
                               free_bytes == 0 ? MicroSdCard::healthName(MicroSdCard::Health::Full) :
                               MicroSdCard::healthName(MicroSdCard::Health::Ready);
     const bool default_soft_ap = wifi_manager && wifi_manager->isGeneratedSoftApActive();
+    const String wifi_mac = self_wifi_mac_string();
     time_t current_time = 0;
     const bool current_time_valid = Clock.getUnixTime(&current_time);
 
@@ -433,7 +450,7 @@ void send_info(AsyncWebServerRequest* request)
     json += ",\"bdaddr\":";
     json += WebServer::jsonString(bdaddr_text);
     json += ",\"wifi_mac\":";
-    json += WebServer::jsonString(WiFi.macAddress().c_str());
+    json += WebServer::jsonString(wifi_mac.c_str());
     json += ",\"self_ip\":";
     json += WebServer::jsonString(self_ip_string().c_str());
     json += ",\"default_soft_ap\":";
@@ -778,6 +795,23 @@ const AsyncWebParameter* WebServer::findRequestParam(AsyncWebServerRequest* requ
     return request->getParam(name, true, false);
 }
 
+bool WebServer::copyCachedSessionKey(uint8_t out_session_key[kSessionKeySize])
+{
+    if (!out_session_key)
+    {
+        return false;
+    }
+
+    mbedtls_platform_zeroize(out_session_key, kSessionKeySize);
+    if (!g_session_security.session_key_valid)
+    {
+        return false;
+    }
+
+    memcpy(out_session_key, g_session_security.session_key, kSessionKeySize);
+    return true;
+}
+
 WebServer::SessionAuthResult WebServer::authenticateSessionRequest(AsyncWebServerRequest* request, uint8_t out_session_key[kSessionKeySize])
 {
     if (!out_session_key)
@@ -832,6 +866,17 @@ WebServer::SessionAuthResult WebServer::authenticateSessionRequest(AsyncWebServe
         return SessionAuthResult::BadClientResponse;
     }
 
+    if (g_session_security.session_key_valid &&
+        constant_time_equal(supplied_client_salt, g_session_security.session_salt_from_client, sizeof(supplied_client_salt)))
+    {
+        memcpy(out_session_key, g_session_security.session_key, kSessionKeySize);
+        g_session_security.nonce_counter = 0;
+        mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
+        mbedtls_platform_zeroize(supplied_client_salt, sizeof(supplied_client_salt));
+        mbedtls_platform_zeroize(expected_response, sizeof(expected_response));
+        return SessionAuthResult::Ok;
+    }
+
     memcpy(g_session_security.session_salt_from_client, supplied_client_salt, sizeof(g_session_security.session_salt_from_client));
     uint8_t session_salt[kSessionSaltSize] = {};
     memcpy(session_salt, g_session_security.session_salt_from_server, sizeof(g_session_security.session_salt_from_server));
@@ -842,7 +887,7 @@ WebServer::SessionAuthResult WebServer::authenticateSessionRequest(AsyncWebServe
                                                 Aegis::kNetworkKeySize,
                                                 session_salt,
                                                 sizeof(session_salt),
-                                                Aegis::kPbkdfIterations,
+                                                Aegis::kSessionPbkdfIterations,
                                                 g_session_security.session_key,
                                                 sizeof(g_session_security.session_key));
     mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
@@ -907,6 +952,9 @@ bool WebServer::init()
     DBG_LOGI(TAG, "registered microSD download GET /download_file");
 
 #ifdef BUILD_WITH_DECRYPTED_DOWNLOAD
+    g_server.on(AsyncURIMatcher::exact("/decrypted_download"), HTTP_GET, DecryptedDownload::finishGet);
+    DBG_LOGI(TAG, "registered decrypted recording GET /decrypted_download");
+
     g_server.on(AsyncURIMatcher::exact("/decrypted_download"),
                 HTTP_POST,
                 DecryptedDownload::finish,

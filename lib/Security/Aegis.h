@@ -27,6 +27,7 @@ static constexpr size_t kSaltSize = 32;
 static constexpr size_t kSaltFilecryptSize = sizeof(kSaltFilecrypt);
 static constexpr size_t kSaltNetworkSize   = sizeof(kSaltNetwork);
 static constexpr uint32_t kPbkdfIterations = 100000;
+static constexpr uint32_t kSessionPbkdfIterations = 100;
 
 uint32_t rand();
 

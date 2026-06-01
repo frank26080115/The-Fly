@@ -5,7 +5,7 @@
 #include <memory>
 #include <string.h>
 
-#include "MicroSdCard.h"
+#include "AsyncFsManager.h"
 #include "WebServer.h"
 #include "WifiManager.h"
 #include "dbg_log.h"
@@ -23,6 +23,9 @@ constexpr const char* kUploadErrorAttribute = "file_upload_error";
 constexpr const char* kUploadStatusAttribute = "file_upload_status";
 constexpr const char* kUploadPathAttribute = "file_upload_path";
 constexpr const char* kUploadStartedAttribute = "file_upload_started";
+
+class FileListJsonStream;
+std::weak_ptr<FileListJsonStream> g_active_file_list_stream;
 
 void note_web_download()
 {
@@ -122,7 +125,7 @@ bool prepare_file_upload(AsyncWebServerRequest* request, char* upload_path, size
 
     request->setAttribute(kUploadStartedAttribute, true);
 
-    if (!MicroSdCard::isReady())
+    if (!AsyncFsManager::isReady())
     {
         set_upload_error(request, 503, "microSD card is not ready");
         return false;
@@ -141,30 +144,20 @@ bool prepare_file_upload(AsyncWebServerRequest* request, char* upload_path, size
 
 bool write_upload_chunk(const char* upload_path, const uint8_t* data, size_t len, bool first_chunk)
 {
-    FsFile file;
-    const oflag_t flags = O_WRONLY | O_CREAT | (first_chunk ? O_TRUNC : O_APPEND);
-    if (!file.open(upload_path, flags))
-    {
-        return false;
-    }
-
-    const size_t written = len == 0 ? 0 : file.write(data, len);
-    const bool   ok      = written == len && file.sync();
-    file.close();
-    return ok;
+    return AsyncFsManager::writeFileChunk(upload_path, data, len, first_chunk);
 }
 
 void remove_partial_upload(AsyncWebServerRequest* request)
 {
-    if (!request || !MicroSdCard::isReady())
+    if (!request || !AsyncFsManager::isReady())
     {
         return;
     }
 
     const String& upload_path = request->getAttribute(kUploadPathAttribute);
-    if (!upload_path.isEmpty() && MicroSdCard::fs().exists(upload_path.c_str()))
+    if (!upload_path.isEmpty())
     {
-        MicroSdCard::fs().remove(upload_path.c_str());
+        AsyncFsManager::removeFile(upload_path.c_str());
     }
 }
 
@@ -219,13 +212,24 @@ class FileListJsonStream
 public:
     ~FileListJsonStream()
     {
-        m_child.close();
-        m_root.close();
+        close();
     }
 
     bool open()
     {
-        return m_root.open("/", O_RDONLY);
+        m_finished = false;
+        return AsyncFsManager::resetWalk();
+    }
+
+    void close()
+    {
+        if (m_finished)
+        {
+            return;
+        }
+
+        AsyncFsManager::closeWalk();
+        m_finished = true;
     }
 
     size_t fill(uint8_t* buffer, size_t max_len)
@@ -251,9 +255,7 @@ public:
         m_pending_offset += copy_size;
         if (m_end_after_pending && m_pending_offset >= m_pending.length())
         {
-            m_finished = true;
-            m_child.close();
-            m_root.close();
+            close();
         }
         return copy_size;
     }
@@ -272,19 +274,21 @@ private:
         }
 
         char file_name[kFileNameBufferSize] = {};
-        while (m_child.openNext(&m_root, O_RDONLY))
+        while (true)
         {
-            if (!m_child.isFile())
+            const AsyncFsManager::WalkResult result = AsyncFsManager::walkOne(file_name, sizeof(file_name));
+            if (result == AsyncFsManager::WalkResult::End)
             {
-                m_child.close();
-                continue;
+                m_pending           = "]";
+                m_end_after_pending = true;
+                return;
             }
-
-            m_child.getName(file_name, sizeof(file_name));
-            m_child.close();
-            if (file_name[0] == '\0')
+            if (result != AsyncFsManager::WalkResult::File)
             {
-                continue;
+                AsyncFsManager::resetWalk();
+                m_pending           = "]";
+                m_end_after_pending = true;
+                return;
             }
 
             if (!m_first_file)
@@ -295,13 +299,8 @@ private:
             m_first_file = false;
             return;
         }
-
-        m_pending           = "]";
-        m_end_after_pending = true;
     }
 
-    FsFile m_root;
-    FsFile m_child;
     String m_pending;
     size_t m_pending_offset   = 0;
     bool   m_started          = false;
@@ -309,6 +308,44 @@ private:
     bool   m_end_after_pending = false;
     bool   m_finished         = false;
 };
+
+void close_active_file_list_stream()
+{
+    if (std::shared_ptr<FileListJsonStream> active = g_active_file_list_stream.lock())
+    {
+        active->close();
+    }
+    g_active_file_list_stream.reset();
+}
+
+String safe_content_disposition(const char* disposition, const char* filename)
+{
+    String header(disposition ? disposition : "attachment");
+    header += "; filename=\"";
+
+    const char* cursor = filename ? strrchr(filename, '/') : nullptr;
+    cursor = cursor ? cursor + 1 : filename;
+    if (!cursor || cursor[0] == '\0')
+    {
+        cursor = "download";
+    }
+
+    while (*cursor)
+    {
+        const char c = *cursor++;
+        if (c == '"' || c == '\\' || c == '\r' || c == '\n' || static_cast<uint8_t>(c) < 0x20)
+        {
+            header += "_";
+        }
+        else
+        {
+            header += c;
+        }
+    }
+
+    header += "\"";
+    return header;
+}
 
 } // namespace
 
@@ -377,18 +414,21 @@ void sendMicroSdFile(AsyncWebServerRequest* request)
 {
     if (!request)
     {
+        DBG_LOGW(TAG, "download failed: null request");
         return;
     }
 
     if (!request->hasParam("file_name"))
     {
+        DBG_LOGW(TAG, "download failed: missing file_name parameter");
         note_web_error();
         request->send(400, "text/plain", "Missing file_name");
         return;
     }
 
-    if (!MicroSdCard::isReady())
+    if (!AsyncFsManager::isReady())
     {
+        DBG_LOGW(TAG, "download failed: microSD card is not ready");
         note_web_error();
         request->send(503, "text/plain", "microSD card is not ready");
         return;
@@ -397,38 +437,61 @@ void sendMicroSdFile(AsyncWebServerRequest* request)
     const String file_name = request->getParam("file_name")->value();
     if (file_name.isEmpty())
     {
+        DBG_LOGW(TAG, "download failed: empty file_name parameter");
         note_web_error();
         request->send(400, "text/plain", "Missing file_name");
         return;
     }
 
-    std::shared_ptr<FsFile> file(new FsFile());
-    if (!file || !file->open(file_name.c_str(), O_RDONLY) || file->isDir())
+    close_active_file_list_stream();
+
+    uint64_t file_size = 0;
+    if (!AsyncFsManager::openFileForDownload(file_name.c_str(), &file_size))
     {
+        DBG_LOGW(TAG, "download failed: openFileForDownload failed path=%s", file_name.c_str());
         note_web_error();
         request->send(404, "text/plain", "File not found");
         return;
     }
 
-    AsyncWebServerResponse* response = request->beginChunkedResponse(
+    AsyncWebServerResponse* response = request->beginResponse(
         "application/octet-stream",
-        [file](uint8_t* buffer, size_t max_len, size_t index) -> size_t {
-            if (!file || !file->seekSet(index))
+        static_cast<size_t>(file_size),
+        [file_name, file_size](uint8_t* buffer, size_t max_len, size_t index) -> size_t {
+            const int bytes_read = AsyncFsManager::readFileChunk(index, buffer, max_len);
+            if (bytes_read <= 0 && static_cast<uint64_t>(index) < file_size)
             {
-                return 0;
+                DBG_LOGW(TAG,
+                         "download chunk failed: path=%s index=%u max=%u read=%d size=%llu",
+                         file_name.c_str(),
+                         static_cast<unsigned>(index),
+                         static_cast<unsigned>(max_len),
+                         bytes_read,
+                         static_cast<unsigned long long>(file_size));
             }
-
-            const int bytes_read = file->read(buffer, max_len);
             return bytes_read > 0 ? static_cast<size_t>(bytes_read) : 0;
         });
     if (!response)
     {
+        DBG_LOGW(TAG,
+                 "download failed: beginResponse failed path=%s size=%llu",
+                 file_name.c_str(),
+                 static_cast<unsigned long long>(file_size));
+        AsyncFsManager::closeFile();
         note_web_error();
         request->send(500);
         return;
     }
 
-    response->addHeader("Content-Disposition", "attachment");
+    request->onDisconnect([]() {
+        AsyncFsManager::closeFile();
+    });
+
+    response->addHeader("Content-Disposition", safe_content_disposition("attachment", file_name.c_str()));
+    DBG_LOGI(TAG,
+             "download started: path=%s size=%llu",
+             file_name.c_str(),
+             static_cast<unsigned long long>(file_size));
     note_web_download();
     request->send(response);
 }
@@ -447,7 +510,7 @@ void deleteMicroSdFile(AsyncWebServerRequest* request)
         return;
     }
 
-    if (!MicroSdCard::isReady())
+    if (!AsyncFsManager::isReady())
     {
         note_web_error();
         request->send(503, "text/plain", "microSD card is not ready");
@@ -462,22 +525,14 @@ void deleteMicroSdFile(AsyncWebServerRequest* request)
         return;
     }
 
-    FsFile file;
-    if (!file.open(file_name.c_str(), O_RDONLY))
+    if (!AsyncFsManager::isFile(file_name.c_str()))
     {
         note_web_error();
         request->send(404, "text/plain", "File not found");
         return;
     }
 
-    if (file.isDir())
-    {
-        note_web_error();
-        request->send(400, "text/plain", "Target is not a file");
-        return;
-    }
-
-    if (!file.remove())
+    if (!AsyncFsManager::removeFile(file_name.c_str()))
     {
         DBG_LOGW(TAG, "could not delete microSD file %s", file_name.c_str());
         note_web_error();
@@ -494,23 +549,36 @@ void sendMicroSdFileList(AsyncWebServerRequest* request)
 {
     if (!request)
     {
+        DBG_LOGW(TAG, "file list failed: null request");
         return;
     }
 
-    if (!MicroSdCard::isReady())
+    if (!AsyncFsManager::isReady())
     {
+        DBG_LOGW(TAG, "file list failed: microSD card is not ready");
         note_web_error();
         request->send(503, "text/plain", "microSD card is not ready");
         return;
     }
 
+    close_active_file_list_stream();
+
     std::shared_ptr<FileListJsonStream> stream(new FileListJsonStream());
     if (!stream || !stream->open())
     {
+        DBG_LOGW(TAG, "file list failed: stream open failed");
         note_web_error();
         request->send(500, "text/plain", "File list failed");
         return;
     }
+    g_active_file_list_stream = stream;
+
+    request->onDisconnect([stream]() {
+        if (stream)
+        {
+            stream->close();
+        }
+    });
 
     AsyncWebServerResponse* response = request->beginChunkedResponse(
         "application/json",
@@ -519,6 +587,8 @@ void sendMicroSdFileList(AsyncWebServerRequest* request)
         });
     if (!response)
     {
+        DBG_LOGW(TAG, "file list failed: beginChunkedResponse failed");
+        stream->close();
         note_web_error();
         request->send(500);
         return;

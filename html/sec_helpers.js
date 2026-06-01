@@ -1,4 +1,5 @@
 const pbkdf_iterations = 100000;
+const session_pbkdf_iterations = 100;
 const session_salt_half_size = 16;
 const sha256_size = 32;
 const filecrypt_salt = new Uint8Array([
@@ -349,8 +350,9 @@ async function require_webcrypto()
     return crypto.subtle;
 }
 
-async function derive_pbkdf2_bytes(secret, salt)
+async function derive_pbkdf2_bytes(secret, salt, iterations)
 {
+    const rounds = iterations || pbkdf_iterations;
     try
     {
         const subtle = await require_webcrypto();
@@ -359,7 +361,7 @@ async function derive_pbkdf2_bytes(secret, salt)
             {
                 name: "PBKDF2",
                 salt: salt,
-                iterations: pbkdf_iterations,
+                iterations: rounds,
                 hash: "SHA-256",
             },
             base_key,
@@ -369,7 +371,7 @@ async function derive_pbkdf2_bytes(secret, salt)
     catch (error)
     {
         console.warn("WebCrypto PBKDF2 failed; using JavaScript fallback.", error);
-        return pbkdf2_hmac_sha256_fallback(secret, salt, pbkdf_iterations, sha256_size);
+        return pbkdf2_hmac_sha256_fallback(secret, salt, rounds, sha256_size);
     }
 }
 

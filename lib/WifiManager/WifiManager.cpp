@@ -10,6 +10,7 @@
 
 #include "AudioFileRecorder.h"
 #include "AudioManager.h"
+#include "AsyncFsManager.h"
 #include "BluetoothManager.h"
 #include "Aegis.h"
 #if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
@@ -393,6 +394,8 @@ bool is_connected_status(WifiManager::Status status)
 
 void shutdown_for_wifi_activation()
 {
+    AsyncFsManager::init();
+
     const BtManager::Result bt_result = BtManager::shutdown();
     if (bt_result != BtManager::Result::Ok)
     {
