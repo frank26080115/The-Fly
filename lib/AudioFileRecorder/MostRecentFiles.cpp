@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "MicroSdCard.h"
+#include "utilfuncs.h"
 
 namespace MostRecentFiles
 {
@@ -25,51 +26,6 @@ bool is_recorded_file(FsFile& file)
 {
     const int attributes = file.attrib();
     return file.isFile() && attributes >= 0 && (attributes & FS_ATTRIB_ARCHIVE);
-}
-
-bool equals_case_insensitive(const char* lhs, const char* rhs)
-{
-    if (!lhs || !rhs)
-    {
-        return false;
-    }
-
-    while (*lhs && *rhs)
-    {
-        char l = *lhs++;
-        char r = *rhs++;
-        if (l >= 'A' && l <= 'Z')
-        {
-            l = static_cast<char>(l - 'A' + 'a');
-        }
-        if (r >= 'A' && r <= 'Z')
-        {
-            r = static_cast<char>(r - 'A' + 'a');
-        }
-        if (l != r)
-        {
-            return false;
-        }
-    }
-
-    return *lhs == '\0' && *rhs == '\0';
-}
-
-bool ends_with_case_insensitive(const char* text, const char* suffix)
-{
-    if (!text || !suffix)
-    {
-        return false;
-    }
-
-    const size_t textLength   = strlen(text);
-    const size_t suffixLength = strlen(suffix);
-    if (textLength < suffixLength)
-    {
-        return false;
-    }
-
-    return equals_case_insensitive(text + textLength - suffixLength, suffix);
 }
 
 bool is_listable_recording_name(const char* name)

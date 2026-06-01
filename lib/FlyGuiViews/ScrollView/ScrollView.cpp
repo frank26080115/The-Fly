@@ -7,6 +7,7 @@
 #include "../ModalDialog.h"
 #include "sprites.h"
 #include "esp_system.h"
+#include "utilfuncs.h"
 #include <new>
 #include <string.h>
 
@@ -224,51 +225,6 @@ bool starts_with_case_insensitive(const char* text, const char* prefix)
     }
 
     return true;
-}
-
-bool equals_case_insensitive(const char* lhs, const char* rhs)
-{
-    if (!lhs || !rhs)
-    {
-        return false;
-    }
-
-    while (*lhs && *rhs)
-    {
-        char l = *lhs++;
-        char r = *rhs++;
-        if (l >= 'A' && l <= 'Z')
-        {
-            l = static_cast<char>(l - 'A' + 'a');
-        }
-        if (r >= 'A' && r <= 'Z')
-        {
-            r = static_cast<char>(r - 'A' + 'a');
-        }
-        if (l != r)
-        {
-            return false;
-        }
-    }
-
-    return *lhs == '\0' && *rhs == '\0';
-}
-
-bool ends_with_case_insensitive(const char* text, const char* suffix)
-{
-    if (!text || !suffix)
-    {
-        return false;
-    }
-
-    const size_t text_length   = strlen(text);
-    const size_t suffix_length = strlen(suffix);
-    if (text_length < suffix_length)
-    {
-        return false;
-    }
-
-    return equals_case_insensitive(text + text_length - suffix_length, suffix);
 }
 
 bool is_secure_url(const char* text)

@@ -29,6 +29,8 @@ bool hex_to_bytes(const String& hex, uint8_t* out, size_t out_size);
 bool parse_hex_byte(const char* text, uint8_t& value);
 bool parse_mac(const char* mac, esp_bd_addr_t out);
 bool parse_datetime(const char* text, m5::rtc_datetime_t& out);
+bool equals_case_insensitive(const char* lhs, const char* rhs);
+bool ends_with_case_insensitive(const char* text, const char* suffix);
 const char* memo_type_to_string(MemoType type);
 char memo_type_to_code(MemoType type);
 const char* trim_start(const char* text);
