@@ -2,7 +2,7 @@ BasedOnStyle: LLVM
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
-ColumnLimit: 800
+ColumnLimit: 120
 
 BreakBeforeBraces: Allman
 AllowShortIfStatementsOnASingleLine: false
@@ -24,6 +24,7 @@ AlignAfterOpenBracket: Align
 BinPackArguments: false
 BinPackParameters: false
 AllowAllArgumentsOnNextLine: false
+PenaltyBreakBeforeFirstCallParameter: 0
 
 SpaceBeforeParens: ControlStatements
 SpacesInParentheses: false
