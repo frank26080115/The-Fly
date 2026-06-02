@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "AudioManager.h"
 
 #include <M5Unified.h>
@@ -21,14 +25,11 @@ namespace AudioManager
 namespace
 {
 
-constexpr const char* TAG = "AudioManager";
+// -----------------------------------------------------------------------------
+// Configuration
+// -----------------------------------------------------------------------------
 
-enum class SpeakerPath
-{
-    None,
-    NS4168,
-    ExternalI2SCodec,
-};
+constexpr const char* TAG = "AudioManager";
 
 constexpr i2s_port_t kI2sPort = I2S_NUM_0;
 
@@ -54,6 +55,24 @@ constexpr uint16_t kVolumeGainByLevel[kMaxVolume] = {
     3,  4,  5,  6,   7,   9,   11,  13,  16,  19,  24,  29,  35,  43,  52,
     64, 78, 95, 115, 141, 172, 209, 255, 311, 380, 463, 565, 688, 840, 1024,
 };
+
+constexpr size_t kFileFifoCatchupStartSamples  = 1024;
+constexpr size_t kFileFifoCatchupTargetSamples = 512;
+
+// -----------------------------------------------------------------------------
+// Types
+// -----------------------------------------------------------------------------
+
+enum class SpeakerPath
+{
+    None,
+    NS4168,
+    ExternalI2SCodec,
+};
+
+// -----------------------------------------------------------------------------
+// Globals
+// -----------------------------------------------------------------------------
 
 AudioFifo g_fifo_bt2spk(1024 * 4, kFifoWatermarkSamples);
 AudioFifo g_fifo_mic2bt(1024 * 4, kFifoWatermarkSamples);
@@ -87,44 +106,16 @@ int16_t g_mono_buffer[kPumpSamples];
 int16_t g_stereo_buffer[kPumpSamples * 2];
 uint8_t g_pending_speaker_buffer[kPumpSamples * 2 * sizeof(int16_t)];
 
-constexpr size_t kFileFifoCatchupStartSamples  = 1024;
-constexpr size_t kFileFifoCatchupTargetSamples = 512;
-
-bool mic_file_source_active()
-{
-    return g_mode == P2TMode::Mic && g_i2s_rx != nullptr;
-}
-
-void queue_silence_to_match(AudioFifo& lagging_fifo, AudioFifo& leading_fifo)
-{
-    const size_t leading = leading_fifo.usedSamples();
-    const size_t lagging = lagging_fifo.usedSamples();
-    if (leading > lagging)
-    {
-        lagging_fifo.queueSilence(leading - lagging);
-    }
-}
-
-void queue_silence_to_reduce_lag(AudioFifo& lagging_fifo, AudioFifo& leading_fifo)
-{
-    const size_t leading = leading_fifo.usedSamples();
-    const size_t lagging = lagging_fifo.usedSamples();
-    if (leading <= lagging + kFileFifoCatchupStartSamples)
-    {
-        return;
-    }
-
-    const size_t target_lagging = leading - kFileFifoCatchupTargetSamples;
-    if (target_lagging > lagging)
-    {
-        lagging_fifo.queueSilence(target_lagging - lagging);
-    }
-}
-
 #ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
 HfpAudioDiagnostics g_hfp_diag     = {};
 portMUX_TYPE        g_hfp_diag_mux = portMUX_INITIALIZER_UNLOCKED;
+#endif
 
+// -----------------------------------------------------------------------------
+// Diagnostics Support
+// -----------------------------------------------------------------------------
+
+#ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
 template <typename Updater> void update_hfp_diag(Updater updater)
 {
     portENTER_CRITICAL(&g_hfp_diag_mux);
@@ -140,406 +131,52 @@ template <typename Updater> void update_hfp_diag(Updater updater)
     } while (false)
 #endif
 
-#ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
-void note_speaker_i2s_write(size_t requested, size_t written, size_t bytes_per_frame, esp_err_t err)
-{
-    HFP_AUDIO_DIAG(
-        [requested, written, bytes_per_frame, err](HfpAudioDiagnostics& diag)
-        {
-            if (written > 0)
-            {
-                diag.speakerI2sWriteBytes += written;
-                diag.speakerI2sWriteFrames += bytes_per_frame ? written / bytes_per_frame : 0;
-                ++diag.speakerPumpCalls;
-            }
-            if (written < requested)
-            {
-                ++diag.speakerI2sShortWrites;
-            }
-            if (err != ESP_OK)
-            {
-                ++diag.speakerI2sWriteErrors;
-            }
-        });
-}
-#else
+#ifndef ENABLE_HFP_AUDIO_DIAGNOSTICS
 #define note_speaker_i2s_write(...)                                                                                    \
     do                                                                                                                 \
     {                                                                                                                  \
     } while (false)
 #endif
 
-void queue_hfp_pcm(const uint8_t* buf, uint32_t len)
-{
-    if (len < sizeof(int16_t))
-    {
-        return;
-    }
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-    const size_t samples = len / sizeof(int16_t);
-    const auto*  pcm     = reinterpret_cast<const int16_t*>(buf);
-    SpeakerPeakActivity::process(pcm, samples);
-    const size_t queued_spk  = g_fifo_bt2spk.queue(pcm, samples, g_hfp_rate_hz);
-    const size_t queued_file = g_fifo_bt2file.queue(pcm, samples, g_hfp_rate_hz);
+bool begin_fifos();
+void stop_i2s();
+bool enable_ns4168_speaker();
+bool enable_spm1423_mic();
+bool enable_exti2scodec_speaker();
+bool enable_exti2scodec_mic();
+void queue_hfp_pcm(const uint8_t* buf, uint32_t len);
+bool should_notify_hfp_outgoing_ready(size_t queued_bt, bool allow_existing_fifo);
+void notify_hfp_outgoing_ready(bool ready);
+bool mic_file_source_active();
+void queue_silence_to_match(AudioFifo& lagging_fifo, AudioFifo& leading_fifo);
+void queue_silence_to_reduce_lag(AudioFifo& lagging_fifo, AudioFifo& leading_fifo);
+void set_ns4168_speaker_enabled(bool enabled);
+void update_hardware_volume();
+bool using_ns4168_speaker();
+size_t speaker_bytes_per_frame();
+void apply_ns4168_software_volume(int16_t* samples, size_t sampleCount);
+size_t take_i2s_tx_frames(size_t maxFrames);
+void return_i2s_tx_bytes(size_t bytes);
+bool i2s_transfer_ready(i2s_chan_handle_t, i2s_event_data_t* event, void*);
+bool i2s_rx_transfer_ready(i2s_chan_handle_t, i2s_event_data_t*, void*);
+bool register_i2s_callbacks(i2s_chan_handle_t handle, bool rx);
+bool preload_silence(i2s_chan_handle_t handle);
+bool enable_channel(i2s_chan_handle_t handle, const char* label);
+void log_heap_after_fifo_begin(const char* fifo_name, bool result);
 
-    if (!mic_file_source_active())
-    {
-        queue_silence_to_match(g_fifo_mic2file, g_fifo_bt2file);
-    }
-    else
-    {
-        queue_silence_to_reduce_lag(g_fifo_mic2file, g_fifo_bt2file);
-    }
-
-    HFP_AUDIO_DIAG(
-        [len, samples, queued_spk, queued_file](HfpAudioDiagnostics& diag)
-        {
-            diag.incomingConsumedBytes += len;
-            diag.incomingPcmSamples += samples;
-            diag.incomingQueuedSpkSamples += queued_spk;
-            diag.incomingQueuedFileSamples += queued_file;
-        });
-    pump_bt2spk();
-}
-
-bool should_notify_hfp_outgoing_ready(size_t queued_bt, bool allow_existing_fifo)
-{
-    const size_t readable_samples = g_fifo_mic2bt.availableToRead();
-    const bool   queued = queued_bt > 0 || (allow_existing_fifo && readable_samples >= kHfpOutgoingNotifyMinSamples);
-    const bool   enough_samples = readable_samples >= kHfpOutgoingNotifyMinSamples;
-    const bool   bt_ready       = BtManager::canNotifyOutgoingAudioReady();
-    const bool   ready          = queued && enough_samples && bt_ready;
-
-    HFP_AUDIO_DIAG(
-        [readable_samples, queued, enough_samples, bt_ready, ready](HfpAudioDiagnostics& diag)
-        {
-            ++diag.micNotifyChecks;
-            diag.micLastReadableSamples = static_cast<uint32_t>(min(readable_samples, static_cast<size_t>(UINT32_MAX)));
-            diag.micNotifyMinSamples    = static_cast<uint32_t>(kHfpOutgoingNotifyMinSamples);
-            if (!queued)
-            {
-                ++diag.micNotifyNoQueued;
-            }
-            if (queued && !enough_samples)
-            {
-                ++diag.micNotifyBelowMin;
-            }
-            if (queued && enough_samples && !bt_ready)
-            {
-                ++diag.micNotifyBtNotReady;
-            }
-            if (ready)
-            {
-                ++diag.micNotifyReady;
-            }
-        });
-
-    return ready;
-}
-
-void notify_hfp_outgoing_ready(bool ready)
-{
-    if (!ready)
-    {
-        return;
-    }
-
-    BtManager::notifyOutgoingAudioReady();
-    HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) { ++diag.micNotifyCalls; });
-}
-
-void set_ns4168_speaker_enabled(bool enabled)
-{
-    const auto pmic_type = M5.Power.getType();
-    if (pmic_type == m5::Power_Class::pmic_axp192)
-    {
-        M5.Power.Axp192.setGPIO2(enabled);
-        return;
-    }
-    if (pmic_type == m5::Power_Class::pmic_axp2101)
-    {
-        M5.Power.Axp2101.setALDO3(enabled ? 3300 : 0);
-        return;
-    }
-
-    if (!g_wire_started)
-    {
-        Wire.begin(kInternalI2cSda, kInternalI2cScl, 400000);
-        g_wire_started = true;
-    }
-
-    Wire.beginTransmission(kAxp192Address);
-    Wire.write(kAxp192Gpio2Control);
-    Wire.write(enabled ? 0x06 : 0x05);
-    const uint8_t result = Wire.endTransmission();
-    if (result != 0)
-    {
-        DBG_LOGW(TAG, "AXP192 NS4168 speaker GPIO2 write failed: %u", result);
-    }
-}
-
-void update_hardware_volume()
-{
-    if (g_speaker_path != SpeakerPath::ExternalI2SCodec)
-    {
-        return;
-    }
-
-    // TODO: Apply g_volume to external I2S codec once its codec control path is wired up.
-    DBG_LOGD(TAG, "volume set to %u/%u", g_volume, kMaxVolume);
-}
-
-bool using_ns4168_speaker()
-{
-    return g_speaker_path == SpeakerPath::NS4168;
-}
-
-size_t speaker_bytes_per_frame()
-{
-    return using_ns4168_speaker() ? sizeof(int16_t) : 2 * sizeof(int16_t);
-}
-
-void apply_ns4168_software_volume(int16_t* samples, size_t sampleCount)
-{
-    if (!using_ns4168_speaker() || g_volume == kMaxVolume)
-    {
-        return;
-    }
-
-    if (g_volume == kMinVolume)
-    {
-        memset(samples, 0, sampleCount * sizeof(samples[0]));
-        return;
-    }
-
-    const uint16_t gain = kVolumeGainByLevel[g_volume - 1];
-    for (size_t i = 0; i < sampleCount; ++i)
-    {
-        samples[i] = static_cast<int16_t>((static_cast<int32_t>(samples[i]) * gain) >> kVolumeGainShift);
-    }
-}
-
-size_t take_i2s_tx_frames(size_t maxFrames)
-{
-    const size_t bytes_per_frame = speaker_bytes_per_frame();
-    portENTER_CRITICAL(&g_i2s_tx_credit_mux);
-    const size_t frames = std::min(maxFrames, static_cast<size_t>(g_i2s_tx_available_bytes) / bytes_per_frame);
-    g_i2s_tx_available_bytes -= frames * bytes_per_frame;
-    portEXIT_CRITICAL(&g_i2s_tx_credit_mux);
-    return frames;
-}
-
-void return_i2s_tx_bytes(size_t bytes)
-{
-    portENTER_CRITICAL(&g_i2s_tx_credit_mux);
-    g_i2s_tx_available_bytes += bytes;
-    portEXIT_CRITICAL(&g_i2s_tx_credit_mux);
-}
-
-bool IRAM_ATTR i2s_transfer_ready(i2s_chan_handle_t, i2s_event_data_t* event, void*)
-{
-    if (event)
-    {
-        portENTER_CRITICAL_ISR(&g_i2s_tx_credit_mux);
-        /*
-        we don't know how many samples we are allowed to send to i2s_channel_write
-        but we know that when a transfer is complete, we have some room
-        so we track how much room we have based on how much room is freed by a completed transfer
-        */
-        g_i2s_tx_available_bytes += event->size;
-        portEXIT_CRITICAL_ISR(&g_i2s_tx_credit_mux);
-    }
-    return false;
-}
-
-bool IRAM_ATTR i2s_rx_transfer_ready(i2s_chan_handle_t, i2s_event_data_t*, void*)
-{
-    return false;
-}
-
-void stop_i2s()
-{
-    std::lock_guard<std::mutex> lock(g_pump_mutex);
-
-    g_mode = P2TMode::Stopped;
-
-    if (g_i2s_tx)
-    {
-        i2s_channel_disable(g_i2s_tx);
-        i2s_del_channel(g_i2s_tx);
-        g_i2s_tx = nullptr;
-    }
-
-    if (g_i2s_rx)
-    {
-        i2s_channel_disable(g_i2s_rx);
-        i2s_del_channel(g_i2s_rx);
-        g_i2s_rx = nullptr;
-    }
-
-    g_speaker_path = SpeakerPath::None;
-    if (g_hardware == Hardware::M5StackInternal)
-    {
-        set_ns4168_speaker_enabled(false);
-    }
-
-    portENTER_CRITICAL(&g_i2s_tx_credit_mux);
-    g_i2s_tx_available_bytes = 0;
-    portEXIT_CRITICAL(&g_i2s_tx_credit_mux);
-    g_pending_speaker_bytes = 0;
-}
-
-bool register_i2s_callbacks(i2s_chan_handle_t handle, bool rx)
-{
-    i2s_event_callbacks_t callbacks = {};
-    if (rx)
-    {
-        callbacks.on_recv = i2s_rx_transfer_ready;
-    }
-    else
-    {
-        callbacks.on_sent = i2s_transfer_ready;
-    }
-
-    return ok(i2s_channel_register_event_callback(handle, &callbacks, nullptr), "i2s event callback");
-}
-
-bool preload_silence(i2s_chan_handle_t handle)
-{
-    int16_t zeros[kPumpSamples * 2] = {};
-    size_t  loaded                  = 0;
-    return ok(i2s_channel_preload_data(handle, zeros, sizeof(zeros), &loaded), "speaker i2s preload");
-}
-
-bool enable_channel(i2s_chan_handle_t handle, const char* label)
-{
-    if (!ok(i2s_channel_enable(handle), label))
-    {
-        stop_i2s();
-        return false;
-    }
-    return true;
-}
-
-bool enable_ns4168_speaker()
-{
-    stop_i2s();
-    g_fifo_bt2spk.clear();
-    g_fifo_bt2spk.setChoked(false);
-    set_ns4168_speaker_enabled(true);
-
-    i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
-    chan_config.dma_desc_num      = kDmaBufferCount;
-    chan_config.dma_frame_num     = kPumpSamples;
-    chan_config.auto_clear        = true;
-
-    i2s_std_config_t config   = {};
-    config.clk_cfg            = I2S_STD_CLK_DEFAULT_CONFIG(kSampleRateHz);
-    config.slot_cfg           = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
-    config.slot_cfg.slot_mask = I2S_STD_SLOT_BOTH;
-    config.slot_cfg.ws_width  = 16;
-    config.gpio_cfg.mclk      = I2S_GPIO_UNUSED;
-    config.gpio_cfg.bclk      = static_cast<gpio_num_t>(kNS4168SpeakerBclk);
-    config.gpio_cfg.ws        = static_cast<gpio_num_t>(kNS4168SpeakerLrck);
-    config.gpio_cfg.dout      = static_cast<gpio_num_t>(kNS4168SpeakerDout);
-    config.gpio_cfg.din       = I2S_GPIO_UNUSED;
-
-    if (!ok(i2s_new_channel(&chan_config, &g_i2s_tx, nullptr), "NS4168 speaker i2s channel") ||
-        !ok(i2s_channel_init_std_mode(g_i2s_tx, &config), "NS4168 speaker i2s std init") ||
-        !register_i2s_callbacks(g_i2s_tx, false) || !preload_silence(g_i2s_tx) ||
-        !enable_channel(g_i2s_tx, "NS4168 speaker i2s enable"))
-    {
-        stop_i2s();
-        return false;
-    }
-
-    g_mode         = P2TMode::Speaker;
-    g_speaker_path = SpeakerPath::NS4168;
-    return true;
-}
-
-bool enable_spm1423_mic()
-{
-    stop_i2s();
-    g_fifo_bt2spk.clear();
-    g_fifo_bt2spk.setChoked(true);
-    set_ns4168_speaker_enabled(false);
-
-    i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
-    chan_config.dma_desc_num      = kDmaBufferCount;
-    chan_config.dma_frame_num     = kPumpSamples;
-
-    i2s_pdm_rx_config_t config = {};
-    config.clk_cfg             = I2S_PDM_RX_CLK_DEFAULT_CONFIG(kSampleRateHz);
-    config.slot_cfg            = I2S_PDM_RX_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
-    config.slot_cfg.slot_mask  = I2S_PDM_SLOT_RIGHT;
-    config.gpio_cfg.clk        = static_cast<gpio_num_t>(kSPM1423MicClk);
-    config.gpio_cfg.din        = static_cast<gpio_num_t>(kSPM1423MicDin);
-
-    if (!ok(i2s_new_channel(&chan_config, nullptr, &g_i2s_rx), "SPM1423 mic pdm channel") ||
-        !ok(i2s_channel_init_pdm_rx_mode(g_i2s_rx, &config), "SPM1423 mic pdm init") ||
-        !register_i2s_callbacks(g_i2s_rx, true) || !enable_channel(g_i2s_rx, "SPM1423 mic pdm enable"))
-    {
-        g_fifo_bt2spk.setChoked(false);
-        stop_i2s();
-        return false;
-    }
-
-    MicGainManager::ignoreSamplesFor();
-    g_mode = P2TMode::Mic;
-    return true;
-}
-
-bool enable_exti2scodec_speaker()
-{
-    DBG_LOGE(TAG, "ExternalI2SCodec I2S pin/codec setup is not implemented yet");
-    return false;
-}
-
-bool enable_exti2scodec_mic()
-{
-    DBG_LOGE(TAG, "ExternalI2SCodec I2S pin/codec setup is not implemented yet");
-    return false;
-}
-
-void log_heap_after_fifo_begin(const char* fifo_name, bool result)
-{
-    DBG_LOGI(TAG,
-             "%s begin %s: free heap=%u, largest block=%u, internal free=%u, spiram free=%u",
-             fifo_name,
-             result ? "ok" : "failed",
-             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_8BIT)),
-             static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)),
-             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)),
-             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT)));
-}
-
-bool begin_fifos()
-{
-    log_heap_after_fifo_begin("before FIFO allocation", true);
-
-    const bool bt2spk_ok = g_fifo_bt2spk.begin();
-    log_heap_after_fifo_begin("g_fifo_bt2spk", bt2spk_ok);
-
-    const bool bt2file_ok = g_fifo_bt2file.begin();
-    log_heap_after_fifo_begin("g_fifo_bt2file", bt2file_ok);
-
-    const bool mic2bt_ok = g_fifo_mic2bt.begin();
-    log_heap_after_fifo_begin("g_fifo_mic2bt", mic2bt_ok);
-
-    const bool mic2file_ok = g_fifo_mic2file.begin();
-    log_heap_after_fifo_begin("g_fifo_mic2file", mic2file_ok);
-
-    if (!bt2spk_ok || !bt2file_ok || !mic2bt_ok || !mic2file_ok)
-    {
-        DBG_LOGE(TAG, "Audio FIFO allocation failed");
-        return false;
-    }
-
-    return true;
-}
+#ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
+void note_speaker_i2s_write(size_t requested, size_t written, size_t bytes_per_frame, esp_err_t err);
+#endif
 
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 bool init(Hardware hardware)
 {
@@ -599,6 +236,10 @@ P2TMode mode()
 {
     return g_mode;
 }
+
+// -----------------------------------------------------------------------------
+// Audio Pump
+// -----------------------------------------------------------------------------
 
 void pump_bt2spk()
 {
@@ -856,6 +497,11 @@ void pump_task()
     pump_mic2bt();
 }
 
+// -----------------------------------------------------------------------------
+// HFP Audio
+// -----------------------------------------------------------------------------
+
+// callback from bluetooth
 void hfp_incoming_audio(const uint8_t* buf, uint32_t len)
 {
     if (!buf || len == 0)
@@ -874,6 +520,8 @@ void hfp_incoming_audio(const uint8_t* buf, uint32_t len)
     queue_hfp_pcm(buf, len);
 }
 
+// callback from bluetooth
+// only arrives after esp_hf_client_outgoing_data_ready, which needs to be repeatedly called
 uint32_t hfp_outgoing_audio(uint8_t* buf, uint32_t len)
 {
     if (!buf || len < sizeof(int16_t))
@@ -968,6 +616,10 @@ void resetHfpAudioDiagnostics()
 #endif
 }
 
+// -----------------------------------------------------------------------------
+// FIFO Accessors
+// -----------------------------------------------------------------------------
+
 AudioFifo& bluetoothToSpeakerFifo()
 {
     return g_fifo_bt2spk;
@@ -987,6 +639,10 @@ AudioFifo& micToFileFifo()
 {
     return g_fifo_mic2file;
 }
+
+// -----------------------------------------------------------------------------
+// Volume and Mute
+// -----------------------------------------------------------------------------
 
 void setVolume(uint8_t volume)
 {
@@ -1099,5 +755,447 @@ uint8_t speakerPeakLevel()
 {
     return SpeakerPeakActivity::rawPeakLevel();
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Feature Logic
+// -----------------------------------------------------------------------------
+
+bool begin_fifos()
+{
+    log_heap_after_fifo_begin("before FIFO allocation", true);
+
+    const bool bt2spk_ok = g_fifo_bt2spk.begin();
+    log_heap_after_fifo_begin("g_fifo_bt2spk", bt2spk_ok);
+
+    const bool bt2file_ok = g_fifo_bt2file.begin();
+    log_heap_after_fifo_begin("g_fifo_bt2file", bt2file_ok);
+
+    const bool mic2bt_ok = g_fifo_mic2bt.begin();
+    log_heap_after_fifo_begin("g_fifo_mic2bt", mic2bt_ok);
+
+    const bool mic2file_ok = g_fifo_mic2file.begin();
+    log_heap_after_fifo_begin("g_fifo_mic2file", mic2file_ok);
+
+    if (!bt2spk_ok || !bt2file_ok || !mic2bt_ok || !mic2file_ok)
+    {
+        DBG_LOGE(TAG, "Audio FIFO allocation failed");
+        return false;
+    }
+
+    return true;
+}
+
+void stop_i2s()
+{
+    std::lock_guard<std::mutex> lock(g_pump_mutex);
+
+    g_mode = P2TMode::Stopped;
+
+    if (g_i2s_tx)
+    {
+        i2s_channel_disable(g_i2s_tx);
+        i2s_del_channel(g_i2s_tx);
+        g_i2s_tx = nullptr;
+    }
+
+    if (g_i2s_rx)
+    {
+        i2s_channel_disable(g_i2s_rx);
+        i2s_del_channel(g_i2s_rx);
+        g_i2s_rx = nullptr;
+    }
+
+    g_speaker_path = SpeakerPath::None;
+    if (g_hardware == Hardware::M5StackInternal)
+    {
+        set_ns4168_speaker_enabled(false);
+    }
+
+    portENTER_CRITICAL(&g_i2s_tx_credit_mux);
+    g_i2s_tx_available_bytes = 0;
+    portEXIT_CRITICAL(&g_i2s_tx_credit_mux);
+    g_pending_speaker_bytes = 0;
+}
+
+bool enable_ns4168_speaker()
+{
+    stop_i2s();
+    g_fifo_bt2spk.clear();
+    g_fifo_bt2spk.setChoked(false);
+    set_ns4168_speaker_enabled(true);
+
+    i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
+    chan_config.dma_desc_num      = kDmaBufferCount;
+    chan_config.dma_frame_num     = kPumpSamples;
+    chan_config.auto_clear        = true;
+
+    i2s_std_config_t config   = {};
+    config.clk_cfg            = I2S_STD_CLK_DEFAULT_CONFIG(kSampleRateHz);
+    config.slot_cfg           = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
+    config.slot_cfg.slot_mask = I2S_STD_SLOT_BOTH;
+    config.slot_cfg.ws_width  = 16;
+    config.gpio_cfg.mclk      = I2S_GPIO_UNUSED;
+    config.gpio_cfg.bclk      = static_cast<gpio_num_t>(kNS4168SpeakerBclk);
+    config.gpio_cfg.ws        = static_cast<gpio_num_t>(kNS4168SpeakerLrck);
+    config.gpio_cfg.dout      = static_cast<gpio_num_t>(kNS4168SpeakerDout);
+    config.gpio_cfg.din       = I2S_GPIO_UNUSED;
+
+    if (!ok(i2s_new_channel(&chan_config, &g_i2s_tx, nullptr), "NS4168 speaker i2s channel") ||
+        !ok(i2s_channel_init_std_mode(g_i2s_tx, &config), "NS4168 speaker i2s std init") ||
+        !register_i2s_callbacks(g_i2s_tx, false) || !preload_silence(g_i2s_tx) ||
+        !enable_channel(g_i2s_tx, "NS4168 speaker i2s enable"))
+    {
+        stop_i2s();
+        return false;
+    }
+
+    g_mode         = P2TMode::Speaker;
+    g_speaker_path = SpeakerPath::NS4168;
+    return true;
+}
+
+bool enable_spm1423_mic()
+{
+    stop_i2s();
+    g_fifo_bt2spk.clear();
+    g_fifo_bt2spk.setChoked(true);
+    set_ns4168_speaker_enabled(false);
+
+    i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
+    chan_config.dma_desc_num      = kDmaBufferCount;
+    chan_config.dma_frame_num     = kPumpSamples;
+
+    i2s_pdm_rx_config_t config = {};
+    config.clk_cfg             = I2S_PDM_RX_CLK_DEFAULT_CONFIG(kSampleRateHz);
+    config.slot_cfg            = I2S_PDM_RX_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
+    config.slot_cfg.slot_mask  = I2S_PDM_SLOT_RIGHT;
+    config.gpio_cfg.clk        = static_cast<gpio_num_t>(kSPM1423MicClk);
+    config.gpio_cfg.din        = static_cast<gpio_num_t>(kSPM1423MicDin);
+
+    if (!ok(i2s_new_channel(&chan_config, nullptr, &g_i2s_rx), "SPM1423 mic pdm channel") ||
+        !ok(i2s_channel_init_pdm_rx_mode(g_i2s_rx, &config), "SPM1423 mic pdm init") ||
+        !register_i2s_callbacks(g_i2s_rx, true) || !enable_channel(g_i2s_rx, "SPM1423 mic pdm enable"))
+    {
+        g_fifo_bt2spk.setChoked(false);
+        stop_i2s();
+        return false;
+    }
+
+    MicGainManager::ignoreSamplesFor();
+    g_mode = P2TMode::Mic;
+    return true;
+}
+
+bool enable_exti2scodec_speaker()
+{
+    DBG_LOGE(TAG, "ExternalI2SCodec I2S pin/codec setup is not implemented yet");
+    return false;
+}
+
+bool enable_exti2scodec_mic()
+{
+    DBG_LOGE(TAG, "ExternalI2SCodec I2S pin/codec setup is not implemented yet");
+    return false;
+}
+
+void queue_hfp_pcm(const uint8_t* buf, uint32_t len)
+{
+    if (len < sizeof(int16_t))
+    {
+        return;
+    }
+
+    const size_t samples = len / sizeof(int16_t);
+    const auto*  pcm     = reinterpret_cast<const int16_t*>(buf);
+    SpeakerPeakActivity::process(pcm, samples);
+    const size_t queued_spk  = g_fifo_bt2spk.queue(pcm, samples, g_hfp_rate_hz);
+    const size_t queued_file = g_fifo_bt2file.queue(pcm, samples, g_hfp_rate_hz);
+
+    if (!mic_file_source_active())
+    {
+        queue_silence_to_match(g_fifo_mic2file, g_fifo_bt2file);
+    }
+    else
+    {
+        queue_silence_to_reduce_lag(g_fifo_mic2file, g_fifo_bt2file);
+    }
+
+    HFP_AUDIO_DIAG(
+        [len, samples, queued_spk, queued_file](HfpAudioDiagnostics& diag)
+        {
+            diag.incomingConsumedBytes += len;
+            diag.incomingPcmSamples += samples;
+            diag.incomingQueuedSpkSamples += queued_spk;
+            diag.incomingQueuedFileSamples += queued_file;
+        });
+    pump_bt2spk();
+}
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+bool should_notify_hfp_outgoing_ready(size_t queued_bt, bool allow_existing_fifo)
+{
+    const size_t readable_samples = g_fifo_mic2bt.availableToRead();
+    const bool   queued = queued_bt > 0 || (allow_existing_fifo && readable_samples >= kHfpOutgoingNotifyMinSamples);
+    const bool   enough_samples = readable_samples >= kHfpOutgoingNotifyMinSamples;
+    const bool   bt_ready       = BtManager::canNotifyOutgoingAudioReady();
+    const bool   ready          = queued && enough_samples && bt_ready;
+
+    HFP_AUDIO_DIAG(
+        [readable_samples, queued, enough_samples, bt_ready, ready](HfpAudioDiagnostics& diag)
+        {
+            ++diag.micNotifyChecks;
+            diag.micLastReadableSamples = static_cast<uint32_t>(min(readable_samples, static_cast<size_t>(UINT32_MAX)));
+            diag.micNotifyMinSamples    = static_cast<uint32_t>(kHfpOutgoingNotifyMinSamples);
+            if (!queued)
+            {
+                ++diag.micNotifyNoQueued;
+            }
+            if (queued && !enough_samples)
+            {
+                ++diag.micNotifyBelowMin;
+            }
+            if (queued && enough_samples && !bt_ready)
+            {
+                ++diag.micNotifyBtNotReady;
+            }
+            if (ready)
+            {
+                ++diag.micNotifyReady;
+            }
+        });
+
+    return ready;
+}
+
+void notify_hfp_outgoing_ready(bool ready)
+{
+    if (!ready)
+    {
+        return;
+    }
+
+    BtManager::notifyOutgoingAudioReady();
+    HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) { ++diag.micNotifyCalls; });
+}
+
+bool mic_file_source_active()
+{
+    return g_mode == P2TMode::Mic && g_i2s_rx != nullptr;
+}
+
+void queue_silence_to_match(AudioFifo& lagging_fifo, AudioFifo& leading_fifo)
+{
+    const size_t leading = leading_fifo.usedSamples();
+    const size_t lagging = lagging_fifo.usedSamples();
+    if (leading > lagging)
+    {
+        lagging_fifo.queueSilence(leading - lagging);
+    }
+}
+
+void queue_silence_to_reduce_lag(AudioFifo& lagging_fifo, AudioFifo& leading_fifo)
+{
+    const size_t leading = leading_fifo.usedSamples();
+    const size_t lagging = lagging_fifo.usedSamples();
+    if (leading <= lagging + kFileFifoCatchupStartSamples)
+    {
+        return;
+    }
+
+    const size_t target_lagging = leading - kFileFifoCatchupTargetSamples;
+    if (target_lagging > lagging)
+    {
+        lagging_fifo.queueSilence(target_lagging - lagging);
+    }
+}
+
+void set_ns4168_speaker_enabled(bool enabled)
+{
+    const auto pmic_type = M5.Power.getType();
+    if (pmic_type == m5::Power_Class::pmic_axp192)
+    {
+        M5.Power.Axp192.setGPIO2(enabled);
+        return;
+    }
+    if (pmic_type == m5::Power_Class::pmic_axp2101)
+    {
+        M5.Power.Axp2101.setALDO3(enabled ? 3300 : 0);
+        return;
+    }
+
+    if (!g_wire_started)
+    {
+        Wire.begin(kInternalI2cSda, kInternalI2cScl, 400000);
+        g_wire_started = true;
+    }
+
+    Wire.beginTransmission(kAxp192Address);
+    Wire.write(kAxp192Gpio2Control);
+    Wire.write(enabled ? 0x06 : 0x05);
+    const uint8_t result = Wire.endTransmission();
+    if (result != 0)
+    {
+        DBG_LOGW(TAG, "AXP192 NS4168 speaker GPIO2 write failed: %u", result);
+    }
+}
+
+void update_hardware_volume()
+{
+    if (g_speaker_path != SpeakerPath::ExternalI2SCodec)
+    {
+        return;
+    }
+
+    // TODO: Apply g_volume to external I2S codec once its codec control path is wired up.
+    DBG_LOGD(TAG, "volume set to %u/%u", g_volume, kMaxVolume);
+}
+
+bool using_ns4168_speaker()
+{
+    return g_speaker_path == SpeakerPath::NS4168;
+}
+
+size_t speaker_bytes_per_frame()
+{
+    return using_ns4168_speaker() ? sizeof(int16_t) : 2 * sizeof(int16_t);
+}
+
+void apply_ns4168_software_volume(int16_t* samples, size_t sampleCount)
+{
+    if (!using_ns4168_speaker() || g_volume == kMaxVolume)
+    {
+        return;
+    }
+
+    if (g_volume == kMinVolume)
+    {
+        memset(samples, 0, sampleCount * sizeof(samples[0]));
+        return;
+    }
+
+    const uint16_t gain = kVolumeGainByLevel[g_volume - 1];
+    for (size_t i = 0; i < sampleCount; ++i)
+    {
+        samples[i] = static_cast<int16_t>((static_cast<int32_t>(samples[i]) * gain) >> kVolumeGainShift);
+    }
+}
+
+size_t take_i2s_tx_frames(size_t maxFrames)
+{
+    const size_t bytes_per_frame = speaker_bytes_per_frame();
+    portENTER_CRITICAL(&g_i2s_tx_credit_mux);
+    const size_t frames = std::min(maxFrames, static_cast<size_t>(g_i2s_tx_available_bytes) / bytes_per_frame);
+    g_i2s_tx_available_bytes -= frames * bytes_per_frame;
+    portEXIT_CRITICAL(&g_i2s_tx_credit_mux);
+    return frames;
+}
+
+void return_i2s_tx_bytes(size_t bytes)
+{
+    portENTER_CRITICAL(&g_i2s_tx_credit_mux);
+    g_i2s_tx_available_bytes += bytes;
+    portEXIT_CRITICAL(&g_i2s_tx_credit_mux);
+}
+
+bool IRAM_ATTR i2s_transfer_ready(i2s_chan_handle_t, i2s_event_data_t* event, void*)
+{
+    if (event)
+    {
+        portENTER_CRITICAL_ISR(&g_i2s_tx_credit_mux);
+        /*
+        we don't know how many samples we are allowed to send to i2s_channel_write
+        but we know that when a transfer is complete, we have some room
+        so we track how much room we have based on how much room is freed by a completed transfer
+        */
+        g_i2s_tx_available_bytes += event->size;
+        portEXIT_CRITICAL_ISR(&g_i2s_tx_credit_mux);
+    }
+    return false;
+}
+
+bool IRAM_ATTR i2s_rx_transfer_ready(i2s_chan_handle_t, i2s_event_data_t*, void*)
+{
+    return false;
+}
+
+bool register_i2s_callbacks(i2s_chan_handle_t handle, bool rx)
+{
+    i2s_event_callbacks_t callbacks = {};
+    if (rx)
+    {
+        callbacks.on_recv = i2s_rx_transfer_ready;
+    }
+    else
+    {
+        callbacks.on_sent = i2s_transfer_ready;
+    }
+
+    return ok(i2s_channel_register_event_callback(handle, &callbacks, nullptr), "i2s event callback");
+}
+
+bool preload_silence(i2s_chan_handle_t handle)
+{
+    int16_t zeros[kPumpSamples * 2] = {};
+    size_t  loaded                  = 0;
+    return ok(i2s_channel_preload_data(handle, zeros, sizeof(zeros), &loaded), "speaker i2s preload");
+}
+
+bool enable_channel(i2s_chan_handle_t handle, const char* label)
+{
+    if (!ok(i2s_channel_enable(handle), label))
+    {
+        stop_i2s();
+        return false;
+    }
+    return true;
+}
+
+#ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
+void note_speaker_i2s_write(size_t requested, size_t written, size_t bytes_per_frame, esp_err_t err)
+{
+    HFP_AUDIO_DIAG(
+        [requested, written, bytes_per_frame, err](HfpAudioDiagnostics& diag)
+        {
+            if (written > 0)
+            {
+                diag.speakerI2sWriteBytes += written;
+                diag.speakerI2sWriteFrames += bytes_per_frame ? written / bytes_per_frame : 0;
+                ++diag.speakerPumpCalls;
+            }
+            if (written < requested)
+            {
+                ++diag.speakerI2sShortWrites;
+            }
+            if (err != ESP_OK)
+            {
+                ++diag.speakerI2sWriteErrors;
+            }
+        });
+}
+#endif
+
+// -----------------------------------------------------------------------------
+// Debug / Logging Helpers
+// -----------------------------------------------------------------------------
+
+void log_heap_after_fifo_begin(const char* fifo_name, bool result)
+{
+    DBG_LOGI(TAG,
+             "%s begin %s: free heap=%u, largest block=%u, internal free=%u, spiram free=%u",
+             fifo_name,
+             result ? "ok" : "failed",
+             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_8BIT)),
+             static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)),
+             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)),
+             static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT)));
+}
+
+} // namespace
 
 } // namespace AudioManager
