@@ -850,5 +850,50 @@
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
+  },
+  {
+    "timestamp": "2026-06-02T16:04:22.176Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/DecryptedDownload.cpp",
+      "",
+      "## My request for Codex:",
+      "",
+      "",
+      "make sure all of the `.cpp` files inside `lib\\WavPlayback` meet the guidelines at `developer-docs\\code-layout-policy.md`"
+    ],
+    "agent_reply": [
+      "Done. I reorganized all seven `.cpp` files under [lib/WavPlayback](d:/GithubRepos/The-Fly/lib/WavPlayback) to follow `developer-docs/code-layout-policy.md`: section headers, top-down main flow first, prototype blocks where helpers moved later, and small/supporting helpers pushed toward the bottom without behavior changes.",
+      "",
+      "Verification passed:",
+      "- `git diff --check -- lib\\WavPlayback`",
+      "- `pio run -e thefly_sec0`",
+      "- `pio run -e thefly_sec1`",
+      "- `pio run -e thefly_sec2`",
+      "",
+      "One note: `src/version.c` is still modified from the PlatformIO build/version generation; I left it alone."
+    ],
+    "files": [
+      "src/version.c",
+      "lib/WavPlayback/WavPlayback.cpp",
+      "lib/WavPlayback/WavEncryptedPlayback.cpp",
+      "lib/WavPlayback/FilePlayback.cpp",
+      "lib/WavPlayback/PlaybackView.cpp",
+      "developer-docs/code-layout-policy.md"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T16:14:15Z",
+    "type": "git_commit",
+    "commit_message": "neaten",
+    "commit_hash": "86d90ffafe35f5d236da1bafff3d2216e4365a2f"
+  },
+  {
+    "timestamp": "2026-06-02T17:23:48Z",
+    "type": "git_commit",
+    "commit_message": "ran clang format",
+    "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"
   }
 ]

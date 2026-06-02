@@ -1,89 +1,9 @@
 [
   {
-    "timestamp": "2026-06-01T18:42:40.803Z",
-    "type": "codex_task",
-    "user_prompt": [
-      "# Context from my IDE setup:",
-      "",
-      "## Active file: src/main.cpp",
-      "",
-      "## My request for Codex:",
-      "We already have `WavPlayback`, and we have it in a namespace, turn it into a class object, with a base class `FilePlayback` and then `WavPlayback` will inherit from it. Also add `WavEncryptedPlayback` so that there is less branching on if statements.",
-      "",
-      "Then implement `Mp3Playback` as another class that inherits `FilePlayback` , and in the same spirit, `Mp3EncryptedPlayback` as well",
-      "",
-      "Whatever was using `WavPlayback` before will now simply use `FilePlayback` functions but decide if it constructs a `WavPlayback` or `Mp3Playback` or `WavEncryptedPlayback` or `Mp3EncryptedPlayback` based on file extension",
-      "",
-      "Each one of these classes gets their own CPP and header file.",
-      "",
-      "`Mp3EncryptedPlayback` and `WavEncryptedPlayback` should be inheriting from `Mp3Playback` and `WavPlayback` , and only offering decryption functions in between file reading and FIFO queuing, the file reading stuff and FIFO queueing should be inherited.",
-      "",
-      "We retain the ability to playback `wav` files and `rec` files even if the MP3 compression is the recording method.",
-      "",
-      "`PlaybackView` should not have to worry about file types, and handle seeking/scrubbing functions only based on time units. The playback class objects takes care of internally converting time units to file pointers.",
-      "",
-      "For encrypted files, the time duration estimation only works with our defined sizes/lengths inside `inc\\conf.h`, do not attempt to calculate file time duration by reading the actual file header, assume the encryption can only happen on files we record ourselves",
-      "",
-      "For unencrypted files, the time duration estimation can come from just the header of the first MP3 frame. Assume it is constant bit rate.",
-      "",
-      "I have placed `lib\\libhelix-esp32-arduino` in the project, use `MP3DecoderHelix` for decoding as appropriate."
-    ],
-    "agent_reply": [
-      "Implemented the playback refactor.",
-      "",
-      "What changed:",
-      "- Added `FilePlayback` base class and concrete `WavPlayback`, `WavEncryptedPlayback`, `Mp3Playback`, `Mp3EncryptedPlayback`.",
-      "- Moved `PlaybackView` to construct playback by extension and talk only in time units through `FilePlayback`.",
-      "- Added Helix MP3 decode support, including a final sync probe so the last MP3 frame is flushed.",
-      "- Added `.mp3` / `.fly` to recent-file listing and disk stats while retaining `.wav` / `.rec`.",
-      "- Updated `src/main.cpp` to pump/stop through `PlaybackView` instead of static `WavPlayback` calls.",
-      "",
-      "Verified:",
-      "- `pio run -e thefly_sec0` passes.",
-      "- `pio run -e thefly_sec1` passes.",
-      "- `rg` found no remaining old `WavPlayback::` / namespace playback calls.",
-      "- `git diff --check` passes, aside from the repo’s CRLF warnings.",
-      "",
-      "One note: `src/version.c` is dirty from the PlatformIO version generation step; I left it as-is. The build also still reports the existing ESP-FTP-Server `NetworkServer::available()` deprecation warning."
-    ],
-    "files": [
-      "lib/WavPlayback/FilePlayback.h",
-      "lib/WavPlayback/FilePlayback.cpp",
-      "lib/WavPlayback/WavPlayback.h",
-      "lib/WavPlayback/WavPlayback.cpp",
-      "lib/WavPlayback/WavEncryptedPlayback.h",
-      "lib/WavPlayback/WavEncryptedPlayback.cpp",
-      "lib/WavPlayback/Mp3Playback.h",
-      "lib/WavPlayback/Mp3Playback.cpp",
-      "lib/WavPlayback/Mp3EncryptedPlayback.h",
-      "lib/WavPlayback/Mp3EncryptedPlayback.cpp",
-      "lib/WavPlayback/PlaybackView.h",
-      "lib/WavPlayback/PlaybackView.cpp",
-      "src/main.cpp",
-      "lib/FlyGuiViews/ScrollView/ScrollItem.h",
-      "lib/AudioFileRecorder/DiskStats.cpp",
-      "lib/AudioFileRecorder/MostRecentFiles.cpp",
-      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
-      "src/version.c"
-    ]
-  },
-  {
-    "timestamp": "2026-06-01T19:24:23Z",
+    "timestamp": "2026-06-01T17:11:20Z",
     "type": "git_commit",
-    "commit_message": "mp3 playback works",
-    "commit_hash": "553ac578dd39c8724ac7cd871f259a68385d915e"
-  },
-  {
-    "timestamp": "2026-06-02T06:34:50Z",
-    "type": "git_commit",
-    "commit_message": "clang-format",
-    "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
-  },
-  {
-    "timestamp": "2026-06-02T16:14:15Z",
-    "type": "git_commit",
-    "commit_message": "neaten",
-    "commit_hash": "86d90ffafe35f5d236da1bafff3d2216e4365a2f"
+    "commit_message": "added shine 3.1.1",
+    "commit_hash": "eb1081f81c0b7c4559a6600cf04e731fa320d14b"
   },
   {
     "timestamp": "2026-06-02T17:07:28.842Z",

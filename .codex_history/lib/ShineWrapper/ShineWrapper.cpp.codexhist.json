@@ -106,5 +106,76 @@
     "type": "git_commit",
     "commit_message": "shine encoder implemented, it",
     "commit_hash": "e24eb27b276d6ca89fee5afbe70f5d9e1bc43ee0"
+  },
+  {
+    "timestamp": "2026-06-02T06:34:50Z",
+    "type": "git_commit",
+    "commit_message": "clang-format",
+    "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
+  },
+  {
+    "timestamp": "2026-06-02T08:19:32Z",
+    "type": "git_commit",
+    "commit_message": "comments labeling modules",
+    "commit_hash": "31550c50383ebe32a1fdcc074460e52d8390cbc9"
+  },
+  {
+    "timestamp": "2026-06-02T17:07:28.842Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/DecryptedDownload.cpp",
+      "",
+      "## My request for Codex:",
+      "shine encoder may not be respecting the disable_bit_reservoir option",
+      "",
+      "do not edit code, simply check this, it seems to work, or maybe I lose one packet only if locally playing back while scrubbing?"
+    ],
+    "agent_reply": [
+      "I checked it read-only. Short version: your suspicion is half right, but probably not the cause of the observed behavior.",
+      "",
+      "`disable_bit_reservoir` is accepted by [ShineWrapper.cpp](d:/GithubRepos/The-Fly/lib/ShineWrapper/ShineWrapper.cpp:17) and stored as `disable_bit_reservoir_`, but I found no code that actually uses that member. So as an option, it is not respected.",
+      "",
+      "But the vendored Shine encoder appears to have the reservoir effectively disabled already:",
+      "- [layer3.c](d:/GithubRepos/The-Fly/lib/ShineWrapper/shine/src/lib/layer3.c:108) initializes `ResvMax = 0`.",
+      "- [reservoir.c](d:/GithubRepos/The-Fly/lib/ShineWrapper/shine/src/lib/reservoir.c:30) immediately returns normal per-frame bits when `ResvMax` is zero.",
+      "- [l3bitstream.c](d:/GithubRepos/The-Fly/lib/ShineWrapper/shine/src/lib/l3bitstream.c:103) writes `main_data_begin` as zero for both MPEG-I and MPEG-II paths.",
+      "",
+      "So the flag is a no-op, but the actual output should still be no-reservoir. Since your recorder is 16 kHz / 64 kbps MPEG-II Layer III, frames should be standalone enough for frame-aligned scrubbing.",
+      "",
+      "The “lose one packet while locally playing back while scrubbing” sounds more like playback mechanics than encoder reservoir. `ScrubBar` calls the scrub callback during press/drag/release, and [FilePlayback::setPositionMs](d:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.cpp:224) clears the speaker FIFO and resets/seeks the decoder every time. That can create a small audible gap/drop around the scrub action.",
+      "",
+      "One caveat: encrypted MP3 playback borrows `AudioFileRecorder`’s static decrypt buffers in [Mp3EncryptedPlayback.cpp](d:/GithubRepos/The-Fly/lib/WavPlayback/Mp3EncryptedPlayback.cpp:147). If you are playing/scrubbing encrypted audio while an encrypted recording is active, those shared buffers look uncoordinated and could plausibly cause a one-chunk hiccup. If you are only playing back, I’d blame scrub-time FIFO/decode reset, not Shine.",
+      "",
+      "I checked it read-only. Short version: your suspicion is half right, but probably not the cause of the observed behavior.",
+      "",
+      "`disable_bit_reservoir` is accepted by [ShineWrapper.cpp](d:/GithubRepos/The-Fly/lib/ShineWrapper/ShineWrapper.cpp:17) and stored as `disable_bit_reservoir_`, but I found no code that actually uses that member. So as an option, it is not respected.",
+      "",
+      "But the vendored Shine encoder appears to have the reservoir effectively disabled already:",
+      "- [layer3.c](d:/GithubRepos/The-Fly/lib/ShineWrapper/shine/src/lib/layer3.c:108) initializes `ResvMax = 0`.",
+      "- [reservoir.c](d:/GithubRepos/The-Fly/lib/ShineWrapper/shine/src/lib/reservoir.c:30) immediately returns normal per-frame bits when `ResvMax` is zero.",
+      "- [l3bitstream.c](d:/GithubRepos/The-Fly/lib/ShineWrapper/shine/src/lib/l3bitstream.c:103) writes `main_data_begin` as zero for both MPEG-I and MPEG-II paths.",
+      "",
+      "So the flag is a no-op, but the actual output should still be no-reservoir. Since your recorder is 16 kHz / 64 kbps MPEG-II Layer III, frames should be standalone enough for frame-aligned scrubbing.",
+      "",
+      "The “lose one packet while locally playing back while scrubbing” sounds more like playback mechanics than encoder reservoir. `ScrubBar` calls the scrub callback during press/drag/release, and [FilePlayback::setPositionMs](d:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.cpp:224) clears the speaker FIFO and resets/seeks the decoder every time. That can create a small audible gap/drop around the scrub action.",
+      "",
+      "One caveat: encrypted MP3 playback borrows `AudioFileRecorder`’s static decrypt buffers in [Mp3EncryptedPlayback.cpp](d:/GithubRepos/The-Fly/lib/WavPlayback/Mp3EncryptedPlayback.cpp:147). If you are playing/scrubbing encrypted audio while an encrypted recording is active, those shared buffers look uncoordinated and could plausibly cause a one-chunk hiccup. If you are only playing back, I’d blame scrub-time FIFO/decode reset, not Shine."
+    ],
+    "files": [
+      "lib/ShineWrapper/ShineWrapper.cpp",
+      "lib/ShineWrapper/shine/src/lib/layer3.c",
+      "lib/ShineWrapper/shine/src/lib/reservoir.c",
+      "lib/ShineWrapper/shine/src/lib/l3bitstream.c",
+      "lib/WavPlayback/FilePlayback.cpp",
+      "lib/WavPlayback/Mp3EncryptedPlayback.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T17:12:05Z",
+    "type": "git_commit",
+    "commit_message": "update note about reservoir bit",
+    "commit_hash": "97db8856f0ed1553c2d687186a0568441f4f0fdc"
   }
 ]

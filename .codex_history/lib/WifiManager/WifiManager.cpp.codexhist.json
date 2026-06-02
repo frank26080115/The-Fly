@@ -2791,5 +2791,69 @@
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
+  },
+  {
+    "timestamp": "2026-06-02T15:50:30.321Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/DecryptedDownload.cpp",
+      "",
+      "## My request for Codex:",
+      "",
+      "make sure these files",
+      "",
+      " * `lib\\BluetoothManager\\BluetoothManager.cpp`",
+      " * `lib\\Security\\Aegis.cpp`",
+      " * `lib\\WifiManager\\WifiManager.cpp`",
+      " * `lib\\WifiManager\\WebServer.cpp`",
+      " * `lib\\WifiManager\\CloudUpload.cpp`",
+      " * `lib\\WifiManager\\AsyncFsManager.cpp`",
+      "",
+      "meet the guidelines at `developer-docs\\code-layout-policy.md`"
+    ],
+    "agent_reply": [
+      "Done. I reorganized the six requested files to follow `developer-docs/code-layout-policy.md`:",
+      "",
+      "- [BluetoothManager.cpp](d:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp)",
+      "- [Aegis.cpp](d:/GithubRepos/The-Fly/lib/Security/Aegis.cpp)",
+      "- [WifiManager.cpp](d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp)",
+      "- [WebServer.cpp](d:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp)",
+      "- [CloudUpload.cpp](d:/GithubRepos/The-Fly/lib/WifiManager/CloudUpload.cpp)",
+      "- [AsyncFsManager.cpp](d:/GithubRepos/The-Fly/lib/WifiManager/AsyncFsManager.cpp)",
+      "",
+      "The files now have explicit layout sections, early private prototypes, public/main-flow functions before helper implementations, and supporting/small helper logic moved lower. Behavior should be unchanged.",
+      "",
+      "Verification passed:",
+      "- `git diff --check` clean, aside from Git CRLF warnings.",
+      "- `pio run -e thefly_sec0` passed.",
+      "- `pio run -e thefly_sec1` passed.",
+      "- `pio run -e thefly_sec2` passed.",
+      "",
+      "`src/version.c` is dirty from the PlatformIO version-generation build step again; I did not manually touch it."
+    ],
+    "files": [
+      "src/version.c",
+      "lib/WifiManager/AsyncFsManager.cpp",
+      "lib/WifiManager/CloudUpload.cpp",
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "lib/Security/Aegis.cpp",
+      "lib/WifiManager/WifiManager.cpp",
+      "lib/WifiManager/WebServer.cpp",
+      "developer-docs/code-layout-policy.md"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T16:03:42Z",
+    "type": "git_commit",
+    "commit_message": "neaten",
+    "commit_hash": "42dcc936c1f67b066fa14ea3a4986f0622bfbf05"
+  },
+  {
+    "timestamp": "2026-06-02T17:23:48Z",
+    "type": "git_commit",
+    "commit_message": "ran clang format",
+    "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"
   }
 ]

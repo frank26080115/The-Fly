@@ -694,5 +694,50 @@
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
+  },
+  {
+    "timestamp": "2026-06-02T17:12:54.071Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ShineWrapper/ShineWrapper.cpp",
+      "",
+      "## My request for Codex:",
+      "Aegis salts are in a header file instead of the CPP file, check if this is an issue in terms of having actual duplicates in flash"
+    ],
+    "agent_reply": [
+      "Checked. In terms of **actual flash image duplication**, this does **not look like an issue**.",
+      "",
+      "`Aegis.h` defines:",
+      "",
+      "- `static constexpr uint8_t kSaltFilecrypt[]`",
+      "- `static constexpr uint8_t kSaltNetwork[]`",
+      "",
+      "Because they are `static constexpr`, each translation unit could theoretically get its own internal-linkage copy if it odr-uses the array. But the built firmware does not show duplicate live copies.",
+      "",
+      "I searched the exact 32-byte salt patterns in the built artifacts:",
+      "",
+      "```text",
+      "thefly_sec0 firmware.bin filecrypt: 0",
+      "thefly_sec0 firmware.bin network:   0",
+      "",
+      "thefly_sec1 firmware.bin filecrypt: 1",
+      "thefly_sec1 firmware.bin network:   1",
+      "",
+      "thefly_sec2 firmware.bin filecrypt: 1",
+      "thefly_sec2 firmware.bin network:   1",
+      "```",
+      "",
+      "The maps agree: for sec1/sec2 each salt appears once in `.rodata`, from `libSecurity.a(Aegis.cpp.o)`. For sec0, the map shows those salt sections at address `0x00000000`, which means they were discarded/not placed in the app image.",
+      "",
+      "One subtlety: `firmware.elf` contains many occurrences, but that is not the same as flash payload. Those extra matches are from ELF/debug/object metadata. The `firmware.bin` and linked map are the useful checks here.",
+      "",
+      "So: header placement is a little untidy architecturally, but it is not currently causing duplicate salt data in flash."
+    ],
+    "files": [
+      "lib/Security/Aegis.h",
+      "managed_components/espressif__esp-serial-flasher/examples/binaries/ESP32_AT_Firmware/Firmware.bin"
+    ]
   }
 ]

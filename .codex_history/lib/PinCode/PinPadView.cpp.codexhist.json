@@ -337,5 +337,11 @@
       "lib/FlyGuiViews/RecordingView/AnswerCallButton.cpp",
       "src/version.c"
     ]
+  },
+  {
+    "timestamp": "2026-06-02T15:20:12Z",
+    "type": "git_commit",
+    "commit_message": "code neatening for the views",
+    "commit_hash": "3dbd6b2cd2fdecdb22e7dcef84a89989f2e63669"
   }
 ]
