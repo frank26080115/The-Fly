@@ -1097,5 +1097,63 @@
     "type": "git_commit",
     "commit_message": "mp3 playback works",
     "commit_hash": "553ac578dd39c8724ac7cd871f259a68385d915e"
+  },
+  {
+    "timestamp": "2026-06-02T06:34:50Z",
+    "type": "git_commit",
+    "commit_message": "clang-format",
+    "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
+  },
+  {
+    "timestamp": "2026-06-02T07:05:04.713Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/DiskStats.cpp",
+      "",
+      "## My request for Codex:",
+      "work on `lib\\AudioFileRecorder\\DiskStats.cpp` only, make sure it follows `developer-docs\\code-layout-policy.md`"
+    ],
+    "agent_reply": [
+      "Done in [DiskStats.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/DiskStats.cpp).",
+      "",
+      "I reorganized it to match `developer-docs/code-layout-policy.md`: includes/config/types/globals/prototypes first, then public refresh/stat access flow, then private feature logic, supporting functions, and small helpers. Function bodies and signatures were preserved.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioFileRecorder\\DiskStats.cpp",
+      "```",
+      "",
+      "`git status` still shows unrelated dirty files: `FileHistory.cpp`, `MostRecentFiles.cpp`, and generated `src/version.c`.",
+      "",
+      "Done in [DiskStats.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/DiskStats.cpp).",
+      "",
+      "I reorganized it to match `developer-docs/code-layout-policy.md`: includes/config/types/globals/prototypes first, then public refresh/stat access flow, then private feature logic, supporting functions, and small helpers. Function bodies and signatures were preserved.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioFileRecorder\\DiskStats.cpp",
+      "```",
+      "",
+      "`git status` still shows unrelated dirty files: `FileHistory.cpp`, `MostRecentFiles.cpp`, and generated `src/version.c`."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/DiskStats.cpp",
+      "src/version.c",
+      "developer-docs/code-layout-policy.md",
+      "lib/AudioFileRecorder/FileHistory.cpp",
+      "lib/AudioFileRecorder/MostRecentFiles.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T07:14:05Z",
+    "type": "git_commit",
+    "commit_message": "neatened up DiskStats",
+    "commit_hash": "c84849ce023f2f430cfa445b9e7cb4f08e1bac14"
   }
 ]

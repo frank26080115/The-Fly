@@ -1238,5 +1238,56 @@
     "type": "git_commit",
     "commit_message": "liblame reconfigured",
     "commit_hash": "4bf69da6425fc74a95f264e24c0d992103c50a9f"
+  },
+  {
+    "timestamp": "2026-06-02T07:30:30.516Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## My request for Codex:",
+      "work on only `lib\\AudioManager\\AudioManager.cpp`, make sure it follows the guideline at `developer-docs\\code-layout-policy.md`"
+    ],
+    "agent_reply": [
+      "Done in [AudioManager.cpp](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp).",
+      "",
+      "I reorganized it to follow `developer-docs/code-layout-policy.md`: includes, configuration, types, globals, prototypes, then the public/main audio flow, pump functions, HFP API, FIFO accessors, volume/mute controls, and finally private hardware/I2S helpers and logging helpers. Behavior and public signatures were kept intact.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioManager\\AudioManager.cpp",
+      "```",
+      "",
+      "One small compile warning appeared on the first build because `IRAM_ATTR` was present on both ISR prototypes and definitions; I fixed that by leaving `IRAM_ATTR` only on the definitions. Current unrelated dirty files: `inc/defs.h` and generated `src/version.c`.",
+      "",
+      "Done in [AudioManager.cpp](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp).",
+      "",
+      "I reorganized it to follow `developer-docs/code-layout-policy.md`: includes, configuration, types, globals, prototypes, then the public/main audio flow, pump functions, HFP API, FIFO accessors, volume/mute controls, and finally private hardware/I2S helpers and logging helpers. Behavior and public signatures were kept intact.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioManager\\AudioManager.cpp",
+      "```",
+      "",
+      "One small compile warning appeared on the first build because `IRAM_ATTR` was present on both ISR prototypes and definitions; I fixed that by leaving `IRAM_ATTR` only on the definitions. Current unrelated dirty files: `inc/defs.h` and generated `src/version.c`."
+    ],
+    "files": [
+      "lib/AudioManager/AudioManager.cpp",
+      "src/version.c",
+      "developer-docs/code-layout-policy.md",
+      "inc/defs.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T07:49:30Z",
+    "type": "git_commit",
+    "commit_message": "small reorg of conf.h and defs.h",
+    "commit_hash": "3c45d79a3dd59ea97ce07b6dad9b8ea50a41fb68"
   }
 ]

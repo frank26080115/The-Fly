@@ -162,5 +162,57 @@
     "type": "git_commit",
     "commit_message": "removed custom audio format, changed to encrypted wav",
     "commit_hash": "b058e63be582168fb18760c38aabbed0bdbccd8c"
+  },
+  {
+    "timestamp": "2026-06-02T07:15:08.280Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/FileHistory.cpp",
+      "",
+      "## My request for Codex:",
+      "work on `lib\\AudioFileRecorder\\FileHistory.cpp` and `lib\\AudioFileRecorder\\MostRecentFiles.cpp` only, make sure it follows the guideline at `developer-docs\\code-layout-policy.md`"
+    ],
+    "agent_reply": [
+      "Done in [FileHistory.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/FileHistory.cpp) and [MostRecentFiles.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/MostRecentFiles.cpp).",
+      "",
+      "I reorganized both to follow `developer-docs/code-layout-policy.md`: file header, includes, config/types/globals, prototype blocks, public/main flow first, then feature/supporting logic and small helpers. I kept the existing function signatures and behavior intact.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioFileRecorder\\FileHistory.cpp lib\\AudioFileRecorder\\MostRecentFiles.cpp",
+      "```",
+      "",
+      "Current unrelated dirty files after the build: `lib/AudioFileRecorder/readme.md` and generated `src/version.c`.",
+      "",
+      "Done in [FileHistory.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/FileHistory.cpp) and [MostRecentFiles.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/MostRecentFiles.cpp).",
+      "",
+      "I reorganized both to follow `developer-docs/code-layout-policy.md`: file header, includes, config/types/globals, prototype blocks, public/main flow first, then feature/supporting logic and small helpers. I kept the existing function signatures and behavior intact.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioFileRecorder\\FileHistory.cpp lib\\AudioFileRecorder\\MostRecentFiles.cpp",
+      "```",
+      "",
+      "Current unrelated dirty files after the build: `lib/AudioFileRecorder/readme.md` and generated `src/version.c`."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/FileHistory.cpp",
+      "lib/AudioFileRecorder/MostRecentFiles.cpp",
+      "developer-docs/code-layout-policy.md",
+      "lib/AudioFileRecorder/readme.md",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T07:29:38Z",
+    "type": "git_commit",
+    "commit_message": "more code neatening",
+    "commit_hash": "c5afbfcb864d5512e3efce82ca933f9fd49bb531"
   }
 ]

@@ -1,0 +1,190 @@
+[
+  {
+    "timestamp": "2026-05-31T07:40:06Z",
+    "type": "git_commit",
+    "commit_message": "Create code-layout-policy.md",
+    "commit_hash": "a112b4f6b372bf514d65b1e331abf4b17d23bada"
+  },
+  {
+    "timestamp": "2026-06-02T06:45:37.824Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "",
+      "## My request for Codex:",
+      "work on `lib\\AudioFileRecorder\\AudioFileRecorder.cpp` only, make sure it follows the guideline at `developer-docs\\code-layout-policy.md`"
+    ],
+    "agent_reply": [
+      "Done in [AudioFileRecorder.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp).",
+      "",
+      "I reorganized it around `developer-docs/code-layout-policy.md`: section headers, private prototype block near the top, public/main recorder flow first, then diagnostics/state accessors, then private supporting functions. I kept the function bodies intact and did not intentionally change behavior.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioFileRecorder\\AudioFileRecorder.cpp",
+      "```",
+      "",
+      "Note: `git status` also shows existing/generated dirt in `lib/AudioFileRecorder/AudioFileRecorder.h` and `src/version.c`; I did not edit the header, and the build can regenerate `version.c`.",
+      "",
+      "Done in [AudioFileRecorder.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp).",
+      "",
+      "I reorganized it around `developer-docs/code-layout-policy.md`: section headers, private prototype block near the top, public/main recorder flow first, then diagnostics/state accessors, then private supporting functions. I kept the function bodies intact and did not intentionally change behavior.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioFileRecorder\\AudioFileRecorder.cpp",
+      "```",
+      "",
+      "Note: `git status` also shows existing/generated dirt in `lib/AudioFileRecorder/AudioFileRecorder.h` and `src/version.c`; I did not edit the header, and the build can regenerate `version.c`."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.h",
+      "src/version.c",
+      "developer-docs/code-layout-policy.md"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T07:05:04.713Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/DiskStats.cpp",
+      "",
+      "## My request for Codex:",
+      "work on `lib\\AudioFileRecorder\\DiskStats.cpp` only, make sure it follows `developer-docs\\code-layout-policy.md`"
+    ],
+    "agent_reply": [
+      "Done in [DiskStats.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/DiskStats.cpp).",
+      "",
+      "I reorganized it to match `developer-docs/code-layout-policy.md`: includes/config/types/globals/prototypes first, then public refresh/stat access flow, then private feature logic, supporting functions, and small helpers. Function bodies and signatures were preserved.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioFileRecorder\\DiskStats.cpp",
+      "```",
+      "",
+      "`git status` still shows unrelated dirty files: `FileHistory.cpp`, `MostRecentFiles.cpp`, and generated `src/version.c`.",
+      "",
+      "Done in [DiskStats.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/DiskStats.cpp).",
+      "",
+      "I reorganized it to match `developer-docs/code-layout-policy.md`: includes/config/types/globals/prototypes first, then public refresh/stat access flow, then private feature logic, supporting functions, and small helpers. Function bodies and signatures were preserved.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioFileRecorder\\DiskStats.cpp",
+      "```",
+      "",
+      "`git status` still shows unrelated dirty files: `FileHistory.cpp`, `MostRecentFiles.cpp`, and generated `src/version.c`."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/DiskStats.cpp",
+      "src/version.c",
+      "developer-docs/code-layout-policy.md",
+      "lib/AudioFileRecorder/FileHistory.cpp",
+      "lib/AudioFileRecorder/MostRecentFiles.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T07:15:08.280Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/FileHistory.cpp",
+      "",
+      "## My request for Codex:",
+      "work on `lib\\AudioFileRecorder\\FileHistory.cpp` and `lib\\AudioFileRecorder\\MostRecentFiles.cpp` only, make sure it follows the guideline at `developer-docs\\code-layout-policy.md`"
+    ],
+    "agent_reply": [
+      "Done in [FileHistory.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/FileHistory.cpp) and [MostRecentFiles.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/MostRecentFiles.cpp).",
+      "",
+      "I reorganized both to follow `developer-docs/code-layout-policy.md`: file header, includes, config/types/globals, prototype blocks, public/main flow first, then feature/supporting logic and small helpers. I kept the existing function signatures and behavior intact.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioFileRecorder\\FileHistory.cpp lib\\AudioFileRecorder\\MostRecentFiles.cpp",
+      "```",
+      "",
+      "Current unrelated dirty files after the build: `lib/AudioFileRecorder/readme.md` and generated `src/version.c`.",
+      "",
+      "Done in [FileHistory.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/FileHistory.cpp) and [MostRecentFiles.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/MostRecentFiles.cpp).",
+      "",
+      "I reorganized both to follow `developer-docs/code-layout-policy.md`: file header, includes, config/types/globals, prototype blocks, public/main flow first, then feature/supporting logic and small helpers. I kept the existing function signatures and behavior intact.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioFileRecorder\\FileHistory.cpp lib\\AudioFileRecorder\\MostRecentFiles.cpp",
+      "```",
+      "",
+      "Current unrelated dirty files after the build: `lib/AudioFileRecorder/readme.md` and generated `src/version.c`."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/FileHistory.cpp",
+      "lib/AudioFileRecorder/MostRecentFiles.cpp",
+      "developer-docs/code-layout-policy.md",
+      "lib/AudioFileRecorder/readme.md",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T07:30:30.516Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## My request for Codex:",
+      "work on only `lib\\AudioManager\\AudioManager.cpp`, make sure it follows the guideline at `developer-docs\\code-layout-policy.md`"
+    ],
+    "agent_reply": [
+      "Done in [AudioManager.cpp](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp).",
+      "",
+      "I reorganized it to follow `developer-docs/code-layout-policy.md`: includes, configuration, types, globals, prototypes, then the public/main audio flow, pump functions, HFP API, FIFO accessors, volume/mute controls, and finally private hardware/I2S helpers and logging helpers. Behavior and public signatures were kept intact.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioManager\\AudioManager.cpp",
+      "```",
+      "",
+      "One small compile warning appeared on the first build because `IRAM_ATTR` was present on both ISR prototypes and definitions; I fixed that by leaving `IRAM_ATTR` only on the definitions. Current unrelated dirty files: `inc/defs.h` and generated `src/version.c`.",
+      "",
+      "Done in [AudioManager.cpp](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp).",
+      "",
+      "I reorganized it to follow `developer-docs/code-layout-policy.md`: includes, configuration, types, globals, prototypes, then the public/main audio flow, pump functions, HFP API, FIFO accessors, volume/mute controls, and finally private hardware/I2S helpers and logging helpers. Behavior and public signatures were kept intact.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioManager\\AudioManager.cpp",
+      "```",
+      "",
+      "One small compile warning appeared on the first build because `IRAM_ATTR` was present on both ISR prototypes and definitions; I fixed that by leaving `IRAM_ATTR` only on the definitions. Current unrelated dirty files: `inc/defs.h` and generated `src/version.c`."
+    ],
+    "files": [
+      "lib/AudioManager/AudioManager.cpp",
+      "src/version.c",
+      "developer-docs/code-layout-policy.md",
+      "inc/defs.h"
+    ]
+  }
+]

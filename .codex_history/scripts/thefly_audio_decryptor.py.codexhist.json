@@ -49,5 +49,70 @@
       "scripts/thefly_audio_decryptor.py",
       "scripts/thefly_desktop.py"
     ]
+  },
+  {
+    "timestamp": "2026-06-01T20:35:36Z",
+    "type": "git_commit",
+    "commit_message": "added mp3 support to python scripts",
+    "commit_hash": "d72c1de012b436194c292aa397803b69de505dac"
+  },
+  {
+    "timestamp": "2026-06-02T00:13:40.244Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "hmmmm I did a test, the decryption works, hell, I can \"play\" it, but a 9 minute song is decoded as 43 minutes and it sounds like... well... basically nothing in the code cares about the sample rate at all, which is probably the core problem",
+      "",
+      "the encoder script needs to actually transcode it into the 64 kbps CBR 16 Khz sample rate stereo 16 bit signed PCM format first, before encrypting",
+      "",
+      "thanks"
+    ],
+    "agent_reply": [
+      "Fixed the MP3 path in [scripts/audio_file_encryptor.py](D:/GithubRepos/The-Fly/scripts/audio_file_encryptor.py:209). It now runs MP3 inputs through ffmpeg first and emits recorder-compatible MP3 before encryption:",
+      "",
+      "- 16 kHz",
+      "- stereo",
+      "- signed 16-bit PCM into `libmp3lame`",
+      "- 64 kbps CBR",
+      "- bit reservoir disabled",
+      "- no Xing/ID3 tags",
+      "- then encrypted into `.fly` 1152-byte plaintext chunks",
+      "",
+      "I verified with a generated 44.1 kHz / 192 kbps stereo MP3: after `.mp3 -> .fly -> decrypted .mp3`, `ffprobe` reported `sample_rate=16000`, `channels=2`, `bit_rate=64000`, and the file starts with raw MP3 frame bytes (`FF F3...`), not metadata.",
+      "",
+      "Also ran:",
+      "- `python -m py_compile scripts\\audio_file_encryptor.py scripts\\thefly_audio_decryptor.py`",
+      "- `git diff --check -- scripts\\audio_file_encryptor.py`",
+      "",
+      "Pre-existing edits in `scripts/thefly_desktop.py` and `src/version.c` are still untouched.",
+      "",
+      "Fixed the MP3 path in [scripts/audio_file_encryptor.py](D:/GithubRepos/The-Fly/scripts/audio_file_encryptor.py:209). It now runs MP3 inputs through ffmpeg first and emits recorder-compatible MP3 before encryption:",
+      "",
+      "- 16 kHz",
+      "- stereo",
+      "- signed 16-bit PCM into `libmp3lame`",
+      "- 64 kbps CBR",
+      "- bit reservoir disabled",
+      "- no Xing/ID3 tags",
+      "- then encrypted into `.fly` 1152-byte plaintext chunks",
+      "",
+      "I verified with a generated 44.1 kHz / 192 kbps stereo MP3: after `.mp3 -> .fly -> decrypted .mp3`, `ffprobe` reported `sample_rate=16000`, `channels=2`, `bit_rate=64000`, and the file starts with raw MP3 frame bytes (`FF F3...`), not metadata.",
+      "",
+      "Also ran:",
+      "- `python -m py_compile scripts\\audio_file_encryptor.py scripts\\thefly_audio_decryptor.py`",
+      "- `git diff --check -- scripts\\audio_file_encryptor.py`",
+      "",
+      "Pre-existing edits in `scripts/thefly_desktop.py` and `src/version.c` are still untouched."
+    ],
+    "files": [
+      "scripts/audio_file_encryptor.py",
+      "scripts/thefly_audio_decryptor.py",
+      "scripts/thefly_desktop.py",
+      "src/version.c"
+    ]
   }
 ]

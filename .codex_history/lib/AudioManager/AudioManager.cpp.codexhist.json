@@ -2475,5 +2475,117 @@
     "files": [
       "lib/AudioManager/AudioManager.cpp"
     ]
+  },
+  {
+    "timestamp": "2026-06-02T06:34:50Z",
+    "type": "git_commit",
+    "commit_message": "clang-format",
+    "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
+  },
+  {
+    "timestamp": "2026-06-02T07:30:30.516Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## My request for Codex:",
+      "work on only `lib\\AudioManager\\AudioManager.cpp`, make sure it follows the guideline at `developer-docs\\code-layout-policy.md`"
+    ],
+    "agent_reply": [
+      "Done in [AudioManager.cpp](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp).",
+      "",
+      "I reorganized it to follow `developer-docs/code-layout-policy.md`: includes, configuration, types, globals, prototypes, then the public/main audio flow, pump functions, HFP API, FIFO accessors, volume/mute controls, and finally private hardware/I2S helpers and logging helpers. Behavior and public signatures were kept intact.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioManager\\AudioManager.cpp",
+      "```",
+      "",
+      "One small compile warning appeared on the first build because `IRAM_ATTR` was present on both ISR prototypes and definitions; I fixed that by leaving `IRAM_ATTR` only on the definitions. Current unrelated dirty files: `inc/defs.h` and generated `src/version.c`.",
+      "",
+      "Done in [AudioManager.cpp](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp).",
+      "",
+      "I reorganized it to follow `developer-docs/code-layout-policy.md`: includes, configuration, types, globals, prototypes, then the public/main audio flow, pump functions, HFP API, FIFO accessors, volume/mute controls, and finally private hardware/I2S helpers and logging helpers. Behavior and public signatures were kept intact.",
+      "",
+      "Verification passed:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "git diff --check -- lib\\AudioManager\\AudioManager.cpp",
+      "```",
+      "",
+      "One small compile warning appeared on the first build because `IRAM_ATTR` was present on both ISR prototypes and definitions; I fixed that by leaving `IRAM_ATTR` only on the definitions. Current unrelated dirty files: `inc/defs.h` and generated `src/version.c`."
+    ],
+    "files": [
+      "lib/AudioManager/AudioManager.cpp",
+      "src/version.c",
+      "developer-docs/code-layout-policy.md",
+      "inc/defs.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T07:46:06.437Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "esp_hf_client_outgoing_data_ready",
+      "",
+      "## My request for Codex:",
+      "is `esp_hf_client_outgoing_data_ready` something that should be called repeatedly?"
+    ],
+    "agent_reply": [
+      "Yes, but “repeatedly” with an important caveat.",
+      "",
+      "`esp_hf_client_outgoing_data_ready()` is a readiness notification to the ESP-IDF HFP client stack: “I have outgoing SCO audio available; please call my outgoing data callback.” In this project that callback path is:",
+      "",
+      "`esp_hf_client_outgoing_data_ready()` -> `BluetoothManager::outgoing_audio_adapter()` -> `AudioManager::hfp_outgoing_audio()`",
+      "",
+      "So it should be called again over time as new mic audio becomes available, especially after the stack has drained previous data.",
+      "",
+      "But it should not be spammed unconditionally every pump cycle while the FIFO is already above the threshold. The current `AudioManager.cpp` logic looks like it can do exactly that: as long as `g_fifo_mic2bt.availableToRead() >= kHfpOutgoingNotifyMinSamples`, `pump_mic2bt()` can repeatedly call `BtManager::notifyOutgoingAudioReady()`.",
+      "",
+      "I’d treat it as an edge/latch notification:",
+      "",
+      "- call it when outgoing audio becomes available",
+      "- don’t call it again while a notification is already “in flight”",
+      "- clear/re-arm that latch when `hfp_outgoing_audio()` is called, when FIFO drops below threshold, or when HFP audio disconnects",
+      "",
+      "So: yes, repeated calls are normal across the lifetime of a call, but repeated calls just because the FIFO remains ready are probably noise and worth tightening.",
+      "",
+      "Yes, but “repeatedly” with an important caveat.",
+      "",
+      "`esp_hf_client_outgoing_data_ready()` is a readiness notification to the ESP-IDF HFP client stack: “I have outgoing SCO audio available; please call my outgoing data callback.” In this project that callback path is:",
+      "",
+      "`esp_hf_client_outgoing_data_ready()` -> `BluetoothManager::outgoing_audio_adapter()` -> `AudioManager::hfp_outgoing_audio()`",
+      "",
+      "So it should be called again over time as new mic audio becomes available, especially after the stack has drained previous data.",
+      "",
+      "But it should not be spammed unconditionally every pump cycle while the FIFO is already above the threshold. The current `AudioManager.cpp` logic looks like it can do exactly that: as long as `g_fifo_mic2bt.availableToRead() >= kHfpOutgoingNotifyMinSamples`, `pump_mic2bt()` can repeatedly call `BtManager::notifyOutgoingAudioReady()`.",
+      "",
+      "I’d treat it as an edge/latch notification:",
+      "",
+      "- call it when outgoing audio becomes available",
+      "- don’t call it again while a notification is already “in flight”",
+      "- clear/re-arm that latch when `hfp_outgoing_audio()` is called, when FIFO drops below threshold, or when HFP audio disconnects",
+      "",
+      "So: yes, repeated calls are normal across the lifetime of a call, but repeated calls just because the FIFO remains ready are probably noise and worth tightening."
+    ],
+    "files": [
+      "lib/AudioManager/AudioManager.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T07:49:14Z",
+    "type": "git_commit",
+    "commit_message": "neater AudioManager",
+    "commit_hash": "5e82daafcecd774b9a4026566a4131987521cea6"
   }
 ]

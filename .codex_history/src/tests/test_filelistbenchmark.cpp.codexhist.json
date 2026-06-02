@@ -41,5 +41,53 @@
     "type": "git_commit",
     "commit_message": "benchmarking file listing and sorting",
     "commit_hash": "db2bcb144238b4b8215a303296a745cc1785c39c"
+  },
+  {
+    "timestamp": "2026-06-02T06:34:50Z",
+    "type": "git_commit",
+    "commit_message": "clang-format",
+    "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
+  },
+  {
+    "timestamp": "2026-06-02T07:26:24.481Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/MostRecentFiles.cpp",
+      "",
+      "## Active selection of the file:",
+      "FileList get(size_t maxFiles)",
+      "",
+      "## My request for Codex:",
+      "ensure users of `FileList get(size_t maxFiles)` isn't causing memory leaks"
+    ],
+    "agent_reply": [
+      "I audited the users. No memory leak found, and no caller changes were needed.",
+      "",
+      "There are only two call sites:",
+      "",
+      "- [ScrollView.cpp](d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:500): keeps `FileList` on the stack, then passes each filename to `appendSpriteScrollItem`.",
+      "- [test_filelistbenchmark.cpp](d:/GithubRepos/The-Fly/src/tests/test_filelistbenchmark.cpp:98): also keeps it on the stack.",
+      "",
+      "The GUI path is safe because `ScrollItem::configureSprite()` copies the filename into its own `label_` buffer, so it does not retain pointers into the temporary `FileList`.",
+      "",
+      "`FileList` itself is RAII-safe: destructor calls `reset()`, copy assignment deletes old storage after allocating replacement, and move assignment transfers ownership while nulling the source. `get()` also deletes its temporary `Candidate* recent` before returning.",
+      "",
+      "I audited the users. No memory leak found, and no caller changes were needed.",
+      "",
+      "There are only two call sites:",
+      "",
+      "- [ScrollView.cpp](d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:500): keeps `FileList` on the stack, then passes each filename to `appendSpriteScrollItem`.",
+      "- [test_filelistbenchmark.cpp](d:/GithubRepos/The-Fly/src/tests/test_filelistbenchmark.cpp:98): also keeps it on the stack.",
+      "",
+      "The GUI path is safe because `ScrollItem::configureSprite()` copies the filename into its own `label_` buffer, so it does not retain pointers into the temporary `FileList`.",
+      "",
+      "`FileList` itself is RAII-safe: destructor calls `reset()`, copy assignment deletes old storage after allocating replacement, and move assignment transfers ownership while nulling the source. `get()` also deletes its temporary `Candidate* recent` before returning."
+    ],
+    "files": [
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "src/tests/test_filelistbenchmark.cpp"
+    ]
   }
 ]

@@ -211,5 +211,102 @@
     "type": "git_commit",
     "commit_message": "playback mechanism",
     "commit_hash": "813aab87ffb853eb373d960af6a773dbf5f74642"
+  },
+  {
+    "timestamp": "2026-06-02T03:53:34.093Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main_callbacks.cpp",
+      "",
+      "## My request for Codex:",
+      "the name of the function `onclick_file_wav` is now misleading, rename it to something like `onclick_file_playable`"
+    ],
+    "agent_reply": [
+      "Renamed the playable-file callback path:",
+      "",
+      "- `onclick_file_wav` -> `onclick_file_playable`",
+      "- `setOnClickFileWav` -> `setOnClickFilePlayable`",
+      "- `onFileWav_` -> `onFilePlayable_`",
+      "",
+      "Updated the declaration, registration, and `ScrollView` dispatch for WAV/MP3/REC/FLY items.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passed.",
+      "",
+      "Renamed the playable-file callback path:",
+      "",
+      "- `onclick_file_wav` -> `onclick_file_playable`",
+      "- `setOnClickFileWav` -> `setOnClickFilePlayable`",
+      "- `onFileWav_` -> `onFilePlayable_`",
+      "",
+      "Updated the declaration, registration, and `ScrollView` dispatch for WAV/MP3/REC/FLY items.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "inc/main_callbacks.h",
+      "src/all_init.cpp",
+      "src/main_callbacks.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollView.h",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T04:07:20.473Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main_callbacks.cpp",
+      "",
+      "## Active selection of the file:",
+      "onclick_file_show_info",
+      "",
+      "## My request for Codex:",
+      "rename `onclick_file_show_info`, this kind of implies the info is about the file, rename it to `onclick_filelist_show_info`"
+    ],
+    "agent_reply": [
+      "Renamed the file-list info callback path:",
+      "",
+      "- `onclick_file_show_info` -> `onclick_filelist_show_info`",
+      "- `setOnClickFileShowInfo` -> `setOnClickFileListShowInfo`",
+      "- `onFileShowInfo_` -> `onFileListShowInfo_`",
+      "",
+      "I also updated the log string to say `scroll file list info selected`.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "inc/main_callbacks.h",
+      "src/all_init.cpp",
+      "src/main_callbacks.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollView.h",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T05:05:17Z",
+    "type": "git_commit",
+    "commit_message": "hotel can shutdown if playback is paused",
+    "commit_hash": "007c48def4bada6d12b761912b160f6f9de213b4"
   }
 ]

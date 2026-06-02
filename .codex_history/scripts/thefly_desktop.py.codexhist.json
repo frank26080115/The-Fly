@@ -213,5 +213,166 @@
       "scripts/thefly_audio_decryptor.py",
       "scripts/thefly_desktop.py"
     ]
+  },
+  {
+    "timestamp": "2026-06-01T20:35:36Z",
+    "type": "git_commit",
+    "commit_message": "added mp3 support to python scripts",
+    "commit_hash": "d72c1de012b436194c292aa397803b69de505dac"
+  },
+  {
+    "timestamp": "2026-06-01T23:09:27.948Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: scripts/audio_file_encryptor.py",
+      "",
+      "## My request for Codex:",
+      "make modifications to `scripts\\audio_file_encryptor.py`",
+      "",
+      "we have recently added MP3 encoding and decoding, with encryption and decryption",
+      "",
+      "I want `scripts\\audio_file_encryptor.py` to detect input file type, if the input is `wav` then the output is the `rec` format, encrypted. If the input is `mp3` then the output is the encrypted MP3 format with the `fly` extension",
+      "",
+      "the way the key and password are handled stays the same",
+      "",
+      "useful files for you to look at are `lib\\AudioFileRecorder\\AudioFileRecorder.cpp` and `inc\\conf.h`",
+      ""
+    ],
+    "agent_reply": [
+      "Implemented in [scripts/audio_file_encryptor.py](D:/GithubRepos/The-Fly/scripts/audio_file_encryptor.py:167).",
+      "",
+      "What changed:",
+      "- Detects input by content as WAV or MP3.",
+      "- WAV input now outputs encrypted `.rec` using the existing ffmpeg PCM path.",
+      "- MP3 input now outputs encrypted `.fly` chunks using the same AES-GCM key/password handling.",
+      "- MP3 chunks use the recorder’s 1152-byte plaintext size and zero-pad the final chunk, matching firmware/decryptor behavior.",
+      "- ffmpeg is only required for WAV input now.",
+      "",
+      "Verified with:",
+      "- `python -m py_compile scripts\\audio_file_encryptor.py`",
+      "- Temp MP3 `.mp3 -> .fly -> .mp3` round-trip, byte-checked with expected zero padding.",
+      "- Temp WAV `.wav -> .rec -> .wav/.pcm` round-trip, PCM length/content checked.",
+      "",
+      "I left the pre-existing uncommitted changes in `scripts/thefly_desktop.py` and `src/version.c` untouched."
+    ],
+    "files": [
+      "scripts/audio_file_encryptor.py",
+      "scripts/thefly_desktop.py",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T00:13:40.244Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "hmmmm I did a test, the decryption works, hell, I can \"play\" it, but a 9 minute song is decoded as 43 minutes and it sounds like... well... basically nothing in the code cares about the sample rate at all, which is probably the core problem",
+      "",
+      "the encoder script needs to actually transcode it into the 64 kbps CBR 16 Khz sample rate stereo 16 bit signed PCM format first, before encrypting",
+      "",
+      "thanks"
+    ],
+    "agent_reply": [
+      "Fixed the MP3 path in [scripts/audio_file_encryptor.py](D:/GithubRepos/The-Fly/scripts/audio_file_encryptor.py:209). It now runs MP3 inputs through ffmpeg first and emits recorder-compatible MP3 before encryption:",
+      "",
+      "- 16 kHz",
+      "- stereo",
+      "- signed 16-bit PCM into `libmp3lame`",
+      "- 64 kbps CBR",
+      "- bit reservoir disabled",
+      "- no Xing/ID3 tags",
+      "- then encrypted into `.fly` 1152-byte plaintext chunks",
+      "",
+      "I verified with a generated 44.1 kHz / 192 kbps stereo MP3: after `.mp3 -> .fly -> decrypted .mp3`, `ffprobe` reported `sample_rate=16000`, `channels=2`, `bit_rate=64000`, and the file starts with raw MP3 frame bytes (`FF F3...`), not metadata.",
+      "",
+      "Also ran:",
+      "- `python -m py_compile scripts\\audio_file_encryptor.py scripts\\thefly_audio_decryptor.py`",
+      "- `git diff --check -- scripts\\audio_file_encryptor.py`",
+      "",
+      "Pre-existing edits in `scripts/thefly_desktop.py` and `src/version.c` are still untouched.",
+      "",
+      "Fixed the MP3 path in [scripts/audio_file_encryptor.py](D:/GithubRepos/The-Fly/scripts/audio_file_encryptor.py:209). It now runs MP3 inputs through ffmpeg first and emits recorder-compatible MP3 before encryption:",
+      "",
+      "- 16 kHz",
+      "- stereo",
+      "- signed 16-bit PCM into `libmp3lame`",
+      "- 64 kbps CBR",
+      "- bit reservoir disabled",
+      "- no Xing/ID3 tags",
+      "- then encrypted into `.fly` 1152-byte plaintext chunks",
+      "",
+      "I verified with a generated 44.1 kHz / 192 kbps stereo MP3: after `.mp3 -> .fly -> decrypted .mp3`, `ffprobe` reported `sample_rate=16000`, `channels=2`, `bit_rate=64000`, and the file starts with raw MP3 frame bytes (`FF F3...`), not metadata.",
+      "",
+      "Also ran:",
+      "- `python -m py_compile scripts\\audio_file_encryptor.py scripts\\thefly_audio_decryptor.py`",
+      "- `git diff --check -- scripts\\audio_file_encryptor.py`",
+      "",
+      "Pre-existing edits in `scripts/thefly_desktop.py` and `src/version.c` are still untouched."
+    ],
+    "files": [
+      "scripts/audio_file_encryptor.py",
+      "scripts/thefly_audio_decryptor.py",
+      "scripts/thefly_desktop.py",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T00:53:19.780Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: scripts/thefly_transcription.py",
+      "",
+      "## Active selection of the file:",
+      "def transcribe_wav(",
+      "",
+      "## My request for Codex:",
+      "this highlighted function `def transcribe_wav(` in `thefly_transcription.py`, please rename it to something like `transcribe_audio_file` for less confusion"
+    ],
+    "agent_reply": [
+      "Renamed `transcribe_wav` to `transcribe_audio_file` and updated all script call sites:",
+      "",
+      "- [thefly_transcription.py](D:/GithubRepos/The-Fly/scripts/thefly_transcription.py:212)",
+      "- [thefly_desktop.py](D:/GithubRepos/The-Fly/scripts/thefly_desktop.py:251)",
+      "- [thefly_summarize.py](D:/GithubRepos/The-Fly/scripts/thefly_summarize.py:252)",
+      "",
+      "Also renamed the helper in `thefly_summarize.py` for consistency.",
+      "",
+      "Verified with:",
+      "`python -m py_compile scripts\\thefly_transcription.py scripts\\thefly_desktop.py scripts\\thefly_summarize.py`",
+      "",
+      "No `transcribe_wav` references remain. Note: `thefly_desktop.py` already had a separate pre-existing comment change in the diff; I left it as-is.",
+      "",
+      "Renamed `transcribe_wav` to `transcribe_audio_file` and updated all script call sites:",
+      "",
+      "- [thefly_transcription.py](D:/GithubRepos/The-Fly/scripts/thefly_transcription.py:212)",
+      "- [thefly_desktop.py](D:/GithubRepos/The-Fly/scripts/thefly_desktop.py:251)",
+      "- [thefly_summarize.py](D:/GithubRepos/The-Fly/scripts/thefly_summarize.py:252)",
+      "",
+      "Also renamed the helper in `thefly_summarize.py` for consistency.",
+      "",
+      "Verified with:",
+      "`python -m py_compile scripts\\thefly_transcription.py scripts\\thefly_desktop.py scripts\\thefly_summarize.py`",
+      "",
+      "No `transcribe_wav` references remain. Note: `thefly_desktop.py` already had a separate pre-existing comment change in the diff; I left it as-is."
+    ],
+    "files": [
+      "scripts/thefly_transcription.py",
+      "scripts/thefly_desktop.py",
+      "scripts/thefly_summarize.py"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T00:59:52Z",
+    "type": "git_commit",
+    "commit_message": "python scripts alignment, clean up and comments",
+    "commit_hash": "4bbc638afa0ed586b06c2fc6a5ea053e29224800"
   }
 ]

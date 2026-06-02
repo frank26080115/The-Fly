@@ -345,5 +345,82 @@
     "type": "git_commit",
     "commit_message": "mp3 playback works",
     "commit_hash": "553ac578dd39c8724ac7cd871f259a68385d915e"
+  },
+  {
+    "timestamp": "2026-06-02T01:01:40.069Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main_callbacks.cpp",
+      "",
+      "## My request for Codex:",
+      "is `Hotel` disabled during audio playback? I have playback active and went grocery shopping, I come back, the playback is paused but it did not shutdown due to inactivity, I think Hotel should be allowed to dim the screen during playback, and also shutdown the device if the playback is paused"
+    ],
+    "agent_reply": [
+      "Yes, `Hotel` was effectively disabled during playback: `AudioManager::mode() != Stopped` made file playback look like “audio active,” which forced `Hotel::Blocked` and prevented dim/shutdown.",
+      "",
+      "I changed it so:",
+      "",
+      "- Recording and mic capture still fully block Hotel.",
+      "- Bluetooth and Wi-Fi still fully block Hotel.",
+      "- Active file playback can dim the screen after inactivity.",
+      "- Active file playback suppresses light sleep/shutdown while it is actually playing.",
+      "- Paused/stopped/finished playback no longer suppresses shutdown.",
+      "",
+      "Files changed:",
+      "- [Hotel.cpp](D:/GithubRepos/The-Fly/lib/Hotel/Hotel.cpp)",
+      "- [Hotel.h](D:/GithubRepos/The-Fly/lib/Hotel/Hotel.h)",
+      "- [PlaybackView.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.cpp)",
+      "- [PlaybackView.h](D:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.h)",
+      "- [Hotel/readme.md](D:/GithubRepos/The-Fly/lib/Hotel/readme.md)",
+      "",
+      "Verified with:",
+      "`pio run -e thefly_sec1`",
+      "",
+      "Build passed. `src/version.c` is still dirty separately from the build/version tooling; I did not manually edit it.",
+      "",
+      "Yes, `Hotel` was effectively disabled during playback: `AudioManager::mode() != Stopped` made file playback look like “audio active,” which forced `Hotel::Blocked` and prevented dim/shutdown.",
+      "",
+      "I changed it so:",
+      "",
+      "- Recording and mic capture still fully block Hotel.",
+      "- Bluetooth and Wi-Fi still fully block Hotel.",
+      "- Active file playback can dim the screen after inactivity.",
+      "- Active file playback suppresses light sleep/shutdown while it is actually playing.",
+      "- Paused/stopped/finished playback no longer suppresses shutdown.",
+      "",
+      "Files changed:",
+      "- [Hotel.cpp](D:/GithubRepos/The-Fly/lib/Hotel/Hotel.cpp)",
+      "- [Hotel.h](D:/GithubRepos/The-Fly/lib/Hotel/Hotel.h)",
+      "- [PlaybackView.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.cpp)",
+      "- [PlaybackView.h](D:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.h)",
+      "- [Hotel/readme.md](D:/GithubRepos/The-Fly/lib/Hotel/readme.md)",
+      "",
+      "Verified with:",
+      "`pio run -e thefly_sec1`",
+      "",
+      "Build passed. `src/version.c` is still dirty separately from the build/version tooling; I did not manually edit it."
+    ],
+    "files": [
+      "lib/Hotel/Hotel.h",
+      "lib/Hotel/Hotel.cpp",
+      "lib/WavPlayback/PlaybackView.h",
+      "lib/WavPlayback/PlaybackView.cpp",
+      "lib/Hotel/readme.md",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T05:05:17Z",
+    "type": "git_commit",
+    "commit_message": "hotel can shutdown if playback is paused",
+    "commit_hash": "007c48def4bada6d12b761912b160f6f9de213b4"
+  },
+  {
+    "timestamp": "2026-06-02T06:34:50Z",
+    "type": "git_commit",
+    "commit_message": "clang-format",
+    "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   }
 ]

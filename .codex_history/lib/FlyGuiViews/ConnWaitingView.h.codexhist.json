@@ -171,5 +171,57 @@
     "type": "git_commit",
     "commit_message": "work on wifi workflow",
     "commit_hash": "b4a10916d5b7ea69c537dd11e62033af5ee67a64"
+  },
+  {
+    "timestamp": "2026-06-02T01:48:35.855Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main_callbacks.cpp",
+      "",
+      "## Active selection of the file:",
+      "    g_bluetooth_connect_waiting = false;",
+      "    g_pending_bluetooth_connect_failed = false;",
+      "    g_suppress_bluetooth_auto_recording = false;",
+      "    if (gui)",
+      "    {",
+      "        const uint16_t return_view = conn_waiting_return_view_id();",
+      "        if (!gui->showView(return_view))",
+      "        {",
+      "            gui->showView(FLYGUI_VIEW_MAIN);",
+      "        }",
+      "    }",
+      "    request_bluetooth_disconnect();",
+      "",
+      "## My request for Codex:",
+      "the highlighted chunk of code here should be in an if-statement, not just assumed that it is the last possibility"
+    ],
+    "agent_reply": [
+      "Done in [src/main_callbacks.cpp](D:/GithubRepos/The-Fly/src/main_callbacks.cpp:357).",
+      "",
+      "`conn_waiting_cancel()` now only runs the Bluetooth cancel cleanup when the active `ConnWaitingView` mode is explicitly `CONN_WAITING_BLUETOOTH_CONNECTING` or `CONN_WAITING_BLUETOOTH_PAIRING`. If none of the WiFi, NTP, or Bluetooth cases match, it logs a warning instead of treating the final branch as Bluetooth by assumption.",
+      "",
+      "I also added the needed `ConnWaitingView.h` include, plus `MainScreenView.h` because the build exposed that existing type reference as missing.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "src/main_callbacks.cpp",
+      "lib/FlyGuiViews/MainScreenView.h",
+      "lib/FlyGuiViews/ConnWaitingView.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T06:34:50Z",
+    "type": "git_commit",
+    "commit_message": "clang-format",
+    "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   }
 ]

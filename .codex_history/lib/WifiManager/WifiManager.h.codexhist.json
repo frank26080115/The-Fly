@@ -1484,5 +1484,59 @@
     "type": "git_commit",
     "commit_message": "work on wifi workflow",
     "commit_hash": "b4a10916d5b7ea69c537dd11e62033af5ee67a64"
+  },
+  {
+    "timestamp": "2026-06-02T03:36:41.041Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main_callbacks.cpp",
+      "",
+      "## Active selection of the file:",
+      "const IPAddress    ip   = is_ap ? WiFi.softAPIP() : WiFi.localIP();",
+      "",
+      "## My request for Codex:",
+      "will the highlighted line work? we have discovered many instances that it might not because we start the soft AP with lower level calls"
+    ],
+    "agent_reply": [
+      "No, I would not trust that line for AP mode. Since your AP path is configured through lower-level `esp_wifi` / `esp_netif`, `WiFi.softAPIP()` can be stale or wrong depending on what Arduino’s WiFi wrapper thinks happened.",
+      "",
+      "I changed it so production code uses a new manager-owned helper:",
+      "",
+      "- Added `WifiManager::softApIp()` in [WifiManager.h](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.h:129) / [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1175)",
+      "- It uses the existing `current_soft_ap_ip()` path, which reads `WIFI_AP_DEF` through `esp_netif_get_ip_info`",
+      "- Updated the highlighted line in [main_callbacks.cpp](D:/GithubRepos/The-Fly/src/main_callbacks.cpp:688)",
+      "- Updated the AP credential screen and web server self-IP path too",
+      "",
+      "`WiFi.softAPIP()` now only remains in tests that start AP through Arduino directly.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.h",
+      "lib/WifiManager/WifiManager.cpp",
+      "src/main_callbacks.cpp",
+      "lib/FlyGuiViews/WifiApModeView.cpp",
+      "lib/WifiManager/WebServer.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T05:04:17Z",
+    "type": "git_commit",
+    "commit_message": "human code review just a bit",
+    "commit_hash": "0cb13a08e420859cdc536de46041371e7cb0aaa9"
+  },
+  {
+    "timestamp": "2026-06-02T06:34:50Z",
+    "type": "git_commit",
+    "commit_message": "clang-format",
+    "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   }
 ]

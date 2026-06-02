@@ -47,7 +47,8 @@
     ],
     "files": [
       "lib/WifiManager/NtpSync.h",
-      "NtpSync.cpp"
+      "NtpSync.cpp",
+      "lib/WifiManager/NtpSync.cpp"
     ]
   },
   {
@@ -120,5 +121,11 @@
     "type": "git_commit",
     "commit_message": "ntp sync",
     "commit_hash": "884cbfaa23c0534e6c9899c41dd63b855e7316d2"
+  },
+  {
+    "timestamp": "2026-06-02T06:34:50Z",
+    "type": "git_commit",
+    "commit_message": "clang-format",
+    "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   }
 ]

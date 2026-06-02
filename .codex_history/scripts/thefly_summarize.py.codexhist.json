@@ -163,5 +163,58 @@
     "type": "git_commit",
     "commit_message": "ai summarization",
     "commit_hash": "fa348f9fddca092e41f57e5196b35ee1ef618215"
+  },
+  {
+    "timestamp": "2026-06-02T00:53:19.780Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: scripts/thefly_transcription.py",
+      "",
+      "## Active selection of the file:",
+      "def transcribe_wav(",
+      "",
+      "## My request for Codex:",
+      "this highlighted function `def transcribe_wav(` in `thefly_transcription.py`, please rename it to something like `transcribe_audio_file` for less confusion"
+    ],
+    "agent_reply": [
+      "Renamed `transcribe_wav` to `transcribe_audio_file` and updated all script call sites:",
+      "",
+      "- [thefly_transcription.py](D:/GithubRepos/The-Fly/scripts/thefly_transcription.py:212)",
+      "- [thefly_desktop.py](D:/GithubRepos/The-Fly/scripts/thefly_desktop.py:251)",
+      "- [thefly_summarize.py](D:/GithubRepos/The-Fly/scripts/thefly_summarize.py:252)",
+      "",
+      "Also renamed the helper in `thefly_summarize.py` for consistency.",
+      "",
+      "Verified with:",
+      "`python -m py_compile scripts\\thefly_transcription.py scripts\\thefly_desktop.py scripts\\thefly_summarize.py`",
+      "",
+      "No `transcribe_wav` references remain. Note: `thefly_desktop.py` already had a separate pre-existing comment change in the diff; I left it as-is.",
+      "",
+      "Renamed `transcribe_wav` to `transcribe_audio_file` and updated all script call sites:",
+      "",
+      "- [thefly_transcription.py](D:/GithubRepos/The-Fly/scripts/thefly_transcription.py:212)",
+      "- [thefly_desktop.py](D:/GithubRepos/The-Fly/scripts/thefly_desktop.py:251)",
+      "- [thefly_summarize.py](D:/GithubRepos/The-Fly/scripts/thefly_summarize.py:252)",
+      "",
+      "Also renamed the helper in `thefly_summarize.py` for consistency.",
+      "",
+      "Verified with:",
+      "`python -m py_compile scripts\\thefly_transcription.py scripts\\thefly_desktop.py scripts\\thefly_summarize.py`",
+      "",
+      "No `transcribe_wav` references remain. Note: `thefly_desktop.py` already had a separate pre-existing comment change in the diff; I left it as-is."
+    ],
+    "files": [
+      "scripts/thefly_transcription.py",
+      "scripts/thefly_desktop.py",
+      "scripts/thefly_summarize.py"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T00:59:52Z",
+    "type": "git_commit",
+    "commit_message": "python scripts alignment, clean up and comments",
+    "commit_hash": "4bbc638afa0ed586b06c2fc6a5ea053e29224800"
   }
 ]

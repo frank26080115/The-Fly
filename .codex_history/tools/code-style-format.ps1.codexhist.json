@@ -30,5 +30,64 @@
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "37471f5d99727676ebcaee90085bb7e9b6cfa054"
+  },
+  {
+    "timestamp": "2026-06-02T06:37:21.585Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: tools/code-style-check-format.ps1",
+      "",
+      "## My request for Codex:",
+      "for the 4 scripts `tools\\code-style-*`",
+      "",
+      "add a way for me to specify an array of directories to ignore, such as `lib\\arduino-liblame` and `lib\\libhelix-esp32-arduino` and `lib\\ShineWrapper\\shine`"
+    ],
+    "agent_reply": [
+      "Done. I added configurable ignore arrays to all four `tools\\code-style-*` scripts.",
+      "",
+      "PowerShell scripts now have:",
+      "",
+      "```powershell",
+      "$ignoreDirs = @(",
+      "    'lib\\arduino-liblame',",
+      "    'lib\\libhelix-esp32-arduino',",
+      "    'lib\\ShineWrapper\\shine'",
+      ")",
+      "```",
+      "",
+      "Shell scripts now have the same list as `ignore_dirs=(...)`, using forward slashes, and prune those dirs from `find`.",
+      "",
+      "Verification: `git diff --check` passed. I did not run the formatter itself, to avoid creating a giant unrelated formatting churn while you’re still tuning `.clang-format`.",
+      "",
+      "Done. I added configurable ignore arrays to all four `tools\\code-style-*` scripts.",
+      "",
+      "PowerShell scripts now have:",
+      "",
+      "```powershell",
+      "$ignoreDirs = @(",
+      "    'lib\\arduino-liblame',",
+      "    'lib\\libhelix-esp32-arduino',",
+      "    'lib\\ShineWrapper\\shine'",
+      ")",
+      "```",
+      "",
+      "Shell scripts now have the same list as `ignore_dirs=(...)`, using forward slashes, and prune those dirs from `find`.",
+      "",
+      "Verification: `git diff --check` passed. I did not run the formatter itself, to avoid creating a giant unrelated formatting churn while you’re still tuning `.clang-format`."
+    ],
+    "files": [
+      "tools/code-style-check-format.ps1",
+      "tools/code-style-format.ps1",
+      "tools/code-style-format.sh",
+      "tools/code-style-check-format.sh"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T06:40:43Z",
+    "type": "git_commit",
+    "commit_message": "update clang format scripts with ignore list",
+    "commit_hash": "187500392e652aa2ba9d1d462740788359c2cd13"
   }
 ]
