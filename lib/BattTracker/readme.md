@@ -14,7 +14,7 @@ There is an init function, a poll function, and a status getting function
 
 When not charging, the tracked voltage can only go down, if a previously detected voltage is lower than the most recent poll, ignore the most recent poll.
 
-During charging (USB plugged in), implement a hysterisis of about 0.1V for state transitions.
+During charging (USB plugged in), implement a hysteresis of about 0.1V for state transitions.
 
 Transitions between charging and not-charging have no rules.
 
