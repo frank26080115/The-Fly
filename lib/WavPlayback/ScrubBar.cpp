@@ -1,6 +1,14 @@
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "ScrubBar.h"
 
 #include <stdio.h>
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 ScrubBar::ScrubBar(int16_t x, int16_t y, int16_t width, int16_t height, uint32_t totalMs)
     : FlyGuiItem(x, y, width, height), endMs_(totalMs), hitboxEndOffsetY_(height)
@@ -157,6 +165,10 @@ void ScrubBar::redraw(bool forced)
     firstDraw();
 }
 
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
 uint32_t ScrubBar::clampPosition(uint32_t positionMs) const
 {
     if (positionMs < startMs_)
@@ -294,6 +306,10 @@ void ScrubBar::drawText(bool forced)
     thefly_display.setTextColor(TFT_YELLOW, TFT_BLACK);
     thefly_display.drawString(currentText, currentX, currentY);
 }
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
 
 void ScrubBar::formatTime(uint32_t ms, char* out, size_t outSize) const
 {

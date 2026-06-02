@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "PlaybackView.h"
 
 #include <algorithm>
@@ -19,6 +23,11 @@ extern ScrollView*  get_view_scroll();
 
 namespace
 {
+
+// -----------------------------------------------------------------------------
+// Configuration
+// -----------------------------------------------------------------------------
+
 constexpr const char* TAG = "PlaybackView";
 
 constexpr int16_t kIconX               = 4;
@@ -54,231 +63,9 @@ constexpr uint16_t    kPrecisionScrubColor          = 0xFDE0; // #FCBC00 convert
 constexpr size_t kWrapLineMax = 128;
 constexpr size_t kNoSpace     = static_cast<size_t>(-1);
 
-void trim_leading_spaces(char* line, size_t& len)
-{
-    size_t first = 0;
-    while (first < len && line[first] == ' ')
-    {
-        ++first;
-    }
-
-    if (first == 0)
-    {
-        return;
-    }
-
-    memmove(line, line + first, len - first);
-    len -= first;
-    line[len] = '\0';
-}
-
-void recalc_last_space(const char* line, size_t len, size_t& lastSpace)
-{
-    lastSpace = kNoSpace;
-    for (size_t i = 0; i < len; ++i)
-    {
-        if (line[i] == ' ')
-        {
-            lastSpace = i;
-        }
-    }
-}
-
-bool count_wrapped_line(char* line, size_t& len, int16_t& y, int16_t maxY, int16_t lineHeight)
-{
-    trim_leading_spaces(line, len);
-    while (len > 0 && line[len - 1] == ' ')
-    {
-        line[--len] = '\0';
-    }
-
-    if (len == 0)
-    {
-        return true;
-    }
-
-    if (y + lineHeight > maxY)
-    {
-        return false;
-    }
-
-    y += lineHeight;
-    len     = 0;
-    line[0] = '\0';
-    return true;
-}
-
-bool wrapped_text_fits(const char* text, int16_t width, int16_t y, int16_t maxY, int16_t lineHeight)
-{
-    if (!text || width <= 0 || lineHeight <= 0)
-    {
-        return false;
-    }
-
-    char   line[kWrapLineMax] = {};
-    size_t len                = 0;
-    size_t lastSpace          = kNoSpace;
-    bool   canFit             = true;
-
-    for (const char* p = text; *p && canFit; ++p)
-    {
-        const char c = *p;
-        if (c == '\r')
-        {
-            continue;
-        }
-
-        if (c == '\n')
-        {
-            canFit    = count_wrapped_line(line, len, y, maxY, lineHeight);
-            lastSpace = kNoSpace;
-            continue;
-        }
-
-        if (len + 1 >= sizeof(line))
-        {
-            canFit    = count_wrapped_line(line, len, y, maxY, lineHeight);
-            lastSpace = kNoSpace;
-            if (!canFit)
-            {
-                break;
-            }
-        }
-
-        line[len++] = c;
-        line[len]   = '\0';
-        if (c == ' ')
-        {
-            lastSpace = len - 1;
-        }
-
-        while (thefly_display.textWidth(line) > width && len > 0 && canFit)
-        {
-            if (lastSpace != kNoSpace && lastSpace > 0)
-            {
-                char remainder[kWrapLineMax] = {};
-                strncpy(remainder, line + lastSpace + 1, sizeof(remainder) - 1);
-
-                line[lastSpace] = '\0';
-                size_t lineLen  = lastSpace;
-                canFit          = count_wrapped_line(line, lineLen, y, maxY, lineHeight);
-
-                strncpy(line, remainder, sizeof(line) - 1);
-                line[sizeof(line) - 1] = '\0';
-                len                    = strlen(line);
-                recalc_last_space(line, len, lastSpace);
-            }
-            else if (len > 1)
-            {
-                const char overflow = line[len - 1];
-                line[len - 1]       = '\0';
-                size_t lineLen      = len - 1;
-                canFit              = count_wrapped_line(line, lineLen, y, maxY, lineHeight);
-
-                line[0]   = overflow;
-                line[1]   = '\0';
-                len       = 1;
-                lastSpace = overflow == ' ' ? 0 : kNoSpace;
-            }
-            else
-            {
-                canFit    = count_wrapped_line(line, len, y, maxY, lineHeight);
-                lastSpace = kNoSpace;
-            }
-        }
-    }
-
-    if (canFit && len > 0)
-    {
-        canFit = count_wrapped_line(line, len, y, maxY, lineHeight);
-    }
-
-    return canFit;
-}
-
-int16_t scrub_x()
-{
-    return static_cast<int16_t>((thefly_display.width() - kScrubWidth) / 2);
-}
-
-int16_t button_x(uint8_t column)
-{
-    const int16_t columnWidth = static_cast<int16_t>(thefly_display.width() / 3);
-    return static_cast<int16_t>((columnWidth * column) + (columnWidth / 2) - (kButtonSize / 2));
-}
-
-int16_t delete_x()
-{
-    return static_cast<int16_t>(thefly_display.width() - kButtonSize);
-}
-
-void copy_wrapped_prefix_that_fits(
-    const char* text, char* out, size_t outSize, int16_t width, int16_t y, int16_t maxY, int16_t lineHeight)
-{
-    if (!out || outSize == 0)
-    {
-        return;
-    }
-    out[0] = '\0';
-
-    if (!text || width <= 0 || lineHeight <= 0)
-    {
-        return;
-    }
-
-    char         candidate[kWrapLineMax] = {};
-    size_t       bestLen                 = 0;
-    const size_t maxLen                  = std::min(strlen(text), std::min(outSize - 1, sizeof(candidate) - 1));
-    for (size_t len = 1; len <= maxLen; ++len)
-    {
-        memcpy(candidate, text, len);
-        candidate[len] = '\0';
-        if (!wrapped_text_fits(candidate, width, y, maxY, lineHeight))
-        {
-            break;
-        }
-        bestLen = len;
-    }
-
-    if (bestLen > 0)
-    {
-        memcpy(out, text, bestLen);
-    }
-    out[bestLen] = '\0';
-}
-
-uint32_t precision_window_start(uint32_t currentMs, uint32_t totalMs)
-{
-    if (totalMs <= kPrecisionWindowMs)
-    {
-        return 0;
-    }
-
-    if (currentMs <= kPrecisionHalfWindowMs)
-    {
-        return 0;
-    }
-
-    const uint32_t latestStart   = totalMs - kPrecisionWindowMs;
-    const uint32_t centeredStart = currentMs - kPrecisionHalfWindowMs;
-    return centeredStart > latestStart ? latestStart : centeredStart;
-}
-
-uint32_t step_toward(uint32_t value, uint32_t target, uint32_t step)
-{
-    if (value < target)
-    {
-        const uint32_t delta = target - value;
-        return value + (delta < step ? delta : step);
-    }
-    if (value > target)
-    {
-        const uint32_t delta = value - target;
-        return value - (delta < step ? delta : step);
-    }
-
-    return value;
-}
+// -----------------------------------------------------------------------------
+// Types
+// -----------------------------------------------------------------------------
 
 struct VolumeOption
 {
@@ -288,6 +75,10 @@ struct VolumeOption
     uint32_t       height;
     size_t         bytes;
 };
+
+// -----------------------------------------------------------------------------
+// Globals
+// -----------------------------------------------------------------------------
 
 const VolumeOption kVolumeOptions[] = {
     {AudioManager::kMaxVolume,
@@ -303,9 +94,39 @@ const VolumeOption kVolumeOptions[] = {
      SPRITE_SPEAKER_00_50_HEIGHT,
      SPRITE_SPEAKER_00_50_BYTES},
 };
+
 } // namespace
 
+// -----------------------------------------------------------------------------
+// Globals
+// -----------------------------------------------------------------------------
+
 PlaybackView* PlaybackView::activeInstance_ = nullptr;
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
+
+void trim_leading_spaces(char* line, size_t& len);
+void recalc_last_space(const char* line, size_t len, size_t& lastSpace);
+bool count_wrapped_line(char* line, size_t& len, int16_t& y, int16_t maxY, int16_t lineHeight);
+bool wrapped_text_fits(const char* text, int16_t width, int16_t y, int16_t maxY, int16_t lineHeight);
+int16_t scrub_x();
+int16_t button_x(uint8_t column);
+int16_t delete_x();
+void copy_wrapped_prefix_that_fits(
+    const char* text, char* out, size_t outSize, int16_t width, int16_t y, int16_t maxY, int16_t lineHeight);
+uint32_t precision_window_start(uint32_t currentMs, uint32_t totalMs);
+uint32_t step_toward(uint32_t value, uint32_t target, uint32_t step);
+
+} // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 PlaybackView::PlaybackView()
     : FlyGuiView(FLYGUI_VIEW_PLAYBACK), recordIcon_(kIconX, kIconY, kIconSize, kIconSize),
@@ -979,3 +800,237 @@ void PlaybackView::drawDeleteConfirmText() const
                             TFT_BLACK);
     thefly_display.drawString(kDeleteConfirmText, textRight, kDeleteConfirmTextY);
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+void trim_leading_spaces(char* line, size_t& len)
+{
+    size_t first = 0;
+    while (first < len && line[first] == ' ')
+    {
+        ++first;
+    }
+
+    if (first == 0)
+    {
+        return;
+    }
+
+    memmove(line, line + first, len - first);
+    len -= first;
+    line[len] = '\0';
+}
+
+void recalc_last_space(const char* line, size_t len, size_t& lastSpace)
+{
+    lastSpace = kNoSpace;
+    for (size_t i = 0; i < len; ++i)
+    {
+        if (line[i] == ' ')
+        {
+            lastSpace = i;
+        }
+    }
+}
+
+bool count_wrapped_line(char* line, size_t& len, int16_t& y, int16_t maxY, int16_t lineHeight)
+{
+    trim_leading_spaces(line, len);
+    while (len > 0 && line[len - 1] == ' ')
+    {
+        line[--len] = '\0';
+    }
+
+    if (len == 0)
+    {
+        return true;
+    }
+
+    if (y + lineHeight > maxY)
+    {
+        return false;
+    }
+
+    y += lineHeight;
+    len     = 0;
+    line[0] = '\0';
+    return true;
+}
+
+bool wrapped_text_fits(const char* text, int16_t width, int16_t y, int16_t maxY, int16_t lineHeight)
+{
+    if (!text || width <= 0 || lineHeight <= 0)
+    {
+        return false;
+    }
+
+    char   line[kWrapLineMax] = {};
+    size_t len                = 0;
+    size_t lastSpace          = kNoSpace;
+    bool   canFit             = true;
+
+    for (const char* p = text; *p && canFit; ++p)
+    {
+        const char c = *p;
+        if (c == '\r')
+        {
+            continue;
+        }
+
+        if (c == '\n')
+        {
+            canFit    = count_wrapped_line(line, len, y, maxY, lineHeight);
+            lastSpace = kNoSpace;
+            continue;
+        }
+
+        if (len + 1 >= sizeof(line))
+        {
+            canFit    = count_wrapped_line(line, len, y, maxY, lineHeight);
+            lastSpace = kNoSpace;
+            if (!canFit)
+            {
+                break;
+            }
+        }
+
+        line[len++] = c;
+        line[len]   = '\0';
+        if (c == ' ')
+        {
+            lastSpace = len - 1;
+        }
+
+        while (thefly_display.textWidth(line) > width && len > 0 && canFit)
+        {
+            if (lastSpace != kNoSpace && lastSpace > 0)
+            {
+                char remainder[kWrapLineMax] = {};
+                strncpy(remainder, line + lastSpace + 1, sizeof(remainder) - 1);
+
+                line[lastSpace] = '\0';
+                size_t lineLen  = lastSpace;
+                canFit          = count_wrapped_line(line, lineLen, y, maxY, lineHeight);
+
+                strncpy(line, remainder, sizeof(line) - 1);
+                line[sizeof(line) - 1] = '\0';
+                len                    = strlen(line);
+                recalc_last_space(line, len, lastSpace);
+            }
+            else if (len > 1)
+            {
+                const char overflow = line[len - 1];
+                line[len - 1]       = '\0';
+                size_t lineLen      = len - 1;
+                canFit              = count_wrapped_line(line, lineLen, y, maxY, lineHeight);
+
+                line[0]   = overflow;
+                line[1]   = '\0';
+                len       = 1;
+                lastSpace = overflow == ' ' ? 0 : kNoSpace;
+            }
+            else
+            {
+                canFit    = count_wrapped_line(line, len, y, maxY, lineHeight);
+                lastSpace = kNoSpace;
+            }
+        }
+    }
+
+    if (canFit && len > 0)
+    {
+        canFit = count_wrapped_line(line, len, y, maxY, lineHeight);
+    }
+
+    return canFit;
+}
+
+int16_t scrub_x()
+{
+    return static_cast<int16_t>((thefly_display.width() - kScrubWidth) / 2);
+}
+
+int16_t button_x(uint8_t column)
+{
+    const int16_t columnWidth = static_cast<int16_t>(thefly_display.width() / 3);
+    return static_cast<int16_t>((columnWidth * column) + (columnWidth / 2) - (kButtonSize / 2));
+}
+
+int16_t delete_x()
+{
+    return static_cast<int16_t>(thefly_display.width() - kButtonSize);
+}
+
+void copy_wrapped_prefix_that_fits(
+    const char* text, char* out, size_t outSize, int16_t width, int16_t y, int16_t maxY, int16_t lineHeight)
+{
+    if (!out || outSize == 0)
+    {
+        return;
+    }
+    out[0] = '\0';
+
+    if (!text || width <= 0 || lineHeight <= 0)
+    {
+        return;
+    }
+
+    char         candidate[kWrapLineMax] = {};
+    size_t       bestLen                 = 0;
+    const size_t maxLen                  = std::min(strlen(text), std::min(outSize - 1, sizeof(candidate) - 1));
+    for (size_t len = 1; len <= maxLen; ++len)
+    {
+        memcpy(candidate, text, len);
+        candidate[len] = '\0';
+        if (!wrapped_text_fits(candidate, width, y, maxY, lineHeight))
+        {
+            break;
+        }
+        bestLen = len;
+    }
+
+    if (bestLen > 0)
+    {
+        memcpy(out, text, bestLen);
+    }
+    out[bestLen] = '\0';
+}
+
+uint32_t precision_window_start(uint32_t currentMs, uint32_t totalMs)
+{
+    if (totalMs <= kPrecisionWindowMs)
+    {
+        return 0;
+    }
+
+    if (currentMs <= kPrecisionHalfWindowMs)
+    {
+        return 0;
+    }
+
+    const uint32_t latestStart   = totalMs - kPrecisionWindowMs;
+    const uint32_t centeredStart = currentMs - kPrecisionHalfWindowMs;
+    return centeredStart > latestStart ? latestStart : centeredStart;
+}
+
+uint32_t step_toward(uint32_t value, uint32_t target, uint32_t step)
+{
+    if (value < target)
+    {
+        const uint32_t delta = target - value;
+        return value + (delta < step ? delta : step);
+    }
+    if (value > target)
+    {
+        const uint32_t delta = value - target;
+        return value - (delta < step ? delta : step);
+    }
+
+    return value;
+}
+} // namespace

@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "WavPlayback.h"
 
 #include <algorithm>
@@ -6,19 +10,18 @@
 namespace
 {
 
-uint32_t read_le32(const uint8_t* data)
-{
-    return static_cast<uint32_t>(data[0]) | (static_cast<uint32_t>(data[1]) << 8) |
-           (static_cast<uint32_t>(data[2]) << 16) | (static_cast<uint32_t>(data[3]) << 24);
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-bool wav_header_valid(const uint8_t* header)
-{
-    return header && memcmp(header + 0, "RIFF", 4) == 0 && memcmp(header + 8, "WAVE", 4) == 0 &&
-           memcmp(header + 12, "fmt ", 4) == 0 && memcmp(header + 36, "data", 4) == 0;
-}
+uint32_t read_le32(const uint8_t* data);
+bool wav_header_valid(const uint8_t* header);
 
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 const char* WavPlayback::tag() const
 {
@@ -179,3 +182,24 @@ uint32_t WavPlayback::msForBytes(uint64_t bytes) const
     bytes = clampDataPosition(bytes);
     return static_cast<uint32_t>((bytes * 1000ULL) / kBytesPerSecond);
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+uint32_t read_le32(const uint8_t* data)
+{
+    return static_cast<uint32_t>(data[0]) | (static_cast<uint32_t>(data[1]) << 8) |
+           (static_cast<uint32_t>(data[2]) << 16) | (static_cast<uint32_t>(data[3]) << 24);
+}
+
+bool wav_header_valid(const uint8_t* header)
+{
+    return header && memcmp(header + 0, "RIFF", 4) == 0 && memcmp(header + 8, "WAVE", 4) == 0 &&
+           memcmp(header + 12, "fmt ", 4) == 0 && memcmp(header + 36, "data", 4) == 0;
+}
+
+} // namespace

@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "FilePlayback.h"
 
 #include <algorithm>
@@ -17,6 +21,10 @@
 #include "WavPlayback.h"
 #include "dbg_log.h"
 #include "utilfuncs.h"
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 std::unique_ptr<FilePlayback> FilePlayback::createForPath(const char* path)
 {
@@ -275,6 +283,88 @@ const char* FilePlayback::lastError() const
     return error_;
 }
 
+// -----------------------------------------------------------------------------
+// Feature Logic
+// -----------------------------------------------------------------------------
+
+#ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
+bool FilePlayback::beginDecryption()
+{
+    endDecryption();
+
+    if (!Aegis::isInitialized())
+    {
+        setError("Aegis not ready");
+        return false;
+    }
+
+    const uint8_t* filecrypt_key = Aegis::getFilecryptKey();
+    if (!filecrypt_key)
+    {
+        setError("file key missing");
+        return false;
+    }
+
+    mbedtls_gcm_init(&playback_gcm_);
+    if (mbedtls_gcm_setkey(&playback_gcm_, MBEDTLS_CIPHER_ID_AES, filecrypt_key, Aegis::kFilecryptKeySize * 8) != 0)
+    {
+        mbedtls_gcm_free(&playback_gcm_);
+        setError("decrypt setup failed");
+        return false;
+    }
+
+    playback_gcm_ready_ = true;
+    return true;
+}
+
+void FilePlayback::endDecryption()
+{
+    if (playback_gcm_ready_)
+    {
+        mbedtls_gcm_free(&playback_gcm_);
+        playback_gcm_ready_ = false;
+    }
+}
+
+bool FilePlayback::decryptChunk(const uint8_t* encrypted, size_t plaintextSize, uint8_t* plaintext)
+{
+    if (!playback_gcm_ready_)
+    {
+        setError("decrypt not ready");
+        return false;
+    }
+    if (!encrypted || !plaintext)
+    {
+        setError("decrypt buffer missing");
+        return false;
+    }
+
+    const uint8_t* nonce      = encrypted;
+    const uint8_t* ciphertext = encrypted + RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH;
+    const uint8_t* tag        = ciphertext + plaintextSize;
+    if (mbedtls_gcm_auth_decrypt(&playback_gcm_,
+                                 plaintextSize,
+                                 nonce,
+                                 RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH,
+                                 nullptr,
+                                 0,
+                                 tag,
+                                 RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH,
+                                 ciphertext,
+                                 plaintext) != 0)
+    {
+        setError("decrypt failed");
+        return false;
+    }
+
+    return true;
+}
+#endif
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
 void FilePlayback::endSource() {}
 
 FsFile& FilePlayback::file()
@@ -388,79 +478,9 @@ int16_t FilePlayback::mixStereoFrameToMono(const int16_t* frame)
     return 0;
 }
 
-#ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
-bool FilePlayback::beginDecryption()
-{
-    endDecryption();
-
-    if (!Aegis::isInitialized())
-    {
-        setError("Aegis not ready");
-        return false;
-    }
-
-    const uint8_t* filecrypt_key = Aegis::getFilecryptKey();
-    if (!filecrypt_key)
-    {
-        setError("file key missing");
-        return false;
-    }
-
-    mbedtls_gcm_init(&playback_gcm_);
-    if (mbedtls_gcm_setkey(&playback_gcm_, MBEDTLS_CIPHER_ID_AES, filecrypt_key, Aegis::kFilecryptKeySize * 8) != 0)
-    {
-        mbedtls_gcm_free(&playback_gcm_);
-        setError("decrypt setup failed");
-        return false;
-    }
-
-    playback_gcm_ready_ = true;
-    return true;
-}
-
-void FilePlayback::endDecryption()
-{
-    if (playback_gcm_ready_)
-    {
-        mbedtls_gcm_free(&playback_gcm_);
-        playback_gcm_ready_ = false;
-    }
-}
-
-bool FilePlayback::decryptChunk(const uint8_t* encrypted, size_t plaintextSize, uint8_t* plaintext)
-{
-    if (!playback_gcm_ready_)
-    {
-        setError("decrypt not ready");
-        return false;
-    }
-    if (!encrypted || !plaintext)
-    {
-        setError("decrypt buffer missing");
-        return false;
-    }
-
-    const uint8_t* nonce      = encrypted;
-    const uint8_t* ciphertext = encrypted + RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH;
-    const uint8_t* tag        = ciphertext + plaintextSize;
-    if (mbedtls_gcm_auth_decrypt(&playback_gcm_,
-                                 plaintextSize,
-                                 nonce,
-                                 RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH,
-                                 nullptr,
-                                 0,
-                                 tag,
-                                 RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH,
-                                 ciphertext,
-                                 plaintext) != 0)
-    {
-        setError("decrypt failed");
-        return false;
-    }
-
-    return true;
-}
-#endif
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
 
 void FilePlayback::finish()
 {

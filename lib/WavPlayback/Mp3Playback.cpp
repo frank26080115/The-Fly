@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "Mp3Playback.h"
 
 #include <algorithm>
@@ -6,69 +10,29 @@
 namespace
 {
 
+// -----------------------------------------------------------------------------
+// Globals
+// -----------------------------------------------------------------------------
+
 Mp3Playback* g_decode_target = nullptr;
 
-void mp3_data_callback(MP3FrameInfo& info, short* pcm, size_t sample_count)
-{
-    if (g_decode_target)
-    {
-        g_decode_target->handleDecodedFrame(info, pcm, sample_count);
-    }
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-uint32_t id3v2_size(const uint8_t* header)
-{
-    return (static_cast<uint32_t>(header[6] & 0x7F) << 21) | (static_cast<uint32_t>(header[7] & 0x7F) << 14) |
-           (static_cast<uint32_t>(header[8] & 0x7F) << 7) | static_cast<uint32_t>(header[9] & 0x7F);
-}
-
+void mp3_data_callback(MP3FrameInfo& info, short* pcm, size_t sample_count);
+uint32_t id3v2_size(const uint8_t* header);
 bool parse_mp3_header(uint32_t  header,
                       uint32_t& bitrate_kbps,
                       uint32_t& sample_rate_hz,
                       uint32_t& frame_size_bytes,
-                      uint16_t& samples_per_frame)
-{
-    if ((header & 0xFFE00000UL) != 0xFFE00000UL)
-    {
-        return false;
-    }
-
-    const uint8_t version           = static_cast<uint8_t>((header >> 19) & 0x03);
-    const uint8_t layer             = static_cast<uint8_t>((header >> 17) & 0x03);
-    const uint8_t bitrate_index     = static_cast<uint8_t>((header >> 12) & 0x0F);
-    const uint8_t sample_rate_index = static_cast<uint8_t>((header >> 10) & 0x03);
-    const uint8_t padding           = static_cast<uint8_t>((header >> 9) & 0x01);
-
-    if (version == 1 || layer != 1 || bitrate_index == 0 || bitrate_index == 15 || sample_rate_index == 3)
-    {
-        return false;
-    }
-
-    static constexpr uint16_t kMpeg1Bitrates[]     = {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320};
-    static constexpr uint16_t kMpeg2Bitrates[]     = {0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160};
-    static constexpr uint32_t kMpeg1SampleRates[]  = {44100, 48000, 32000};
-    static constexpr uint32_t kMpeg2SampleRates[]  = {22050, 24000, 16000};
-    static constexpr uint32_t kMpeg25SampleRates[] = {11025, 12000, 8000};
-
-    if (version == 3)
-    {
-        bitrate_kbps      = kMpeg1Bitrates[bitrate_index];
-        sample_rate_hz    = kMpeg1SampleRates[sample_rate_index];
-        samples_per_frame = 1152;
-        frame_size_bytes  = ((144000UL * bitrate_kbps) / sample_rate_hz) + padding;
-    }
-    else
-    {
-        bitrate_kbps      = kMpeg2Bitrates[bitrate_index];
-        sample_rate_hz    = version == 2 ? kMpeg2SampleRates[sample_rate_index] : kMpeg25SampleRates[sample_rate_index];
-        samples_per_frame = 576;
-        frame_size_bytes  = ((72000UL * bitrate_kbps) / sample_rate_hz) + padding;
-    }
-
-    return bitrate_kbps > 0 && sample_rate_hz > 0 && frame_size_bytes > 0;
-}
+                      uint16_t& samples_per_frame);
 
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 Mp3Playback::Mp3Playback()
 {
@@ -406,3 +370,72 @@ void Mp3Playback::flushDecoderFinalFrame()
     }
     final_decoder_sync_sent_ = true;
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+void mp3_data_callback(MP3FrameInfo& info, short* pcm, size_t sample_count)
+{
+    if (g_decode_target)
+    {
+        g_decode_target->handleDecodedFrame(info, pcm, sample_count);
+    }
+}
+
+uint32_t id3v2_size(const uint8_t* header)
+{
+    return (static_cast<uint32_t>(header[6] & 0x7F) << 21) | (static_cast<uint32_t>(header[7] & 0x7F) << 14) |
+           (static_cast<uint32_t>(header[8] & 0x7F) << 7) | static_cast<uint32_t>(header[9] & 0x7F);
+}
+
+bool parse_mp3_header(uint32_t  header,
+                      uint32_t& bitrate_kbps,
+                      uint32_t& sample_rate_hz,
+                      uint32_t& frame_size_bytes,
+                      uint16_t& samples_per_frame)
+{
+    if ((header & 0xFFE00000UL) != 0xFFE00000UL)
+    {
+        return false;
+    }
+
+    const uint8_t version           = static_cast<uint8_t>((header >> 19) & 0x03);
+    const uint8_t layer             = static_cast<uint8_t>((header >> 17) & 0x03);
+    const uint8_t bitrate_index     = static_cast<uint8_t>((header >> 12) & 0x0F);
+    const uint8_t sample_rate_index = static_cast<uint8_t>((header >> 10) & 0x03);
+    const uint8_t padding           = static_cast<uint8_t>((header >> 9) & 0x01);
+
+    if (version == 1 || layer != 1 || bitrate_index == 0 || bitrate_index == 15 || sample_rate_index == 3)
+    {
+        return false;
+    }
+
+    static constexpr uint16_t kMpeg1Bitrates[]     = {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320};
+    static constexpr uint16_t kMpeg2Bitrates[]     = {0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160};
+    static constexpr uint32_t kMpeg1SampleRates[]  = {44100, 48000, 32000};
+    static constexpr uint32_t kMpeg2SampleRates[]  = {22050, 24000, 16000};
+    static constexpr uint32_t kMpeg25SampleRates[] = {11025, 12000, 8000};
+
+    if (version == 3)
+    {
+        bitrate_kbps      = kMpeg1Bitrates[bitrate_index];
+        sample_rate_hz    = kMpeg1SampleRates[sample_rate_index];
+        samples_per_frame = 1152;
+        frame_size_bytes  = ((144000UL * bitrate_kbps) / sample_rate_hz) + padding;
+    }
+    else
+    {
+        bitrate_kbps      = kMpeg2Bitrates[bitrate_index];
+        sample_rate_hz    = version == 2 ? kMpeg2SampleRates[sample_rate_index] : kMpeg25SampleRates[sample_rate_index];
+        samples_per_frame = 576;
+        frame_size_bytes  = ((72000UL * bitrate_kbps) / sample_rate_hz) + padding;
+    }
+
+    return bitrate_kbps > 0 && sample_rate_hz > 0 && frame_size_bytes > 0;
+}
+
+} // namespace

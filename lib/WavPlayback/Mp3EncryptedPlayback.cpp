@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "Mp3EncryptedPlayback.h"
 
 #include <algorithm>
@@ -6,6 +10,10 @@
 #ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
 #include "AudioFileRecorder.h"
 #endif
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 const char* Mp3EncryptedPlayback::tag() const
 {
@@ -98,6 +106,10 @@ bool Mp3EncryptedPlayback::seekEncodedBytePosition(uint64_t positionBytes)
     return true;
 }
 
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
 uint64_t Mp3EncryptedPlayback::encryptedPayloadBytesForFileSize(uint64_t fileSize) const
 {
     const uint64_t full_chunks   = fileSize / MP3_ENCRYPTED_CHUNK_LENGTH;
@@ -174,6 +186,10 @@ bool Mp3EncryptedPlayback::readEncryptedChunk(uint64_t chunkIndex)
     return false;
 #endif
 }
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
 
 void Mp3EncryptedPlayback::resetLoadedChunk()
 {
