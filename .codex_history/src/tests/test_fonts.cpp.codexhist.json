@@ -61,7 +61,8 @@
     "files": [
       "test_fonts.cpp",
       "src/tests/test_fonts.cpp",
-      "all_tests.cpp"
+      "all_tests.cpp",
+      "src/tests/all_tests.cpp"
     ]
   },
   {
@@ -100,5 +101,11 @@
     "type": "git_commit",
     "commit_message": "disk stats, font changes",
     "commit_hash": "abd204ec22dfe148723d1f8633539f2232ca194b"
+  },
+  {
+    "timestamp": "2026-06-02T06:34:50Z",
+    "type": "git_commit",
+    "commit_message": "clang-format",
+    "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   }
 ]
