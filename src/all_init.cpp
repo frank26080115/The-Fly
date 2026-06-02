@@ -149,8 +149,8 @@ void init_gui()
     g_scroll_view.setOnClickNtpSync(onclick_ntp_sync);
     g_scroll_view.setOnClickBtShowInfo(onclick_bt_show_info);
     g_scroll_view.setOnClickWifiShowInfo(onclick_wifi_show_info);
-    g_scroll_view.setOnClickFileWav(onclick_file_wav);
-    g_scroll_view.setOnClickFileShowInfo(onclick_file_show_info);
+    g_scroll_view.setOnClickFilePlayable(onclick_file_playable);
+    g_scroll_view.setOnClickFileListShowInfo(onclick_filelist_show_info);
     #ifdef BUILD_CLOUD_FEATURES
     gui->addView(g_cloud_upload_view);
     g_scroll_view.setOnClickCloudUpload(onclick_cloud_upload);

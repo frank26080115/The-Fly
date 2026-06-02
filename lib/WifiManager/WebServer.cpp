@@ -376,7 +376,7 @@ String self_ip_string()
         return station_ip.toString();
     }
 
-    const IPAddress soft_ap_ip = WiFi.softAPIP();
+    const IPAddress soft_ap_ip = wifi_manager ? wifi_manager->softApIp() : IPAddress();
     return ip_is_zero(soft_ap_ip) ? String("") : soft_ap_ip.toString();
 }
 

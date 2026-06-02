@@ -48,7 +48,6 @@ extern void show_splash();
 extern void draw_splash_boot_info();
 extern ScrollView* all_init_scroll_view();
 extern ModalDialog* all_init_modal_dialog();
-extern MainScreenView* all_init_main_screen_view();
 extern RecordingView* all_init_recording_view();
 extern ConnWaitingView* all_init_conn_waiting_view();
 extern WifiStaModeView* all_init_wifi_sta_mode_view();
@@ -65,7 +64,7 @@ static void  loopTask_core0(void* pvParameters);
 bool         show_info_dialog(const char* text, uint16_t next_view);
 bool         show_error_dialog(const char* text, uint16_t next_view);
 static bool  show_pairing_success_dialog(const BtManager::PairedDevice& device);
-bool         bluetooth_recording_state(BtManager::State state);
+bool         bluetooth_in_recording_state(BtManager::State state);
 static void  handle_pending_bluetooth_recording();
 static void  handle_pending_bluetooth_pairing();
 static void  handle_pending_bluetooth_connect_failed();
@@ -81,7 +80,6 @@ void         show_wifi_connection_failed(const char* text);
 bool         connect_to_bluetooth_host(const bt_host_item_t* host, const char* source);
 void         request_bluetooth_disconnect();
 bool         show_playback_view(const char* path);
-static const char* info_dialog_text_with_tamper_code(const char* text, char* buffer, size_t buffer_size);
 static const char* ntp_error_name(NtpSync::Error error);
 
 FlyGui* gui;
@@ -114,9 +112,7 @@ void setup()
 {
     all_init();
 
-    #ifdef RUN_BRINGUP_TEST
-    run_test();
-    #endif
+    //run_test();
 
     BattTracker::init();
     BattTracker::shutdownIfNeeded();
@@ -133,7 +129,11 @@ void setup()
 
     handle_firmware_update_on_boot();
 
-    wifi_manager = new WifiManager();
+    wifi_manager = new (std::nothrow) WifiManager();
+    if (!wifi_manager)
+    {
+        show_fatal_error_f(true, "WifiManager allocation failed");
+    }
 
     #if BUILD_WITH_SECURITY_LEVEL > 0
     if (!g_nvs_ready || !Aegis::init())
@@ -141,7 +141,9 @@ void setup()
         show_fatal_error_f(true, "security subsystem init failed");
     }
     #ifdef TEST_MOCK_PASSWORD
+    DBG_LOGD(MAINTAG, "[%u] setting test password...", millis());
     Aegis::setTestTempPassword((const uint8_t*)"123456");
+    DBG_LOGD(MAINTAG, "[%u] test password finished setting", millis());
     #endif
     if (!Aegis::hasMasterKey())
     {
@@ -155,18 +157,15 @@ void setup()
     #endif
 
     #if BUILD_WITH_SECURITY_LEVEL <= 0
-    if (wifi_manager && !wifi_manager->loadFromMicroSd())
+    if (!wifi_manager->loadFromMicroSd())
     #else
-    if (wifi_manager && !wifi_manager->loadFromNvs())
+    if (!wifi_manager->loadFromNvs())
     #endif
     {
         show_fatal_error_f(false, "Wi-Fi configuration load failed: %s", wifi_manager->lastLoadResultName());
     }
-    if (wifi_manager)
-    {
-        wifi_manager->setOnScanFinished(on_wifi_scan_finished);
-    }
-    if (gui && gui->currentView() && gui->currentView()->id() == FLYGUI_VIEW_SPLASH)
+    wifi_manager->setOnScanFinished(on_wifi_scan_finished);
+    if (gui->currentView() && gui->currentView()->id() == FLYGUI_VIEW_SPLASH)
     {
         draw_splash_boot_info();
     }
@@ -208,11 +207,7 @@ void setup()
     show_fatal_error_f(true, "test fatal error");
 #endif
 
-    if (!gui)
-    {
-        show_fatal_error_f(true, "GUI init failed");
-    }
-    else if (!gui->currentView())
+    if (!gui->currentView())
     {
         if (!gui->showView(FLYGUI_VIEW_MAIN))
         {
@@ -234,6 +229,8 @@ void loop()
 
     BattTracker::poll();
 
+    // these functions handle event flags that are boolean
+    // and the actions need to happen on this CPU's main loop thread
     handle_pending_bluetooth_pairing();
     handle_pending_bluetooth_connect_failed();
     handle_pending_bluetooth_recording();
@@ -241,20 +238,30 @@ void loop()
     handle_pending_cloud_upload_complete();
     #endif
     handle_pending_ntp_sync_complete();
+
+    // this handles touch events and redraws as needed
+    // the critical thing to know is that: these are mostly blocking I2C and SPI calls
+    // which is actually why it is shared with `AudioFileRecorder::pump();`, so the SPI calls are not going to overlap
     gui->poll();
+
     if (AudioFileRecorder::needsPump())
     {
+        // as the above comment says, this `pump` call can use SPI, so it is in the same thread as the GUI, which uses SPI to draw to the LCD screen
         AudioFileRecorder::pump();
     }
+
     if (PlaybackView* playback_view = all_init_playback_view())
     {
         playback_view->pumpPlayback();
     }
+
     if (wifi_manager) {
         wifi_manager->poll();
         handle_wifi_connection_waiting();
     }
+
     Hotel::pollCore1();
+
     taskYIELD();
 }
 
@@ -297,14 +304,6 @@ ModalDialog* get_modal_dialog()
     return all_init_modal_dialog();
 }
 
-void show_main_memo_starting_feedback()
-{
-    if (MainScreenView* view = all_init_main_screen_view())
-    {
-        view->showMemoStartingFeedback();
-    }
-}
-
 uint16_t conn_waiting_return_view_id()
 {
     return g_conn_waiting_return_view_id;
@@ -312,7 +311,7 @@ uint16_t conn_waiting_return_view_id()
 
 void remember_conn_waiting_return_view()
 {
-    if (!gui || !gui->currentView() || gui->currentView()->id() == FLYGUI_VIEW_CONN_WAITING)
+    if (!gui->currentView() || gui->currentView()->id() == FLYGUI_VIEW_CONN_WAITING)
     {
         g_conn_waiting_return_view_id = FLYGUI_VIEW_MAIN;
         return;
@@ -492,7 +491,7 @@ static bool battery_fullish_for_firmware_update()
     return BattTracker::level() == BattTracker::ChargeLevel::high;
 }
 
-bool bluetooth_recording_state(BtManager::State state)
+bool bluetooth_in_recording_state(BtManager::State state)
 {
     return state == BtManager::State::Connected || state == BtManager::State::AudioAvailable;
 }
@@ -545,8 +544,9 @@ static void handle_pending_bluetooth_recording()
     }
     g_pending_bluetooth_recording = false;
 
-    if (!bluetooth_recording_state(BtManager::state()))
+    if (!bluetooth_in_recording_state(BtManager::state()))
     {
+        DBG_LOGE(MAINTAG, "handle_pending_bluetooth_recording called but the state is not in-recording");
         return;
     }
 
@@ -560,9 +560,11 @@ static void handle_pending_bluetooth_recording()
                 DBG_LOGW(MAINTAG, "failed to promote memo audio routing for Bluetooth");
             }
         }
+        // it's not nice but failing silently is ok here
         return;
     }
 
+    // design policy: playback can be interrupted
     PlaybackView* playback_view = all_init_playback_view();
     if (playback_view && playback_view->playbackActive())
     {
@@ -570,7 +572,7 @@ static void handle_pending_bluetooth_recording()
     }
 
     DBG_LOGI(MAINTAG, "Bluetooth recording trigger accepted at state: %s", BtManager::stateName(BtManager::state()));
-    if (!RecordingViewCallbacks::beginBluetoothRecording('C'))
+    if (!RecordingViewCallbacks::beginBluetoothRecording(AudioFileRecorder::RecordingType::Meeting))
     {
         DBG_LOGE(MAINTAG, "failed to start Bluetooth recording");
         show_fatal_error_f(false, "Bluetooth recording start failed");
@@ -592,6 +594,11 @@ static void handle_pending_bluetooth_connect_failed()
         return;
     }
     g_pending_bluetooth_connect_failed = false;
+
+    /*
+    this should really never happen
+    when it actually did happen, we had a bad build configuration, parts of the HFP inside the ESP-IDF's Bluedroid implementation was simply missing
+    */
 
     DBG_LOGW(MAINTAG, "Bluetooth host connection failed before HFP service level connection");
 
@@ -685,11 +692,6 @@ static void handle_pending_ntp_sync_complete()
     }
 
     ModalDialog* dialog = get_modal_dialog();
-    if (!dialog || !gui)
-    {
-        DBG_LOGW(MAINTAG, "NTP sync complete but modal dialog is unavailable");
-        return;
-    }
 
     char text[160] = {};
     if (result.status == NtpSync::Status::Done && result.error == NtpSync::Error::None)
@@ -758,11 +760,6 @@ static void handle_wifi_connection_waiting()
 
 static void handle_wifi_station_connected()
 {
-    if (!wifi_manager)
-    {
-        return;
-    }
-
     DBG_LOGI(MAINTAG,
              "Wi-Fi station connected: ssid=%s ip=%s gateway=%s",
              wifi_manager->connectedWifi() ? wifi_manager->connectedWifi()->ssid : "",
@@ -776,11 +773,6 @@ static void handle_wifi_station_connected()
     }
 
     ScrollView* scroll_view = get_scroll_view();
-    if (!scroll_view || !gui)
-    {
-        show_fatal_error_f(false, "Wi-Fi action view is unavailable");
-        return;
-    }
 
     if (!scroll_view->populateCloud(wifi_manager))
     {
@@ -799,10 +791,7 @@ void show_wifi_connection_failed(const char* text)
     g_wifi_connect_waiting = false;
 
     ScrollView* scroll_view = get_scroll_view();
-    if (scroll_view)
-    {
-        scroll_view->populateWifi(wifi_manager);
-    }
+    scroll_view->populateWifi(wifi_manager);
 
     if (!show_error_dialog(text ? text : "Wi-Fi connection failed", FLYGUI_VIEW_SCROLL) && gui)
     {
@@ -810,7 +799,8 @@ void show_wifi_connection_failed(const char* text)
     }
 }
 
-bool connect_to_bluetooth_host(const bt_host_item_t* host, const char* source)
+// triggered from user clicking on a button, either from the main view or from the list
+bool connect_to_bluetooth_host(const bt_host_item_t* host, const char* click_source)
 {
     if (!host)
     {
@@ -822,11 +812,11 @@ bool connect_to_bluetooth_host(const bt_host_item_t* host, const char* source)
     format_bdaddr(host->bdaddr, bdaddr_text, sizeof(bdaddr_text));
     DBG_LOGI(MAINTAG,
              "connecting to Bluetooth host from %s: name=%s bdaddr=%s",
-             source ? source : "unknown",
+             click_source ? click_source : "unknown",
              bt_host_display_name(host),
              bdaddr_text);
 
-    if (bluetooth_recording_state(BtManager::state()) && bda_equal(BtManager::connectedMac(), host->bdaddr))
+    if (bluetooth_in_recording_state(BtManager::state()) && bda_equal(BtManager::connectedMac(), host->bdaddr))
     {
         DBG_LOGI(MAINTAG, "Bluetooth host is already connected; starting recording without a new HFP connection");
         g_bluetooth_connect_waiting = false;
@@ -867,41 +857,13 @@ void request_bluetooth_disconnect()
 bool show_info_dialog(const char* text, uint16_t next_view)
 {
     ModalDialog* dialog = get_modal_dialog();
-    if (!dialog || !gui)
-    {
-        return false;
-    }
-
-    char        dialog_text[256] = {};
-    const char* shown_text = info_dialog_text_with_tamper_code(text, dialog_text, sizeof(dialog_text));
-
     dialog->configure(sprite_info_100,
                       SPRITE_INFO_100_BYTES,
                       SPRITE_INFO_100_WIDTH,
                       SPRITE_INFO_100_HEIGHT,
-                      shown_text,
+                      text ? text : "",
                       next_view);
     return gui->showView(FLYGUI_VIEW_MODAL_DIALOG);
-}
-
-static const char* info_dialog_text_with_tamper_code(const char* text, char* buffer, size_t buffer_size)
-{
-    if (!buffer || buffer_size == 0)
-    {
-        return text ? text : "";
-    }
-
-    strlcpy(buffer, text ? text : "", buffer_size);
-#if BUILD_WITH_SECURITY_LEVEL == 2
-    uint32_t code = 0;
-    if (Aegis::tamperEvidenceCode(code))
-    {
-        char line[24] = {};
-        snprintf(line, sizeof(line), "\nTamper: %04lX", static_cast<unsigned long>((code >> 16) & 0xFFFF));
-        strlcat(buffer, line, buffer_size);
-    }
-#endif
-    return buffer;
 }
 
 static const char* ntp_error_name(NtpSync::Error error)

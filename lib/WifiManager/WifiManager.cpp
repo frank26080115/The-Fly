@@ -1172,6 +1172,16 @@ const char* WifiManager::softApPassword() const
     return m_active_wifi->password;
 }
 
+IPAddress WifiManager::softApIp() const
+{
+    if (status() != Status::AccessPoint)
+    {
+        return IPAddress();
+    }
+
+    return current_soft_ap_ip();
+}
+
 bool WifiManager::softApClientMac(uint8_t out[6]) const
 {
     if (!out || !m_soft_ap_client_connected)

@@ -2,6 +2,7 @@
 
 #include "thefly_common.h"
 
+#include <IPAddress.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -128,6 +129,7 @@ public:
     bool isGeneratedSoftApActive() const;
     const char* generatedSoftApSsid() const;
     const char* softApPassword() const;
+    IPAddress softApIp() const;
     bool softApClientMac(uint8_t out[6]) const;
     uint32_t softApClientConnectionCount() const;
     void noteWebPageLoad();
