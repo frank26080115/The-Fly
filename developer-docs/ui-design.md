@@ -25,7 +25,7 @@ flowchart TD
     Main --> Recording
     Main --> Bluetooth
     Main --> WiFi
-    Main --> InfoScreen
+    Main --> FileList
     InfoScreen --> Main
 
     Bluetooth --> BTConnect
@@ -79,6 +79,11 @@ flowchart TD
     FinishedConfirmation --> Main
 
     CloudErrorDialog --> Cloud
+
+    FileList --> InfoScreen
+    InfoScreen --> FileList
+    FileList --> Playback
+    Playback --> FileList
 
     ErrorDialog -->|not fatal| Main
     ErrorDialog -->|fatal| Boot
