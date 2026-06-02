@@ -23,13 +23,18 @@ constexpr int16_t     kActionY        = 188;
 constexpr float       kTextSize       = 1.0f;
 constexpr uint8_t     kTextFont       = 2;
 
-int16_t action_x()
-{
-    return static_cast<int16_t>((thefly_display.width() - kActionSize) / 2);
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
+
+static int16_t action_x();
 } // namespace
 
 ErrorView* ErrorView::activeView_ = nullptr;
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 ErrorView::ErrorView() : FlyGuiView(FLYGUI_VIEW_ERROR), actionItem_(0, kActionY, kActionSize, kActionSize)
 {
@@ -194,3 +199,17 @@ void ErrorView::launchDefaultSoftAp()
         DBG_LOGW(TAG, "emergency AP view show failed");
     }
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+int16_t action_x()
+{
+    return static_cast<int16_t>((thefly_display.width() - kActionSize) / 2);
+}
+
+} // namespace

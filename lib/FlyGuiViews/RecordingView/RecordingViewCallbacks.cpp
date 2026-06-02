@@ -11,16 +11,17 @@ namespace
 
 bool g_memo_bt_fifo_choked = false;
 
-void restore_memo_bt_fifo()
-{
-    if (g_memo_bt_fifo_choked)
-    {
-        AudioManager::micToBluetoothFifo().setChoked(false);
-        g_memo_bt_fifo_choked = false;
-    }
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
+
+static void restore_memo_bt_fifo();
 
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 bool beginBluetoothRecording(AudioFileRecorder::RecordingType type)
 {
@@ -117,5 +118,23 @@ bool answerCall()
 {
     return BtManager::pickupPhone() == BtManager::Result::Ok;
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+void restore_memo_bt_fifo()
+{
+    if (g_memo_bt_fifo_choked)
+    {
+        AudioManager::micToBluetoothFifo().setChoked(false);
+        g_memo_bt_fifo_choked = false;
+    }
+}
+
+} // namespace
 
 } // namespace RecordingViewCallbacks

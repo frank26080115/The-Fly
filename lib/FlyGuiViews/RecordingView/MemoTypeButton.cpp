@@ -3,6 +3,10 @@
 #include "sprites.h"
 #include "utilfuncs.h"
 
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
+
 MemoTypeButton::MemoTypeButton(int16_t x, int16_t y)
     : FlyGuiItem(x, y, SPRITE_MEMOTYPE_NOTE_WIDTH, SPRITE_MEMOTYPE_NOTE_HEIGHT)
 {

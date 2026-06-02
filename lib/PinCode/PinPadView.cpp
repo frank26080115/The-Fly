@@ -20,179 +20,23 @@ constexpr uint32_t kLongCooldownMs            = 5000;
 constexpr uint32_t kShortCooldownAttemptCount = 3;
 constexpr size_t   kObscuredShortPinLength    = 6;
 
-bool obscure_pin_length(size_t pinLength)
-{
-    return pinLength < kObscuredShortPinLength;
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-size_t display_length_for_pin(size_t pinLength)
-{
-    return obscure_pin_length(pinLength) ? kObscuredShortPinLength : pinLength;
-}
-
-int16_t line_y()
-{
-    return static_cast<int16_t>(FlyGui::topBarHeight() + kLineTopGapPx);
-}
-
-int16_t line_bottom()
-{
-    return static_cast<int16_t>(line_y() + kLineHeightPx);
-}
-
-int16_t bottom_text_top()
-{
-    thefly_display.setTextFont(kBottomFont);
-    thefly_display.setTextSize(kBottomTextSize);
-    return static_cast<int16_t>(thefly_display.height() - thefly_display.fontHeight() - 2);
-}
-
-int16_t grid_top()
-{
-    return static_cast<int16_t>(line_bottom() + kGridTopGapPx + kPinPadYOffsetPx);
-}
-
-int16_t grid_bottom()
-{
-    return static_cast<int16_t>(bottom_text_top() - kGridBottomGapPx);
-}
-
-int16_t proportional_width(int16_t fullWidth, size_t numerator, size_t denominator)
-{
-    if (fullWidth <= 0 || denominator == 0 || numerator == 0)
-    {
-        return 0;
-    }
-
-    if (numerator >= denominator)
-    {
-        return fullWidth;
-    }
-
-    return static_cast<int16_t>(
-        (static_cast<int32_t>(fullWidth) * static_cast<int32_t>(numerator) + static_cast<int32_t>(denominator) - 1) /
-        static_cast<int32_t>(denominator));
-}
+static bool    obscure_pin_length(size_t pinLength);
+static size_t  display_length_for_pin(size_t pinLength);
+static int16_t line_y();
+static int16_t line_bottom();
+static int16_t bottom_text_top();
+static int16_t grid_top();
+static int16_t grid_bottom();
+static int16_t proportional_width(int16_t fullWidth, size_t numerator, size_t denominator);
 } // namespace
 
-PinNumBtn::PinNumBtn() : FlyGuiView(FLYGUI_VIEW_PIN_PAD) {}
-
-void PinNumBtn::configure(PinPadView* owner, uint8_t number)
-{
-    owner_  = owner;
-    number_ = number;
-    setDirty();
-}
-
-void PinNumBtn::setBounds(int16_t x, int16_t y, int16_t width, int16_t height)
-{
-    if (x_ == x && y_ == y && width_ == width && height_ == height)
-    {
-        return;
-    }
-
-    x_      = x;
-    y_      = y;
-    width_  = width;
-    height_ = height;
-    setDirty();
-}
-
-void PinNumBtn::release()
-{
-    if (!pressed_)
-    {
-        return;
-    }
-
-    pressed_ = false;
-    setDirty();
-}
-
-void PinNumBtn::setDimmed(bool dimmed)
-{
-    if (dimmed_ == dimmed)
-    {
-        return;
-    }
-
-    dimmed_ = dimmed;
-    setDirty();
-}
-
-bool PinNumBtn::contains(int16_t x, int16_t y) const
-{
-    return x >= x_ && y >= y_ && x < x_ + width_ && y < y_ + height_;
-}
-
-bool PinNumBtn::handleTouch(const FlyGuiTouchEvent& event)
-{
-    const bool hit = contains(event.x, event.y);
-
-    if (event.justPressed)
-    {
-        if (!hit)
-        {
-            return false;
-        }
-
-        pressed_ = true;
-        setDirty();
-        return true;
-    }
-
-    if (!pressed_)
-    {
-        return false;
-    }
-
-    if (event.justReleased || !event.pressed)
-    {
-        pressed_ = false;
-        setDirty();
-        if (hit && owner_)
-        {
-            owner_->registerDigit(number_);
-        }
-        return true;
-    }
-
-    if (!hit)
-    {
-        pressed_ = false;
-        setDirty();
-    }
-
-    return true;
-}
-
-void PinNumBtn::redraw(bool forced)
-{
-    if (!forced && !dirty())
-    {
-        return;
-    }
-
-    if (width_ <= 0 || height_ <= 0)
-    {
-        markClean();
-        return;
-    }
-
-    const uint16_t borderColour = pressed_ ? TFT_YELLOW : TFT_DARKGREY;
-    char           label[2]     = {static_cast<char>('0' + number_), '\0'};
-
-    thefly_display.fillRect(x_, y_, width_, height_, TFT_BLACK);
-    thefly_display.drawRect(x_, y_, width_, height_, borderColour);
-    thefly_display.setTextDatum(middle_center);
-    thefly_display.setTextFont(kDigitFont);
-    thefly_display.setTextSize(kDigitTextSize);
-    thefly_display.setTextColor(dimmed_ ? 0x3186 : TFT_WHITE, TFT_BLACK);
-    thefly_display.drawString(label,
-                              static_cast<int16_t>(x_ + (width_ / 2)),
-                              static_cast<int16_t>(y_ + (height_ / 2) + 4));
-    markClean();
-}
+// -----------------------------------------------------------------------------
+// Pin Pad View
+// -----------------------------------------------------------------------------
 
 PinPadView::PinPadView(uint16_t viewId) : FlyGuiView(viewId)
 {
@@ -601,3 +445,189 @@ bool PinPadView::anyButtonDirty() const
     }
     return false;
 }
+
+// -----------------------------------------------------------------------------
+// Pin Number Button
+// -----------------------------------------------------------------------------
+
+PinNumBtn::PinNumBtn() : FlyGuiView(FLYGUI_VIEW_PIN_PAD) {}
+
+void PinNumBtn::configure(PinPadView* owner, uint8_t number)
+{
+    owner_  = owner;
+    number_ = number;
+    setDirty();
+}
+
+void PinNumBtn::setBounds(int16_t x, int16_t y, int16_t width, int16_t height)
+{
+    if (x_ == x && y_ == y && width_ == width && height_ == height)
+    {
+        return;
+    }
+
+    x_      = x;
+    y_      = y;
+    width_  = width;
+    height_ = height;
+    setDirty();
+}
+
+void PinNumBtn::release()
+{
+    if (!pressed_)
+    {
+        return;
+    }
+
+    pressed_ = false;
+    setDirty();
+}
+
+void PinNumBtn::setDimmed(bool dimmed)
+{
+    if (dimmed_ == dimmed)
+    {
+        return;
+    }
+
+    dimmed_ = dimmed;
+    setDirty();
+}
+
+bool PinNumBtn::contains(int16_t x, int16_t y) const
+{
+    return x >= x_ && y >= y_ && x < x_ + width_ && y < y_ + height_;
+}
+
+bool PinNumBtn::handleTouch(const FlyGuiTouchEvent& event)
+{
+    const bool hit = contains(event.x, event.y);
+
+    if (event.justPressed)
+    {
+        if (!hit)
+        {
+            return false;
+        }
+
+        pressed_ = true;
+        setDirty();
+        return true;
+    }
+
+    if (!pressed_)
+    {
+        return false;
+    }
+
+    if (event.justReleased || !event.pressed)
+    {
+        pressed_ = false;
+        setDirty();
+        if (hit && owner_)
+        {
+            owner_->registerDigit(number_);
+        }
+        return true;
+    }
+
+    if (!hit)
+    {
+        pressed_ = false;
+        setDirty();
+    }
+
+    return true;
+}
+
+void PinNumBtn::redraw(bool forced)
+{
+    if (!forced && !dirty())
+    {
+        return;
+    }
+
+    if (width_ <= 0 || height_ <= 0)
+    {
+        markClean();
+        return;
+    }
+
+    const uint16_t borderColour = pressed_ ? TFT_YELLOW : TFT_DARKGREY;
+    char           label[2]     = {static_cast<char>('0' + number_), '\0'};
+
+    thefly_display.fillRect(x_, y_, width_, height_, TFT_BLACK);
+    thefly_display.drawRect(x_, y_, width_, height_, borderColour);
+    thefly_display.setTextDatum(middle_center);
+    thefly_display.setTextFont(kDigitFont);
+    thefly_display.setTextSize(kDigitTextSize);
+    thefly_display.setTextColor(dimmed_ ? 0x3186 : TFT_WHITE, TFT_BLACK);
+    thefly_display.drawString(label,
+                              static_cast<int16_t>(x_ + (width_ / 2)),
+                              static_cast<int16_t>(y_ + (height_ / 2) + 4));
+    markClean();
+}
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+bool obscure_pin_length(size_t pinLength)
+{
+    return pinLength < kObscuredShortPinLength;
+}
+
+size_t display_length_for_pin(size_t pinLength)
+{
+    return obscure_pin_length(pinLength) ? kObscuredShortPinLength : pinLength;
+}
+
+int16_t line_y()
+{
+    return static_cast<int16_t>(FlyGui::topBarHeight() + kLineTopGapPx);
+}
+
+int16_t line_bottom()
+{
+    return static_cast<int16_t>(line_y() + kLineHeightPx);
+}
+
+int16_t bottom_text_top()
+{
+    thefly_display.setTextFont(kBottomFont);
+    thefly_display.setTextSize(kBottomTextSize);
+    return static_cast<int16_t>(thefly_display.height() - thefly_display.fontHeight() - 2);
+}
+
+int16_t grid_top()
+{
+    return static_cast<int16_t>(line_bottom() + kGridTopGapPx + kPinPadYOffsetPx);
+}
+
+int16_t grid_bottom()
+{
+    return static_cast<int16_t>(bottom_text_top() - kGridBottomGapPx);
+}
+
+int16_t proportional_width(int16_t fullWidth, size_t numerator, size_t denominator)
+{
+    if (fullWidth <= 0 || denominator == 0 || numerator == 0)
+    {
+        return 0;
+    }
+
+    if (numerator >= denominator)
+    {
+        return fullWidth;
+    }
+
+    return static_cast<int16_t>(
+        (static_cast<int32_t>(fullWidth) * static_cast<int32_t>(numerator) + static_cast<int32_t>(denominator) - 1) /
+        static_cast<int32_t>(denominator));
+}
+
+} // namespace

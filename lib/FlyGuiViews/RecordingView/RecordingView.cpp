@@ -41,28 +41,19 @@ constexpr float    kCallerInfoTextSize = 1.0f;
 constexpr uint8_t  kCallerInfoTextFont = 2;
 constexpr uint32_t kCallerInfoCycleMs  = 3000;
 
-const char* path_basename(const char* path)
-{
-    if (!path || path[0] == '\0')
-    {
-        return "";
-    }
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-    const char* name = path;
-    for (const char* cursor = path; *cursor; ++cursor)
-    {
-        if (*cursor == '/' || *cursor == '\\')
-        {
-            name = cursor + 1;
-        }
-    }
-
-    return name;
-}
+static const char* path_basename(const char* path);
 
 } // namespace
 
 RecordingView* RecordingView::activeInstance_ = nullptr;
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 RecordingView::RecordingView()
     : FlyGuiView(FLYGUI_VIEW_RECORDING), micButton_(AudioDeviceButton::Device::Mic, kMicButtonX, kButtonY),
@@ -298,6 +289,34 @@ void RecordingView::handleExitButton()
         }
     }
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+const char* path_basename(const char* path)
+{
+    if (!path || path[0] == '\0')
+    {
+        return "";
+    }
+
+    const char* name = path;
+    for (const char* cursor = path; *cursor; ++cursor)
+    {
+        if (*cursor == '/' || *cursor == '\\')
+        {
+            name = cursor + 1;
+        }
+    }
+
+    return name;
+}
+
+} // namespace
 
 void RecordingView::handleAnswerCallButton()
 {

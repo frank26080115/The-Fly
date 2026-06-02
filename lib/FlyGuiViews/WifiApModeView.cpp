@@ -43,105 +43,23 @@ constexpr uint32_t    kQrHoldMs                  = 5000;
 constexpr const char* kHiddenText                = "**********";
 constexpr const char* kExitHint                  = "power-off/reset to stop";
 
-void set_text_style(uint8_t font, uint16_t color)
-{
-    thefly_display.setTextFont(font);
-    thefly_display.setTextSize(1.0f);
-    thefly_display.setTextDatum(top_left);
-    thefly_display.setTextColor(color, TFT_BLACK);
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-void draw_fit_line(const char* text, int16_t x, int16_t y, int16_t width, uint8_t font, uint16_t color)
-{
-    set_text_style(font, color);
-
-    char line[96] = {};
-    strlcpy(line, text ? text : "", sizeof(line));
-
-    if (thefly_display.textWidth(line) <= width)
-    {
-        thefly_display.drawString(line, x, y);
-        return;
-    }
-
-    size_t len = strlen(line);
-    while (len > 3)
-    {
-        line[len - 3] = '.';
-        line[len - 2] = '.';
-        line[len - 1] = '.';
-        line[len]     = '\0';
-        if (thefly_display.textWidth(line) <= width)
-        {
-            thefly_display.drawString(line, x, y);
-            return;
-        }
-        line[len - 3] = '\0';
-        --len;
-    }
-
-    thefly_display.drawString("...", x, y);
-}
-
-void format_mac_hyphen(const uint8_t mac[6], char* out, size_t out_size)
-{
-    if (!out || out_size == 0)
-    {
-        return;
-    }
-    if (!mac)
-    {
-        out[0] = '\0';
-        return;
-    }
-
-    snprintf(out, out_size, "%02X-%02X-%02X-%02X-%02X-%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-}
-
-bool append_char(char* out, size_t out_size, size_t& used, char value)
-{
-    if (!out || used + 1 >= out_size)
-    {
-        return false;
-    }
-
-    out[used++] = value;
-    out[used]   = '\0';
-    return true;
-}
-
-bool append_text(char* out, size_t out_size, size_t& used, const char* text)
-{
-    for (const char* cursor = text ? text : ""; *cursor; ++cursor)
-    {
-        if (!append_char(out, out_size, used, *cursor))
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool append_wifi_qr_text(char* out, size_t out_size, size_t& used, const char* text)
-{
-    for (const char* cursor = text ? text : ""; *cursor; ++cursor)
-    {
-        const char value = *cursor;
-        if ((value == '\\' || value == ';' || value == ',' || value == ':' || value == '"') &&
-            !append_char(out, out_size, used, '\\'))
-        {
-            return false;
-        }
-        if (!append_char(out, out_size, used, value))
-        {
-            return false;
-        }
-    }
-    return true;
-}
+static void draw_fit_line(const char* text, int16_t x, int16_t y, int16_t width, uint8_t font, uint16_t color);
+static void set_text_style(uint8_t font, uint16_t color);
+static bool append_wifi_qr_text(char* out, size_t out_size, size_t& used, const char* text);
+static bool append_text(char* out, size_t out_size, size_t& used, const char* text);
+static bool append_char(char* out, size_t out_size, size_t& used, char value);
+static void format_mac_hyphen(const uint8_t mac[6], char* out, size_t out_size);
 } // namespace
 
 WifiApModeView* WifiApModeView::activeView_ = nullptr;
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 WifiApModeView::WifiApModeView()
     : FlyGuiView(FLYGUI_VIEW_AP_MODE), wifiIcon_(kWifiIconX, kWifiIconY, SPRITE_WIFI_50_WIDTH, SPRITE_WIFI_50_HEIGHT),
@@ -528,3 +446,113 @@ bool WifiApModeView::makeWifiQrText(char* out, size_t out_size) const
 
     return append_text(out, out_size, used, ";H:false;;");
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Drawing Helpers
+// -----------------------------------------------------------------------------
+
+void draw_fit_line(const char* text, int16_t x, int16_t y, int16_t width, uint8_t font, uint16_t color)
+{
+    set_text_style(font, color);
+
+    char line[96] = {};
+    strlcpy(line, text ? text : "", sizeof(line));
+
+    if (thefly_display.textWidth(line) <= width)
+    {
+        thefly_display.drawString(line, x, y);
+        return;
+    }
+
+    size_t len = strlen(line);
+    while (len > 3)
+    {
+        line[len - 3] = '.';
+        line[len - 2] = '.';
+        line[len - 1] = '.';
+        line[len]     = '\0';
+        if (thefly_display.textWidth(line) <= width)
+        {
+            thefly_display.drawString(line, x, y);
+            return;
+        }
+        line[len - 3] = '\0';
+        --len;
+    }
+
+    thefly_display.drawString("...", x, y);
+}
+
+void set_text_style(uint8_t font, uint16_t color)
+{
+    thefly_display.setTextFont(font);
+    thefly_display.setTextSize(1.0f);
+    thefly_display.setTextDatum(top_left);
+    thefly_display.setTextColor(color, TFT_BLACK);
+}
+
+// -----------------------------------------------------------------------------
+// Formatting Helpers
+// -----------------------------------------------------------------------------
+
+bool append_wifi_qr_text(char* out, size_t out_size, size_t& used, const char* text)
+{
+    for (const char* cursor = text ? text : ""; *cursor; ++cursor)
+    {
+        const char value = *cursor;
+        if ((value == '\\' || value == ';' || value == ',' || value == ':' || value == '"') &&
+            !append_char(out, out_size, used, '\\'))
+        {
+            return false;
+        }
+        if (!append_char(out, out_size, used, value))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool append_text(char* out, size_t out_size, size_t& used, const char* text)
+{
+    for (const char* cursor = text ? text : ""; *cursor; ++cursor)
+    {
+        if (!append_char(out, out_size, used, *cursor))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool append_char(char* out, size_t out_size, size_t& used, char value)
+{
+    if (!out || used + 1 >= out_size)
+    {
+        return false;
+    }
+
+    out[used++] = value;
+    out[used]   = '\0';
+    return true;
+}
+
+void format_mac_hyphen(const uint8_t mac[6], char* out, size_t out_size)
+{
+    if (!out || out_size == 0)
+    {
+        return;
+    }
+    if (!mac)
+    {
+        out[0] = '\0';
+        return;
+    }
+
+    snprintf(out, out_size, "%02X-%02X-%02X-%02X-%02X-%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+}
+
+} // namespace

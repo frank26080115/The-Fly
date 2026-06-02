@@ -8,30 +8,17 @@ namespace
 {
 constexpr int16_t kButtonSize = 100;
 
-void draw_muted_overlay(const FlyGuiItem& item)
-{
-    const int16_t x = item.x() + (item.width() - static_cast<int16_t>(SPRITE_MUTED_X_WIDTH)) / 2;
-    const int16_t y = item.y() + (item.height() - static_cast<int16_t>(SPRITE_MUTED_X_HEIGHT)) / 2;
-    SpriteDraw::drawPng(sprite_muted_x, SPRITE_MUTED_X_BYTES, x, y, SPRITE_MUTED_X_WIDTH, SPRITE_MUTED_X_HEIGHT, true);
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-uint16_t meter_color(uint8_t level)
-{
-    if (level >= 100)
-    {
-        return TFT_RED;
-    }
-
-    if (level <= 50)
-    {
-        const uint8_t blue = static_cast<uint8_t>(255U - (static_cast<uint16_t>(level) * 255U) / 50U);
-        return thefly_display.color565(255, 255, blue);
-    }
-
-    const uint8_t green = static_cast<uint8_t>(255U - (static_cast<uint16_t>(level - 50U) * 255U) / 50U);
-    return thefly_display.color565(255, green, 0);
-}
+static void     draw_muted_overlay(const FlyGuiItem& item);
+static uint16_t meter_color(uint8_t level);
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 AudioDeviceButton::AudioDeviceButton(Device device, int16_t x, int16_t y)
     : FlyGuiItem(x, y, kButtonSize, kButtonSize), device_(device)
@@ -109,3 +96,36 @@ void AudioDeviceButton::redraw(bool forced)
         drawAudioMeter();
     }
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Drawing Helpers
+// -----------------------------------------------------------------------------
+
+void draw_muted_overlay(const FlyGuiItem& item)
+{
+    const int16_t x = item.x() + (item.width() - static_cast<int16_t>(SPRITE_MUTED_X_WIDTH)) / 2;
+    const int16_t y = item.y() + (item.height() - static_cast<int16_t>(SPRITE_MUTED_X_HEIGHT)) / 2;
+    SpriteDraw::drawPng(sprite_muted_x, SPRITE_MUTED_X_BYTES, x, y, SPRITE_MUTED_X_WIDTH, SPRITE_MUTED_X_HEIGHT, true);
+}
+
+uint16_t meter_color(uint8_t level)
+{
+    if (level >= 100)
+    {
+        return TFT_RED;
+    }
+
+    if (level <= 50)
+    {
+        const uint8_t blue = static_cast<uint8_t>(255U - (static_cast<uint16_t>(level) * 255U) / 50U);
+        return thefly_display.color565(255, 255, blue);
+    }
+
+    const uint8_t green = static_cast<uint8_t>(255U - (static_cast<uint16_t>(level - 50U) * 255U) / 50U);
+    return thefly_display.color565(255, green, 0);
+}
+
+} // namespace

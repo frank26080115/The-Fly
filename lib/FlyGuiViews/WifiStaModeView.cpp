@@ -37,54 +37,20 @@ constexpr uint8_t     kSmallTextFont            = 1;
 constexpr uint32_t    kStatsCycleMs             = 3000;
 constexpr const char* kStopHint                 = "reset or power-off to stop";
 
-void set_text_style(uint8_t font, uint16_t color)
-{
-    thefly_display.setTextFont(font);
-    thefly_display.setTextSize(1.0f);
-    thefly_display.setTextDatum(top_left);
-    thefly_display.setTextColor(color, TFT_BLACK);
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-void draw_fit_line(const char* text, int16_t x, int16_t y, int16_t width, uint8_t font, uint16_t color)
-{
-    set_text_style(font, color);
-
-    char line[96] = {};
-    strlcpy(line, text ? text : "", sizeof(line));
-
-    if (thefly_display.textWidth(line) <= width)
-    {
-        thefly_display.drawString(line, x, y);
-        return;
-    }
-
-    size_t len = strlen(line);
-    while (len > 3)
-    {
-        line[len - 3] = '.';
-        line[len - 2] = '.';
-        line[len - 1] = '.';
-        line[len]     = '\0';
-        if (thefly_display.textWidth(line) <= width)
-        {
-            thefly_display.drawString(line, x, y);
-            return;
-        }
-        line[len - 3] = '\0';
-        --len;
-    }
-
-    thefly_display.drawString("...", x, y);
-}
-
-const wifi_item_t* current_station()
-{
-    const wifi_item_t* connected = wifi_manager ? wifi_manager->connectedWifi() : nullptr;
-    return connected ? connected : (wifi_manager ? wifi_manager->activeWifi() : nullptr);
-}
+static void               draw_fit_line(const char* text, int16_t x, int16_t y, int16_t width, uint8_t font, uint16_t color);
+static void               set_text_style(uint8_t font, uint16_t color);
+static const wifi_item_t* current_station();
 } // namespace
 
 WifiStaModeView* WifiStaModeView::activeView_ = nullptr;
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 WifiStaModeView::WifiStaModeView()
     : FlyGuiView(FLYGUI_VIEW_STA_MODE), wifiIcon_(kWifiIconX, kWifiIconY, SPRITE_WIFI_50_WIDTH, SPRITE_WIFI_50_HEIGHT),
@@ -336,3 +302,62 @@ void WifiStaModeView::formatStatsLine(char* out, size_t out_size) const
     }
 #endif
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Drawing Helpers
+// -----------------------------------------------------------------------------
+
+void draw_fit_line(const char* text, int16_t x, int16_t y, int16_t width, uint8_t font, uint16_t color)
+{
+    set_text_style(font, color);
+
+    char line[96] = {};
+    strlcpy(line, text ? text : "", sizeof(line));
+
+    if (thefly_display.textWidth(line) <= width)
+    {
+        thefly_display.drawString(line, x, y);
+        return;
+    }
+
+    size_t len = strlen(line);
+    while (len > 3)
+    {
+        line[len - 3] = '.';
+        line[len - 2] = '.';
+        line[len - 1] = '.';
+        line[len]     = '\0';
+        if (thefly_display.textWidth(line) <= width)
+        {
+            thefly_display.drawString(line, x, y);
+            return;
+        }
+        line[len - 3] = '\0';
+        --len;
+    }
+
+    thefly_display.drawString("...", x, y);
+}
+
+void set_text_style(uint8_t font, uint16_t color)
+{
+    thefly_display.setTextFont(font);
+    thefly_display.setTextSize(1.0f);
+    thefly_display.setTextDatum(top_left);
+    thefly_display.setTextColor(color, TFT_BLACK);
+}
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+const wifi_item_t* current_station()
+{
+    const wifi_item_t* connected = wifi_manager ? wifi_manager->connectedWifi() : nullptr;
+    return connected ? connected : (wifi_manager ? wifi_manager->activeWifi() : nullptr);
+}
+
+} // namespace

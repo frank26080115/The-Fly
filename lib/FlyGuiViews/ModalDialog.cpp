@@ -18,6 +18,10 @@ constexpr float   kFooterTextSize = 1.0f;
 constexpr uint8_t kFooterTextFont = 2;
 } // namespace
 
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
+
 ModalDialog::ModalDialog() : FlyGuiView(FLYGUI_VIEW_MODAL_DIALOG) {}
 
 void ModalDialog::configure(const uint8_t*             spriteData,

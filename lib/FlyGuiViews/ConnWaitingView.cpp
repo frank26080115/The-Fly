@@ -31,61 +31,17 @@ struct SpriteRef
     size_t         bytes  = 0;
 };
 
-SpriteRef main_sprite_for_mode(ConnWaitingMode mode)
-{
-    switch (mode)
-    {
-    case CONN_WAITING_BLUETOOTH_CONNECTING:
-        return {sprite_bluetooth_100,
-                SPRITE_BLUETOOTH_100_WIDTH,
-                SPRITE_BLUETOOTH_100_HEIGHT,
-                SPRITE_BLUETOOTH_100_BYTES};
-    case CONN_WAITING_BLUETOOTH_PAIRING:
-        return {sprite_btpairing_100,
-                SPRITE_BTPAIRING_100_WIDTH,
-                SPRITE_BTPAIRING_100_HEIGHT,
-                SPRITE_BTPAIRING_100_BYTES};
-    case CONN_WAITING_WIFI_CONNECTING:
-        return {sprite_wifi_100, SPRITE_WIFI_100_WIDTH, SPRITE_WIFI_100_HEIGHT, SPRITE_WIFI_100_BYTES};
-    case CONN_WAITING_WIFI_SCANNING:
-        return {sprite_wifisearch_100,
-                SPRITE_WIFISEARCH_100_WIDTH,
-                SPRITE_WIFISEARCH_100_HEIGHT,
-                SPRITE_WIFISEARCH_100_BYTES};
-    case CONN_WAITING_CLOUD:
-        return {sprite_cloudupload_100,
-                SPRITE_CLOUDUPLOAD_100_WIDTH,
-                SPRITE_CLOUDUPLOAD_100_HEIGHT,
-                SPRITE_CLOUDUPLOAD_100_BYTES};
-    case CONN_WAITING_NTP_SYNC:
-        return {sprite_ntpsync_100, SPRITE_NTPSYNC_100_WIDTH, SPRITE_NTPSYNC_100_HEIGHT, SPRITE_NTPSYNC_100_BYTES};
-    default:
-        return {};
-    }
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-SpriteRef hourglass_sprite_for_frame(uint8_t frame)
-{
-    switch (frame % 3)
-    {
-    case 0:
-        return {sprite_hourglass_60_1,
-                SPRITE_HOURGLASS_60_1_WIDTH,
-                SPRITE_HOURGLASS_60_1_HEIGHT,
-                SPRITE_HOURGLASS_60_1_BYTES};
-    case 1:
-        return {sprite_hourglass_60_2,
-                SPRITE_HOURGLASS_60_2_WIDTH,
-                SPRITE_HOURGLASS_60_2_HEIGHT,
-                SPRITE_HOURGLASS_60_2_BYTES};
-    default:
-        return {sprite_hourglass_60_3,
-                SPRITE_HOURGLASS_60_3_WIDTH,
-                SPRITE_HOURGLASS_60_3_HEIGHT,
-                SPRITE_HOURGLASS_60_3_BYTES};
-    }
-}
+static SpriteRef main_sprite_for_mode(ConnWaitingMode mode);
+static SpriteRef hourglass_sprite_for_frame(uint8_t frame);
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 ConnWaitingView::ConnWaitingView(ConnWaitingMode    mode,
                                  const char*        targetName,
@@ -229,3 +185,67 @@ bool ConnWaitingView::updateHourglass(uint32_t now, bool forced)
     drawHourglassFrame(hourglassFrame_);
     return true;
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+SpriteRef main_sprite_for_mode(ConnWaitingMode mode)
+{
+    switch (mode)
+    {
+    case CONN_WAITING_BLUETOOTH_CONNECTING:
+        return {sprite_bluetooth_100,
+                SPRITE_BLUETOOTH_100_WIDTH,
+                SPRITE_BLUETOOTH_100_HEIGHT,
+                SPRITE_BLUETOOTH_100_BYTES};
+    case CONN_WAITING_BLUETOOTH_PAIRING:
+        return {sprite_btpairing_100,
+                SPRITE_BTPAIRING_100_WIDTH,
+                SPRITE_BTPAIRING_100_HEIGHT,
+                SPRITE_BTPAIRING_100_BYTES};
+    case CONN_WAITING_WIFI_CONNECTING:
+        return {sprite_wifi_100, SPRITE_WIFI_100_WIDTH, SPRITE_WIFI_100_HEIGHT, SPRITE_WIFI_100_BYTES};
+    case CONN_WAITING_WIFI_SCANNING:
+        return {sprite_wifisearch_100,
+                SPRITE_WIFISEARCH_100_WIDTH,
+                SPRITE_WIFISEARCH_100_HEIGHT,
+                SPRITE_WIFISEARCH_100_BYTES};
+    case CONN_WAITING_CLOUD:
+        return {sprite_cloudupload_100,
+                SPRITE_CLOUDUPLOAD_100_WIDTH,
+                SPRITE_CLOUDUPLOAD_100_HEIGHT,
+                SPRITE_CLOUDUPLOAD_100_BYTES};
+    case CONN_WAITING_NTP_SYNC:
+        return {sprite_ntpsync_100, SPRITE_NTPSYNC_100_WIDTH, SPRITE_NTPSYNC_100_HEIGHT, SPRITE_NTPSYNC_100_BYTES};
+    default:
+        return {};
+    }
+}
+
+SpriteRef hourglass_sprite_for_frame(uint8_t frame)
+{
+    switch (frame % 3)
+    {
+    case 0:
+        return {sprite_hourglass_60_1,
+                SPRITE_HOURGLASS_60_1_WIDTH,
+                SPRITE_HOURGLASS_60_1_HEIGHT,
+                SPRITE_HOURGLASS_60_1_BYTES};
+    case 1:
+        return {sprite_hourglass_60_2,
+                SPRITE_HOURGLASS_60_2_WIDTH,
+                SPRITE_HOURGLASS_60_2_HEIGHT,
+                SPRITE_HOURGLASS_60_2_BYTES};
+    default:
+        return {sprite_hourglass_60_3,
+                SPRITE_HOURGLASS_60_3_WIDTH,
+                SPRITE_HOURGLASS_60_3_HEIGHT,
+                SPRITE_HOURGLASS_60_3_BYTES};
+    }
+}
+
+} // namespace

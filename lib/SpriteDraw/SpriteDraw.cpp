@@ -32,7 +32,111 @@ struct PngDecodeContext
     DrawCallback   callback   = nullptr;
 };
 
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
+
+static void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, size_t length, const uint8_t* argb);
+static uint32_t read_png_bytes(void* user_data, uint8_t* buffer, uint32_t length);
 lgfx::rgb565_t argb_to_rgb565(const uint8_t* argb, uint8_t brightness);
+static uint16_t apply_brightness(uint16_t value, uint8_t brightness);
+static bool     dither_pixel_enabled(int32_t x, int32_t y);
+static lgfx::rgb565_t black_pixel();
+static bool           considered_transparent_pixel(const uint8_t* argb);
+
+} // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
+
+DrawResult drawPng(const uint8_t* sprite,
+                   size_t         sprite_bytes,
+                   int32_t        x,
+                   int32_t        y,
+                   uint32_t       width,
+                   uint32_t       height,
+                   bool           fast_mode,
+                   uint8_t        brightness,
+                   DrawCallback   callback)
+{
+    DrawResult result;
+
+    if (sprite == nullptr || sprite_bytes == 0 || width == 0 || height == 0)
+    {
+        result.failure_stage = DRAW_FAILURE_INVALID_ARGUMENT;
+        return result;
+    }
+
+    pngle_t* pngle = lgfx_pngle_new();
+    if (pngle == nullptr)
+    {
+        result.failure_stage = DRAW_FAILURE_ALLOC;
+        return result;
+    }
+
+    PngDecodeContext context;
+    context.data       = sprite;
+    context.data_size  = sprite_bytes;
+    context.origin_x   = x;
+    context.origin_y   = y;
+    context.fast_mode  = fast_mode;
+    context.brightness = brightness;
+    context.callback   = callback;
+
+    if (lgfx_pngle_prepare(pngle, read_png_bytes, &context) < 0)
+    {
+        result.callbacks     = context.callbacks;
+        result.pixels        = context.pixels;
+        result.read_bytes    = static_cast<uint32_t>(context.read_index);
+        result.failure_stage = DRAW_FAILURE_PREPARE;
+        lgfx_pngle_destroy(pngle);
+        return result;
+    }
+
+    result.decoded_width  = lgfx_pngle_get_width(pngle);
+    result.decoded_height = lgfx_pngle_get_height(pngle);
+
+    if (result.decoded_width != width || result.decoded_height != height)
+    {
+        result.read_bytes    = static_cast<uint32_t>(context.read_index);
+        result.failure_stage = DRAW_FAILURE_SIZE_MISMATCH;
+        lgfx_pngle_destroy(pngle);
+        return result;
+    }
+
+    const uint32_t started_us = micros();
+    if (fast_mode)
+    {
+        thefly_display.startWrite();
+    }
+    const int decode_result = lgfx_pngle_decomp(pngle, draw_png_run);
+    if (fast_mode)
+    {
+        thefly_display.endWrite();
+    }
+    result.elapsed_us = micros() - started_us;
+
+    result.ok            = decode_result >= 0;
+    result.callbacks     = context.callbacks;
+    result.pixels        = context.pixels;
+    result.read_bytes    = static_cast<uint32_t>(context.read_index);
+    result.decode_result = decode_result;
+    if (!result.ok)
+    {
+        result.failure_stage = DRAW_FAILURE_DECODE;
+    }
+
+    lgfx_pngle_destroy(pngle);
+    return result;
+}
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
 
 bool dither_pixel_enabled(int32_t x, int32_t y)
 {
@@ -248,86 +352,5 @@ lgfx::rgb565_t argb_to_rgb565(const uint8_t* argb, uint8_t brightness)
 }
 
 } // namespace
-
-DrawResult drawPng(const uint8_t* sprite,
-                   size_t         sprite_bytes,
-                   int32_t        x,
-                   int32_t        y,
-                   uint32_t       width,
-                   uint32_t       height,
-                   bool           fast_mode,
-                   uint8_t        brightness,
-                   DrawCallback   callback)
-{
-    DrawResult result;
-
-    if (sprite == nullptr || sprite_bytes == 0 || width == 0 || height == 0)
-    {
-        result.failure_stage = DRAW_FAILURE_INVALID_ARGUMENT;
-        return result;
-    }
-
-    pngle_t* pngle = lgfx_pngle_new();
-    if (pngle == nullptr)
-    {
-        result.failure_stage = DRAW_FAILURE_ALLOC;
-        return result;
-    }
-
-    PngDecodeContext context;
-    context.data       = sprite;
-    context.data_size  = sprite_bytes;
-    context.origin_x   = x;
-    context.origin_y   = y;
-    context.fast_mode  = fast_mode;
-    context.brightness = brightness;
-    context.callback   = callback;
-
-    if (lgfx_pngle_prepare(pngle, read_png_bytes, &context) < 0)
-    {
-        result.callbacks     = context.callbacks;
-        result.pixels        = context.pixels;
-        result.read_bytes    = static_cast<uint32_t>(context.read_index);
-        result.failure_stage = DRAW_FAILURE_PREPARE;
-        lgfx_pngle_destroy(pngle);
-        return result;
-    }
-
-    result.decoded_width  = lgfx_pngle_get_width(pngle);
-    result.decoded_height = lgfx_pngle_get_height(pngle);
-
-    if (result.decoded_width != width || result.decoded_height != height)
-    {
-        result.read_bytes    = static_cast<uint32_t>(context.read_index);
-        result.failure_stage = DRAW_FAILURE_SIZE_MISMATCH;
-        lgfx_pngle_destroy(pngle);
-        return result;
-    }
-
-    const uint32_t started_us = micros();
-    if (fast_mode)
-    {
-        thefly_display.startWrite();
-    }
-    const int decode_result = lgfx_pngle_decomp(pngle, draw_png_run);
-    if (fast_mode)
-    {
-        thefly_display.endWrite();
-    }
-    result.elapsed_us = micros() - started_us;
-
-    result.ok            = decode_result >= 0;
-    result.callbacks     = context.callbacks;
-    result.pixels        = context.pixels;
-    result.read_bytes    = static_cast<uint32_t>(context.read_index);
-    result.decode_result = decode_result;
-    if (!result.ok)
-    {
-        result.failure_stage = DRAW_FAILURE_DECODE;
-    }
-
-    lgfx_pngle_destroy(pngle);
-    return result;
-}
 
 } // namespace SpriteDraw

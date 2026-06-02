@@ -39,18 +39,19 @@ constexpr uint8_t     kTextFont           = 2;
 constexpr uint8_t     kSmallTextFont      = 1;
 constexpr float       kTextSize           = 1.0f;
 
-int16_t centered_x(uint32_t width)
-{
-    return static_cast<int16_t>((thefly_display.width() - static_cast<int32_t>(width)) / 2);
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-int16_t progress_x()
-{
-    return static_cast<int16_t>((thefly_display.width() - kProgressWidth) / 2);
-}
+static int16_t centered_x(uint32_t width);
+static int16_t progress_x();
 } // namespace
 
 FirmwareUpdateView* FirmwareUpdateView::activeView_ = nullptr;
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 FirmwareUpdateView::FirmwareUpdateView()
     : FlyGuiView(FLYGUI_VIEW_FIRMWARE_UPDATE), goItem_(kGoX, kButtonY, kButtonSize, kButtonSize),
@@ -164,6 +165,25 @@ void FirmwareUpdateView::onPressLeft()
         goItem_.trigger();
     }
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+int16_t centered_x(uint32_t width)
+{
+    return static_cast<int16_t>((thefly_display.width() - static_cast<int32_t>(width)) / 2);
+}
+
+int16_t progress_x()
+{
+    return static_cast<int16_t>((thefly_display.width() - kProgressWidth) / 2);
+}
+
+} // namespace
 
 void FirmwareUpdateView::onPressRight()
 {

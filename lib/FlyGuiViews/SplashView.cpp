@@ -5,6 +5,10 @@
 
 static constexpr uint32_t kSplashDelayMs = 800;
 
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
+
 SplashView::SplashView() : FlyGuiView(FLYGUI_VIEW_SPLASH) {}
 
 void SplashView::onLoad()

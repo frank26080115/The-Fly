@@ -9,11 +9,16 @@ namespace
 constexpr int16_t kScrollItemWidth  = 106;
 constexpr int16_t kScrollItemHeight = 114;
 
-void fallback_sprite(sprite_desc_t& sprite)
-{
-    sprite = {sprite_warning_100, SPRITE_WARNING_100_WIDTH, SPRITE_WARNING_100_HEIGHT, SPRITE_WARNING_100_BYTES};
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
+
+static void fallback_sprite(sprite_desc_t& sprite);
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 ScrollItem::ScrollItem() : FlyGuiItem(0, 0, kScrollItemWidth, kScrollItemHeight) {}
 
@@ -74,3 +79,17 @@ bool ScrollItem::trigger(uint32_t pressDurationMs)
 
     return true;
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+void fallback_sprite(sprite_desc_t& sprite)
+{
+    sprite = {sprite_warning_100, SPRITE_WARNING_100_WIDTH, SPRITE_WARNING_100_HEIGHT, SPRITE_WARNING_100_BYTES};
+}
+
+} // namespace

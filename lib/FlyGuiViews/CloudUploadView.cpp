@@ -16,27 +16,17 @@ constexpr uint8_t kTextFont           = 2;
 constexpr uint8_t kSmallTextFont      = 1;
 constexpr float   kTextSize           = 1.0f;
 
-int16_t progress_x()
-{
-    return static_cast<int16_t>((thefly_display.width() - kProgressWidth) / 2);
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-float progress_percent(uint64_t bytes_uploaded, uint64_t bytes_total)
-{
-    if (bytes_total == 0)
-    {
-        return 0.0f;
-    }
-
-    const float percent = (static_cast<float>(bytes_uploaded) * 100.0f) / static_cast<float>(bytes_total);
-    if (percent <= 0.0f)
-    {
-        return 0.0f;
-    }
-
-    return percent >= 100.0f ? 100.0f : percent;
-}
+static int16_t progress_x();
+static float   progress_percent(uint64_t bytes_uploaded, uint64_t bytes_total);
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 CloudUploadView::CloudUploadView(FlyGuiItemCallback cancelCallback)
     : ConnWaitingView(CONN_WAITING_CLOUD, "", cancelCallback, FLYGUI_VIEW_UPLOAD_PROGRESS),
@@ -130,3 +120,33 @@ uint8_t CloudUploadView::roundedProgressPercent() const
 
     return static_cast<uint8_t>(percent + 0.5f);
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+int16_t progress_x()
+{
+    return static_cast<int16_t>((thefly_display.width() - kProgressWidth) / 2);
+}
+
+float progress_percent(uint64_t bytes_uploaded, uint64_t bytes_total)
+{
+    if (bytes_total == 0)
+    {
+        return 0.0f;
+    }
+
+    const float percent = (static_cast<float>(bytes_uploaded) * 100.0f) / static_cast<float>(bytes_total);
+    if (percent <= 0.0f)
+    {
+        return 0.0f;
+    }
+
+    return percent >= 100.0f ? 100.0f : percent;
+}
+
+} // namespace

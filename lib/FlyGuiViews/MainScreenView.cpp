@@ -23,6 +23,10 @@ constexpr int16_t kRow0         = kGridY + kSpriteYInset;
 constexpr int16_t kRow1         = kGridY + kButtonHeight + kSpriteYInset;
 } // namespace
 
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
+
 MainScreenView::MainScreenView()
     : // Design: main screen lets the user choose bluetooth, files, memo, or hosts.
       FlyGuiView(FLYGUI_VIEW_MAIN), bluetoothItem_(kCol0, kRow0, kSpriteSize, kSpriteSize),

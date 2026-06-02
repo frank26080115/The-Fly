@@ -29,267 +29,29 @@ constexpr uint8_t  kSmallTextFont              = 1;
 constexpr uint16_t kInsecureUrlTextColor       = TFT_ORANGE;
 constexpr uint32_t kBluetoothDeleteLongPressMs = 3000;
 
-int32_t list_callback_value(size_t index)
-{
-    return static_cast<int32_t>(index);
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-int16_t slot_x(int slot)
-{
-    switch (slot)
-    {
-    case 0:
-        return 1;
-    case 1:
-        return static_cast<int16_t>((thefly_display.width() - kItemWidth) / 2);
-    case 2:
-    default:
-        return static_cast<int16_t>(thefly_display.width() - kItemWidth - 1);
-    }
-}
-
-int16_t exit_x()
-{
-    return static_cast<int16_t>((thefly_display.width() - kExitSize) / 2);
-}
-
-int16_t delete_x()
-{
-    return static_cast<int16_t>((thefly_display.width() * 5 / 6) - (kExitSize / 2));
-}
-
-sprite_desc_t make_sprite(const uint8_t* data, uint32_t width, uint32_t height, size_t byte_cnt)
-{
-    return {data, width, height, byte_cnt};
-}
-
-void draw_centered_line(char* line, size_t& len, int16_t& y)
-{
-    while (len > 0 && line[0] == ' ')
-    {
-        memmove(line, line + 1, len);
-        --len;
-        line[len] = '\0';
-    }
-
-    while (len > 0 && line[len - 1] == ' ')
-    {
-        line[--len] = '\0';
-    }
-
-    if (len == 0 || y + kTextLineHeight > kTextMaxY)
-    {
-        return;
-    }
-
-    thefly_display.drawString(line, thefly_display.width() / 2, y);
-    y += kTextLineHeight;
-    len     = 0;
-    line[0] = '\0';
-}
-
-void draw_centered_wrapped_text(const char* text)
-{
-    if (!text || text[0] == '\0')
-    {
-        return;
-    }
-
-    constexpr size_t kLineMax = 128;
-    constexpr size_t kNoSpace = static_cast<size_t>(-1);
-
-    const int16_t width          = static_cast<int16_t>(thefly_display.width() - 8);
-    int16_t       y              = kTextY;
-    char          line[kLineMax] = {};
-    size_t        len            = 0;
-    size_t        lastSpace      = kNoSpace;
-
-    for (const char* p = text; *p; ++p)
-    {
-        const char c = *p;
-        if (c == '\r')
-        {
-            continue;
-        }
-
-        if (c == '\n')
-        {
-            draw_centered_line(line, len, y);
-            lastSpace = kNoSpace;
-            continue;
-        }
-
-        if (len + 1 >= sizeof(line))
-        {
-            draw_centered_line(line, len, y);
-            lastSpace = kNoSpace;
-        }
-
-        line[len++] = c;
-        line[len]   = '\0';
-        if (c == ' ')
-        {
-            lastSpace = len - 1;
-        }
-
-        while (thefly_display.textWidth(line) > width && len > 1)
-        {
-            if (lastSpace != kNoSpace && lastSpace > 0)
-            {
-                char remainder[kLineMax] = {};
-                strncpy(remainder, line + lastSpace + 1, sizeof(remainder) - 1);
-                line[lastSpace] = '\0';
-                size_t drawLen  = lastSpace;
-                draw_centered_line(line, drawLen, y);
-                strncpy(line, remainder, sizeof(line) - 1);
-                line[sizeof(line) - 1] = '\0';
-                len                    = strlen(line);
-                lastSpace              = kNoSpace;
-                for (size_t i = 0; i < len; ++i)
-                {
-                    if (line[i] == ' ')
-                    {
-                        lastSpace = i;
-                    }
-                }
-            }
-            else
-            {
-                const char overflow = line[len - 1];
-                line[len - 1]       = '\0';
-                size_t drawLen      = len - 1;
-                draw_centered_line(line, drawLen, y);
-                line[0]   = overflow;
-                line[1]   = '\0';
-                len       = 1;
-                lastSpace = overflow == ' ' ? 0 : kNoSpace;
-            }
-        }
-    }
-
-    if (len > 0)
-    {
-        draw_centered_line(line, len, y);
-    }
-}
-
-void truncate_to_width(char* text, size_t text_size, int16_t width)
-{
-    static constexpr const char* kEllipsis    = "...";
-    static constexpr size_t      kEllipsisLen = 3;
-
-    if (!text || text_size <= kEllipsisLen + 1 || thefly_display.textWidth(text) <= width)
-    {
-        return;
-    }
-
-    size_t len = strlen(text);
-    while (len > 0)
-    {
-        --len;
-        text[len] = '\0';
-        strncat(text, kEllipsis, text_size - strlen(text) - 1);
-        if (thefly_display.textWidth(text) <= width)
-        {
-            return;
-        }
-        text[len] = '\0';
-    }
-
-    strlcpy(text, kEllipsis, text_size);
-}
-
-bool starts_with_case_insensitive(const char* text, const char* prefix)
-{
-    if (!text || !prefix)
-    {
-        return false;
-    }
-
-    while (*prefix)
-    {
-        char lhs = *text++;
-        char rhs = *prefix++;
-        if (lhs >= 'A' && lhs <= 'Z')
-        {
-            lhs = static_cast<char>(lhs - 'A' + 'a');
-        }
-        if (rhs >= 'A' && rhs <= 'Z')
-        {
-            rhs = static_cast<char>(rhs - 'A' + 'a');
-        }
-        if (lhs != rhs)
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool is_secure_url(const char* text)
-{
-    return starts_with_case_insensitive(text, "https://");
-}
-
-const char* display_cloud_url(const char* text)
-{
-    if (starts_with_case_insensitive(text, "https://www."))
-    {
-        return text + 12;
-    }
-    if (starts_with_case_insensitive(text, "http://www."))
-    {
-        return text + 11;
-    }
-    if (starts_with_case_insensitive(text, "https://"))
-    {
-        return text + 8;
-    }
-    if (starts_with_case_insensitive(text, "http://"))
-    {
-        return text + 7;
-    }
-
-    return text;
-}
-
-void draw_centered_fitted_cloud_url(const char* text)
-{
-    if (!text || text[0] == '\0')
-    {
-        return;
-    }
-
-    const bool    secure = is_secure_url(text);
-    const char*   shown  = display_cloud_url(text);
-    const int16_t width  = static_cast<int16_t>(thefly_display.width() - 8);
-
-    thefly_display.setTextColor(secure ? TFT_WHITE : kInsecureUrlTextColor, TFT_BLACK);
-    thefly_display.setTextFont(kTextFont);
-    thefly_display.setTextSize(kTextSize);
-    if (thefly_display.textWidth(shown) <= width)
-    {
-        thefly_display.drawString(shown, thefly_display.width() / 2, kTextY);
-        return;
-    }
-
-    thefly_display.setTextFont(kSmallTextFont);
-    thefly_display.setTextSize(kTextSize);
-    if (thefly_display.textWidth(shown) <= width)
-    {
-        thefly_display.drawString(shown, thefly_display.width() / 2, kTextY);
-        return;
-    }
-
-    char truncated[ScrollItem::kLabelCapacity] = {};
-    strlcpy(truncated, shown, sizeof(truncated));
-    truncate_to_width(truncated, sizeof(truncated), width);
-    thefly_display.drawString(truncated, thefly_display.width() / 2, kTextY);
-}
+static int32_t       list_callback_value(size_t index);
+static sprite_desc_t make_sprite(const uint8_t* data, uint32_t width, uint32_t height, size_t byte_cnt);
+static void          draw_centered_fitted_cloud_url(const char* text);
+static void          draw_centered_wrapped_text(const char* text);
+static void          draw_centered_line(char* line, size_t& len, int16_t& y);
+static void          truncate_to_width(char* text, size_t text_size, int16_t width);
+static const char*   display_cloud_url(const char* text);
+static bool          is_secure_url(const char* text);
+static bool          starts_with_case_insensitive(const char* text, const char* prefix);
+static int16_t       slot_x(int slot);
+static int16_t       exit_x();
+static int16_t       delete_x();
 } // namespace
 
 ScrollView* ScrollView::activeDeleteView_ = nullptr;
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 ScrollView::ScrollView(uint16_t viewId, FlyGuiItemCallback exitCallback)
     : FlyGuiView(viewId), exitItem_(exit_x(), kExitY, kExitSize, kExitSize),
@@ -1285,3 +1047,279 @@ void ScrollView::onBluetoothDeleteDialogDismissed()
         activeDeleteView_->populateBluetooth(activeDeleteView_->bluetoothHostList_);
     }
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+int32_t list_callback_value(size_t index)
+{
+    return static_cast<int32_t>(index);
+}
+
+sprite_desc_t make_sprite(const uint8_t* data, uint32_t width, uint32_t height, size_t byte_cnt)
+{
+    return {data, width, height, byte_cnt};
+}
+
+void draw_centered_fitted_cloud_url(const char* text)
+{
+    if (!text || text[0] == '\0')
+    {
+        return;
+    }
+
+    const bool    secure = is_secure_url(text);
+    const char*   shown  = display_cloud_url(text);
+    const int16_t width  = static_cast<int16_t>(thefly_display.width() - 8);
+
+    thefly_display.setTextColor(secure ? TFT_WHITE : kInsecureUrlTextColor, TFT_BLACK);
+    thefly_display.setTextFont(kTextFont);
+    thefly_display.setTextSize(kTextSize);
+    if (thefly_display.textWidth(shown) <= width)
+    {
+        thefly_display.drawString(shown, thefly_display.width() / 2, kTextY);
+        return;
+    }
+
+    thefly_display.setTextFont(kSmallTextFont);
+    thefly_display.setTextSize(kTextSize);
+    if (thefly_display.textWidth(shown) <= width)
+    {
+        thefly_display.drawString(shown, thefly_display.width() / 2, kTextY);
+        return;
+    }
+
+    char truncated[ScrollItem::kLabelCapacity] = {};
+    strlcpy(truncated, shown, sizeof(truncated));
+    truncate_to_width(truncated, sizeof(truncated), width);
+    thefly_display.drawString(truncated, thefly_display.width() / 2, kTextY);
+}
+
+void draw_centered_wrapped_text(const char* text)
+{
+    if (!text || text[0] == '\0')
+    {
+        return;
+    }
+
+    constexpr size_t kLineMax = 128;
+    constexpr size_t kNoSpace = static_cast<size_t>(-1);
+
+    const int16_t width          = static_cast<int16_t>(thefly_display.width() - 8);
+    int16_t       y              = kTextY;
+    char          line[kLineMax] = {};
+    size_t        len            = 0;
+    size_t        lastSpace      = kNoSpace;
+
+    for (const char* p = text; *p; ++p)
+    {
+        const char c = *p;
+        if (c == '\r')
+        {
+            continue;
+        }
+
+        if (c == '\n')
+        {
+            draw_centered_line(line, len, y);
+            lastSpace = kNoSpace;
+            continue;
+        }
+
+        if (len + 1 >= sizeof(line))
+        {
+            draw_centered_line(line, len, y);
+            lastSpace = kNoSpace;
+        }
+
+        line[len++] = c;
+        line[len]   = '\0';
+        if (c == ' ')
+        {
+            lastSpace = len - 1;
+        }
+
+        while (thefly_display.textWidth(line) > width && len > 1)
+        {
+            if (lastSpace != kNoSpace && lastSpace > 0)
+            {
+                char remainder[kLineMax] = {};
+                strncpy(remainder, line + lastSpace + 1, sizeof(remainder) - 1);
+                line[lastSpace] = '\0';
+                size_t drawLen  = lastSpace;
+                draw_centered_line(line, drawLen, y);
+                strncpy(line, remainder, sizeof(line) - 1);
+                line[sizeof(line) - 1] = '\0';
+                len                    = strlen(line);
+                lastSpace              = kNoSpace;
+                for (size_t i = 0; i < len; ++i)
+                {
+                    if (line[i] == ' ')
+                    {
+                        lastSpace = i;
+                    }
+                }
+            }
+            else
+            {
+                const char overflow = line[len - 1];
+                line[len - 1]       = '\0';
+                size_t drawLen      = len - 1;
+                draw_centered_line(line, drawLen, y);
+                line[0]   = overflow;
+                line[1]   = '\0';
+                len       = 1;
+                lastSpace = overflow == ' ' ? 0 : kNoSpace;
+            }
+        }
+    }
+
+    if (len > 0)
+    {
+        draw_centered_line(line, len, y);
+    }
+}
+
+void draw_centered_line(char* line, size_t& len, int16_t& y)
+{
+    while (len > 0 && line[0] == ' ')
+    {
+        memmove(line, line + 1, len);
+        --len;
+        line[len] = '\0';
+    }
+
+    while (len > 0 && line[len - 1] == ' ')
+    {
+        line[--len] = '\0';
+    }
+
+    if (len == 0 || y + kTextLineHeight > kTextMaxY)
+    {
+        return;
+    }
+
+    thefly_display.drawString(line, thefly_display.width() / 2, y);
+    y += kTextLineHeight;
+    len     = 0;
+    line[0] = '\0';
+}
+
+// -----------------------------------------------------------------------------
+// Formatting Helpers
+// -----------------------------------------------------------------------------
+
+void truncate_to_width(char* text, size_t text_size, int16_t width)
+{
+    static constexpr const char* kEllipsis    = "...";
+    static constexpr size_t      kEllipsisLen = 3;
+
+    if (!text || text_size <= kEllipsisLen + 1 || thefly_display.textWidth(text) <= width)
+    {
+        return;
+    }
+
+    size_t len = strlen(text);
+    while (len > 0)
+    {
+        --len;
+        text[len] = '\0';
+        strncat(text, kEllipsis, text_size - strlen(text) - 1);
+        if (thefly_display.textWidth(text) <= width)
+        {
+            return;
+        }
+        text[len] = '\0';
+    }
+
+    strlcpy(text, kEllipsis, text_size);
+}
+
+const char* display_cloud_url(const char* text)
+{
+    if (starts_with_case_insensitive(text, "https://www."))
+    {
+        return text + 12;
+    }
+    if (starts_with_case_insensitive(text, "http://www."))
+    {
+        return text + 11;
+    }
+    if (starts_with_case_insensitive(text, "https://"))
+    {
+        return text + 8;
+    }
+    if (starts_with_case_insensitive(text, "http://"))
+    {
+        return text + 7;
+    }
+
+    return text;
+}
+
+bool is_secure_url(const char* text)
+{
+    return starts_with_case_insensitive(text, "https://");
+}
+
+bool starts_with_case_insensitive(const char* text, const char* prefix)
+{
+    if (!text || !prefix)
+    {
+        return false;
+    }
+
+    while (*prefix)
+    {
+        char lhs = *text++;
+        char rhs = *prefix++;
+        if (lhs >= 'A' && lhs <= 'Z')
+        {
+            lhs = static_cast<char>(lhs - 'A' + 'a');
+        }
+        if (rhs >= 'A' && rhs <= 'Z')
+        {
+            rhs = static_cast<char>(rhs - 'A' + 'a');
+        }
+        if (lhs != rhs)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+int16_t slot_x(int slot)
+{
+    switch (slot)
+    {
+    case 0:
+        return 1;
+    case 1:
+        return static_cast<int16_t>((thefly_display.width() - kItemWidth) / 2);
+    case 2:
+    default:
+        return static_cast<int16_t>(thefly_display.width() - kItemWidth - 1);
+    }
+}
+
+int16_t exit_x()
+{
+    return static_cast<int16_t>((thefly_display.width() - kExitSize) / 2);
+}
+
+int16_t delete_x()
+{
+    return static_cast<int16_t>((thefly_display.width() * 5 / 6) - (kExitSize / 2));
+}
+
+} // namespace
