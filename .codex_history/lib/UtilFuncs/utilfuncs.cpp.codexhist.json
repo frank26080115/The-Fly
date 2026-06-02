@@ -979,5 +979,70 @@
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
+  },
+  {
+    "timestamp": "2026-06-02T09:34:42.263Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ClockAgent/ClockAgent.cpp",
+      "",
+      "## Active selection of the file:",
+      "days_from_civil",
+      "",
+      "## My request for Codex:",
+      "please edit",
+      "",
+      " * `lib\\Buttons\\Buttons.cpp`",
+      " * `lib\\ClockAgent\\ClockAgent.cpp`",
+      " * `lib\\Hotel\\Hotel.cpp`",
+      " * `lib\\MicroSdCard\\MicroSdCard.cpp`",
+      " * `lib\\MicroSdCard\\FirmwareUpdate.cpp`",
+      " * `lib\\WifiManager\\NtpSync.cpp`",
+      "",
+      "only, make sure they meet the guidelines at `developer-docs\\code-layout-policy.md`",
+      "",
+      "also `bool equal_ignore_case(const char* lhs, const char* rhs)` exists in `lib\\SpriteDraw\\IconLookup.cpp` but I am pretty sure we have one in `lib\\UtilFuncs\\utilfuncs.cpp` as `bool equals_case_insensitive(const char* lhs, const char* rhs)`. Use `utilfuncs.cpp` for it",
+      "",
+      "`utilfuncs.cpp` has a copy of `days_from_civil`, yet so does `FileHistory.cpp` `ClockAgent.cpp` and `NtpSync.cpp`, please make them all use `utilfuncs.cpp`. Look for other similar duplicated functions, use `utilfuncs.cpp` as much as possible.",
+      "",
+      "test build for error checking only with security level 0"
+    ],
+    "agent_reply": [
+      "Done. I reorganized the six requested files to follow `developer-docs\\code-layout-policy.md` with top-level flow first, prototype blocks near the top, and helpers later.",
+      "",
+      "I also did the duplicate-helper cleanup you called out:",
+      "- Exposed shared calendar helpers from `lib\\UtilFuncs\\utilfuncs.cpp/.h`.",
+      "- Updated `ClockAgent`, `NtpSync`, and `FileHistory` to use them.",
+      "- Replaced `IconLookup`’s local `equal_ignore_case` with `equals_case_insensitive`.",
+      "",
+      "Because of that explicit dedupe request, the touched set includes the six layout files plus `utilfuncs`, `IconLookup`, and `FileHistory`.",
+      "",
+      "Verification:",
+      "- `git diff --check` clean.",
+      "- `pio run -e thefly_sec0` passed cleanly.",
+      "- Restored build-generated `src\\version.c` churn; final status only shows the intended source changes."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/FileHistory.cpp",
+      "lib/UtilFuncs/utilfuncs.h",
+      "lib/UtilFuncs/utilfuncs.cpp",
+      "lib/SpriteDraw/IconLookup.cpp",
+      "lib/ClockAgent/ClockAgent.cpp",
+      "lib/WifiManager/NtpSync.cpp",
+      "lib/Buttons/Buttons.cpp",
+      "lib/Hotel/Hotel.cpp",
+      "lib/MicroSdCard/MicroSdCard.cpp",
+      "lib/MicroSdCard/FirmwareUpdate.cpp",
+      "src/version.c",
+      "developer-docs/code-layout-policy.md"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T09:46:12Z",
+    "type": "git_commit",
+    "commit_message": "more code neatening",
+    "commit_hash": "41a16a83dde0bcbb0faacc0e153b905a9aac33e4"
   }
 ]

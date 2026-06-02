@@ -3887,5 +3887,11 @@
     "type": "git_commit",
     "commit_message": "neatened up AudioFileRecorder",
     "commit_hash": "7d2a40d0d20d22480cb9f4acece804b0179ab1a7"
+  },
+  {
+    "timestamp": "2026-06-02T08:00:39Z",
+    "type": "git_commit",
+    "commit_message": "removed liblame",
+    "commit_hash": "85e8984bbe8d9aa6e1c7af99f40e7a1e1b7cd5ff"
   }
 ]

@@ -261,5 +261,72 @@
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
+  },
+  {
+    "timestamp": "2026-06-02T09:21:18.056Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "kMaxVolume",
+      "",
+      "## My request for Codex:",
+      "please edit",
+      "",
+      " * `lib\\AudioManager\\MicGainManager.cpp`",
+      " * `lib\\AudioManager\\SpeakerPeakActivity.cpp`",
+      " * `lib\\BluetoothManager\\BtHostList.cpp`",
+      " * `lib\\BattTracker\\BattTracker.cpp`",
+      " * `lib\\BluetoothManager\\CallManager.cpp`",
+      "",
+      "only, make sure they meet the guidelines at `developer-docs\\code-layout-policy.md`",
+      "",
+      "test build for error checking only with security level 0"
+    ],
+    "agent_reply": [
+      "Done. I reorganized only the five requested files to follow `developer-docs\\code-layout-policy.md`: main/public flow first, prototype blocks near the top, helpers moved lower with section headers.",
+      "",
+      "Touched files:",
+      "- `lib\\AudioManager\\MicGainManager.cpp`",
+      "- `lib\\AudioManager\\SpeakerPeakActivity.cpp`",
+      "- `lib\\BluetoothManager\\BtHostList.cpp`",
+      "- `lib\\BattTracker\\BattTracker.cpp`",
+      "- `lib\\BluetoothManager\\CallManager.cpp`",
+      "",
+      "Verification:",
+      "- `pio run -e thefly_sec0` passed.",
+      "- Final `git status` shows only those five files modified.",
+      "",
+      "Done. I reorganized only the five requested files to follow `developer-docs\\code-layout-policy.md`: main/public flow first, prototype blocks near the top, helpers moved lower with section headers.",
+      "",
+      "Touched files:",
+      "- `lib\\AudioManager\\MicGainManager.cpp`",
+      "- `lib\\AudioManager\\SpeakerPeakActivity.cpp`",
+      "- `lib\\BluetoothManager\\BtHostList.cpp`",
+      "- `lib\\BattTracker\\BattTracker.cpp`",
+      "- `lib\\BluetoothManager\\CallManager.cpp`",
+      "",
+      "Verification:",
+      "- `pio run -e thefly_sec0` passed.",
+      "- Final `git status` shows only those five files modified."
+    ],
+    "files": [
+      "lib/AudioManager/SpeakerPeakActivity.cpp",
+      "lib/BattTracker/BattTracker.cpp",
+      "lib/BluetoothManager/CallManager.cpp",
+      "lib/AudioManager/MicGainManager.cpp",
+      "lib/BluetoothManager/BtHostList.cpp",
+      "src/version.c",
+      "developer-docs/code-layout-policy.md"
+    ]
+  },
+  {
+    "timestamp": "2026-06-02T09:29:01Z",
+    "type": "git_commit",
+    "commit_message": "another pass for neatening the code",
+    "commit_hash": "69565ef8070e29a4eed56c25eb5f522168c02750"
   }
 ]
