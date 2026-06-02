@@ -27,6 +27,12 @@ ShineWrapper::ShineWrapper(uint32_t       sample_rate,
     config_.wave.channels   = num_of_channels_ == 1 ? PCM_MONO : PCM_STEREO;
     config_.mpeg.mode       = num_of_channels_ == 1 ? MONO : STEREO;
     config_.mpeg.bitr       = bit_rate_kbps_;
+
+    // NOTE: disable_bit_reservoir has no effect here
+    // but, the vendored Shine encoder appears to have the reservoir effectively disabled already:
+    // layer3.c (line 108) initializes ResvMax = 0.
+    // reservoir.c (line 30) immediately returns normal per-frame bits when ResvMax is zero.
+    // l3bitstream.c (line 103) writes main_data_begin as zero for both MPEG-I and MPEG-II paths.
 }
 
 ShineWrapper::~ShineWrapper()
