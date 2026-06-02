@@ -15,6 +15,10 @@
 #include <stdint.h>
 #include <string.h>
 
+// -----------------------------------------------------------------------------
+// Configuration
+// -----------------------------------------------------------------------------
+
 static constexpr const char* TAG                   = "FlyGui";
 static constexpr uint32_t    kSlowPollIntervalMs   = 1000 / 15;
 static constexpr uint32_t    kMediumPollIntervalMs = 1000 / 30;
@@ -24,6 +28,10 @@ static constexpr int16_t     kTopBarDateTimeWidth  = 150;
 static constexpr int16_t     kTopBarDateTimeHeight = 8;
 static constexpr int16_t     kTopBarBatteryWidth   = 22;
 
+// -----------------------------------------------------------------------------
+// Types
+// -----------------------------------------------------------------------------
+
 struct BatterySprite
 {
     const uint8_t* data     = nullptr;
@@ -32,9 +40,17 @@ struct BatterySprite
     size_t         byte_cnt = 0;
 };
 
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
+
 static int32_t       batteryStatusCode();
 static BatterySprite batterySpriteForStatus(int32_t status);
 static const char*   drawFailureStageName(SpriteDraw::DrawFailureStage stage);
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 FlyGui::FlyGui()
     : topBarDateTime_(
@@ -187,6 +203,10 @@ void FlyGui::requestTopBarFullRedraw()
     topBarNeedsFullRedraw_ = true;
 }
 
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
 void FlyGui::appendView(FlyGuiView& view)
 {
     view.next_ = nullptr;
@@ -283,6 +303,54 @@ bool FlyGui::shouldRunScheduledPoll(FlyGuiPollMode mode, uint32_t now)
     lastScheduledPollMs_ = now;
     return true;
 }
+
+void FlyGui::drawTopBar(bool forced)
+{
+    const int32_t  battery    = batteryStatusCode();
+    const uint32_t currentMs  = millis();
+    const bool     fullRedraw = forced || topBarNeedsFullRedraw_;
+
+    if (!fullRedraw && battery == topBarLastBattery_ && currentMs - lastTopBarDrawMs_ < 1000)
+    {
+        return;
+    }
+
+    // Design: FlyGui is responsible for drawing the top bar with date/time and battery status.
+    if (fullRedraw)
+    {
+        thefly_display.fillRect(0, 0, thefly_display.width(), FlyGui::kTopBarHeight, TFT_BLACK);
+    }
+
+    if (topBarDateTime_)
+    {
+        // Design: top-bar date/time drawing reuses the FlyGuiDateTime text item.
+        topBarDateTime_->redraw(fullRedraw);
+    }
+
+    if (fullRedraw || battery != topBarLastBattery_)
+    {
+        const int32_t batteryX = thefly_display.width() - kTopBarBatteryWidth;
+        thefly_display.fillRect(batteryX, 0, kTopBarBatteryWidth, FlyGui::kTopBarHeight, TFT_BLACK);
+
+        const BatterySprite sprite = batterySpriteForStatus(battery);
+        if (sprite.data && sprite.byte_cnt > 0 && sprite.width > 0 && sprite.height > 0)
+        {
+            const int32_t x = thefly_display.width() - 4 - static_cast<int32_t>(sprite.width);
+            const int32_t y = (FlyGui::kTopBarHeight - static_cast<int32_t>(sprite.height)) / 2;
+            SpriteDraw::drawPng(sprite.data, sprite.byte_cnt, x, y, sprite.width, sprite.height, true);
+        }
+    }
+
+    DiskStats::drawDiskSpaceWarning();
+
+    topBarLastBattery_     = battery;
+    lastTopBarDrawMs_      = currentMs;
+    topBarNeedsFullRedraw_ = false;
+}
+
+// -----------------------------------------------------------------------------
+// View Logic
+// -----------------------------------------------------------------------------
 
 FlyGuiView::FlyGuiView(uint16_t id) : id_(id) {}
 
@@ -389,6 +457,10 @@ void FlyGuiView::redraw(bool forced)
     }
     markClean();
 }
+
+// -----------------------------------------------------------------------------
+// Item Logic
+// -----------------------------------------------------------------------------
 
 FlyGuiItem::FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* mainText, Button* button)
     : button_(button), x_(x), y_(y), width_(width), height_(height), mainText_(mainText), touchable_(button != nullptr)
@@ -663,75 +735,18 @@ void FlyGuiItem::redraw(bool forced)
     markClean();
 }
 
+// -----------------------------------------------------------------------------
+// Modal Logic
+// -----------------------------------------------------------------------------
+
 FlyGuiModal::FlyGuiModal(int16_t x, int16_t y, int16_t width, int16_t height, const char* mainText)
     : FlyGuiItem(x, y, width, height, mainText)
 {
 }
 
-static const char* drawFailureStageName(SpriteDraw::DrawFailureStage stage)
-{
-    switch (stage)
-    {
-    case SpriteDraw::DRAW_FAILURE_NONE:
-        return "none";
-    case SpriteDraw::DRAW_FAILURE_INVALID_ARGUMENT:
-        return "invalid_arg";
-    case SpriteDraw::DRAW_FAILURE_ALLOC:
-        return "alloc";
-    case SpriteDraw::DRAW_FAILURE_PREPARE:
-        return "prepare";
-    case SpriteDraw::DRAW_FAILURE_SIZE_MISMATCH:
-        return "size_mismatch";
-    case SpriteDraw::DRAW_FAILURE_DECODE:
-        return "decode";
-    default:
-        return "unknown";
-    }
-}
-
-void FlyGui::drawTopBar(bool forced)
-{
-    const int32_t  battery    = batteryStatusCode();
-    const uint32_t currentMs  = millis();
-    const bool     fullRedraw = forced || topBarNeedsFullRedraw_;
-
-    if (!fullRedraw && battery == topBarLastBattery_ && currentMs - lastTopBarDrawMs_ < 1000)
-    {
-        return;
-    }
-
-    // Design: FlyGui is responsible for drawing the top bar with date/time and battery status.
-    if (fullRedraw)
-    {
-        thefly_display.fillRect(0, 0, thefly_display.width(), FlyGui::kTopBarHeight, TFT_BLACK);
-    }
-
-    if (topBarDateTime_)
-    {
-        // Design: top-bar date/time drawing reuses the FlyGuiDateTime text item.
-        topBarDateTime_->redraw(fullRedraw);
-    }
-
-    if (fullRedraw || battery != topBarLastBattery_)
-    {
-        const int32_t batteryX = thefly_display.width() - kTopBarBatteryWidth;
-        thefly_display.fillRect(batteryX, 0, kTopBarBatteryWidth, FlyGui::kTopBarHeight, TFT_BLACK);
-
-        const BatterySprite sprite = batterySpriteForStatus(battery);
-        if (sprite.data && sprite.byte_cnt > 0 && sprite.width > 0 && sprite.height > 0)
-        {
-            const int32_t x = thefly_display.width() - 4 - static_cast<int32_t>(sprite.width);
-            const int32_t y = (FlyGui::kTopBarHeight - static_cast<int32_t>(sprite.height)) / 2;
-            SpriteDraw::drawPng(sprite.data, sprite.byte_cnt, x, y, sprite.width, sprite.height, true);
-        }
-    }
-
-    DiskStats::drawDiskSpaceWarning();
-
-    topBarLastBattery_     = battery;
-    lastTopBarDrawMs_      = currentMs;
-    topBarNeedsFullRedraw_ = false;
-}
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
 
 static int32_t batteryStatusCode()
 {
@@ -782,5 +797,30 @@ static BatterySprite batterySpriteForStatus(int32_t status)
                 SPRITE_BATT_FULL_CHARGING_BYTES};
     default:
         return {};
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Debug / Logging Helpers
+// -----------------------------------------------------------------------------
+
+static const char* drawFailureStageName(SpriteDraw::DrawFailureStage stage)
+{
+    switch (stage)
+    {
+    case SpriteDraw::DRAW_FAILURE_NONE:
+        return "none";
+    case SpriteDraw::DRAW_FAILURE_INVALID_ARGUMENT:
+        return "invalid_arg";
+    case SpriteDraw::DRAW_FAILURE_ALLOC:
+        return "alloc";
+    case SpriteDraw::DRAW_FAILURE_PREPARE:
+        return "prepare";
+    case SpriteDraw::DRAW_FAILURE_SIZE_MISMATCH:
+        return "size_mismatch";
+    case SpriteDraw::DRAW_FAILURE_DECODE:
+        return "decode";
+    default:
+        return "unknown";
     }
 }

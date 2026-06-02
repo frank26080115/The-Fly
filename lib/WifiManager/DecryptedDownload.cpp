@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "DecryptedDownload.h"
 
 #ifdef BUILD_WITH_DECRYPTED_DOWNLOAD
@@ -28,6 +32,10 @@ namespace DecryptedDownload
 namespace
 {
 
+// -----------------------------------------------------------------------------
+// Configuration
+// -----------------------------------------------------------------------------
+
 constexpr size_t      kFileNameBufferSize = 256;
 constexpr const char* TAG                 = "DecryptedDownload";
 constexpr const char* kErrorAttribute     = "decrypted_download_error";
@@ -44,6 +52,255 @@ constexpr size_t   kEncryptedRequestMinSize    = kEncryptedRequestHeaderSize + k
 constexpr size_t   kMaxEncryptedRequestSize    = 2048;
 constexpr uint64_t kNoDecryptedChunk           = UINT64_MAX;
 #endif
+
+// -----------------------------------------------------------------------------
+// Types
+// -----------------------------------------------------------------------------
+
+#if BUILD_WITH_SECURITY_LEVEL >= 1 && defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
+enum class DecryptedRecordingKind : uint8_t
+{
+    Unknown,
+    Wav,
+    Mp3,
+};
+
+struct EncryptedRequestUploadState
+{
+    AsyncWebServerRequest* request       = nullptr;
+    uint8_t*               encrypted     = nullptr;
+    size_t                 expected_size = 0;
+    size_t                 received_size = 0;
+};
+#endif
+
+// -----------------------------------------------------------------------------
+// Globals
+// -----------------------------------------------------------------------------
+
+#if BUILD_WITH_SECURITY_LEVEL >= 1 && defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
+EncryptedRequestUploadState g_upload;
+#endif
+
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
+
+#if BUILD_WITH_SECURITY_LEVEL >= 1 && defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
+bool begin_upload(AsyncWebServerRequest* request, size_t total);
+bool decode_base64url(const String& text, uint8_t*& out, size_t& out_size);
+bool decrypt_filename_blob(const uint8_t  session_key[WebServer::kSessionKeySize],
+                           const uint8_t* encrypted,
+                           size_t         encrypted_size,
+                           uint8_t*&      plaintext,
+                           size_t&        plaintext_size,
+                           int&           status_code,
+                           String&        error);
+bool decrypt_uploaded_request_body(const uint8_t session_key[WebServer::kSessionKeySize],
+                                   uint8_t*&     plaintext,
+                                   size_t&       plaintext_size,
+                                   int&          status_code,
+                                   String&       error);
+bool is_encrypted_recording_path(const char* path);
+bool normalize_download_path(const String& file_name, char* out, size_t out_size);
+bool parse_request(const uint8_t* plaintext,
+                   size_t         plaintext_size,
+                   char*          file_path,
+                   size_t         file_path_size,
+                   bool&          stream_inline,
+                   int&           status_code,
+                   String&        error);
+void reset_upload(AsyncWebServerRequest* request);
+void send_recording(AsyncWebServerRequest* request, const char* file_path, bool stream_inline);
+bool upload_complete(AsyncWebServerRequest* request);
+#endif
+void note_web_error();
+void set_error(AsyncWebServerRequest* request, int status_code, const char* message);
+
+} // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
+
+void writeBody(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total)
+{
+#if BUILD_WITH_SECURITY_LEVEL >= 1 && defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
+    if (!request || len == 0)
+    {
+        return;
+    }
+
+    if (index == 0 && !begin_upload(request, total))
+    {
+        return;
+    }
+    if (request->hasAttribute(kErrorAttribute))
+    {
+        return;
+    }
+    if (g_upload.request != request || !g_upload.encrypted)
+    {
+        set_error(request, 500, "Decrypted download upload state lost");
+        return;
+    }
+    if (index + len > g_upload.expected_size)
+    {
+        set_error(request, 400, "Encrypted download request body length mismatch");
+        reset_upload(request);
+        return;
+    }
+
+    memcpy(g_upload.encrypted + index, data, len);
+    const size_t received_end = index + len;
+    if (received_end > g_upload.received_size)
+    {
+        g_upload.received_size = received_end;
+    }
+#else
+    (void)request;
+    (void)data;
+    (void)len;
+    (void)index;
+    (void)total;
+#endif
+}
+
+void finishGet(AsyncWebServerRequest* request)
+{
+    if (!request)
+    {
+        return;
+    }
+
+#if BUILD_WITH_SECURITY_LEVEL < 1 || !defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
+    note_web_error();
+    request->send(404, "text/plain", "Decrypted downloads are not available");
+#else
+    const AsyncWebParameter* encrypted_param = WebServer::findRequestParam(request, "file_name");
+    if (!encrypted_param || encrypted_param->value().isEmpty())
+    {
+        DBG_LOGW(TAG, "decrypted GET failed: missing encrypted file_name parameter");
+        note_web_error();
+        request->send(400, "text/plain", "Missing encrypted filename");
+        return;
+    }
+
+    uint8_t* encrypted      = nullptr;
+    size_t   encrypted_size = 0;
+    if (!decode_base64url(encrypted_param->value(), encrypted, encrypted_size))
+    {
+        DBG_LOGW(TAG, "decrypted GET failed: base64url decode failed");
+        note_web_error();
+        request->send(400, "text/plain", "Encrypted filename encoding is invalid");
+        return;
+    }
+
+    uint8_t session_key[WebServer::kSessionKeySize] = {};
+    if (!WebServer::copyCachedSessionKey(session_key))
+    {
+        free(encrypted);
+        note_web_error();
+        request->send(401, "text/plain", "Session key unavailable");
+        return;
+    }
+
+    int      status_code = 500;
+    String   error;
+    uint8_t* plaintext      = nullptr;
+    size_t   plaintext_size = 0;
+    if (!decrypt_filename_blob(session_key, encrypted, encrypted_size, plaintext, plaintext_size, status_code, error))
+    {
+        mbedtls_platform_zeroize(session_key, sizeof(session_key));
+        free(encrypted);
+        note_web_error();
+        request->send(status_code, "text/plain", error.isEmpty() ? "Encrypted download request failed" : error);
+        return;
+    }
+    mbedtls_platform_zeroize(session_key, sizeof(session_key));
+    free(encrypted);
+
+    char       file_path[kFileNameBufferSize] = {};
+    const bool parsed =
+        normalize_download_path(String(reinterpret_cast<const char*>(plaintext)), file_path, sizeof(file_path)) &&
+        is_encrypted_recording_path(file_path);
+    free(plaintext);
+    if (!parsed)
+    {
+        note_web_error();
+        request->send(400, "text/plain", "Invalid encrypted filename");
+        return;
+    }
+
+    send_recording(request, file_path, false);
+#endif
+}
+
+void finish(AsyncWebServerRequest* request)
+{
+    if (!request)
+    {
+        return;
+    }
+
+#if BUILD_WITH_SECURITY_LEVEL < 1 || !defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
+    note_web_error();
+    request->send(404, "text/plain", "Decrypted downloads are not available");
+#else
+    if (!upload_complete(request))
+    {
+        return;
+    }
+
+    uint8_t                            session_key[WebServer::kSessionKeySize] = {};
+    const WebServer::SessionAuthResult auth = WebServer::authenticateSessionRequest(request, session_key);
+    if (auth != WebServer::SessionAuthResult::Ok)
+    {
+        mbedtls_platform_zeroize(session_key, sizeof(session_key));
+        reset_upload(request);
+        note_web_error();
+        request->send(401, "text/plain", WebServer::sessionAuthResultName(auth));
+        return;
+    }
+
+    int      status_code = 500;
+    String   error;
+    uint8_t* plaintext      = nullptr;
+    size_t   plaintext_size = 0;
+    if (!decrypt_uploaded_request_body(session_key, plaintext, plaintext_size, status_code, error))
+    {
+        mbedtls_platform_zeroize(session_key, sizeof(session_key));
+        reset_upload(request);
+        note_web_error();
+        request->send(status_code, "text/plain", error.isEmpty() ? "Encrypted download request failed" : error);
+        return;
+    }
+    mbedtls_platform_zeroize(session_key, sizeof(session_key));
+    reset_upload(request);
+
+    char       file_path[kFileNameBufferSize] = {};
+    bool       stream_inline                  = false;
+    const bool parsed =
+        parse_request(plaintext, plaintext_size, file_path, sizeof(file_path), stream_inline, status_code, error);
+    free(plaintext);
+    if (!parsed)
+    {
+        note_web_error();
+        request->send(status_code, "text/plain", error.isEmpty() ? "Invalid decrypted download request" : error);
+        return;
+    }
+
+    send_recording(request, file_path, stream_inline);
+#endif
+}
+
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
 
 void note_web_download()
 {
@@ -162,13 +419,6 @@ bool normalize_download_path(const String& file_name, char* out, size_t out_size
     return true;
 }
 
-enum class DecryptedRecordingKind : uint8_t
-{
-    Unknown,
-    Wav,
-    Mp3,
-};
-
 DecryptedRecordingKind decrypted_recording_kind_for_path(const char* path)
 {
     if (ends_with_case_insensitive(path, ".rec"))
@@ -277,16 +527,6 @@ void decrypted_recording_filename(const char* path, DecryptedRecordingKind kind,
         memcpy(out + len, decrypted_ext, decrypted_ext_len + 1);
     }
 }
-
-struct EncryptedRequestUploadState
-{
-    AsyncWebServerRequest* request       = nullptr;
-    uint8_t*               encrypted     = nullptr;
-    size_t                 expected_size = 0;
-    size_t                 received_size = 0;
-};
-
-EncryptedRequestUploadState g_upload;
 
 void reset_upload(AsyncWebServerRequest* request = nullptr)
 {
@@ -1058,176 +1298,6 @@ void send_recording(AsyncWebServerRequest* request, const char* file_path, bool 
 
 } // namespace
 
-void writeBody(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total)
-{
-#if BUILD_WITH_SECURITY_LEVEL >= 1 && defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
-    if (!request || len == 0)
-    {
-        return;
-    }
-
-    if (index == 0 && !begin_upload(request, total))
-    {
-        return;
-    }
-    if (request->hasAttribute(kErrorAttribute))
-    {
-        return;
-    }
-    if (g_upload.request != request || !g_upload.encrypted)
-    {
-        set_error(request, 500, "Decrypted download upload state lost");
-        return;
-    }
-    if (index + len > g_upload.expected_size)
-    {
-        set_error(request, 400, "Encrypted download request body length mismatch");
-        reset_upload(request);
-        return;
-    }
-
-    memcpy(g_upload.encrypted + index, data, len);
-    const size_t received_end = index + len;
-    if (received_end > g_upload.received_size)
-    {
-        g_upload.received_size = received_end;
-    }
-#else
-    (void)request;
-    (void)data;
-    (void)len;
-    (void)index;
-    (void)total;
-#endif
-}
-
-void finishGet(AsyncWebServerRequest* request)
-{
-    if (!request)
-    {
-        return;
-    }
-
-#if BUILD_WITH_SECURITY_LEVEL < 1 || !defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
-    note_web_error();
-    request->send(404, "text/plain", "Decrypted downloads are not available");
-#else
-    const AsyncWebParameter* encrypted_param = WebServer::findRequestParam(request, "file_name");
-    if (!encrypted_param || encrypted_param->value().isEmpty())
-    {
-        DBG_LOGW(TAG, "decrypted GET failed: missing encrypted file_name parameter");
-        note_web_error();
-        request->send(400, "text/plain", "Missing encrypted filename");
-        return;
-    }
-
-    uint8_t* encrypted      = nullptr;
-    size_t   encrypted_size = 0;
-    if (!decode_base64url(encrypted_param->value(), encrypted, encrypted_size))
-    {
-        DBG_LOGW(TAG, "decrypted GET failed: base64url decode failed");
-        note_web_error();
-        request->send(400, "text/plain", "Encrypted filename encoding is invalid");
-        return;
-    }
-
-    uint8_t session_key[WebServer::kSessionKeySize] = {};
-    if (!WebServer::copyCachedSessionKey(session_key))
-    {
-        free(encrypted);
-        note_web_error();
-        request->send(401, "text/plain", "Session key unavailable");
-        return;
-    }
-
-    int      status_code = 500;
-    String   error;
-    uint8_t* plaintext      = nullptr;
-    size_t   plaintext_size = 0;
-    if (!decrypt_filename_blob(session_key, encrypted, encrypted_size, plaintext, plaintext_size, status_code, error))
-    {
-        mbedtls_platform_zeroize(session_key, sizeof(session_key));
-        free(encrypted);
-        note_web_error();
-        request->send(status_code, "text/plain", error.isEmpty() ? "Encrypted download request failed" : error);
-        return;
-    }
-    mbedtls_platform_zeroize(session_key, sizeof(session_key));
-    free(encrypted);
-
-    char       file_path[kFileNameBufferSize] = {};
-    const bool parsed =
-        normalize_download_path(String(reinterpret_cast<const char*>(plaintext)), file_path, sizeof(file_path)) &&
-        is_encrypted_recording_path(file_path);
-    free(plaintext);
-    if (!parsed)
-    {
-        note_web_error();
-        request->send(400, "text/plain", "Invalid encrypted filename");
-        return;
-    }
-
-    send_recording(request, file_path, false);
-#endif
-}
-
-void finish(AsyncWebServerRequest* request)
-{
-    if (!request)
-    {
-        return;
-    }
-
-#if BUILD_WITH_SECURITY_LEVEL < 1 || !defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
-    note_web_error();
-    request->send(404, "text/plain", "Decrypted downloads are not available");
-#else
-    if (!upload_complete(request))
-    {
-        return;
-    }
-
-    uint8_t                            session_key[WebServer::kSessionKeySize] = {};
-    const WebServer::SessionAuthResult auth = WebServer::authenticateSessionRequest(request, session_key);
-    if (auth != WebServer::SessionAuthResult::Ok)
-    {
-        mbedtls_platform_zeroize(session_key, sizeof(session_key));
-        reset_upload(request);
-        note_web_error();
-        request->send(401, "text/plain", WebServer::sessionAuthResultName(auth));
-        return;
-    }
-
-    int      status_code = 500;
-    String   error;
-    uint8_t* plaintext      = nullptr;
-    size_t   plaintext_size = 0;
-    if (!decrypt_uploaded_request_body(session_key, plaintext, plaintext_size, status_code, error))
-    {
-        mbedtls_platform_zeroize(session_key, sizeof(session_key));
-        reset_upload(request);
-        note_web_error();
-        request->send(status_code, "text/plain", error.isEmpty() ? "Encrypted download request failed" : error);
-        return;
-    }
-    mbedtls_platform_zeroize(session_key, sizeof(session_key));
-    reset_upload(request);
-
-    char       file_path[kFileNameBufferSize] = {};
-    bool       stream_inline                  = false;
-    const bool parsed =
-        parse_request(plaintext, plaintext_size, file_path, sizeof(file_path), stream_inline, status_code, error);
-    free(plaintext);
-    if (!parsed)
-    {
-        note_web_error();
-        request->send(status_code, "text/plain", error.isEmpty() ? "Invalid decrypted download request" : error);
-        return;
-    }
-
-    send_recording(request, file_path, stream_inline);
-#endif
-}
 
 } // namespace DecryptedDownload
 

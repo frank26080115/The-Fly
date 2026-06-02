@@ -6,6 +6,10 @@
 #include "ClockAgent.h"
 #include "dbg_log.h"
 
+// -----------------------------------------------------------------------------
+// Configuration
+// -----------------------------------------------------------------------------
+
 namespace
 {
 
@@ -20,61 +24,18 @@ namespace
 constexpr size_t kLineMax = 128;
 constexpr size_t kNoSpace = static_cast<size_t>(-1);
 
-void trim_leading_spaces(char* line, size_t& len)
-{
-    size_t first = 0;
-    while (first < len && line[first] == ' ')
-    {
-        ++first;
-    }
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-    if (first == 0)
-    {
-        return;
-    }
-
-    memmove(line, line + first, len - first);
-    len -= first;
-    line[len] = '\0';
-}
-
-void recalc_last_space(const char* line, size_t len, size_t& last_space)
-{
-    last_space = kNoSpace;
-    for (size_t i = 0; i < len; ++i)
-    {
-        if (line[i] == ' ')
-        {
-            last_space = i;
-        }
-    }
-}
-
-bool draw_line(char* line, size_t& len, int16_t x, int16_t& y, int16_t max_y, int16_t line_height)
-{
-    trim_leading_spaces(line, len);
-    while (len > 0 && line[len - 1] == ' ')
-    {
-        line[--len] = '\0';
-    }
-
-    if (len == 0)
-    {
-        return true;
-    }
-
-    if (y + line_height > max_y)
-    {
-        return false;
-    }
-
-    thefly_display.drawString(line, x, y);
-    y += line_height;
-    len     = 0;
-    line[0] = '\0';
-    return true;
-}
+bool draw_line(char* line, size_t& len, int16_t x, int16_t& y, int16_t max_y, int16_t line_height);
+void recalc_last_space(const char* line, size_t len, size_t& last_space);
+void trim_leading_spaces(char* line, size_t& len);
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 void drawWrappedText(const char* text, int16_t x, int16_t y, int16_t width, int16_t maxY, int16_t lineHeight)
 {
@@ -162,6 +123,10 @@ void drawWrappedText(const char* text, int16_t x, int16_t y, int16_t width, int1
     }
 }
 } // namespace FlyGuiTextUtil
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 FlyGuiText::FlyGuiText(int16_t     x,
                        int16_t     y,
@@ -265,6 +230,10 @@ void FlyGuiText::redraw(bool forced)
     updateRememberedText();
     markClean();
 }
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
 
 void FlyGuiText::updateRememberedText()
 {
@@ -387,3 +356,68 @@ void FlyGuiStopwatch::redraw(bool forced)
     setText(text);
     FlyGuiText::redraw(forced);
 }
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+namespace FlyGuiTextUtil
+{
+namespace
+{
+void trim_leading_spaces(char* line, size_t& len)
+{
+    size_t first = 0;
+    while (first < len && line[first] == ' ')
+    {
+        ++first;
+    }
+
+    if (first == 0)
+    {
+        return;
+    }
+
+    memmove(line, line + first, len - first);
+    len -= first;
+    line[len] = '\0';
+}
+
+void recalc_last_space(const char* line, size_t len, size_t& last_space)
+{
+    last_space = kNoSpace;
+    for (size_t i = 0; i < len; ++i)
+    {
+        if (line[i] == ' ')
+        {
+            last_space = i;
+        }
+    }
+}
+
+bool draw_line(char* line, size_t& len, int16_t x, int16_t& y, int16_t max_y, int16_t line_height)
+{
+    trim_leading_spaces(line, len);
+    while (len > 0 && line[len - 1] == ' ')
+    {
+        line[--len] = '\0';
+    }
+
+    if (len == 0)
+    {
+        return true;
+    }
+
+    if (y + line_height > max_y)
+    {
+        return false;
+    }
+
+    thefly_display.drawString(line, x, y);
+    y += line_height;
+    len     = 0;
+    line[0] = '\0';
+    return true;
+}
+} // namespace
+} // namespace FlyGuiTextUtil

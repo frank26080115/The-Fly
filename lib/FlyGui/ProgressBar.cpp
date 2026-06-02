@@ -1,65 +1,24 @@
 #include "ProgressBar.h"
 
+// -----------------------------------------------------------------------------
+// Configuration
+// -----------------------------------------------------------------------------
+
 namespace
 {
 constexpr uint16_t kHueRed   = 0;
 constexpr uint16_t kHueGreen = 120;
 
-uint16_t hsv_to_rgb565(uint16_t hue, uint8_t saturation, uint8_t value)
-{
-    hue %= 360U;
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-    const uint8_t region    = hue / 60U;
-    const uint8_t remainder = static_cast<uint8_t>(((hue % 60U) * 255U) / 60U);
-
-    const uint8_t p = static_cast<uint8_t>((static_cast<uint16_t>(value) * (255U - saturation)) / 255U);
-    const uint8_t q = static_cast<uint8_t>(
-        (static_cast<uint16_t>(value) * (255U - ((static_cast<uint16_t>(saturation) * remainder) / 255U))) / 255U);
-    const uint8_t t = static_cast<uint8_t>(
-        (static_cast<uint16_t>(value) * (255U - ((static_cast<uint16_t>(saturation) * (255U - remainder)) / 255U))) /
-        255U);
-
-    uint8_t r = 0;
-    uint8_t g = 0;
-    uint8_t b = 0;
-
-    switch (region)
-    {
-    case 0:
-        r = value;
-        g = t;
-        b = p;
-        break;
-    case 1:
-        r = q;
-        g = value;
-        b = p;
-        break;
-    case 2:
-        r = p;
-        g = value;
-        b = t;
-        break;
-    case 3:
-        r = p;
-        g = q;
-        b = value;
-        break;
-    case 4:
-        r = t;
-        g = p;
-        b = value;
-        break;
-    default:
-        r = value;
-        g = p;
-        b = q;
-        break;
-    }
-
-    return thefly_display.color565(r, g, b);
-}
+uint16_t hsv_to_rgb565(uint16_t hue, uint8_t saturation, uint8_t value);
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 ProgressBar::ProgressBar(int16_t x, int16_t y, int16_t width, int16_t height) : FlyGuiItem(x, y, width, height) {}
 
@@ -109,6 +68,10 @@ void ProgressBar::redraw(bool forced)
 
     firstDraw();
 }
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
 
 float ProgressBar::normalizeProgress(float progress)
 {
@@ -191,3 +154,65 @@ uint16_t ProgressBar::fillColor() const
             : static_cast<uint16_t>(kHueRed + ((static_cast<float>(kHueGreen - kHueRed) * progress_) / 50.0f));
     return hsv_to_rgb565(hue, 255, 255);
 }
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+namespace
+{
+uint16_t hsv_to_rgb565(uint16_t hue, uint8_t saturation, uint8_t value)
+{
+    hue %= 360U;
+
+    const uint8_t region    = hue / 60U;
+    const uint8_t remainder = static_cast<uint8_t>(((hue % 60U) * 255U) / 60U);
+
+    const uint8_t p = static_cast<uint8_t>((static_cast<uint16_t>(value) * (255U - saturation)) / 255U);
+    const uint8_t q = static_cast<uint8_t>(
+        (static_cast<uint16_t>(value) * (255U - ((static_cast<uint16_t>(saturation) * remainder) / 255U))) / 255U);
+    const uint8_t t = static_cast<uint8_t>(
+        (static_cast<uint16_t>(value) * (255U - ((static_cast<uint16_t>(saturation) * (255U - remainder)) / 255U))) /
+        255U);
+
+    uint8_t r = 0;
+    uint8_t g = 0;
+    uint8_t b = 0;
+
+    switch (region)
+    {
+    case 0:
+        r = value;
+        g = t;
+        b = p;
+        break;
+    case 1:
+        r = q;
+        g = value;
+        b = p;
+        break;
+    case 2:
+        r = p;
+        g = value;
+        b = t;
+        break;
+    case 3:
+        r = p;
+        g = q;
+        b = value;
+        break;
+    case 4:
+        r = t;
+        g = p;
+        b = value;
+        break;
+    default:
+        r = value;
+        g = p;
+        b = q;
+        break;
+    }
+
+    return thefly_display.color565(r, g, b);
+}
+} // namespace

@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "WebCfgHandlers.h"
 
 #include <ArduinoJson.h>
@@ -32,6 +36,10 @@ namespace WebCfgHandlers
 namespace
 {
 
+// -----------------------------------------------------------------------------
+// Configuration
+// -----------------------------------------------------------------------------
+
 constexpr const char* TAG                     = "WebCfgHandlers";
 constexpr size_t      kGcmNonceSize           = 12;
 constexpr size_t      kGcmTagSize             = 16;
@@ -52,6 +60,389 @@ constexpr const char* kPinCodePostErrorAttribute   = "pin_code_post_error";
 constexpr const char* kPinCodePostStatusAttribute  = "pin_code_post_status";
 constexpr const char* kPinCodePostStartedAttribute = "pin_code_post_started";
 #endif
+
+// -----------------------------------------------------------------------------
+// Types
+// -----------------------------------------------------------------------------
+
+struct BinaryBlob
+{
+    uint8_t* data = nullptr;
+    size_t   size = 0;
+
+    ~BinaryBlob()
+    {
+        free(data);
+    }
+};
+
+struct SetCfgUploadState
+{
+    AsyncWebServerRequest* request       = nullptr;
+    uint8_t*               encrypted     = nullptr;
+    size_t                 expected_size = 0;
+    size_t                 received_size = 0;
+};
+
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+struct PinCodePostUploadState
+{
+    AsyncWebServerRequest* request       = nullptr;
+    uint8_t*               encrypted     = nullptr;
+    size_t                 expected_size = 0;
+    size_t                 received_size = 0;
+};
+#endif
+
+// -----------------------------------------------------------------------------
+// Globals
+// -----------------------------------------------------------------------------
+
+SetCfgUploadState g_set_cfg_upload;
+
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+PinCodePostUploadState g_pin_code_post_upload;
+#endif
+
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
+
+void append_json_i64(String& json, long long value);
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+bool authenticate_pin_code_response_session(AsyncWebServerRequest* request,
+                                            uint8_t                session_key[WebServer::kSessionKeySize]);
+#endif
+bool begin_set_cfg_upload(AsyncWebServerRequest* request, size_t total);
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+bool begin_pin_code_post_upload(AsyncWebServerRequest* request, size_t total);
+bool decrypt_pin_code_post_body(const uint8_t session_key[WebServer::kSessionKeySize],
+                                JsonDocument& doc,
+                                int&          status_code,
+                                String&       error);
+#endif
+bool config_runtime_available(String& error);
+bool process_set_cfg_blob(
+    AsyncWebServerRequest* request, const uint8_t* encrypted, size_t encrypted_size, int& status_code, String& error);
+bool read_unix_time_param(AsyncWebServerRequest* request, time_t& out, String& error);
+void reset_set_cfg_upload(AsyncWebServerRequest* request);
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+void reset_pin_code_post_upload(AsyncWebServerRequest* request);
+#endif
+void send_cfg_json_response(AsyncWebServerRequest* request);
+void send_set_cfg_error(AsyncWebServerRequest* request);
+void set_cfg_error(AsyncWebServerRequest* request, int status_code, const char* message);
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+void set_pin_code_post_error(AsyncWebServerRequest* request, int status_code, const char* message);
+#endif
+void note_web_error();
+void note_web_save();
+bool time_sync_allowed(String& error);
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+bool validate_custom_pin_text(const char* pin, String& error);
+bool pin_code_post_upload_complete(AsyncWebServerRequest* request);
+#endif
+
+} // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
+
+void sendCfg(AsyncWebServerRequest* request)
+{
+    send_cfg_json_response(request);
+}
+
+void writeSetCfgBody(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total)
+{
+    if (!request || len == 0)
+    {
+        return;
+    }
+
+    if (index == 0 && !begin_set_cfg_upload(request, total))
+    {
+        return;
+    }
+    if (request->hasAttribute(kSetCfgErrorAttribute))
+    {
+        return;
+    }
+    if (g_set_cfg_upload.request != request || !g_set_cfg_upload.encrypted)
+    {
+        set_cfg_error(request, 500, "Config upload state lost");
+        return;
+    }
+    if (index + len > g_set_cfg_upload.expected_size)
+    {
+        set_cfg_error(request, 400, "Encrypted config body length mismatch");
+        reset_set_cfg_upload(request);
+        return;
+    }
+
+    memcpy(g_set_cfg_upload.encrypted + index, data, len);
+    const size_t received_end = index + len;
+    if (received_end > g_set_cfg_upload.received_size)
+    {
+        g_set_cfg_upload.received_size = received_end;
+    }
+}
+
+void finishSetCfg(AsyncWebServerRequest* request)
+{
+    if (!request)
+    {
+        return;
+    }
+
+    String runtime_error;
+    if (!config_runtime_available(runtime_error))
+    {
+        reset_set_cfg_upload(request);
+        note_web_error();
+        request->send(503, "text/plain", runtime_error);
+        return;
+    }
+
+    if (request->hasAttribute(kSetCfgErrorAttribute))
+    {
+        reset_set_cfg_upload(request);
+        send_set_cfg_error(request);
+        return;
+    }
+    if (!request->hasAttribute(kSetCfgStartedAttribute))
+    {
+        set_cfg_error(request, 400, "Missing encrypted config body");
+        send_set_cfg_error(request);
+        return;
+    }
+    if (g_set_cfg_upload.request != request || !g_set_cfg_upload.encrypted)
+    {
+        set_cfg_error(request, 500, "Config upload state lost");
+        send_set_cfg_error(request);
+        return;
+    }
+    if (g_set_cfg_upload.received_size != g_set_cfg_upload.expected_size)
+    {
+        set_cfg_error(request, 400, "Encrypted config body is incomplete");
+        reset_set_cfg_upload(request);
+        send_set_cfg_error(request);
+        return;
+    }
+
+    int        status_code = 500;
+    String     error;
+    const bool ok =
+        process_set_cfg_blob(request, g_set_cfg_upload.encrypted, g_set_cfg_upload.expected_size, status_code, error);
+    reset_set_cfg_upload(request);
+
+    if (!ok)
+    {
+        note_web_error();
+        request->send(status_code, "text/plain", error.isEmpty() ? "Config update failed" : error);
+        return;
+    }
+
+    note_web_save();
+    DBG_LOGI(TAG, "updated config from encrypted web upload");
+    request->send(200, "application/json", "{\"status\":\"ok\"}");
+}
+
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+void writePinCodeBody(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total)
+{
+    if (!request || len == 0)
+    {
+        return;
+    }
+
+    if (index == 0 && !begin_pin_code_post_upload(request, total))
+    {
+        return;
+    }
+    if (request->hasAttribute(kPinCodePostErrorAttribute))
+    {
+        return;
+    }
+    if (g_pin_code_post_upload.request != request || !g_pin_code_post_upload.encrypted)
+    {
+        set_pin_code_post_error(request, 500, "PIN code upload state lost");
+        return;
+    }
+    if (index + len > g_pin_code_post_upload.expected_size)
+    {
+        set_pin_code_post_error(request, 400, "Encrypted PIN code request body length mismatch");
+        reset_pin_code_post_upload(request);
+        return;
+    }
+
+    memcpy(g_pin_code_post_upload.encrypted + index, data, len);
+    const size_t received_end = index + len;
+    if (received_end > g_pin_code_post_upload.received_size)
+    {
+        g_pin_code_post_upload.received_size = received_end;
+    }
+}
+
+#if BUILD_WITH_SECURITY_LEVEL == 1
+void finishSetCustomPin(AsyncWebServerRequest* request)
+{
+    if (!request)
+    {
+        return;
+    }
+
+    if (!pin_code_post_upload_complete(request))
+    {
+        return;
+    }
+    uint8_t session_key[WebServer::kSessionKeySize] = {};
+    if (!authenticate_pin_code_response_session(request, session_key))
+    {
+        mbedtls_platform_zeroize(session_key, sizeof(session_key));
+        reset_pin_code_post_upload(request);
+        return;
+    }
+
+    int          status_code = 500;
+    String       error;
+    JsonDocument doc;
+    if (!decrypt_pin_code_post_body(session_key, doc, status_code, error))
+    {
+        mbedtls_platform_zeroize(session_key, sizeof(session_key));
+        reset_pin_code_post_upload(request);
+        note_web_error();
+        request->send(status_code, "text/plain", error.isEmpty() ? "PIN code update failed" : error);
+        return;
+    }
+    mbedtls_platform_zeroize(session_key, sizeof(session_key));
+
+    JsonObject  root = doc.as<JsonObject>();
+    const char* pin  = root["pincode"].as<const char*>();
+    if (!validate_custom_pin_text(pin, error))
+    {
+        reset_pin_code_post_upload(request);
+        note_web_error();
+        request->send(400, "text/plain", error);
+        return;
+    }
+
+    if (!PinCode::setPin(pin))
+    {
+        reset_pin_code_post_upload(request);
+        note_web_error();
+        request->send(500, "text/plain", "PIN code save failed");
+        return;
+    }
+
+    reset_pin_code_post_upload(request);
+    note_web_save();
+    DBG_LOGI(TAG, "updated custom PIN code from encrypted web request");
+    send_cfg_json_response(request);
+}
+#endif
+
+void finishResetPinCode(AsyncWebServerRequest* request)
+{
+    if (!request)
+    {
+        return;
+    }
+
+    if (!pin_code_post_upload_complete(request))
+    {
+        return;
+    }
+    uint8_t session_key[WebServer::kSessionKeySize] = {};
+    if (!authenticate_pin_code_response_session(request, session_key))
+    {
+        mbedtls_platform_zeroize(session_key, sizeof(session_key));
+        reset_pin_code_post_upload(request);
+        return;
+    }
+
+    int          status_code = 500;
+    String       error;
+    JsonDocument doc;
+    if (!decrypt_pin_code_post_body(session_key, doc, status_code, error))
+    {
+        mbedtls_platform_zeroize(session_key, sizeof(session_key));
+        reset_pin_code_post_upload(request);
+        note_web_error();
+        request->send(status_code, "text/plain", error.isEmpty() ? "PIN code reset failed" : error);
+        return;
+    }
+    mbedtls_platform_zeroize(session_key, sizeof(session_key));
+
+    if (!PinCode::regeneratePin())
+    {
+        reset_pin_code_post_upload(request);
+        note_web_error();
+        request->send(500, "text/plain", "PIN code regeneration failed");
+        return;
+    }
+
+    reset_pin_code_post_upload(request);
+    note_web_save();
+    DBG_LOGI(TAG, "regenerated PIN code from encrypted web request");
+    send_cfg_json_response(request);
+}
+#endif
+
+void timeSync(AsyncWebServerRequest* request)
+{
+    if (!request)
+    {
+        return;
+    }
+
+    String error;
+    if (!time_sync_allowed(error))
+    {
+        note_web_error();
+        request->send(403, "text/plain", error);
+        return;
+    }
+
+    time_t unix_time = 0;
+    if (!read_unix_time_param(request, unix_time, error))
+    {
+        note_web_error();
+        request->send(400, "text/plain", error);
+        return;
+    }
+
+    if (!Clock.setUnixTime(unix_time))
+    {
+        note_web_error();
+        request->send(400, "text/plain", "Unix time is outside the RTC-supported range");
+        return;
+    }
+
+    time_t verified_time = 0;
+    if (!Clock.getUnixTime(&verified_time))
+    {
+        note_web_error();
+        request->send(500, "text/plain", "Time sync failed");
+        return;
+    }
+
+    note_web_save();
+    String json;
+    json.reserve(48);
+    json += "{\"status\":\"ok\",\"current-time\":";
+    append_json_i64(json, static_cast<long long>(verified_time));
+    json += "}";
+    request->send(200, "application/json", json);
+}
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
 
 void note_web_login()
 {
@@ -76,17 +467,6 @@ void note_web_error()
         wifi_manager->noteWebError();
     }
 }
-
-struct BinaryBlob
-{
-    uint8_t* data = nullptr;
-    size_t   size = 0;
-
-    ~BinaryBlob()
-    {
-        free(data);
-    }
-};
 
 uint8_t* allocate_large_buffer(size_t size)
 {
@@ -577,28 +957,6 @@ void send_cfg_json_response(AsyncWebServerRequest* request)
     request->send(response);
 #endif
 }
-
-struct SetCfgUploadState
-{
-    AsyncWebServerRequest* request       = nullptr;
-    uint8_t*               encrypted     = nullptr;
-    size_t                 expected_size = 0;
-    size_t                 received_size = 0;
-};
-
-SetCfgUploadState g_set_cfg_upload;
-
-#if BUILD_WITH_SECURITY_LEVEL >= 1
-struct PinCodePostUploadState
-{
-    AsyncWebServerRequest* request       = nullptr;
-    uint8_t*               encrypted     = nullptr;
-    size_t                 expected_size = 0;
-    size_t                 received_size = 0;
-};
-
-PinCodePostUploadState g_pin_code_post_upload;
-#endif
 
 void reset_set_cfg_upload(AsyncWebServerRequest* request = nullptr)
 {
@@ -1594,292 +1952,5 @@ bool begin_set_cfg_upload(AsyncWebServerRequest* request, size_t total)
 
 } // namespace
 
-void sendCfg(AsyncWebServerRequest* request)
-{
-    send_cfg_json_response(request);
-}
-
-void writeSetCfgBody(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total)
-{
-    if (!request || len == 0)
-    {
-        return;
-    }
-
-    if (index == 0 && !begin_set_cfg_upload(request, total))
-    {
-        return;
-    }
-    if (request->hasAttribute(kSetCfgErrorAttribute))
-    {
-        return;
-    }
-    if (g_set_cfg_upload.request != request || !g_set_cfg_upload.encrypted)
-    {
-        set_cfg_error(request, 500, "Config upload state lost");
-        return;
-    }
-    if (index + len > g_set_cfg_upload.expected_size)
-    {
-        set_cfg_error(request, 400, "Encrypted config body length mismatch");
-        reset_set_cfg_upload(request);
-        return;
-    }
-
-    memcpy(g_set_cfg_upload.encrypted + index, data, len);
-    const size_t received_end = index + len;
-    if (received_end > g_set_cfg_upload.received_size)
-    {
-        g_set_cfg_upload.received_size = received_end;
-    }
-}
-
-void finishSetCfg(AsyncWebServerRequest* request)
-{
-    if (!request)
-    {
-        return;
-    }
-
-    String runtime_error;
-    if (!config_runtime_available(runtime_error))
-    {
-        reset_set_cfg_upload(request);
-        note_web_error();
-        request->send(503, "text/plain", runtime_error);
-        return;
-    }
-
-    if (request->hasAttribute(kSetCfgErrorAttribute))
-    {
-        reset_set_cfg_upload(request);
-        send_set_cfg_error(request);
-        return;
-    }
-    if (!request->hasAttribute(kSetCfgStartedAttribute))
-    {
-        set_cfg_error(request, 400, "Missing encrypted config body");
-        send_set_cfg_error(request);
-        return;
-    }
-    if (g_set_cfg_upload.request != request || !g_set_cfg_upload.encrypted)
-    {
-        set_cfg_error(request, 500, "Config upload state lost");
-        send_set_cfg_error(request);
-        return;
-    }
-    if (g_set_cfg_upload.received_size != g_set_cfg_upload.expected_size)
-    {
-        set_cfg_error(request, 400, "Encrypted config body is incomplete");
-        reset_set_cfg_upload(request);
-        send_set_cfg_error(request);
-        return;
-    }
-
-    int        status_code = 500;
-    String     error;
-    const bool ok =
-        process_set_cfg_blob(request, g_set_cfg_upload.encrypted, g_set_cfg_upload.expected_size, status_code, error);
-    reset_set_cfg_upload(request);
-
-    if (!ok)
-    {
-        note_web_error();
-        request->send(status_code, "text/plain", error.isEmpty() ? "Config update failed" : error);
-        return;
-    }
-
-    note_web_save();
-    DBG_LOGI(TAG, "updated config from encrypted web upload");
-    request->send(200, "application/json", "{\"status\":\"ok\"}");
-}
-
-#if BUILD_WITH_SECURITY_LEVEL >= 1
-void writePinCodeBody(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total)
-{
-    if (!request || len == 0)
-    {
-        return;
-    }
-
-    if (index == 0 && !begin_pin_code_post_upload(request, total))
-    {
-        return;
-    }
-    if (request->hasAttribute(kPinCodePostErrorAttribute))
-    {
-        return;
-    }
-    if (g_pin_code_post_upload.request != request || !g_pin_code_post_upload.encrypted)
-    {
-        set_pin_code_post_error(request, 500, "PIN code upload state lost");
-        return;
-    }
-    if (index + len > g_pin_code_post_upload.expected_size)
-    {
-        set_pin_code_post_error(request, 400, "Encrypted PIN code request body length mismatch");
-        reset_pin_code_post_upload(request);
-        return;
-    }
-
-    memcpy(g_pin_code_post_upload.encrypted + index, data, len);
-    const size_t received_end = index + len;
-    if (received_end > g_pin_code_post_upload.received_size)
-    {
-        g_pin_code_post_upload.received_size = received_end;
-    }
-}
-
-#if BUILD_WITH_SECURITY_LEVEL == 1
-void finishSetCustomPin(AsyncWebServerRequest* request)
-{
-    if (!request)
-    {
-        return;
-    }
-
-    if (!pin_code_post_upload_complete(request))
-    {
-        return;
-    }
-    uint8_t session_key[WebServer::kSessionKeySize] = {};
-    if (!authenticate_pin_code_response_session(request, session_key))
-    {
-        mbedtls_platform_zeroize(session_key, sizeof(session_key));
-        reset_pin_code_post_upload(request);
-        return;
-    }
-
-    int          status_code = 500;
-    String       error;
-    JsonDocument doc;
-    if (!decrypt_pin_code_post_body(session_key, doc, status_code, error))
-    {
-        mbedtls_platform_zeroize(session_key, sizeof(session_key));
-        reset_pin_code_post_upload(request);
-        note_web_error();
-        request->send(status_code, "text/plain", error.isEmpty() ? "PIN code update failed" : error);
-        return;
-    }
-    mbedtls_platform_zeroize(session_key, sizeof(session_key));
-
-    JsonObject  root = doc.as<JsonObject>();
-    const char* pin  = root["pincode"].as<const char*>();
-    if (!validate_custom_pin_text(pin, error))
-    {
-        reset_pin_code_post_upload(request);
-        note_web_error();
-        request->send(400, "text/plain", error);
-        return;
-    }
-
-    if (!PinCode::setPin(pin))
-    {
-        reset_pin_code_post_upload(request);
-        note_web_error();
-        request->send(500, "text/plain", "PIN code save failed");
-        return;
-    }
-
-    reset_pin_code_post_upload(request);
-    note_web_save();
-    DBG_LOGI(TAG, "updated custom PIN code from encrypted web request");
-    send_cfg_json_response(request);
-}
-#endif
-
-void finishResetPinCode(AsyncWebServerRequest* request)
-{
-    if (!request)
-    {
-        return;
-    }
-
-    if (!pin_code_post_upload_complete(request))
-    {
-        return;
-    }
-    uint8_t session_key[WebServer::kSessionKeySize] = {};
-    if (!authenticate_pin_code_response_session(request, session_key))
-    {
-        mbedtls_platform_zeroize(session_key, sizeof(session_key));
-        reset_pin_code_post_upload(request);
-        return;
-    }
-
-    int          status_code = 500;
-    String       error;
-    JsonDocument doc;
-    if (!decrypt_pin_code_post_body(session_key, doc, status_code, error))
-    {
-        mbedtls_platform_zeroize(session_key, sizeof(session_key));
-        reset_pin_code_post_upload(request);
-        note_web_error();
-        request->send(status_code, "text/plain", error.isEmpty() ? "PIN code reset failed" : error);
-        return;
-    }
-    mbedtls_platform_zeroize(session_key, sizeof(session_key));
-
-    if (!PinCode::regeneratePin())
-    {
-        reset_pin_code_post_upload(request);
-        note_web_error();
-        request->send(500, "text/plain", "PIN code regeneration failed");
-        return;
-    }
-
-    reset_pin_code_post_upload(request);
-    note_web_save();
-    DBG_LOGI(TAG, "regenerated PIN code from encrypted web request");
-    send_cfg_json_response(request);
-}
-#endif
-
-void timeSync(AsyncWebServerRequest* request)
-{
-    if (!request)
-    {
-        return;
-    }
-
-    String error;
-    if (!time_sync_allowed(error))
-    {
-        note_web_error();
-        request->send(403, "text/plain", error);
-        return;
-    }
-
-    time_t unix_time = 0;
-    if (!read_unix_time_param(request, unix_time, error))
-    {
-        note_web_error();
-        request->send(400, "text/plain", error);
-        return;
-    }
-
-    if (!Clock.setUnixTime(unix_time))
-    {
-        note_web_error();
-        request->send(400, "text/plain", "Unix time is outside the RTC-supported range");
-        return;
-    }
-
-    time_t verified_time = 0;
-    if (!Clock.getUnixTime(&verified_time))
-    {
-        note_web_error();
-        request->send(500, "text/plain", "Time sync failed");
-        return;
-    }
-
-    note_web_save();
-    String json;
-    json.reserve(48);
-    json += "{\"status\":\"ok\",\"current-time\":";
-    append_json_i64(json, static_cast<long long>(verified_time));
-    json += "}";
-    request->send(200, "application/json", json);
-}
 
 } // namespace WebCfgHandlers

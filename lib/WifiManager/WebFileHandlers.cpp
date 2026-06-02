@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "WebFileHandlers.h"
 
 #include <ESPAsyncWebServer.h>
@@ -17,6 +21,10 @@ namespace WebFileHandlers
 namespace
 {
 
+// -----------------------------------------------------------------------------
+// Configuration
+// -----------------------------------------------------------------------------
+
 constexpr const char* TAG                     = "WebFileHandlers";
 constexpr size_t      kFileNameBufferSize     = 256;
 constexpr const char* kUploadErrorAttribute   = "file_upload_error";
@@ -24,187 +32,9 @@ constexpr const char* kUploadStatusAttribute  = "file_upload_status";
 constexpr const char* kUploadPathAttribute    = "file_upload_path";
 constexpr const char* kUploadStartedAttribute = "file_upload_started";
 
-class FileListJsonStream;
-std::weak_ptr<FileListJsonStream> g_active_file_list_stream;
-
-void note_web_download()
-{
-    if (wifi_manager)
-    {
-        wifi_manager->noteWebDownload();
-    }
-}
-
-void note_web_error()
-{
-    if (wifi_manager)
-    {
-        wifi_manager->noteWebError();
-    }
-}
-
-bool path_has_parent_or_current_segment(const char* path)
-{
-    const char* cursor = path;
-    while (*cursor)
-    {
-        while (*cursor == '/')
-        {
-            ++cursor;
-        }
-
-        const char* segment = cursor;
-        while (*cursor && *cursor != '/')
-        {
-            ++cursor;
-        }
-
-        const size_t length = static_cast<size_t>(cursor - segment);
-        if ((length == 1 && segment[0] == '.') || (length == 2 && segment[0] == '.' && segment[1] == '.'))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool normalize_upload_path(const String& file_name, char* out, size_t out_size)
-{
-    if (!out || out_size == 0)
-    {
-        return false;
-    }
-    out[0] = '\0';
-
-    if (file_name.isEmpty() || file_name.indexOf('\\') >= 0)
-    {
-        return false;
-    }
-
-    const char* src = file_name.c_str();
-    while (*src == '/')
-    {
-        ++src;
-    }
-
-    if (*src == '\0' || path_has_parent_or_current_segment(src))
-    {
-        return false;
-    }
-
-    const size_t src_len = strlen(src);
-    if (src[src_len - 1] == '/' || src_len + 2 > out_size)
-    {
-        return false;
-    }
-
-    out[0] = '/';
-    memcpy(out + 1, src, src_len + 1);
-    return true;
-}
-
-void set_upload_error(AsyncWebServerRequest* request, int status_code, const char* message)
-{
-    if (!request || request->hasAttribute(kUploadErrorAttribute))
-    {
-        return;
-    }
-
-    request->setAttribute(kUploadErrorAttribute, message ? message : "File upload failed");
-    request->setAttribute(kUploadStatusAttribute, static_cast<long>(status_code));
-}
-
-bool prepare_file_upload(AsyncWebServerRequest* request, char* upload_path, size_t upload_path_size)
-{
-    if (!request || !upload_path || upload_path_size == 0)
-    {
-        return false;
-    }
-
-    request->setAttribute(kUploadStartedAttribute, true);
-
-    if (!AsyncFsManager::isReady())
-    {
-        set_upload_error(request, 503, "microSD card is not ready");
-        return false;
-    }
-
-    const AsyncWebParameter* file_name_param = WebServer::findRequestParam(request, "file_name");
-    if (!file_name_param || !normalize_upload_path(file_name_param->value(), upload_path, upload_path_size))
-    {
-        set_upload_error(request, 400, "Missing or invalid file_name");
-        return false;
-    }
-
-    request->setAttribute(kUploadPathAttribute, upload_path);
-    return true;
-}
-
-bool write_upload_chunk(const char* upload_path, const uint8_t* data, size_t len, bool first_chunk)
-{
-    return AsyncFsManager::writeFileChunk(upload_path, data, len, first_chunk);
-}
-
-void remove_partial_upload(AsyncWebServerRequest* request)
-{
-    if (!request || !AsyncFsManager::isReady())
-    {
-        return;
-    }
-
-    const String& upload_path = request->getAttribute(kUploadPathAttribute);
-    if (!upload_path.isEmpty())
-    {
-        AsyncFsManager::removeFile(upload_path.c_str());
-    }
-}
-
-void write_file_upload_bytes(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index)
-{
-    if (!request || request->hasAttribute(kUploadErrorAttribute))
-    {
-        return;
-    }
-
-    char upload_path[kFileNameBufferSize] = {};
-    if (index == 0)
-    {
-        if (!prepare_file_upload(request, upload_path, sizeof(upload_path)))
-        {
-            return;
-        }
-    }
-    else
-    {
-        const String& saved_path = request->getAttribute(kUploadPathAttribute);
-        if (saved_path.isEmpty() || saved_path.length() >= sizeof(upload_path))
-        {
-            set_upload_error(request, 500, "File upload state lost");
-            return;
-        }
-        memcpy(upload_path, saved_path.c_str(), saved_path.length() + 1);
-    }
-
-    if (!write_upload_chunk(upload_path, data, len, index == 0))
-    {
-        set_upload_error(request, 500, "File write failed");
-    }
-}
-
-void send_file_upload_error(AsyncWebServerRequest* request)
-{
-    if (!request)
-    {
-        return;
-    }
-
-    remove_partial_upload(request);
-    const String& error       = request->getAttribute(kUploadErrorAttribute);
-    const long    status_code = request->getAttribute(kUploadStatusAttribute, 500L);
-    note_web_error();
-    request->send(static_cast<int>(status_code), "text/plain", error.isEmpty() ? "File upload failed" : error);
-}
+// -----------------------------------------------------------------------------
+// Types
+// -----------------------------------------------------------------------------
 
 class FileListJsonStream
 {
@@ -308,45 +138,34 @@ private:
     bool   m_finished          = false;
 };
 
-void close_active_file_list_stream()
-{
-    if (std::shared_ptr<FileListJsonStream> active = g_active_file_list_stream.lock())
-    {
-        active->close();
-    }
-    g_active_file_list_stream.reset();
-}
+// -----------------------------------------------------------------------------
+// Globals
+// -----------------------------------------------------------------------------
 
-String safe_content_disposition(const char* disposition, const char* filename)
-{
-    String header(disposition ? disposition : "attachment");
-    header += "; filename=\"";
+std::weak_ptr<FileListJsonStream> g_active_file_list_stream;
 
-    const char* cursor = filename ? strrchr(filename, '/') : nullptr;
-    cursor             = cursor ? cursor + 1 : filename;
-    if (!cursor || cursor[0] == '\0')
-    {
-        cursor = "download";
-    }
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-    while (*cursor)
-    {
-        const char c = *cursor++;
-        if (c == '"' || c == '\\' || c == '\r' || c == '\n' || static_cast<uint8_t>(c) < 0x20)
-        {
-            header += "_";
-        }
-        else
-        {
-            header += c;
-        }
-    }
-
-    header += "\"";
-    return header;
-}
+void close_active_file_list_stream();
+void note_web_download();
+void note_web_error();
+bool normalize_upload_path(const String& file_name, char* out, size_t out_size);
+bool path_has_parent_or_current_segment(const char* path);
+bool prepare_file_upload(AsyncWebServerRequest* request, char* upload_path, size_t upload_path_size);
+void remove_partial_upload(AsyncWebServerRequest* request);
+String safe_content_disposition(const char* disposition, const char* filename);
+void send_file_upload_error(AsyncWebServerRequest* request);
+void set_upload_error(AsyncWebServerRequest* request, int status_code, const char* message);
+void write_file_upload_bytes(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index);
+bool write_upload_chunk(const char* upload_path, const uint8_t* data, size_t len, bool first_chunk);
 
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 void writeFileUploadBody(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t)
 {
@@ -593,5 +412,235 @@ void sendMicroSdFileList(AsyncWebServerRequest* request)
 
     request->send(response);
 }
+
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+void note_web_download()
+{
+    if (wifi_manager)
+    {
+        wifi_manager->noteWebDownload();
+    }
+}
+
+void note_web_error()
+{
+    if (wifi_manager)
+    {
+        wifi_manager->noteWebError();
+    }
+}
+
+bool path_has_parent_or_current_segment(const char* path)
+{
+    const char* cursor = path;
+    while (*cursor)
+    {
+        while (*cursor == '/')
+        {
+            ++cursor;
+        }
+
+        const char* segment = cursor;
+        while (*cursor && *cursor != '/')
+        {
+            ++cursor;
+        }
+
+        const size_t length = static_cast<size_t>(cursor - segment);
+        if ((length == 1 && segment[0] == '.') || (length == 2 && segment[0] == '.' && segment[1] == '.'))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool normalize_upload_path(const String& file_name, char* out, size_t out_size)
+{
+    if (!out || out_size == 0)
+    {
+        return false;
+    }
+    out[0] = '\0';
+
+    if (file_name.isEmpty() || file_name.indexOf('\\') >= 0)
+    {
+        return false;
+    }
+
+    const char* src = file_name.c_str();
+    while (*src == '/')
+    {
+        ++src;
+    }
+
+    if (*src == '\0' || path_has_parent_or_current_segment(src))
+    {
+        return false;
+    }
+
+    const size_t src_len = strlen(src);
+    if (src[src_len - 1] == '/' || src_len + 2 > out_size)
+    {
+        return false;
+    }
+
+    out[0] = '/';
+    memcpy(out + 1, src, src_len + 1);
+    return true;
+}
+
+void set_upload_error(AsyncWebServerRequest* request, int status_code, const char* message)
+{
+    if (!request || request->hasAttribute(kUploadErrorAttribute))
+    {
+        return;
+    }
+
+    request->setAttribute(kUploadErrorAttribute, message ? message : "File upload failed");
+    request->setAttribute(kUploadStatusAttribute, static_cast<long>(status_code));
+}
+
+bool prepare_file_upload(AsyncWebServerRequest* request, char* upload_path, size_t upload_path_size)
+{
+    if (!request || !upload_path || upload_path_size == 0)
+    {
+        return false;
+    }
+
+    request->setAttribute(kUploadStartedAttribute, true);
+
+    if (!AsyncFsManager::isReady())
+    {
+        set_upload_error(request, 503, "microSD card is not ready");
+        return false;
+    }
+
+    const AsyncWebParameter* file_name_param = WebServer::findRequestParam(request, "file_name");
+    if (!file_name_param || !normalize_upload_path(file_name_param->value(), upload_path, upload_path_size))
+    {
+        set_upload_error(request, 400, "Missing or invalid file_name");
+        return false;
+    }
+
+    request->setAttribute(kUploadPathAttribute, upload_path);
+    return true;
+}
+
+bool write_upload_chunk(const char* upload_path, const uint8_t* data, size_t len, bool first_chunk)
+{
+    return AsyncFsManager::writeFileChunk(upload_path, data, len, first_chunk);
+}
+
+void remove_partial_upload(AsyncWebServerRequest* request)
+{
+    if (!request || !AsyncFsManager::isReady())
+    {
+        return;
+    }
+
+    const String& upload_path = request->getAttribute(kUploadPathAttribute);
+    if (!upload_path.isEmpty())
+    {
+        AsyncFsManager::removeFile(upload_path.c_str());
+    }
+}
+
+void write_file_upload_bytes(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index)
+{
+    if (!request || request->hasAttribute(kUploadErrorAttribute))
+    {
+        return;
+    }
+
+    char upload_path[kFileNameBufferSize] = {};
+    if (index == 0)
+    {
+        if (!prepare_file_upload(request, upload_path, sizeof(upload_path)))
+        {
+            return;
+        }
+    }
+    else
+    {
+        const String& saved_path = request->getAttribute(kUploadPathAttribute);
+        if (saved_path.isEmpty() || saved_path.length() >= sizeof(upload_path))
+        {
+            set_upload_error(request, 500, "File upload state lost");
+            return;
+        }
+        memcpy(upload_path, saved_path.c_str(), saved_path.length() + 1);
+    }
+
+    if (!write_upload_chunk(upload_path, data, len, index == 0))
+    {
+        set_upload_error(request, 500, "File write failed");
+    }
+}
+
+void send_file_upload_error(AsyncWebServerRequest* request)
+{
+    if (!request)
+    {
+        return;
+    }
+
+    remove_partial_upload(request);
+    const String& error       = request->getAttribute(kUploadErrorAttribute);
+    const long    status_code = request->getAttribute(kUploadStatusAttribute, 500L);
+    note_web_error();
+    request->send(static_cast<int>(status_code), "text/plain", error.isEmpty() ? "File upload failed" : error);
+}
+
+
+
+void close_active_file_list_stream()
+{
+    if (std::shared_ptr<FileListJsonStream> active = g_active_file_list_stream.lock())
+    {
+        active->close();
+    }
+    g_active_file_list_stream.reset();
+}
+
+String safe_content_disposition(const char* disposition, const char* filename)
+{
+    String header(disposition ? disposition : "attachment");
+    header += "; filename=\"";
+
+    const char* cursor = filename ? strrchr(filename, '/') : nullptr;
+    cursor             = cursor ? cursor + 1 : filename;
+    if (!cursor || cursor[0] == '\0')
+    {
+        cursor = "download";
+    }
+
+    while (*cursor)
+    {
+        const char c = *cursor++;
+        if (c == '"' || c == '\\' || c == '\r' || c == '\n' || static_cast<uint8_t>(c) < 0x20)
+        {
+            header += "_";
+        }
+        else
+        {
+            header += c;
+        }
+    }
+
+    header += "\"";
+    return header;
+}
+
+} // namespace
+
 
 } // namespace WebFileHandlers
