@@ -1,1 +1,3 @@
-webcrypto-bundle
+webcrypto-bundle/dist
+webcrypto-bundle/node_modules
+webcrypto-bundle/node_modules

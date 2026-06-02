@@ -1,0 +1,18 @@
+{
+  "name": "webcrypto-bundle",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild src/webcrypto-entry.js --bundle --minify --format=iife --global-name=WebCryptoBundle --define:process=undefined --outfile=../webcrypto-shim.min.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "esbuild": "^0.28.0",
+    "webcrypto-liner": "^1.4.3"
+  }
+}
