@@ -21,6 +21,9 @@ AccessModifierOffset: -4
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
 AlignAfterOpenBracket: Align
+BinPackArguments: false
+BinPackParameters: false
+AllowAllArgumentsOnNextLine: false
 
 SpaceBeforeParens: ControlStatements
 SpacesInParentheses: false
