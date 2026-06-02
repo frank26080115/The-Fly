@@ -70,7 +70,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 #define MOST_RECENT_FILES_MAX_FILES  20
 
 // Recorder audio is 16 kHz, 16-bit stereo PCM before optional compression.
-#define AUDIO_RECORDER_SAMPLE_RATE_HZ        16000
+#define AUDIO_RECORDER_SAMPLE_RATE_HZ       16000
 #define AUDIO_RECORDER_CHANNELS             2
 #define AUDIO_RECORDER_BITS_PER_SAMPLE      16
 #define AUDIO_RECORDER_FRAME_BYTES          (AUDIO_RECORDER_CHANNELS * (AUDIO_RECORDER_BITS_PER_SAMPLE / 8))
@@ -79,7 +79,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 #define RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH 12
 #define RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH   16
 #define RECORDER_ENCRYPTED_CHUNK_OVERHEAD     (RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH + RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH)
-#define WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH 8192
+#define WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH  8192
 
 // At 16 kHz the MP3 encoders emit MPEG-2 Layer III frames, which consume 576 PCM frames
 // per channel. 64 kbps CBR gives 288-byte MP3 frames, so four MP3 frames is
@@ -89,26 +89,16 @@ use this file for preprocessor definitions that are used to configure parts of t
 #define MP3_PCM_FRAMES_PER_MP3_FRAME         576
 #define MP3_ENCODER_MAX_SAMPLES_PER_PASS     1152
 #define MP3_FRAMES_PER_CHUNK                 4
-#define MP3_PCM_FRAMES_PER_CHUNK             (MP3_PCM_FRAMES_PER_MP3_FRAME * MP3_FRAMES_PER_CHUNK)
-#define MP3_PCM_BYTES_PER_CHUNK              (MP3_PCM_FRAMES_PER_CHUNK * AUDIO_RECORDER_FRAME_BYTES)
-#define MP3_CBR_BYTES_PER_SECOND             ((MP3_BITRATE_KBPS * 1000) / 8)
-#define MP3_CBR_BYTES_PER_MP3_FRAME          ((72 * MP3_BITRATE_KBPS * 1000) / AUDIO_RECORDER_SAMPLE_RATE_HZ)
-#define MP3_CBR_BYTES_PER_CHUNK              (MP3_CBR_BYTES_PER_MP3_FRAME * MP3_FRAMES_PER_CHUNK)          // 1152 for MP3_FRAMES_PER_CHUNK=4
-#define MP3_CHUNK_DURATION_MS                ((MP3_PCM_FRAMES_PER_CHUNK * 1000) / AUDIO_RECORDER_SAMPLE_RATE_HZ)
-
-// Ideal encrypted MP3 chunk sizing for this recorder configuration. Encrypt the
-// actual CBR MP3 bytes from whole MP3 frames.
-#define MP3_ENCRYPTED_PLAINTEXT_LENGTH       MP3_CBR_BYTES_PER_CHUNK
-#define MP3_ENCRYPTED_CHUNK_LENGTH           (RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH + MP3_ENCRYPTED_PLAINTEXT_LENGTH + RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH)
-#define MP3_ENCRYPTED_BYTES_PER_SECOND       (MP3_CBR_BYTES_PER_SECOND + ((RECORDER_ENCRYPTED_CHUNK_OVERHEAD * 1000 + MP3_CHUNK_DURATION_MS - 1) / MP3_CHUNK_DURATION_MS))
-
-#if defined(BUILD_USE_MP3_COMPRESSION)
-#define AUDIO_RECORDER_PLAINTEXT_CHUNK_BYTES MP3_PCM_BYTES_PER_CHUNK
-#else
-#define AUDIO_RECORDER_PLAINTEXT_CHUNK_BYTES WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH
-#endif
 
 #if defined(DBG_LOG_LOCAL_LEVEL) && DBG_LOG_LOCAL_LEVEL > DBG_LOG_ERROR
+#ifndef BUILD_IS_DEBUG
+#define BUILD_IS_DEBUG
+#endif
+#endif
+
+#if defined(TEST_SIM_BATTERY) || defined(TEST_BOOT_ERROR_NONFATAL) || defined(TEST_BOOT_ERROR_FATAL) || \
+    defined(TEST_MOCK_FW_UPDATE) || defined(TEST_MOCK_MASTER_KEY) || defined(TEST_MOCK_PIN_CODE) ||     \
+    defined(TEST_MOCK_PASSWORD) || defined(TEST_MOCK_NVS_FW_SECURED)
 #ifndef BUILD_IS_DEBUG
 #define BUILD_IS_DEBUG
 #endif
