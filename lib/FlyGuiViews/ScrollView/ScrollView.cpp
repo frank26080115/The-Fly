@@ -58,10 +58,10 @@ ScrollView::ScrollView(uint16_t viewId, FlyGuiItemCallback exitCallback)
       deleteItem_(delete_x(), kExitY, kExitSize, kExitSize), exitCallback_(exitCallback)
 {
     activeDeleteView_ = this;
-    exitItem_.setSprite(sprite_canceldoor_50,
-                        SPRITE_CANCELDOOR_50_WIDTH,
-                        SPRITE_CANCELDOOR_50_HEIGHT,
-                        SPRITE_CANCELDOOR_50_BYTES);
+    exitItem_.setSprite(sprite_doorreturn_50,
+                        SPRITE_DOORRETURN_50_WIDTH,
+                        SPRITE_DOORRETURN_50_HEIGHT,
+                        SPRITE_DOORRETURN_50_BYTES);
     exitItem_.setCallback(exitCallback_);
 
     deleteItem_.setSprite(sprite_trash_50, SPRITE_TRASH_50_WIDTH, SPRITE_TRASH_50_HEIGHT, SPRITE_TRASH_50_BYTES);
