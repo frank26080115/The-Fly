@@ -34,4 +34,4 @@ There are two hardware implementation cases:
 
 This module does not need to check the buttons for anything. It needs to provide the functions that the GUI calls.
 
-Volume control is also called in from the GUI, have functions for volume up, volume down, volume set, and volume get. The volume is treated like a 0 to 10 number.
+This has functions for volume up, volume down, volume set, and volume get. An internal gain look-up table is used to translate volume steps to gains.

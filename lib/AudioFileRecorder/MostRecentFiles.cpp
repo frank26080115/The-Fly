@@ -1,3 +1,12 @@
+/*
+The purpose of this module is to list the few most recently recorded files
+so that we don't overwhelm the user with too many files in the GUI
+*/
+
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "MostRecentFiles.h"
 
 #include <new>
@@ -11,80 +20,31 @@ namespace MostRecentFiles
 namespace
 {
 
+// -----------------------------------------------------------------------------
+// Types
+// -----------------------------------------------------------------------------
+
 struct Candidate
 {
     uint32_t created                  = 0;
     char     name[kMaxFileNameLength] = {};
 };
 
-uint32_t created_key(uint16_t date, uint16_t time)
-{
-    return (static_cast<uint32_t>(date) << 16) | time;
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-bool is_recorded_file(FsFile& file)
-{
-    const int attributes = file.attrib();
-    return file.isFile() && attributes >= 0 && (attributes & FS_ATTRIB_ARCHIVE);
-}
-
-bool is_listable_recording_name(const char* name)
-{
-    if (ends_with_case_insensitive(name, ".wav") || ends_with_case_insensitive(name, ".mp3"))
-    {
-        return true;
-    }
-
-#ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
-    return ends_with_case_insensitive(name, ".rec") || ends_with_case_insensitive(name, ".fly");
-#else
-    return false;
-#endif
-}
-
-bool newer_than(const Candidate& lhs, uint32_t rhsCreated, const char* rhsName)
-{
-    if (rhsCreated != lhs.created)
-    {
-        return rhsCreated > lhs.created;
-    }
-    return strcmp(rhsName, lhs.name) > 0;
-}
-
-void insert_candidate(Candidate* recent, size_t capacity, size_t& count, const char* name, uint32_t created)
-{
-    if (!recent || capacity == 0)
-    {
-        return;
-    }
-
-    size_t insert_at = 0;
-    while (insert_at < count && !newer_than(recent[insert_at], created, name))
-    {
-        ++insert_at;
-    }
-
-    if (insert_at >= capacity)
-    {
-        return;
-    }
-
-    const size_t move_count = count < capacity ? count : capacity - 1;
-    for (size_t i = move_count; i > insert_at; --i)
-    {
-        recent[i] = recent[i - 1];
-    }
-
-    recent[insert_at].created = created;
-    strlcpy(recent[insert_at].name, name, sizeof(recent[insert_at].name));
-
-    if (count < capacity)
-    {
-        ++count;
-    }
-}
+void     insert_candidate(Candidate* recent, size_t capacity, size_t& count, const char* name, uint32_t created);
+bool     newer_than(const Candidate& lhs, uint32_t rhsCreated, const char* rhsName);
+bool     is_listable_recording_name(const char* name);
+bool     is_recorded_file(FsFile& file);
+uint32_t created_key(uint16_t date, uint16_t time);
 
 } // namespace
+
+// -----------------------------------------------------------------------------
+// File List
+// -----------------------------------------------------------------------------
 
 FileList::FileList(size_t requestedCapacity)
 {
@@ -193,6 +153,10 @@ void FileList::reset()
     capacity = 0;
 }
 
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
+
 FileList get(size_t maxFiles)
 {
     FileList result;
@@ -231,6 +195,7 @@ FileList get(size_t maxFiles)
             }
         }
         file.close();
+        taskYIELD();
     }
 
     root.close();
@@ -243,5 +208,85 @@ FileList get(size_t maxFiles)
     delete[] recent;
     return result;
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+void insert_candidate(Candidate* recent, size_t capacity, size_t& count, const char* name, uint32_t created)
+{
+    if (!recent || capacity == 0)
+    {
+        return;
+    }
+
+    size_t insert_at = 0;
+    while (insert_at < count && !newer_than(recent[insert_at], created, name))
+    {
+        ++insert_at;
+    }
+
+    if (insert_at >= capacity)
+    {
+        return;
+    }
+
+    const size_t move_count = count < capacity ? count : capacity - 1;
+    for (size_t i = move_count; i > insert_at; --i)
+    {
+        recent[i] = recent[i - 1];
+    }
+
+    recent[insert_at].created = created;
+    strlcpy(recent[insert_at].name, name, sizeof(recent[insert_at].name));
+
+    if (count < capacity)
+    {
+        ++count;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+bool newer_than(const Candidate& lhs, uint32_t rhsCreated, const char* rhsName)
+{
+    if (rhsCreated != lhs.created)
+    {
+        return rhsCreated > lhs.created;
+    }
+    return strcmp(rhsName, lhs.name) > 0;
+}
+
+bool is_listable_recording_name(const char* name)
+{
+    if (ends_with_case_insensitive(name, ".wav") || ends_with_case_insensitive(name, ".mp3"))
+    {
+        return true;
+    }
+
+#ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
+    return ends_with_case_insensitive(name, ".rec") || ends_with_case_insensitive(name, ".fly");
+#else
+    return false;
+#endif
+}
+
+bool is_recorded_file(FsFile& file)
+{
+    const int attributes = file.attrib();
+    return file.isFile() && attributes >= 0 && (attributes & FS_ATTRIB_ARCHIVE);
+}
+
+uint32_t created_key(uint16_t date, uint16_t time)
+{
+    return (static_cast<uint32_t>(date) << 16) | time;
+}
+
+} // namespace
 
 } // namespace MostRecentFiles
