@@ -36,8 +36,8 @@ public:
     void setOnClickNtpSync(ScrollViewClickCallback callback);
     void setOnClickBtShowInfo(ScrollViewClickCallback callback);
     void setOnClickWifiShowInfo(ScrollViewClickCallback callback);
-    void setOnClickFileWav(ScrollViewClickCallback callback);
-    void setOnClickFileShowInfo(ScrollViewClickCallback callback);
+    void setOnClickFilePlayable(ScrollViewClickCallback callback);
+    void setOnClickFileListShowInfo(ScrollViewClickCallback callback);
 
     size_t itemCount() const
     {
@@ -136,7 +136,7 @@ private:
     ScrollViewClickCallback onNtpSync_          = nullptr;
     ScrollViewClickCallback onBtShowInfo_       = nullptr;
     ScrollViewClickCallback onWifiShowInfo_     = nullptr;
-    ScrollViewClickCallback onFileWav_          = nullptr;
-    ScrollViewClickCallback onFileShowInfo_     = nullptr;
+    ScrollViewClickCallback onFilePlayable_     = nullptr;
+    ScrollViewClickCallback onFileListShowInfo_ = nullptr;
     static ScrollView* activeDeleteView_;
 };

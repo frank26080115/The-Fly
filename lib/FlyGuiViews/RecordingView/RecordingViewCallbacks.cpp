@@ -22,11 +22,11 @@ void restore_memo_bt_fifo()
 
 } // namespace
 
-bool beginBluetoothRecording(char typeCode)
+bool beginBluetoothRecording(AudioFileRecorder::RecordingType type)
 {
     restore_memo_bt_fifo();
     setSpeakerMuted(false);
-    if (!AudioFileRecorder::startRecording(typeCode))
+    if (!AudioFileRecorder::startRecording(type))
     {
         return false;
     }

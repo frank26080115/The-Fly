@@ -54,6 +54,7 @@ uint32_t g_last_core_poll_ms[2]  = {};
 bool     g_core_ready[2]         = {};
 bool     g_initialized           = false;
 bool     g_shutdown_requested    = false;
+bool     g_file_playback_playing = false;
 
 uint64_t monotonic_ms()
 {
@@ -70,19 +71,27 @@ bool wifi_active()
     return WiFi.getMode() != WIFI_MODE_NULL;
 }
 
-bool audio_active()
+bool audio_blocks_full_power_saving()
 {
-    return AudioFileRecorder::isRecording() || AudioManager::mode() != AudioManager::P2TMode::Stopped;
+    return AudioFileRecorder::isRecording() || AudioManager::mode() == AudioManager::P2TMode::Mic;
 }
 
-bool power_saving_blocked()
+bool full_power_saving_blocked()
 {
-    return audio_active() || bluetooth_active() || wifi_active();
+    return audio_blocks_full_power_saving() || bluetooth_active() || wifi_active();
 }
 
-State desired_state(uint64_t now_ms, bool blocked)
+bool file_playback_playing()
 {
-    if (blocked)
+    portENTER_CRITICAL(&g_lock);
+    const bool playing = g_file_playback_playing;
+    portEXIT_CRITICAL(&g_lock);
+    return playing;
+}
+
+State desired_state(uint64_t now_ms, bool full_blocked, bool shutdown_blocked)
+{
+    if (full_blocked)
     {
         return State::Blocked;
     }
@@ -90,7 +99,7 @@ State desired_state(uint64_t now_ms, bool blocked)
     const uint64_t inactive_ms = now_ms - g_last_activity_ms;
     if (inactive_ms >= kShutdownMs)
     {
-        return kFullShutdownAllowedByLogging ? State::Shutdown : State::DimLightSleepReady;
+        return kFullShutdownAllowedByLogging && !shutdown_blocked ? State::Shutdown : State::DimLightSleepReady;
     }
     if (inactive_ms >= kFullBrightnessMs)
     {
@@ -195,7 +204,10 @@ void enter_light_sleep()
 void poll_core(uint8_t core)
 {
     const uint64_t now_ms = monotonic_ms();
-    const bool     blocked = power_saving_blocked();
+    const bool     full_blocked = full_power_saving_blocked();
+    const bool     playback_playing = file_playback_playing();
+    const bool     sleep_blocked = full_blocked || playback_playing;
+    const bool     shutdown_blocked = sleep_blocked;
     bool           sleep        = false;
     bool           init_outputs = false;
     bool           state_changed = false;
@@ -206,7 +218,7 @@ void poll_core(uint8_t core)
     portENTER_CRITICAL(&g_lock);
     init_outputs = ensure_initialized_locked(now_ms);
 
-    next = desired_state(now_ms, blocked);
+    next = desired_state(now_ms, full_blocked, shutdown_blocked);
     if (next != g_state)
     {
         previous        = g_state;
@@ -222,7 +234,7 @@ void poll_core(uint8_t core)
         }
     }
 
-    if (state_allows_light_sleep(g_state))
+    if (!sleep_blocked && state_allows_light_sleep(g_state))
     {
         const uint8_t other = core == 0 ? 1 : 0;
         g_core_ready[core]  = true;
@@ -320,6 +332,13 @@ void noteUserActivityFromIsr()
     g_last_activity_ms   = now_ms;
     g_shutdown_requested = false;
     portEXIT_CRITICAL_ISR(&g_lock);
+}
+
+void setFilePlaybackPlaying(bool playing)
+{
+    portENTER_CRITICAL(&g_lock);
+    g_file_playback_playing = playing;
+    portEXIT_CRITICAL(&g_lock);
 }
 
 State state()

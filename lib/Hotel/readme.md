@@ -11,8 +11,11 @@ enter light sleep.
 Throughout the code, any user interaction, such as a button-down or touch
 event, resets Hotel's internal activity timer.
 
-If audio recording, Bluetooth usage, or Wi-Fi usage is active, Hotel enters
-`Blocked`: no dimming, no light sleep, no shutdown.
+If audio recording, microphone capture, Bluetooth usage, or Wi-Fi usage is
+active, Hotel enters `Blocked`: no dimming, no light sleep, no shutdown.
+File playback is different: actively playing file playback may dim the screen,
+but it still suppresses light sleep and shutdown. Paused file playback does not
+suppress shutdown.
 
 If there has been user activity within the past 1 minute, the screen backlight
 stays at full brightness. After 1 minute, the screen is dimmed.
@@ -32,7 +35,7 @@ logged with debug verbosity.
 
 Current states:
 
-- `Blocked`: audio recording, Bluetooth, or Wi-Fi is active. Full brightness.
+- `Blocked`: audio recording, microphone capture, Bluetooth, or Wi-Fi is active. Full brightness.
 - `RecentlyActive`: user activity happened within the last 10 seconds. Full brightness.
 - `ActiveDimAllowed`: user activity happened within the last 30 seconds, but not within the last 10 seconds. Full brightness.
 - `LightSleepReady`: user activity happened within the last 1 minute, but not within the last 30 seconds. Full brightness; optional deep power save may sleep here.

@@ -26,8 +26,8 @@ void onclick_wifi_ap(int32_t value, uint32_t pressDurationMs);
 void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs);
 void onclick_bt_show_info(int32_t value, uint32_t pressDurationMs);
 void onclick_wifi_show_info(int32_t value, uint32_t pressDurationMs);
-void onclick_file_wav(int32_t value, uint32_t pressDurationMs);
-void onclick_file_show_info(int32_t value, uint32_t pressDurationMs);
+void onclick_file_playable(int32_t value, uint32_t pressDurationMs);
+void onclick_filelist_show_info(int32_t value, uint32_t pressDurationMs);
 
 void conn_waiting_cancel(uint32_t pressDurationMs);
 

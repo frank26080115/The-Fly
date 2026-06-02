@@ -45,6 +45,7 @@ private:
     void handlePrecisionScrub(uint32_t positionMs);
 
     void startPlayback();
+    void publishPlaybackPowerState() const;
     void layoutItems();
     void syncControls();
     void syncPrecisionScrubBar(uint32_t currentMs, uint32_t totalMs, bool playing);

@@ -571,14 +571,14 @@ void ScrollView::setOnClickWifiShowInfo(ScrollViewClickCallback callback)
     onWifiShowInfo_ = callback;
 }
 
-void ScrollView::setOnClickFileWav(ScrollViewClickCallback callback)
+void ScrollView::setOnClickFilePlayable(ScrollViewClickCallback callback)
 {
-    onFileWav_ = callback;
+    onFilePlayable_ = callback;
 }
 
-void ScrollView::setOnClickFileShowInfo(ScrollViewClickCallback callback)
+void ScrollView::setOnClickFileListShowInfo(ScrollViewClickCallback callback)
 {
-    onFileShowInfo_ = callback;
+    onFileListShowInfo_ = callback;
 }
 
 FlyGuiItem* ScrollView::selectedItem() const
@@ -1195,17 +1195,17 @@ void ScrollView::handleScrollItem(ScrollItem& item, uint32_t pressDurationMs)
         break;
     case SCROLL_ITEM_FILE_WAV:
     case SCROLL_ITEM_FILE_MP3:
-        if (onFileWav_)
+        if (onFilePlayable_)
         {
-            onFileWav_(value, pressDurationMs);
+            onFilePlayable_(value, pressDurationMs);
         }
         break;
     case SCROLL_ITEM_FILE_REC:
     case SCROLL_ITEM_FILE_FLY:
         #ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
-        if (onFileWav_)
+        if (onFilePlayable_)
         {
-            onFileWav_(value, pressDurationMs);
+            onFilePlayable_(value, pressDurationMs);
         }
         #endif
         break;
@@ -1215,9 +1215,9 @@ void ScrollView::handleScrollItem(ScrollItem& item, uint32_t pressDurationMs)
         esp_restart();
         break;
     case SCROLL_ITEM_FILE_SHOW_INFO:
-        if (onFileShowInfo_)
+        if (onFileListShowInfo_)
         {
-            onFileShowInfo_(value, pressDurationMs);
+            onFileListShowInfo_(value, pressDurationMs);
         }
         break;
     default:

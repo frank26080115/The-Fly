@@ -384,7 +384,7 @@ void WifiApModeView::drawCredentials()
     const wifi_item_t* active = wifi_manager ? wifi_manager->activeWifi() : nullptr;
     const char* ssid = active && active->ssid[0] != '\0' ? active->ssid : "";
     const char* password = wifi_manager ? wifi_manager->softApPassword() : nullptr;
-    const String ipText = WiFi.softAPIP().toString();
+    const String ipText = wifi_manager ? wifi_manager->softApIp().toString() : IPAddress().toString();
 
     thefly_display.fillRect(kTextX, kTextY, kTextWidth, kStatsY - kTextY, TFT_BLACK);
 
