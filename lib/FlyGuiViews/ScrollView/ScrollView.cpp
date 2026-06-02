@@ -5,6 +5,7 @@
 #include "../../FlyGui/FlyGuiText.h"
 #include "../../WifiManager/WifiManager.h"
 #include "../ModalDialog.h"
+#include "FileScrollItem.h"
 #include "sprites.h"
 #include "esp_system.h"
 #include "utilfuncs.h"
@@ -274,6 +275,7 @@ bool ScrollView::populateFiles()
                                                     SPRITE_FILEUNKNOWN_100_WIDTH,
                                                     SPRITE_FILEUNKNOWN_100_HEIGHT,
                                                     SPRITE_FILEUNKNOWN_100_BYTES);
+        bool           use_file_item  = false;
 
         if (equals_case_insensitive(file_name, "firmware.bin"))
         {
@@ -283,38 +285,33 @@ bool ScrollView::populateFiles()
         }
         else if (ends_with_case_insensitive(file_name, ".wav"))
         {
-            kind   = SCROLL_ITEM_FILE_WAV;
-            sprite = make_sprite(sprite_record_100,
-                                 SPRITE_RECORD_100_WIDTH,
-                                 SPRITE_RECORD_100_HEIGHT,
-                                 SPRITE_RECORD_100_BYTES);
+            kind          = SCROLL_ITEM_FILE_WAV;
+            use_file_item = true;
         }
         else if (ends_with_case_insensitive(file_name, ".mp3"))
         {
-            kind   = SCROLL_ITEM_FILE_MP3;
-            sprite = make_sprite(sprite_record_100,
-                                 SPRITE_RECORD_100_WIDTH,
-                                 SPRITE_RECORD_100_HEIGHT,
-                                 SPRITE_RECORD_100_BYTES);
+            kind          = SCROLL_ITEM_FILE_MP3;
+            use_file_item = true;
         }
         else if (ends_with_case_insensitive(file_name, ".rec"))
         {
-            kind   = SCROLL_ITEM_FILE_REC;
-            sprite = make_sprite(sprite_recordenc_100,
-                                 SPRITE_RECORDENC_100_WIDTH,
-                                 SPRITE_RECORDENC_100_HEIGHT,
-                                 SPRITE_RECORDENC_100_BYTES);
+            kind          = SCROLL_ITEM_FILE_REC;
+            use_file_item = true;
         }
         else if (ends_with_case_insensitive(file_name, ".fly"))
         {
-            kind   = SCROLL_ITEM_FILE_FLY;
-            sprite = make_sprite(sprite_recordenc_100,
-                                 SPRITE_RECORDENC_100_WIDTH,
-                                 SPRITE_RECORDENC_100_HEIGHT,
-                                 SPRITE_RECORDENC_100_BYTES);
+            kind          = SCROLL_ITEM_FILE_FLY;
+            use_file_item = true;
         }
 
-        ok = appendSpriteScrollItem(kind, callback_value, file_name, sprite) && ok;
+        if (use_file_item)
+        {
+            ok = appendFileScrollItem(kind, callback_value, file_name) && ok;
+        }
+        else
+        {
+            ok = appendSpriteScrollItem(kind, callback_value, file_name, sprite) && ok;
+        }
     }
 
     return ok;
@@ -745,6 +742,40 @@ bool ScrollView::appendSpriteScrollItem(ScrollItemKind       kind,
     }
 
     item->configureSprite(kind, callbackValue, label, sprite);
+    item->setScrollCallback(onScrollItemTriggered, this);
+
+    node->item = item;
+    node->next = nullptr;
+    if (generatedTail_)
+    {
+        generatedTail_->next = node;
+    }
+    else
+    {
+        generatedHead_ = node;
+    }
+    generatedTail_ = node;
+
+    addItem(*item);
+    return true;
+}
+
+bool ScrollView::appendFileScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* fileName)
+{
+    FileScrollItem* item = new (std::nothrow) FileScrollItem();
+    if (!item)
+    {
+        return false;
+    }
+
+    GeneratedItemNode* node = new (std::nothrow) GeneratedItemNode();
+    if (!node)
+    {
+        delete item;
+        return false;
+    }
+
+    item->configureFile(kind, callbackValue, fileName);
     item->setScrollCallback(onScrollItemTriggered, this);
 
     node->item = item;

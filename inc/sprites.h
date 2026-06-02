@@ -106,6 +106,66 @@ extern const uint8_t sprite_eye_closed_100[];
 #define SPRITE_EYE_OPEN_100_BYTES 7997u
 extern const uint8_t sprite_eye_open_100[];
 
+#define SPRITE_FILEBACK_BLUE_WIDTH 100u
+#define SPRITE_FILEBACK_BLUE_HEIGHT 100u
+#define SPRITE_FILEBACK_BLUE_BYTES 8018u
+extern const uint8_t sprite_fileback_blue[];
+
+#define SPRITE_FILEBACK_YELLOW_WIDTH 100u
+#define SPRITE_FILEBACK_YELLOW_HEIGHT 100u
+#define SPRITE_FILEBACK_YELLOW_BYTES 7847u
+extern const uint8_t sprite_fileback_yellow[];
+
+#define SPRITE_FILETOP_ALARM_WIDTH 50u
+#define SPRITE_FILETOP_ALARM_HEIGHT 50u
+#define SPRITE_FILETOP_ALARM_BYTES 5753u
+extern const uint8_t sprite_filetop_alarm[];
+
+#define SPRITE_FILETOP_CALENDAR_WIDTH 50u
+#define SPRITE_FILETOP_CALENDAR_HEIGHT 50u
+#define SPRITE_FILETOP_CALENDAR_BYTES 4563u
+extern const uint8_t sprite_filetop_calendar[];
+
+#define SPRITE_FILETOP_IDEA_WIDTH 50u
+#define SPRITE_FILETOP_IDEA_HEIGHT 50u
+#define SPRITE_FILETOP_IDEA_BYTES 4621u
+extern const uint8_t sprite_filetop_idea[];
+
+#define SPRITE_FILETOP_JOURNAL_WIDTH 50u
+#define SPRITE_FILETOP_JOURNAL_HEIGHT 50u
+#define SPRITE_FILETOP_JOURNAL_BYTES 4576u
+extern const uint8_t sprite_filetop_journal[];
+
+#define SPRITE_FILETOP_MIC_WIDTH 50u
+#define SPRITE_FILETOP_MIC_HEIGHT 50u
+#define SPRITE_FILETOP_MIC_BYTES 4360u
+extern const uint8_t sprite_filetop_mic[];
+
+#define SPRITE_FILETOP_RECORD_WIDTH 50u
+#define SPRITE_FILETOP_RECORD_HEIGHT 50u
+#define SPRITE_FILETOP_RECORD_BYTES 5627u
+extern const uint8_t sprite_filetop_record[];
+
+#define SPRITE_FILETOP_SPEAKER_WIDTH 50u
+#define SPRITE_FILETOP_SPEAKER_HEIGHT 50u
+#define SPRITE_FILETOP_SPEAKER_BYTES 4072u
+extern const uint8_t sprite_filetop_speaker[];
+
+#define SPRITE_FILETOP_TODO_WIDTH 50u
+#define SPRITE_FILETOP_TODO_HEIGHT 50u
+#define SPRITE_FILETOP_TODO_BYTES 4742u
+extern const uint8_t sprite_filetop_todo[];
+
+#define SPRITE_FILETOP_TODOLIST_WIDTH 50u
+#define SPRITE_FILETOP_TODOLIST_HEIGHT 50u
+#define SPRITE_FILETOP_TODOLIST_BYTES 4150u
+extern const uint8_t sprite_filetop_todolist[];
+
+#define SPRITE_FILETOP_WAVEFORM_WIDTH 50u
+#define SPRITE_FILETOP_WAVEFORM_HEIGHT 50u
+#define SPRITE_FILETOP_WAVEFORM_BYTES 2679u
+extern const uint8_t sprite_filetop_waveform[];
+
 #define SPRITE_FILEUNKNOWN_100_WIDTH 100u
 #define SPRITE_FILEUNKNOWN_100_HEIGHT 100u
 #define SPRITE_FILEUNKNOWN_100_BYTES 10157u
