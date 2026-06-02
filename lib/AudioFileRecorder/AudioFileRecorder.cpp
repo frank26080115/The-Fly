@@ -27,9 +27,7 @@
 #include "freertos/task.h"
 #include "utilfuncs.h"
 
-#if defined(BUILD_USE_MP3_COMPRESSION) && defined(BUILD_MP3_USE_LIBLAME)
-#include "MP3EncoderLAME.h"
-#elif defined(BUILD_USE_MP3_COMPRESSION) && defined(BUILD_MP3_USE_SHINE)
+#if defined(BUILD_USE_MP3_COMPRESSION)
 #include "ShineWrapper.h"
 #endif
 
@@ -109,11 +107,7 @@ constexpr size_t kGcmTagSize   = WAV_ENCRYPTED_CHUNK_TAG_LENGTH;
 // -----------------------------------------------------------------------------
 
 #if defined(BUILD_USE_MP3_COMPRESSION)
-#if defined(BUILD_MP3_USE_LIBLAME)
-using Mp3EncoderType = liblame::MP3EncoderLAME;
-#elif defined(BUILD_MP3_USE_SHINE)
 using Mp3EncoderType = ShineWrapper;
-#endif
 #endif
 
 // -----------------------------------------------------------------------------
@@ -236,13 +230,6 @@ bool start_mp3_encoder_locked();
 bool write_mp3_encoded_data(uint8_t* data, size_t byte_count);
 bool write_mp3_samples(int16_t* samples, size_t byte_count);
 bool flush_mp3_encoder();
-
-#if defined(BUILD_MP3_USE_LIBLAME)
-void reset_mp3_file_write_observed();
-bool mp3_file_write_observed();
-bool write_mp3_silence_chunk();
-bool pump_mp3_silence_until_file_write();
-#endif
 #endif
 
 bool write_samples(const int16_t* samples, size_t byte_count);
@@ -497,14 +484,6 @@ bool stopRecording(bool estop)
         {
             taskYIELD();
         }
-
-#if defined(BUILD_MP3_USE_LIBLAME)
-        if (!pump_mp3_silence_until_file_write())
-        {
-            DBG_LOGW(TAG, "MP3 close padding did not produce another file write");
-            ok = false;
-        }
-#endif
     }
 
 #if defined(BUILD_USE_MP3_COMPRESSION)
@@ -1473,36 +1452,6 @@ bool start_mp3_encoder_locked()
     destroy_mp3_encoder_locked();
     g_mp3_samples_per_pass = MP3_PCM_FRAMES_PER_MP3_FRAME;
 
-#if defined(BUILD_MP3_USE_LIBLAME)
-    g_mp3_encoder = new (std::nothrow) liblame::MP3EncoderLAME();
-    if (!g_mp3_encoder)
-    {
-        DBG_LOGE(TAG, "MP3 encoder allocation failed");
-        return false;
-    }
-
-    liblame::AudioInfo mp3_info;
-    mp3_info.sample_rate           = AUDIO_RECORDER_SAMPLE_RATE_HZ;
-    mp3_info.channels              = AUDIO_RECORDER_CHANNELS;
-    mp3_info.bits_per_sample       = AUDIO_RECORDER_BITS_PER_SAMPLE;
-    mp3_info.brate                 = MP3_BITRATE_KBPS;
-    mp3_info.quality               = MP3_ENCODER_QUALITY;
-    mp3_info.disable_bit_reservoir = true;
-
-    g_mp3_encoder->setDataCallback(mp3_data_callback);
-    if (!g_mp3_encoder->begin(mp3_info))
-    {
-        DBG_LOGE(TAG, "MP3 encoder setup failed");
-        destroy_mp3_encoder_locked();
-        return false;
-    }
-
-    const int frame_size = g_mp3_encoder->audioInfo().frame_size;
-    if (frame_size > 0)
-    {
-        g_mp3_samples_per_pass = static_cast<size_t>(frame_size);
-    }
-#elif defined(BUILD_MP3_USE_SHINE)
     g_mp3_encoder = new (std::nothrow) ShineWrapper(AUDIO_RECORDER_SAMPLE_RATE_HZ,
                                                     AUDIO_RECORDER_CHANNELS,
                                                     AUDIO_RECORDER_BITS_PER_SAMPLE,
@@ -1531,7 +1480,6 @@ bool start_mp3_encoder_locked()
         return false;
     }
     g_mp3_samples_per_pass = static_cast<size_t>(samples_per_pass);
-#endif
 
     return true;
 }
@@ -1639,47 +1587,6 @@ bool flush_mp3_encoder()
     const bool flushed = encoder->flush();
     return flushed && !g_mp3_callback_failed.load(std::memory_order_relaxed);
 }
-
-#if defined(BUILD_MP3_USE_LIBLAME)
-void reset_mp3_file_write_observed()
-{
-    std::lock_guard<std::mutex> lock(g_recorder_mutex);
-    g_mp3_file_write_observed = false;
-}
-
-bool mp3_file_write_observed()
-{
-    std::lock_guard<std::mutex> lock(g_recorder_mutex);
-    return g_mp3_file_write_observed;
-}
-
-bool write_mp3_silence_chunk()
-{
-    const size_t byte_count = g_mp3_samples_per_pass * kWavFrameBytes;
-    memset(g_mp3_stereo_samples, 0, byte_count);
-    return write_mp3_samples(g_mp3_stereo_samples, byte_count);
-}
-
-bool pump_mp3_silence_until_file_write()
-{
-    reset_mp3_file_write_observed();
-
-    for (uint8_t i = 0; i < kMp3CloseSilencePumpLimit && recording_file_ready(); ++i)
-    {
-        if (!write_mp3_silence_chunk())
-        {
-            return false;
-        }
-        if (mp3_file_write_observed())
-        {
-            return true;
-        }
-        taskYIELD();
-    }
-
-    return mp3_file_write_observed();
-}
-#endif
 #endif
 
 bool write_samples(const int16_t* samples, size_t byte_count)

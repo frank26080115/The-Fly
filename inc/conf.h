@@ -19,16 +19,6 @@ use this file for preprocessor definitions that are used to configure parts of t
 
 //#define BUILD_SILENCE_GAP_REMOVAL
 #define BUILD_USE_MP3_COMPRESSION
-//#define BUILD_MP3_USE_LIBLAME
-#define BUILD_MP3_USE_SHINE
-
-#ifdef BUILD_USE_MP3_COMPRESSION
-#if defined(BUILD_MP3_USE_LIBLAME) && defined(BUILD_MP3_USE_SHINE)
-#error must only pick one MP3 encoder
-#elif !defined(BUILD_MP3_USE_LIBLAME) && !defined(BUILD_MP3_USE_SHINE)
-#define BUILD_MP3_USE_SHINE
-#endif
-#endif
 
 #if !defined(BUILD_WITH_SECURITY_LEVEL)
 #error BUILD_WITH_SECURITY_LEVEL must be defined!
