@@ -14,27 +14,27 @@
 use this library for utility functions more complex than just inline functions or macros
 */
 
-bool   ok(esp_err_t err, const char* what);
-bool   strict_ok(esp_err_t err, const char* what);
-void   idle_forever();
-void   copy_bda(uint8_t dst[ESP_BD_ADDR_LEN], const uint8_t src[ESP_BD_ADDR_LEN]);
-void   log_bda(const char* label, const uint8_t bda[ESP_BD_ADDR_LEN]);
-void   format_bdaddr(const uint8_t bdaddr[ESP_BD_ADDR_LEN], char* out, size_t out_size);
-bool   bda_equal(const uint8_t a[ESP_BD_ADDR_LEN], const uint8_t b[ESP_BD_ADDR_LEN]);
-void   format_bytes(uint64_t bytes, char* out, size_t out_size);
-void   format_uint64_alphanumeric(uint64_t value, bool allow_lowercase, size_t min_length, char* out, size_t out_size);
-void   bytes_to_hex(const uint8_t* data, size_t size, String& out);
-int8_t hex_nibble(char ch);
-bool   hex_to_bytes(const String& hex, uint8_t* out, size_t out_size);
-bool   parse_hex_byte(const char* text, uint8_t& value);
-bool   parse_mac(const char* mac, esp_bd_addr_t out);
-bool   parse_datetime(const char* text, m5::rtc_datetime_t& out);
-bool   is_leap_year(int32_t year);
+bool    ok(esp_err_t err, const char* what);
+bool    strict_ok(esp_err_t err, const char* what);
+void    idle_forever();
+void    copy_bda(uint8_t dst[ESP_BD_ADDR_LEN], const uint8_t src[ESP_BD_ADDR_LEN]);
+void    log_bda(const char* label, const uint8_t bda[ESP_BD_ADDR_LEN]);
+void    format_bdaddr(const uint8_t bdaddr[ESP_BD_ADDR_LEN], char* out, size_t out_size);
+bool    bda_equal(const uint8_t a[ESP_BD_ADDR_LEN], const uint8_t b[ESP_BD_ADDR_LEN]);
+void    format_bytes(uint64_t bytes, char* out, size_t out_size);
+void    format_uint64_alphanumeric(uint64_t value, bool allow_lowercase, size_t min_length, char* out, size_t out_size);
+void    bytes_to_hex(const uint8_t* data, size_t size, String& out);
+int8_t  hex_nibble(char ch);
+bool    hex_to_bytes(const String& hex, uint8_t* out, size_t out_size);
+bool    parse_hex_byte(const char* text, uint8_t& value);
+bool    parse_mac(const char* mac, esp_bd_addr_t out);
+bool    parse_datetime(const char* text, m5::rtc_datetime_t& out);
+bool    is_leap_year(int32_t year);
 int64_t days_from_civil(int32_t year, int32_t month, int32_t day);
-void   civil_from_days(int64_t days, int32_t& year, int32_t& month, int32_t& day);
-int8_t weekday_from_days(int64_t days);
-bool   equals_case_insensitive(const char* lhs, const char* rhs);
-bool   ends_with_case_insensitive(const char* text, const char* suffix);
+void    civil_from_days(int64_t days, int32_t& year, int32_t& month, int32_t& day);
+int8_t  weekday_from_days(int64_t days);
+bool    equals_case_insensitive(const char* lhs, const char* rhs);
+bool    ends_with_case_insensitive(const char* text, const char* suffix);
 const char* memo_type_to_string(MemoType type);
 char        memo_type_to_code(MemoType type);
 const char* trim_start(const char* text);

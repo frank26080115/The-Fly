@@ -98,14 +98,10 @@ bool        ends_with_extension(const char* path, const char* extension);
 const char* basename_for_path(const char* path);
 uint64_t    filename_datetime_key(const char* name);
 uint64_t    fat_datetime_key(FsFile& file);
-uint64_t    decimal_datetime_key(uint32_t year,
-                                 uint32_t month,
-                                 uint32_t day,
-                                 uint32_t hours,
-                                 uint32_t minutes,
-                                 uint32_t seconds);
-uint32_t    parse_digits(const char* text, size_t offset, size_t count);
-uint8_t     percent_u8(uint64_t numerator, uint64_t denominator);
+uint64_t
+decimal_datetime_key(uint32_t year, uint32_t month, uint32_t day, uint32_t hours, uint32_t minutes, uint32_t seconds);
+uint32_t parse_digits(const char* text, size_t offset, size_t count);
+uint8_t  percent_u8(uint64_t numerator, uint64_t denominator);
 
 } // namespace
 

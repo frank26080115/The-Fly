@@ -56,25 +56,25 @@ bool    g_network_config_hash_valid        = false;
 // Function Prototypes
 // -----------------------------------------------------------------------------
 
-void clear_filecrypt_key();
-void clear_network_key();
-void clear_network_config_hash();
-void clear_all_keys();
-bool valid_buffer(const uint8_t* ptr, size_t len);
-bool sha1_update_buffer(mbedtls_md_context_t& ctx, const void* data, size_t data_len);
-bool tamper_evidence_hash_from_network_hash(const uint8_t network_config_hash[kSha1Size], uint8_t out[kSha1Size]);
+void     clear_filecrypt_key();
+void     clear_network_key();
+void     clear_network_config_hash();
+void     clear_all_keys();
+bool     valid_buffer(const uint8_t* ptr, size_t len);
+bool     sha1_update_buffer(mbedtls_md_context_t& ctx, const void* data, size_t data_len);
+bool     tamper_evidence_hash_from_network_hash(const uint8_t network_config_hash[kSha1Size], uint8_t out[kSha1Size]);
 uint32_t sha1_prefix_u32(const uint8_t digest[kSha1Size]);
-bool load_key_from_nvs(nvs_handle_t handle, const char* blob_name, uint8_t* key, size_t key_size, bool& valid);
-bool save_key_to_nvs(const char* blob_name, const uint8_t* key, size_t key_size);
-bool save_keys_to_nvs(const uint8_t* filecrypt_key, const uint8_t* network_key);
-void pbkdf2_yield(uint32_t completed_rounds);
-bool pbkdf2_block_hmac_sha256(const uint8_t* password,
-                              size_t         password_len,
-                              const uint8_t* salt,
-                              size_t         salt_len,
-                              uint32_t       iterations,
-                              uint32_t       block_index,
-                              uint8_t        out[kSha256Size]);
+bool     load_key_from_nvs(nvs_handle_t handle, const char* blob_name, uint8_t* key, size_t key_size, bool& valid);
+bool     save_key_to_nvs(const char* blob_name, const uint8_t* key, size_t key_size);
+bool     save_keys_to_nvs(const uint8_t* filecrypt_key, const uint8_t* network_key);
+void     pbkdf2_yield(uint32_t completed_rounds);
+bool     pbkdf2_block_hmac_sha256(const uint8_t* password,
+                                  size_t         password_len,
+                                  const uint8_t* salt,
+                                  size_t         salt_len,
+                                  uint32_t       iterations,
+                                  uint32_t       block_index,
+                                  uint8_t        out[kSha256Size]);
 
 } // namespace
 
@@ -533,7 +533,6 @@ bool pbkdf2HmacSha256(const uint8_t* password,
 
     return true;
 }
-
 
 namespace
 {

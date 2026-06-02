@@ -36,11 +36,12 @@ struct PngDecodeContext
 // Function Prototypes
 // -----------------------------------------------------------------------------
 
-static void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, size_t length, const uint8_t* argb);
-static uint32_t read_png_bytes(void* user_data, uint8_t* buffer, uint32_t length);
-lgfx::rgb565_t argb_to_rgb565(const uint8_t* argb, uint8_t brightness);
-static uint16_t apply_brightness(uint16_t value, uint8_t brightness);
-static bool     dither_pixel_enabled(int32_t x, int32_t y);
+static void
+draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, size_t length, const uint8_t* argb);
+static uint32_t       read_png_bytes(void* user_data, uint8_t* buffer, uint32_t length);
+lgfx::rgb565_t        argb_to_rgb565(const uint8_t* argb, uint8_t brightness);
+static uint16_t       apply_brightness(uint16_t value, uint8_t brightness);
+static bool           dither_pixel_enabled(int32_t x, int32_t y);
 static lgfx::rgb565_t black_pixel();
 static bool           considered_transparent_pixel(const uint8_t* argb);
 

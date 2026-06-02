@@ -53,18 +53,18 @@ PruneHistoryCallback g_prune_callback = nullptr;
 // Function Prototypes
 // -----------------------------------------------------------------------------
 
-void        prune_history_task(void*);
-void        finish_prune_history(PruneHistoryState state, PruneHistoryError error);
-void        update_prune_status_counts(uint32_t lines_processed,
-                                       uint32_t lines_kept,
-                                       uint32_t files_pruned,
-                                       uint32_t messages_pruned,
-                                       uint32_t delete_failures);
-bool        datetime_is_older_than_retention(const m5::rtc_datetime_t& datetime, int64_t now_epoch);
-int64_t     datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime);
-bool        read_history_line(FsFile& file, char* line, size_t line_size);
-bool        write_history_line(FsFile& file, const char* line);
-bool        extract_history_file_path(const char* line, char* path, size_t path_size);
+void    prune_history_task(void*);
+void    finish_prune_history(PruneHistoryState state, PruneHistoryError error);
+void    update_prune_status_counts(uint32_t lines_processed,
+                                   uint32_t lines_kept,
+                                   uint32_t files_pruned,
+                                   uint32_t messages_pruned,
+                                   uint32_t delete_failures);
+bool    datetime_is_older_than_retention(const m5::rtc_datetime_t& datetime, int64_t now_epoch);
+int64_t datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime);
+bool    read_history_line(FsFile& file, char* line, size_t line_size);
+bool    write_history_line(FsFile& file, const char* line);
+bool    extract_history_file_path(const char* line, char* path, size_t path_size);
 
 } // namespace
 

@@ -210,11 +210,11 @@ void note_fifo_overflow_events();
 void reset_fifo_flow_flags_after_observation();
 
 #if BUILD_WITH_SECURITY_LEVEL >= 1
-bool write_full_encrypted_audio_chunk_locked(bool& encryption_failed, bool& storage_failed);
-bool append_encrypted_audio_locked(const uint8_t* data,
-                                   size_t         byte_count,
-                                   bool&          encryption_failed,
-                                   bool&          storage_failed);
+bool   write_full_encrypted_audio_chunk_locked(bool& encryption_failed, bool& storage_failed);
+bool   append_encrypted_audio_locked(const uint8_t* data,
+                                     size_t         byte_count,
+                                     bool&          encryption_failed,
+                                     bool&          storage_failed);
 bool   finish_encrypted_audio_locked();
 size_t plaintext_audio_write_offset();
 bool   encrypted_audio_chunk_full();

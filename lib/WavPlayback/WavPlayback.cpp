@@ -15,7 +15,7 @@ namespace
 // -----------------------------------------------------------------------------
 
 uint32_t read_le32(const uint8_t* data);
-bool wav_header_valid(const uint8_t* header);
+bool     wav_header_valid(const uint8_t* header);
 
 } // namespace
 

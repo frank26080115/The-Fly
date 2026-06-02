@@ -36,7 +36,7 @@ bool needsPump();
 void pump();
 bool stopRecording(bool estop = false);
 bool isRecording();
-bool purePcmMode();                // debug use only 
+bool purePcmMode();                // debug use only
 void setPurePcmMode(bool enabled); // debug use only
 
 float    writeDurationAverageMs();

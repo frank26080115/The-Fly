@@ -142,31 +142,31 @@ template <typename Updater> void update_hfp_diag(Updater updater)
 // Function Prototypes
 // -----------------------------------------------------------------------------
 
-bool begin_fifos();
-void stop_i2s();
-bool enable_ns4168_speaker();
-bool enable_spm1423_mic();
-bool enable_exti2scodec_speaker();
-bool enable_exti2scodec_mic();
-void queue_hfp_pcm(const uint8_t* buf, uint32_t len);
-bool should_notify_hfp_outgoing_ready(size_t queued_bt, bool allow_existing_fifo);
-void notify_hfp_outgoing_ready(bool ready);
-bool mic_file_source_active();
-void queue_silence_to_match(AudioFifo& lagging_fifo, AudioFifo& leading_fifo);
-void queue_silence_to_reduce_lag(AudioFifo& lagging_fifo, AudioFifo& leading_fifo);
-void set_ns4168_speaker_enabled(bool enabled);
-void update_hardware_volume();
-bool using_ns4168_speaker();
+bool   begin_fifos();
+void   stop_i2s();
+bool   enable_ns4168_speaker();
+bool   enable_spm1423_mic();
+bool   enable_exti2scodec_speaker();
+bool   enable_exti2scodec_mic();
+void   queue_hfp_pcm(const uint8_t* buf, uint32_t len);
+bool   should_notify_hfp_outgoing_ready(size_t queued_bt, bool allow_existing_fifo);
+void   notify_hfp_outgoing_ready(bool ready);
+bool   mic_file_source_active();
+void   queue_silence_to_match(AudioFifo& lagging_fifo, AudioFifo& leading_fifo);
+void   queue_silence_to_reduce_lag(AudioFifo& lagging_fifo, AudioFifo& leading_fifo);
+void   set_ns4168_speaker_enabled(bool enabled);
+void   update_hardware_volume();
+bool   using_ns4168_speaker();
 size_t speaker_bytes_per_frame();
-void apply_ns4168_software_volume(int16_t* samples, size_t sampleCount);
+void   apply_ns4168_software_volume(int16_t* samples, size_t sampleCount);
 size_t take_i2s_tx_frames(size_t maxFrames);
-void return_i2s_tx_bytes(size_t bytes);
-bool i2s_transfer_ready(i2s_chan_handle_t, i2s_event_data_t* event, void*);
-bool i2s_rx_transfer_ready(i2s_chan_handle_t, i2s_event_data_t*, void*);
-bool register_i2s_callbacks(i2s_chan_handle_t handle, bool rx);
-bool preload_silence(i2s_chan_handle_t handle);
-bool enable_channel(i2s_chan_handle_t handle, const char* label);
-void log_heap_after_fifo_begin(const char* fifo_name, bool result);
+void   return_i2s_tx_bytes(size_t bytes);
+bool   i2s_transfer_ready(i2s_chan_handle_t, i2s_event_data_t* event, void*);
+bool   i2s_rx_transfer_ready(i2s_chan_handle_t, i2s_event_data_t*, void*);
+bool   register_i2s_callbacks(i2s_chan_handle_t handle, bool rx);
+bool   preload_silence(i2s_chan_handle_t handle);
+bool   enable_channel(i2s_chan_handle_t handle, const char* label);
+void   log_heap_after_fifo_begin(const char* fifo_name, bool result);
 
 #ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
 void note_speaker_i2s_write(size_t requested, size_t written, size_t bytes_per_frame, esp_err_t err);

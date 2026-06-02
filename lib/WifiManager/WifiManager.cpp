@@ -67,27 +67,24 @@ constexpr const char* kNetworkNvsBlobName   = "network";
 
 const char* load_result_tostring(WifiManager::LoadResult result);
 const char* status_name(WifiManager::Status status);
-uint8_t parse_icon_or_default(const char* icon, uint8_t default_icon);
-bool copy_config_text(char* dst, size_t dst_size, const char* value, bool required);
-bool valid_network_config_version(uint32_t version);
-void init_network_config_defaults(network_cfg_t& cfg);
-void sanitize_network_config(network_cfg_t& cfg);
-void apply_timezone(const char* timezone);
-bool cache_network_config_hash(const network_cfg_t& cfg);
-bool parse_network_wifi_array(JsonDocument& doc,
-                              const char*   array_name,
-                              wifi_item_t*  items,
-                              uint8_t&      count,
-                              size_t&       skipped);
-bool parse_network_cloud_array(JsonDocument& doc, cloud_item_t* items, uint8_t& count, size_t& skipped);
-bool parse_network_config_json(JsonDocument& doc, network_cfg_t& cfg, size_t& skipped);
-bool scan_has_ssid(int network_count, const char* ssid);
-bool is_connected_status(WifiManager::Status status);
-void shutdown_for_wifi_activation();
-void format_generated_soft_ap_ssid(char* ssid, size_t ssid_size);
-void format_generated_soft_ap_password(char* password, size_t password_size);
-void configure_soft_ap_security(wifi_config_t& config, const char* ssid, const char* password);
-bool start_secure_soft_ap(const char* ssid, const char* password);
+uint8_t     parse_icon_or_default(const char* icon, uint8_t default_icon);
+bool        copy_config_text(char* dst, size_t dst_size, const char* value, bool required);
+bool        valid_network_config_version(uint32_t version);
+void        init_network_config_defaults(network_cfg_t& cfg);
+void        sanitize_network_config(network_cfg_t& cfg);
+void        apply_timezone(const char* timezone);
+bool        cache_network_config_hash(const network_cfg_t& cfg);
+bool        parse_network_wifi_array(
+    JsonDocument& doc, const char* array_name, wifi_item_t* items, uint8_t& count, size_t& skipped);
+bool      parse_network_cloud_array(JsonDocument& doc, cloud_item_t* items, uint8_t& count, size_t& skipped);
+bool      parse_network_config_json(JsonDocument& doc, network_cfg_t& cfg, size_t& skipped);
+bool      scan_has_ssid(int network_count, const char* ssid);
+bool      is_connected_status(WifiManager::Status status);
+void      shutdown_for_wifi_activation();
+void      format_generated_soft_ap_ssid(char* ssid, size_t ssid_size);
+void      format_generated_soft_ap_password(char* password, size_t password_size);
+void      configure_soft_ap_security(wifi_config_t& config, const char* ssid, const char* password);
+bool      start_secure_soft_ap(const char* ssid, const char* password);
 IPAddress current_soft_ap_ip();
 
 } // namespace

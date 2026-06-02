@@ -97,17 +97,17 @@ bool compute_hmac(const uint8_t* key, const uint8_t* data, size_t data_size, uin
 bool begin_new_session(const String& client_salt_hex);
 const web_asset_desc_t* find_asset_by_name(const char* file_name);
 const web_asset_desc_t* find_asset_for_url(const String& url);
-String asset_route(const web_asset_desc_t& asset);
-void send_asset(AsyncWebServerRequest* request);
-void append_json_u64(String& json, uint64_t value);
-void append_json_i64(String& json, int64_t value);
-bool ip_is_zero(const IPAddress& ip);
-String self_ip_string();
-String self_wifi_mac_string();
-void send_info(AsyncWebServerRequest* request);
-void reset_password(AsyncWebServerRequest* request);
-bool erase_nvs_namespace(const char* name, String& error);
-void reset_memory(AsyncWebServerRequest* request);
+String                  asset_route(const web_asset_desc_t& asset);
+void                    send_asset(AsyncWebServerRequest* request);
+void                    append_json_u64(String& json, uint64_t value);
+void                    append_json_i64(String& json, int64_t value);
+bool                    ip_is_zero(const IPAddress& ip);
+String                  self_ip_string();
+String                  self_wifi_mac_string();
+void                    send_info(AsyncWebServerRequest* request);
+void                    reset_password(AsyncWebServerRequest* request);
+bool                    erase_nvs_namespace(const char* name, String& error);
+void                    reset_memory(AsyncWebServerRequest* request);
 
 } // namespace
 

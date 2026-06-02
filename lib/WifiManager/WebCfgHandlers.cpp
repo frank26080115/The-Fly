@@ -1952,5 +1952,4 @@ bool begin_set_cfg_upload(AsyncWebServerRequest* request, size_t total)
 
 } // namespace
 
-
 } // namespace WebCfgHandlers

@@ -41,8 +41,8 @@ constexpr const char* kStopHint                 = "reset or power-off to stop";
 // Function Prototypes
 // -----------------------------------------------------------------------------
 
-static void               draw_fit_line(const char* text, int16_t x, int16_t y, int16_t width, uint8_t font, uint16_t color);
-static void               set_text_style(uint8_t font, uint16_t color);
+static void draw_fit_line(const char* text, int16_t x, int16_t y, int16_t width, uint8_t font, uint16_t color);
+static void set_text_style(uint8_t font, uint16_t color);
 static const wifi_item_t* current_station();
 } // namespace
 

@@ -294,7 +294,6 @@ void finish(AsyncWebServerRequest* request)
 #endif
 }
 
-
 namespace
 {
 
@@ -1297,7 +1296,6 @@ void send_recording(AsyncWebServerRequest* request, const char* file_path, bool 
 #endif
 
 } // namespace
-
 
 } // namespace DecryptedDownload
 

@@ -110,14 +110,14 @@ namespace
 // Function Prototypes
 // -----------------------------------------------------------------------------
 
-void trim_leading_spaces(char* line, size_t& len);
-void recalc_last_space(const char* line, size_t len, size_t& lastSpace);
-bool count_wrapped_line(char* line, size_t& len, int16_t& y, int16_t maxY, int16_t lineHeight);
-bool wrapped_text_fits(const char* text, int16_t width, int16_t y, int16_t maxY, int16_t lineHeight);
+void    trim_leading_spaces(char* line, size_t& len);
+void    recalc_last_space(const char* line, size_t len, size_t& lastSpace);
+bool    count_wrapped_line(char* line, size_t& len, int16_t& y, int16_t maxY, int16_t lineHeight);
+bool    wrapped_text_fits(const char* text, int16_t width, int16_t y, int16_t maxY, int16_t lineHeight);
 int16_t scrub_x();
 int16_t button_x(uint8_t column);
 int16_t delete_x();
-void copy_wrapped_prefix_that_fits(
+void    copy_wrapped_prefix_that_fits(
     const char* text, char* out, size_t outSize, int16_t width, int16_t y, int16_t maxY, int16_t lineHeight);
 uint32_t precision_window_start(uint32_t currentMs, uint32_t totalMs);
 uint32_t step_toward(uint32_t value, uint32_t target, uint32_t step);

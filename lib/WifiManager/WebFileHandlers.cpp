@@ -148,18 +148,18 @@ std::weak_ptr<FileListJsonStream> g_active_file_list_stream;
 // Function Prototypes
 // -----------------------------------------------------------------------------
 
-void close_active_file_list_stream();
-void note_web_download();
-void note_web_error();
-bool normalize_upload_path(const String& file_name, char* out, size_t out_size);
-bool path_has_parent_or_current_segment(const char* path);
-bool prepare_file_upload(AsyncWebServerRequest* request, char* upload_path, size_t upload_path_size);
-void remove_partial_upload(AsyncWebServerRequest* request);
+void   close_active_file_list_stream();
+void   note_web_download();
+void   note_web_error();
+bool   normalize_upload_path(const String& file_name, char* out, size_t out_size);
+bool   path_has_parent_or_current_segment(const char* path);
+bool   prepare_file_upload(AsyncWebServerRequest* request, char* upload_path, size_t upload_path_size);
+void   remove_partial_upload(AsyncWebServerRequest* request);
 String safe_content_disposition(const char* disposition, const char* filename);
-void send_file_upload_error(AsyncWebServerRequest* request);
-void set_upload_error(AsyncWebServerRequest* request, int status_code, const char* message);
-void write_file_upload_bytes(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index);
-bool write_upload_chunk(const char* upload_path, const uint8_t* data, size_t len, bool first_chunk);
+void   send_file_upload_error(AsyncWebServerRequest* request);
+void   set_upload_error(AsyncWebServerRequest* request, int status_code, const char* message);
+void   write_file_upload_bytes(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index);
+bool   write_upload_chunk(const char* upload_path, const uint8_t* data, size_t len, bool first_chunk);
 
 } // namespace
 
@@ -413,7 +413,6 @@ void sendMicroSdFileList(AsyncWebServerRequest* request)
     request->send(response);
 }
 
-
 namespace
 {
 
@@ -600,8 +599,6 @@ void send_file_upload_error(AsyncWebServerRequest* request)
     request->send(static_cast<int>(status_code), "text/plain", error.isEmpty() ? "File upload failed" : error);
 }
 
-
-
 void close_active_file_list_stream()
 {
     if (std::shared_ptr<FileListJsonStream> active = g_active_file_list_stream.lock())
@@ -641,6 +638,5 @@ String safe_content_disposition(const char* disposition, const char* filename)
 }
 
 } // namespace
-
 
 } // namespace WebFileHandlers

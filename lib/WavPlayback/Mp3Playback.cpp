@@ -20,13 +20,13 @@ Mp3Playback* g_decode_target = nullptr;
 // Function Prototypes
 // -----------------------------------------------------------------------------
 
-void mp3_data_callback(MP3FrameInfo& info, short* pcm, size_t sample_count);
+void     mp3_data_callback(MP3FrameInfo& info, short* pcm, size_t sample_count);
 uint32_t id3v2_size(const uint8_t* header);
-bool parse_mp3_header(uint32_t  header,
-                      uint32_t& bitrate_kbps,
-                      uint32_t& sample_rate_hz,
-                      uint32_t& frame_size_bytes,
-                      uint16_t& samples_per_frame);
+bool     parse_mp3_header(uint32_t  header,
+                          uint32_t& bitrate_kbps,
+                          uint32_t& sample_rate_hz,
+                          uint32_t& frame_size_bytes,
+                          uint16_t& samples_per_frame);
 
 } // namespace
 

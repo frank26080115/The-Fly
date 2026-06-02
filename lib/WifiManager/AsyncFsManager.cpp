@@ -59,7 +59,7 @@ void close_walk_locked();
 void close_download_locked();
 bool reset_walk_locked();
 bool reopen_download_locked();
-int read_download_locked(uint64_t position, uint8_t* buffer, size_t max_len);
+int  read_download_locked(uint64_t position, uint8_t* buffer, size_t max_len);
 
 } // namespace
 
@@ -391,7 +391,6 @@ bool isFile(const char* path)
     file.close();
     return result;
 }
-
 
 namespace
 {
