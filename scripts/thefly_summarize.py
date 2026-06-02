@@ -249,7 +249,7 @@ def summarize_transcript(
     return extract_response_text(parsed)
 
 
-def transcribe_wav(input_path: Path, timeout: float) -> Path:
+def transcribe_audio_file(input_path: Path, timeout: float) -> Path:
     try:
         import thefly_transcription
     except ModuleNotFoundError:
@@ -257,7 +257,7 @@ def transcribe_wav(input_path: Path, timeout: float) -> Path:
         import thefly_transcription
 
     output_path = thefly_transcription.default_output_path(input_path)
-    result = thefly_transcription.transcribe_wav(
+    result = thefly_transcription.transcribe_audio_file(
         input_path=input_path,
         model=thefly_transcription.DEFAULT_MODEL,
         response_format="diarized_json",
@@ -318,7 +318,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     try:
         transcript_path = input_path
         if suffix == ".wav":
-            transcript_path = transcribe_wav(input_path, args.timeout)
+            transcript_path = transcribe_audio_file(input_path, args.timeout)
             print(f"transcription output: {transcript_path}")
 
         transcript = read_transcript_json(transcript_path)

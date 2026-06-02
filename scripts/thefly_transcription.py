@@ -162,6 +162,8 @@ def read_info_list_icmt(payload: bytes) -> str:
 
 
 def add_recording_metadata(result: dict[str, Any], input_path: Path) -> None:
+    # note: since we have stopped using WAV files altogether, this might be useless
+    # the file name itself still infers a meta type for the recording
     meta_comment = read_wav_info_icmt(input_path)
     if not meta_comment:
         meta_comment = metadata_comment_from_filename(input_path)
@@ -209,7 +211,7 @@ def openai_headers(api_key: str) -> dict[str, str]:
     return headers
 
 
-def transcribe_wav(
+def transcribe_audio_file(
     input_path: Path,
     model: str,
     response_format: str,
@@ -230,6 +232,8 @@ def transcribe_wav(
     if language:
         fields["language"] = language
     if not prompt:
+        # the file-name will have a starting letter code that indicates what kind of recording it is, such as a meeting, or memo, or reminder, etc
+        # so the prompt used for the transcription includes just a little bit of context
         prompt = default_prompt_from_filename(input_path)
     if prompt:
         fields["prompt"] = prompt
@@ -301,7 +305,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 2
 
     try:
-        result = transcribe_wav(
+        result = transcribe_audio_file(
             input_path=input_path,
             model=args.model,
             response_format=args.response_format,

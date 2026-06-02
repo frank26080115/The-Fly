@@ -248,7 +248,7 @@ def summary_path_for_transcript(transcript_path: Path, summarized_dir: Path) -> 
 
 def transcribe_audio_to_json(audio_path: Path, output_path: Path, timeout: float) -> Path:
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    result = thefly_transcription.transcribe_wav(
+    result = thefly_transcription.transcribe_audio_file(
         input_path=audio_path,
         model=thefly_transcription.DEFAULT_MODEL,
         response_format="diarized_json",
@@ -619,6 +619,7 @@ def should_sync_device(args: argparse.Namespace) -> bool:
     return bool(args.device) or args.clean or args.transcribe or not local_only_requested
 
 
+# some features can be used without the-fly being accessible over the network
 def can_continue_without_device(args: argparse.Namespace) -> bool:
     return not args.device and not args.clean and not args.transcribe and (bool(args.transcribe_file) or args.transcribe_all)
 
