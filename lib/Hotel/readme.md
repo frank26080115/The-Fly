@@ -41,3 +41,7 @@ Current states:
 - `LightSleepReady`: user activity happened within the last 1 minute, but not within the last 30 seconds. Full brightness; optional deep power save may sleep here.
 - `DimLightSleepReady`: user activity happened within the last 5 minutes, but not within the last 1 minute. Dimmed brightness; optional deep power save may sleep here.
 - `Shutdown`: no user activity for 5 minutes. Entered once to shut down through the M5 PMIC call.
+
+=====================
+
+Original implementation has drifted heavily as we've discovered that Bluetooth does not work if you screw around with the CPU clock speed at all

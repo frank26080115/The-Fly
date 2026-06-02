@@ -21,7 +21,7 @@ constexpr int kCore2SdMosi = 23;
 constexpr int kCore2SdCs   = 4;
 
 constexpr uint32_t kSdFrequenciesMHz[] = {
-    // 40,
+    // 40, // 40 MHz never works
     20,
     10,
     4};

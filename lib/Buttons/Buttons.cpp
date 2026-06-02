@@ -1,3 +1,7 @@
+/*
+This module handles physical buttons
+*/
+
 #include "Buttons.h"
 #include <M5Unified.h>
 

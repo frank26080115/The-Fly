@@ -1,3 +1,9 @@
+/*
+Security related code
+A few wrappers for cryptographic functions
+Manages memory for cryptographic keys
+*/
+
 #include "Aegis.h"
 
 #include <Arduino.h>

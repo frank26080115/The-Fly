@@ -1,3 +1,9 @@
+/*
+This is a C++ wrapper for the `shine` MP3 encoder library
+The wrapper attempts to mimic another library `arduino-liblame` in the way it works
+The most important point is how this wrapper has its own staging buffer
+*/
+
 #include "ShineWrapper.h"
 
 #include <cstring>

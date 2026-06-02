@@ -1,3 +1,9 @@
+/*
+This module handles the state and information about a Bluetooth call
+It can guess if the phone is in a call or not
+It can get the phone number of the caller, etc
+*/
+
 #include "CallManager.h"
 
 #include <Arduino.h>

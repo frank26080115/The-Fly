@@ -1,3 +1,11 @@
+/*
+Originally I was going to use the device orientation reported by the IMU to perform GUI interactions
+such as displaying information when the screen is upside down
+
+But... it turns out the IMU is mounted on a daughter-board
+so if I want to add another I2S codec, the IMU might disappear
+*/
+
 #include "ImuOrientation.h"
 
 #include <M5Unified.h>

@@ -1,3 +1,8 @@
+/*
+This module manages the list of Bluetooth hosts (like a smartphone or laptop)
+The user is able to give them custom names and custom icons
+*/
+
 #include "BtHostList.h"
 
 #include <ArduinoJson.h>
