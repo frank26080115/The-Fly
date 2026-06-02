@@ -263,12 +263,11 @@ void loop()
     // which is actually why it is shared with `AudioFileRecorder::pump();`, so the SPI calls are not going to overlap
     gui->poll();
 
-    if (AudioFileRecorder::needsPump())
-    {
-        // as the above comment says, this `pump` call can use SPI, so it is in the same thread as the GUI, which uses
-        // SPI to draw to the LCD screen
-        AudioFileRecorder::pump();
-    }
+
+    // as the above comment says, this `pump` call can use SPI, so it is in the same thread as the GUI, which uses
+    // SPI to draw to the LCD screen
+    AudioFileRecorder::pump();
+    // internally checks "needsPump"
 
     if (PlaybackView* playback_view = get_view_playback())
     {

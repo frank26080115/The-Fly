@@ -14,6 +14,7 @@
 namespace AudioFileRecorder
 {
 
+// these are the first letter of the file name
 enum class RecordingType : char
 {
     Meeting  = 'C',
@@ -35,8 +36,8 @@ bool needsPump();
 void pump();
 bool stopRecording(bool estop = false);
 bool isRecording();
-bool purePcmMode();
-void setPurePcmMode(bool enabled);
+bool purePcmMode();                // debug use only 
+void setPurePcmMode(bool enabled); // debug use only
 
 float    writeDurationAverageMs();
 float    writeDurationMaxMs();
@@ -51,9 +52,10 @@ uint64_t    bytesWritten();
 const char* currentSdPath();
 uint32_t    fifoOverflowEvents();
 
-bool grow_file(FsFile& file, uint64_t size);
+bool grow_file(FsFile& file, uint64_t size); // unused, too slow
 
 #ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
+// there are other pieces of code that borrow these static buffers
 uint8_t* wavPlaintextAudioBuffer();
 uint8_t* wavEncryptedAudioBuffer();
 size_t   wavPlaintextAudioBufferSize();
