@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "BluetoothManager.h"
 
 #include <Arduino.h>
@@ -22,6 +26,10 @@ namespace BtManager
 namespace
 {
 
+// -----------------------------------------------------------------------------
+// Configuration
+// -----------------------------------------------------------------------------
+
 constexpr const char* TAG                              = "BtManager";
 constexpr char        kLegacyPin[]                     = "0000";
 constexpr size_t      kLegacyPinMaxLength              = sizeof(esp_bt_pin_code_t);
@@ -35,6 +43,10 @@ constexpr uint32_t    kHfpProfileInitTimeoutMs         = 2000;
 constexpr uint32_t    kShutdownDisconnectWaitMs        = 1500;
 constexpr uint32_t    kReconnectAttemptIntervalMs      = 2000;
 constexpr uint32_t    kOutboundConnectScanModeSettleMs = 200;
+
+// -----------------------------------------------------------------------------
+// Globals
+// -----------------------------------------------------------------------------
 
 State                 g_state                 = State::Idle;
 esp_bd_addr_t         g_target_mac            = {};
@@ -81,6 +93,483 @@ char g_legacy_pin[kLegacyPinMaxLength + 1] = {'0', '0', '0', '0', '\0'};
 // the user can supply it, or it defaults to kLegacyPin when none is specified
 char g_generated_legacy_pin[kGeneratedPinLength + 1] = {};
 bool g_has_generated_legacy_pin                      = false;
+
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
+
+void set_state(State next);
+bool hfp_control_connected();
+void remember_reconnect_target(const esp_bd_addr_t mac);
+void clear_reconnect_schedule(bool clear_target);
+bool should_log_audio_callback(uint32_t count, uint32_t& last_log_ms);
+void reset_audio_callback_sequence();
+void log_local_identity(const char* reason, const char* device_name = nullptr);
+void schedule_reconnect_attempt(uint32_t delay_ms);
+bool close_pairing_window();
+bool make_bluetooth_non_connectable();
+void settle_outbound_connect_scan_mode();
+Result result_from_esp(esp_err_t err, const char* what);
+esp_bt_cod_t handsfree_cod();
+const char* controller_status_name(esp_bt_controller_status_t status);
+const char* bluedroid_status_name(esp_bluedroid_status_t status);
+const char* hfp_event_name(esp_hf_client_cb_event_t event);
+const char* hfp_connection_state_name(esp_hf_client_connection_state_t state);
+const char* hfp_audio_state_name(esp_hf_client_audio_state_t state);
+const char* hfp_profile_state_name(esp_hf_prof_state_t state);
+bool configure_eir_data();
+bool ensure_controller_enabled();
+bool ensure_bluedroid_enabled();
+bool bonded_mac_matches(const esp_bd_addr_t mac);
+uint32_t outgoing_audio_adapter(uint8_t* buf, uint32_t len);
+size_t legacy_pin_length();
+void set_legacy_pin(const char* pin);
+void format_pin_from_mac(const esp_bd_addr_t mac, char* pin, size_t pin_size);
+void format_device_name(char* name, size_t name_size);
+void incoming_audio_adapter(const uint8_t* buf, uint32_t len);
+bool register_data_callbacks_if_ready();
+bool wait_for_hfp_profile_ready();
+void reset_hfp_profile_ready();
+bool hfp_audio_connect_timed_out();
+esp_err_t connect_hfp_audio_once(const char* reason);
+void answer_incoming_call_once(const char* reason);
+void audio_connect_retry_task(void*);
+void start_audio_connect_retries();
+const char* connected_host_name(const esp_bd_addr_t mac);
+void query_call_metadata(const char* reason);
+void handle_pending_paired_device();
+void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param);
+void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param);
+bool init_bluetooth(const char* device_name, const char* pin_code);
+bool init_hfp(const char* device_name, const char* pin_code);
+bool deinit_hfp_for_pairing();
+
+} // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
+
+bool init(const char*           deviceName,
+          IncomingAudioCallback incomingAudio,
+          OutgoingAudioCallback outgoingAudio,
+          const char*           pin)
+{
+    g_incoming_audio = incomingAudio;
+    g_outgoing_audio = outgoingAudio;
+    return init_hfp(deviceName, pin);
+}
+
+bool initBluetoothOnly(const char* deviceName, const char* pin)
+{
+    return init_bluetooth(deviceName, pin);
+}
+
+void setAudioCallbacks(IncomingAudioCallback incomingAudio, OutgoingAudioCallback outgoingAudio)
+{
+    g_incoming_audio = incomingAudio;
+    g_outgoing_audio = outgoingAudio;
+    if (g_hfp_ready)
+    {
+        register_data_callbacks_if_ready();
+    }
+}
+
+void poll()
+{
+    handle_pending_paired_device();
+
+    if (g_state != State::Reconnecting || g_disconnect_requested || g_has_connected_mac || !g_bt_ready ||
+        !g_hfp_ready || !g_has_reconnect_target)
+    {
+        return;
+    }
+
+    const uint32_t now = millis();
+    if (g_next_reconnect_attempt_ms != 0 && static_cast<int32_t>(now - g_next_reconnect_attempt_ms) < 0)
+    {
+        return;
+    }
+
+    g_next_reconnect_attempt_ms = now + kReconnectAttemptIntervalMs;
+    ++g_reconnect_attempt_count;
+    DBG_LOGI(TAG, "automatic HFP reconnect attempt %" PRIu32, g_reconnect_attempt_count);
+    log_bda("reconnecting HFP to", g_reconnect_target_mac);
+
+    if (!close_pairing_window())
+    {
+        DBG_LOGW(TAG, "automatic HFP reconnect could not close discovery window first");
+        return;
+    }
+    settle_outbound_connect_scan_mode();
+
+    const esp_err_t err = esp_hf_client_connect(g_reconnect_target_mac);
+    if (err == ESP_OK)
+    {
+        set_state(State::Connecting);
+    }
+    else
+    {
+        DBG_LOGW(TAG, "automatic HFP reconnect attempt returned: %s", esp_err_to_name(err));
+    }
+}
+
+bool generateLegacyPinFromMac()
+{
+    esp_bd_addr_t mac      = {};
+    const bool    read_mac = ok(esp_read_mac(mac, ESP_MAC_BT), "read bt mac for pin");
+    if (read_mac)
+    {
+        format_pin_from_mac(mac, g_generated_legacy_pin, sizeof(g_generated_legacy_pin));
+    }
+    else
+    {
+        strlcpy(g_generated_legacy_pin, "0001", sizeof(g_generated_legacy_pin));
+    }
+
+    g_has_generated_legacy_pin = true;
+    set_legacy_pin(g_generated_legacy_pin);
+    return read_mac;
+}
+
+const char* generatedLegacyPin()
+{
+    if (!g_has_generated_legacy_pin)
+    {
+        generateLegacyPinFromMac();
+    }
+    return g_generated_legacy_pin;
+}
+
+void setPairedCallback(PairedCallback callback)
+{
+    g_paired_callback = callback;
+}
+
+void setStateChangedCallback(StateChangedCallback callback)
+{
+    g_state_changed_callback = callback;
+}
+
+BtHostList& hostList()
+{
+    return g_host_list;
+}
+
+Result connectToMac(const char* mac)
+{
+    esp_bd_addr_t parsed = {};
+    if (!parse_mac(mac, parsed))
+    {
+        return Result::InvalidArgument;
+    }
+
+    return connectToMac(parsed);
+}
+
+Result connectToMac(const esp_bd_addr_t mac)
+{
+    if (!init_hfp(nullptr, nullptr))
+    {
+        return Result::InitFailed;
+    }
+
+    char target_bdaddr_text[18] = {};
+    format_bdaddr(mac, target_bdaddr_text, sizeof(target_bdaddr_text));
+    log_local_identity("starting HFP connection");
+    DBG_LOGI(TAG, "starting HFP connection: remote BDADDR=%s", target_bdaddr_text);
+
+    if (!bonded_mac_matches(mac))
+    {
+        return Result::NotBonded;
+    }
+
+    if (g_state != State::Idle && g_state != State::Reconnecting)
+    {
+        return Result::Busy;
+    }
+
+    copy_bda(g_target_mac, mac);
+    remember_reconnect_target(g_target_mac);
+    clear_reconnect_schedule(false);
+    g_hfp_slc_connected    = false;
+    g_disconnect_requested = false;
+    set_state(State::Connecting);
+    if (!close_pairing_window())
+    {
+        set_state(State::Idle);
+        return Result::EspError;
+    }
+
+    settle_outbound_connect_scan_mode();
+    const esp_err_t err = esp_hf_client_connect(g_target_mac);
+    if (err != ESP_OK)
+    {
+        close_pairing_window();
+        set_state(State::Idle);
+    }
+    return result_from_esp(err, "hfp connect");
+}
+
+Result startPairing()
+{
+    if (!init_hfp(nullptr, nullptr))
+    {
+        return Result::InitFailed;
+    }
+
+    log_local_identity("starting pairing", g_local_device_name);
+    if (hfp_control_connected() || g_state == State::Connecting)
+    {
+        return Result::Busy;
+    }
+
+    g_disconnect_requested   = false;
+    g_has_last_paired_device = false;
+    clear_reconnect_schedule(false);
+    set_state(State::Pairing);
+    return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE),
+                           "open pairing window");
+}
+
+Result disconnect()
+{
+    if (!g_bt_ready)
+    {
+        clear_reconnect_schedule(false);
+        g_hfp_slc_connected = false;
+        set_state(State::Idle);
+        return Result::Ok;
+    }
+
+    g_disconnect_requested = true;
+    close_pairing_window();
+
+    if (g_has_connected_mac)
+    {
+        ok(esp_hf_client_disconnect_audio(g_connected_mac), "hfp audio disconnect");
+        ok(esp_hf_client_disconnect(g_connected_mac), "hfp disconnect");
+    }
+    else if (g_state == State::Connecting && g_has_reconnect_target)
+    {
+        ok(esp_hf_client_disconnect(g_reconnect_target_mac), "hfp connect cancel");
+        clear_reconnect_schedule(false);
+        g_hfp_slc_connected = false;
+        set_state(State::Idle);
+    }
+    else
+    {
+        clear_reconnect_schedule(false);
+        g_hfp_slc_connected = false;
+        set_state(State::Idle);
+        g_disconnect_requested = false;
+    }
+
+    return Result::Ok;
+}
+
+Result setConnectableNonDiscoverable()
+{
+    if (!g_bt_ready)
+    {
+        return Result::InitFailed;
+    }
+
+    return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE),
+                           "set bt connectable/non-discoverable");
+}
+
+Result setNonConnectableNonDiscoverable()
+{
+    if (!g_bt_ready)
+    {
+        return Result::InitFailed;
+    }
+
+    return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE),
+                           "set bt non-connectable/non-discoverable");
+}
+
+Result shutdown()
+{
+    if (!g_bt_ready && !btStarted() && esp_bluedroid_get_status() == ESP_BLUEDROID_STATUS_UNINITIALIZED)
+    {
+        set_state(State::Idle);
+        return Result::Ok;
+    }
+
+    g_disconnect_requested = true;
+    if (g_bt_ready)
+    {
+        make_bluetooth_non_connectable();
+    }
+
+    if (g_has_connected_mac)
+    {
+        ok(esp_hf_client_disconnect_audio(g_connected_mac), "hfp audio disconnect");
+        ok(esp_hf_client_disconnect(g_connected_mac), "hfp disconnect");
+
+        const uint32_t started_ms = millis();
+        while (g_has_connected_mac && static_cast<uint32_t>(millis() - started_ms) < kShutdownDisconnectWaitMs)
+        {
+            delay(10);
+        }
+    }
+
+    bool ok_all = true;
+    if (g_hfp_ready)
+    {
+        ok_all = ok(esp_hf_client_deinit(), "hfp deinit") && ok_all;
+    }
+
+    if (esp_bluedroid_get_status() == ESP_BLUEDROID_STATUS_ENABLED)
+    {
+        ok_all = ok(esp_bluedroid_disable(), "bluedroid disable") && ok_all;
+    }
+    if (esp_bluedroid_get_status() != ESP_BLUEDROID_STATUS_UNINITIALIZED)
+    {
+        ok_all = ok(esp_bluedroid_deinit(), "bluedroid deinit") && ok_all;
+    }
+    if (btStarted())
+    {
+        ok_all = btStop() && ok_all;
+    }
+
+    g_has_connected_mac = false;
+    clear_reconnect_schedule(false);
+    g_hfp_audio_connecting         = false;
+    g_hfp_audio_connected          = false;
+    g_hfp_slc_connected            = false;
+    g_hfp_call_active              = false;
+    g_hfp_call_setup_active        = false;
+    g_hfp_answer_requested         = false;
+    g_hfp_audio_connect_started_ms = 0;
+    g_audio_connect_task           = nullptr;
+    g_hfp_ready                    = false;
+    g_bt_ready                     = false;
+    g_data_callback_ready          = false;
+    g_disconnect_requested         = false;
+    set_state(State::Idle);
+    return ok_all ? Result::Ok : Result::EspError;
+}
+
+Result pickupPhone()
+{
+    if (!init_hfp(nullptr, nullptr))
+    {
+        return Result::InitFailed;
+    }
+
+    if (!hfp_control_connected())
+    {
+        return Result::Busy;
+    }
+
+    return result_from_esp(esp_hf_client_answer_call(), "hfp answer call");
+}
+
+void notifyOutgoingAudioReady()
+{
+    if (canNotifyOutgoingAudioReady())
+    {
+        esp_hf_client_outgoing_data_ready();
+    }
+}
+
+bool canNotifyOutgoingAudioReady()
+{
+    return hfp_control_connected() && g_hfp_audio_connected && g_data_callback_ready;
+}
+
+State state()
+{
+    return g_state;
+}
+
+const esp_bd_addr_t& connectedMac()
+{
+    return g_connected_mac;
+}
+
+const PairedDevice& lastPairedDevice()
+{
+    return g_last_paired_device;
+}
+
+bool hasLastPairedDevice()
+{
+    return g_has_last_paired_device;
+}
+
+bool isBonded(const esp_bd_addr_t mac)
+{
+    return g_bt_ready && bonded_mac_matches(mac);
+}
+
+bool isBonded(const char* mac)
+{
+    esp_bd_addr_t parsed = {};
+    return parse_mac(mac, parsed) && isBonded(parsed);
+}
+
+const char* localDeviceName()
+{
+    return g_local_device_name[0] != '\0' ? g_local_device_name : "The Fly";
+}
+
+bool localBdaddr(esp_bd_addr_t bdaddr)
+{
+    return bdaddr && esp_read_mac(bdaddr, ESP_MAC_BT) == ESP_OK;
+}
+
+const char* stateName(State value)
+{
+    switch (value)
+    {
+    case State::Idle:
+        return "Idle";
+    case State::Connecting:
+        return "Connecting";
+    case State::Connected:
+        return "Connected";
+    case State::AudioAvailable:
+        return "Audio Available";
+    case State::Reconnecting:
+        return "Reconnecting";
+    case State::Pairing:
+        return "Pairing";
+    default:
+        return "Unknown";
+    }
+}
+
+const char* resultName(Result value)
+{
+    switch (value)
+    {
+    case Result::Ok:
+        return "Ok";
+    case Result::InvalidArgument:
+        return "Invalid Argument";
+    case Result::InitFailed:
+        return "Init Failed";
+    case Result::NotBonded:
+        return "Not Bonded";
+    case Result::Busy:
+        return "Busy";
+    case Result::EspError:
+        return "ESP Error";
+    default:
+        return "Unknown";
+    }
+}
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
 
 // very simply sets the state of the state machine, with an optional callback
 void set_state(State next)
@@ -143,7 +632,7 @@ void reset_audio_callback_sequence()
     g_outgoing_audio_returned_bytes  = 0;
 }
 
-void log_local_identity(const char* reason, const char* device_name = nullptr)
+void log_local_identity(const char* reason, const char* device_name)
 {
     esp_bd_addr_t   local = {};
     const esp_err_t err   = esp_read_mac(local, ESP_MAC_BT);
@@ -1278,421 +1767,6 @@ bool deinit_hfp_for_pairing()
     reset_hfp_profile_ready();
     return true;
 }
-
 } // namespace
-
-bool init(const char*           deviceName,
-          IncomingAudioCallback incomingAudio,
-          OutgoingAudioCallback outgoingAudio,
-          const char*           pin)
-{
-    g_incoming_audio = incomingAudio;
-    g_outgoing_audio = outgoingAudio;
-    return init_hfp(deviceName, pin);
-}
-
-bool initBluetoothOnly(const char* deviceName, const char* pin)
-{
-    return init_bluetooth(deviceName, pin);
-}
-
-void setAudioCallbacks(IncomingAudioCallback incomingAudio, OutgoingAudioCallback outgoingAudio)
-{
-    g_incoming_audio = incomingAudio;
-    g_outgoing_audio = outgoingAudio;
-    if (g_hfp_ready)
-    {
-        register_data_callbacks_if_ready();
-    }
-}
-
-void poll()
-{
-    handle_pending_paired_device();
-
-    if (g_state != State::Reconnecting || g_disconnect_requested || g_has_connected_mac || !g_bt_ready ||
-        !g_hfp_ready || !g_has_reconnect_target)
-    {
-        return;
-    }
-
-    const uint32_t now = millis();
-    if (g_next_reconnect_attempt_ms != 0 && static_cast<int32_t>(now - g_next_reconnect_attempt_ms) < 0)
-    {
-        return;
-    }
-
-    g_next_reconnect_attempt_ms = now + kReconnectAttemptIntervalMs;
-    ++g_reconnect_attempt_count;
-    DBG_LOGI(TAG, "automatic HFP reconnect attempt %" PRIu32, g_reconnect_attempt_count);
-    log_bda("reconnecting HFP to", g_reconnect_target_mac);
-
-    if (!close_pairing_window())
-    {
-        DBG_LOGW(TAG, "automatic HFP reconnect could not close discovery window first");
-        return;
-    }
-    settle_outbound_connect_scan_mode();
-
-    const esp_err_t err = esp_hf_client_connect(g_reconnect_target_mac);
-    if (err == ESP_OK)
-    {
-        set_state(State::Connecting);
-    }
-    else
-    {
-        DBG_LOGW(TAG, "automatic HFP reconnect attempt returned: %s", esp_err_to_name(err));
-    }
-}
-
-bool generateLegacyPinFromMac()
-{
-    esp_bd_addr_t mac      = {};
-    const bool    read_mac = ok(esp_read_mac(mac, ESP_MAC_BT), "read bt mac for pin");
-    if (read_mac)
-    {
-        format_pin_from_mac(mac, g_generated_legacy_pin, sizeof(g_generated_legacy_pin));
-    }
-    else
-    {
-        strlcpy(g_generated_legacy_pin, "0001", sizeof(g_generated_legacy_pin));
-    }
-
-    g_has_generated_legacy_pin = true;
-    set_legacy_pin(g_generated_legacy_pin);
-    return read_mac;
-}
-
-const char* generatedLegacyPin()
-{
-    if (!g_has_generated_legacy_pin)
-    {
-        generateLegacyPinFromMac();
-    }
-    return g_generated_legacy_pin;
-}
-
-void setPairedCallback(PairedCallback callback)
-{
-    g_paired_callback = callback;
-}
-
-void setStateChangedCallback(StateChangedCallback callback)
-{
-    g_state_changed_callback = callback;
-}
-
-BtHostList& hostList()
-{
-    return g_host_list;
-}
-
-Result connectToMac(const char* mac)
-{
-    esp_bd_addr_t parsed = {};
-    if (!parse_mac(mac, parsed))
-    {
-        return Result::InvalidArgument;
-    }
-
-    return connectToMac(parsed);
-}
-
-Result connectToMac(const esp_bd_addr_t mac)
-{
-    if (!init_hfp(nullptr, nullptr))
-    {
-        return Result::InitFailed;
-    }
-
-    char target_bdaddr_text[18] = {};
-    format_bdaddr(mac, target_bdaddr_text, sizeof(target_bdaddr_text));
-    log_local_identity("starting HFP connection");
-    DBG_LOGI(TAG, "starting HFP connection: remote BDADDR=%s", target_bdaddr_text);
-
-    if (!bonded_mac_matches(mac))
-    {
-        return Result::NotBonded;
-    }
-
-    if (g_state != State::Idle && g_state != State::Reconnecting)
-    {
-        return Result::Busy;
-    }
-
-    copy_bda(g_target_mac, mac);
-    remember_reconnect_target(g_target_mac);
-    clear_reconnect_schedule(false);
-    g_hfp_slc_connected    = false;
-    g_disconnect_requested = false;
-    set_state(State::Connecting);
-    if (!close_pairing_window())
-    {
-        set_state(State::Idle);
-        return Result::EspError;
-    }
-
-    settle_outbound_connect_scan_mode();
-    const esp_err_t err = esp_hf_client_connect(g_target_mac);
-    if (err != ESP_OK)
-    {
-        close_pairing_window();
-        set_state(State::Idle);
-    }
-    return result_from_esp(err, "hfp connect");
-}
-
-Result startPairing()
-{
-    if (!init_hfp(nullptr, nullptr))
-    {
-        return Result::InitFailed;
-    }
-
-    log_local_identity("starting pairing", g_local_device_name);
-    if (hfp_control_connected() || g_state == State::Connecting)
-    {
-        return Result::Busy;
-    }
-
-    g_disconnect_requested   = false;
-    g_has_last_paired_device = false;
-    clear_reconnect_schedule(false);
-    set_state(State::Pairing);
-    return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE),
-                           "open pairing window");
-}
-
-Result disconnect()
-{
-    if (!g_bt_ready)
-    {
-        clear_reconnect_schedule(false);
-        g_hfp_slc_connected = false;
-        set_state(State::Idle);
-        return Result::Ok;
-    }
-
-    g_disconnect_requested = true;
-    close_pairing_window();
-
-    if (g_has_connected_mac)
-    {
-        ok(esp_hf_client_disconnect_audio(g_connected_mac), "hfp audio disconnect");
-        ok(esp_hf_client_disconnect(g_connected_mac), "hfp disconnect");
-    }
-    else if (g_state == State::Connecting && g_has_reconnect_target)
-    {
-        ok(esp_hf_client_disconnect(g_reconnect_target_mac), "hfp connect cancel");
-        clear_reconnect_schedule(false);
-        g_hfp_slc_connected = false;
-        set_state(State::Idle);
-    }
-    else
-    {
-        clear_reconnect_schedule(false);
-        g_hfp_slc_connected = false;
-        set_state(State::Idle);
-        g_disconnect_requested = false;
-    }
-
-    return Result::Ok;
-}
-
-Result setConnectableNonDiscoverable()
-{
-    if (!g_bt_ready)
-    {
-        return Result::InitFailed;
-    }
-
-    return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE),
-                           "set bt connectable/non-discoverable");
-}
-
-Result setNonConnectableNonDiscoverable()
-{
-    if (!g_bt_ready)
-    {
-        return Result::InitFailed;
-    }
-
-    return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE),
-                           "set bt non-connectable/non-discoverable");
-}
-
-Result shutdown()
-{
-    if (!g_bt_ready && !btStarted() && esp_bluedroid_get_status() == ESP_BLUEDROID_STATUS_UNINITIALIZED)
-    {
-        set_state(State::Idle);
-        return Result::Ok;
-    }
-
-    g_disconnect_requested = true;
-    if (g_bt_ready)
-    {
-        make_bluetooth_non_connectable();
-    }
-
-    if (g_has_connected_mac)
-    {
-        ok(esp_hf_client_disconnect_audio(g_connected_mac), "hfp audio disconnect");
-        ok(esp_hf_client_disconnect(g_connected_mac), "hfp disconnect");
-
-        const uint32_t started_ms = millis();
-        while (g_has_connected_mac && static_cast<uint32_t>(millis() - started_ms) < kShutdownDisconnectWaitMs)
-        {
-            delay(10);
-        }
-    }
-
-    bool ok_all = true;
-    if (g_hfp_ready)
-    {
-        ok_all = ok(esp_hf_client_deinit(), "hfp deinit") && ok_all;
-    }
-
-    if (esp_bluedroid_get_status() == ESP_BLUEDROID_STATUS_ENABLED)
-    {
-        ok_all = ok(esp_bluedroid_disable(), "bluedroid disable") && ok_all;
-    }
-    if (esp_bluedroid_get_status() != ESP_BLUEDROID_STATUS_UNINITIALIZED)
-    {
-        ok_all = ok(esp_bluedroid_deinit(), "bluedroid deinit") && ok_all;
-    }
-    if (btStarted())
-    {
-        ok_all = btStop() && ok_all;
-    }
-
-    g_has_connected_mac = false;
-    clear_reconnect_schedule(false);
-    g_hfp_audio_connecting         = false;
-    g_hfp_audio_connected          = false;
-    g_hfp_slc_connected            = false;
-    g_hfp_call_active              = false;
-    g_hfp_call_setup_active        = false;
-    g_hfp_answer_requested         = false;
-    g_hfp_audio_connect_started_ms = 0;
-    g_audio_connect_task           = nullptr;
-    g_hfp_ready                    = false;
-    g_bt_ready                     = false;
-    g_data_callback_ready          = false;
-    g_disconnect_requested         = false;
-    set_state(State::Idle);
-    return ok_all ? Result::Ok : Result::EspError;
-}
-
-Result pickupPhone()
-{
-    if (!init_hfp(nullptr, nullptr))
-    {
-        return Result::InitFailed;
-    }
-
-    if (!hfp_control_connected())
-    {
-        return Result::Busy;
-    }
-
-    return result_from_esp(esp_hf_client_answer_call(), "hfp answer call");
-}
-
-void notifyOutgoingAudioReady()
-{
-    if (canNotifyOutgoingAudioReady())
-    {
-        esp_hf_client_outgoing_data_ready();
-    }
-}
-
-bool canNotifyOutgoingAudioReady()
-{
-    return hfp_control_connected() && g_hfp_audio_connected && g_data_callback_ready;
-}
-
-State state()
-{
-    return g_state;
-}
-
-const esp_bd_addr_t& connectedMac()
-{
-    return g_connected_mac;
-}
-
-const PairedDevice& lastPairedDevice()
-{
-    return g_last_paired_device;
-}
-
-bool hasLastPairedDevice()
-{
-    return g_has_last_paired_device;
-}
-
-bool isBonded(const esp_bd_addr_t mac)
-{
-    return g_bt_ready && bonded_mac_matches(mac);
-}
-
-bool isBonded(const char* mac)
-{
-    esp_bd_addr_t parsed = {};
-    return parse_mac(mac, parsed) && isBonded(parsed);
-}
-
-const char* localDeviceName()
-{
-    return g_local_device_name[0] != '\0' ? g_local_device_name : "The Fly";
-}
-
-bool localBdaddr(esp_bd_addr_t bdaddr)
-{
-    return bdaddr && esp_read_mac(bdaddr, ESP_MAC_BT) == ESP_OK;
-}
-
-const char* stateName(State value)
-{
-    switch (value)
-    {
-    case State::Idle:
-        return "Idle";
-    case State::Connecting:
-        return "Connecting";
-    case State::Connected:
-        return "Connected";
-    case State::AudioAvailable:
-        return "Audio Available";
-    case State::Reconnecting:
-        return "Reconnecting";
-    case State::Pairing:
-        return "Pairing";
-    default:
-        return "Unknown";
-    }
-}
-
-const char* resultName(Result value)
-{
-    switch (value)
-    {
-    case Result::Ok:
-        return "Ok";
-    case Result::InvalidArgument:
-        return "Invalid Argument";
-    case Result::InitFailed:
-        return "Init Failed";
-    case Result::NotBonded:
-        return "Not Bonded";
-    case Result::Busy:
-        return "Busy";
-    case Result::EspError:
-        return "ESP Error";
-    default:
-        return "Unknown";
-    }
-}
 
 } // namespace BtManager

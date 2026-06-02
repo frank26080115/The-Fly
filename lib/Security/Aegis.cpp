@@ -4,6 +4,10 @@ A few wrappers for cryptographic functions
 Manages memory for cryptographic keys
 */
 
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "Aegis.h"
 
 #include <Arduino.h>
@@ -27,10 +31,18 @@ namespace Aegis
 namespace
 {
 
+// -----------------------------------------------------------------------------
+// Configuration
+// -----------------------------------------------------------------------------
+
 constexpr const char* TAG                   = "Aegis";
 constexpr const char* kNvsNamespace         = "aegis";
 constexpr const char* kFilecryptKeyBlobName = "filecrypt_key";
 constexpr const char* kNetworkKeyBlobName   = "network_key";
+
+// -----------------------------------------------------------------------------
+// Globals
+// -----------------------------------------------------------------------------
 
 uint8_t g_filecrypt_key[kFilecryptKeySize] = {};
 uint8_t g_network_key[kNetworkKeySize]     = {};
@@ -40,177 +52,35 @@ bool    g_filecrypt_key_valid              = false;
 bool    g_network_key_valid                = false;
 bool    g_network_config_hash_valid        = false;
 
-void clear_filecrypt_key()
-{
-    mbedtls_platform_zeroize(g_filecrypt_key, sizeof(g_filecrypt_key));
-    g_filecrypt_key_valid = false;
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-void clear_network_key()
-{
-    mbedtls_platform_zeroize(g_network_key, sizeof(g_network_key));
-    g_network_key_valid = false;
-}
-
-void clear_network_config_hash()
-{
-    mbedtls_platform_zeroize(g_network_config_hash, sizeof(g_network_config_hash));
-    g_network_config_hash_valid = false;
-}
-
-void clear_all_keys()
-{
-    clear_filecrypt_key();
-    clear_network_key();
-}
-
-bool valid_buffer(const uint8_t* ptr, size_t len)
-{
-    return ptr || len == 0;
-}
-
-bool sha1_update_buffer(mbedtls_md_context_t& ctx, const void* data, size_t data_len)
-{
-    static constexpr uint8_t kEmptyBuffer = 0;
-    const uint8_t*           bytes        = static_cast<const uint8_t*>(data);
-    if (!valid_buffer(bytes, data_len))
-    {
-        return false;
-    }
-    if (!bytes)
-    {
-        bytes = &kEmptyBuffer;
-    }
-    return mbedtls_md_update(&ctx, bytes, data_len) == 0;
-}
-
-bool tamper_evidence_hash_from_network_hash(const uint8_t network_config_hash[kSha1Size], uint8_t out[kSha1Size])
-{
-    if (!network_config_hash || !out)
-    {
-        return false;
-    }
-    if (!g_initialized && !init())
-    {
-        return false;
-    }
-    if (!hasMasterKey())
-    {
-        return false;
-    }
-
-    const mbedtls_md_info_t* md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA1);
-    if (!md_info)
-    {
-        return false;
-    }
-
-    mbedtls_md_context_t ctx;
-    mbedtls_md_init(&ctx);
-    bool ok = mbedtls_md_setup(&ctx, md_info, 0) == 0 && mbedtls_md_starts(&ctx) == 0 &&
-              sha1_update_buffer(ctx, g_filecrypt_key, sizeof(g_filecrypt_key)) &&
-              sha1_update_buffer(ctx, g_network_key, sizeof(g_network_key)) &&
-              sha1_update_buffer(ctx, network_config_hash, kSha1Size) && mbedtls_md_finish(&ctx, out) == 0;
-    mbedtls_md_free(&ctx);
-
-    if (!ok)
-    {
-        mbedtls_platform_zeroize(out, kSha1Size);
-    }
-    return ok;
-}
-
-uint32_t sha1_prefix_u32(const uint8_t digest[kSha1Size])
-{
-    return (static_cast<uint32_t>(digest[0]) << 24) | (static_cast<uint32_t>(digest[1]) << 16) |
-           (static_cast<uint32_t>(digest[2]) << 8) | static_cast<uint32_t>(digest[3]);
-}
-
-bool load_key_from_nvs(nvs_handle_t handle, const char* blob_name, uint8_t* key, size_t key_size, bool& valid)
-{
-    valid = false;
-    mbedtls_platform_zeroize(key, key_size);
-
-    size_t          stored_size = key_size;
-    const esp_err_t err         = nvs_get_blob(handle, blob_name, key, &stored_size);
-    if (err == ESP_OK && stored_size == key_size)
-    {
-        valid = true;
-        return true;
-    }
-
-    mbedtls_platform_zeroize(key, key_size);
-    if (err != ESP_ERR_NVS_NOT_FOUND)
-    {
-        DBG_LOGW(TAG,
-                 "NVS %s load failed: %s size=%u",
-                 blob_name,
-                 esp_err_to_name(err),
-                 static_cast<unsigned>(stored_size));
-    }
-    return false;
-}
-
-bool save_key_to_nvs(const char* blob_name, const uint8_t* key, size_t key_size)
-{
-    nvs_handle_t handle = 0;
-    esp_err_t    err    = nvs_open(kNvsNamespace, NVS_READWRITE, &handle);
-    if (err != ESP_OK)
-    {
-        DBG_LOGE(TAG, "NVS open for %s save failed: %s", blob_name, esp_err_to_name(err));
-        return false;
-    }
-
-    err = nvs_set_blob(handle, blob_name, key, key_size);
-    if (err == ESP_OK)
-    {
-        err = nvs_commit(handle);
-    }
-    nvs_close(handle);
-
-    if (err != ESP_OK)
-    {
-        DBG_LOGE(TAG, "NVS %s save failed: %s", blob_name, esp_err_to_name(err));
-        return false;
-    }
-
-    return true;
-}
-
-bool save_keys_to_nvs(const uint8_t* filecrypt_key, const uint8_t* network_key)
-{
-    nvs_handle_t handle = 0;
-    esp_err_t    err    = nvs_open(kNvsNamespace, NVS_READWRITE, &handle);
-    if (err != ESP_OK)
-    {
-        DBG_LOGE(TAG, "NVS open for key save failed: %s", esp_err_to_name(err));
-        return false;
-    }
-
-    if (filecrypt_key)
-    {
-        err = nvs_set_blob(handle, kFilecryptKeyBlobName, filecrypt_key, kFilecryptKeySize);
-    }
-    if (err == ESP_OK && network_key)
-    {
-        err = nvs_set_blob(handle, kNetworkKeyBlobName, network_key, kNetworkKeySize);
-    }
-    if (err == ESP_OK)
-    {
-        err = nvs_commit(handle);
-    }
-    nvs_close(handle);
-
-    if (err != ESP_OK)
-    {
-        DBG_LOGE(TAG, "NVS key save failed: %s", esp_err_to_name(err));
-        return false;
-    }
-
-    return true;
-}
+void clear_filecrypt_key();
+void clear_network_key();
+void clear_network_config_hash();
+void clear_all_keys();
+bool valid_buffer(const uint8_t* ptr, size_t len);
+bool sha1_update_buffer(mbedtls_md_context_t& ctx, const void* data, size_t data_len);
+bool tamper_evidence_hash_from_network_hash(const uint8_t network_config_hash[kSha1Size], uint8_t out[kSha1Size]);
+uint32_t sha1_prefix_u32(const uint8_t digest[kSha1Size]);
+bool load_key_from_nvs(nvs_handle_t handle, const char* blob_name, uint8_t* key, size_t key_size, bool& valid);
+bool save_key_to_nvs(const char* blob_name, const uint8_t* key, size_t key_size);
+bool save_keys_to_nvs(const uint8_t* filecrypt_key, const uint8_t* network_key);
+void pbkdf2_yield(uint32_t completed_rounds);
+bool pbkdf2_block_hmac_sha256(const uint8_t* password,
+                              size_t         password_len,
+                              const uint8_t* salt,
+                              size_t         salt_len,
+                              uint32_t       iterations,
+                              uint32_t       block_index,
+                              uint8_t        out[kSha256Size]);
 
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 uint32_t rand()
 {
@@ -612,8 +482,239 @@ bool hmacSha256(const uint8_t* key, size_t key_len, const uint8_t* data, size_t 
     return mbedtls_md_hmac(md_info, key, key_len, data, data_len, out) == 0;
 }
 
+bool pbkdf2HmacSha256(const uint8_t* password,
+                      size_t         password_len,
+                      const uint8_t* salt,
+                      size_t         salt_len,
+                      uint32_t       iterations,
+                      uint8_t*       out,
+                      size_t         out_len)
+{
+    if (!out || out_len == 0 || iterations == 0 || !valid_buffer(password, password_len) ||
+        !valid_buffer(salt, salt_len))
+    {
+        return false;
+    }
+
+    static constexpr uint8_t kEmptyBuffer   = 0;
+    const uint8_t*           password_bytes = password ? password : &kEmptyBuffer;
+    const uint8_t*           salt_bytes     = salt ? salt : &kEmptyBuffer;
+
+    size_t   out_offset  = 0;
+    uint32_t block_index = 1;
+    while (out_offset < out_len)
+    {
+        uint8_t block[kSha256Size] = {};
+        if (!pbkdf2_block_hmac_sha256(password_bytes,
+                                      password_len,
+                                      salt_bytes,
+                                      salt_len,
+                                      iterations,
+                                      block_index,
+                                      block))
+        {
+            mbedtls_platform_zeroize(out, out_len);
+            return false;
+        }
+
+        const size_t remaining = out_len - out_offset;
+        const size_t copy_len  = remaining < sizeof(block) ? remaining : sizeof(block);
+        memcpy(out + out_offset, block, copy_len);
+        out_offset += copy_len;
+        mbedtls_platform_zeroize(block, sizeof(block));
+
+        if (out_offset < out_len && block_index == UINT32_MAX)
+        {
+            mbedtls_platform_zeroize(out, out_len);
+            return false;
+        }
+        ++block_index;
+    }
+
+    return true;
+}
+
+
 namespace
 {
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+void clear_filecrypt_key()
+{
+    mbedtls_platform_zeroize(g_filecrypt_key, sizeof(g_filecrypt_key));
+    g_filecrypt_key_valid = false;
+}
+
+void clear_network_key()
+{
+    mbedtls_platform_zeroize(g_network_key, sizeof(g_network_key));
+    g_network_key_valid = false;
+}
+
+void clear_network_config_hash()
+{
+    mbedtls_platform_zeroize(g_network_config_hash, sizeof(g_network_config_hash));
+    g_network_config_hash_valid = false;
+}
+
+void clear_all_keys()
+{
+    clear_filecrypt_key();
+    clear_network_key();
+}
+
+bool valid_buffer(const uint8_t* ptr, size_t len)
+{
+    return ptr || len == 0;
+}
+
+bool sha1_update_buffer(mbedtls_md_context_t& ctx, const void* data, size_t data_len)
+{
+    static constexpr uint8_t kEmptyBuffer = 0;
+    const uint8_t*           bytes        = static_cast<const uint8_t*>(data);
+    if (!valid_buffer(bytes, data_len))
+    {
+        return false;
+    }
+    if (!bytes)
+    {
+        bytes = &kEmptyBuffer;
+    }
+    return mbedtls_md_update(&ctx, bytes, data_len) == 0;
+}
+
+bool tamper_evidence_hash_from_network_hash(const uint8_t network_config_hash[kSha1Size], uint8_t out[kSha1Size])
+{
+    if (!network_config_hash || !out)
+    {
+        return false;
+    }
+    if (!g_initialized && !init())
+    {
+        return false;
+    }
+    if (!hasMasterKey())
+    {
+        return false;
+    }
+
+    const mbedtls_md_info_t* md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA1);
+    if (!md_info)
+    {
+        return false;
+    }
+
+    mbedtls_md_context_t ctx;
+    mbedtls_md_init(&ctx);
+    bool ok = mbedtls_md_setup(&ctx, md_info, 0) == 0 && mbedtls_md_starts(&ctx) == 0 &&
+              sha1_update_buffer(ctx, g_filecrypt_key, sizeof(g_filecrypt_key)) &&
+              sha1_update_buffer(ctx, g_network_key, sizeof(g_network_key)) &&
+              sha1_update_buffer(ctx, network_config_hash, kSha1Size) && mbedtls_md_finish(&ctx, out) == 0;
+    mbedtls_md_free(&ctx);
+
+    if (!ok)
+    {
+        mbedtls_platform_zeroize(out, kSha1Size);
+    }
+    return ok;
+}
+
+uint32_t sha1_prefix_u32(const uint8_t digest[kSha1Size])
+{
+    return (static_cast<uint32_t>(digest[0]) << 24) | (static_cast<uint32_t>(digest[1]) << 16) |
+           (static_cast<uint32_t>(digest[2]) << 8) | static_cast<uint32_t>(digest[3]);
+}
+
+bool load_key_from_nvs(nvs_handle_t handle, const char* blob_name, uint8_t* key, size_t key_size, bool& valid)
+{
+    valid = false;
+    mbedtls_platform_zeroize(key, key_size);
+
+    size_t          stored_size = key_size;
+    const esp_err_t err         = nvs_get_blob(handle, blob_name, key, &stored_size);
+    if (err == ESP_OK && stored_size == key_size)
+    {
+        valid = true;
+        return true;
+    }
+
+    mbedtls_platform_zeroize(key, key_size);
+    if (err != ESP_ERR_NVS_NOT_FOUND)
+    {
+        DBG_LOGW(TAG,
+                 "NVS %s load failed: %s size=%u",
+                 blob_name,
+                 esp_err_to_name(err),
+                 static_cast<unsigned>(stored_size));
+    }
+    return false;
+}
+
+bool save_key_to_nvs(const char* blob_name, const uint8_t* key, size_t key_size)
+{
+    nvs_handle_t handle = 0;
+    esp_err_t    err    = nvs_open(kNvsNamespace, NVS_READWRITE, &handle);
+    if (err != ESP_OK)
+    {
+        DBG_LOGE(TAG, "NVS open for %s save failed: %s", blob_name, esp_err_to_name(err));
+        return false;
+    }
+
+    err = nvs_set_blob(handle, blob_name, key, key_size);
+    if (err == ESP_OK)
+    {
+        err = nvs_commit(handle);
+    }
+    nvs_close(handle);
+
+    if (err != ESP_OK)
+    {
+        DBG_LOGE(TAG, "NVS %s save failed: %s", blob_name, esp_err_to_name(err));
+        return false;
+    }
+
+    return true;
+}
+
+bool save_keys_to_nvs(const uint8_t* filecrypt_key, const uint8_t* network_key)
+{
+    nvs_handle_t handle = 0;
+    esp_err_t    err    = nvs_open(kNvsNamespace, NVS_READWRITE, &handle);
+    if (err != ESP_OK)
+    {
+        DBG_LOGE(TAG, "NVS open for key save failed: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    if (filecrypt_key)
+    {
+        err = nvs_set_blob(handle, kFilecryptKeyBlobName, filecrypt_key, kFilecryptKeySize);
+    }
+    if (err == ESP_OK && network_key)
+    {
+        err = nvs_set_blob(handle, kNetworkKeyBlobName, network_key, kNetworkKeySize);
+    }
+    if (err == ESP_OK)
+    {
+        err = nvs_commit(handle);
+    }
+    nvs_close(handle);
+
+    if (err != ESP_OK)
+    {
+        DBG_LOGE(TAG, "NVS key save failed: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
 
 constexpr size_t   kPbkdf2BlockIndexSize = 4;
 constexpr uint32_t kPbkdf2YieldInterval  = 256;
@@ -688,59 +789,6 @@ bool pbkdf2_block_hmac_sha256(const uint8_t* password,
     mbedtls_platform_zeroize(next_u, sizeof(next_u));
     return true;
 }
-
 } // namespace
-
-bool pbkdf2HmacSha256(const uint8_t* password,
-                      size_t         password_len,
-                      const uint8_t* salt,
-                      size_t         salt_len,
-                      uint32_t       iterations,
-                      uint8_t*       out,
-                      size_t         out_len)
-{
-    if (!out || out_len == 0 || iterations == 0 || !valid_buffer(password, password_len) ||
-        !valid_buffer(salt, salt_len))
-    {
-        return false;
-    }
-
-    static constexpr uint8_t kEmptyBuffer   = 0;
-    const uint8_t*           password_bytes = password ? password : &kEmptyBuffer;
-    const uint8_t*           salt_bytes     = salt ? salt : &kEmptyBuffer;
-
-    size_t   out_offset  = 0;
-    uint32_t block_index = 1;
-    while (out_offset < out_len)
-    {
-        uint8_t block[kSha256Size] = {};
-        if (!pbkdf2_block_hmac_sha256(password_bytes,
-                                      password_len,
-                                      salt_bytes,
-                                      salt_len,
-                                      iterations,
-                                      block_index,
-                                      block))
-        {
-            mbedtls_platform_zeroize(out, out_len);
-            return false;
-        }
-
-        const size_t remaining = out_len - out_offset;
-        const size_t copy_len  = remaining < sizeof(block) ? remaining : sizeof(block);
-        memcpy(out + out_offset, block, copy_len);
-        out_offset += copy_len;
-        mbedtls_platform_zeroize(block, sizeof(block));
-
-        if (out_offset < out_len && block_index == UINT32_MAX)
-        {
-            mbedtls_platform_zeroize(out, out_len);
-            return false;
-        }
-        ++block_index;
-    }
-
-    return true;
-}
 
 } // namespace Aegis

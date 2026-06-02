@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "AsyncFsManager.h"
 
 #include <SdFat.h>
@@ -11,8 +15,32 @@ namespace AsyncFsManager
 namespace
 {
 
+// -----------------------------------------------------------------------------
+// Configuration
+// -----------------------------------------------------------------------------
+
 constexpr const char* TAG               = "AsyncFsManager";
 constexpr size_t      kDownloadPathSize = 256;
+
+// -----------------------------------------------------------------------------
+// Types
+// -----------------------------------------------------------------------------
+
+class Lock
+{
+public:
+    Lock();
+    ~Lock();
+
+    bool locked() const;
+
+private:
+    bool m_locked = false;
+};
+
+// -----------------------------------------------------------------------------
+// Globals
+// -----------------------------------------------------------------------------
 
 SemaphoreHandle_t g_mutex = nullptr;
 FsFile            g_walk_root;
@@ -22,148 +50,22 @@ uint64_t          g_download_file_size               = 0;
 uint64_t          g_download_position                = 0;
 char              g_download_path[kDownloadPathSize] = {};
 
-bool ensure_mutex()
-{
-    if (g_mutex)
-    {
-        return true;
-    }
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-    g_mutex = xSemaphoreCreateRecursiveMutex();
-    if (!g_mutex)
-    {
-        DBG_LOGE(TAG, "could not create filesystem mutex");
-        return false;
-    }
-    return true;
-}
-
-class Lock
-{
-public:
-    Lock()
-    {
-        if (ensure_mutex())
-        {
-            m_locked = xSemaphoreTakeRecursive(g_mutex, portMAX_DELAY) == pdTRUE;
-        }
-    }
-
-    ~Lock()
-    {
-        if (m_locked)
-        {
-            xSemaphoreGiveRecursive(g_mutex);
-        }
-    }
-
-    bool locked() const
-    {
-        return m_locked;
-    }
-
-private:
-    bool m_locked = false;
-};
-
-void close_walk_locked()
-{
-    g_walk_child.close();
-    g_walk_root.close();
-}
-
-void close_download_locked()
-{
-    g_download_file.close();
-    g_download_file_size = 0;
-    g_download_position  = 0;
-    g_download_path[0]   = '\0';
-}
-
-bool reset_walk_locked()
-{
-    close_download_locked();
-    close_walk_locked();
-
-    if (!MicroSdCard::isReady())
-    {
-        DBG_LOGW(TAG, "reset walk failed: microSD not ready");
-        return false;
-    }
-
-    if (!g_walk_root.open("/", O_RDONLY))
-    {
-        DBG_LOGW(TAG, "reset walk failed: could not open root directory");
-        return false;
-    }
-    return true;
-}
-
-bool reopen_download_locked()
-{
-    if (g_download_path[0] == '\0' || !MicroSdCard::isReady())
-    {
-        DBG_LOGW(TAG,
-                 "reopen download failed: path=%s sd_ready=%d",
-                 g_download_path[0] ? g_download_path : "(empty)",
-                 MicroSdCard::isReady() ? 1 : 0);
-        return false;
-    }
-
-    g_download_file.close();
-    if (!g_download_file.open(g_download_path, O_RDONLY) || g_download_file.isDir())
-    {
-        DBG_LOGW(TAG, "reopen download failed: open failed path=%s", g_download_path);
-        g_download_file.close();
-        return false;
-    }
-
-    const uint64_t reopened_size = g_download_file.fileSize();
-    if (reopened_size != g_download_file_size)
-    {
-        DBG_LOGW(TAG,
-                 "reopen download failed: size changed path=%s was=%llu now=%llu",
-                 g_download_path,
-                 static_cast<unsigned long long>(g_download_file_size),
-                 static_cast<unsigned long long>(reopened_size));
-        g_download_file.close();
-        return false;
-    }
-
-    if (g_download_position != 0 && !g_download_file.seekSet(g_download_position))
-    {
-        DBG_LOGW(TAG,
-                 "reopen download failed: seek failed path=%s pos=%llu",
-                 g_download_path,
-                 static_cast<unsigned long long>(g_download_position));
-        g_download_file.close();
-        return false;
-    }
-
-    return true;
-}
-
-int read_download_locked(uint64_t position, uint8_t* buffer, size_t max_len)
-{
-    if (position != g_download_position)
-    {
-        DBG_LOGW(TAG,
-                 "read download failed: non-sequential read requested pos=%llu current=%llu size=%llu",
-                 static_cast<unsigned long long>(position),
-                 static_cast<unsigned long long>(g_download_position),
-                 static_cast<unsigned long long>(g_download_file_size));
-        return -1;
-    }
-
-    const int bytes_read = g_download_file.read(buffer, max_len);
-    if (bytes_read > 0)
-    {
-        g_download_position += static_cast<uint64_t>(bytes_read);
-    }
-    return bytes_read;
-}
+bool ensure_mutex();
+void close_walk_locked();
+void close_download_locked();
+bool reset_walk_locked();
+bool reopen_download_locked();
+int read_download_locked(uint64_t position, uint8_t* buffer, size_t max_len);
 
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 bool init()
 {
@@ -489,5 +391,149 @@ bool isFile(const char* path)
     file.close();
     return result;
 }
+
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+Lock::Lock()
+{
+    if (ensure_mutex())
+    {
+        m_locked = xSemaphoreTakeRecursive(g_mutex, portMAX_DELAY) == pdTRUE;
+    }
+}
+
+Lock::~Lock()
+{
+    if (m_locked)
+    {
+        xSemaphoreGiveRecursive(g_mutex);
+    }
+}
+
+bool Lock::locked() const
+{
+    return m_locked;
+}
+
+bool ensure_mutex()
+{
+    if (g_mutex)
+    {
+        return true;
+    }
+
+    g_mutex = xSemaphoreCreateRecursiveMutex();
+    if (!g_mutex)
+    {
+        DBG_LOGE(TAG, "could not create filesystem mutex");
+        return false;
+    }
+    return true;
+}
+
+void close_walk_locked()
+{
+    g_walk_child.close();
+    g_walk_root.close();
+}
+
+void close_download_locked()
+{
+    g_download_file.close();
+    g_download_file_size = 0;
+    g_download_position  = 0;
+    g_download_path[0]   = '\0';
+}
+
+bool reset_walk_locked()
+{
+    close_download_locked();
+    close_walk_locked();
+
+    if (!MicroSdCard::isReady())
+    {
+        DBG_LOGW(TAG, "reset walk failed: microSD not ready");
+        return false;
+    }
+
+    if (!g_walk_root.open("/", O_RDONLY))
+    {
+        DBG_LOGW(TAG, "reset walk failed: could not open root directory");
+        return false;
+    }
+    return true;
+}
+
+bool reopen_download_locked()
+{
+    if (g_download_path[0] == '\0' || !MicroSdCard::isReady())
+    {
+        DBG_LOGW(TAG,
+                 "reopen download failed: path=%s sd_ready=%d",
+                 g_download_path[0] ? g_download_path : "(empty)",
+                 MicroSdCard::isReady() ? 1 : 0);
+        return false;
+    }
+
+    g_download_file.close();
+    if (!g_download_file.open(g_download_path, O_RDONLY) || g_download_file.isDir())
+    {
+        DBG_LOGW(TAG, "reopen download failed: open failed path=%s", g_download_path);
+        g_download_file.close();
+        return false;
+    }
+
+    const uint64_t reopened_size = g_download_file.fileSize();
+    if (reopened_size != g_download_file_size)
+    {
+        DBG_LOGW(TAG,
+                 "reopen download failed: size changed path=%s was=%llu now=%llu",
+                 g_download_path,
+                 static_cast<unsigned long long>(g_download_file_size),
+                 static_cast<unsigned long long>(reopened_size));
+        g_download_file.close();
+        return false;
+    }
+
+    if (g_download_position != 0 && !g_download_file.seekSet(g_download_position))
+    {
+        DBG_LOGW(TAG,
+                 "reopen download failed: seek failed path=%s pos=%llu",
+                 g_download_path,
+                 static_cast<unsigned long long>(g_download_position));
+        g_download_file.close();
+        return false;
+    }
+
+    return true;
+}
+
+int read_download_locked(uint64_t position, uint8_t* buffer, size_t max_len)
+{
+    if (position != g_download_position)
+    {
+        DBG_LOGW(TAG,
+                 "read download failed: non-sequential read requested pos=%llu current=%llu size=%llu",
+                 static_cast<unsigned long long>(position),
+                 static_cast<unsigned long long>(g_download_position),
+                 static_cast<unsigned long long>(g_download_file_size));
+        return -1;
+    }
+
+    const int bytes_read = g_download_file.read(buffer, max_len);
+    if (bytes_read > 0)
+    {
+        g_download_position += static_cast<uint64_t>(bytes_read);
+    }
+    return bytes_read;
+}
+
+} // namespace
 
 } // namespace AsyncFsManager

@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "WebServer.h"
 
 #include <ESPAsyncWebServer.h>
@@ -43,6 +47,10 @@ extern bool         g_nvs_ready;
 namespace
 {
 
+// -----------------------------------------------------------------------------
+// Configuration
+// -----------------------------------------------------------------------------
+
 constexpr const char* TAG                              = "WebServer";
 constexpr const char* kHeaderSessionSaltFromClient     = "X-TheFly-Session-Salt-From-Client";
 constexpr const char* kHeaderSessionResponseFromClient = "X-TheFly-Session-Response-From-Client";
@@ -58,9 +66,423 @@ constexpr const char* kFtpUser     = "thefly";
 constexpr const char* kFtpPassword = "replace-me";
 #endif
 
+// -----------------------------------------------------------------------------
+// Globals
+// -----------------------------------------------------------------------------
+
 AsyncWebServer                  g_server(kWebServerPort);
 bool                            g_initialized = false;
 WebServer::SessionSecurityState g_session_security;
+
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
+
+void zero_session_key();
+void reset_session_security();
+void note_web_page_load();
+void note_web_save();
+void note_web_error();
+void send_nvs_unavailable(AsyncWebServerRequest* request);
+void make_mdns_hostname(char* out, size_t out_size);
+void start_mdns();
+void reboot_after_reset_dialog();
+void show_reset_reboot_dialog(const char* reset_name, const char* text);
+void show_password_reset_reboot_dialog();
+void show_memory_reset_reboot_dialog();
+bool read_hex_key_param(AsyncWebServerRequest* request, const char* name, uint8_t* key, size_t key_size, String& error);
+bool constant_time_equal(const uint8_t* lhs, const uint8_t* rhs, size_t size);
+bool load_network_key(const uint8_t*& network_key);
+bool compute_hmac(const uint8_t* key, const uint8_t* data, size_t data_size, uint8_t out[Aegis::kSha256Size]);
+bool begin_new_session(const String& client_salt_hex);
+const web_asset_desc_t* find_asset_by_name(const char* file_name);
+const web_asset_desc_t* find_asset_for_url(const String& url);
+String asset_route(const web_asset_desc_t& asset);
+void send_asset(AsyncWebServerRequest* request);
+void append_json_u64(String& json, uint64_t value);
+void append_json_i64(String& json, int64_t value);
+bool ip_is_zero(const IPAddress& ip);
+String self_ip_string();
+String self_wifi_mac_string();
+void send_info(AsyncWebServerRequest* request);
+void reset_password(AsyncWebServerRequest* request);
+bool erase_nvs_namespace(const char* name, String& error);
+void reset_memory(AsyncWebServerRequest* request);
+
+} // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
+
+bool WebServer::init()
+{
+    if (g_initialized)
+    {
+        return true;
+    }
+
+    for (size_t i = 0; i < WEB_ASSETS_CNT; ++i)
+    {
+        const String route = asset_route(web_assets_list[i]);
+        g_server.on(AsyncURIMatcher::exact(route), HTTP_GET, send_asset);
+        DBG_LOGI(TAG, "registered web asset GET %s", route.c_str());
+    }
+
+    if (find_asset_by_name("index.html"))
+    {
+        g_server.on(AsyncURIMatcher::exact("/"), HTTP_GET, send_asset);
+        DBG_LOGI(TAG, "registered web asset GET /");
+    }
+
+    g_server.on(AsyncURIMatcher::exact("/get_info"), HTTP_GET, send_info);
+    DBG_LOGI(TAG, "registered device info GET /get_info");
+
+    g_server.on(AsyncURIMatcher::exact("/download_file"), HTTP_GET, WebFileHandlers::sendMicroSdFile);
+    DBG_LOGI(TAG, "registered microSD download GET /download_file");
+
+#ifdef BUILD_WITH_DECRYPTED_DOWNLOAD
+    g_server.on(AsyncURIMatcher::exact("/decrypted_download"), HTTP_GET, DecryptedDownload::finishGet);
+    DBG_LOGI(TAG, "registered decrypted recording GET /decrypted_download");
+
+    g_server.on(AsyncURIMatcher::exact("/decrypted_download"),
+                HTTP_POST,
+                DecryptedDownload::finish,
+                nullptr,
+                DecryptedDownload::writeBody);
+    DBG_LOGI(TAG, "registered decrypted recording POST /decrypted_download");
+#endif
+
+    g_server.on(AsyncURIMatcher::exact("/delete_file"), HTTP_GET, WebFileHandlers::deleteMicroSdFile);
+    DBG_LOGI(TAG, "registered microSD delete GET /delete_file");
+
+    g_server.on(AsyncURIMatcher::exact("/list_files.json"), HTTP_GET, WebFileHandlers::sendMicroSdFileList);
+    DBG_LOGI(TAG, "registered microSD file list GET /list_files.json");
+
+    g_server.on(AsyncURIMatcher::exact("/get_cfg"), HTTP_GET, WebCfgHandlers::sendCfg);
+    DBG_LOGI(TAG, "registered session-encrypted config GET /get_cfg");
+
+    g_server.on(AsyncURIMatcher::exact("/set_cfg"),
+                HTTP_POST,
+                WebCfgHandlers::finishSetCfg,
+                nullptr,
+                WebCfgHandlers::writeSetCfgBody);
+    DBG_LOGI(TAG, "registered encrypted config POST /set_cfg");
+
+#if BUILD_WITH_SECURITY_LEVEL == 1
+    g_server.on(AsyncURIMatcher::exact("/set_custom_pin"),
+                HTTP_POST,
+                WebCfgHandlers::finishSetCustomPin,
+                nullptr,
+                WebCfgHandlers::writePinCodeBody);
+    DBG_LOGI(TAG, "registered encrypted custom PIN POST /set_custom_pin");
+#endif
+
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+    g_server.on(AsyncURIMatcher::exact("/reset_pin_code"),
+                HTTP_POST,
+                WebCfgHandlers::finishResetPinCode,
+                nullptr,
+                WebCfgHandlers::writePinCodeBody);
+    DBG_LOGI(TAG, "registered encrypted PIN reset POST /reset_pin_code");
+#endif
+
+    g_server.on(AsyncURIMatcher::exact("/time_sync"), HTTP_POST, WebCfgHandlers::timeSync);
+    DBG_LOGI(TAG, "registered time sync POST /time_sync");
+
+    g_server.on(AsyncURIMatcher::exact("/reset_password"), HTTP_POST, reset_password);
+    DBG_LOGI(TAG, "registered password reset POST /reset_password");
+
+    g_server.on(AsyncURIMatcher::exact("/reset_memory"), HTTP_POST, reset_memory);
+    DBG_LOGI(TAG, "registered memory reset POST /reset_memory");
+
+    // Uploads are not encrypted; keep this endpoint off untrusted networks until it is replaced by session encryption.
+    g_server.on(AsyncURIMatcher::exact("/file_upload"),
+                HTTP_POST,
+                WebFileHandlers::finishFileUpload,
+                WebFileHandlers::writeFileUploadPart,
+                WebFileHandlers::writeFileUploadBody);
+    DBG_LOGI(TAG, "registered microSD upload POST /file_upload");
+
+#if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 1
+    if (!FtpServer::start(MicroSdCard::fs(), kFtpUser, kFtpPassword))
+    {
+        DBG_LOGE(TAG, "FTP server start failed");
+        return false;
+    }
+
+    DBG_LOGI(TAG, "FTP server started");
+#endif
+
+    // DiskStats::refreshDiskSpace();
+    start_mdns();
+
+    g_server.begin();
+    g_initialized = true;
+    DBG_LOGI(TAG, "web server started");
+
+    return true;
+}
+
+const char* WebServer::sessionAuthResultName(SessionAuthResult result)
+{
+    switch (result)
+    {
+    case SessionAuthResult::Ok:
+        return "Ok";
+    case SessionAuthResult::SessionUnavailable:
+        return "Session unavailable";
+    case SessionAuthResult::MissingClientResponse:
+        return "Missing session response";
+    case SessionAuthResult::BadClientResponse:
+        return "Bad session response";
+    case SessionAuthResult::MissingClientSalt:
+        return "Missing session salt";
+    case SessionAuthResult::BadClientSalt:
+        return "Bad session salt";
+    case SessionAuthResult::NetworkKeyUnavailable:
+        return "Network key unavailable";
+    case SessionAuthResult::SessionKeyFailed:
+        return "Session key failed";
+    default:
+        return "Unknown session authentication error";
+    }
+}
+
+String WebServer::jsonString(const char* text)
+{
+    String encoded("\"");
+    if (!text)
+    {
+        encoded += "\"";
+        return encoded;
+    }
+
+    for (const unsigned char* cursor = reinterpret_cast<const unsigned char*>(text); *cursor; ++cursor)
+    {
+        switch (*cursor)
+        {
+        case '"':
+            encoded += "\\\"";
+            break;
+        case '\\':
+            encoded += "\\\\";
+            break;
+        case '\b':
+            encoded += "\\b";
+            break;
+        case '\f':
+            encoded += "\\f";
+            break;
+        case '\n':
+            encoded += "\\n";
+            break;
+        case '\r':
+            encoded += "\\r";
+            break;
+        case '\t':
+            encoded += "\\t";
+            break;
+        default:
+            if (*cursor < 0x20)
+            {
+                char escaped[7];
+                snprintf(escaped, sizeof(escaped), "\\u%04X", static_cast<unsigned>(*cursor));
+                encoded += escaped;
+            }
+            else
+            {
+                encoded += static_cast<char>(*cursor);
+            }
+            break;
+        }
+    }
+
+    encoded += "\"";
+    return encoded;
+}
+
+void WebServer::formatMac(const uint8_t* bdaddr, char* buffer, size_t buffer_size)
+{
+    if (!bdaddr || !buffer || buffer_size == 0)
+    {
+        return;
+    }
+
+    snprintf(buffer,
+             buffer_size,
+             "%02X:%02X:%02X:%02X:%02X:%02X",
+             bdaddr[0],
+             bdaddr[1],
+             bdaddr[2],
+             bdaddr[3],
+             bdaddr[4],
+             bdaddr[5]);
+}
+
+const AsyncWebParameter* WebServer::findRequestParam(AsyncWebServerRequest* request, const char* name)
+{
+    if (!request || !name)
+    {
+        return nullptr;
+    }
+
+    const AsyncWebParameter* param = request->getParam(name, false, false);
+    if (param)
+    {
+        return param;
+    }
+
+    return request->getParam(name, true, false);
+}
+
+bool WebServer::copyCachedSessionKey(uint8_t out_session_key[kSessionKeySize])
+{
+    if (!out_session_key)
+    {
+        return false;
+    }
+
+    mbedtls_platform_zeroize(out_session_key, kSessionKeySize);
+    if (!g_session_security.session_key_valid)
+    {
+        return false;
+    }
+
+    memcpy(out_session_key, g_session_security.session_key, kSessionKeySize);
+    return true;
+}
+
+WebServer::SessionAuthResult WebServer::authenticateSessionRequest(AsyncWebServerRequest* request,
+                                                                   uint8_t out_session_key[kSessionKeySize])
+{
+    if (!out_session_key)
+    {
+        return SessionAuthResult::SessionKeyFailed;
+    }
+    mbedtls_platform_zeroize(out_session_key, kSessionKeySize);
+
+    if (!request || !g_session_security.challenge_valid || !g_session_security.response_valid)
+    {
+        return SessionAuthResult::SessionUnavailable;
+    }
+
+    const String& response_hex = request->header(kHeaderSessionResponseFromClient);
+    if (response_hex.isEmpty())
+    {
+        return SessionAuthResult::MissingClientResponse;
+    }
+    const String& client_salt_hex = request->header(kHeaderSessionSaltFromClient);
+    if (client_salt_hex.isEmpty())
+    {
+        return SessionAuthResult::MissingClientSalt;
+    }
+
+    uint8_t supplied_response[kSessionResponseSize] = {};
+    if (!hex_to_bytes(response_hex, supplied_response, sizeof(supplied_response)))
+    {
+        return SessionAuthResult::BadClientResponse;
+    }
+    uint8_t supplied_client_salt[kSessionSaltHalfSize] = {};
+    if (!hex_to_bytes(client_salt_hex, supplied_client_salt, sizeof(supplied_client_salt)))
+    {
+        mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
+        return SessionAuthResult::BadClientSalt;
+    }
+
+    const uint8_t* network_key = nullptr;
+    if (!load_network_key(network_key))
+    {
+        mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
+        mbedtls_platform_zeroize(supplied_client_salt, sizeof(supplied_client_salt));
+        return SessionAuthResult::NetworkKeyUnavailable;
+    }
+
+    uint8_t expected_response[kSessionResponseSize] = {};
+    if (!compute_hmac(network_key,
+                      g_session_security.session_challenge,
+                      sizeof(g_session_security.session_challenge),
+                      expected_response) ||
+        !constant_time_equal(supplied_response, expected_response, sizeof(expected_response)))
+    {
+        mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
+        mbedtls_platform_zeroize(supplied_client_salt, sizeof(supplied_client_salt));
+        mbedtls_platform_zeroize(expected_response, sizeof(expected_response));
+        return SessionAuthResult::BadClientResponse;
+    }
+
+    if (g_session_security.session_key_valid && constant_time_equal(supplied_client_salt,
+                                                                    g_session_security.session_salt_from_client,
+                                                                    sizeof(supplied_client_salt)))
+    {
+        memcpy(out_session_key, g_session_security.session_key, kSessionKeySize);
+        g_session_security.nonce_counter = 0;
+        mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
+        mbedtls_platform_zeroize(supplied_client_salt, sizeof(supplied_client_salt));
+        mbedtls_platform_zeroize(expected_response, sizeof(expected_response));
+        return SessionAuthResult::Ok;
+    }
+
+    memcpy(g_session_security.session_salt_from_client,
+           supplied_client_salt,
+           sizeof(g_session_security.session_salt_from_client));
+    uint8_t session_salt[kSessionSaltSize] = {};
+    memcpy(session_salt,
+           g_session_security.session_salt_from_server,
+           sizeof(g_session_security.session_salt_from_server));
+    memcpy(session_salt + sizeof(g_session_security.session_salt_from_server),
+           supplied_client_salt,
+           sizeof(supplied_client_salt));
+
+    zero_session_key();
+    const bool key_ok = Aegis::pbkdf2HmacSha256(network_key,
+                                                Aegis::kNetworkKeySize,
+                                                session_salt,
+                                                sizeof(session_salt),
+                                                Aegis::kSessionPbkdfIterations,
+                                                g_session_security.session_key,
+                                                sizeof(g_session_security.session_key));
+    mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
+    mbedtls_platform_zeroize(supplied_client_salt, sizeof(supplied_client_salt));
+    mbedtls_platform_zeroize(expected_response, sizeof(expected_response));
+    mbedtls_platform_zeroize(session_salt, sizeof(session_salt));
+
+    if (!key_ok)
+    {
+        return SessionAuthResult::SessionKeyFailed;
+    }
+
+    g_session_security.session_key_valid = true;
+    g_session_security.nonce_counter     = 0;
+    memcpy(out_session_key, g_session_security.session_key, kSessionKeySize);
+    return SessionAuthResult::Ok;
+}
+
+uint64_t WebServer::nextSessionNonceCounter()
+{
+    return g_session_security.nonce_counter++;
+}
+
+void WebServer::fillSessionNonce(uint64_t counter, uint8_t nonce[kSessionGcmNonceSize])
+{
+    if (!nonce)
+    {
+        return;
+    }
+
+    memset(nonce, 0, kSessionGcmNonceSize);
+    for (size_t i = 0; i < sizeof(counter); ++i)
+    {
+        nonce[4 + i] = static_cast<uint8_t>((counter >> ((sizeof(counter) - 1 - i) * 8)) & 0xFF);
+    }
+}
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
 
 void zero_session_key()
 {
@@ -688,367 +1110,4 @@ void reset_memory(AsyncWebServerRequest* request)
     show_memory_reset_reboot_dialog();
 #endif
 }
-
 } // namespace
-
-const char* WebServer::sessionAuthResultName(SessionAuthResult result)
-{
-    switch (result)
-    {
-    case SessionAuthResult::Ok:
-        return "Ok";
-    case SessionAuthResult::SessionUnavailable:
-        return "Session unavailable";
-    case SessionAuthResult::MissingClientResponse:
-        return "Missing session response";
-    case SessionAuthResult::BadClientResponse:
-        return "Bad session response";
-    case SessionAuthResult::MissingClientSalt:
-        return "Missing session salt";
-    case SessionAuthResult::BadClientSalt:
-        return "Bad session salt";
-    case SessionAuthResult::NetworkKeyUnavailable:
-        return "Network key unavailable";
-    case SessionAuthResult::SessionKeyFailed:
-        return "Session key failed";
-    default:
-        return "Unknown session authentication error";
-    }
-}
-
-String WebServer::jsonString(const char* text)
-{
-    String encoded("\"");
-    if (!text)
-    {
-        encoded += "\"";
-        return encoded;
-    }
-
-    for (const unsigned char* cursor = reinterpret_cast<const unsigned char*>(text); *cursor; ++cursor)
-    {
-        switch (*cursor)
-        {
-        case '"':
-            encoded += "\\\"";
-            break;
-        case '\\':
-            encoded += "\\\\";
-            break;
-        case '\b':
-            encoded += "\\b";
-            break;
-        case '\f':
-            encoded += "\\f";
-            break;
-        case '\n':
-            encoded += "\\n";
-            break;
-        case '\r':
-            encoded += "\\r";
-            break;
-        case '\t':
-            encoded += "\\t";
-            break;
-        default:
-            if (*cursor < 0x20)
-            {
-                char escaped[7];
-                snprintf(escaped, sizeof(escaped), "\\u%04X", static_cast<unsigned>(*cursor));
-                encoded += escaped;
-            }
-            else
-            {
-                encoded += static_cast<char>(*cursor);
-            }
-            break;
-        }
-    }
-
-    encoded += "\"";
-    return encoded;
-}
-
-void WebServer::formatMac(const uint8_t* bdaddr, char* buffer, size_t buffer_size)
-{
-    if (!bdaddr || !buffer || buffer_size == 0)
-    {
-        return;
-    }
-
-    snprintf(buffer,
-             buffer_size,
-             "%02X:%02X:%02X:%02X:%02X:%02X",
-             bdaddr[0],
-             bdaddr[1],
-             bdaddr[2],
-             bdaddr[3],
-             bdaddr[4],
-             bdaddr[5]);
-}
-
-const AsyncWebParameter* WebServer::findRequestParam(AsyncWebServerRequest* request, const char* name)
-{
-    if (!request || !name)
-    {
-        return nullptr;
-    }
-
-    const AsyncWebParameter* param = request->getParam(name, false, false);
-    if (param)
-    {
-        return param;
-    }
-
-    return request->getParam(name, true, false);
-}
-
-bool WebServer::copyCachedSessionKey(uint8_t out_session_key[kSessionKeySize])
-{
-    if (!out_session_key)
-    {
-        return false;
-    }
-
-    mbedtls_platform_zeroize(out_session_key, kSessionKeySize);
-    if (!g_session_security.session_key_valid)
-    {
-        return false;
-    }
-
-    memcpy(out_session_key, g_session_security.session_key, kSessionKeySize);
-    return true;
-}
-
-WebServer::SessionAuthResult WebServer::authenticateSessionRequest(AsyncWebServerRequest* request,
-                                                                   uint8_t out_session_key[kSessionKeySize])
-{
-    if (!out_session_key)
-    {
-        return SessionAuthResult::SessionKeyFailed;
-    }
-    mbedtls_platform_zeroize(out_session_key, kSessionKeySize);
-
-    if (!request || !g_session_security.challenge_valid || !g_session_security.response_valid)
-    {
-        return SessionAuthResult::SessionUnavailable;
-    }
-
-    const String& response_hex = request->header(kHeaderSessionResponseFromClient);
-    if (response_hex.isEmpty())
-    {
-        return SessionAuthResult::MissingClientResponse;
-    }
-    const String& client_salt_hex = request->header(kHeaderSessionSaltFromClient);
-    if (client_salt_hex.isEmpty())
-    {
-        return SessionAuthResult::MissingClientSalt;
-    }
-
-    uint8_t supplied_response[kSessionResponseSize] = {};
-    if (!hex_to_bytes(response_hex, supplied_response, sizeof(supplied_response)))
-    {
-        return SessionAuthResult::BadClientResponse;
-    }
-    uint8_t supplied_client_salt[kSessionSaltHalfSize] = {};
-    if (!hex_to_bytes(client_salt_hex, supplied_client_salt, sizeof(supplied_client_salt)))
-    {
-        mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
-        return SessionAuthResult::BadClientSalt;
-    }
-
-    const uint8_t* network_key = nullptr;
-    if (!load_network_key(network_key))
-    {
-        mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
-        mbedtls_platform_zeroize(supplied_client_salt, sizeof(supplied_client_salt));
-        return SessionAuthResult::NetworkKeyUnavailable;
-    }
-
-    uint8_t expected_response[kSessionResponseSize] = {};
-    if (!compute_hmac(network_key,
-                      g_session_security.session_challenge,
-                      sizeof(g_session_security.session_challenge),
-                      expected_response) ||
-        !constant_time_equal(supplied_response, expected_response, sizeof(expected_response)))
-    {
-        mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
-        mbedtls_platform_zeroize(supplied_client_salt, sizeof(supplied_client_salt));
-        mbedtls_platform_zeroize(expected_response, sizeof(expected_response));
-        return SessionAuthResult::BadClientResponse;
-    }
-
-    if (g_session_security.session_key_valid && constant_time_equal(supplied_client_salt,
-                                                                    g_session_security.session_salt_from_client,
-                                                                    sizeof(supplied_client_salt)))
-    {
-        memcpy(out_session_key, g_session_security.session_key, kSessionKeySize);
-        g_session_security.nonce_counter = 0;
-        mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
-        mbedtls_platform_zeroize(supplied_client_salt, sizeof(supplied_client_salt));
-        mbedtls_platform_zeroize(expected_response, sizeof(expected_response));
-        return SessionAuthResult::Ok;
-    }
-
-    memcpy(g_session_security.session_salt_from_client,
-           supplied_client_salt,
-           sizeof(g_session_security.session_salt_from_client));
-    uint8_t session_salt[kSessionSaltSize] = {};
-    memcpy(session_salt,
-           g_session_security.session_salt_from_server,
-           sizeof(g_session_security.session_salt_from_server));
-    memcpy(session_salt + sizeof(g_session_security.session_salt_from_server),
-           supplied_client_salt,
-           sizeof(supplied_client_salt));
-
-    zero_session_key();
-    const bool key_ok = Aegis::pbkdf2HmacSha256(network_key,
-                                                Aegis::kNetworkKeySize,
-                                                session_salt,
-                                                sizeof(session_salt),
-                                                Aegis::kSessionPbkdfIterations,
-                                                g_session_security.session_key,
-                                                sizeof(g_session_security.session_key));
-    mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
-    mbedtls_platform_zeroize(supplied_client_salt, sizeof(supplied_client_salt));
-    mbedtls_platform_zeroize(expected_response, sizeof(expected_response));
-    mbedtls_platform_zeroize(session_salt, sizeof(session_salt));
-
-    if (!key_ok)
-    {
-        return SessionAuthResult::SessionKeyFailed;
-    }
-
-    g_session_security.session_key_valid = true;
-    g_session_security.nonce_counter     = 0;
-    memcpy(out_session_key, g_session_security.session_key, kSessionKeySize);
-    return SessionAuthResult::Ok;
-}
-
-uint64_t WebServer::nextSessionNonceCounter()
-{
-    return g_session_security.nonce_counter++;
-}
-
-void WebServer::fillSessionNonce(uint64_t counter, uint8_t nonce[kSessionGcmNonceSize])
-{
-    if (!nonce)
-    {
-        return;
-    }
-
-    memset(nonce, 0, kSessionGcmNonceSize);
-    for (size_t i = 0; i < sizeof(counter); ++i)
-    {
-        nonce[4 + i] = static_cast<uint8_t>((counter >> ((sizeof(counter) - 1 - i) * 8)) & 0xFF);
-    }
-}
-
-bool WebServer::init()
-{
-    if (g_initialized)
-    {
-        return true;
-    }
-
-    for (size_t i = 0; i < WEB_ASSETS_CNT; ++i)
-    {
-        const String route = asset_route(web_assets_list[i]);
-        g_server.on(AsyncURIMatcher::exact(route), HTTP_GET, send_asset);
-        DBG_LOGI(TAG, "registered web asset GET %s", route.c_str());
-    }
-
-    if (find_asset_by_name("index.html"))
-    {
-        g_server.on(AsyncURIMatcher::exact("/"), HTTP_GET, send_asset);
-        DBG_LOGI(TAG, "registered web asset GET /");
-    }
-
-    g_server.on(AsyncURIMatcher::exact("/get_info"), HTTP_GET, send_info);
-    DBG_LOGI(TAG, "registered device info GET /get_info");
-
-    g_server.on(AsyncURIMatcher::exact("/download_file"), HTTP_GET, WebFileHandlers::sendMicroSdFile);
-    DBG_LOGI(TAG, "registered microSD download GET /download_file");
-
-#ifdef BUILD_WITH_DECRYPTED_DOWNLOAD
-    g_server.on(AsyncURIMatcher::exact("/decrypted_download"), HTTP_GET, DecryptedDownload::finishGet);
-    DBG_LOGI(TAG, "registered decrypted recording GET /decrypted_download");
-
-    g_server.on(AsyncURIMatcher::exact("/decrypted_download"),
-                HTTP_POST,
-                DecryptedDownload::finish,
-                nullptr,
-                DecryptedDownload::writeBody);
-    DBG_LOGI(TAG, "registered decrypted recording POST /decrypted_download");
-#endif
-
-    g_server.on(AsyncURIMatcher::exact("/delete_file"), HTTP_GET, WebFileHandlers::deleteMicroSdFile);
-    DBG_LOGI(TAG, "registered microSD delete GET /delete_file");
-
-    g_server.on(AsyncURIMatcher::exact("/list_files.json"), HTTP_GET, WebFileHandlers::sendMicroSdFileList);
-    DBG_LOGI(TAG, "registered microSD file list GET /list_files.json");
-
-    g_server.on(AsyncURIMatcher::exact("/get_cfg"), HTTP_GET, WebCfgHandlers::sendCfg);
-    DBG_LOGI(TAG, "registered session-encrypted config GET /get_cfg");
-
-    g_server.on(AsyncURIMatcher::exact("/set_cfg"),
-                HTTP_POST,
-                WebCfgHandlers::finishSetCfg,
-                nullptr,
-                WebCfgHandlers::writeSetCfgBody);
-    DBG_LOGI(TAG, "registered encrypted config POST /set_cfg");
-
-#if BUILD_WITH_SECURITY_LEVEL == 1
-    g_server.on(AsyncURIMatcher::exact("/set_custom_pin"),
-                HTTP_POST,
-                WebCfgHandlers::finishSetCustomPin,
-                nullptr,
-                WebCfgHandlers::writePinCodeBody);
-    DBG_LOGI(TAG, "registered encrypted custom PIN POST /set_custom_pin");
-#endif
-
-#if BUILD_WITH_SECURITY_LEVEL >= 1
-    g_server.on(AsyncURIMatcher::exact("/reset_pin_code"),
-                HTTP_POST,
-                WebCfgHandlers::finishResetPinCode,
-                nullptr,
-                WebCfgHandlers::writePinCodeBody);
-    DBG_LOGI(TAG, "registered encrypted PIN reset POST /reset_pin_code");
-#endif
-
-    g_server.on(AsyncURIMatcher::exact("/time_sync"), HTTP_POST, WebCfgHandlers::timeSync);
-    DBG_LOGI(TAG, "registered time sync POST /time_sync");
-
-    g_server.on(AsyncURIMatcher::exact("/reset_password"), HTTP_POST, reset_password);
-    DBG_LOGI(TAG, "registered password reset POST /reset_password");
-
-    g_server.on(AsyncURIMatcher::exact("/reset_memory"), HTTP_POST, reset_memory);
-    DBG_LOGI(TAG, "registered memory reset POST /reset_memory");
-
-    // Uploads are not encrypted; keep this endpoint off untrusted networks until it is replaced by session encryption.
-    g_server.on(AsyncURIMatcher::exact("/file_upload"),
-                HTTP_POST,
-                WebFileHandlers::finishFileUpload,
-                WebFileHandlers::writeFileUploadPart,
-                WebFileHandlers::writeFileUploadBody);
-    DBG_LOGI(TAG, "registered microSD upload POST /file_upload");
-
-#if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 1
-    if (!FtpServer::start(MicroSdCard::fs(), kFtpUser, kFtpPassword))
-    {
-        DBG_LOGE(TAG, "FTP server start failed");
-        return false;
-    }
-
-    DBG_LOGI(TAG, "FTP server started");
-#endif
-
-    // DiskStats::refreshDiskSpace();
-    start_mdns();
-
-    g_server.begin();
-    g_initialized = true;
-    DBG_LOGI(TAG, "web server started");
-
-    return true;
-}

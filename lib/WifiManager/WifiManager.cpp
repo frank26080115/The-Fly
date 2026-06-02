@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
 #include "WifiManager.h"
 
 #include <ArduinoJson.h>
@@ -26,10 +30,18 @@
 #include "nvs.h"
 #include "utilfuncs.h"
 
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
+
 bool wifiLowLevelInit(bool persistent);
 
 namespace
 {
+
+// -----------------------------------------------------------------------------
+// Configuration
+// -----------------------------------------------------------------------------
 
 constexpr const char* TAG              = "WifiManager";
 constexpr size_t      kMaxJsonFileSize = 16 * 1024;
@@ -49,491 +61,40 @@ constexpr uint32_t    kNetworkConfigVersion = 3;
 constexpr const char* kNetworkNvsNamespace  = "wifi_cfg";
 constexpr const char* kNetworkNvsBlobName   = "network";
 
-const char* load_result_tostring(WifiManager::LoadResult result)
-{
-    switch (result)
-    {
-    case WifiManager::LoadResult::Ok:
-        return "Ok";
-    case WifiManager::LoadResult::SdNotReady:
-        return "SdNotReady";
-    case WifiManager::LoadResult::FileOpenFailed:
-        return "FileOpenFailed";
-    case WifiManager::LoadResult::FileTooLarge:
-        return "FileTooLarge";
-    case WifiManager::LoadResult::FileReadFailed:
-        return "FileReadFailed";
-    case WifiManager::LoadResult::FileWriteFailed:
-        return "FileWriteFailed";
-    case WifiManager::LoadResult::JsonParseFailed:
-        return "JsonParseFailed";
-    case WifiManager::LoadResult::AllocationFailed:
-        return "AllocationFailed";
-    case WifiManager::LoadResult::InvalidItem:
-        return "InvalidItem";
-    default:
-        return "Unknown";
-    }
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-const char* status_name(WifiManager::Status status)
-{
-    switch (status)
-    {
-    case WifiManager::Status::Idle:
-        return "Idle";
-    case WifiManager::Status::StationScanning:
-        return "StationScanning";
-    case WifiManager::Status::StationConnecting:
-        return "StationConnecting";
-    case WifiManager::Status::StationConnected:
-        return "StationConnected";
-    case WifiManager::Status::AccessPoint:
-        return "AccessPoint";
-    case WifiManager::Status::NoKnownNetwork:
-        return "NoKnownNetwork";
-    case WifiManager::Status::ScanFailed:
-        return "ScanFailed";
-    case WifiManager::Status::ConnectFailed:
-        return "ConnectFailed";
-    case WifiManager::Status::AccessPointFailed:
-        return "AccessPointFailed";
-    default:
-        return "Unknown";
-    }
-}
-
-uint8_t parse_icon_or_default(const char* icon, uint8_t default_icon)
-{
-    if (!icon || icon[0] == '\0')
-    {
-        return default_icon;
-    }
-
-    const uint8_t parsed = IconLookup::fromString(icon);
-    return parsed == ICON_UNKNOWN ? default_icon : parsed;
-}
-
-bool copy_config_text(char* dst, size_t dst_size, const char* value, bool required)
-{
-    if (!dst || dst_size == 0)
-    {
-        return false;
-    }
-
-    if (!value)
-    {
-        value = "";
-    }
-    if (required && value[0] == '\0')
-    {
-        return false;
-    }
-
-    return strlcpy(dst, value, dst_size) < dst_size;
-}
-
-bool valid_network_config_version(uint32_t version)
-{
-    return version == kNetworkConfigVersion;
-}
-
-void init_network_config_defaults(network_cfg_t& cfg)
-{
-    memset(&cfg, 0, sizeof(cfg));
-    cfg.magic          = kNetworkConfigMagic;
-    cfg.version        = kNetworkConfigVersion;
-    cfg.security_level = BUILD_WITH_SECURITY_LEVEL;
-    strlcpy(cfg.timezone, kDefaultTimezone, sizeof(cfg.timezone));
-    for (size_t i = 0; i < kNetworkConfigNtpServerCount; ++i)
-    {
-        strlcpy(cfg.ntp_server[i], kDefaultNtpServers[i], sizeof(cfg.ntp_server[i]));
-    }
-}
-
-void sanitize_network_config(network_cfg_t& cfg)
-{
-    cfg.magic                              = kNetworkConfigMagic;
-    cfg.version                            = kNetworkConfigVersion;
-    cfg.security_level                     = BUILD_WITH_SECURITY_LEVEL;
-    cfg.timezone[sizeof(cfg.timezone) - 1] = '\0';
-    if (cfg.timezone[0] == '\0')
-    {
-        strlcpy(cfg.timezone, kDefaultTimezone, sizeof(cfg.timezone));
-    }
-
-    for (size_t i = 0; i < kNetworkConfigNtpServerCount; ++i)
-    {
-        cfg.ntp_server[i][sizeof(cfg.ntp_server[i]) - 1] = '\0';
-        if (cfg.ntp_server[i][0] == '\0')
-        {
-            strlcpy(cfg.ntp_server[i], kDefaultNtpServers[i], sizeof(cfg.ntp_server[i]));
-        }
-    }
-
-    cfg.station_count = cfg.station_count > kNetworkConfigMaxEntries ? static_cast<uint8_t>(kNetworkConfigMaxEntries)
-                                                                     : cfg.station_count;
-    cfg.access_point_count = cfg.access_point_count > kNetworkConfigAllowedEntriesAP
-                                 ? static_cast<uint8_t>(kNetworkConfigAllowedEntriesAP)
-                                 : cfg.access_point_count;
-#ifdef BUILD_CLOUD_FEATURES
-    cfg.cloud_endpoint_count = cfg.cloud_endpoint_count > kNetworkConfigCloudAllowedEntries
-                                   ? static_cast<uint8_t>(kNetworkConfigCloudAllowedEntries)
-                                   : cfg.cloud_endpoint_count;
-#else
-    cfg.cloud_endpoint_count = 0;
-#endif
-
-    for (size_t i = 0; i < kNetworkConfigMaxEntries; ++i)
-    {
-        cfg.station[i].ssid[sizeof(cfg.station[i].ssid) - 1]         = '\0';
-        cfg.station[i].password[sizeof(cfg.station[i].password) - 1] = '\0';
-        if (cfg.station[i].icon >= ICON_LAST)
-        {
-            cfg.station[i].icon = ICON_UNKNOWN;
-        }
-    }
-
-    for (size_t i = 0; i < kNetworkConfigCloudMaxEntries; ++i)
-    {
-        cfg.cloud[i].password[sizeof(cfg.cloud[i].password) - 1] = '\0';
-        cfg.cloud[i].url[sizeof(cfg.cloud[i].url) - 1]           = '\0';
-        if (cfg.cloud[i].icon >= ICON_LAST)
-        {
-            cfg.cloud[i].icon = ICON_UNKNOWN;
-        }
-    }
-
-    for (size_t i = 0; i < kNetworkConfigMaxEntriesAP; ++i)
-    {
-        cfg.access_point[i].ssid[sizeof(cfg.access_point[i].ssid) - 1]         = '\0';
-        cfg.access_point[i].password[sizeof(cfg.access_point[i].password) - 1] = '\0';
-        if (cfg.access_point[i].icon >= ICON_LAST)
-        {
-            cfg.access_point[i].icon = ICON_UNKNOWN;
-        }
-    }
-}
-
-void apply_timezone(const char* timezone)
-{
-    const char* value = timezone && timezone[0] != '\0' ? timezone : kDefaultTimezone;
-    setenv("TZ", value, 1);
-    tzset();
-    DBG_LOGI(TAG, "applied timezone %s", value);
-}
-
-bool cache_network_config_hash(const network_cfg_t& cfg)
-{
-    if (Aegis::cacheNetworkConfigHash(&cfg, sizeof(cfg)))
-    {
-        return true;
-    }
-
-    DBG_LOGW(TAG, "could not cache Wi-Fi config hash");
-    return false;
-}
-
+const char* load_result_tostring(WifiManager::LoadResult result);
+const char* status_name(WifiManager::Status status);
+uint8_t parse_icon_or_default(const char* icon, uint8_t default_icon);
+bool copy_config_text(char* dst, size_t dst_size, const char* value, bool required);
+bool valid_network_config_version(uint32_t version);
+void init_network_config_defaults(network_cfg_t& cfg);
+void sanitize_network_config(network_cfg_t& cfg);
+void apply_timezone(const char* timezone);
+bool cache_network_config_hash(const network_cfg_t& cfg);
 bool parse_network_wifi_array(JsonDocument& doc,
-                              const char*   key,
+                              const char*   array_name,
                               wifi_item_t*  items,
-                              size_t        item_capacity,
                               uint8_t&      count,
-                              uint8_t       default_icon,
-                              size_t&       skipped)
-{
-    count           = 0;
-    JsonArray array = doc[key].as<JsonArray>();
-    if (!array.isNull())
-    {
-        for (JsonVariant value : array)
-        {
-            if (count >= item_capacity)
-            {
-                ++skipped;
-                continue;
-            }
-
-            JsonObject  item_json = value.as<JsonObject>();
-            const char* ssid      = item_json["ssid"].as<const char*>();
-            const char* password  = item_json["password"].as<const char*>();
-            const char* icon      = item_json["icon"].as<const char*>();
-            if (item_json.isNull() || !copy_config_text(items[count].ssid, sizeof(items[count].ssid), ssid, true) ||
-                !copy_config_text(items[count].password, sizeof(items[count].password), password, false))
-            {
-                ++skipped;
-                continue;
-            }
-
-            items[count].icon = parse_icon_or_default(icon, default_icon);
-            ++count;
-        }
-    }
-
-    for (size_t i = count; i < item_capacity; ++i)
-    {
-        memset(&items[i], 0, sizeof(items[i]));
-    }
-
-    return true;
-}
-
-bool parse_network_cloud_array(JsonDocument& doc, cloud_item_t* items, uint8_t& count, size_t& skipped)
-{
-    count = 0;
-#ifdef BUILD_CLOUD_FEATURES
-    JsonArray array = doc["cloud_uploads"].as<JsonArray>();
-    if (!array.isNull())
-    {
-        for (JsonVariant value : array)
-        {
-            if (count >= kNetworkConfigCloudAllowedEntries)
-            {
-                ++skipped;
-                continue;
-            }
-
-            JsonObject  item_json = value.as<JsonObject>();
-            const char* url       = item_json["url"].as<const char*>();
-            const char* password  = item_json["password"].as<const char*>();
-            const char* icon      = item_json["icon"].as<const char*>();
-            if (item_json.isNull() || !copy_config_text(items[count].url, sizeof(items[count].url), url, true))
-            {
-                ++skipped;
-                continue;
-            }
-
-#if BUILD_WITH_SECURITY_LEVEL <= 0
-            if (!copy_config_text(items[count].password, sizeof(items[count].password), password, true))
-            {
-                ++skipped;
-                continue;
-            }
-#else
-            items[count].password[0] = '\0';
-#endif
-            items[count].icon = parse_icon_or_default(icon, ICON_UNKNOWN);
-            ++count;
-        }
-    }
-#else
-    (void)doc;
-    (void)skipped;
-#endif
-
-    for (size_t i = count; i < kNetworkConfigCloudMaxEntries; ++i)
-    {
-        memset(&items[i], 0, sizeof(items[i]));
-    }
-
-    return true;
-}
-
-bool parse_network_config_json(JsonDocument& doc, network_cfg_t& cfg, size_t& skipped)
-{
-    init_network_config_defaults(cfg);
-    skipped = 0;
-
-    const char* timezone = doc["timezone"].as<const char*>();
-    if (timezone && !copy_config_text(cfg.timezone, sizeof(cfg.timezone), timezone, true))
-    {
-        ++skipped;
-    }
-
-    JsonArray ntp_servers = doc["ntp_servers"].as<JsonArray>();
-    if (!ntp_servers.isNull())
-    {
-        size_t index = 0;
-        for (JsonVariant value : ntp_servers)
-        {
-            if (index >= kNetworkConfigNtpServerCount)
-            {
-                ++skipped;
-                continue;
-            }
-
-            const char* server = value.as<const char*>();
-            if (!copy_config_text(cfg.ntp_server[index], sizeof(cfg.ntp_server[index]), server, true))
-            {
-                ++skipped;
-                continue;
-            }
-            ++index;
-        }
-    }
-
-    parse_network_wifi_array(doc,
-                             "stations",
-                             cfg.station,
-                             kNetworkConfigMaxEntries,
-                             cfg.station_count,
-                             ICON_UNKNOWN,
-                             skipped);
-    parse_network_wifi_array(doc,
-                             "access_points",
-                             cfg.access_point,
-                             kNetworkConfigAllowedEntriesAP,
-                             cfg.access_point_count,
-                             ICON_UNKNOWN,
-                             skipped);
-#ifdef BUILD_CLOUD_FEATURES
-    parse_network_cloud_array(doc, cfg.cloud, cfg.cloud_endpoint_count, skipped);
-#endif
-    sanitize_network_config(cfg);
-    return skipped == 0;
-}
-
-bool scan_has_ssid(int network_count, const char* ssid)
-{
-    if (!ssid)
-    {
-        return false;
-    }
-
-    for (int i = 0; i < network_count; ++i)
-    {
-        if (WiFi.SSID(i) == ssid)
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool is_connected_status(WifiManager::Status status)
-{
-    return status == WifiManager::Status::StationConnected || status == WifiManager::Status::AccessPoint;
-}
-
-void shutdown_for_wifi_activation()
-{
-    AsyncFsManager::init();
-
-    const BtManager::Result bt_result = BtManager::shutdown();
-    if (bt_result != BtManager::Result::Ok)
-    {
-        DBG_LOGW(TAG, "Bluetooth shutdown before Wi-Fi returned: %s", BtManager::resultName(bt_result));
-    }
-
-    AudioManager::stop();
-    if (!AudioFileRecorder::stopRecording())
-    {
-        DBG_LOGW(TAG, "audio file recorder did not stop cleanly before Wi-Fi activation");
-    }
-}
-
-void format_generated_soft_ap_ssid(char* ssid, size_t ssid_size)
-{
-    if (!ssid || ssid_size == 0)
-    {
-        return;
-    }
-    snprintf(ssid, ssid_size, "Fly-%08lu", static_cast<unsigned long>(generate_8_digit_nonce()));
-}
-
-void format_generated_soft_ap_password(char* password, size_t password_size)
-{
-    if (!password || password_size == 0)
-    {
-        return;
-    }
-
-    if (kWifiDebugBuild)
-    {
-        strlcpy(password, "12345678", password_size);
-        return;
-    }
-
-    snprintf(password, password_size, "%08lu", static_cast<unsigned long>(generate_8_digit_nonce()));
-}
-
-void configure_soft_ap_security(wifi_config_t& config, const char* ssid, const char* password)
-{
-    memset(&config, 0, sizeof(config));
-
-    strlcpy(reinterpret_cast<char*>(config.ap.ssid), ssid, sizeof(config.ap.ssid));
-    strlcpy(reinterpret_cast<char*>(config.ap.password), password, sizeof(config.ap.password));
-
-    config.ap.ssid_len         = strlen(ssid);
-    config.ap.channel          = kSoftApChannel;
-    config.ap.ssid_hidden      = kSoftApSsidHidden;
-    config.ap.authmode         = WIFI_AUTH_WPA3_PSK;
-    config.ap.max_connection   = kSoftApMaxConnection;
-    config.ap.pmf_cfg.capable  = true;
-    config.ap.pmf_cfg.required = true;
-#if defined(WIFI_CIPHER_TYPE_CCMP)
-    config.ap.pairwise_cipher = WIFI_CIPHER_TYPE_CCMP; // if not set, WPA3 should still require modern cipher behavior
-#endif
-#if defined(WPA3_SAE_PWE_BOTH)
-    config.ap.sae_pwe_h2e =
-        WPA3_SAE_PWE_BOTH; // if missing, possible client compatibility issue, not obvious insecurity
-#endif
-    // security review of these optional settings: all 4 configurations are safe
-}
-
-bool start_secure_soft_ap(const char* ssid, const char* password)
-{
-    wifi_config_t config = {};
-    configure_soft_ap_security(config, ssid, password);
-
-    WiFi.mode(WIFI_OFF);
-    if (!wifiLowLevelInit(false))
-    {
-        DBG_LOGW(TAG, "could not initialize Wi-Fi before SoftAP security configuration");
-        return false;
-    }
-
-    esp_err_t err = esp_wifi_stop();
-    if (err != ESP_OK && err != ESP_ERR_WIFI_NOT_STARTED)
-    {
-        DBG_LOGW(TAG, "could not stop Wi-Fi before SoftAP security configuration: %s", esp_err_to_name(err));
-        return false;
-    }
-
-    err = esp_wifi_set_mode(WIFI_MODE_AP);
-    if (err != ESP_OK)
-    {
-        DBG_LOGW(TAG, "could not set Wi-Fi access point mode: %s", esp_err_to_name(err));
-        return false;
-    }
-
-    err = esp_wifi_set_config(WIFI_IF_AP, &config);
-    if (err != ESP_OK)
-    {
-        DBG_LOGW(TAG, "could not configure WPA3-only SoftAP: %s", esp_err_to_name(err));
-        return false;
-    }
-
-    // Use Arduino only for the final start so its mode/IP/disconnect helpers
-    // stay in sync after the low-level, config-first setup above.
-    if (!WiFi.mode(WIFI_MODE_AP))
-    {
-        DBG_LOGW(TAG, "could not start WPA3-only SoftAP");
-        return false;
-    }
-
-    return true;
-}
-
-IPAddress current_soft_ap_ip()
-{
-    esp_netif_t* netif = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
-    if (!netif)
-    {
-        return IPAddress();
-    }
-
-    esp_netif_ip_info_t ip_info = {};
-    if (esp_netif_get_ip_info(netif, &ip_info) != ESP_OK)
-    {
-        return IPAddress();
-    }
-
-    return IPAddress(ip_info.ip.addr);
-}
+                              size_t&       skipped);
+bool parse_network_cloud_array(JsonDocument& doc, cloud_item_t* items, uint8_t& count, size_t& skipped);
+bool parse_network_config_json(JsonDocument& doc, network_cfg_t& cfg, size_t& skipped);
+bool scan_has_ssid(int network_count, const char* ssid);
+bool is_connected_status(WifiManager::Status status);
+void shutdown_for_wifi_activation();
+void format_generated_soft_ap_ssid(char* ssid, size_t ssid_size);
+void format_generated_soft_ap_password(char* password, size_t password_size);
+void configure_soft_ap_security(wifi_config_t& config, const char* ssid, const char* password);
+bool start_secure_soft_ap(const char* ssid, const char* password);
+IPAddress current_soft_ap_ip();
 
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 WifiManager::WifiManager()
 {
@@ -1383,3 +944,495 @@ const char* WifiManager::lastLoadResultName() const
 {
     return load_result_tostring(m_last_load_result);
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+const char* load_result_tostring(WifiManager::LoadResult result)
+{
+    switch (result)
+    {
+    case WifiManager::LoadResult::Ok:
+        return "Ok";
+    case WifiManager::LoadResult::SdNotReady:
+        return "SdNotReady";
+    case WifiManager::LoadResult::FileOpenFailed:
+        return "FileOpenFailed";
+    case WifiManager::LoadResult::FileTooLarge:
+        return "FileTooLarge";
+    case WifiManager::LoadResult::FileReadFailed:
+        return "FileReadFailed";
+    case WifiManager::LoadResult::FileWriteFailed:
+        return "FileWriteFailed";
+    case WifiManager::LoadResult::JsonParseFailed:
+        return "JsonParseFailed";
+    case WifiManager::LoadResult::AllocationFailed:
+        return "AllocationFailed";
+    case WifiManager::LoadResult::InvalidItem:
+        return "InvalidItem";
+    default:
+        return "Unknown";
+    }
+}
+
+const char* status_name(WifiManager::Status status)
+{
+    switch (status)
+    {
+    case WifiManager::Status::Idle:
+        return "Idle";
+    case WifiManager::Status::StationScanning:
+        return "StationScanning";
+    case WifiManager::Status::StationConnecting:
+        return "StationConnecting";
+    case WifiManager::Status::StationConnected:
+        return "StationConnected";
+    case WifiManager::Status::AccessPoint:
+        return "AccessPoint";
+    case WifiManager::Status::NoKnownNetwork:
+        return "NoKnownNetwork";
+    case WifiManager::Status::ScanFailed:
+        return "ScanFailed";
+    case WifiManager::Status::ConnectFailed:
+        return "ConnectFailed";
+    case WifiManager::Status::AccessPointFailed:
+        return "AccessPointFailed";
+    default:
+        return "Unknown";
+    }
+}
+
+uint8_t parse_icon_or_default(const char* icon, uint8_t default_icon)
+{
+    if (!icon || icon[0] == '\0')
+    {
+        return default_icon;
+    }
+
+    const uint8_t parsed = IconLookup::fromString(icon);
+    return parsed == ICON_UNKNOWN ? default_icon : parsed;
+}
+
+bool copy_config_text(char* dst, size_t dst_size, const char* value, bool required)
+{
+    if (!dst || dst_size == 0)
+    {
+        return false;
+    }
+
+    if (!value)
+    {
+        value = "";
+    }
+    if (required && value[0] == '\0')
+    {
+        return false;
+    }
+
+    return strlcpy(dst, value, dst_size) < dst_size;
+}
+
+bool valid_network_config_version(uint32_t version)
+{
+    return version == kNetworkConfigVersion;
+}
+
+void init_network_config_defaults(network_cfg_t& cfg)
+{
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.magic          = kNetworkConfigMagic;
+    cfg.version        = kNetworkConfigVersion;
+    cfg.security_level = BUILD_WITH_SECURITY_LEVEL;
+    strlcpy(cfg.timezone, kDefaultTimezone, sizeof(cfg.timezone));
+    for (size_t i = 0; i < kNetworkConfigNtpServerCount; ++i)
+    {
+        strlcpy(cfg.ntp_server[i], kDefaultNtpServers[i], sizeof(cfg.ntp_server[i]));
+    }
+}
+
+void sanitize_network_config(network_cfg_t& cfg)
+{
+    cfg.magic                              = kNetworkConfigMagic;
+    cfg.version                            = kNetworkConfigVersion;
+    cfg.security_level                     = BUILD_WITH_SECURITY_LEVEL;
+    cfg.timezone[sizeof(cfg.timezone) - 1] = '\0';
+    if (cfg.timezone[0] == '\0')
+    {
+        strlcpy(cfg.timezone, kDefaultTimezone, sizeof(cfg.timezone));
+    }
+
+    for (size_t i = 0; i < kNetworkConfigNtpServerCount; ++i)
+    {
+        cfg.ntp_server[i][sizeof(cfg.ntp_server[i]) - 1] = '\0';
+        if (cfg.ntp_server[i][0] == '\0')
+        {
+            strlcpy(cfg.ntp_server[i], kDefaultNtpServers[i], sizeof(cfg.ntp_server[i]));
+        }
+    }
+
+    cfg.station_count = cfg.station_count > kNetworkConfigMaxEntries ? static_cast<uint8_t>(kNetworkConfigMaxEntries)
+                                                                     : cfg.station_count;
+    cfg.access_point_count = cfg.access_point_count > kNetworkConfigAllowedEntriesAP
+                                 ? static_cast<uint8_t>(kNetworkConfigAllowedEntriesAP)
+                                 : cfg.access_point_count;
+#ifdef BUILD_CLOUD_FEATURES
+    cfg.cloud_endpoint_count = cfg.cloud_endpoint_count > kNetworkConfigCloudAllowedEntries
+                                   ? static_cast<uint8_t>(kNetworkConfigCloudAllowedEntries)
+                                   : cfg.cloud_endpoint_count;
+#else
+    cfg.cloud_endpoint_count = 0;
+#endif
+
+    for (size_t i = 0; i < kNetworkConfigMaxEntries; ++i)
+    {
+        cfg.station[i].ssid[sizeof(cfg.station[i].ssid) - 1]         = '\0';
+        cfg.station[i].password[sizeof(cfg.station[i].password) - 1] = '\0';
+        if (cfg.station[i].icon >= ICON_LAST)
+        {
+            cfg.station[i].icon = ICON_UNKNOWN;
+        }
+    }
+
+    for (size_t i = 0; i < kNetworkConfigCloudMaxEntries; ++i)
+    {
+        cfg.cloud[i].password[sizeof(cfg.cloud[i].password) - 1] = '\0';
+        cfg.cloud[i].url[sizeof(cfg.cloud[i].url) - 1]           = '\0';
+        if (cfg.cloud[i].icon >= ICON_LAST)
+        {
+            cfg.cloud[i].icon = ICON_UNKNOWN;
+        }
+    }
+
+    for (size_t i = 0; i < kNetworkConfigMaxEntriesAP; ++i)
+    {
+        cfg.access_point[i].ssid[sizeof(cfg.access_point[i].ssid) - 1]         = '\0';
+        cfg.access_point[i].password[sizeof(cfg.access_point[i].password) - 1] = '\0';
+        if (cfg.access_point[i].icon >= ICON_LAST)
+        {
+            cfg.access_point[i].icon = ICON_UNKNOWN;
+        }
+    }
+}
+
+void apply_timezone(const char* timezone)
+{
+    const char* value = timezone && timezone[0] != '\0' ? timezone : kDefaultTimezone;
+    setenv("TZ", value, 1);
+    tzset();
+    DBG_LOGI(TAG, "applied timezone %s", value);
+}
+
+bool cache_network_config_hash(const network_cfg_t& cfg)
+{
+    if (Aegis::cacheNetworkConfigHash(&cfg, sizeof(cfg)))
+    {
+        return true;
+    }
+
+    DBG_LOGW(TAG, "could not cache Wi-Fi config hash");
+    return false;
+}
+
+bool parse_network_wifi_array(JsonDocument& doc,
+                              const char*   key,
+                              wifi_item_t*  items,
+                              size_t        item_capacity,
+                              uint8_t&      count,
+                              uint8_t       default_icon,
+                              size_t&       skipped)
+{
+    count           = 0;
+    JsonArray array = doc[key].as<JsonArray>();
+    if (!array.isNull())
+    {
+        for (JsonVariant value : array)
+        {
+            if (count >= item_capacity)
+            {
+                ++skipped;
+                continue;
+            }
+
+            JsonObject  item_json = value.as<JsonObject>();
+            const char* ssid      = item_json["ssid"].as<const char*>();
+            const char* password  = item_json["password"].as<const char*>();
+            const char* icon      = item_json["icon"].as<const char*>();
+            if (item_json.isNull() || !copy_config_text(items[count].ssid, sizeof(items[count].ssid), ssid, true) ||
+                !copy_config_text(items[count].password, sizeof(items[count].password), password, false))
+            {
+                ++skipped;
+                continue;
+            }
+
+            items[count].icon = parse_icon_or_default(icon, default_icon);
+            ++count;
+        }
+    }
+
+    for (size_t i = count; i < item_capacity; ++i)
+    {
+        memset(&items[i], 0, sizeof(items[i]));
+    }
+
+    return true;
+}
+
+bool parse_network_cloud_array(JsonDocument& doc, cloud_item_t* items, uint8_t& count, size_t& skipped)
+{
+    count = 0;
+#ifdef BUILD_CLOUD_FEATURES
+    JsonArray array = doc["cloud_uploads"].as<JsonArray>();
+    if (!array.isNull())
+    {
+        for (JsonVariant value : array)
+        {
+            if (count >= kNetworkConfigCloudAllowedEntries)
+            {
+                ++skipped;
+                continue;
+            }
+
+            JsonObject  item_json = value.as<JsonObject>();
+            const char* url       = item_json["url"].as<const char*>();
+            const char* password  = item_json["password"].as<const char*>();
+            const char* icon      = item_json["icon"].as<const char*>();
+            if (item_json.isNull() || !copy_config_text(items[count].url, sizeof(items[count].url), url, true))
+            {
+                ++skipped;
+                continue;
+            }
+
+#if BUILD_WITH_SECURITY_LEVEL <= 0
+            if (!copy_config_text(items[count].password, sizeof(items[count].password), password, true))
+            {
+                ++skipped;
+                continue;
+            }
+#else
+            items[count].password[0] = '\0';
+#endif
+            items[count].icon = parse_icon_or_default(icon, ICON_UNKNOWN);
+            ++count;
+        }
+    }
+#else
+    (void)doc;
+    (void)skipped;
+#endif
+
+    for (size_t i = count; i < kNetworkConfigCloudMaxEntries; ++i)
+    {
+        memset(&items[i], 0, sizeof(items[i]));
+    }
+
+    return true;
+}
+
+bool parse_network_config_json(JsonDocument& doc, network_cfg_t& cfg, size_t& skipped)
+{
+    init_network_config_defaults(cfg);
+    skipped = 0;
+
+    const char* timezone = doc["timezone"].as<const char*>();
+    if (timezone && !copy_config_text(cfg.timezone, sizeof(cfg.timezone), timezone, true))
+    {
+        ++skipped;
+    }
+
+    JsonArray ntp_servers = doc["ntp_servers"].as<JsonArray>();
+    if (!ntp_servers.isNull())
+    {
+        size_t index = 0;
+        for (JsonVariant value : ntp_servers)
+        {
+            if (index >= kNetworkConfigNtpServerCount)
+            {
+                ++skipped;
+                continue;
+            }
+
+            const char* server = value.as<const char*>();
+            if (!copy_config_text(cfg.ntp_server[index], sizeof(cfg.ntp_server[index]), server, true))
+            {
+                ++skipped;
+                continue;
+            }
+            ++index;
+        }
+    }
+
+    parse_network_wifi_array(doc,
+                             "stations",
+                             cfg.station,
+                             kNetworkConfigMaxEntries,
+                             cfg.station_count,
+                             ICON_UNKNOWN,
+                             skipped);
+    parse_network_wifi_array(doc,
+                             "access_points",
+                             cfg.access_point,
+                             kNetworkConfigAllowedEntriesAP,
+                             cfg.access_point_count,
+                             ICON_UNKNOWN,
+                             skipped);
+#ifdef BUILD_CLOUD_FEATURES
+    parse_network_cloud_array(doc, cfg.cloud, cfg.cloud_endpoint_count, skipped);
+#endif
+    sanitize_network_config(cfg);
+    return skipped == 0;
+}
+
+bool scan_has_ssid(int network_count, const char* ssid)
+{
+    if (!ssid)
+    {
+        return false;
+    }
+
+    for (int i = 0; i < network_count; ++i)
+    {
+        if (WiFi.SSID(i) == ssid)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool is_connected_status(WifiManager::Status status)
+{
+    return status == WifiManager::Status::StationConnected || status == WifiManager::Status::AccessPoint;
+}
+
+void shutdown_for_wifi_activation()
+{
+    AsyncFsManager::init();
+
+    const BtManager::Result bt_result = BtManager::shutdown();
+    if (bt_result != BtManager::Result::Ok)
+    {
+        DBG_LOGW(TAG, "Bluetooth shutdown before Wi-Fi returned: %s", BtManager::resultName(bt_result));
+    }
+
+    AudioManager::stop();
+    if (!AudioFileRecorder::stopRecording())
+    {
+        DBG_LOGW(TAG, "audio file recorder did not stop cleanly before Wi-Fi activation");
+    }
+}
+
+void format_generated_soft_ap_ssid(char* ssid, size_t ssid_size)
+{
+    if (!ssid || ssid_size == 0)
+    {
+        return;
+    }
+    snprintf(ssid, ssid_size, "Fly-%08lu", static_cast<unsigned long>(generate_8_digit_nonce()));
+}
+
+void format_generated_soft_ap_password(char* password, size_t password_size)
+{
+    if (!password || password_size == 0)
+    {
+        return;
+    }
+
+    if (kWifiDebugBuild)
+    {
+        strlcpy(password, "12345678", password_size);
+        return;
+    }
+
+    snprintf(password, password_size, "%08lu", static_cast<unsigned long>(generate_8_digit_nonce()));
+}
+
+void configure_soft_ap_security(wifi_config_t& config, const char* ssid, const char* password)
+{
+    memset(&config, 0, sizeof(config));
+
+    strlcpy(reinterpret_cast<char*>(config.ap.ssid), ssid, sizeof(config.ap.ssid));
+    strlcpy(reinterpret_cast<char*>(config.ap.password), password, sizeof(config.ap.password));
+
+    config.ap.ssid_len         = strlen(ssid);
+    config.ap.channel          = kSoftApChannel;
+    config.ap.ssid_hidden      = kSoftApSsidHidden;
+    config.ap.authmode         = WIFI_AUTH_WPA3_PSK;
+    config.ap.max_connection   = kSoftApMaxConnection;
+    config.ap.pmf_cfg.capable  = true;
+    config.ap.pmf_cfg.required = true;
+#if defined(WIFI_CIPHER_TYPE_CCMP)
+    config.ap.pairwise_cipher = WIFI_CIPHER_TYPE_CCMP; // if not set, WPA3 should still require modern cipher behavior
+#endif
+#if defined(WPA3_SAE_PWE_BOTH)
+    config.ap.sae_pwe_h2e =
+        WPA3_SAE_PWE_BOTH; // if missing, possible client compatibility issue, not obvious insecurity
+#endif
+    // security review of these optional settings: all 4 configurations are safe
+}
+
+bool start_secure_soft_ap(const char* ssid, const char* password)
+{
+    wifi_config_t config = {};
+    configure_soft_ap_security(config, ssid, password);
+
+    WiFi.mode(WIFI_OFF);
+    if (!wifiLowLevelInit(false))
+    {
+        DBG_LOGW(TAG, "could not initialize Wi-Fi before SoftAP security configuration");
+        return false;
+    }
+
+    esp_err_t err = esp_wifi_stop();
+    if (err != ESP_OK && err != ESP_ERR_WIFI_NOT_STARTED)
+    {
+        DBG_LOGW(TAG, "could not stop Wi-Fi before SoftAP security configuration: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    err = esp_wifi_set_mode(WIFI_MODE_AP);
+    if (err != ESP_OK)
+    {
+        DBG_LOGW(TAG, "could not set Wi-Fi access point mode: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    err = esp_wifi_set_config(WIFI_IF_AP, &config);
+    if (err != ESP_OK)
+    {
+        DBG_LOGW(TAG, "could not configure WPA3-only SoftAP: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    // Use Arduino only for the final start so its mode/IP/disconnect helpers
+    // stay in sync after the low-level, config-first setup above.
+    if (!WiFi.mode(WIFI_MODE_AP))
+    {
+        DBG_LOGW(TAG, "could not start WPA3-only SoftAP");
+        return false;
+    }
+
+    return true;
+}
+
+IPAddress current_soft_ap_ip()
+{
+    esp_netif_t* netif = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
+    if (!netif)
+    {
+        return IPAddress();
+    }
+
+    esp_netif_ip_info_t ip_info = {};
+    if (esp_netif_get_ip_info(netif, &ip_info) != ESP_OK)
+    {
+        return IPAddress();
+    }
+
+    return IPAddress(ip_info.ip.addr);
+}
+} // namespace
