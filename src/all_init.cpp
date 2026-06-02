@@ -157,59 +157,64 @@ void init_gui()
     #endif
 }
 
-ScrollView* all_init_scroll_view()
+ScrollView* get_view_scroll()
 {
     return &g_scroll_view;
 }
 
-ModalDialog* all_init_modal_dialog()
+ModalDialog* get_view_modal_dialog()
 {
     return &g_modal_dialog;
 }
 
-MainScreenView* all_init_main_screen_view()
+MainScreenView* get_view_main_screen()
 {
     return &g_main_screen_view;
 }
 
-RecordingView* all_init_recording_view()
+ErrorView* get_view_error()
+{
+    return &g_error_view;
+}
+
+RecordingView* get_view_recording()
 {
     return &g_recording_view;
 }
 
-ConnWaitingView* all_init_conn_waiting_view()
+ConnWaitingView* get_view_conn_waiting()
 {
     return &g_conn_waiting_view;
 }
 
 #ifdef BUILD_CLOUD_FEATURES
-CloudUploadView* all_init_cloud_upload_view()
+CloudUploadView* get_view_cloud_upload()
 {
     return &g_cloud_upload_view;
 }
 #endif
 
-WifiStaModeView* all_init_wifi_sta_mode_view()
+WifiStaModeView* get_view_wifi_sta_mode()
 {
     return &g_wifi_sta_mode_view;
 }
 
-FirmwareUpdateView* all_init_firmware_update_view()
+FirmwareUpdateView* get_view_firmware_update()
 {
     return &g_firmware_update_view;
 }
 
-PlaybackView* all_init_playback_view()
+PlaybackView* get_view_playback()
 {
     return &g_playback_view;
 }
 
-PinPadView* all_init_pin_pad_view()
+PinPadView* get_view_pin_pad()
 {
     return &g_pin_pad_view;
 }
 
-QrCodeView* all_init_qr_code_view()
+QrCodeView* get_view_qr_code()
 {
     return &g_qr_code_view;
 }
@@ -218,7 +223,7 @@ void show_splash()
 {
     if (!gui || !gui->showView(FLYGUI_VIEW_SPLASH))
     {
-        show_fatal_error_f(true, "Failed to show splash view");
+        show_boot_error_f(true, "Failed to show splash view");
     }
 }
 
@@ -384,56 +389,3 @@ void check_reset_flag()
     }
 }
 
-void show_fatal_error_f(bool fatal, const char* format, ...)
-{
-    char message[256];
-
-    va_list args;
-    va_start(args, format);
-    vsnprintf(message, sizeof(message), format ? format : "", args);
-    va_end(args);
-
-    DBG_LOGE(TAG, "%s", message);
-
-    if (!gui)
-    {
-        while (fatal)
-        {
-            delay(1000);
-        }
-        return;
-    }
-
-    FlyGuiView* previous_view       = gui->currentView();
-    const uint16_t previous_view_id = previous_view && previous_view->id() != FLYGUI_VIEW_SPLASH
-                                          ? previous_view->id()
-                                          : FLYGUI_VIEW_MAIN;
-
-    g_error_view.setMessage(message, fatal);
-    if (!gui->showView(FLYGUI_VIEW_ERROR))
-    {
-        DBG_LOGE(TAG, "Failed to show error view");
-        while (fatal)
-        {
-            delay(1000);
-        }
-        return;
-    }
-
-    gui->redraw(true);
-    while (fatal || !g_error_view.dismissed())
-    {
-        gui->poll();
-        BattTracker::poll();
-        if (wifi_manager)
-        {
-            wifi_manager->poll();
-        }
-        delay(10);
-    }
-
-    if (!fatal && previous_view_id != FLYGUI_VIEW_ERROR)
-    {
-        gui->showView(previous_view_id);
-    }
-}

@@ -11,7 +11,7 @@
 #include "sprites.h"
 
 extern WifiManager* wifi_manager;
-extern QrCodeView* all_init_qr_code_view();
+extern QrCodeView* get_view_qr_code();
 
 namespace
 {
@@ -287,7 +287,7 @@ void WifiApModeView::drawQrHoldFade()
 
 void WifiApModeView::showQrCode()
 {
-    QrCodeView* qr_view = all_init_qr_code_view();
+    QrCodeView* qr_view = get_view_qr_code();
     FlyGui* owner = gui();
     char qr_text[384] = {};
     if (!qr_view || !owner || !makeWifiQrText(qr_text, sizeof(qr_text)))

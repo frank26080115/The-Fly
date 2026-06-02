@@ -37,7 +37,7 @@
 extern WifiManager* wifi_manager;
 extern BtHostList*  bt_host_list;
 extern FlyGui*      gui;
-extern ModalDialog* get_modal_dialog();
+extern ModalDialog* get_view_modal_dialog();
 extern bool         g_nvs_ready;
 
 namespace
@@ -154,7 +154,7 @@ void reboot_after_reset_dialog()
 
 void show_reset_reboot_dialog(const char* reset_name, const char* text)
 {
-    ModalDialog* dialog = get_modal_dialog();
+    ModalDialog* dialog = get_view_modal_dialog();
     if (!dialog || !gui)
     {
         DBG_LOGW(TAG, "%s succeeded, but modal dialog is unavailable", reset_name);

@@ -13,6 +13,7 @@ literally every source file probably includes this file
 #include "pins.h"
 #include "thefly_utils.h"
 #include "dbg_log.h"
+#include "error_report.h"
 
 // extern/global variables and functions go here
 
@@ -20,4 +21,3 @@ extern uint32_t reset_flag;
 extern uint32_t reset_magic;
 extern bool reset_was_magic;
 
-void show_fatal_error_f(bool fatal, const char* format, ...) __attribute__((format(printf, 2, 3)));

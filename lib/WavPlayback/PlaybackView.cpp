@@ -14,8 +14,8 @@
 #include "sprites.h"
 #include "utilfuncs.h"
 
-extern ModalDialog* get_modal_dialog();
-extern ScrollView* get_scroll_view();
+extern ModalDialog* get_view_modal_dialog();
+extern ScrollView* get_view_scroll();
 
 namespace
 {
@@ -32,9 +32,10 @@ constexpr int16_t kFileLineHeight = 15;
 constexpr int16_t kScrubWidth  = 300;
 constexpr int16_t kScrubHeight = 20;
 constexpr int16_t kScrubY      = 64;
+constexpr int16_t kPrecisionScrubY = 124;
+constexpr int16_t kStatusTextY = static_cast<int16_t>(kScrubY + kScrubHeight + ((kPrecisionScrubY - (kScrubY + kScrubHeight)) / 2));
 constexpr int16_t kDeleteConfirmTextY = kScrubY - 17;
 constexpr int16_t kDeleteConfirmTextGap = 4;
-constexpr int16_t kPrecisionScrubY = 124;
 constexpr int16_t kButtonY     = 180;
 constexpr int16_t kButtonSize  = 50;
 constexpr uint8_t kNormalFont  = 2;
@@ -609,7 +610,7 @@ void PlaybackView::handleDelete()
     if (deleted)
     {
         DBG_LOGI(TAG, "deleted playback file: %s", path_);
-        if (ScrollView* scrollView = get_scroll_view())
+        if (ScrollView* scrollView = get_view_scroll())
         {
             scrollView->populateFiles();
         }
@@ -849,7 +850,7 @@ void PlaybackView::setDeleteArmed(bool armed)
 
 void PlaybackView::showDeleteResultDialog(bool deleted, const char* detail)
 {
-    ModalDialog* dialog = get_modal_dialog();
+    ModalDialog* dialog = get_view_modal_dialog();
     FlyGui*      owner  = gui();
     if (!dialog || !owner)
     {
@@ -904,11 +905,13 @@ void PlaybackView::drawFrame(bool forced)
 
     if (statusText_[0] != '\0')
     {
+        // this displays as a red text, below the first scrub bar
+        // it can only be errors in the current implementation
         thefly_display.setTextDatum(top_center);
         thefly_display.setTextFont(kNormalFont);
         thefly_display.setTextSize(kTextSize);
         thefly_display.setTextColor(TFT_RED, TFT_BLACK);
-        thefly_display.drawString(statusText_, screenW / 2, 112);
+        thefly_display.drawString(statusText_, screenW / 2, kStatusTextY);
     }
 }
 

@@ -42,11 +42,11 @@ extern volatile bool g_pending_ntp_sync_complete;
 extern NtpSync::Result g_pending_ntp_sync_result;
 extern BtManager::PairedDevice g_pending_paired_device;
 
-extern ScrollView* get_scroll_view();
-extern PinPadView* get_pin_pad_view();
+extern ScrollView* get_view_scroll();
+extern PinPadView* get_view_pin_pad();
 extern uint16_t conn_waiting_return_view_id();
-extern ConnWaitingView* all_init_conn_waiting_view();
-extern MainScreenView* all_init_main_screen_view();
+extern ConnWaitingView* get_view_conn_waiting();
+extern MainScreenView* get_view_main_screen();
 extern bool show_conn_waiting_bluetooth(const char* targetName);
 extern bool show_conn_waiting_bluetooth_pairing();
 extern bool show_conn_waiting_wifi_connecting(const char* targetName);
@@ -58,7 +58,6 @@ extern bool show_wifi_ap_mode_view();
 extern bool show_wifi_sta_mode_view(bool showDismissButton);
 extern bool show_playback_view(const char* path);
 extern bool show_info_dialog(const char* text, uint16_t next_view);
-extern bool show_error_dialog(const char* text, uint16_t next_view);
 extern bool bluetooth_in_recording_state(BtManager::State state);
 extern bool connect_to_bluetooth_host(const bt_host_item_t* host, const char* source);
 extern void request_bluetooth_disconnect();
@@ -108,7 +107,7 @@ void onclick_main_bluetooth(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     DBG_LOGI(MAINTAG, "main screen bluetooth selected");
-    ScrollView* scroll_view = get_scroll_view();
+    ScrollView* scroll_view = get_view_scroll();
     if (scroll_view && gui)
     {
         scroll_view->populateBluetooth(bt_host_list);
@@ -240,12 +239,12 @@ void onclick_main_files(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     DBG_LOGI(MAINTAG, "main screen files selected");
-    ScrollView* scroll_view = get_scroll_view();
+    ScrollView* scroll_view = get_view_scroll();
     if (scroll_view && gui)
     {
         scroll_view->populateFiles();
         #if BUILD_WITH_SECURITY_LEVEL == 1
-        PinPadView* pin_pad = get_pin_pad_view();
+        PinPadView* pin_pad = get_view_pin_pad();
         if (!pin_pad)
         {
             show_fatal_error_f(true, "PIN pad unavailable; file list access denied");
@@ -270,7 +269,7 @@ void onclick_main_wifi(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     DBG_LOGI(MAINTAG, "main screen wifi selected");
-    ScrollView* scroll_view = get_scroll_view();
+    ScrollView* scroll_view = get_view_scroll();
     if (scroll_view && gui)
     {
         scroll_view->populateWifi(wifi_manager);
@@ -283,7 +282,7 @@ void onclick_main_memo(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     DBG_LOGI(MAINTAG, "main screen memo selected");
-    if (MainScreenView* view = all_init_main_screen_view())
+    if (MainScreenView* view = get_view_main_screen())
     {
         view->showMemoStartingFeedback();
     }
@@ -345,7 +344,7 @@ void conn_waiting_cancel(uint32_t pressDurationMs)
         return;
     }
 
-    ConnWaitingView* conn_waiting_view = all_init_conn_waiting_view();
+    ConnWaitingView* conn_waiting_view = get_view_conn_waiting();
     const bool bluetooth_waiting = conn_waiting_view &&
         (conn_waiting_view->mode() == CONN_WAITING_BLUETOOTH_CONNECTING ||
          conn_waiting_view->mode() == CONN_WAITING_BLUETOOTH_PAIRING);
@@ -370,7 +369,7 @@ void onclick_scroll_exit(uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     DBG_LOGI(MAINTAG, "scroll view exit selected");
-    ScrollView* scroll_view = get_scroll_view();
+    ScrollView* scroll_view = get_view_scroll();
 
     // by policy, if Wi-Fi has been used, we do not allow restarting of Bluetooth, so we do a reboot
     if (scroll_view && scroll_view->isCloudContext())
@@ -565,7 +564,10 @@ void onclick_cloud_upload(int32_t value, uint32_t pressDurationMs)
     if (!g_cloud_upload.start(endpoint))
     {
         const CloudUpload::Status status = g_cloud_upload.status();
-        show_error_dialog(status.message[0] != '\0' ? status.message : "Cloud upload failed to start", FLYGUI_VIEW_SCROLL);
+        error_unexpected_f(FLYGUI_VIEW_SCROLL,
+                           MAINTAG,
+                           "%s",
+                           status.message[0] != '\0' ? status.message : "Cloud upload failed to start");
         return;
     }
 
@@ -606,7 +608,7 @@ void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs)
 
     if (!wifi_manager)
     {
-        show_error_dialog("NTP sync unavailable", FLYGUI_VIEW_SCROLL);
+        error_unexpected_f(FLYGUI_VIEW_SCROLL, MAINTAG, "NTP sync unavailable");
         return;
     }
 
@@ -618,9 +620,7 @@ void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs)
     if (!g_ntp_sync.start(*wifi_manager, NtpSync::kDefaultTimeoutMs, true))
     {
         g_ntp_sync_waiting = false;
-        char text[128];
-        snprintf(text, sizeof(text), "NTP sync failed\n%s", g_ntp_sync.errorName());
-        show_error_dialog(text, FLYGUI_VIEW_SCROLL);
+        error_unexpected_f(FLYGUI_VIEW_SCROLL, MAINTAG, "NTP sync failed\n%s", g_ntp_sync.errorName());
         return;
     }
 
@@ -629,7 +629,7 @@ void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs)
         g_ntp_sync_waiting = false;
         g_ntp_sync_completion_suppressed = true; // read by handle_pending_ntp_sync_complete()
         g_ntp_sync.cancel();
-        show_fatal_error_f(false, "NTP sync view failed");
+        show_fatal_error_f(false, "NTP sync view failed"); // TODO: change to use error_unexpected_f, indicates a showView problem or gui is null or something
     }
 }
 
@@ -710,11 +710,11 @@ void onclick_file_playable(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     DBG_LOGI(MAINTAG, "scroll playable file selected: index=%ld", static_cast<long>(value));
-    ScrollView* scroll_view = get_scroll_view();
+    ScrollView* scroll_view = get_view_scroll();
     const char* file_name = scroll_view ? scroll_view->selectedItemLabel() : "";
     if (!file_name || file_name[0] == '\0')
     {
-        show_error_dialog("Playback file is unavailable", FLYGUI_VIEW_SCROLL); // invariant
+        error_unexpected_f(FLYGUI_VIEW_SCROLL, MAINTAG, "Playback file is unavailable");
         return;
     }
 
@@ -730,7 +730,7 @@ void onclick_file_playable(int32_t value, uint32_t pressDurationMs)
 
     if (!show_playback_view(path))
     {
-        show_error_dialog("Unable to open playback view", FLYGUI_VIEW_SCROLL); // invariant
+        error_unexpected_f(FLYGUI_VIEW_SCROLL, MAINTAG, "Unable to open playback view");
     }
 }
 

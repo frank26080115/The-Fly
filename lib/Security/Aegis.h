@@ -37,6 +37,8 @@ bool isInitialized();
 bool hasMasterKey();
 bool hasFilecryptKey();
 bool hasNetworkKey();
+bool isNvsEncrypted();
+bool isFwUpdateSecure();
 
 const uint8_t* getFilecryptKey();
 const uint8_t* getNetworkKey();

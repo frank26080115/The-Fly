@@ -18,8 +18,8 @@ public:
 
     enum class State
     {
-        Filling,
-        Draining,
+        Filling,    // watermark level is not met
+        Draining,   // watermark level has been met and we are allowed to drain
     };
 
     explicit AudioFifo(size_t capacitySamples = kDefaultCapacitySamples, size_t watermarkSamples = 0) : capacitySamples_(capacitySamples ? capacitySamples : 1), watermarkSamples_(watermarkSamples)

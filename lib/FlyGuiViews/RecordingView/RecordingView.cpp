@@ -12,7 +12,7 @@
 #include "RecordingViewCallbacks.h"
 #include "sprites.h"
 
-extern ModalDialog* get_modal_dialog();
+extern ModalDialog* get_view_modal_dialog();
 
 namespace
 {
@@ -265,7 +265,7 @@ void RecordingView::handleExitButton()
     fileName[sizeof(fileName) - 1] = '\0';
     if (gui())
     {
-        ModalDialog* dialog = get_modal_dialog();
+        ModalDialog* dialog = get_view_modal_dialog();
         if (dialog)
         {
             char message[160];

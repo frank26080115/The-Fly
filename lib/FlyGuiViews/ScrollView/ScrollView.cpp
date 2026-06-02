@@ -11,7 +11,7 @@
 #include <new>
 #include <string.h>
 
-extern ModalDialog* get_modal_dialog();
+extern ModalDialog* get_view_modal_dialog();
 
 namespace
 {
@@ -1086,7 +1086,7 @@ bool ScrollView::deleteArmedBluetoothHost()
         populateBluetooth(bluetoothHostList_);
     }
 
-    ModalDialog* dialog = get_modal_dialog();
+    ModalDialog* dialog = get_view_modal_dialog();
     FlyGui*      owner  = gui();
     if (dialog && owner)
     {

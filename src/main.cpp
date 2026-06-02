@@ -46,23 +46,22 @@ constexpr const char* MAINTAG = "main.cpp";
 extern void all_init();
 extern void show_splash();
 extern void draw_splash_boot_info();
-extern ScrollView* all_init_scroll_view();
-extern ModalDialog* all_init_modal_dialog();
-extern RecordingView* all_init_recording_view();
-extern ConnWaitingView* all_init_conn_waiting_view();
-extern WifiStaModeView* all_init_wifi_sta_mode_view();
-extern FirmwareUpdateView* all_init_firmware_update_view();
-extern PlaybackView* all_init_playback_view();
-extern PinPadView* all_init_pin_pad_view();
+extern ScrollView* get_view_scroll();
+extern ModalDialog* get_view_modal_dialog();
+extern RecordingView* get_view_recording();
+extern ConnWaitingView* get_view_conn_waiting();
+extern WifiStaModeView* get_view_wifi_sta_mode();
+extern FirmwareUpdateView* get_view_firmware_update();
+extern PlaybackView* get_view_playback();
+extern PinPadView* get_view_pin_pad();
 
 #ifdef BUILD_CLOUD_FEATURES
-extern CloudUploadView* all_init_cloud_upload_view();
+extern CloudUploadView* get_view_cloud_upload();
 #endif
 
 TaskHandle_t loopTask_core0_Handle = NULL;
 static void  loopTask_core0(void* pvParameters);
 bool         show_info_dialog(const char* text, uint16_t next_view);
-bool         show_error_dialog(const char* text, uint16_t next_view);
 static bool  show_pairing_success_dialog(const BtManager::PairedDevice& device);
 bool         bluetooth_in_recording_state(BtManager::State state);
 static void  handle_pending_bluetooth_recording();
@@ -124,7 +123,7 @@ void setup()
 
     if (!MicroSdCard::begin())
     {
-        show_fatal_error_f(true, "microSD init failed");
+        show_boot_error_f(true, "microSD init failed");
     }
 
     handle_firmware_update_on_boot();
@@ -132,14 +131,22 @@ void setup()
     wifi_manager = new (std::nothrow) WifiManager();
     if (!wifi_manager)
     {
-        show_fatal_error_f(true, "WifiManager allocation failed");
+        show_boot_error_f(true, "WifiManager allocation failed");
     }
 
     #if BUILD_WITH_SECURITY_LEVEL > 0
     if (!g_nvs_ready || !Aegis::init())
     {
-        show_fatal_error_f(true, "security subsystem init failed");
+        show_boot_error_f(true, "security subsystem init failed");
     }
+    #ifndef TEST_MOCK_NVS_FW_SECURED
+    if (!Aegis::isNvsEncrypted()) {
+        show_boot_error_f(true, "NVS is not encrypted");
+    }
+    if (!Aegis::isFwUpdateSecure()) {
+        show_boot_error_f(true, "FW updates are not secured");
+    }
+    #endif
     #ifdef TEST_MOCK_PASSWORD
     DBG_LOGD(MAINTAG, "[%u] setting test password...", millis());
     Aegis::setTestTempPassword((const uint8_t*)"123456");
@@ -147,12 +154,12 @@ void setup()
     #endif
     if (!Aegis::hasMasterKey())
     {
-        show_fatal_error_f(true, "no key, please setup a password");
+        show_boot_error_f(true, "no key, please setup a password");
     }
     #else
     if (!g_nvs_ready)
     {
-        show_fatal_error_f(true, "NVS init failed");
+        show_boot_error_f(true, "NVS init failed");
     }
     #endif
 
@@ -162,7 +169,7 @@ void setup()
     if (!wifi_manager->loadFromNvs())
     #endif
     {
-        show_fatal_error_f(false, "Wi-Fi configuration load failed: %s", wifi_manager->lastLoadResultName());
+        show_boot_error_f(false, "Wi-Fi configuration load failed: %s", wifi_manager->lastLoadResultName());
     }
     wifi_manager->setOnScanFinished(on_wifi_scan_finished);
     if (gui->currentView() && gui->currentView()->id() == FLYGUI_VIEW_SPLASH)
@@ -172,7 +179,7 @@ void setup()
 
     if (!AudioManager::init())
     {
-        show_fatal_error_f(true, "AudioManager init failed");
+        show_boot_error_f(true, "AudioManager init failed");
     }
 
     BtManager::setStateChangedCallback(on_bluetooth_state_changed);
@@ -182,7 +189,7 @@ void setup()
     DBG_LOGI(MAINTAG, "Bluetooth legacy pairing PIN: %s", BtManager::generatedLegacyPin());
     if (!BtManager::init(nullptr, AudioManager::hfp_incoming_audio, AudioManager::hfp_outgoing_audio, BtManager::generatedLegacyPin()))
     {
-        show_fatal_error_f(true, "BluetoothManager init failed");
+        show_boot_error_f(true, "BluetoothManager init failed");
     }
 
     bt_host_list = new BtHostList();
@@ -192,26 +199,26 @@ void setup()
     if (!bt_host_list->loadFromNvs())
     #endif
     {
-        show_fatal_error_f(false, "Bluetooth host list load failed");
+        show_boot_error_f(false, "Bluetooth host list load failed");
     }
     if (!bt_host_list->pruneBonds())
     {
-        show_fatal_error_f(false, "Bluetooth bond pruning failed: %s", bt_host_list->lastLoadResultName());
+        show_boot_error_f(false, "Bluetooth bond pruning failed: %s", bt_host_list->lastLoadResultName());
     }
 
 #ifdef TEST_BOOT_ERROR_NONFATAL
-    show_fatal_error_f(false, "test non fatal error");
+    show_boot_error_f(false, "test non fatal error");
 #endif
 
 #ifdef TEST_BOOT_ERROR_FATAL
-    show_fatal_error_f(true, "test fatal error");
+    show_boot_error_f(true, "test fatal error");
 #endif
 
     if (!gui->currentView())
     {
         if (!gui->showView(FLYGUI_VIEW_MAIN))
         {
-            show_fatal_error_f(true, "Failed to show main view");
+            show_boot_error_f(true, "Failed to show main view");
         }
     }
 
@@ -250,7 +257,7 @@ void loop()
         AudioFileRecorder::pump();
     }
 
-    if (PlaybackView* playback_view = all_init_playback_view())
+    if (PlaybackView* playback_view = get_view_playback())
     {
         playback_view->pumpPlayback();
     }
@@ -289,21 +296,6 @@ static void loopTask_core0(void* pvParameters)
     }
 }
 
-ScrollView* get_scroll_view()
-{
-    return all_init_scroll_view();
-}
-
-PinPadView* get_pin_pad_view()
-{
-    return all_init_pin_pad_view();
-}
-
-ModalDialog* get_modal_dialog()
-{
-    return all_init_modal_dialog();
-}
-
 uint16_t conn_waiting_return_view_id()
 {
     return g_conn_waiting_return_view_id;
@@ -322,7 +314,7 @@ void remember_conn_waiting_return_view()
 
 static bool show_conn_waiting_mode(ConnWaitingMode mode, const char* targetName)
 {
-    ConnWaitingView* view = all_init_conn_waiting_view();
+    ConnWaitingView* view = get_view_conn_waiting();
     if (!gui || !view)
     {
         return false;
@@ -361,7 +353,7 @@ bool show_conn_waiting_ntp_sync(const char* targetName)
 
 void update_conn_waiting_wifi_target(const char* targetName)
 {
-    if (ConnWaitingView* view = all_init_conn_waiting_view())
+    if (ConnWaitingView* view = get_view_conn_waiting())
     {
         view->configure(CONN_WAITING_WIFI_CONNECTING, targetName);
         view->setCancelCallback(conn_waiting_cancel);
@@ -371,7 +363,7 @@ void update_conn_waiting_wifi_target(const char* targetName)
 #ifdef BUILD_CLOUD_FEATURES
 bool show_cloud_upload_view(CloudUpload* uploader, const char* targetName)
 {
-    CloudUploadView* view = all_init_cloud_upload_view();
+    CloudUploadView* view = get_view_cloud_upload();
     if (!gui || !view)
     {
         return false;
@@ -385,7 +377,7 @@ bool show_cloud_upload_view(CloudUpload* uploader, const char* targetName)
 
 bool show_recording_view_bluetooth()
 {
-    RecordingView* view = all_init_recording_view();
+    RecordingView* view = get_view_recording();
     if (!gui || !view)
     {
         return false;
@@ -397,7 +389,7 @@ bool show_recording_view_bluetooth()
 
 bool promote_recording_view_memo_to_bluetooth()
 {
-    RecordingView* view = all_init_recording_view();
+    RecordingView* view = get_view_recording();
     if (!gui || !view || !view->promoteMemoToBluetoothMode())
     {
         return false;
@@ -414,7 +406,7 @@ bool promote_recording_view_memo_to_bluetooth()
 
 bool show_recording_view_memo()
 {
-    RecordingView* view = all_init_recording_view();
+    RecordingView* view = get_view_recording();
     if (!gui || !view)
     {
         return false;
@@ -426,7 +418,7 @@ bool show_recording_view_memo()
 
 bool show_playback_view(const char* path)
 {
-    PlaybackView* view = all_init_playback_view();
+    PlaybackView* view = get_view_playback();
     if (!gui || !view || !path || path[0] == '\0')
     {
         return false;
@@ -443,7 +435,7 @@ bool show_wifi_ap_mode_view()
 
 bool show_wifi_sta_mode_view(bool showDismissButton)
 {
-    WifiStaModeView* view = all_init_wifi_sta_mode_view();
+    WifiStaModeView* view = get_view_wifi_sta_mode();
     if (!gui || !view)
     {
         return false;
@@ -460,7 +452,7 @@ static void handle_firmware_update_on_boot()
         return;
     }
 
-    FirmwareUpdateView* view = all_init_firmware_update_view();
+    FirmwareUpdateView* view = get_view_firmware_update();
     if (!gui || !view)
     {
         show_fatal_error_f(true, "Firmware update view unavailable");
@@ -518,7 +510,7 @@ static void handle_pending_bluetooth_pairing()
         }
     }
 
-    ScrollView* scroll_view = get_scroll_view();
+    ScrollView* scroll_view = get_view_scroll();
     if (scroll_view)
     {
         scroll_view->populateBluetooth(bt_host_list);
@@ -565,7 +557,7 @@ static void handle_pending_bluetooth_recording()
     }
 
     // design policy: playback can be interrupted
-    PlaybackView* playback_view = all_init_playback_view();
+    PlaybackView* playback_view = get_view_playback();
     if (playback_view && playback_view->playbackActive())
     {
         playback_view->stopPlayback();
@@ -602,16 +594,15 @@ static void handle_pending_bluetooth_connect_failed()
 
     DBG_LOGW(MAINTAG, "Bluetooth host connection failed before HFP service level connection");
 
-    ScrollView* scroll_view = get_scroll_view();
+    ScrollView* scroll_view = get_view_scroll();
     if (scroll_view)
     {
         scroll_view->populateBluetooth(bt_host_list);
     }
 
-    if (!show_error_dialog("Unable to connect to host\nMaybe try connecting from the host.", FLYGUI_VIEW_SCROLL) && gui)
-    {
-        gui->showView(FLYGUI_VIEW_SCROLL);
-    }
+    error_remote_f(FLYGUI_VIEW_SCROLL,
+                   MAINTAG,
+                   "Unable to connect to host\nMaybe try connecting from the host.");
 }
 
 #ifdef BUILD_CLOUD_FEATURES
@@ -626,7 +617,7 @@ static void handle_pending_cloud_upload_complete()
     const CloudUpload::Status status = g_pending_cloud_upload_status;
     const bool                succeeded = status.state == CloudUpload::State::Done && status.error == CloudUpload::Error::None;
 
-    ModalDialog* dialog = get_modal_dialog();
+    ModalDialog* dialog = get_view_modal_dialog();
     if (!dialog || !gui)
     {
         DBG_LOGW(MAINTAG, "cloud upload complete but modal dialog is unavailable; rebooting");
@@ -691,7 +682,7 @@ static void handle_pending_ntp_sync_complete()
         return;
     }
 
-    ModalDialog* dialog = get_modal_dialog();
+    ModalDialog* dialog = get_view_modal_dialog();
 
     char text[160] = {};
     if (result.status == NtpSync::Status::Done && result.error == NtpSync::Error::None)
@@ -772,7 +763,7 @@ static void handle_wifi_station_connected()
         return;
     }
 
-    ScrollView* scroll_view = get_scroll_view();
+    ScrollView* scroll_view = get_view_scroll();
 
     if (!scroll_view->populateCloud(wifi_manager))
     {
@@ -790,13 +781,10 @@ void show_wifi_connection_failed(const char* text)
 {
     g_wifi_connect_waiting = false;
 
-    ScrollView* scroll_view = get_scroll_view();
+    ScrollView* scroll_view = get_view_scroll();
     scroll_view->populateWifi(wifi_manager);
 
-    if (!show_error_dialog(text ? text : "Wi-Fi connection failed", FLYGUI_VIEW_SCROLL) && gui)
-    {
-        gui->showView(FLYGUI_VIEW_SCROLL);
-    }
+    error_remote_f(FLYGUI_VIEW_SCROLL, MAINTAG, "%s", text ? text : "Wi-Fi connection failed");
 }
 
 // triggered from user clicking on a button, either from the main view or from the list
@@ -856,7 +844,7 @@ void request_bluetooth_disconnect()
 
 bool show_info_dialog(const char* text, uint16_t next_view)
 {
-    ModalDialog* dialog = get_modal_dialog();
+    ModalDialog* dialog = get_view_modal_dialog();
     dialog->configure(sprite_info_100,
                       SPRITE_INFO_100_BYTES,
                       SPRITE_INFO_100_WIDTH,
@@ -897,26 +885,9 @@ static const char* ntp_error_name(NtpSync::Error error)
     }
 }
 
-bool show_error_dialog(const char* text, uint16_t next_view)
-{
-    ModalDialog* dialog = get_modal_dialog();
-    if (!dialog || !gui)
-    {
-        return false;
-    }
-
-    dialog->configure(sprite_warning_100,
-                      SPRITE_WARNING_100_BYTES,
-                      SPRITE_WARNING_100_WIDTH,
-                      SPRITE_WARNING_100_HEIGHT,
-                      text,
-                      next_view);
-    return gui->showView(FLYGUI_VIEW_MODAL_DIALOG);
-}
-
 static bool show_pairing_success_dialog(const BtManager::PairedDevice& device)
 {
-    ModalDialog* dialog = get_modal_dialog();
+    ModalDialog* dialog = get_view_modal_dialog();
     if (!dialog || !gui)
     {
         return false;

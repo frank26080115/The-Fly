@@ -6,7 +6,9 @@
 
 #include "esp_err.h"
 #include "dbg_log.h"
+#include "esp_flash_encrypt.h"
 #include "esp_random.h"
+#include "esp_secure_boot.h"
 #include "mbedtls/md.h"
 #include "mbedtls/pkcs5.h"
 #include "mbedtls/platform_util.h"
@@ -274,6 +276,16 @@ bool hasFilecryptKey()
 bool hasNetworkKey()
 {
     return g_initialized && g_network_key_valid;
+}
+
+bool isNvsEncrypted()
+{
+    return esp_flash_encryption_enabled();
+}
+
+bool isFwUpdateSecure()
+{
+    return esp_secure_boot_enabled();
 }
 
 const uint8_t* getFilecryptKey()
