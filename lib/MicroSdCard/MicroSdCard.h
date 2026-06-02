@@ -19,9 +19,9 @@ enum class Health
     Full,
 };
 
-bool begin();
-bool isReady();
-Health health();
+bool        begin();
+bool        isReady();
+Health      health();
 const char* healthName(Health health);
 
 SdFs& fs();

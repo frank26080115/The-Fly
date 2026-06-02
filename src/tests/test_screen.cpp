@@ -20,8 +20,11 @@ uint16_t hsv_to_rgb565(uint16_t hue, uint8_t saturation, uint8_t value)
     const uint8_t remainder = static_cast<uint8_t>(((hue % 60U) * 255U) / 60U);
 
     const uint8_t p = static_cast<uint8_t>((static_cast<uint16_t>(value) * (255U - saturation)) / 255U);
-    const uint8_t q = static_cast<uint8_t>((static_cast<uint16_t>(value) * (255U - ((static_cast<uint16_t>(saturation) * remainder) / 255U))) / 255U);
-    const uint8_t t = static_cast<uint8_t>((static_cast<uint16_t>(value) * (255U - ((static_cast<uint16_t>(saturation) * (255U - remainder)) / 255U))) / 255U);
+    const uint8_t q = static_cast<uint8_t>(
+        (static_cast<uint16_t>(value) * (255U - ((static_cast<uint16_t>(saturation) * remainder) / 255U))) / 255U);
+    const uint8_t t = static_cast<uint8_t>(
+        (static_cast<uint16_t>(value) * (255U - ((static_cast<uint16_t>(saturation) * (255U - remainder)) / 255U))) /
+        255U);
 
     uint8_t r = 0;
     uint8_t g = 0;
@@ -91,9 +94,12 @@ void test_screen()
     thefly_display.fillScreen(TFT_BLACK);
 
     Serial.println();
-    Serial.printf("%s: starting full-screen HSV fill test: %dx%d\n", TAG, thefly_display.width(), thefly_display.height());
+    Serial.printf("%s: starting full-screen HSV fill test: %dx%d\n",
+                  TAG,
+                  thefly_display.width(),
+                  thefly_display.height());
 
-    uint16_t hue              = 0;
+    uint16_t hue               = 0;
     uint32_t report_started_ms = millis();
     uint32_t frames            = 0;
 

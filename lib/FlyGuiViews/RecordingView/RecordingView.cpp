@@ -16,30 +16,30 @@ extern ModalDialog* get_view_modal_dialog();
 
 namespace
 {
-constexpr int16_t kBorderX      = 0;
-constexpr int16_t kBorderY      = FlyGui::kTopBarHeight;
-constexpr int16_t kBorderSize   = 10;
-constexpr int16_t kButtonY      = 130;
-constexpr int16_t kMicButtonX   = 10;
-constexpr int16_t kMidButtonX   = 110;
-constexpr int16_t kExitButtonX  = 210;
-constexpr int16_t kSideButtonX  = 260;
-constexpr int16_t kBluetoothY   = FlyGui::kTopBarHeight + 10;
-constexpr int16_t kSideButtonY  = 70;
-constexpr int16_t kSideTouchSize = 100;
-constexpr int16_t kTextX        = 16;
-constexpr int16_t kFileTextY    = 28;
-constexpr int16_t kElapsedTextY = 62;
-constexpr int16_t kInfoTextY    = 96;
-constexpr int16_t kTextWidth    = 240;
-constexpr int16_t kTextHeight   = 28;
-constexpr float   kFileTextSize = 1.0f;
-constexpr uint8_t kFileTextFont = 2;
-constexpr float   kDurationTextSize = 1.0f;
-constexpr uint8_t kDurationTextFont = 4;
-constexpr float   kCallerInfoTextSize = 1.0f;
-constexpr uint8_t kCallerInfoTextFont = 2;
-constexpr uint32_t kCallerInfoCycleMs = 3000;
+constexpr int16_t  kBorderX            = 0;
+constexpr int16_t  kBorderY            = FlyGui::kTopBarHeight;
+constexpr int16_t  kBorderSize         = 10;
+constexpr int16_t  kButtonY            = 130;
+constexpr int16_t  kMicButtonX         = 10;
+constexpr int16_t  kMidButtonX         = 110;
+constexpr int16_t  kExitButtonX        = 210;
+constexpr int16_t  kSideButtonX        = 260;
+constexpr int16_t  kBluetoothY         = FlyGui::kTopBarHeight + 10;
+constexpr int16_t  kSideButtonY        = 70;
+constexpr int16_t  kSideTouchSize      = 100;
+constexpr int16_t  kTextX              = 16;
+constexpr int16_t  kFileTextY          = 28;
+constexpr int16_t  kElapsedTextY       = 62;
+constexpr int16_t  kInfoTextY          = 96;
+constexpr int16_t  kTextWidth          = 240;
+constexpr int16_t  kTextHeight         = 28;
+constexpr float    kFileTextSize       = 1.0f;
+constexpr uint8_t  kFileTextFont       = 2;
+constexpr float    kDurationTextSize   = 1.0f;
+constexpr uint8_t  kDurationTextFont   = 4;
+constexpr float    kCallerInfoTextSize = 1.0f;
+constexpr uint8_t  kCallerInfoTextFont = 2;
+constexpr uint32_t kCallerInfoCycleMs  = 3000;
 
 const char* path_basename(const char* path)
 {
@@ -65,13 +65,11 @@ const char* path_basename(const char* path)
 RecordingView* RecordingView::activeInstance_ = nullptr;
 
 RecordingView::RecordingView()
-    : FlyGuiView(FLYGUI_VIEW_RECORDING),
-      micButton_(AudioDeviceButton::Device::Mic, kMicButtonX, kButtonY),
+    : FlyGuiView(FLYGUI_VIEW_RECORDING), micButton_(AudioDeviceButton::Device::Mic, kMicButtonX, kButtonY),
       speakerButton_(AudioDeviceButton::Device::Speaker, kMidButtonX, kButtonY),
       exitButton_(kExitButtonX, kButtonY, SPRITE_XCIRCLE_100_WIDTH, SPRITE_XCIRCLE_100_HEIGHT),
       bluetoothIcon_(kSideButtonX, kBluetoothY, SPRITE_BLUETOOTH_50_WIDTH, SPRITE_BLUETOOTH_50_HEIGHT),
-      answerCallButton_(kSideButtonX, kSideButtonY),
-      memoTypeButton_(kSideButtonX, kSideButtonY),
+      answerCallButton_(kSideButtonX, kSideButtonY), memoTypeButton_(kSideButtonX, kSideButtonY),
       fileNameText_(kTextX, kFileTextY, kTextWidth, kTextHeight, kFileTextSize, kFileTextFont, 64),
       durationText_(kTextX, kElapsedTextY, kTextWidth, kTextHeight, kDurationTextSize, kDurationTextFont),
       callerInfoText_(kTextX, kInfoTextY, kTextWidth, kTextHeight, kCallerInfoTextSize, kCallerInfoTextFont, 80)
@@ -84,11 +82,17 @@ RecordingView::RecordingView()
     speakerButton_.setCallback(speakerThunk);
     addItem(speakerButton_);
 
-    exitButton_.setSprite(sprite_xcircle_100, SPRITE_XCIRCLE_100_WIDTH, SPRITE_XCIRCLE_100_HEIGHT, SPRITE_XCIRCLE_100_BYTES);
+    exitButton_.setSprite(sprite_xcircle_100,
+                          SPRITE_XCIRCLE_100_WIDTH,
+                          SPRITE_XCIRCLE_100_HEIGHT,
+                          SPRITE_XCIRCLE_100_BYTES);
     exitButton_.setCallback(exitThunk);
     addItem(exitButton_);
 
-    bluetoothIcon_.setSprite(sprite_bluetooth_50, SPRITE_BLUETOOTH_50_WIDTH, SPRITE_BLUETOOTH_50_HEIGHT, SPRITE_BLUETOOTH_50_BYTES);
+    bluetoothIcon_.setSprite(sprite_bluetooth_50,
+                             SPRITE_BLUETOOTH_50_WIDTH,
+                             SPRITE_BLUETOOTH_50_HEIGHT,
+                             SPRITE_BLUETOOTH_50_BYTES);
     addItem(bluetoothIcon_);
 
     answerCallButton_.setCallback(answerCallThunk);
@@ -111,7 +115,7 @@ bool RecordingView::beginMemoRecording()
     startedMs_ = millis();
     durationText_.reset(startedMs_);
     lastDurationSecond_ = UINT32_MAX;
-    const bool ok = RecordingViewCallbacks::beginMemoRecording(memoTypeButton_.typeCode());
+    const bool ok       = RecordingViewCallbacks::beginMemoRecording(memoTypeButton_.typeCode());
     refreshRecordingFileName();
     setDirty();
     return ok;
@@ -119,7 +123,7 @@ bool RecordingView::beginMemoRecording()
 
 void RecordingView::configureBluetoothMode()
 {
-    mode_ = Mode::Bluetooth;
+    mode_       = Mode::Bluetooth;
     frameDirty_ = true;
     syncModeVisibility();
     syncBluetoothIcon();
@@ -128,7 +132,7 @@ void RecordingView::configureBluetoothMode()
 
 void RecordingView::configureMemoMode()
 {
-    mode_ = Mode::Memo;
+    mode_       = Mode::Memo;
     frameDirty_ = true;
     syncModeVisibility();
     setDirty();
@@ -142,7 +146,7 @@ bool RecordingView::promoteMemoToBluetoothMode()
     }
 
     configureBluetoothMode();
-    callerInfoIndex_ = 0;
+    callerInfoIndex_       = 0;
     nextCallerInfoCycleMs_ = millis();
     callerInfoText_.setText("");
     syncAudioButtons();
@@ -157,7 +161,7 @@ void RecordingView::onLoad()
     startedMs_ = millis();
     durationText_.reset(startedMs_);
     nextCallerInfoCycleMs_ = startedMs_;
-    callerInfoIndex_ = 0;
+    callerInfoIndex_       = 0;
     refreshRecordingFileName();
     syncModeVisibility();
     syncBluetoothIcon();
@@ -175,19 +179,16 @@ void RecordingView::onUnload()
 bool RecordingView::handleTouch(const FlyGuiTouchEvent& event)
 {
     const int16_t sideTouchX = thefly_display.width() - kSideTouchSize;
-    const bool sideTouchHit = event.x >= sideTouchX &&
-                              event.x < thefly_display.width() &&
-                              event.y >= 0 &&
-                              event.y < kSideTouchSize;
+    const bool    sideTouchHit =
+        event.x >= sideTouchX && event.x < thefly_display.width() && event.y >= 0 && event.y < kSideTouchSize;
 
     if (sideTouchHit)
     {
-        FlyGuiItem& sideButton = mode_ == Mode::Bluetooth
-                                     ? static_cast<FlyGuiItem&>(answerCallButton_)
-                                     : static_cast<FlyGuiItem&>(memoTypeButton_);
-        FlyGuiTouchEvent sideEvent = event;
-        sideEvent.x = sideButton.x() + sideButton.width() / 2;
-        sideEvent.y = sideButton.y() + sideButton.height() / 2;
+        FlyGuiItem&      sideButton = mode_ == Mode::Bluetooth ? static_cast<FlyGuiItem&>(answerCallButton_)
+                                                               : static_cast<FlyGuiItem&>(memoTypeButton_);
+        FlyGuiTouchEvent sideEvent  = event;
+        sideEvent.x                 = sideButton.x() + sideButton.width() / 2;
+        sideEvent.y                 = sideButton.y() + sideButton.height() / 2;
         if (sideButton.handleTouch(sideEvent))
         {
             return true;
@@ -268,7 +269,7 @@ void RecordingView::handleExitButton()
         ModalDialog* dialog = get_view_modal_dialog();
         if (dialog)
         {
-            char message[160];
+            char           message[160];
             const uint32_t overflowEvents = AudioFileRecorder::fifoOverflowEvents();
             if (overflowEvents > 0)
             {
@@ -388,11 +389,17 @@ void RecordingView::syncBluetoothIcon()
     bluetoothIconConnected_ = connected;
     if (connected)
     {
-        bluetoothIcon_.setSprite(sprite_bluetooth_50, SPRITE_BLUETOOTH_50_WIDTH, SPRITE_BLUETOOTH_50_HEIGHT, SPRITE_BLUETOOTH_50_BYTES);
+        bluetoothIcon_.setSprite(sprite_bluetooth_50,
+                                 SPRITE_BLUETOOTH_50_WIDTH,
+                                 SPRITE_BLUETOOTH_50_HEIGHT,
+                                 SPRITE_BLUETOOTH_50_BYTES);
     }
     else
     {
-        bluetoothIcon_.setSprite(sprite_bluetooth_x_50, SPRITE_BLUETOOTH_X_50_WIDTH, SPRITE_BLUETOOTH_X_50_HEIGHT, SPRITE_BLUETOOTH_X_50_BYTES);
+        bluetoothIcon_.setSprite(sprite_bluetooth_x_50,
+                                 SPRITE_BLUETOOTH_X_50_WIDTH,
+                                 SPRITE_BLUETOOTH_X_50_HEIGHT,
+                                 SPRITE_BLUETOOTH_X_50_BYTES);
     }
 }
 
@@ -427,8 +434,8 @@ void RecordingView::syncText()
         return;
     }
 
-    const uint32_t now = millis();
-    const size_t callerInfoCount = CallManager::getCallerInfoCnt();
+    const uint32_t now             = millis();
+    const size_t   callerInfoCount = CallManager::getCallerInfoCnt();
     if (callerInfoCount == 0)
     {
         callerInfoIndex_ = 0;
@@ -445,7 +452,7 @@ void RecordingView::syncText()
     {
         const char* info = CallManager::getCallerInfoAt(callerInfoIndex_);
         callerInfoText_.setText(info ? info : "");
-        callerInfoIndex_ = (callerInfoIndex_ + 1) % callerInfoCount;
+        callerInfoIndex_       = (callerInfoIndex_ + 1) % callerInfoCount;
         nextCallerInfoCycleMs_ = now + kCallerInfoCycleMs;
     }
 }

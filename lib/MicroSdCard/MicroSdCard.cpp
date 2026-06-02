@@ -21,11 +21,13 @@ constexpr int kCore2SdMosi = 23;
 constexpr int kCore2SdCs   = 4;
 
 constexpr uint32_t kSdFrequenciesMHz[] = {
-    //40,
-    20, 10, 4};
+    // 40,
+    20,
+    10,
+    4};
 
-SdFs g_sd;
-bool g_ready = false;
+SdFs     g_sd;
+bool     g_ready         = false;
 uint32_t g_frequency_mhz = 0;
 
 void sdFatDateTime(uint16_t* date, uint16_t* time, uint8_t* ms10)
@@ -33,10 +35,10 @@ void sdFatDateTime(uint16_t* date, uint16_t* time, uint8_t* ms10)
     m5::rtc_datetime_t now;
     if (!Clock.getDateTime(&now))
     {
-        now.date.year   = 2026;
-        now.date.month  = 1;
-        now.date.date   = 1;
-        now.time.hours  = 0;
+        now.date.year    = 2026;
+        now.date.month   = 1;
+        now.date.date    = 1;
+        now.time.hours   = 0;
         now.time.minutes = 0;
         now.time.seconds = 0;
     }
@@ -53,13 +55,23 @@ bool tryBeginAtFrequency(uint32_t frequencyMHz)
     const SdSpiConfig config(kCore2SdCs, SHARED_SPI, SD_SCK_MHZ(frequencyMHz), &SPI);
     if (!g_sd.cardBegin(config))
     {
-        DBG_LOGW(TAG, "microSD card init failed at %lu MHz: error=0x%02X data=0x%02X", static_cast<unsigned long>(frequencyMHz), g_sd.sdErrorCode(), g_sd.sdErrorData());
+        DBG_LOGW(TAG,
+                 "microSD card init failed at %lu MHz: error=0x%02X data=0x%02X",
+                 static_cast<unsigned long>(frequencyMHz),
+                 g_sd.sdErrorCode(),
+                 g_sd.sdErrorData());
         return false;
     }
 
     if (!g_sd.volumeBegin())
     {
-        DBG_LOGW(TAG, "microSD filesystem mount failed at %lu MHz: cardType=%u sectors=%lu error=0x%02X data=0x%02X", static_cast<unsigned long>(frequencyMHz), g_sd.card()->type(), static_cast<unsigned long>(g_sd.card()->sectorCount()), g_sd.sdErrorCode(), g_sd.sdErrorData());
+        DBG_LOGW(TAG,
+                 "microSD filesystem mount failed at %lu MHz: cardType=%u sectors=%lu error=0x%02X data=0x%02X",
+                 static_cast<unsigned long>(frequencyMHz),
+                 g_sd.card()->type(),
+                 static_cast<unsigned long>(g_sd.card()->sectorCount()),
+                 g_sd.sdErrorCode(),
+                 g_sd.sdErrorData());
         g_sd.end();
         return false;
     }
@@ -98,9 +110,14 @@ bool begin()
     {
         if (tryBeginAtFrequency(frequencyMHz))
         {
-            #ifdef RUN_BRINGUP_TEST
-            DBG_LOGI(TAG, "microSD space: total=%llu used=%llu free=%llu ; freq=%lu MHz", static_cast<unsigned long long>(totalBytes()), static_cast<unsigned long long>(usedBytes()), static_cast<unsigned long long>(freeBytes()), static_cast<unsigned long>(g_frequency_mhz));
-            #endif
+#ifdef RUN_BRINGUP_TEST
+            DBG_LOGI(TAG,
+                     "microSD space: total=%llu used=%llu free=%llu ; freq=%lu MHz",
+                     static_cast<unsigned long long>(totalBytes()),
+                     static_cast<unsigned long long>(usedBytes()),
+                     static_cast<unsigned long long>(freeBytes()),
+                     static_cast<unsigned long>(g_frequency_mhz));
+#endif
             g_ready = true;
             DiskStats::refreshDiskSpace();
             return true;

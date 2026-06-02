@@ -49,9 +49,9 @@ public:
     }
     FlyGuiItem* selectedItem() const;
     const char* selectedItemLabel() const;
-    bool isWifiContext() const;
-    bool isCloudContext() const;
-    bool isFileListContext() const;
+    bool        isWifiContext() const;
+    bool        isCloudContext() const;
+    bool        isFileListContext() const;
 
     void setExitCallback(FlyGuiItemCallback exitCallback);
     void selectIndex(size_t index);
@@ -83,18 +83,23 @@ private:
         SLOT_RIGHT,
     };
 
-    FlyGuiItem* itemAt(size_t index) const;
-    FlyGuiItem* itemAtWrapped(int32_t index) const;
+    FlyGuiItem*       itemAt(size_t index) const;
+    FlyGuiItem*       itemAtWrapped(int32_t index) const;
     const ScrollItem* generatedScrollItemFor(const FlyGuiItem* item) const;
-    bool        containsSlot(Slot slot, int16_t x, int16_t y) const;
-    bool        containsDeleteButton(int16_t x, int16_t y) const;
-    void        drawContent();
-    void        drawItemInSlot(FlyGuiItem& item, Slot slot, bool faded);
-    void        drawSelectedText();
-    void        drawExitButton();
-    void        drawDeleteButton();
-    bool        appendIconScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon, IconLookup::IconContext iconContext);
-    bool        appendSpriteScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, const sprite_desc_t& sprite);
+    bool              containsSlot(Slot slot, int16_t x, int16_t y) const;
+    bool              containsDeleteButton(int16_t x, int16_t y) const;
+    void              drawContent();
+    void              drawItemInSlot(FlyGuiItem& item, Slot slot, bool faded);
+    void              drawSelectedText();
+    void              drawExitButton();
+    void              drawDeleteButton();
+    bool              appendIconScrollItem(ScrollItemKind          kind,
+                                           int32_t                 callbackValue,
+                                           const char*             label,
+                                           uint8_t                 icon,
+                                           IconLookup::IconContext iconContext);
+    bool
+    appendSpriteScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, const sprite_desc_t& sprite);
     void        clearGeneratedItems();
     bool        updateBluetoothDeleteHold(const FlyGuiTouchEvent& event, const ScrollItem* item, bool centerHit);
     void        resetBluetoothDeleteHold();
@@ -112,31 +117,31 @@ private:
         GeneratedItemNode* next = nullptr;
     };
 
-    FlyGuiItem      exitItem_;
-    FlyGuiItem      deleteItem_;
-    FlyGuiItemCallback exitCallback_ = nullptr;
-    Context         context_         = CONTEXT_NONE;
-    BtHostList*     bluetoothHostList_ = nullptr;
-    size_t          itemCount_       = 0;
-    size_t          selectedIndex_   = 0;
-    bool            deleteMode_      = false;
-    int32_t         deleteHostIndex_ = -1;
-    bool            deleteHoldActive_ = false;
-    bool            deleteHoldShown_  = false;
-    int32_t         deleteHoldHostIndex_ = -1;
-    uint32_t        deleteHoldStartMs_ = 0;
-    GeneratedItemNode* generatedHead_ = nullptr;
-    GeneratedItemNode* generatedTail_ = nullptr;
-    ScrollViewClickCallback onBluetoothHost_    = nullptr;
-    ScrollViewClickCallback onBluetoothPair_    = nullptr;
+    FlyGuiItem              exitItem_;
+    FlyGuiItem              deleteItem_;
+    FlyGuiItemCallback      exitCallback_         = nullptr;
+    Context                 context_              = CONTEXT_NONE;
+    BtHostList*             bluetoothHostList_    = nullptr;
+    size_t                  itemCount_            = 0;
+    size_t                  selectedIndex_        = 0;
+    bool                    deleteMode_           = false;
+    int32_t                 deleteHostIndex_      = -1;
+    bool                    deleteHoldActive_     = false;
+    bool                    deleteHoldShown_      = false;
+    int32_t                 deleteHoldHostIndex_  = -1;
+    uint32_t                deleteHoldStartMs_    = 0;
+    GeneratedItemNode*      generatedHead_        = nullptr;
+    GeneratedItemNode*      generatedTail_        = nullptr;
+    ScrollViewClickCallback onBluetoothHost_      = nullptr;
+    ScrollViewClickCallback onBluetoothPair_      = nullptr;
     ScrollViewClickCallback onWifiScanAndConnect_ = nullptr;
-    ScrollViewClickCallback onWifiStation_      = nullptr;
-    ScrollViewClickCallback onWifiAp_           = nullptr;
-    ScrollViewClickCallback onCloudUpload_      = nullptr;
-    ScrollViewClickCallback onNtpSync_          = nullptr;
-    ScrollViewClickCallback onBtShowInfo_       = nullptr;
-    ScrollViewClickCallback onWifiShowInfo_     = nullptr;
-    ScrollViewClickCallback onFilePlayable_     = nullptr;
-    ScrollViewClickCallback onFileListShowInfo_ = nullptr;
-    static ScrollView* activeDeleteView_;
+    ScrollViewClickCallback onWifiStation_        = nullptr;
+    ScrollViewClickCallback onWifiAp_             = nullptr;
+    ScrollViewClickCallback onCloudUpload_        = nullptr;
+    ScrollViewClickCallback onNtpSync_            = nullptr;
+    ScrollViewClickCallback onBtShowInfo_         = nullptr;
+    ScrollViewClickCallback onWifiShowInfo_       = nullptr;
+    ScrollViewClickCallback onFilePlayable_       = nullptr;
+    ScrollViewClickCallback onFileListShowInfo_   = nullptr;
+    static ScrollView*      activeDeleteView_;
 };

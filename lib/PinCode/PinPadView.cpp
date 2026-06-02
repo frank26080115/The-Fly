@@ -5,20 +5,20 @@
 
 namespace
 {
-constexpr int16_t kLineTopGapPx    = 2;
-constexpr int16_t kLineHeightPx    = 2;
-constexpr int16_t kSegmentTickWidthPx = 3;
-constexpr int16_t kGridTopGapPx    = 2;
-constexpr int16_t kGridBottomGapPx = 2;
-constexpr int16_t kPinPadYOffsetPx = 1;
-constexpr uint8_t kBottomFont      = 2;
-constexpr uint8_t kDigitFont       = 4;
-constexpr float   kBottomTextSize  = 1.0f;
-constexpr float   kDigitTextSize   = 2.0f;
-constexpr uint32_t kShortCooldownMs = 2000;
-constexpr uint32_t kLongCooldownMs  = 5000;
+constexpr int16_t  kLineTopGapPx              = 2;
+constexpr int16_t  kLineHeightPx              = 2;
+constexpr int16_t  kSegmentTickWidthPx        = 3;
+constexpr int16_t  kGridTopGapPx              = 2;
+constexpr int16_t  kGridBottomGapPx           = 2;
+constexpr int16_t  kPinPadYOffsetPx           = 1;
+constexpr uint8_t  kBottomFont                = 2;
+constexpr uint8_t  kDigitFont                 = 4;
+constexpr float    kBottomTextSize            = 1.0f;
+constexpr float    kDigitTextSize             = 2.0f;
+constexpr uint32_t kShortCooldownMs           = 2000;
+constexpr uint32_t kLongCooldownMs            = 5000;
 constexpr uint32_t kShortCooldownAttemptCount = 3;
-constexpr size_t   kObscuredShortPinLength = 6;
+constexpr size_t   kObscuredShortPinLength    = 6;
 
 bool obscure_pin_length(size_t pinLength)
 {
@@ -69,15 +69,13 @@ int16_t proportional_width(int16_t fullWidth, size_t numerator, size_t denominat
         return fullWidth;
     }
 
-    return static_cast<int16_t>((static_cast<int32_t>(fullWidth) * static_cast<int32_t>(numerator) +
-                                 static_cast<int32_t>(denominator) - 1) /
-                                static_cast<int32_t>(denominator));
+    return static_cast<int16_t>(
+        (static_cast<int32_t>(fullWidth) * static_cast<int32_t>(numerator) + static_cast<int32_t>(denominator) - 1) /
+        static_cast<int32_t>(denominator));
 }
 } // namespace
 
-PinNumBtn::PinNumBtn() : FlyGuiView(FLYGUI_VIEW_PIN_PAD)
-{
-}
+PinNumBtn::PinNumBtn() : FlyGuiView(FLYGUI_VIEW_PIN_PAD) {}
 
 void PinNumBtn::configure(PinPadView* owner, uint8_t number)
 {
@@ -205,13 +203,13 @@ PinPadView::PinPadView(uint16_t viewId) : FlyGuiView(viewId)
 }
 
 void PinPadView::configure(PinPadSuccessCallback onSuccess,
-                           PinPadFailedCallback onFailedAttempt,
-                           PinPadExitCallback onExit)
+                           PinPadFailedCallback  onFailedAttempt,
+                           PinPadExitCallback    onExit)
 {
-    onSuccess_       = onSuccess;
-    onFailedAttempt_ = onFailedAttempt;
-    onExit_          = onExit;
-    cooldownActive_  = false;
+    onSuccess_          = onSuccess;
+    onFailedAttempt_    = onFailedAttempt;
+    onExit_             = onExit;
+    cooldownActive_     = false;
     cooldownLinePrimed_ = false;
     resetEntry();
 }
@@ -219,7 +217,7 @@ void PinPadView::configure(PinPadSuccessCallback onSuccess,
 void PinPadView::onLoad()
 {
     FlyGuiView::onLoad();
-    cooldownActive_ = false;
+    cooldownActive_     = false;
     cooldownLinePrimed_ = false;
     setButtonsDimmed(false);
     resetEntry();
@@ -254,7 +252,7 @@ void PinPadView::redraw(bool forced)
         return;
     }
 
-    const uint32_t now     = millis();
+    const uint32_t now        = millis();
     const bool     fullRedraw = forced || dirty();
 
     if (fullRedraw)
@@ -328,7 +326,7 @@ void PinPadView::registerDigit(uint8_t digit)
         return;
     }
 
-    const size_t pinLength = targetLength();
+    const size_t pinLength     = targetLength();
     const size_t displayLength = display_length_for_pin(pinLength);
     if (entryLength_ >= displayLength || entryLength_ >= kMaxPinLength)
     {
@@ -429,10 +427,10 @@ void PinPadView::drawBottomButtons()
 
 void PinPadView::drawProgressLine()
 {
-    const int16_t screenW = thefly_display.width();
-    const size_t  pinLength = targetLength();
+    const int16_t screenW       = thefly_display.width();
+    const size_t  pinLength     = targetLength();
     const size_t  displayLength = display_length_for_pin(pinLength);
-    const int16_t width = proportional_width(screenW, entryLength_, displayLength);
+    const int16_t width         = proportional_width(screenW, entryLength_, displayLength);
 
     thefly_display.fillRect(0, line_y(), screenW, kLineHeightPx, TFT_BLACK);
     if (width > 0)
@@ -445,7 +443,7 @@ void PinPadView::drawProgressLine()
 
 void PinPadView::drawCooldownLine(uint32_t now)
 {
-    const int16_t screenW = thefly_display.width();
+    const int16_t  screenW = thefly_display.width();
     const uint32_t elapsed = now - cooldownStartedMs_;
 
     if (elapsed >= cooldownDurationMs_ || cooldownDurationMs_ == 0)
@@ -454,13 +452,13 @@ void PinPadView::drawCooldownLine(uint32_t now)
         {
             thefly_display.fillRect(0, line_y(), cooldownLastWidth_, kLineHeightPx, TFT_BLACK);
         }
-        cooldownActive_ = false;
-        cooldownLinePrimed_ = false;
-        cooldownLastWidth_  = 0;
-        entryLength_        = 0;
-        entry_[0]           = '\0';
+        cooldownActive_       = false;
+        cooldownLinePrimed_   = false;
+        cooldownLastWidth_    = 0;
+        entryLength_          = 0;
+        entry_[0]             = '\0';
         hiddenFailurePending_ = false;
-        lineDirty_          = false;
+        lineDirty_            = false;
         setButtonsDimmed(false);
         return;
     }
@@ -469,16 +467,15 @@ void PinPadView::drawCooldownLine(uint32_t now)
     {
         thefly_display.fillRect(0, line_y(), screenW, kLineHeightPx, TFT_RED);
         drawSegmentTicks(screenW);
-        cooldownLastWidth_    = screenW;
-        cooldownLinePrimed_   = true;
-        lineDirty_            = false;
+        cooldownLastWidth_  = screenW;
+        cooldownLinePrimed_ = true;
+        lineDirty_          = false;
         return;
     }
 
-    const uint32_t remainingMs = cooldownDurationMs_ - elapsed;
-    int16_t remainingWidth = static_cast<int16_t>((static_cast<uint32_t>(screenW) * remainingMs +
-                                                   cooldownDurationMs_ - 1) /
-                                                  cooldownDurationMs_);
+    const uint32_t remainingMs    = cooldownDurationMs_ - elapsed;
+    int16_t        remainingWidth = static_cast<int16_t>(
+        (static_cast<uint32_t>(screenW) * remainingMs + cooldownDurationMs_ - 1) / cooldownDurationMs_);
 
     if (remainingWidth < 0)
     {
@@ -553,8 +550,8 @@ void PinPadView::layoutButtons()
         const int16_t y1 = static_cast<int16_t>(top + ((gridH * (row + 1)) / 3));
         for (uint8_t col = 0; col < 3; ++col)
         {
-            const int16_t x0 = static_cast<int16_t>((screenW * col) / 3);
-            const int16_t x1 = static_cast<int16_t>((screenW * (col + 1)) / 3);
+            const int16_t x0    = static_cast<int16_t>((screenW * col) / 3);
+            const int16_t x1    = static_cast<int16_t>((screenW * (col + 1)) / 3);
             const uint8_t index = static_cast<uint8_t>((row * 3) + col);
             buttons_[index].setBounds(x0, y0, static_cast<int16_t>(x1 - x0), static_cast<int16_t>(y1 - y0));
         }

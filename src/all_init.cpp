@@ -32,39 +32,39 @@
 
 constexpr const char* TAG = "all_init.cpp";
 
-RTC_DATA_ATTR uint32_t reset_flag  = 0;
-RTC_DATA_ATTR uint32_t reset_magic = 0;
-bool reset_was_magic = false;
-bool g_nvs_ready = false;
+RTC_DATA_ATTR uint32_t reset_flag      = 0;
+RTC_DATA_ATTR uint32_t reset_magic     = 0;
+bool                   reset_was_magic = false;
+bool                   g_nvs_ready     = false;
 
-extern FlyGui* gui;
+extern FlyGui*      gui;
 extern WifiManager* wifi_manager;
 
 namespace
 {
-SplashView          g_splash_view;
-MainScreenView      g_main_screen_view;
-RecordingView       g_recording_view;
-ErrorView           g_error_view;
-ModalDialog         g_modal_dialog;
-ConnWaitingView     g_conn_waiting_view(CONN_WAITING_BLUETOOTH_CONNECTING, "", conn_waiting_cancel);
-ScrollView          g_scroll_view(FLYGUI_VIEW_SCROLL, onclick_scroll_exit);
-WifiApModeView      g_wifi_ap_mode_view;
-WifiStaModeView     g_wifi_sta_mode_view;
-FirmwareUpdateView  g_firmware_update_view;
-PlaybackView        g_playback_view;
-PinPadView          g_pin_pad_view;
-QrCodeView          g_qr_code_view;
+SplashView         g_splash_view;
+MainScreenView     g_main_screen_view;
+RecordingView      g_recording_view;
+ErrorView          g_error_view;
+ModalDialog        g_modal_dialog;
+ConnWaitingView    g_conn_waiting_view(CONN_WAITING_BLUETOOTH_CONNECTING, "", conn_waiting_cancel);
+ScrollView         g_scroll_view(FLYGUI_VIEW_SCROLL, onclick_scroll_exit);
+WifiApModeView     g_wifi_ap_mode_view;
+WifiStaModeView    g_wifi_sta_mode_view;
+FirmwareUpdateView g_firmware_update_view;
+PlaybackView       g_playback_view;
+PinPadView         g_pin_pad_view;
+QrCodeView         g_qr_code_view;
 #ifdef BUILD_CLOUD_FEATURES
-CloudUploadView     g_cloud_upload_view(cloud_upload_cancel);
+CloudUploadView g_cloud_upload_view(cloud_upload_cancel);
 #endif
 } // namespace
 
-bool init_nvs();
-void check_reset_flag();
-void init_m5();
-void init_gui();
-void draw_splash_boot_info();
+bool        init_nvs();
+void        check_reset_flag();
+void        init_m5();
+void        init_gui();
+void        draw_splash_boot_info();
 static void format_mac_hyphen(const uint8_t mac[6], char* out, size_t out_size);
 static void format_default_bt_name(const uint8_t mac[6], char* out, size_t out_size);
 static void draw_splash_mac_info();
@@ -151,10 +151,10 @@ void init_gui()
     g_scroll_view.setOnClickWifiShowInfo(onclick_wifi_show_info);
     g_scroll_view.setOnClickFilePlayable(onclick_file_playable);
     g_scroll_view.setOnClickFileListShowInfo(onclick_filelist_show_info);
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     gui->addView(g_cloud_upload_view);
     g_scroll_view.setOnClickCloudUpload(onclick_cloud_upload);
-    #endif
+#endif
 }
 
 ScrollView* get_view_scroll()
@@ -284,15 +284,7 @@ static void format_mac_hyphen(const uint8_t mac[6], char* out, size_t out_size)
         return;
     }
 
-    snprintf(out,
-             out_size,
-             "%02X-%02X-%02X-%02X-%02X-%02X",
-             mac[0],
-             mac[1],
-             mac[2],
-             mac[3],
-             mac[4],
-             mac[5]);
+    snprintf(out, out_size, "%02X-%02X-%02X-%02X-%02X-%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 }
 
 static void format_default_bt_name(const uint8_t mac[6], char* out, size_t out_size)
@@ -313,20 +305,20 @@ static void format_default_bt_name(const uint8_t mac[6], char* out, size_t out_s
 
 static void draw_splash_mac_info()
 {
-    static constexpr int16_t kTextX        = 144;
-    static constexpr int16_t kBluetoothY   = 60;
-    static constexpr int16_t kBtNameY      = 77;
-    static constexpr int16_t kBdaddrY      = 94;
-    static constexpr int16_t kWifiLabelY   = 116;
-    static constexpr int16_t kWifiMacY     = 133;
-    static constexpr float   kTextSize     = 1.0f;
-    static constexpr uint8_t kTextFont     = 2;
+    static constexpr int16_t kTextX      = 144;
+    static constexpr int16_t kBluetoothY = 60;
+    static constexpr int16_t kBtNameY    = 77;
+    static constexpr int16_t kBdaddrY    = 94;
+    static constexpr int16_t kWifiLabelY = 116;
+    static constexpr int16_t kWifiMacY   = 133;
+    static constexpr float   kTextSize   = 1.0f;
+    static constexpr uint8_t kTextFont   = 2;
 
-    uint8_t bdaddr[6] = {};
-    uint8_t wifi_mac[6] = {};
-    char    bt_name[32] = "The Fly";
+    uint8_t bdaddr[6]       = {};
+    uint8_t wifi_mac[6]     = {};
+    char    bt_name[32]     = "The Fly";
     char    bdaddr_text[18] = "unknown";
-    char    wifi_text[18] = "unknown";
+    char    wifi_text[18]   = "unknown";
     if (esp_read_mac(bdaddr, ESP_MAC_BT) == ESP_OK)
     {
         format_default_bt_name(bdaddr, bt_name, sizeof(bt_name));
@@ -388,4 +380,3 @@ void check_reset_flag()
         DBG_LOGI(TAG, "Normal boot / power-on / unflagged reset\n");
     }
 }
-

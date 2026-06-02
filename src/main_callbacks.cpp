@@ -26,49 +26,49 @@
 
 constexpr const char* MAINTAG = "main_callbacks.cpp";
 
-extern FlyGui* gui;
-extern BtHostList* bt_host_list;
-extern WifiManager* wifi_manager;
-extern volatile bool g_pending_bluetooth_recording;
-extern volatile bool g_pending_bluetooth_pairing;
-extern volatile bool g_bluetooth_connect_waiting;
-extern volatile bool g_pending_bluetooth_connect_failed;
-extern volatile bool g_suppress_bluetooth_auto_recording;
-extern bool g_wifi_connect_waiting;
-extern NtpSync g_ntp_sync;
-extern bool g_ntp_sync_waiting;
-extern bool g_ntp_sync_completion_suppressed;
-extern volatile bool g_pending_ntp_sync_complete;
-extern NtpSync::Result g_pending_ntp_sync_result;
+extern FlyGui*                 gui;
+extern BtHostList*             bt_host_list;
+extern WifiManager*            wifi_manager;
+extern volatile bool           g_pending_bluetooth_recording;
+extern volatile bool           g_pending_bluetooth_pairing;
+extern volatile bool           g_bluetooth_connect_waiting;
+extern volatile bool           g_pending_bluetooth_connect_failed;
+extern volatile bool           g_suppress_bluetooth_auto_recording;
+extern bool                    g_wifi_connect_waiting;
+extern NtpSync                 g_ntp_sync;
+extern bool                    g_ntp_sync_waiting;
+extern bool                    g_ntp_sync_completion_suppressed;
+extern volatile bool           g_pending_ntp_sync_complete;
+extern NtpSync::Result         g_pending_ntp_sync_result;
 extern BtManager::PairedDevice g_pending_paired_device;
 
-extern ScrollView* get_view_scroll();
-extern PinPadView* get_view_pin_pad();
-extern uint16_t conn_waiting_return_view_id();
+extern ScrollView*      get_view_scroll();
+extern PinPadView*      get_view_pin_pad();
+extern uint16_t         conn_waiting_return_view_id();
 extern ConnWaitingView* get_view_conn_waiting();
-extern MainScreenView* get_view_main_screen();
-extern bool show_conn_waiting_bluetooth(const char* targetName);
-extern bool show_conn_waiting_bluetooth_pairing();
-extern bool show_conn_waiting_wifi_connecting(const char* targetName);
-extern bool show_conn_waiting_wifi_scanning(const char* targetName);
-extern bool show_conn_waiting_ntp_sync(const char* targetName);
-extern void update_conn_waiting_wifi_target(const char* targetName);
-extern bool show_recording_view_memo();
-extern bool show_wifi_ap_mode_view();
-extern bool show_wifi_sta_mode_view(bool showDismissButton);
-extern bool show_playback_view(const char* path);
-extern bool show_info_dialog(const char* text, uint16_t next_view);
-extern bool bluetooth_in_recording_state(BtManager::State state);
-extern bool connect_to_bluetooth_host(const bt_host_item_t* host, const char* source);
-extern void request_bluetooth_disconnect();
-extern void show_wifi_connection_failed(const char* text);
-extern void show_fatal_error_f(bool fatal, const char* format, ...);
+extern MainScreenView*  get_view_main_screen();
+extern bool             show_conn_waiting_bluetooth(const char* targetName);
+extern bool             show_conn_waiting_bluetooth_pairing();
+extern bool             show_conn_waiting_wifi_connecting(const char* targetName);
+extern bool             show_conn_waiting_wifi_scanning(const char* targetName);
+extern bool             show_conn_waiting_ntp_sync(const char* targetName);
+extern void             update_conn_waiting_wifi_target(const char* targetName);
+extern bool             show_recording_view_memo();
+extern bool             show_wifi_ap_mode_view();
+extern bool             show_wifi_sta_mode_view(bool showDismissButton);
+extern bool             show_playback_view(const char* path);
+extern bool             show_info_dialog(const char* text, uint16_t next_view);
+extern bool             bluetooth_in_recording_state(BtManager::State state);
+extern bool             connect_to_bluetooth_host(const bt_host_item_t* host, const char* source);
+extern void             request_bluetooth_disconnect();
+extern void             show_wifi_connection_failed(const char* text);
+extern void             show_fatal_error_f(bool fatal, const char* format, ...);
 
 #ifdef BUILD_CLOUD_FEATURES
-extern CloudUpload g_cloud_upload;
-extern volatile bool g_pending_cloud_upload_complete;
+extern CloudUpload         g_cloud_upload;
+extern volatile bool       g_pending_cloud_upload_complete;
 extern CloudUpload::Status g_pending_cloud_upload_status;
-extern bool show_cloud_upload_view(CloudUpload* uploader, const char* targetName);
+extern bool                show_cloud_upload_view(CloudUpload* uploader, const char* targetName);
 #endif
 
 // called from with BtManager
@@ -77,11 +77,13 @@ void on_bluetooth_state_changed(BtManager::State state)
     DBG_LOGI(MAINTAG, "Bluetooth state callback: %s", BtManager::stateName(state));
     if (bluetooth_in_recording_state(state))
     {
-        g_bluetooth_connect_waiting = false;
+        g_bluetooth_connect_waiting        = false;
         g_pending_bluetooth_connect_failed = false;
         if (g_suppress_bluetooth_auto_recording)
         {
-            DBG_LOGI(MAINTAG, "Bluetooth recording auto-start suppressed during pairing profile setup: %s", BtManager::stateName(state));
+            DBG_LOGI(MAINTAG,
+                     "Bluetooth recording auto-start suppressed during pairing profile setup: %s",
+                     BtManager::stateName(state));
             return;
         }
         DBG_LOGI(MAINTAG, "queueing Bluetooth recording start from state: %s", BtManager::stateName(state));
@@ -89,7 +91,7 @@ void on_bluetooth_state_changed(BtManager::State state)
     }
     else if (state == BtManager::State::Idle && g_bluetooth_connect_waiting)
     {
-        g_bluetooth_connect_waiting = false;
+        g_bluetooth_connect_waiting        = false;
         g_pending_bluetooth_connect_failed = true; // signals handle_pending_bluetooth_connect_failed()
     }
 }
@@ -98,8 +100,8 @@ void on_bluetooth_state_changed(BtManager::State state)
 void on_bluetooth_paired(const BtManager::PairedDevice& device)
 {
     g_suppress_bluetooth_auto_recording = true;
-    g_pending_paired_device = device;
-    g_pending_bluetooth_pairing = true; // signals handle_pending_bluetooth_pairing()
+    g_pending_paired_device             = device;
+    g_pending_bluetooth_pairing         = true; // signals handle_pending_bluetooth_pairing()
 }
 
 // called from MainScreenView
@@ -121,13 +123,13 @@ static void show_system_info_dialog(uint16_t next_view)
     FlyGui::quickScreenFade();
 
     char tail_text[32] = {0};
-    #if BUILD_WITH_SECURITY_LEVEL == 2
+#if BUILD_WITH_SECURITY_LEVEL == 2
     uint32_t code = 0;
     if (Aegis::tamperEvidenceCode(code))
     {
         snprintf(tail_text, sizeof(tail_text), "\nTamper: %04lX", static_cast<unsigned long>((code >> 16) & 0xFFFF));
     }
-    #endif
+#endif
 
     const bool disk_ok = DiskStats::refreshDiskSpace();
     const bool rec_ok  = DiskStats::refreshRecordingUploadStats();
@@ -149,7 +151,7 @@ static void show_system_info_dialog(uint16_t next_view)
     }
 
     char text[192];
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     if (disk_ok && rec_ok)
     {
         snprintf(text,
@@ -162,8 +164,7 @@ static void show_system_info_dialog(uint16_t next_view)
                  static_cast<unsigned long>(DiskStats::totalRecFilesNotUploaded()),
                  last_upload,
                  latest_file,
-                 tail_text
-                );
+                 tail_text);
     }
     else
     {
@@ -172,10 +173,9 @@ static void show_system_info_dialog(uint16_t next_view)
                  "System Info\nDisk: unavailable\nREC scan: unavailable\nLast upload: %s\nLatest: %s%s",
                  last_upload,
                  latest_file,
-                 tail_text
-                );
+                 tail_text);
     }
-    #else
+#else
     if (disk_ok && rec_ok)
     {
         snprintf(text,
@@ -186,8 +186,7 @@ static void show_system_info_dialog(uint16_t next_view)
                  static_cast<unsigned>(DiskStats::freeDiskSpacePercent()),
                  static_cast<unsigned long>(DiskStats::totalRecFilesStored()),
                  latest_file,
-                 tail_text
-                );
+                 tail_text);
     }
     else
     {
@@ -195,10 +194,9 @@ static void show_system_info_dialog(uint16_t next_view)
                  sizeof(text),
                  "System Info\nDisk: unavailable\nREC scan: unavailable\nLatest: %s%s",
                  latest_file,
-                 tail_text
-                );
+                 tail_text);
     }
-    #endif
+#endif
 
     show_info_dialog(text, next_view);
 }
@@ -243,7 +241,7 @@ void onclick_main_files(uint32_t pressDurationMs)
     if (scroll_view && gui)
     {
         scroll_view->populateFiles();
-        #if BUILD_WITH_SECURITY_LEVEL == 1
+#if BUILD_WITH_SECURITY_LEVEL == 1
         PinPadView* pin_pad = get_view_pin_pad();
         if (!pin_pad)
         {
@@ -259,7 +257,7 @@ void onclick_main_files(uint32_t pressDurationMs)
 
         show_fatal_error_f(true, "PIN pad view failed; file list access denied");
         return;
-        #endif
+#endif
         gui->showView(FLYGUI_VIEW_SCROLL);
     }
 }
@@ -333,7 +331,7 @@ void conn_waiting_cancel(uint32_t pressDurationMs)
 
     if (g_ntp_sync_waiting)
     {
-        g_ntp_sync_waiting = false;
+        g_ntp_sync_waiting               = false;
         g_ntp_sync_completion_suppressed = true;
         g_ntp_sync.cancel();
         const uint16_t return_view = conn_waiting_return_view_id();
@@ -345,15 +343,15 @@ void conn_waiting_cancel(uint32_t pressDurationMs)
     }
 
     ConnWaitingView* conn_waiting_view = get_view_conn_waiting();
-    const bool bluetooth_waiting = conn_waiting_view &&
-        (conn_waiting_view->mode() == CONN_WAITING_BLUETOOTH_CONNECTING ||
-         conn_waiting_view->mode() == CONN_WAITING_BLUETOOTH_PAIRING);
+    const bool       bluetooth_waiting =
+        conn_waiting_view && (conn_waiting_view->mode() == CONN_WAITING_BLUETOOTH_CONNECTING ||
+                              conn_waiting_view->mode() == CONN_WAITING_BLUETOOTH_PAIRING);
     if (bluetooth_waiting)
     {
-        g_bluetooth_connect_waiting = false;
-        g_pending_bluetooth_connect_failed = false;
+        g_bluetooth_connect_waiting         = false;
+        g_pending_bluetooth_connect_failed  = false;
         g_suppress_bluetooth_auto_recording = false;
-        const uint16_t return_view = conn_waiting_return_view_id();
+        const uint16_t return_view          = conn_waiting_return_view_id();
         if (!gui->showView(return_view))
         {
             gui->showView(FLYGUI_VIEW_MAIN);
@@ -398,7 +396,8 @@ void onclick_bluetooth_host(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     DBG_LOGI(MAINTAG, "scroll bluetooth host selected: index=%ld", static_cast<long>(value));
-    if (value < 0 || !bt_host_list || !connect_to_bluetooth_host(bt_host_list->get(static_cast<size_t>(value)), "Bluetooth host list"))
+    if (value < 0 || !bt_host_list ||
+        !connect_to_bluetooth_host(bt_host_list->get(static_cast<size_t>(value)), "Bluetooth host list"))
     {
         DBG_LOGW(MAINTAG, "could not start Bluetooth host connection for index=%ld", static_cast<long>(value));
     }
@@ -411,7 +410,7 @@ void onclick_bluetooth_pair(int32_t value, uint32_t pressDurationMs)
     DBG_LOGI(MAINTAG, "scroll bluetooth pair selected: task=%ld", static_cast<long>(value));
 
     g_suppress_bluetooth_auto_recording = true;
-    const BtManager::Result result = BtManager::startPairing();
+    const BtManager::Result result      = BtManager::startPairing();
     if (result != BtManager::Result::Ok)
     {
         g_suppress_bluetooth_auto_recording = false;
@@ -580,8 +579,8 @@ void onclick_cloud_upload(int32_t value, uint32_t pressDurationMs)
 
 void on_cloud_upload_complete(const CloudUpload::Status& status)
 {
-    g_pending_cloud_upload_status = status; // payload consumed by handle_pending_cloud_upload_complete()
-    g_pending_cloud_upload_complete = true; // signals handle_pending_cloud_upload_complete()
+    g_pending_cloud_upload_status   = status; // payload consumed by handle_pending_cloud_upload_complete()
+    g_pending_cloud_upload_complete = true;   // signals handle_pending_cloud_upload_complete()
 }
 
 void on_cloud_upload_dialog_dismissed()
@@ -612,10 +611,10 @@ void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs)
         return;
     }
 
-    const char* primary_server = wifi_manager->ntpServer(0);
-    g_pending_ntp_sync_complete = false;
+    const char* primary_server       = wifi_manager->ntpServer(0);
+    g_pending_ntp_sync_complete      = false;
     g_ntp_sync_completion_suppressed = false;
-    g_ntp_sync_waiting = true;
+    g_ntp_sync_waiting               = true;
     g_ntp_sync.setOnCompleteCallback(on_ntp_sync_complete);
     if (!g_ntp_sync.start(*wifi_manager, NtpSync::kDefaultTimeoutMs, true))
     {
@@ -626,10 +625,11 @@ void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs)
 
     if (!show_conn_waiting_ntp_sync(primary_server && primary_server[0] != '\0' ? primary_server : "NTP server"))
     {
-        g_ntp_sync_waiting = false;
+        g_ntp_sync_waiting               = false;
         g_ntp_sync_completion_suppressed = true; // read by handle_pending_ntp_sync_complete()
         g_ntp_sync.cancel();
-        show_fatal_error_f(false, "NTP sync view failed"); // TODO: change to use error_unexpected_f, indicates a showView problem or gui is null or something
+        show_fatal_error_f(false, "NTP sync view failed"); // TODO: change to use error_unexpected_f, indicates a
+                                                           // showView problem or gui is null or something
     }
 }
 
@@ -639,7 +639,7 @@ void onclick_bt_show_info(int32_t value, uint32_t pressDurationMs)
     (void)pressDurationMs;
     DBG_LOGI(MAINTAG, "scroll bluetooth info selected: task=%ld", static_cast<long>(value));
 
-    esp_bd_addr_t bdaddr = {};
+    esp_bd_addr_t bdaddr          = {};
     char          bdaddr_text[18] = "unknown";
     if (BtManager::localBdaddr(bdaddr))
     {
@@ -647,11 +647,7 @@ void onclick_bt_show_info(int32_t value, uint32_t pressDurationMs)
     }
 
     char text[160];
-    snprintf(text,
-             sizeof(text),
-             "Bluetooth\nName: %s\nBDADDR: %s",
-             BtManager::localDeviceName(),
-             bdaddr_text);
+    snprintf(text, sizeof(text), "Bluetooth\nName: %s\nBDADDR: %s", BtManager::localDeviceName(), bdaddr_text);
     show_info_dialog(text, FLYGUI_VIEW_SCROLL);
 }
 
@@ -674,24 +670,22 @@ void onclick_wifi_show_info(int32_t value, uint32_t pressDurationMs)
     // the code below may never execute under normal circumstances
     // but there is the chance that the Wi-Fi station disconnected at some point before the user clicks the button
 
-    const WifiManager::Status status = wifi_manager ? wifi_manager->status() : WifiManager::Status::Idle;
-    const bool         is_ap = status == WifiManager::Status::AccessPoint;
-    const bool         is_station_connected = status == WifiManager::Status::StationConnected;
-    const bool         is_connected = is_ap || is_station_connected;
-    const wifi_item_t* item = is_connected && wifi_manager ? (wifi_manager->connectedWifi() ? wifi_manager->connectedWifi() : wifi_manager->activeWifi()) : nullptr;
-    const char*        ssid = item && item->ssid ? item->ssid : "";
-    const IPAddress    ip   = is_ap ? wifi_manager->softApIp() : (is_station_connected ? WiFi.localIP() : IPAddress());
-    const String       ip_text = ip.toString();
+    const WifiManager::Status status               = wifi_manager ? wifi_manager->status() : WifiManager::Status::Idle;
+    const bool                is_ap                = status == WifiManager::Status::AccessPoint;
+    const bool                is_station_connected = status == WifiManager::Status::StationConnected;
+    const bool                is_connected         = is_ap || is_station_connected;
+    const wifi_item_t*        item =
+        is_connected && wifi_manager
+            ? (wifi_manager->connectedWifi() ? wifi_manager->connectedWifi() : wifi_manager->activeWifi())
+            : nullptr;
+    const char*     ssid    = item && item->ssid ? item->ssid : "";
+    const IPAddress ip      = is_ap ? wifi_manager->softApIp() : (is_station_connected ? WiFi.localIP() : IPAddress());
+    const String    ip_text = ip.toString();
 
     char text[192];
     if (is_ap && item)
     {
-        snprintf(text,
-                 sizeof(text),
-                 "Wi-Fi\nSSID: %s\nIP: %s",
-                 ssid,
-                 ip_text.c_str()
-                );
+        snprintf(text, sizeof(text), "Wi-Fi\nSSID: %s\nIP: %s", ssid, ip_text.c_str());
     }
     else
     {
@@ -711,7 +705,7 @@ void onclick_file_playable(int32_t value, uint32_t pressDurationMs)
     (void)pressDurationMs;
     DBG_LOGI(MAINTAG, "scroll playable file selected: index=%ld", static_cast<long>(value));
     ScrollView* scroll_view = get_view_scroll();
-    const char* file_name = scroll_view ? scroll_view->selectedItemLabel() : "";
+    const char* file_name   = scroll_view ? scroll_view->selectedItemLabel() : "";
     if (!file_name || file_name[0] == '\0')
     {
         error_unexpected_f(FLYGUI_VIEW_SCROLL, MAINTAG, "Playback file is unavailable");
@@ -763,7 +757,7 @@ void on_pairing_success_dialog_dismissed()
 
 void on_ntp_sync_complete(const NtpSync::Result& result)
 {
-    g_pending_ntp_sync_result = result;
+    g_pending_ntp_sync_result   = result;
     g_pending_ntp_sync_complete = true; // signals handle_pending_ntp_sync_complete()
 }
 

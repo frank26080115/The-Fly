@@ -67,10 +67,10 @@ private:
     FlyGuiText        fileNameText_;
     FlyGuiStopwatch   durationText_;
     FlyGuiText        callerInfoText_;
-    uint32_t          startedMs_            = 0;
-    uint32_t          lastDurationSecond_   = UINT32_MAX;
-    uint32_t          nextCallerInfoCycleMs_ = 0;
-    size_t            callerInfoIndex_      = 0;
+    uint32_t          startedMs_              = 0;
+    uint32_t          lastDurationSecond_     = UINT32_MAX;
+    uint32_t          nextCallerInfoCycleMs_  = 0;
+    size_t            callerInfoIndex_        = 0;
     bool              bluetoothIconConnected_ = true;
-    bool              frameDirty_           = true;
+    bool              frameDirty_             = true;
 };

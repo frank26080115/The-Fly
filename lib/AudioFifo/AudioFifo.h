@@ -18,11 +18,12 @@ public:
 
     enum class State
     {
-        Filling,    // watermark level is not met
-        Draining,   // watermark level has been met and we are allowed to drain
+        Filling,  // watermark level is not met
+        Draining, // watermark level has been met and we are allowed to drain
     };
 
-    explicit AudioFifo(size_t capacitySamples = kDefaultCapacitySamples, size_t watermarkSamples = 0) : capacitySamples_(capacitySamples ? capacitySamples : 1), watermarkSamples_(watermarkSamples)
+    explicit AudioFifo(size_t capacitySamples = kDefaultCapacitySamples, size_t watermarkSamples = 0)
+        : capacitySamples_(capacitySamples ? capacitySamples : 1), watermarkSamples_(watermarkSamples)
     {
         if (watermarkSamples_ > capacitySamples_)
         {
@@ -114,7 +115,8 @@ public:
         return queueSilenceLocked(sampleCount);
     }
 
-    size_t queueStereo(const int16_t* interleavedSamples, size_t frameCount, uint32_t sampleRateHz = kInternalSampleRateHz)
+    size_t
+    queueStereo(const int16_t* interleavedSamples, size_t frameCount, uint32_t sampleRateHz = kInternalSampleRateHz)
     {
         if (interleavedSamples == nullptr || frameCount == 0)
         {
@@ -170,7 +172,8 @@ public:
             return 0;
         }
 
-        const size_t toRead = sampleRateHz == 8000 ? readDownsampled8kLocked(samples, maxSamples) : readLocked(samples, minSize(maxSamples, usedSamples_));
+        const size_t toRead = sampleRateHz == 8000 ? readDownsampled8kLocked(samples, maxSamples)
+                                                   : readLocked(samples, minSize(maxSamples, usedSamples_));
         noteEmptyLocked();
         return toRead;
     }
@@ -202,7 +205,8 @@ public:
             return 0;
         }
 
-        const size_t toRead = sampleRateHz == 8000 ? readDownsampled8kLocked(samples, maxSamples) : readLocked(samples, minSize(maxSamples, usedSamples_));
+        const size_t toRead = sampleRateHz == 8000 ? readDownsampled8kLocked(samples, maxSamples)
+                                                   : readLocked(samples, minSize(maxSamples, usedSamples_));
         noteEmptyLocked();
         return toRead;
     }
@@ -318,7 +322,9 @@ public:
         }
         // return at least 1 unless actually empty, or at most 99 unless actually full
         uint8_t percentage = static_cast<uint8_t>((usedSamples_ * 100U) / capacitySamples_);
-        percentage = percentage <= 0 ? (usedSamples_ > 0 ? 1 : 0) : (percentage >= 100 ? (usedSamples_ >= (capacitySamples_ - 1) ? 100 : 99) : percentage);
+        percentage = percentage <= 0
+                         ? (usedSamples_ > 0 ? 1 : 0)
+                         : (percentage >= 100 ? (usedSamples_ >= (capacitySamples_ - 1) ? 100 : 99) : percentage);
         return percentage;
     }
 
@@ -507,8 +513,10 @@ private:
 
     static int16_t mixStereoFrameToMono(const int16_t* frame)
     {
-        //return static_cast<int16_t>((static_cast<int32_t>(frame[0]) + static_cast<int32_t>(frame[1])) >> 1); // this does actual mixing
-        return frame[0] != 0 ? frame[0] : frame[1]; // there is only ever one mic, so just take whichever sample is not zero
+        // return static_cast<int16_t>((static_cast<int32_t>(frame[0]) + static_cast<int32_t>(frame[1])) >> 1); // this
+        // does actual mixing
+        return frame[0] != 0 ? frame[0]
+                             : frame[1]; // there is only ever one mic, so just take whichever sample is not zero
     }
 
     void resetLocked()
@@ -636,7 +644,7 @@ private:
             hasPrev              = true;
         }
 
-        usedSamples_    += inputToWrite * 2;
+        usedSamples_ += inputToWrite * 2;
         upsamplePrev_    = static_cast<int16_t>(prev);
         upsampleHasPrev_ = hasPrev;
         updateWatermarkLocked();

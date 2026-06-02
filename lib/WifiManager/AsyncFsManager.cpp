@@ -11,15 +11,15 @@ namespace AsyncFsManager
 namespace
 {
 
-constexpr const char* TAG = "AsyncFsManager";
+constexpr const char* TAG               = "AsyncFsManager";
 constexpr size_t      kDownloadPathSize = 256;
 
 SemaphoreHandle_t g_mutex = nullptr;
 FsFile            g_walk_root;
 FsFile            g_walk_child;
 FsFile            g_download_file;
-uint64_t          g_download_file_size = 0;
-uint64_t          g_download_position = 0;
+uint64_t          g_download_file_size               = 0;
+uint64_t          g_download_position                = 0;
 char              g_download_path[kDownloadPathSize] = {};
 
 bool ensure_mutex()
@@ -76,8 +76,8 @@ void close_download_locked()
 {
     g_download_file.close();
     g_download_file_size = 0;
-    g_download_position = 0;
-    g_download_path[0] = '\0';
+    g_download_position  = 0;
+    g_download_path[0]   = '\0';
 }
 
 bool reset_walk_locked()
@@ -297,7 +297,7 @@ bool openFileForDownload(const char* path, uint64_t* file_size)
     }
 
     g_download_file_size = g_download_file.fileSize();
-    g_download_position = 0;
+    g_download_position  = 0;
     strlcpy(g_download_path, path, sizeof(g_download_path));
     if (file_size)
     {
@@ -363,7 +363,8 @@ int readFileChunk(uint64_t position, uint8_t* buffer, size_t max_len)
     if (bytes_read <= 0)
     {
         DBG_LOGW(TAG,
-                 "read download failed: read returned %d path=%s pos=%llu wanted=%u size=%llu sd_error=0x%02X sd_data=0x%02X",
+                 "read download failed: read returned %d path=%s pos=%llu wanted=%u size=%llu sd_error=0x%02X "
+                 "sd_data=0x%02X",
                  bytes_read,
                  g_download_path[0] ? g_download_path : "(empty)",
                  static_cast<unsigned long long>(position),
@@ -419,7 +420,7 @@ bool writeFileChunk(const char* path, const uint8_t* data, size_t len, bool firs
     close_walk_locked();
     close_download_locked();
 
-    FsFile file;
+    FsFile        file;
     const oflag_t flags = O_WRONLY | O_CREAT | (first_chunk ? O_TRUNC : O_APPEND);
     if (!file.open(path, flags))
     {

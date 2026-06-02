@@ -37,7 +37,7 @@ enum FlyGuiPollMode
 enum FlyGuiViewId : uint16_t
 {
     FLYGUI_VIEW_SPLASH = 0,
-    FLYGUI_VIEW_MAIN = 1,
+    FLYGUI_VIEW_MAIN   = 1,
     FLYGUI_VIEW_BLUETOOTH,
     FLYGUI_VIEW_RECORDING,
     FLYGUI_VIEW_WIFI,
@@ -186,7 +186,8 @@ private:
 class FlyGuiItem
 {
 public:
-    FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* mainText = nullptr, Button* button = nullptr);
+    FlyGuiItem(
+        int16_t x, int16_t y, int16_t width, int16_t height, const char* mainText = nullptr, Button* button = nullptr);
     virtual ~FlyGuiItem() = default;
 
     FlyGuiItem* next() const
@@ -243,8 +244,8 @@ public:
         dirty_ = dirty;
     }
 
-    bool contains(int16_t x, int16_t y) const;
-    bool isPressed() const;
+    bool     contains(int16_t x, int16_t y) const;
+    bool     isPressed() const;
     uint32_t lastPressDurationMs() const
     {
         return lastPressDurationMs_;
@@ -256,7 +257,7 @@ public:
     }
     void attachButton(Button* button)
     {
-        button_ = button;
+        button_    = button;
         touchable_ = button_ != nullptr || callback_ != nullptr;
     }
 
@@ -271,7 +272,7 @@ public:
 
     void setCallback(FlyGuiItemCallback callback)
     {
-        callback_ = callback;
+        callback_  = callback;
         touchable_ = button_ != nullptr || callback_ != nullptr;
     }
     virtual bool trigger(uint32_t pressDurationMs = 0);
@@ -295,32 +296,32 @@ protected:
 private:
     friend class FlyGuiView;
 
-    FlyGuiItem* next_     = nullptr;
-    FlyGuiView* owner_    = nullptr;
-    Button*     button_   = nullptr;
-    int16_t     x_        = 0;
-    int16_t     y_        = 0;
-    int16_t     width_    = 0;
-    int16_t     height_   = 0;
-    const char* mainText_ = nullptr;
-    const uint8_t* spriteData_ = nullptr;
-    uint32_t    spriteWidth_   = 0;
-    uint32_t    spriteHeight_  = 0;
-    size_t      spriteBytes_   = 0;
-    const uint8_t* overlayData_ = nullptr;
-    uint32_t    overlayWidth_   = 0;
-    uint32_t    overlayHeight_  = 0;
-    size_t      overlayBytes_   = 0;
-    int16_t     overlayOffsetX_ = 0;
-    int16_t     overlayOffsetY_ = 0;
-    FlyGuiItemCallback callback_ = nullptr;
-    bool        visible_  = true;
-    bool        dirty_    = true;
-    bool        pressed_  = false;
-    bool        faded_    = false;
-    bool        touchable_ = false;
-    uint32_t    pressStartedMs_ = 0;
-    uint32_t    lastPressDurationMs_ = 0;
+    FlyGuiItem*        next_                = nullptr;
+    FlyGuiView*        owner_               = nullptr;
+    Button*            button_              = nullptr;
+    int16_t            x_                   = 0;
+    int16_t            y_                   = 0;
+    int16_t            width_               = 0;
+    int16_t            height_              = 0;
+    const char*        mainText_            = nullptr;
+    const uint8_t*     spriteData_          = nullptr;
+    uint32_t           spriteWidth_         = 0;
+    uint32_t           spriteHeight_        = 0;
+    size_t             spriteBytes_         = 0;
+    const uint8_t*     overlayData_         = nullptr;
+    uint32_t           overlayWidth_        = 0;
+    uint32_t           overlayHeight_       = 0;
+    size_t             overlayBytes_        = 0;
+    int16_t            overlayOffsetX_      = 0;
+    int16_t            overlayOffsetY_      = 0;
+    FlyGuiItemCallback callback_            = nullptr;
+    bool               visible_             = true;
+    bool               dirty_               = true;
+    bool               pressed_             = false;
+    bool               faded_               = false;
+    bool               touchable_           = false;
+    uint32_t           pressStartedMs_      = 0;
+    uint32_t           lastPressDurationMs_ = 0;
 };
 
 // FlyGuiModal may seem redundant with ModalDialog

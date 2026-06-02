@@ -46,7 +46,11 @@ public:
 
     ScrollItem();
 
-    void configure(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon, IconLookup::IconContext iconContext);
+    void configure(ScrollItemKind          kind,
+                   int32_t                 callbackValue,
+                   const char*             label,
+                   uint8_t                 icon,
+                   IconLookup::IconContext iconContext);
     void configureSprite(ScrollItemKind kind, int32_t callbackValue, const char* label, const sprite_desc_t& sprite);
     void setScrollCallback(ScrollItemCallback callback, void* context);
 
@@ -73,10 +77,10 @@ public:
     bool trigger(uint32_t pressDurationMs = 0) override;
 
 private:
-    ScrollItemKind     kind_          = SCROLL_ITEM_BLUETOOTH_HOST;
-    int32_t            callbackValue_ = 0;
-    uint8_t            icon_          = 0;
-    ScrollItemCallback scrollCallback_ = nullptr;
-    void*              callbackContext_ = nullptr;
+    ScrollItemKind     kind_                  = SCROLL_ITEM_BLUETOOTH_HOST;
+    int32_t            callbackValue_         = 0;
+    uint8_t            icon_                  = 0;
+    ScrollItemCallback scrollCallback_        = nullptr;
+    void*              callbackContext_       = nullptr;
     char               label_[kLabelCapacity] = {};
 };

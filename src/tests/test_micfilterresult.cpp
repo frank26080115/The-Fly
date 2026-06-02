@@ -54,9 +54,10 @@ void synthesize_tone(int16_t* samples, size_t sampleCount, uint32_t startSample)
     for (size_t i = 0; i < sampleCount; ++i)
     {
         const uint32_t absolute_sample = startSample + i;
-        const float    phase           = kTwoPi * kToneHz * static_cast<float>(absolute_sample) / static_cast<float>(kSampleRateHz);
-        const int32_t  sample          = dc_offset_for_sample(absolute_sample) + static_cast<int32_t>(sinf(phase) * static_cast<float>(kToneAmplitude));
-        samples[i]                     = clamp_int16(sample);
+        const float phase = kTwoPi * kToneHz * static_cast<float>(absolute_sample) / static_cast<float>(kSampleRateHz);
+        const int32_t sample = dc_offset_for_sample(absolute_sample) +
+                               static_cast<int32_t>(sinf(phase) * static_cast<float>(kToneAmplitude));
+        samples[i]           = clamp_int16(sample);
     }
 }
 
@@ -161,14 +162,15 @@ void test_micfilterresult()
         idle_forever();
     }
 
-    Serial.printf("%s: recording complete: %s bytes=%llu raw_peak=%u scaled_peak=%u write_avg_ms=%.3f write_max_ms=%.3f\n",
-                  TAG,
-                  AudioFileRecorder::currentSdPath(),
-                  static_cast<unsigned long long>(AudioFileRecorder::bytesWritten()),
-                  static_cast<unsigned>(MicGainManager::rawPeakLevel()),
-                  static_cast<unsigned>(MicGainManager::scaledPeakLevel()),
-                  AudioFileRecorder::writeDurationAverageMs(),
-                  AudioFileRecorder::writeDurationMaxMs());
+    Serial.printf(
+        "%s: recording complete: %s bytes=%llu raw_peak=%u scaled_peak=%u write_avg_ms=%.3f write_max_ms=%.3f\n",
+        TAG,
+        AudioFileRecorder::currentSdPath(),
+        static_cast<unsigned long long>(AudioFileRecorder::bytesWritten()),
+        static_cast<unsigned>(MicGainManager::rawPeakLevel()),
+        static_cast<unsigned>(MicGainManager::scaledPeakLevel()),
+        AudioFileRecorder::writeDurationAverageMs(),
+        AudioFileRecorder::writeDurationMaxMs());
 
     idle_forever();
 }

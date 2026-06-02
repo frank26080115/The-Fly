@@ -11,14 +11,14 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-extern FlyGui* gui;
+extern FlyGui*      gui;
 extern WifiManager* wifi_manager;
-extern ErrorView* get_view_error();
+extern ErrorView*   get_view_error();
 extern ModalDialog* get_view_modal_dialog();
 
 namespace
 {
-constexpr size_t kErrorTextMax = 255;
+constexpr size_t  kErrorTextMax  = 255;
 constexpr uint8_t kErrorFlagMask = ERRTYPE_FLAG_BLOCKING | ERRTYPE_FLAG_INVISIBLE;
 constexpr uint8_t kErrorTypeMask = static_cast<uint8_t>(~kErrorFlagMask);
 
@@ -114,7 +114,7 @@ void print_serial_error(thefly_error_t type, const char* tag, const char* messag
 bool show_error_view(thefly_error_t type, bool blocking, const char* message)
 {
     const thefly_error_t base_type = error_base_type(type);
-    ErrorView* view = get_view_error();
+    ErrorView*           view      = get_view_error();
     if (!gui || !view)
     {
         if (base_type == ERRTYPE_FATAL)
@@ -128,7 +128,7 @@ bool show_error_view(thefly_error_t type, bool blocking, const char* message)
     }
 
     const uint16_t previous_view_id = automatic_next_view();
-    const bool     fatal = base_type == ERRTYPE_FATAL;
+    const bool     fatal            = base_type == ERRTYPE_FATAL;
 
     view->setMessage(message, fatal);
     if (!gui->showView(FLYGUI_VIEW_ERROR))
@@ -198,8 +198,8 @@ bool error_v(thefly_error_t type, int16_t next_view, const char* tag, const char
         return true;
     }
 
-    const thefly_error_t base_type = error_base_type(type);
-    const bool effective_blocking = error_has_flag(type, ERRTYPE_FLAG_BLOCKING) || base_type == ERRTYPE_FATAL;
+    const thefly_error_t base_type          = error_base_type(type);
+    const bool           effective_blocking = error_has_flag(type, ERRTYPE_FLAG_BLOCKING) || base_type == ERRTYPE_FATAL;
     if (effective_blocking)
     {
         return show_error_view(type, true, message);
@@ -223,7 +223,8 @@ void show_fatal_error_f(bool fatal, const char* format_str, ...)
 {
     va_list args;
     va_start(args, format_str);
-    const thefly_error_t type = static_cast<thefly_error_t>((fatal ? ERRTYPE_FATAL : ERRTYPE_UNEXPECTED) | ERRTYPE_FLAG_BLOCKING);
+    const thefly_error_t type =
+        static_cast<thefly_error_t>((fatal ? ERRTYPE_FATAL : ERRTYPE_UNEXPECTED) | ERRTYPE_FLAG_BLOCKING);
     error_v(type, THEFLY_ERROR_AUTO_VIEW, nullptr, format_str, args);
     va_end(args);
 }

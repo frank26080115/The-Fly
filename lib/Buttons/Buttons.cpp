@@ -95,7 +95,8 @@ void Button::dispatchAppHandler()
     }
 }
 
-GpioButton::GpioButton(int pin, int idx, uint8_t down_state, void (*isr_fptr)(void), void (*app_fptr)(void)) : Button(idx, app_fptr), isr_fptr(isr_fptr), pin(static_cast<int8_t>(pin)), down_state(down_state)
+GpioButton::GpioButton(int pin, int idx, uint8_t down_state, void (*isr_fptr)(void), void (*app_fptr)(void))
+    : Button(idx, app_fptr), isr_fptr(isr_fptr), pin(static_cast<int8_t>(pin)), down_state(down_state)
 {
     pinMode(this->pin, down_state == LOW ? INPUT_PULLUP : INPUT_PULLDOWN);
     if (isr_fptr != nullptr)

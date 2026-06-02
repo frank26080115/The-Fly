@@ -12,11 +12,8 @@ namespace
 
 bool wav_header_valid(const uint8_t* header)
 {
-    return header &&
-           memcmp(header + 0, "RIFF", 4) == 0 &&
-           memcmp(header + 8, "WAVE", 4) == 0 &&
-           memcmp(header + 12, "fmt ", 4) == 0 &&
-           memcmp(header + 36, "data", 4) == 0;
+    return header && memcmp(header + 0, "RIFF", 4) == 0 && memcmp(header + 8, "WAVE", 4) == 0 &&
+           memcmp(header + 12, "fmt ", 4) == 0 && memcmp(header + 36, "data", 4) == 0;
 }
 
 } // namespace
@@ -29,9 +26,9 @@ const char* WavEncryptedPlayback::tag() const
 bool WavEncryptedPlayback::beginSource()
 {
 #ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
-    file_size_ = file().fileSize();
-    data_bytes_ = encryptedDataBytesForFileSize(file_size_);
-    data_bytes_ = clampDataPosition(data_bytes_);
+    file_size_      = file().fileSize();
+    data_bytes_     = encryptedDataBytesForFileSize(file_size_);
+    data_bytes_     = clampDataPosition(data_bytes_);
     position_bytes_ = 0;
     resetLoadedChunk();
 
@@ -75,19 +72,17 @@ bool WavEncryptedPlayback::readFrames(int16_t* frames, size_t maxFrames, size_t&
             return copied_frames > 0;
         }
 
-        const size_t chunk_offset = static_cast<size_t>(byte_position % WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH);
+        const size_t chunk_offset          = static_cast<size_t>(byte_position % WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH);
         const size_t chunk_bytes_remaining = static_cast<size_t>(
             std::min<uint64_t>(WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH - chunk_offset, data_bytes_ - byte_position));
         const size_t chunk_frames_remaining = chunk_bytes_remaining / kBytesPerFrame;
-        const size_t frames_to_copy = std::min(maxFrames - copied_frames, chunk_frames_remaining);
+        const size_t frames_to_copy         = std::min(maxFrames - copied_frames, chunk_frames_remaining);
         if (frames_to_copy == 0)
         {
             break;
         }
 
-        memcpy(frames + copied_frames * kChannels,
-               plaintext + chunk_offset,
-               frames_to_copy * kBytesPerFrame);
+        memcpy(frames + copied_frames * kChannels, plaintext + chunk_offset, frames_to_copy * kBytesPerFrame);
         copied_frames += frames_to_copy;
     }
 
@@ -117,7 +112,7 @@ uint64_t WavEncryptedPlayback::encryptedDataBytesForFileSize(uint64_t fileSize) 
     }
 
     const uint64_t encrypted_audio_bytes = fileSize - WAV_ENCRYPTED_RIFF_HEADER_LENGTH;
-    const uint64_t encrypted_chunks = encrypted_audio_bytes / WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH;
+    const uint64_t encrypted_chunks      = encrypted_audio_bytes / WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH;
     return encrypted_chunks * WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH;
 }
 
@@ -137,7 +132,8 @@ bool WavEncryptedPlayback::readEncryptedBlock(uint64_t filePosition, size_t plai
         return false;
     }
 
-    const size_t encrypted_size = RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH + plaintextSize + RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH;
+    const size_t encrypted_size =
+        RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH + plaintextSize + RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH;
     if (AudioFileRecorder::wavEncryptedAudioBufferSize() < encrypted_size)
     {
         setError("enc buffer small");

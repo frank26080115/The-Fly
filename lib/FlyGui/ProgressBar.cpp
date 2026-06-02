@@ -13,8 +13,11 @@ uint16_t hsv_to_rgb565(uint16_t hue, uint8_t saturation, uint8_t value)
     const uint8_t remainder = static_cast<uint8_t>(((hue % 60U) * 255U) / 60U);
 
     const uint8_t p = static_cast<uint8_t>((static_cast<uint16_t>(value) * (255U - saturation)) / 255U);
-    const uint8_t q = static_cast<uint8_t>((static_cast<uint16_t>(value) * (255U - ((static_cast<uint16_t>(saturation) * remainder) / 255U))) / 255U);
-    const uint8_t t = static_cast<uint8_t>((static_cast<uint16_t>(value) * (255U - ((static_cast<uint16_t>(saturation) * (255U - remainder)) / 255U))) / 255U);
+    const uint8_t q = static_cast<uint8_t>(
+        (static_cast<uint16_t>(value) * (255U - ((static_cast<uint16_t>(saturation) * remainder) / 255U))) / 255U);
+    const uint8_t t = static_cast<uint8_t>(
+        (static_cast<uint16_t>(value) * (255U - ((static_cast<uint16_t>(saturation) * (255U - remainder)) / 255U))) /
+        255U);
 
     uint8_t r = 0;
     uint8_t g = 0;
@@ -58,10 +61,7 @@ uint16_t hsv_to_rgb565(uint16_t hue, uint8_t saturation, uint8_t value)
 }
 } // namespace
 
-ProgressBar::ProgressBar(int16_t x, int16_t y, int16_t width, int16_t height)
-    : FlyGuiItem(x, y, width, height)
-{
-}
+ProgressBar::ProgressBar(int16_t x, int16_t y, int16_t width, int16_t height) : FlyGuiItem(x, y, width, height) {}
 
 void ProgressBar::firstDraw()
 {
@@ -185,7 +185,9 @@ uint16_t ProgressBar::fillColor() const
         return hsv_to_rgb565(kHueGreen, 255, 255);
     }
 
-    const uint16_t hue = progress_ >= 50.0f ? kHueGreen
-                                            : static_cast<uint16_t>(kHueRed + ((static_cast<float>(kHueGreen - kHueRed) * progress_) / 50.0f));
+    const uint16_t hue =
+        progress_ >= 50.0f
+            ? kHueGreen
+            : static_cast<uint16_t>(kHueRed + ((static_cast<float>(kHueGreen - kHueRed) * progress_) / 50.0f));
     return hsv_to_rgb565(hue, 255, 255);
 }

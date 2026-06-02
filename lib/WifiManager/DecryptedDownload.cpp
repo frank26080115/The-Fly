@@ -29,20 +29,20 @@ namespace
 {
 
 constexpr size_t      kFileNameBufferSize = 256;
-constexpr const char* TAG = "DecryptedDownload";
-constexpr const char* kErrorAttribute = "decrypted_download_error";
-constexpr const char* kStatusAttribute = "decrypted_download_status";
-constexpr const char* kStartedAttribute = "decrypted_download_started";
+constexpr const char* TAG                 = "DecryptedDownload";
+constexpr const char* kErrorAttribute     = "decrypted_download_error";
+constexpr const char* kStatusAttribute    = "decrypted_download_status";
+constexpr const char* kStartedAttribute   = "decrypted_download_started";
 
 #if BUILD_WITH_SECURITY_LEVEL >= 1 && defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
-constexpr size_t      kGcmNonceSize = 12;
-constexpr size_t      kGcmTagSize = 16;
-constexpr uint8_t     kEncryptedRequestMagic[] = { 'T', 'F', 'G', 'C' };
-constexpr uint8_t     kEncryptedRequestVersion = 1;
-constexpr size_t      kEncryptedRequestHeaderSize = sizeof(kEncryptedRequestMagic) + 1 + kGcmNonceSize;
-constexpr size_t      kEncryptedRequestMinSize = kEncryptedRequestHeaderSize + kGcmTagSize;
-constexpr size_t      kMaxEncryptedRequestSize = 2048;
-constexpr uint64_t    kNoDecryptedChunk = UINT64_MAX;
+constexpr size_t   kGcmNonceSize               = 12;
+constexpr size_t   kGcmTagSize                 = 16;
+constexpr uint8_t  kEncryptedRequestMagic[]    = {'T', 'F', 'G', 'C'};
+constexpr uint8_t  kEncryptedRequestVersion    = 1;
+constexpr size_t   kEncryptedRequestHeaderSize = sizeof(kEncryptedRequestMagic) + 1 + kGcmNonceSize;
+constexpr size_t   kEncryptedRequestMinSize    = kEncryptedRequestHeaderSize + kGcmTagSize;
+constexpr size_t   kMaxEncryptedRequestSize    = 2048;
+constexpr uint64_t kNoDecryptedChunk           = UINT64_MAX;
 #endif
 
 void note_web_download()
@@ -79,8 +79,8 @@ void send_error(AsyncWebServerRequest* request)
         return;
     }
 
-    const String& error = request->getAttribute(kErrorAttribute);
-    const long status_code = request->getAttribute(kStatusAttribute, 500L);
+    const String& error       = request->getAttribute(kErrorAttribute);
+    const long    status_code = request->getAttribute(kStatusAttribute, 500L);
     note_web_error();
     request->send(static_cast<int>(status_code), "text/plain", error.isEmpty() ? "Decrypted download failed" : error);
 }
@@ -118,8 +118,7 @@ bool path_has_parent_or_current_segment(const char* path)
         }
 
         const size_t length = static_cast<size_t>(cursor - segment);
-        if ((length == 1 && segment[0] == '.') ||
-            (length == 2 && segment[0] == '.' && segment[1] == '.'))
+        if ((length == 1 && segment[0] == '.') || (length == 2 && segment[0] == '.' && segment[1] == '.'))
         {
             return true;
         }
@@ -206,11 +205,8 @@ const char* decrypted_content_header(DecryptedRecordingKind kind)
 
 bool wav_header_valid(const uint8_t* header)
 {
-    return header &&
-           memcmp(header + 0, "RIFF", 4) == 0 &&
-           memcmp(header + 8, "WAVE", 4) == 0 &&
-           memcmp(header + 12, "fmt ", 4) == 0 &&
-           memcmp(header + 36, "data", 4) == 0;
+    return header && memcmp(header + 0, "RIFF", 4) == 0 && memcmp(header + 8, "WAVE", 4) == 0 &&
+           memcmp(header + 12, "fmt ", 4) == 0 && memcmp(header + 36, "data", 4) == 0;
 }
 
 void write_le32(uint8_t* dst, uint32_t value)
@@ -264,14 +260,14 @@ void decrypted_recording_filename(const char* path, DecryptedRecordingKind kind,
     }
 
     const char* name = path ? strrchr(path, '/') : nullptr;
-    name = name ? name + 1 : (path ? path : "recording.rec");
+    name             = name ? name + 1 : (path ? path : "recording.rec");
     strlcpy(out, name[0] ? name : "recording.rec", out_size);
 
-    const char* encrypted_ext = kind == DecryptedRecordingKind::Mp3 ? ".fly" : ".rec";
-    const char* decrypted_ext = kind == DecryptedRecordingKind::Mp3 ? ".mp3" : ".wav";
+    const char*  encrypted_ext     = kind == DecryptedRecordingKind::Mp3 ? ".fly" : ".rec";
+    const char*  decrypted_ext     = kind == DecryptedRecordingKind::Mp3 ? ".mp3" : ".wav";
     const size_t encrypted_ext_len = strlen(encrypted_ext);
     const size_t decrypted_ext_len = strlen(decrypted_ext);
-    const size_t len = strlen(out);
+    const size_t len               = strlen(out);
     if (len >= encrypted_ext_len && equals_case_insensitive(out + len - encrypted_ext_len, encrypted_ext))
     {
         memcpy(out + len - encrypted_ext_len, decrypted_ext, decrypted_ext_len + 1);
@@ -284,10 +280,10 @@ void decrypted_recording_filename(const char* path, DecryptedRecordingKind kind,
 
 struct EncryptedRequestUploadState
 {
-    AsyncWebServerRequest* request = nullptr;
-    uint8_t* encrypted = nullptr;
-    size_t expected_size = 0;
-    size_t received_size = 0;
+    AsyncWebServerRequest* request       = nullptr;
+    uint8_t*               encrypted     = nullptr;
+    size_t                 expected_size = 0;
+    size_t                 received_size = 0;
 };
 
 EncryptedRequestUploadState g_upload;
@@ -306,9 +302,7 @@ void reset_upload(AsyncWebServerRequest* request = nullptr)
 bool begin_upload(AsyncWebServerRequest* request, size_t total)
 {
     request->setAttribute(kStartedAttribute, true);
-    request->onDisconnect([]() {
-        reset_upload();
-    });
+    request->onDisconnect([]() { reset_upload(); });
 
     const size_t expected_size = total != 0 ? total : request->contentLength();
     if (expected_size == 0)
@@ -335,7 +329,7 @@ bool begin_upload(AsyncWebServerRequest* request, size_t total)
         return false;
     }
 
-    g_upload.request = request;
+    g_upload.request       = request;
     g_upload.expected_size = expected_size;
     g_upload.received_size = 0;
     return true;
@@ -371,79 +365,78 @@ bool upload_complete(AsyncWebServerRequest* request)
     return true;
 }
 
-bool decrypt_request_body(const uint8_t session_key[WebServer::kSessionKeySize],
+bool decrypt_request_body(const uint8_t  session_key[WebServer::kSessionKeySize],
                           const uint8_t* encrypted,
-                          size_t encrypted_size,
-                          uint8_t*& plaintext,
-                          size_t& plaintext_size,
-                          int& status_code,
-                          String& error)
+                          size_t         encrypted_size,
+                          uint8_t*&      plaintext,
+                          size_t&        plaintext_size,
+                          int&           status_code,
+                          String&        error)
 {
-    plaintext = nullptr;
+    plaintext      = nullptr;
     plaintext_size = 0;
 
     if (!encrypted || encrypted_size < kEncryptedRequestMinSize)
     {
         status_code = 400;
-        error = "Encrypted download request body is too small";
+        error       = "Encrypted download request body is too small";
         return false;
     }
     if (memcmp(encrypted, kEncryptedRequestMagic, sizeof(kEncryptedRequestMagic)) != 0)
     {
         status_code = 400;
-        error = "Encrypted download request magic is invalid";
+        error       = "Encrypted download request magic is invalid";
         return false;
     }
     if (encrypted[sizeof(kEncryptedRequestMagic)] != kEncryptedRequestVersion)
     {
         status_code = 400;
-        error = "Encrypted download request version is unsupported";
+        error       = "Encrypted download request version is unsupported";
         return false;
     }
     if (!session_key)
     {
         status_code = 500;
-        error = "Session key unavailable";
+        error       = "Session key unavailable";
         return false;
     }
 
-    const uint8_t* nonce = encrypted + sizeof(kEncryptedRequestMagic) + 1;
+    const uint8_t* nonce      = encrypted + sizeof(kEncryptedRequestMagic) + 1;
     const uint8_t* ciphertext = encrypted + kEncryptedRequestHeaderSize;
-    const uint8_t* tag = encrypted + encrypted_size - kGcmTagSize;
-    plaintext_size = encrypted_size - kEncryptedRequestHeaderSize - kGcmTagSize;
+    const uint8_t* tag        = encrypted + encrypted_size - kGcmTagSize;
+    plaintext_size            = encrypted_size - kEncryptedRequestHeaderSize - kGcmTagSize;
 
     plaintext = allocate_buffer(plaintext_size + 1);
     if (!plaintext)
     {
         status_code = 500;
-        error = "Could not allocate download request plaintext buffer";
+        error       = "Could not allocate download request plaintext buffer";
         return false;
     }
 
     mbedtls_gcm_context gcm;
     mbedtls_gcm_init(&gcm);
     const int key_result = mbedtls_gcm_setkey(&gcm, MBEDTLS_CIPHER_ID_AES, session_key, WebServer::kSessionKeySize * 8);
-    const int decrypt_result = key_result == 0
-                                   ? mbedtls_gcm_auth_decrypt(&gcm,
-                                                              plaintext_size,
-                                                              nonce,
-                                                              kGcmNonceSize,
-                                                              nullptr,
-                                                              0,
-                                                              tag,
-                                                              kGcmTagSize,
-                                                              ciphertext,
-                                                              plaintext)
-                                   : key_result;
+    const int decrypt_result = key_result == 0 ? mbedtls_gcm_auth_decrypt(&gcm,
+                                                                          plaintext_size,
+                                                                          nonce,
+                                                                          kGcmNonceSize,
+                                                                          nullptr,
+                                                                          0,
+                                                                          tag,
+                                                                          kGcmTagSize,
+                                                                          ciphertext,
+                                                                          plaintext)
+                                               : key_result;
     mbedtls_gcm_free(&gcm);
 
     if (decrypt_result != 0)
     {
         free(plaintext);
-        plaintext = nullptr;
+        plaintext      = nullptr;
         plaintext_size = 0;
-        status_code = 401;
-        error = "Encrypted download request decryption failed";
+        status_code    = 401;
+        error          = "Encrypted download request decryption failed";
         return false;
     }
 
@@ -452,10 +445,10 @@ bool decrypt_request_body(const uint8_t session_key[WebServer::kSessionKeySize],
 }
 
 bool decrypt_uploaded_request_body(const uint8_t session_key[WebServer::kSessionKeySize],
-                                   uint8_t*& plaintext,
-                                   size_t& plaintext_size,
-                                   int& status_code,
-                                   String& error)
+                                   uint8_t*&     plaintext,
+                                   size_t&       plaintext_size,
+                                   int&          status_code,
+                                   String&       error)
 {
     return decrypt_request_body(session_key,
                                 g_upload.encrypted,
@@ -466,35 +459,35 @@ bool decrypt_uploaded_request_body(const uint8_t session_key[WebServer::kSession
                                 error);
 }
 
-bool decrypt_filename_blob(const uint8_t session_key[WebServer::kSessionKeySize],
+bool decrypt_filename_blob(const uint8_t  session_key[WebServer::kSessionKeySize],
                            const uint8_t* encrypted,
-                           size_t encrypted_size,
-                           uint8_t*& plaintext,
-                           size_t& plaintext_size,
-                           int& status_code,
-                           String& error)
+                           size_t         encrypted_size,
+                           uint8_t*&      plaintext,
+                           size_t&        plaintext_size,
+                           int&           status_code,
+                           String&        error)
 {
-    plaintext = nullptr;
+    plaintext      = nullptr;
     plaintext_size = 0;
 
     if (!session_key)
     {
         status_code = 500;
-        error = "Session key unavailable";
+        error       = "Session key unavailable";
         return false;
     }
     if (!encrypted || encrypted_size <= kGcmNonceSize + kGcmTagSize)
     {
         status_code = 400;
-        error = "Encrypted filename is too small";
+        error       = "Encrypted filename is too small";
         return false;
     }
 
     plaintext_size = encrypted_size - kGcmNonceSize - kGcmTagSize;
     if (plaintext_size >= kFileNameBufferSize)
     {
-        status_code = 414;
-        error = "Encrypted filename is too long";
+        status_code    = 414;
+        error          = "Encrypted filename is too long";
         plaintext_size = 0;
         return false;
     }
@@ -502,40 +495,39 @@ bool decrypt_filename_blob(const uint8_t session_key[WebServer::kSessionKeySize]
     plaintext = allocate_buffer(plaintext_size + 1);
     if (!plaintext)
     {
-        status_code = 500;
-        error = "Could not allocate filename plaintext buffer";
+        status_code    = 500;
+        error          = "Could not allocate filename plaintext buffer";
         plaintext_size = 0;
         return false;
     }
 
-    const uint8_t* nonce = encrypted;
+    const uint8_t* nonce      = encrypted;
     const uint8_t* ciphertext = encrypted + kGcmNonceSize;
-    const uint8_t* tag = encrypted + encrypted_size - kGcmTagSize;
+    const uint8_t* tag        = encrypted + encrypted_size - kGcmTagSize;
 
     mbedtls_gcm_context gcm;
     mbedtls_gcm_init(&gcm);
     const int key_result = mbedtls_gcm_setkey(&gcm, MBEDTLS_CIPHER_ID_AES, session_key, WebServer::kSessionKeySize * 8);
-    const int decrypt_result = key_result == 0
-                                   ? mbedtls_gcm_auth_decrypt(&gcm,
-                                                              plaintext_size,
-                                                              nonce,
-                                                              kGcmNonceSize,
-                                                              nullptr,
-                                                              0,
-                                                              tag,
-                                                              kGcmTagSize,
-                                                              ciphertext,
-                                                              plaintext)
-                                   : key_result;
+    const int decrypt_result = key_result == 0 ? mbedtls_gcm_auth_decrypt(&gcm,
+                                                                          plaintext_size,
+                                                                          nonce,
+                                                                          kGcmNonceSize,
+                                                                          nullptr,
+                                                                          0,
+                                                                          tag,
+                                                                          kGcmTagSize,
+                                                                          ciphertext,
+                                                                          plaintext)
+                                               : key_result;
     mbedtls_gcm_free(&gcm);
 
     if (decrypt_result != 0)
     {
         free(plaintext);
-        plaintext = nullptr;
+        plaintext      = nullptr;
         plaintext_size = 0;
-        status_code = 401;
-        error = "Encrypted filename decryption failed";
+        status_code    = 401;
+        error          = "Encrypted filename decryption failed";
         return false;
     }
 
@@ -570,8 +562,8 @@ int base64url_value(char c)
 
 bool decode_base64url(const String& text, uint8_t*& out, size_t& out_size)
 {
-    out = nullptr;
-    out_size = 0;
+    out                     = nullptr;
+    out_size                = 0;
     const size_t input_size = text.length();
     if (input_size == 0 || input_size > ((kMaxEncryptedRequestSize + 2) / 3) * 4)
     {
@@ -587,7 +579,7 @@ bool decode_base64url(const String& text, uint8_t*& out, size_t& out_size)
     }
 
     const size_t padded_size = ((input_size + 3) / 4) * 4;
-    char* padded = static_cast<char*>(malloc(padded_size + 1));
+    char*        padded      = static_cast<char*>(malloc(padded_size + 1));
     if (!padded)
     {
         return false;
@@ -596,7 +588,7 @@ bool decode_base64url(const String& text, uint8_t*& out, size_t& out_size)
     for (size_t i = 0; i < input_size; ++i)
     {
         const char c = text[i];
-        padded[i] = c == '-' ? '+' : (c == '_' ? '/' : c);
+        padded[i]    = c == '-' ? '+' : (c == '_' ? '/' : c);
     }
     for (size_t i = input_size; i < padded_size; ++i)
     {
@@ -611,12 +603,12 @@ bool decode_base64url(const String& text, uint8_t*& out, size_t& out_size)
         return false;
     }
 
-    size_t decoded_size = 0;
-    const int result = mbedtls_base64_decode(out,
-                                             kMaxEncryptedRequestSize,
-                                             &decoded_size,
-                                             reinterpret_cast<const unsigned char*>(padded),
-                                             padded_size);
+    size_t    decoded_size = 0;
+    const int result       = mbedtls_base64_decode(out,
+                                                   kMaxEncryptedRequestSize,
+                                                   &decoded_size,
+                                                   reinterpret_cast<const unsigned char*>(padded),
+                                                   padded_size);
     free(padded);
     if (result != 0)
     {
@@ -649,19 +641,19 @@ public:
         if (!path || path[0] == '\0')
         {
             status_code = 400;
-            error = "Missing file_name";
+            error       = "Missing file_name";
             return false;
         }
         if (!AsyncFsManager::isReady())
         {
             status_code = 503;
-            error = "microSD card is not ready";
+            error       = "microSD card is not ready";
             return false;
         }
         if (!Aegis::isInitialized() || !Aegis::getFilecryptKey())
         {
             status_code = 503;
-            error = "File decryption key is not ready";
+            error       = "File decryption key is not ready";
             return false;
         }
 
@@ -669,7 +661,7 @@ public:
         if (m_kind == DecryptedRecordingKind::Unknown)
         {
             status_code = 400;
-            error = "Only .rec and .fly files can be decrypted";
+            error       = "Only .rec and .fly files can be decrypted";
             return false;
         }
 
@@ -677,25 +669,24 @@ public:
         {
             m_plaintext_chunk_size = MP3_ENCRYPTED_PLAINTEXT_LENGTH;
             m_encrypted_chunk_size = MP3_ENCRYPTED_CHUNK_LENGTH;
-            m_audio_file_offset = 0;
-            m_output_header_size = 0;
+            m_audio_file_offset    = 0;
+            m_output_header_size   = 0;
         }
         else
         {
             m_plaintext_chunk_size = WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH;
             m_encrypted_chunk_size = WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH;
-            m_audio_file_offset = WAV_ENCRYPTED_RIFF_HEADER_LENGTH;
-            m_output_header_size = WAV_RIFF_HEADER_LENGTH;
+            m_audio_file_offset    = WAV_ENCRYPTED_RIFF_HEADER_LENGTH;
+            m_output_header_size   = WAV_RIFF_HEADER_LENGTH;
         }
 
         m_encrypted = AudioFileRecorder::wavEncryptedAudioBuffer();
         m_plaintext = AudioFileRecorder::wavPlaintextAudioBuffer();
-        if (!m_encrypted || !m_plaintext ||
-            AudioFileRecorder::wavEncryptedAudioBufferSize() < m_encrypted_chunk_size ||
+        if (!m_encrypted || !m_plaintext || AudioFileRecorder::wavEncryptedAudioBufferSize() < m_encrypted_chunk_size ||
             AudioFileRecorder::wavPlaintextAudioBufferSize() < m_plaintext_chunk_size)
         {
             status_code = 500;
-            error = "Decrypted download buffers are unavailable";
+            error       = "Decrypted download buffers are unavailable";
             return false;
         }
 
@@ -703,7 +694,7 @@ public:
         if (!AsyncFsManager::openFileForDownload(path, &file_size))
         {
             status_code = 404;
-            error = "File not found";
+            error       = "File not found";
             return false;
         }
 
@@ -711,7 +702,7 @@ public:
         {
             AsyncFsManager::closeFile();
             status_code = 400;
-            error = "Encrypted recording is too small";
+            error       = "Encrypted recording is too small";
             return false;
         }
 
@@ -720,17 +711,17 @@ public:
         {
             AsyncFsManager::closeFile();
             status_code = 400;
-            error = "Encrypted recording has an invalid chunk length";
+            error       = "Encrypted recording has an invalid chunk length";
             return false;
         }
 
         const uint64_t encrypted_chunks = encrypted_audio_bytes / m_encrypted_chunk_size;
-        m_audio_plain_bytes = encrypted_chunks * static_cast<uint64_t>(m_plaintext_chunk_size);
+        m_audio_plain_bytes             = encrypted_chunks * static_cast<uint64_t>(m_plaintext_chunk_size);
         if (m_kind == DecryptedRecordingKind::Wav && m_audio_plain_bytes > 0xFFFFFFFFULL - 36ULL)
         {
             AsyncFsManager::closeFile();
             status_code = 413;
-            error = "Decrypted WAV is too large";
+            error       = "Decrypted WAV is too large";
             return false;
         }
 
@@ -739,19 +730,17 @@ public:
         {
             AsyncFsManager::closeFile();
             status_code = 413;
-            error = "Decrypted recording is too large";
+            error       = "Decrypted recording is too large";
             return false;
         }
 
-        const int key_result = mbedtls_gcm_setkey(&m_gcm,
-                                                  MBEDTLS_CIPHER_ID_AES,
-                                                  Aegis::getFilecryptKey(),
-                                                  Aegis::kFilecryptKeySize * 8);
+        const int key_result =
+            mbedtls_gcm_setkey(&m_gcm, MBEDTLS_CIPHER_ID_AES, Aegis::getFilecryptKey(), Aegis::kFilecryptKeySize * 8);
         if (key_result != 0)
         {
             AsyncFsManager::closeFile();
             status_code = 500;
-            error = "File decryption setup failed";
+            error       = "File decryption setup failed";
             return false;
         }
         m_gcm_ready = true;
@@ -765,14 +754,14 @@ public:
         {
             AsyncFsManager::closeFile();
             status_code = 400;
-            error = "Encrypted WAV header decryption failed";
+            error       = "Encrypted WAV header decryption failed";
             return false;
         }
         if (!wav_header_valid(m_header))
         {
             AsyncFsManager::closeFile();
             status_code = 400;
-            error = "Encrypted recording does not contain a valid WAV header";
+            error       = "Encrypted recording does not contain a valid WAV header";
             return false;
         }
 
@@ -797,8 +786,8 @@ public:
             return 0;
         }
 
-        uint64_t position = index;
-        size_t copied = 0;
+        uint64_t position  = index;
+        size_t   copied    = 0;
         uint64_t remaining = m_output_size - position;
         if (remaining > max_len)
         {
@@ -810,7 +799,7 @@ public:
             if (position < m_output_header_size)
             {
                 const size_t header_offset = static_cast<size_t>(position);
-                size_t copy_size = static_cast<size_t>(m_output_header_size - header_offset);
+                size_t       copy_size     = static_cast<size_t>(m_output_header_size - header_offset);
                 if (copy_size > remaining)
                 {
                     copy_size = static_cast<size_t>(remaining);
@@ -824,8 +813,8 @@ public:
             }
 
             const uint64_t audio_position = position - m_output_header_size;
-            const uint64_t chunk_index = audio_position / m_plaintext_chunk_size;
-            const size_t chunk_offset = static_cast<size_t>(audio_position % m_plaintext_chunk_size);
+            const uint64_t chunk_index    = audio_position / m_plaintext_chunk_size;
+            const size_t   chunk_offset   = static_cast<size_t>(audio_position % m_plaintext_chunk_size);
             if (!ensure_audio_chunk(chunk_index))
             {
                 DBG_LOGW(TAG,
@@ -867,7 +856,8 @@ private:
             return false;
         }
 
-        const size_t encrypted_size = RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH + plaintext_size + RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH;
+        const size_t encrypted_size =
+            RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH + plaintext_size + RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH;
         if (encrypted_size > m_encrypted_chunk_size)
         {
             DBG_LOGW(TAG,
@@ -890,19 +880,19 @@ private:
             return false;
         }
 
-        const uint8_t* nonce = m_encrypted;
-        const uint8_t* ciphertext = m_encrypted + RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH;
-        const uint8_t* tag = ciphertext + plaintext_size;
-        const int decrypt_result = mbedtls_gcm_auth_decrypt(&m_gcm,
-                                                            plaintext_size,
-                                                            nonce,
-                                                            RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH,
-                                                            nullptr,
-                                                            0,
-                                                            tag,
-                                                            RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH,
-                                                            ciphertext,
-                                                            plaintext);
+        const uint8_t* nonce          = m_encrypted;
+        const uint8_t* ciphertext     = m_encrypted + RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH;
+        const uint8_t* tag            = ciphertext + plaintext_size;
+        const int      decrypt_result = mbedtls_gcm_auth_decrypt(&m_gcm,
+                                                                 plaintext_size,
+                                                                 nonce,
+                                                                 RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH,
+                                                                 nullptr,
+                                                                 0,
+                                                                 tag,
+                                                                 RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH,
+                                                                 ciphertext,
+                                                                 plaintext);
         if (decrypt_result != 0)
         {
             DBG_LOGW(TAG,
@@ -927,7 +917,8 @@ private:
             return false;
         }
 
-        const uint64_t file_position = m_audio_file_offset + chunk_index * static_cast<uint64_t>(m_encrypted_chunk_size);
+        const uint64_t file_position =
+            m_audio_file_offset + chunk_index * static_cast<uint64_t>(m_encrypted_chunk_size);
         if (!read_decrypted_block(file_position, m_plaintext_chunk_size, m_plaintext))
         {
             DBG_LOGW(TAG,
@@ -942,36 +933,37 @@ private:
         return true;
     }
 
-    mbedtls_gcm_context m_gcm;
-    DecryptedRecordingKind m_kind = DecryptedRecordingKind::Unknown;
-    bool m_gcm_ready = false;
-    uint8_t* m_encrypted = nullptr;
-    uint8_t* m_plaintext = nullptr;
-    uint8_t m_header[WAV_RIFF_HEADER_LENGTH] = {};
-    size_t m_plaintext_chunk_size = 0;
-    size_t m_encrypted_chunk_size = 0;
-    uint64_t m_audio_file_offset = 0;
-    uint64_t m_output_header_size = 0;
-    uint64_t m_audio_plain_bytes = 0;
-    uint64_t m_output_size = 0;
-    uint64_t m_loaded_chunk = kNoDecryptedChunk;
-    bool m_failed = false;
+    mbedtls_gcm_context    m_gcm;
+    DecryptedRecordingKind m_kind                           = DecryptedRecordingKind::Unknown;
+    bool                   m_gcm_ready                      = false;
+    uint8_t*               m_encrypted                      = nullptr;
+    uint8_t*               m_plaintext                      = nullptr;
+    uint8_t                m_header[WAV_RIFF_HEADER_LENGTH] = {};
+    size_t                 m_plaintext_chunk_size           = 0;
+    size_t                 m_encrypted_chunk_size           = 0;
+    uint64_t               m_audio_file_offset              = 0;
+    uint64_t               m_output_header_size             = 0;
+    uint64_t               m_audio_plain_bytes              = 0;
+    uint64_t               m_output_size                    = 0;
+    uint64_t               m_loaded_chunk                   = kNoDecryptedChunk;
+    bool                   m_failed                         = false;
 };
 
 bool parse_request(const uint8_t* plaintext,
-                   size_t plaintext_size,
-                   char* file_path,
-                   size_t file_path_size,
-                   bool& stream_inline,
-                   int& status_code,
-                   String& error)
+                   size_t         plaintext_size,
+                   char*          file_path,
+                   size_t         file_path_size,
+                   bool&          stream_inline,
+                   int&           status_code,
+                   String&        error)
 {
-    JsonDocument doc;
-    const DeserializationError json_error = deserializeJson(doc, reinterpret_cast<const char*>(plaintext), plaintext_size);
+    JsonDocument               doc;
+    const DeserializationError json_error =
+        deserializeJson(doc, reinterpret_cast<const char*>(plaintext), plaintext_size);
     if (json_error)
     {
         status_code = 400;
-        error = "Decrypted download JSON parse failed: ";
+        error       = "Decrypted download JSON parse failed: ";
         error += json_error.c_str();
         return false;
     }
@@ -980,7 +972,7 @@ bool parse_request(const uint8_t* plaintext,
     if (root.isNull())
     {
         status_code = 400;
-        error = "Decrypted download JSON root must be an object";
+        error       = "Decrypted download JSON root must be an object";
         return false;
     }
 
@@ -988,13 +980,13 @@ bool parse_request(const uint8_t* plaintext,
     if (!file_name || !normalize_download_path(String(file_name), file_path, file_path_size))
     {
         status_code = 400;
-        error = "Missing or invalid file_name";
+        error       = "Missing or invalid file_name";
         return false;
     }
     if (!is_encrypted_recording_path(file_path))
     {
         status_code = 400;
-        error = "Only .rec and .fly files can be decrypted";
+        error       = "Only .rec and .fly files can be decrypted";
         return false;
     }
 
@@ -1013,7 +1005,7 @@ bool parse_request(const uint8_t* plaintext,
         else
         {
             status_code = 400;
-            error = "Unsupported decrypted download action";
+            error       = "Unsupported decrypted download action";
             return false;
         }
     }
@@ -1032,7 +1024,7 @@ void send_recording(AsyncWebServerRequest* request, const char* file_path, bool 
         return;
     }
 
-    int status_code = 500;
+    int    status_code = 500;
     String error;
     if (!stream->open(file_path, status_code, error))
     {
@@ -1044,12 +1036,11 @@ void send_recording(AsyncWebServerRequest* request, const char* file_path, bool 
     char download_name[kFileNameBufferSize] = {};
     decrypted_recording_filename(file_path, stream->kind(), download_name, sizeof(download_name));
 
-    AsyncWebServerResponse* response = request->beginResponse(
-        decrypted_content_type(stream->kind(), stream_inline),
-        static_cast<size_t>(stream->outputSize()),
-        [stream](uint8_t* buffer, size_t max_len, size_t index) -> size_t {
-            return stream ? stream->fill(buffer, max_len, index) : 0;
-        });
+    AsyncWebServerResponse* response =
+        request->beginResponse(decrypted_content_type(stream->kind(), stream_inline),
+                               static_cast<size_t>(stream->outputSize()),
+                               [stream](uint8_t* buffer, size_t max_len, size_t index) -> size_t
+                               { return stream ? stream->fill(buffer, max_len, index) : 0; });
     if (!response)
     {
         note_web_error();
@@ -1130,8 +1121,8 @@ void finishGet(AsyncWebServerRequest* request)
         return;
     }
 
-    uint8_t* encrypted = nullptr;
-    size_t encrypted_size = 0;
+    uint8_t* encrypted      = nullptr;
+    size_t   encrypted_size = 0;
     if (!decode_base64url(encrypted_param->value(), encrypted, encrypted_size))
     {
         DBG_LOGW(TAG, "decrypted GET failed: base64url decode failed");
@@ -1149,10 +1140,10 @@ void finishGet(AsyncWebServerRequest* request)
         return;
     }
 
-    int status_code = 500;
-    String error;
-    uint8_t* plaintext = nullptr;
-    size_t plaintext_size = 0;
+    int      status_code = 500;
+    String   error;
+    uint8_t* plaintext      = nullptr;
+    size_t   plaintext_size = 0;
     if (!decrypt_filename_blob(session_key, encrypted, encrypted_size, plaintext, plaintext_size, status_code, error))
     {
         mbedtls_platform_zeroize(session_key, sizeof(session_key));
@@ -1164,9 +1155,10 @@ void finishGet(AsyncWebServerRequest* request)
     mbedtls_platform_zeroize(session_key, sizeof(session_key));
     free(encrypted);
 
-    char file_path[kFileNameBufferSize] = {};
-    const bool parsed = normalize_download_path(String(reinterpret_cast<const char*>(plaintext)), file_path, sizeof(file_path)) &&
-                        is_encrypted_recording_path(file_path);
+    char       file_path[kFileNameBufferSize] = {};
+    const bool parsed =
+        normalize_download_path(String(reinterpret_cast<const char*>(plaintext)), file_path, sizeof(file_path)) &&
+        is_encrypted_recording_path(file_path);
     free(plaintext);
     if (!parsed)
     {
@@ -1195,7 +1187,7 @@ void finish(AsyncWebServerRequest* request)
         return;
     }
 
-    uint8_t session_key[WebServer::kSessionKeySize] = {};
+    uint8_t                            session_key[WebServer::kSessionKeySize] = {};
     const WebServer::SessionAuthResult auth = WebServer::authenticateSessionRequest(request, session_key);
     if (auth != WebServer::SessionAuthResult::Ok)
     {
@@ -1206,10 +1198,10 @@ void finish(AsyncWebServerRequest* request)
         return;
     }
 
-    int status_code = 500;
-    String error;
-    uint8_t* plaintext = nullptr;
-    size_t plaintext_size = 0;
+    int      status_code = 500;
+    String   error;
+    uint8_t* plaintext      = nullptr;
+    size_t   plaintext_size = 0;
     if (!decrypt_uploaded_request_body(session_key, plaintext, plaintext_size, status_code, error))
     {
         mbedtls_platform_zeroize(session_key, sizeof(session_key));
@@ -1221,15 +1213,10 @@ void finish(AsyncWebServerRequest* request)
     mbedtls_platform_zeroize(session_key, sizeof(session_key));
     reset_upload(request);
 
-    char file_path[kFileNameBufferSize] = {};
-    bool stream_inline = false;
-    const bool parsed = parse_request(plaintext,
-                                      plaintext_size,
-                                      file_path,
-                                      sizeof(file_path),
-                                      stream_inline,
-                                      status_code,
-                                      error);
+    char       file_path[kFileNameBufferSize] = {};
+    bool       stream_inline                  = false;
+    const bool parsed =
+        parse_request(plaintext, plaintext_size, file_path, sizeof(file_path), stream_inline, status_code, error);
     free(plaintext);
     if (!parsed)
     {

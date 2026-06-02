@@ -13,24 +13,24 @@ constexpr int16_t     kLineGap        = 1;
 
 struct PmicSnapshot
 {
-    uint32_t                     now_ms          = 0;
-    m5::Power_Class::pmic_t      pmic_type       = m5::Power_Class::pmic_unknown;
-    m5::Power_Class::is_charging_t charging      = m5::Power_Class::charge_unknown;
-    int32_t                      battery_pct     = 0;
-    int16_t                      battery_mv      = 0;
-    int32_t                      battery_ma      = 0;
-    int16_t                      vbus_mv         = 0;
-    bool                         ext_output      = false;
-    bool                         usb_output      = false;
-    bool                         has_axp_detail  = false;
-    bool                         axp_acin        = false;
-    bool                         axp_vbus        = false;
-    float                        acin_mv         = 0.0f;
-    float                        acin_ma         = 0.0f;
-    float                        axp_vbus_mv     = 0.0f;
-    float                        axp_vbus_ma     = 0.0f;
-    float                        battery_chg_ma  = 0.0f;
-    float                        battery_dis_ma  = 0.0f;
+    uint32_t                       now_ms         = 0;
+    m5::Power_Class::pmic_t        pmic_type      = m5::Power_Class::pmic_unknown;
+    m5::Power_Class::is_charging_t charging       = m5::Power_Class::charge_unknown;
+    int32_t                        battery_pct    = 0;
+    int16_t                        battery_mv     = 0;
+    int32_t                        battery_ma     = 0;
+    int16_t                        vbus_mv        = 0;
+    bool                           ext_output     = false;
+    bool                           usb_output     = false;
+    bool                           has_axp_detail = false;
+    bool                           axp_acin       = false;
+    bool                           axp_vbus       = false;
+    float                          acin_mv        = 0.0f;
+    float                          acin_ma        = 0.0f;
+    float                          axp_vbus_mv    = 0.0f;
+    float                          axp_vbus_ma    = 0.0f;
+    float                          battery_chg_ma = 0.0f;
+    float                          battery_dis_ma = 0.0f;
 };
 
 const char* pmic_type_name(m5::Power_Class::pmic_t type)
@@ -87,7 +87,8 @@ const char* charging_short_name(m5::Power_Class::is_charging_t charging)
 
 void read_axp192_detail(PmicSnapshot& snapshot)
 {
-#if !defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(CONFIG_IDF_TARGET_ESP32C3) && !defined(CONFIG_IDF_TARGET_ESP32C6) && !defined(CONFIG_IDF_TARGET_ESP32P4)
+#if !defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(CONFIG_IDF_TARGET_ESP32C3) &&                                      \
+    !defined(CONFIG_IDF_TARGET_ESP32C6) && !defined(CONFIG_IDF_TARGET_ESP32P4)
     snapshot.has_axp_detail = true;
     snapshot.axp_acin       = M5.Power.Axp192.isACIN();
     snapshot.axp_vbus       = M5.Power.Axp192.isVBUS();
@@ -149,23 +150,25 @@ PmicSnapshot read_pmic()
 
 void print_pmic_line(const PmicSnapshot& snapshot)
 {
-    Serial.printf("%s: ms=%lu pmic=%s(%u) charging=%s(%u) batt_pct=%ld batt_mv=%d batt_ma=%ld vbus_mv=%d ext_out=%u usb_out=%u",
-                  TAG,
-                  static_cast<unsigned long>(snapshot.now_ms),
-                  pmic_type_name(snapshot.pmic_type),
-                  static_cast<unsigned>(snapshot.pmic_type),
-                  charging_name(snapshot.charging),
-                  static_cast<unsigned>(snapshot.charging),
-                  static_cast<long>(snapshot.battery_pct),
-                  static_cast<int>(snapshot.battery_mv),
-                  static_cast<long>(snapshot.battery_ma),
-                  static_cast<int>(snapshot.vbus_mv),
-                  snapshot.ext_output ? 1U : 0U,
-                  snapshot.usb_output ? 1U : 0U);
+    Serial.printf(
+        "%s: ms=%lu pmic=%s(%u) charging=%s(%u) batt_pct=%ld batt_mv=%d batt_ma=%ld vbus_mv=%d ext_out=%u usb_out=%u",
+        TAG,
+        static_cast<unsigned long>(snapshot.now_ms),
+        pmic_type_name(snapshot.pmic_type),
+        static_cast<unsigned>(snapshot.pmic_type),
+        charging_name(snapshot.charging),
+        static_cast<unsigned>(snapshot.charging),
+        static_cast<long>(snapshot.battery_pct),
+        static_cast<int>(snapshot.battery_mv),
+        static_cast<long>(snapshot.battery_ma),
+        static_cast<int>(snapshot.vbus_mv),
+        snapshot.ext_output ? 1U : 0U,
+        snapshot.usb_output ? 1U : 0U);
 
     if (snapshot.has_axp_detail)
     {
-        Serial.printf(" axp_acin=%u axp_vbus=%u acin_mv=%.0f acin_ma=%.1f vbus_mv=%.0f vbus_ma=%.1f bat_chg_ma=%.1f bat_dis_ma=%.1f",
+        Serial.printf(" axp_acin=%u axp_vbus=%u acin_mv=%.0f acin_ma=%.1f vbus_mv=%.0f vbus_ma=%.1f bat_chg_ma=%.1f "
+                      "bat_dis_ma=%.1f",
                       snapshot.axp_acin ? 1U : 0U,
                       snapshot.axp_vbus ? 1U : 0U,
                       static_cast<double>(snapshot.acin_mv),

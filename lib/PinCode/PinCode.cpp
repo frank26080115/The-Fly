@@ -19,7 +19,7 @@ constexpr const char* TAG                 = "PinCode";
 constexpr const char* kNvsNamespace       = "aegis";
 constexpr const char* kPinCodeCfgBlobName = "pin_code_cfg";
 
-pin_code_cfg_t g_cfg = {};
+pin_code_cfg_t g_cfg         = {};
 bool           g_initialized = false;
 std::mutex     g_mutex;
 
@@ -59,7 +59,7 @@ esp_err_t save_cfg_to_handle_locked(nvs_handle_t handle)
 bool save_cfg_locked()
 {
     nvs_handle_t handle = 0;
-    esp_err_t err = nvs_open(kNvsNamespace, NVS_READWRITE, &handle);
+    esp_err_t    err    = nvs_open(kNvsNamespace, NVS_READWRITE, &handle);
     if (err != ESP_OK)
     {
         DBG_LOGE(TAG, "NVS open for PIN save failed: %s", esp_err_to_name(err));
@@ -80,7 +80,7 @@ bool save_cfg_locked()
 bool load_or_create_cfg_locked()
 {
     nvs_handle_t handle = 0;
-    esp_err_t err = nvs_open(kNvsNamespace, NVS_READWRITE, &handle);
+    esp_err_t    err    = nvs_open(kNvsNamespace, NVS_READWRITE, &handle);
     if (err != ESP_OK)
     {
         DBG_LOGE(TAG, "NVS open for PIN load failed: %s", esp_err_to_name(err));
@@ -88,9 +88,9 @@ bool load_or_create_cfg_locked()
         return false;
     }
 
-    pin_code_cfg_t loaded = {};
-    size_t read_size = sizeof(loaded);
-    err = nvs_get_blob(handle, kPinCodeCfgBlobName, &loaded, &read_size);
+    pin_code_cfg_t loaded    = {};
+    size_t         read_size = sizeof(loaded);
+    err                      = nvs_get_blob(handle, kPinCodeCfgBlobName, &loaded, &read_size);
     if (err == ESP_OK && read_size == sizeof(loaded))
     {
         g_cfg = loaded;
@@ -138,7 +138,7 @@ bool ensure_initialized_locked()
 void revoke_pin_locked()
 {
     memset(g_cfg.pin_code, 0, sizeof(g_cfg.pin_code));
-    g_cfg.active = false;
+    g_cfg.active       = false;
     g_cfg.date_revoked = current_time();
 }
 
@@ -240,9 +240,9 @@ bool regeneratePin()
         return false;
     }
 
-    const uint32_t next_salt = g_cfg.salt + 1;
-    uint8_t salt_bytes[sizeof(next_salt)] = {};
-    uint8_t digest[Aegis::kSha256Size] = {};
+    const uint32_t next_salt                     = g_cfg.salt + 1;
+    uint8_t        salt_bytes[sizeof(next_salt)] = {};
+    uint8_t        digest[Aegis::kSha256Size]    = {};
     store_u32_be(salt_bytes, next_salt);
 
     if (!Aegis::hmacSha256(filecrypt_key, Aegis::kFilecryptKeySize, salt_bytes, sizeof(salt_bytes), digest))
@@ -253,7 +253,8 @@ bool regeneratePin()
     }
 
     memset(g_cfg.pin_code, 0, sizeof(g_cfg.pin_code));
-    const size_t pin_digits = PINCODE_DEFAULT_LENGTH < sizeof(g_cfg.pin_code) ? PINCODE_DEFAULT_LENGTH : sizeof(g_cfg.pin_code) - 1;
+    const size_t pin_digits =
+        PINCODE_DEFAULT_LENGTH < sizeof(g_cfg.pin_code) ? PINCODE_DEFAULT_LENGTH : sizeof(g_cfg.pin_code) - 1;
     for (size_t i = 0; i < pin_digits; ++i)
     {
         g_cfg.pin_code[i] = static_cast<char>('1' + (digest[i] % 9));

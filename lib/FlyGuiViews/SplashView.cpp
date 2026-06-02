@@ -3,7 +3,7 @@
 #include "SpriteDraw.h"
 #include "sprites.h"
 
-static constexpr uint32_t    kSplashDelayMs = 800;
+static constexpr uint32_t kSplashDelayMs = 800;
 
 SplashView::SplashView() : FlyGuiView(FLYGUI_VIEW_SPLASH) {}
 

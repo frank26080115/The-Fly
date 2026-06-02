@@ -28,8 +28,8 @@ struct FileList
         return names && index < count ? names[index] : "";
     }
 
-    size_t count    = 0;
-    size_t capacity = 0;
+    size_t count                      = 0;
+    size_t capacity                   = 0;
     char (*names)[kMaxFileNameLength] = nullptr;
 };
 

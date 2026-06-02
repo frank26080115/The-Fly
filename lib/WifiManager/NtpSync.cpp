@@ -13,9 +13,9 @@ namespace
 {
 
 constexpr const char* TAG             = "NtpSync";
-constexpr uint32_t    kPollIntervalMs  = 100;
-constexpr uint32_t    kDestroyWaitMs   = 2000;
-constexpr uint32_t    kTaskStackBytes  = 4096;
+constexpr uint32_t    kPollIntervalMs = 100;
+constexpr uint32_t    kDestroyWaitMs  = 2000;
+constexpr uint32_t    kTaskStackBytes = 4096;
 
 const char* status_name(NtpSync::Status status)
 {
@@ -91,7 +91,18 @@ bool valid_date(const m5::rtc_date_t& date)
     }
 
     static constexpr int8_t kMonthDays[] = {
-        31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+        31,
+        28,
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
     };
 
     int8_t max_day = kMonthDays[date.month - 1];
@@ -105,7 +116,8 @@ bool valid_date(const m5::rtc_date_t& date)
 
 bool valid_time(const m5::rtc_time_t& time)
 {
-    return time.hours >= 0 && time.hours <= 23 && time.minutes >= 0 && time.minutes <= 59 && time.seconds >= 0 && time.seconds <= 59;
+    return time.hours >= 0 && time.hours <= 23 && time.minutes >= 0 && time.minutes <= 59 && time.seconds >= 0 &&
+           time.seconds <= 59;
 }
 
 bool valid_datetime(const m5::rtc_datetime_t& datetime)
@@ -116,7 +128,8 @@ bool valid_datetime(const m5::rtc_datetime_t& datetime)
 int64_t datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime)
 {
     const int64_t days = days_from_civil(datetime.date.year, datetime.date.month, datetime.date.date);
-    return days * 86400LL + static_cast<int64_t>(datetime.time.hours) * 3600LL + static_cast<int64_t>(datetime.time.minutes) * 60LL + datetime.time.seconds;
+    return days * 86400LL + static_cast<int64_t>(datetime.time.hours) * 3600LL +
+           static_cast<int64_t>(datetime.time.minutes) * 60LL + datetime.time.seconds;
 }
 
 int64_t datetime_delta_seconds(const m5::rtc_datetime_t& lhs, const m5::rtc_datetime_t& rhs)
@@ -145,7 +158,7 @@ bool copy_text(char* dst, size_t dst_size, const char* src)
         return false;
     }
 
-    const char* value  = src ? src : "";
+    const char*  value = src ? src : "";
     const size_t chars = strlen(value);
     if (chars >= dst_size)
     {
@@ -414,14 +427,9 @@ bool NtpSync::copyConfig(const WifiManager& wifi_manager, uint32_t timeout_ms, b
 
 bool NtpSync::startTaskOnCurrentCore()
 {
-    TaskHandle_t task_handle = nullptr;
-    const BaseType_t created = xTaskCreatePinnedToCore(taskEntry,
-                                                       "NtpSync",
-                                                       kTaskStackBytes,
-                                                       this,
-                                                       1,
-                                                       &task_handle,
-                                                       xPortGetCoreID());
+    TaskHandle_t     task_handle = nullptr;
+    const BaseType_t created =
+        xTaskCreatePinnedToCore(taskEntry, "NtpSync", kTaskStackBytes, this, 1, &task_handle, xPortGetCoreID());
 
     if (created != pdPASS)
     {
@@ -439,9 +447,9 @@ bool NtpSync::startTaskOnCurrentCore()
 
 void NtpSync::taskMain()
 {
-    Result local_result       = {};
-    local_result.status       = Status::Busy;
-    local_result.error        = Error::None;
+    Result local_result              = {};
+    local_result.status              = Status::Busy;
+    local_result.error               = Error::None;
     local_result.rtc_write_requested = m_write_rtc_after_sync;
 
     if (WiFi.status() != WL_CONNECTED)
@@ -493,7 +501,8 @@ void NtpSync::taskMain()
                 if (valid_datetime(local_result.ntp_time))
                 {
                     local_result.ntp_time_valid     = true;
-                    local_result.rtc_offset_seconds = datetime_to_epoch_seconds(local_result.ntp_time) - datetime_to_epoch_seconds(local_result.rtc_time);
+                    local_result.rtc_offset_seconds = datetime_to_epoch_seconds(local_result.ntp_time) -
+                                                      datetime_to_epoch_seconds(local_result.rtc_time);
                     break;
                 }
             }
@@ -534,7 +543,7 @@ void NtpSync::taskMain()
 
 void NtpSync::finish(Status status, Error error)
 {
-    CompleteCallback callback = nullptr;
+    CompleteCallback callback        = nullptr;
     Result           callback_result = {};
 
     portENTER_CRITICAL(&m_lock);

@@ -7,7 +7,7 @@
 namespace
 {
 
-constexpr const char* TAG = "test_micfilterperformance";
+constexpr const char* TAG                = "test_micfilterperformance";
 constexpr size_t      kMonoBufferSamples = 240;
 constexpr uint32_t    kTestDurationMs    = 10000;
 
@@ -73,10 +73,7 @@ void test_micfilterperformance()
                   TAG,
                   static_cast<unsigned long long>(process_count),
                   expected_process_count);
-    Serial.printf("%s: process_per_second=%.3f realtime_factor=%.3f\n",
-                  TAG,
-                  process_per_second,
-                  realtime_factor);
+    Serial.printf("%s: process_per_second=%.3f realtime_factor=%.3f\n", TAG, process_per_second, realtime_factor);
 
     idle_forever();
 }

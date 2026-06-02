@@ -1,5 +1,6 @@
 /*
-This reports microSD card statistics, and then performs a speed test on the microSD card using the established recording module.
+This reports microSD card statistics, and then performs a speed test on the microSD card using the established recording
+module.
 
 The slowest speed I saw is 136668 bytes/sec
 
@@ -20,10 +21,10 @@ For two mono 16 KHz streams being recorded, we want at least 64000 bytes/sec
 namespace
 {
 
-constexpr const char* TAG = "test_sdcard";
-constexpr uint32_t    kTestSampleRateHz        = 16000;
-constexpr uint32_t    kThroughputChunkStepMs   = 30000;
-constexpr uint32_t    kThroughputReportMs      = 5000;
+constexpr const char* TAG                    = "test_sdcard";
+constexpr uint32_t    kTestSampleRateHz      = 16000;
+constexpr uint32_t    kThroughputChunkStepMs = 30000;
+constexpr uint32_t    kThroughputReportMs    = 5000;
 
 uint32_t g_prng = 0x51A7C0DE;
 
@@ -92,7 +93,8 @@ void print_card_stats()
     Serial.printf("ready: yes\n");
     Serial.printf("card type: %s\n", card_type_name(sd.card()->type()));
     Serial.printf("sector count: %lu\n", static_cast<unsigned long>(sd.card()->sectorCount()));
-    Serial.printf("raw capacity: %llu bytes\n", static_cast<unsigned long long>(static_cast<uint64_t>(sd.card()->sectorCount()) * 512ULL));
+    Serial.printf("raw capacity: %llu bytes\n",
+                  static_cast<unsigned long long>(static_cast<uint64_t>(sd.card()->sectorCount()) * 512ULL));
     Serial.printf("filesystem: %s%u\n", fat_type_name(sd.fatType()), sd.fatType() == FAT_TYPE_EXFAT ? 0 : sd.fatType());
     Serial.printf("sectors/cluster: %lu\n", static_cast<unsigned long>(sd.sectorsPerCluster()));
     Serial.printf("bytes/cluster: %lu\n", static_cast<unsigned long>(sd.bytesPerCluster()));
@@ -201,7 +203,9 @@ void run_recording_throughput_test()
     {
         delete[] bt_samples;
         delete[] mic_samples;
-        Serial.printf("%s: sample chunk allocation failed: chunk=%u samples\n", TAG, static_cast<unsigned>(max_capacity_samples));
+        Serial.printf("%s: sample chunk allocation failed: chunk=%u samples\n",
+                      TAG,
+                      static_cast<unsigned>(max_capacity_samples));
         return;
     }
 
@@ -238,9 +242,11 @@ void run_recording_throughput_test()
         if (static_cast<int32_t>(now_ms - next_report_ms) >= 0)
         {
             const uint32_t elapsed_ms = now_ms - last_report_ms;
-            const uint64_t bytes_per_second = elapsed_ms == 0 ? 0 : ((report_samples * sizeof(int16_t) * 1000ULL) / elapsed_ms);
+            const uint64_t bytes_per_second =
+                elapsed_ms == 0 ? 0 : ((report_samples * sizeof(int16_t) * 1000ULL) / elapsed_ms);
 
-            Serial.printf("%s: chunk=%u submitted samples=%llu interval_bytes_per_second=%llu file_bytes=%llu write_avg_ms=%.3f write_max_ms=%.3f\n",
+            Serial.printf("%s: chunk=%u submitted samples=%llu interval_bytes_per_second=%llu file_bytes=%llu "
+                          "write_avg_ms=%.3f write_max_ms=%.3f\n",
                           TAG,
                           static_cast<unsigned>(chunk_samples),
                           static_cast<unsigned long long>(total_samples),
@@ -263,11 +269,11 @@ void run_recording_throughput_test()
             }
             else
             {
-                chunk_samples = min(chunk_samples * 2, max_capacity_samples);
+                chunk_samples      = min(chunk_samples * 2, max_capacity_samples);
                 section_started_ms = now_ms;
-                report_samples = 0;
-                last_report_ms = now_ms;
-                next_report_ms = now_ms + kThroughputReportMs;
+                report_samples     = 0;
+                last_report_ms     = now_ms;
+                next_report_ms     = now_ms + kThroughputReportMs;
                 AudioFileRecorder::resetWriteDurationStats();
                 Serial.printf("%s: throughput section: chunk=%u samples\n", TAG, static_cast<unsigned>(chunk_samples));
             }
@@ -290,8 +296,10 @@ void test_sdcard()
     Serial.println("starting microSD recorder smoke test");
     Serial.printf("free heap before FIFO init: %lu\n", static_cast<unsigned long>(ESP.getFreeHeap()));
 
-    #if BUILD_WITH_SECURITY_LEVEL >= 1
-    Serial.printf("%s: BUILD_WITH_SECURITY_LEVEL is %d; recorder WAV chunks should be AES-GCM encrypted\n", TAG, BUILD_WITH_SECURITY_LEVEL);
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+    Serial.printf("%s: BUILD_WITH_SECURITY_LEVEL is %d; recorder WAV chunks should be AES-GCM encrypted\n",
+                  TAG,
+                  BUILD_WITH_SECURITY_LEVEL);
     if (!Aegis::isInitialized())
     {
         Serial.printf("%s: Aegis is not initialized\n", TAG);
@@ -300,15 +308,11 @@ void test_sdcard()
     if (!Aegis::hasMasterKey())
     {
         const uint8_t test_filecrypt_key[Aegis::kFilecryptKeySize] = {
-            0x74, 0x68, 0x65, 0x66, 0x6c, 0x79, 0x2d, 0x73,
-            0x64, 0x63, 0x61, 0x72, 0x64, 0x2d, 0x74, 0x65,
-            0x73, 0x74, 0x2d, 0x6b, 0x65, 0x79, 0x2d, 0x30,
-            0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x31};
+            0x74, 0x68, 0x65, 0x66, 0x6c, 0x79, 0x2d, 0x73, 0x64, 0x63, 0x61, 0x72, 0x64, 0x2d, 0x74, 0x65,
+            0x73, 0x74, 0x2d, 0x6b, 0x65, 0x79, 0x2d, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x31};
         const uint8_t test_network_key[Aegis::kNetworkKeySize] = {
-            0x74, 0x68, 0x65, 0x66, 0x6c, 0x79, 0x2d, 0x6e,
-            0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x2d, 0x74,
-            0x65, 0x73, 0x74, 0x2d, 0x6b, 0x65, 0x79, 0x2d,
-            0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x31};
+            0x74, 0x68, 0x65, 0x66, 0x6c, 0x79, 0x2d, 0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x2d, 0x74,
+            0x65, 0x73, 0x74, 0x2d, 0x6b, 0x65, 0x79, 0x2d, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x31};
         if (!Aegis::setFilecryptKey(test_filecrypt_key) || !Aegis::setNetworkKey(test_network_key))
         {
             Serial.printf("%s: Aegis test key setup failed\n", TAG);
@@ -320,9 +324,9 @@ void test_sdcard()
     {
         Serial.printf("%s: using existing Aegis keys\n", TAG);
     }
-    #else
+#else
     Serial.printf("%s: BUILD_WITH_SECURITY_LEVEL is 0; recorder WAV chunks will not be encrypted\n", TAG);
-    #endif
+#endif
 
     if (!AudioManager::init())
     {
@@ -354,7 +358,9 @@ void test_sdcard()
         idle_forever();
     }
 
-    Serial.printf("recording complete: %s bytes=%llu\n", AudioFileRecorder::currentSdPath(), static_cast<unsigned long long>(AudioFileRecorder::bytesWritten()));
+    Serial.printf("recording complete: %s bytes=%llu\n",
+                  AudioFileRecorder::currentSdPath(),
+                  static_cast<unsigned long long>(AudioFileRecorder::bytesWritten()));
     Serial.println("microSD recorder smoke test finished");
 
     idle_forever();

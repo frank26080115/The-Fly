@@ -29,8 +29,8 @@ private:
     FlyGuiItem wifiIcon_;
     FlyGuiItem dismissItem_;
     bool       showDismissButton_ = false;
-    uint8_t    statsIndex_ = 0;
-    uint32_t   lastStatsDrawMs_ = 0;
+    uint8_t    statsIndex_        = 0;
+    uint32_t   lastStatsDrawMs_   = 0;
 
     static WifiStaModeView* activeView_;
 };

@@ -13,29 +13,29 @@ extern WifiManager* wifi_manager;
 
 namespace
 {
-constexpr int16_t  kContentY          = FlyGui::kTopBarHeight;
-constexpr int16_t  kWifiIconX         = 4;
-constexpr int16_t  kWifiIconY         = FlyGui::kTopBarHeight + 2;
-constexpr int16_t  kConnectionInfoX   = 108;
-constexpr int16_t  kConnectionInfoY   = FlyGui::kTopBarHeight + 2;
-constexpr int16_t  kConnectionInfoWidth = 212;
-constexpr int16_t  kConnectionInfoLineHeight = 16;
-constexpr int16_t  kTextX             = 8;
-constexpr int16_t  kTextY             = 68;
-constexpr int16_t  kTextWidth         = 248;
-constexpr int16_t  kLabelLineHeight   = 18;
-constexpr int16_t  kValueLineHeight   = 28;
-constexpr int16_t  kStatsY            = 190;
-constexpr int16_t  kSmallLineHeight   = 10;
-constexpr int16_t  kDismissSize       = 50;
-constexpr int16_t  kDismissX          = 270;
-constexpr int16_t  kDismissY          = 190;
-constexpr uint8_t  kNormalTextFont    = 2;
-constexpr uint8_t  kConnectionInfoTextFont = kNormalTextFont;
-constexpr uint8_t  kValueTextFont     = 4;
-constexpr uint8_t  kSmallTextFont     = 1;
-constexpr uint32_t kStatsCycleMs      = 3000;
-constexpr const char* kStopHint       = "reset or power-off to stop";
+constexpr int16_t     kContentY                 = FlyGui::kTopBarHeight;
+constexpr int16_t     kWifiIconX                = 4;
+constexpr int16_t     kWifiIconY                = FlyGui::kTopBarHeight + 2;
+constexpr int16_t     kConnectionInfoX          = 108;
+constexpr int16_t     kConnectionInfoY          = FlyGui::kTopBarHeight + 2;
+constexpr int16_t     kConnectionInfoWidth      = 212;
+constexpr int16_t     kConnectionInfoLineHeight = 16;
+constexpr int16_t     kTextX                    = 8;
+constexpr int16_t     kTextY                    = 68;
+constexpr int16_t     kTextWidth                = 248;
+constexpr int16_t     kLabelLineHeight          = 18;
+constexpr int16_t     kValueLineHeight          = 28;
+constexpr int16_t     kStatsY                   = 190;
+constexpr int16_t     kSmallLineHeight          = 10;
+constexpr int16_t     kDismissSize              = 50;
+constexpr int16_t     kDismissX                 = 270;
+constexpr int16_t     kDismissY                 = 190;
+constexpr uint8_t     kNormalTextFont           = 2;
+constexpr uint8_t     kConnectionInfoTextFont   = kNormalTextFont;
+constexpr uint8_t     kValueTextFont            = 4;
+constexpr uint8_t     kSmallTextFont            = 1;
+constexpr uint32_t    kStatsCycleMs             = 3000;
+constexpr const char* kStopHint                 = "reset or power-off to stop";
 
 void set_text_style(uint8_t font, uint16_t color)
 {
@@ -64,7 +64,7 @@ void draw_fit_line(const char* text, int16_t x, int16_t y, int16_t width, uint8_
         line[len - 3] = '.';
         line[len - 2] = '.';
         line[len - 1] = '.';
-        line[len] = '\0';
+        line[len]     = '\0';
         if (thefly_display.textWidth(line) <= width)
         {
             thefly_display.drawString(line, x, y);
@@ -87,14 +87,16 @@ const wifi_item_t* current_station()
 WifiStaModeView* WifiStaModeView::activeView_ = nullptr;
 
 WifiStaModeView::WifiStaModeView()
-    : FlyGuiView(FLYGUI_VIEW_STA_MODE),
-      wifiIcon_(kWifiIconX, kWifiIconY, SPRITE_WIFI_50_WIDTH, SPRITE_WIFI_50_HEIGHT),
+    : FlyGuiView(FLYGUI_VIEW_STA_MODE), wifiIcon_(kWifiIconX, kWifiIconY, SPRITE_WIFI_50_WIDTH, SPRITE_WIFI_50_HEIGHT),
       dismissItem_(kDismissX, kDismissY, kDismissSize, kDismissSize)
 {
     wifiIcon_.setSprite(sprite_wifi_50, SPRITE_WIFI_50_WIDTH, SPRITE_WIFI_50_HEIGHT, SPRITE_WIFI_50_BYTES);
     addItem(wifiIcon_);
 
-    dismissItem_.setSprite(sprite_canceldoor_50, SPRITE_CANCELDOOR_50_WIDTH, SPRITE_CANCELDOOR_50_HEIGHT, SPRITE_CANCELDOOR_50_BYTES);
+    dismissItem_.setSprite(sprite_canceldoor_50,
+                           SPRITE_CANCELDOOR_50_WIDTH,
+                           SPRITE_CANCELDOOR_50_HEIGHT,
+                           SPRITE_CANCELDOOR_50_BYTES);
     dismissItem_.setCallback(onDismissTriggered);
     addItem(dismissItem_);
 }
@@ -108,8 +110,8 @@ void WifiStaModeView::configure(bool showDismissButton)
 
 void WifiStaModeView::onLoad()
 {
-    activeView_ = this;
-    statsIndex_ = 0;
+    activeView_      = this;
+    statsIndex_      = 0;
     lastStatsDrawMs_ = 0;
     dismissItem_.setVisible(showDismissButton_);
     FlyGuiView::onLoad();
@@ -219,10 +221,10 @@ void WifiStaModeView::drawConnectionInfo()
 
 void WifiStaModeView::drawNetworkDetails()
 {
-    const wifi_item_t* active = current_station();
-    const char* ssid = active && active->ssid[0] != '\0' ? active->ssid : "";
-    const String assignedIpText = WiFi.localIP().toString();
-    const String gatewayIpText = WiFi.gatewayIP().toString();
+    const wifi_item_t* active         = current_station();
+    const char*        ssid           = active && active->ssid[0] != '\0' ? active->ssid : "";
+    const String       assignedIpText = WiFi.localIP().toString();
+    const String       gatewayIpText  = WiFi.gatewayIP().toString();
 
     thefly_display.fillRect(kTextX, kTextY, kTextWidth, static_cast<int16_t>(kStatsY - kTextY), TFT_BLACK);
 
@@ -246,17 +248,22 @@ void WifiStaModeView::drawStopHint()
 {
     const int16_t hintY = static_cast<int16_t>(thefly_display.height() - kSmallLineHeight);
     thefly_display.fillRect(kTextX, hintY, thefly_display.width() - kTextX, kSmallLineHeight, TFT_BLACK);
-    draw_fit_line(kStopHint, kTextX, hintY, static_cast<int16_t>(thefly_display.width() - (kTextX * 2)), kSmallTextFont, TFT_RED);
+    draw_fit_line(kStopHint,
+                  kTextX,
+                  hintY,
+                  static_cast<int16_t>(thefly_display.width() - (kTextX * 2)),
+                  kSmallTextFont,
+                  TFT_RED);
 }
 
 void WifiStaModeView::drawStatsLine(bool forced)
 {
     const uint32_t now = millis();
-    #if BUILD_WITH_SECURITY_LEVEL <= 0
+#if BUILD_WITH_SECURITY_LEVEL <= 0
     constexpr uint8_t kStatsCount = 4;
-    #else
+#else
     constexpr uint8_t kStatsCount = 5;
-    #endif
+#endif
 
     if (!forced && now - lastStatsDrawMs_ < kStatsCycleMs)
     {
@@ -287,12 +294,12 @@ void WifiStaModeView::formatStatsLine(char* out, size_t out_size) const
     }
 
     const uint32_t pageLoads = wifi_manager ? wifi_manager->webPageLoadCount() : 0;
-    const uint32_t logins = wifi_manager ? wifi_manager->webLoginCount() : 0;
-    const uint32_t saves = wifi_manager ? wifi_manager->webSaveCount() : 0;
-    const uint32_t errors = wifi_manager ? wifi_manager->webErrorCount() : 0;
+    const uint32_t logins    = wifi_manager ? wifi_manager->webLoginCount() : 0;
+    const uint32_t saves     = wifi_manager ? wifi_manager->webSaveCount() : 0;
+    const uint32_t errors    = wifi_manager ? wifi_manager->webErrorCount() : 0;
     const uint32_t downloads = wifi_manager ? wifi_manager->webDownloadCount() : 0;
 
-    #if BUILD_WITH_SECURITY_LEVEL <= 0
+#if BUILD_WITH_SECURITY_LEVEL <= 0
     switch (statsIndex_ % 4)
     {
     case 0:
@@ -308,7 +315,7 @@ void WifiStaModeView::formatStatsLine(char* out, size_t out_size) const
         snprintf(out, out_size, "downloads: %lu", static_cast<unsigned long>(downloads));
         break;
     }
-    #else
+#else
     switch (statsIndex_ % 5)
     {
     case 0:
@@ -327,5 +334,5 @@ void WifiStaModeView::formatStatsLine(char* out, size_t out_size) const
         snprintf(out, out_size, "downloads: %lu", static_cast<unsigned long>(downloads));
         break;
     }
-    #endif
+#endif
 }

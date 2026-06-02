@@ -74,9 +74,8 @@ void test_btramusage()
     Serial.printf("%s: starting Bluetooth RAM usage test\n", TAG);
     report_memory("startup");
 
-    BtManager::setStateChangedCallback([](BtManager::State state) {
-        Serial.printf("%s: Bluetooth state: %s\n", TAG, BtManager::stateName(state));
-    });
+    BtManager::setStateChangedCallback(
+        [](BtManager::State state) { Serial.printf("%s: Bluetooth state: %s\n", TAG, BtManager::stateName(state)); });
 
     BtManager::generateLegacyPinFromMac();
     Serial.printf("%s: legacy pairing PIN: %s\n", TAG, BtManager::generatedLegacyPin());

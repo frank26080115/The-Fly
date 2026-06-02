@@ -8,17 +8,21 @@
 /*
 This module does efficient processing of microphone data
 
-The internal SPM1423 mic, it works, it's not very good. It exhibits heavy DC bias offsets that drift a lot, and the volume varies a lot between different talking scenarios.
+The internal SPM1423 mic, it works, it's not very good. It exhibits heavy DC bias offsets that drift a lot, and the
+volume varies a lot between different talking scenarios.
 
 MicGainManager is both a high pass filter and a automatic gain control.
 
-The AGC uses the detected mic peak level to determine a target gain. It also slews the current gain towards the target gain slowly if going up, faster if going down (to respond to clipping better).
+The AGC uses the detected mic peak level to determine a target gain. It also slews the current gain towards the target
+gain slowly if going up, faster if going down (to respond to clipping better).
 
 The gain changes only apply during zero crossings to avoid artifacting.
 
 The high pass filter is there so that the gain is applied symmetrically.
 
-The mathematics uses integer math for speed. The memory is modified in-place. Hence this module is fast and efficient, a test showed that the performance hit of using this module is almost negligible. It is faster than what it needs to be by about 114x.
+The mathematics uses integer math for speed. The memory is modified in-place. Hence this module is fast and efficient, a
+test showed that the performance hit of using this module is almost negligible. It is faster than what it needs to be by
+about 114x.
 */
 
 namespace MicGainManager
@@ -105,7 +109,8 @@ int16_t saturate_int16(int32_t sample)
 
 uint16_t scaled_abs_peak(int16_t sample, uint16_t gain)
 {
-    const int32_t scaled = (static_cast<int32_t>(sample) * static_cast<int32_t>(gain)) / static_cast<int32_t>(kGainDivisor);
+    const int32_t scaled =
+        (static_cast<int32_t>(sample) * static_cast<int32_t>(gain)) / static_cast<int32_t>(kGainDivisor);
     return sample_abs_peak(saturate_int16(scaled));
 }
 
@@ -134,7 +139,8 @@ int16_t high_pass_filter(int16_t sample)
         return 0;
     }
 
-    const int64_t filtered = static_cast<int64_t>(x) - g_previous_hpf_x + (static_cast<int64_t>(kHighPassFilterR) * g_previous_hpf_y) / kGainDivisor;
+    const int64_t filtered = static_cast<int64_t>(x) - g_previous_hpf_x +
+                             (static_cast<int64_t>(kHighPassFilterR) * g_previous_hpf_y) / kGainDivisor;
     g_previous_hpf_x       = x;
     g_previous_hpf_y       = saturate_int32(filtered);
     return saturate_int16(g_previous_hpf_y);
@@ -159,7 +165,9 @@ void decay_peak(uint16_t& peak, size_t frames)
     uint32_t decay = 1;
     if (frames > 0)
     {
-        decay = std::max<uint32_t>(decay, (static_cast<uint32_t>(kMaxSampleMagnitude) * static_cast<uint32_t>(frames) * 2U) / (kNominalSampleRateHz * 3U));
+        decay = std::max<uint32_t>(decay,
+                                   (static_cast<uint32_t>(kMaxSampleMagnitude) * static_cast<uint32_t>(frames) * 2U) /
+                                       (kNominalSampleRateHz * 3U));
     }
 
     peak = decay >= peak ? 0 : static_cast<uint16_t>(peak - decay);
@@ -179,8 +187,9 @@ void update_target_gain()
         return;
     }
 
-    const uint32_t gain = (static_cast<uint32_t>(kTargetPeak) * static_cast<uint32_t>(kGainDivisor) + (g_raw_peak / 2U)) / g_raw_peak;
-    g_target_gain       = clamp_gain_units(static_cast<uint16_t>(std::min<uint32_t>(gain, kMaxGainUnits)));
+    const uint32_t gain =
+        (static_cast<uint32_t>(kTargetPeak) * static_cast<uint32_t>(kGainDivisor) + (g_raw_peak / 2U)) / g_raw_peak;
+    g_target_gain = clamp_gain_units(static_cast<uint16_t>(std::min<uint32_t>(gain, kMaxGainUnits)));
 }
 
 void update_current_gain()
@@ -193,7 +202,9 @@ void update_current_gain()
 
     if (g_current_gain > g_target_gain)
     {
-        const uint16_t next_gain = g_current_gain > kGainStepDownUnits ? static_cast<uint16_t>(g_current_gain - kGainStepDownUnits) : kMinGainUnits;
+        const uint16_t next_gain = g_current_gain > kGainStepDownUnits
+                                       ? static_cast<uint16_t>(g_current_gain - kGainStepDownUnits)
+                                       : kMinGainUnits;
         g_current_gain           = std::max<uint16_t>(g_target_gain, next_gain);
     }
 }
@@ -251,12 +262,12 @@ void process(int16_t* samples, size_t sampleCount)
         return;
     }
 
-    const bool ignoring = ignoring_samples(millis());
-    uint16_t raw_chunk_peak    = 0;
-    uint16_t scaled_chunk_peak = 0;
-    uint16_t active_gain       = g_previous_gain;
-    const uint16_t next_gain   = g_current_gain;
-    bool     gain_switched     = active_gain == next_gain;
+    const bool     ignoring          = ignoring_samples(millis());
+    uint16_t       raw_chunk_peak    = 0;
+    uint16_t       scaled_chunk_peak = 0;
+    uint16_t       active_gain       = g_previous_gain;
+    const uint16_t next_gain         = g_current_gain;
+    bool           gain_switched     = active_gain == next_gain;
 
     for (size_t i = 0; i < sampleCount; ++i)
     {
@@ -277,7 +288,8 @@ void process(int16_t* samples, size_t sampleCount)
             gain_switched   = true;
         }
 
-        const int32_t scaled = (static_cast<int32_t>(hpf_sample) * static_cast<int32_t>(active_gain)) / static_cast<int32_t>(kGainDivisor);
+        const int32_t scaled =
+            (static_cast<int32_t>(hpf_sample) * static_cast<int32_t>(active_gain)) / static_cast<int32_t>(kGainDivisor);
         const int16_t scaled_sample = saturate_int16(scaled);
         samples[i]                  = scaled_sample;
 
@@ -421,7 +433,11 @@ uint16_t rawPeak()
 uint16_t scaledPeak()
 {
     std::lock_guard<std::mutex> lock(g_mutex);
-    return g_bypass ? g_raw_peak : std::max<uint16_t>(g_scaled_peak, scaled_abs_peak(static_cast<int16_t>(std::min<uint16_t>(g_raw_peak, kMaxSampleMagnitude)), g_current_gain));
+    return g_bypass ? g_raw_peak
+                    : std::max<uint16_t>(
+                          g_scaled_peak,
+                          scaled_abs_peak(static_cast<int16_t>(std::min<uint16_t>(g_raw_peak, kMaxSampleMagnitude)),
+                                          g_current_gain));
 }
 
 uint8_t rawPeakLevel()
@@ -433,7 +449,12 @@ uint8_t rawPeakLevel()
 uint8_t scaledPeakLevel()
 {
     std::lock_guard<std::mutex> lock(g_mutex);
-    const uint16_t peak = g_bypass ? g_raw_peak : std::max<uint16_t>(g_scaled_peak, scaled_abs_peak(static_cast<int16_t>(std::min<uint16_t>(g_raw_peak, kMaxSampleMagnitude)), g_current_gain));
+    const uint16_t              peak =
+        g_bypass ? g_raw_peak
+                 : std::max<uint16_t>(
+                       g_scaled_peak,
+                       scaled_abs_peak(static_cast<int16_t>(std::min<uint16_t>(g_raw_peak, kMaxSampleMagnitude)),
+                                       g_current_gain));
     return peak_to_level(peak);
 }
 

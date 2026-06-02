@@ -18,13 +18,11 @@ void mp3_data_callback(MP3FrameInfo& info, short* pcm, size_t sample_count)
 
 uint32_t id3v2_size(const uint8_t* header)
 {
-    return (static_cast<uint32_t>(header[6] & 0x7F) << 21) |
-           (static_cast<uint32_t>(header[7] & 0x7F) << 14) |
-           (static_cast<uint32_t>(header[8] & 0x7F) << 7) |
-           static_cast<uint32_t>(header[9] & 0x7F);
+    return (static_cast<uint32_t>(header[6] & 0x7F) << 21) | (static_cast<uint32_t>(header[7] & 0x7F) << 14) |
+           (static_cast<uint32_t>(header[8] & 0x7F) << 7) | static_cast<uint32_t>(header[9] & 0x7F);
 }
 
-bool parse_mp3_header(uint32_t header,
+bool parse_mp3_header(uint32_t  header,
                       uint32_t& bitrate_kbps,
                       uint32_t& sample_rate_hz,
                       uint32_t& frame_size_bytes,
@@ -35,40 +33,36 @@ bool parse_mp3_header(uint32_t header,
         return false;
     }
 
-    const uint8_t version = static_cast<uint8_t>((header >> 19) & 0x03);
-    const uint8_t layer = static_cast<uint8_t>((header >> 17) & 0x03);
-    const uint8_t bitrate_index = static_cast<uint8_t>((header >> 12) & 0x0F);
+    const uint8_t version           = static_cast<uint8_t>((header >> 19) & 0x03);
+    const uint8_t layer             = static_cast<uint8_t>((header >> 17) & 0x03);
+    const uint8_t bitrate_index     = static_cast<uint8_t>((header >> 12) & 0x0F);
     const uint8_t sample_rate_index = static_cast<uint8_t>((header >> 10) & 0x03);
-    const uint8_t padding = static_cast<uint8_t>((header >> 9) & 0x01);
+    const uint8_t padding           = static_cast<uint8_t>((header >> 9) & 0x01);
 
     if (version == 1 || layer != 1 || bitrate_index == 0 || bitrate_index == 15 || sample_rate_index == 3)
     {
         return false;
     }
 
-    static constexpr uint16_t kMpeg1Bitrates[] = {
-        0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320
-    };
-    static constexpr uint16_t kMpeg2Bitrates[] = {
-        0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160
-    };
-    static constexpr uint32_t kMpeg1SampleRates[] = { 44100, 48000, 32000 };
-    static constexpr uint32_t kMpeg2SampleRates[] = { 22050, 24000, 16000 };
-    static constexpr uint32_t kMpeg25SampleRates[] = { 11025, 12000, 8000 };
+    static constexpr uint16_t kMpeg1Bitrates[]     = {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320};
+    static constexpr uint16_t kMpeg2Bitrates[]     = {0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160};
+    static constexpr uint32_t kMpeg1SampleRates[]  = {44100, 48000, 32000};
+    static constexpr uint32_t kMpeg2SampleRates[]  = {22050, 24000, 16000};
+    static constexpr uint32_t kMpeg25SampleRates[] = {11025, 12000, 8000};
 
     if (version == 3)
     {
-        bitrate_kbps = kMpeg1Bitrates[bitrate_index];
-        sample_rate_hz = kMpeg1SampleRates[sample_rate_index];
+        bitrate_kbps      = kMpeg1Bitrates[bitrate_index];
+        sample_rate_hz    = kMpeg1SampleRates[sample_rate_index];
         samples_per_frame = 1152;
-        frame_size_bytes = ((144000UL * bitrate_kbps) / sample_rate_hz) + padding;
+        frame_size_bytes  = ((144000UL * bitrate_kbps) / sample_rate_hz) + padding;
     }
     else
     {
-        bitrate_kbps = kMpeg2Bitrates[bitrate_index];
-        sample_rate_hz = version == 2 ? kMpeg2SampleRates[sample_rate_index] : kMpeg25SampleRates[sample_rate_index];
+        bitrate_kbps      = kMpeg2Bitrates[bitrate_index];
+        sample_rate_hz    = version == 2 ? kMpeg2SampleRates[sample_rate_index] : kMpeg25SampleRates[sample_rate_index];
         samples_per_frame = 576;
-        frame_size_bytes = ((72000UL * bitrate_kbps) / sample_rate_hz) + padding;
+        frame_size_bytes  = ((72000UL * bitrate_kbps) / sample_rate_hz) + padding;
     }
 
     return bitrate_kbps > 0 && sample_rate_hz > 0 && frame_size_bytes > 0;
@@ -98,7 +92,7 @@ void Mp3Playback::handleDecodedFrame(MP3FrameInfo& info, short* pcm, size_t samp
     }
 
     const uint8_t channels = static_cast<uint8_t>(info.nChans);
-    const size_t frames = sampleCount / channels;
+    const size_t  frames   = sampleCount / channels;
     if (frames == 0)
     {
         return;
@@ -121,9 +115,9 @@ const char* Mp3Playback::tag() const
 
 bool Mp3Playback::beginSource()
 {
-    file_size_ = file().fileSize();
-    encoded_position_bytes_ = 0;
-    decoded_frames_ = 0;
+    file_size_               = file().fileSize();
+    encoded_position_bytes_  = 0;
+    decoded_frames_          = 0;
     final_decoder_sync_sent_ = false;
 
     if (!parseMetadata())
@@ -157,8 +151,8 @@ bool Mp3Playback::seekToTimeMs(uint32_t positionMs)
         return false;
     }
 
-    encoded_position_bytes_ = encoded_position;
-    decoded_frames_ = (static_cast<uint64_t>(msForBytes(encoded_position)) * sample_rate_hz_) / 1000ULL;
+    encoded_position_bytes_  = encoded_position;
+    decoded_frames_          = (static_cast<uint64_t>(msForBytes(encoded_position)) * sample_rate_hz_) / 1000ULL;
     final_decoder_sync_sent_ = false;
     resetChannelActivity();
     return true;
@@ -197,7 +191,7 @@ bool Mp3Playback::pumpSource(size_t maxFrames)
             break;
         }
 
-        size_t bytes_read = 0;
+        size_t       bytes_read    = 0;
         const size_t bytes_to_read = static_cast<size_t>(
             std::min<uint64_t>(sizeof(encoded_buffer_), encoded_data_bytes_ - encoded_position_bytes_));
         if (bytes_to_read == 0 || !readEncodedBytes(encoded_buffer_, bytes_to_read, bytes_read) || bytes_read == 0)
@@ -209,7 +203,7 @@ bool Mp3Playback::pumpSource(size_t maxFrames)
         encoded_position_bytes_ += bytes_read;
 
         const uint64_t frames_before = decoded_frames_;
-        g_decode_target = this;
+        g_decode_target              = this;
         decoder_.write(encoded_buffer_, bytes_read);
         if (g_decode_target == this)
         {
@@ -265,8 +259,7 @@ uint32_t Mp3Playback::sourcePositionMs() const
 
 bool Mp3Playback::sourceAtEnd() const
 {
-    return duration_ms_ == 0 ||
-           (encoded_position_bytes_ >= encoded_data_bytes_ && final_decoder_sync_sent_) ||
+    return duration_ms_ == 0 || (encoded_position_bytes_ >= encoded_data_bytes_ && final_decoder_sync_sent_) ||
            sourcePositionMs() >= duration_ms_;
 }
 
@@ -292,18 +285,16 @@ bool Mp3Playback::parseMetadata()
         start = 10 + id3v2_size(scan);
     }
 
-    bool found = false;
+    bool     found             = false;
     uint16_t samples_per_frame = MP3_PCM_FRAMES_PER_MP3_FRAME;
     for (size_t i = start; i + 4 <= static_cast<size_t>(bytes_read); ++i)
     {
-        const uint32_t header = (static_cast<uint32_t>(scan[i]) << 24) |
-                                (static_cast<uint32_t>(scan[i + 1]) << 16) |
-                                (static_cast<uint32_t>(scan[i + 2]) << 8) |
-                                static_cast<uint32_t>(scan[i + 3]);
+        const uint32_t header = (static_cast<uint32_t>(scan[i]) << 24) | (static_cast<uint32_t>(scan[i + 1]) << 16) |
+                                (static_cast<uint32_t>(scan[i + 2]) << 8) | static_cast<uint32_t>(scan[i + 3]);
         if (parse_mp3_header(header, bitrate_kbps_, sample_rate_hz_, frame_size_bytes_, samples_per_frame))
         {
             data_start_offset_ = i;
-            found = true;
+            found              = true;
             break;
         }
     }
@@ -321,8 +312,8 @@ bool Mp3Playback::parseMetadata()
     }
 
     encoded_data_bytes_ = file_size_ - data_start_offset_;
-    bytes_per_second_ = (bitrate_kbps_ * 1000UL) / 8UL;
-    duration_ms_ = static_cast<uint32_t>((encoded_data_bytes_ * 1000ULL) / bytes_per_second_);
+    bytes_per_second_   = (bitrate_kbps_ * 1000UL) / 8UL;
+    duration_ms_        = static_cast<uint32_t>((encoded_data_bytes_ * 1000ULL) / bytes_per_second_);
     (void)samples_per_frame;
     return true;
 }
@@ -400,7 +391,7 @@ bool Mp3Playback::resetDecoder()
 
 void Mp3Playback::flushDecoderFinalFrame()
 {
-    static constexpr uint8_t kFinalSyncProbe[] = { 0xFF, 0xF0, 0x00, 0x00 };
+    static constexpr uint8_t kFinalSyncProbe[] = {0xFF, 0xF0, 0x00, 0x00};
 
     if (final_decoder_sync_sent_)
     {

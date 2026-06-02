@@ -5,13 +5,13 @@
 namespace
 {
 
-constexpr const char* TAG              = "test_fonts";
-constexpr int16_t     kStartX          = 5;
-constexpr int16_t     kStartY          = 5;
-constexpr int16_t     kLineGap         = 2;
-constexpr uint8_t     kFirstFont       = 0;
-constexpr uint8_t     kLastFont        = 8;
-constexpr uint8_t     kScreenCountMax  = 3;
+constexpr const char* TAG             = "test_fonts";
+constexpr int16_t     kStartX         = 5;
+constexpr int16_t     kStartY         = 5;
+constexpr int16_t     kLineGap        = 2;
+constexpr uint8_t     kFirstFont      = 0;
+constexpr uint8_t     kLastFont       = 8;
+constexpr uint8_t     kScreenCountMax = 3;
 
 const char* sample_text()
 {
@@ -32,7 +32,12 @@ bool draw_font_line(uint8_t font, float size, int16_t& y)
     }
 
     char line[64];
-    snprintf(line, sizeof(line), "font %u %.1fx %s", static_cast<unsigned>(font), static_cast<double>(size), sample_text());
+    snprintf(line,
+             sizeof(line),
+             "font %u %.1fx %s",
+             static_cast<unsigned>(font),
+             static_cast<double>(size),
+             sample_text());
     M5.Display.drawString(line, kStartX, y);
     y = static_cast<int16_t>(y + line_height);
     return true;
@@ -54,7 +59,12 @@ void start_screen(uint8_t screen, float size_a, float size_b)
     M5.Display.setTextColor(TFT_YELLOW, TFT_BLACK);
 
     char title[64];
-    snprintf(title, sizeof(title), "font test page %u: %.1fx and %.1fx", static_cast<unsigned>(screen + 1), static_cast<double>(size_a), static_cast<double>(size_b));
+    snprintf(title,
+             sizeof(title),
+             "font test page %u: %.1fx and %.1fx",
+             static_cast<unsigned>(screen + 1),
+             static_cast<double>(size_a),
+             static_cast<double>(size_b));
     M5.Display.drawString(title, kStartX, kStartY);
 }
 
@@ -110,7 +120,8 @@ void test_fonts()
         int16_t y = static_cast<int16_t>(kStartY + 14);
         while (font <= kLastFont)
         {
-            const int16_t pair_height = static_cast<int16_t>(font_line_height(font, size_a) + font_line_height(font, size_b));
+            const int16_t pair_height =
+                static_cast<int16_t>(font_line_height(font, size_a) + font_line_height(font, size_b));
             if (y + pair_height > M5.Display.height())
             {
                 break;

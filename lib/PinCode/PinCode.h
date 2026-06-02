@@ -12,14 +12,13 @@
 
 typedef struct
 {
-    char pin_code[PINCODE_MAX_LENGTH]; // actual length depends on null termination
-    bool active;
+    char     pin_code[PINCODE_MAX_LENGTH]; // actual length depends on null termination
+    bool     active;
     uint32_t bad_attempts;
     uint32_t salt;
-    time_t date_set;
-    time_t date_revoked;
-}
-pin_code_cfg_t;
+    time_t   date_set;
+    time_t   date_revoked;
+} pin_code_cfg_t;
 
 namespace PinCode
 {
@@ -31,8 +30,8 @@ bool revokePin();
 #if BUILD_WITH_SECURITY_LEVEL == 1
 bool setPin(const char* pin);
 #endif
-bool regeneratePin();
+bool        regeneratePin();
 const char* getPin();
-bool getConfig(pin_code_cfg_t& out);
+bool        getConfig(pin_code_cfg_t& out);
 
 } // namespace PinCode

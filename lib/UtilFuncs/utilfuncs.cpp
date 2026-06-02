@@ -12,7 +12,7 @@
 
 namespace
 {
-constexpr const char* TAG = "utilfuncs";
+constexpr const char* TAG         = "utilfuncs";
 constexpr char        kHexChars[] = "0123456789abcdef";
 
 bool is_leap_year(int32_t year)
@@ -49,7 +49,18 @@ bool valid_date(int32_t year, int32_t month, int32_t day)
     }
 
     static constexpr int8_t kMonthDays[] = {
-        31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+        31,
+        28,
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
     };
 
     int8_t max_day = kMonthDays[month - 1];
@@ -80,7 +91,7 @@ int32_t parse_digits(const char* digits, size_t offset, size_t width, int32_t fa
     }
     return value;
 }
-}
+} // namespace
 
 bool ok(esp_err_t err, const char* what)
 {
@@ -178,9 +189,9 @@ void basename_for_path_no_ext(const char* path, char* out, size_t out_size)
 
 char* clone_string(const char* text)
 {
-    const char* safe_text = text ? text : "";
-    const size_t len      = strlen(safe_text);
-    char*        clone    = static_cast<char*>(malloc(len + 1));
+    const char*  safe_text = text ? text : "";
+    const size_t len       = strlen(safe_text);
+    char*        clone     = static_cast<char*>(malloc(len + 1));
     if (!clone)
     {
         return nullptr;
@@ -291,8 +302,8 @@ void format_uint64_alphanumeric(uint64_t value, bool allow_lowercase, size_t min
 
     constexpr char kUppercaseDigits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     constexpr char kMixedCaseDigits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    const char*    digits              = allow_lowercase ? kMixedCaseDigits : kUppercaseDigits;
-    const uint64_t base                = allow_lowercase ? sizeof(kMixedCaseDigits) - 1 : sizeof(kUppercaseDigits) - 1;
+    const char*    digits             = allow_lowercase ? kMixedCaseDigits : kUppercaseDigits;
+    const uint64_t base               = allow_lowercase ? sizeof(kMixedCaseDigits) - 1 : sizeof(kUppercaseDigits) - 1;
 
     char   reversed[sizeof(uint64_t) * 8 + 1];
     size_t digit_count = 0;
@@ -354,7 +365,7 @@ bool hex_to_bytes(const String& hex, uint8_t* out, size_t out_size)
     for (size_t i = 0; i < out_size; ++i)
     {
         const int8_t high = hex_nibble(hex[i * 2]);
-        const int8_t low = hex_nibble(hex[i * 2 + 1]);
+        const int8_t low  = hex_nibble(hex[i * 2 + 1]);
         if (high < 0 || low < 0)
         {
             return false;
@@ -385,7 +396,8 @@ bool parse_mac(const char* mac, esp_bd_addr_t out)
 
     for (int i = 0; i < ESP_BD_ADDR_LEN; ++i)
     {
-        if (!isxdigit(static_cast<unsigned char>(mac[i * 3])) || !isxdigit(static_cast<unsigned char>(mac[i * 3 + 1])) || (i < ESP_BD_ADDR_LEN - 1 && mac[i * 3 + 2] != ':'))
+        if (!isxdigit(static_cast<unsigned char>(mac[i * 3])) ||
+            !isxdigit(static_cast<unsigned char>(mac[i * 3 + 1])) || (i < ESP_BD_ADDR_LEN - 1 && mac[i * 3 + 2] != ':'))
         {
             return false;
         }
@@ -478,7 +490,7 @@ bool ends_with_case_insensitive(const char* text, const char* suffix)
         return false;
     }
 
-    const size_t text_length = strlen(text);
+    const size_t text_length   = strlen(text);
     const size_t suffix_length = strlen(suffix);
     if (text_length < suffix_length)
     {

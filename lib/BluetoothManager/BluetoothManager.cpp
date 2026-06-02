@@ -22,61 +22,61 @@ namespace BtManager
 namespace
 {
 
-constexpr const char* TAG                 = "BtManager";
-constexpr char        kLegacyPin[]        = "0000";
-constexpr size_t      kLegacyPinMaxLength = sizeof(esp_bt_pin_code_t);
-constexpr size_t      kGeneratedPinLength = 4;
-constexpr int         kHfpMaxVolume       = 15;
-constexpr uint32_t    kAudioConnectRetryMs = 1000;
-constexpr uint32_t    kAudioConnectTimeoutMs = 3000;
-constexpr uint32_t    kAudioConnectTaskStack = 4096;
-constexpr UBaseType_t kAudioConnectTaskPriority = 1;
-constexpr uint32_t    kHfpProfileInitTimeoutMs = 2000;
-constexpr uint32_t    kShutdownDisconnectWaitMs = 1500;
-constexpr uint32_t    kReconnectAttemptIntervalMs = 2000;
+constexpr const char* TAG                              = "BtManager";
+constexpr char        kLegacyPin[]                     = "0000";
+constexpr size_t      kLegacyPinMaxLength              = sizeof(esp_bt_pin_code_t);
+constexpr size_t      kGeneratedPinLength              = 4;
+constexpr int         kHfpMaxVolume                    = 15;
+constexpr uint32_t    kAudioConnectRetryMs             = 1000;
+constexpr uint32_t    kAudioConnectTimeoutMs           = 3000;
+constexpr uint32_t    kAudioConnectTaskStack           = 4096;
+constexpr UBaseType_t kAudioConnectTaskPriority        = 1;
+constexpr uint32_t    kHfpProfileInitTimeoutMs         = 2000;
+constexpr uint32_t    kShutdownDisconnectWaitMs        = 1500;
+constexpr uint32_t    kReconnectAttemptIntervalMs      = 2000;
 constexpr uint32_t    kOutboundConnectScanModeSettleMs = 200;
 
-State                 g_state                  = State::Idle;
-esp_bd_addr_t         g_target_mac             = {};
-esp_bd_addr_t         g_connected_mac          = {};
-esp_bd_addr_t         g_reconnect_target_mac   = {};
-PairedDevice          g_last_paired_device     = {};
-PairedDevice          g_pending_paired_device  = {};
+State                 g_state                 = State::Idle;
+esp_bd_addr_t         g_target_mac            = {};
+esp_bd_addr_t         g_connected_mac         = {};
+esp_bd_addr_t         g_reconnect_target_mac  = {};
+PairedDevice          g_last_paired_device    = {};
+PairedDevice          g_pending_paired_device = {};
 BtHostList            g_host_list;
-bool                  g_has_connected_mac      = false;
-bool                  g_has_reconnect_target   = false;
-bool                  g_has_last_paired_device = false;
-volatile bool         g_has_pending_paired_device = false;
-bool                  g_bt_ready               = false;
-bool                  g_hfp_ready              = false;
-bool                  g_data_callback_ready    = false;
-volatile bool         g_hfp_profile_ready      = false;
-volatile bool         g_hfp_profile_failed     = false;
-bool                  g_disconnect_requested   = false;
-volatile bool         g_hfp_audio_connecting   = false;
-volatile bool         g_hfp_audio_connected    = false;
-volatile bool         g_hfp_slc_connected      = false;
-volatile bool         g_hfp_call_active        = false;
-volatile bool         g_hfp_call_setup_active  = false;
-volatile bool         g_hfp_answer_requested   = false;
-uint32_t              g_hfp_audio_connect_started_ms = 0;
-uint32_t              g_next_reconnect_attempt_ms = 0;
-uint32_t              g_reconnect_attempt_count = 0;
-uint32_t              g_incoming_audio_callback_count = 0;
-uint32_t              g_outgoing_audio_callback_count = 0;
-uint32_t              g_last_incoming_audio_log_ms = 0;
-uint32_t              g_last_outgoing_audio_log_ms = 0;
-uint64_t              g_incoming_audio_bytes = 0;
-uint64_t              g_outgoing_audio_requested_bytes = 0;
-uint64_t              g_outgoing_audio_returned_bytes = 0;
-TaskHandle_t          g_audio_connect_task     = nullptr;
-IncomingAudioCallback g_incoming_audio         = nullptr;
-OutgoingAudioCallback g_outgoing_audio         = nullptr;
-PairedCallback        g_paired_callback        = nullptr;
-StateChangedCallback  g_state_changed_callback = nullptr;
+bool                  g_has_connected_mac                       = false;
+bool                  g_has_reconnect_target                    = false;
+bool                  g_has_last_paired_device                  = false;
+volatile bool         g_has_pending_paired_device               = false;
+bool                  g_bt_ready                                = false;
+bool                  g_hfp_ready                               = false;
+bool                  g_data_callback_ready                     = false;
+volatile bool         g_hfp_profile_ready                       = false;
+volatile bool         g_hfp_profile_failed                      = false;
+bool                  g_disconnect_requested                    = false;
+volatile bool         g_hfp_audio_connecting                    = false;
+volatile bool         g_hfp_audio_connected                     = false;
+volatile bool         g_hfp_slc_connected                       = false;
+volatile bool         g_hfp_call_active                         = false;
+volatile bool         g_hfp_call_setup_active                   = false;
+volatile bool         g_hfp_answer_requested                    = false;
+uint32_t              g_hfp_audio_connect_started_ms            = 0;
+uint32_t              g_next_reconnect_attempt_ms               = 0;
+uint32_t              g_reconnect_attempt_count                 = 0;
+uint32_t              g_incoming_audio_callback_count           = 0;
+uint32_t              g_outgoing_audio_callback_count           = 0;
+uint32_t              g_last_incoming_audio_log_ms              = 0;
+uint32_t              g_last_outgoing_audio_log_ms              = 0;
+uint64_t              g_incoming_audio_bytes                    = 0;
+uint64_t              g_outgoing_audio_requested_bytes          = 0;
+uint64_t              g_outgoing_audio_returned_bytes           = 0;
+TaskHandle_t          g_audio_connect_task                      = nullptr;
+IncomingAudioCallback g_incoming_audio                          = nullptr;
+OutgoingAudioCallback g_outgoing_audio                          = nullptr;
+PairedCallback        g_paired_callback                         = nullptr;
+StateChangedCallback  g_state_changed_callback                  = nullptr;
 char                  g_local_device_name[kDeviceNameMaxLength] = {};
 
-char g_legacy_pin[kLegacyPinMaxLength + 1] = { '0', '0', '0', '0', '\0' };
+char g_legacy_pin[kLegacyPinMaxLength + 1] = {'0', '0', '0', '0', '\0'};
 // this is used during init and also when handling ESP_BT_GAP_PIN_REQ_EVT
 // the user can supply it, or it defaults to kLegacyPin when none is specified
 char g_generated_legacy_pin[kGeneratedPinLength + 1] = {};
@@ -112,7 +112,7 @@ void remember_reconnect_target(const esp_bd_addr_t mac)
 void clear_reconnect_schedule(bool clear_target)
 {
     g_next_reconnect_attempt_ms = 0;
-    g_reconnect_attempt_count = 0;
+    g_reconnect_attempt_count   = 0;
     if (clear_target)
     {
         g_has_reconnect_target = false;
@@ -134,19 +134,19 @@ bool should_log_audio_callback(uint32_t count, uint32_t& last_log_ms)
 
 void reset_audio_callback_sequence()
 {
-    g_incoming_audio_callback_count = 0;
-    g_outgoing_audio_callback_count = 0;
-    g_last_incoming_audio_log_ms = 0;
-    g_last_outgoing_audio_log_ms = 0;
-    g_incoming_audio_bytes = 0;
+    g_incoming_audio_callback_count  = 0;
+    g_outgoing_audio_callback_count  = 0;
+    g_last_incoming_audio_log_ms     = 0;
+    g_last_outgoing_audio_log_ms     = 0;
+    g_incoming_audio_bytes           = 0;
     g_outgoing_audio_requested_bytes = 0;
-    g_outgoing_audio_returned_bytes = 0;
+    g_outgoing_audio_returned_bytes  = 0;
 }
 
 void log_local_identity(const char* reason, const char* device_name = nullptr)
 {
-    esp_bd_addr_t local = {};
-    const esp_err_t err = esp_read_mac(local, ESP_MAC_BT);
+    esp_bd_addr_t   local = {};
+    const esp_err_t err   = esp_read_mac(local, ESP_MAC_BT);
     if (err != ESP_OK)
     {
         DBG_LOGW(TAG, "%s: could not read local Bluetooth BDADDR: %s", reason, esp_err_to_name(err));
@@ -182,7 +182,9 @@ bool make_bluetooth_non_connectable()
 
 void settle_outbound_connect_scan_mode()
 {
-    DBG_LOGI(TAG, "settling radio scan mode before outbound HFP connect for %" PRIu32 " ms", kOutboundConnectScanModeSettleMs);
+    DBG_LOGI(TAG,
+             "settling radio scan mode before outbound HFP connect for %" PRIu32 " ms",
+             kOutboundConnectScanModeSettleMs);
     vTaskDelay(pdMS_TO_TICKS(kOutboundConnectScanModeSettleMs));
 }
 
@@ -448,7 +450,8 @@ uint32_t outgoing_audio_adapter(uint8_t* buf, uint32_t len)
     if (should_log_audio_callback(g_outgoing_audio_callback_count, g_last_outgoing_audio_log_ms))
     {
         DBG_LOGI(TAG,
-                 "hfp outgoing audio callback: count=%" PRIu32 " requested=%" PRIu32 " returned=%" PRIu32 " total_requested=%" PRIu64 " total_returned=%" PRIu64 " state=%s audio_connected=%u",
+                 "hfp outgoing audio callback: count=%" PRIu32 " requested=%" PRIu32 " returned=%" PRIu32
+                 " total_requested=%" PRIu64 " total_returned=%" PRIu64 " state=%s audio_connected=%u",
                  g_outgoing_audio_callback_count,
                  len,
                  returned,
@@ -503,7 +506,8 @@ void incoming_audio_adapter(const uint8_t* buf, uint32_t len)
     if (should_log_audio_callback(g_incoming_audio_callback_count, g_last_incoming_audio_log_ms))
     {
         DBG_LOGI(TAG,
-                 "hfp incoming audio callback: count=%" PRIu32 " len=%" PRIu32 " total=%" PRIu64 " state=%s audio_connected=%u",
+                 "hfp incoming audio callback: count=%" PRIu32 " len=%" PRIu32 " total=%" PRIu64
+                 " state=%s audio_connected=%u",
                  g_incoming_audio_callback_count,
                  len,
                  g_incoming_audio_bytes,
@@ -556,7 +560,7 @@ bool wait_for_hfp_profile_ready()
 
 void reset_hfp_profile_ready()
 {
-    g_hfp_profile_ready = false;
+    g_hfp_profile_ready  = false;
     g_hfp_profile_failed = false;
 }
 
@@ -595,7 +599,7 @@ esp_err_t connect_hfp_audio_once(const char* reason)
     DBG_LOGI(TAG, "esp_hf_client_connect_audio (%s) returned: %s", reason, esp_err_to_name(err));
     if (err == ESP_OK)
     {
-        g_hfp_audio_connecting = true;
+        g_hfp_audio_connecting         = true;
         g_hfp_audio_connect_started_ms = millis();
     }
     return err;
@@ -620,7 +624,8 @@ void audio_connect_retry_task(void*)
 {
     DBG_LOGI(TAG, "hfp audio connect retry task started");
 
-    while (hfp_control_connected() && g_has_connected_mac && !g_hfp_audio_connected && !g_disconnect_requested && g_hfp_call_active)
+    while (hfp_control_connected() && g_has_connected_mac && !g_hfp_audio_connected && !g_disconnect_requested &&
+           g_hfp_call_active)
     {
         if (!g_hfp_audio_connecting || hfp_audio_connect_timed_out())
         {
@@ -659,7 +664,7 @@ const char* connected_host_name(const esp_bd_addr_t mac)
     for (size_t i = 0; i < g_host_list.size(); ++i)
     {
         const bt_host_item_t* item = g_host_list.get(i);
-        const char* name = bt_host_display_name(item);
+        const char*           name = bt_host_display_name(item);
         if (item && name[0] != '\0' && bda_equal(item->bdaddr, mac))
         {
             return name;
@@ -687,7 +692,7 @@ void handle_pending_paired_device()
         return;
     }
 
-    const PairedDevice device = g_pending_paired_device;
+    const PairedDevice device   = g_pending_paired_device;
     g_has_pending_paired_device = false;
 
     g_host_list.insert(device.name, device.mac);
@@ -711,11 +716,17 @@ void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param)
     case ESP_BT_GAP_CONFIG_EIR_DATA_EVT:
         if (param)
         {
-            char type_text[3 * ESP_BT_EIR_TYPE_MAX_NUM + 1] = {};
-            size_t used = 0;
-            for (uint8_t i = 0; i < param->config_eir_data.eir_type_num && i < ESP_BT_EIR_TYPE_MAX_NUM && used < sizeof(type_text); ++i)
+            char   type_text[3 * ESP_BT_EIR_TYPE_MAX_NUM + 1] = {};
+            size_t used                                       = 0;
+            for (uint8_t i = 0;
+                 i < param->config_eir_data.eir_type_num && i < ESP_BT_EIR_TYPE_MAX_NUM && used < sizeof(type_text);
+                 ++i)
             {
-                const int written = snprintf(type_text + used, sizeof(type_text) - used, "%s%02X", i == 0 ? "" : " ", param->config_eir_data.eir_type[i]);
+                const int written = snprintf(type_text + used,
+                                             sizeof(type_text) - used,
+                                             "%s%02X",
+                                             i == 0 ? "" : " ",
+                                             param->config_eir_data.eir_type[i]);
                 if (written <= 0)
                 {
                     break;
@@ -740,10 +751,12 @@ void gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t* param)
         {
             g_last_paired_device = {};
             copy_bda(g_last_paired_device.mac, param->auth_cmpl.bda);
-            strlcpy(g_last_paired_device.name, reinterpret_cast<const char*>(param->auth_cmpl.device_name), sizeof(g_last_paired_device.name));
+            strlcpy(g_last_paired_device.name,
+                    reinterpret_cast<const char*>(param->auth_cmpl.device_name),
+                    sizeof(g_last_paired_device.name));
             g_has_last_paired_device = true;
             log_bda("paired with", g_last_paired_device.mac);
-            g_pending_paired_device = g_last_paired_device;
+            g_pending_paired_device     = g_last_paired_device;
             g_has_pending_paired_device = true;
         }
         else
@@ -881,12 +894,12 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
                 set_state(State::Idle);
                 break;
             }
-            g_hfp_audio_connecting = false;
-            g_hfp_audio_connected = false;
-            g_hfp_slc_connected = true;
-            g_hfp_call_active = false;
-            g_hfp_call_setup_active = false;
-            g_hfp_answer_requested = false;
+            g_hfp_audio_connecting         = false;
+            g_hfp_audio_connected          = false;
+            g_hfp_slc_connected            = true;
+            g_hfp_call_active              = false;
+            g_hfp_call_setup_active        = false;
+            g_hfp_answer_requested         = false;
             g_hfp_audio_connect_started_ms = 0;
             CallManager::onBluetoothConnectionEstablished(connected_host_name(g_connected_mac));
             ok(esp_hf_client_retrieve_subscriber_info(), "hfp retrieve subscriber info");
@@ -908,13 +921,13 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             {
                 remember_reconnect_target(g_connected_mac);
             }
-            g_has_connected_mac = false;
-            g_hfp_audio_connecting = false;
-            g_hfp_audio_connected = false;
-            g_hfp_slc_connected = false;
-            g_hfp_call_active = false;
-            g_hfp_call_setup_active = false;
-            g_hfp_answer_requested = false;
+            g_has_connected_mac            = false;
+            g_hfp_audio_connecting         = false;
+            g_hfp_audio_connected          = false;
+            g_hfp_slc_connected            = false;
+            g_hfp_call_active              = false;
+            g_hfp_call_setup_active        = false;
+            g_hfp_answer_requested         = false;
             g_hfp_audio_connect_started_ms = 0;
             CallManager::onBluetoothDisconnected();
             if (g_disconnect_requested || g_state == State::Pairing)
@@ -956,8 +969,8 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTED)
         {
             reset_audio_callback_sequence();
-            g_hfp_audio_connecting = false;
-            g_hfp_audio_connected = false;
+            g_hfp_audio_connecting         = false;
+            g_hfp_audio_connected          = false;
             g_hfp_audio_connect_started_ms = 0;
             AudioManager::setHfpAudioFormat(AudioManager::HfpCodec::Cvsd, 8000);
             g_hfp_audio_connected = true;
@@ -968,8 +981,8 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTED_MSBC)
         {
             reset_audio_callback_sequence();
-            g_hfp_audio_connecting = false;
-            g_hfp_audio_connected = false;
+            g_hfp_audio_connecting         = false;
+            g_hfp_audio_connected          = false;
             g_hfp_audio_connect_started_ms = 0;
             AudioManager::setHfpAudioFormat(AudioManager::HfpCodec::Msbc, AudioManager::kSampleRateHz);
             g_hfp_audio_connected = true;
@@ -977,17 +990,19 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             set_state(State::AudioAvailable);
             DBG_LOGI(TAG, "HFP mSBC/wideband audio connected");
         }
-        else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_DISCONNECTED && hfp_control_connected() && g_has_connected_mac)
+        else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_DISCONNECTED && hfp_control_connected() &&
+                 g_has_connected_mac)
         {
             DBG_LOGI(TAG,
-                     "hfp audio callback summary: incoming=%" PRIu32 "/%" PRIu64 " bytes outgoing=%" PRIu32 " requested=%" PRIu64 " returned=%" PRIu64,
+                     "hfp audio callback summary: incoming=%" PRIu32 "/%" PRIu64 " bytes outgoing=%" PRIu32
+                     " requested=%" PRIu64 " returned=%" PRIu64,
                      g_incoming_audio_callback_count,
                      g_incoming_audio_bytes,
                      g_outgoing_audio_callback_count,
                      g_outgoing_audio_requested_bytes,
                      g_outgoing_audio_returned_bytes);
-            g_hfp_audio_connecting = false;
-            g_hfp_audio_connected = false;
+            g_hfp_audio_connecting         = false;
+            g_hfp_audio_connected          = false;
             g_hfp_audio_connect_started_ms = 0;
             AudioManager::setHfpAudioFormat(AudioManager::HfpCodec::Cvsd, 8000);
             CallManager::setScoAudioConnected(false);
@@ -1002,7 +1017,7 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         if (!g_hfp_call_active)
         {
             g_hfp_call_setup_active = false;
-            g_hfp_answer_requested = false;
+            g_hfp_answer_requested  = false;
             CallManager::setCallSetupStatus(0);
         }
         if (param->call.status && !g_hfp_audio_connected)
@@ -1034,7 +1049,10 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         break;
 
     case ESP_HF_CLIENT_AT_RESPONSE_EVT:
-        DBG_LOGI(TAG, "hfp AT response: code=%d cme=%d", static_cast<int>(param->at_response.code), static_cast<int>(param->at_response.cme));
+        DBG_LOGI(TAG,
+                 "hfp AT response: code=%d cme=%d",
+                 static_cast<int>(param->at_response.code),
+                 static_cast<int>(param->at_response.cme));
         break;
 
     case ESP_HF_CLIENT_CLIP_EVT:
@@ -1087,7 +1105,10 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
         break;
 
     case ESP_HF_CLIENT_CNUM_EVT:
-        DBG_LOGI(TAG, "hfp subscriber number: %s type=%d", param->cnum.number ? param->cnum.number : "(null)", static_cast<int>(param->cnum.type));
+        DBG_LOGI(TAG,
+                 "hfp subscriber number: %s type=%d",
+                 param->cnum.number ? param->cnum.number : "(null)",
+                 static_cast<int>(param->cnum.type));
         break;
 
     case ESP_HF_CLIENT_BSIR_EVT:
@@ -1109,7 +1130,8 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
 
     case ESP_HF_CLIENT_PKT_STAT_NUMS_GET_EVT:
         DBG_LOGI(TAG,
-                 "hfp packet stats: rx_total=%" PRIu32 " rx_correct=%" PRIu32 " rx_err=%" PRIu32 " rx_none=%" PRIu32 " rx_lost=%" PRIu32 " tx_total=%" PRIu32 " tx_discarded=%" PRIu32,
+                 "hfp packet stats: rx_total=%" PRIu32 " rx_correct=%" PRIu32 " rx_err=%" PRIu32 " rx_none=%" PRIu32
+                 " rx_lost=%" PRIu32 " tx_total=%" PRIu32 " tx_discarded=%" PRIu32,
                  param->pkt_nums.rx_total,
                  param->pkt_nums.rx_correct,
                  param->pkt_nums.rx_err,
@@ -1126,21 +1148,21 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
                  static_cast<int>(param->prof_stat.state));
         if (param->prof_stat.state == ESP_HF_INIT_SUCCESS || param->prof_stat.state == ESP_HF_INIT_ALREADY)
         {
-            g_hfp_profile_ready = true;
+            g_hfp_profile_ready  = true;
             g_hfp_profile_failed = false;
             configure_eir_data();
         }
         else if (param->prof_stat.state == ESP_HF_INIT_FAIL)
         {
-            g_hfp_profile_ready = false;
-            g_hfp_profile_failed = true;
-            g_hfp_ready = false;
+            g_hfp_profile_ready   = false;
+            g_hfp_profile_failed  = true;
+            g_hfp_ready           = false;
             g_data_callback_ready = false;
         }
         else if (param->prof_stat.state == ESP_HF_DEINIT_SUCCESS || param->prof_stat.state == ESP_HF_DEINIT_ALREADY)
         {
             reset_hfp_profile_ready();
-            g_hfp_ready = false;
+            g_hfp_ready           = false;
             g_data_callback_ready = false;
         }
         break;
@@ -1192,15 +1214,14 @@ bool init_bluetooth(const char* device_name, const char* pin_code)
     const char* selected_device_name = device_name ? device_name : formatted_device_name;
 
     log_local_identity("initializing BtManager", selected_device_name);
-    if (   !strict_ok(esp_bt_sleep_disable(), "bt sleep disable")
-        || !strict_ok(esp_bt_gap_register_callback(gap_event), "gap callback")
-        || !strict_ok(esp_bt_gap_set_device_name(selected_device_name), "bt name")
-        || !strict_ok(esp_bt_gap_set_cod(handsfree_cod(), ESP_BT_INIT_COD), "bt class of device")
-        || !strict_ok(esp_bt_gap_set_security_param(ESP_BT_SP_IOCAP_MODE, &iocap, sizeof(iocap)), "ssp iocap")
-        || !strict_ok(esp_bt_gap_set_pin(ESP_BT_PIN_TYPE_FIXED, pin_length, pin), "legacy pin")
-        || !strict_ok(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "initial scan mode")
-        || !strict_ok(esp_bredr_sco_datapath_set(ESP_SCO_DATA_PATH_HCI), "sco hci path")
-        )
+    if (!strict_ok(esp_bt_sleep_disable(), "bt sleep disable") ||
+        !strict_ok(esp_bt_gap_register_callback(gap_event), "gap callback") ||
+        !strict_ok(esp_bt_gap_set_device_name(selected_device_name), "bt name") ||
+        !strict_ok(esp_bt_gap_set_cod(handsfree_cod(), ESP_BT_INIT_COD), "bt class of device") ||
+        !strict_ok(esp_bt_gap_set_security_param(ESP_BT_SP_IOCAP_MODE, &iocap, sizeof(iocap)), "ssp iocap") ||
+        !strict_ok(esp_bt_gap_set_pin(ESP_BT_PIN_TYPE_FIXED, pin_length, pin), "legacy pin") ||
+        !strict_ok(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "initial scan mode") ||
+        !strict_ok(esp_bredr_sco_datapath_set(ESP_SCO_DATA_PATH_HCI), "sco hci path"))
     {
         return false;
     }
@@ -1231,7 +1252,7 @@ bool init_hfp(const char* device_name, const char* pin_code)
     if (!wait_for_hfp_profile_ready())
     {
         ok(esp_hf_client_deinit(), "hfp deinit after init timeout");
-        g_hfp_ready = false;
+        g_hfp_ready           = false;
         g_data_callback_ready = false;
         reset_hfp_profile_ready();
         return false;
@@ -1252,7 +1273,7 @@ bool deinit_hfp_for_pairing()
         return false;
     }
 
-    g_hfp_ready = false;
+    g_hfp_ready           = false;
     g_data_callback_ready = false;
     reset_hfp_profile_ready();
     return true;
@@ -1260,7 +1281,10 @@ bool deinit_hfp_for_pairing()
 
 } // namespace
 
-bool init(const char* deviceName, IncomingAudioCallback incomingAudio, OutgoingAudioCallback outgoingAudio, const char* pin)
+bool init(const char*           deviceName,
+          IncomingAudioCallback incomingAudio,
+          OutgoingAudioCallback outgoingAudio,
+          const char*           pin)
 {
     g_incoming_audio = incomingAudio;
     g_outgoing_audio = outgoingAudio;
@@ -1286,7 +1310,8 @@ void poll()
 {
     handle_pending_paired_device();
 
-    if (g_state != State::Reconnecting || g_disconnect_requested || g_has_connected_mac || !g_bt_ready || !g_hfp_ready || !g_has_reconnect_target)
+    if (g_state != State::Reconnecting || g_disconnect_requested || g_has_connected_mac || !g_bt_ready ||
+        !g_hfp_ready || !g_has_reconnect_target)
     {
         return;
     }
@@ -1322,7 +1347,7 @@ void poll()
 
 bool generateLegacyPinFromMac()
 {
-    esp_bd_addr_t mac = {};
+    esp_bd_addr_t mac      = {};
     const bool    read_mac = ok(esp_read_mac(mac, ESP_MAC_BT), "read bt mac for pin");
     if (read_mac)
     {
@@ -1398,7 +1423,7 @@ Result connectToMac(const esp_bd_addr_t mac)
     copy_bda(g_target_mac, mac);
     remember_reconnect_target(g_target_mac);
     clear_reconnect_schedule(false);
-    g_hfp_slc_connected = false;
+    g_hfp_slc_connected    = false;
     g_disconnect_requested = false;
     set_state(State::Connecting);
     if (!close_pairing_window())
@@ -1434,7 +1459,8 @@ Result startPairing()
     g_has_last_paired_device = false;
     clear_reconnect_schedule(false);
     set_state(State::Pairing);
-    return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE), "open pairing window");
+    return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE),
+                           "open pairing window");
 }
 
 Result disconnect()
@@ -1480,7 +1506,8 @@ Result setConnectableNonDiscoverable()
         return Result::InitFailed;
     }
 
-    return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "set bt connectable/non-discoverable");
+    return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE),
+                           "set bt connectable/non-discoverable");
 }
 
 Result setNonConnectableNonDiscoverable()
@@ -1490,7 +1517,8 @@ Result setNonConnectableNonDiscoverable()
         return Result::InitFailed;
     }
 
-    return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE), "set bt non-connectable/non-discoverable");
+    return result_from_esp(esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE),
+                           "set bt non-connectable/non-discoverable");
 }
 
 Result shutdown()
@@ -1540,18 +1568,18 @@ Result shutdown()
 
     g_has_connected_mac = false;
     clear_reconnect_schedule(false);
-    g_hfp_audio_connecting = false;
-    g_hfp_audio_connected = false;
-    g_hfp_slc_connected = false;
-    g_hfp_call_active = false;
-    g_hfp_call_setup_active = false;
-    g_hfp_answer_requested = false;
+    g_hfp_audio_connecting         = false;
+    g_hfp_audio_connected          = false;
+    g_hfp_slc_connected            = false;
+    g_hfp_call_active              = false;
+    g_hfp_call_setup_active        = false;
+    g_hfp_answer_requested         = false;
     g_hfp_audio_connect_started_ms = 0;
-    g_audio_connect_task = nullptr;
-    g_hfp_ready = false;
-    g_bt_ready = false;
-    g_data_callback_ready = false;
-    g_disconnect_requested = false;
+    g_audio_connect_task           = nullptr;
+    g_hfp_ready                    = false;
+    g_bt_ready                     = false;
+    g_data_callback_ready          = false;
+    g_disconnect_requested         = false;
     set_state(State::Idle);
     return ok_all ? Result::Ok : Result::EspError;
 }

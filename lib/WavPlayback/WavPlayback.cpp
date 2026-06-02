@@ -8,19 +8,14 @@ namespace
 
 uint32_t read_le32(const uint8_t* data)
 {
-    return static_cast<uint32_t>(data[0]) |
-           (static_cast<uint32_t>(data[1]) << 8) |
-           (static_cast<uint32_t>(data[2]) << 16) |
-           (static_cast<uint32_t>(data[3]) << 24);
+    return static_cast<uint32_t>(data[0]) | (static_cast<uint32_t>(data[1]) << 8) |
+           (static_cast<uint32_t>(data[2]) << 16) | (static_cast<uint32_t>(data[3]) << 24);
 }
 
 bool wav_header_valid(const uint8_t* header)
 {
-    return header &&
-           memcmp(header + 0, "RIFF", 4) == 0 &&
-           memcmp(header + 8, "WAVE", 4) == 0 &&
-           memcmp(header + 12, "fmt ", 4) == 0 &&
-           memcmp(header + 36, "data", 4) == 0;
+    return header && memcmp(header + 0, "RIFF", 4) == 0 && memcmp(header + 8, "WAVE", 4) == 0 &&
+           memcmp(header + 12, "fmt ", 4) == 0 && memcmp(header + 36, "data", 4) == 0;
 }
 
 } // namespace
@@ -32,8 +27,8 @@ const char* WavPlayback::tag() const
 
 bool WavPlayback::beginSource()
 {
-    file_size_ = file().fileSize();
-    data_bytes_ = 0;
+    file_size_      = file().fileSize();
+    data_bytes_     = 0;
     position_bytes_ = 0;
 
     uint8_t header[kWavHeaderBytes] = {};
@@ -48,10 +43,10 @@ bool WavPlayback::beginSource()
         return false;
     }
 
-    const uint64_t file_payload_bytes = file_size_ > kWavHeaderBytes ? file_size_ - kWavHeaderBytes : 0;
+    const uint64_t file_payload_bytes   = file_size_ > kWavHeaderBytes ? file_size_ - kWavHeaderBytes : 0;
     const uint64_t header_payload_bytes = read_le32(header + 40);
-    data_bytes_ = std::min(file_payload_bytes, header_payload_bytes);
-    data_bytes_ = clampDataPosition(data_bytes_);
+    data_bytes_                         = std::min(file_payload_bytes, header_payload_bytes);
+    data_bytes_                         = clampDataPosition(data_bytes_);
     return seekDataPosition(0);
 }
 
@@ -78,8 +73,10 @@ bool WavPlayback::pumpSource(size_t maxFrames)
             break;
         }
 
-        const size_t file_frames_remaining = static_cast<size_t>(std::min<uint64_t>(bytes_remaining / kBytesPerFrame, UINT32_MAX));
-        const size_t frames_to_read = std::min({ kReadChunkFrames, frames_remaining_this_pump, available_frames, file_frames_remaining });
+        const size_t file_frames_remaining =
+            static_cast<size_t>(std::min<uint64_t>(bytes_remaining / kBytesPerFrame, UINT32_MAX));
+        const size_t frames_to_read =
+            std::min({kReadChunkFrames, frames_remaining_this_pump, available_frames, file_frames_remaining});
         if (frames_to_read == 0)
         {
             markEof();
@@ -136,7 +133,7 @@ bool WavPlayback::readFrames(int16_t* frames, size_t maxFrames, size_t& framesRe
     }
 
     const size_t bytes_to_read = maxFrames * kBytesPerFrame;
-    const int bytes_read = file().read(frames, bytes_to_read);
+    const int    bytes_read    = file().read(frames, bytes_to_read);
     if (bytes_read <= 0)
     {
         return false;
@@ -148,7 +145,7 @@ bool WavPlayback::readFrames(int16_t* frames, size_t maxFrames, size_t& framesRe
 
 bool WavPlayback::seekDataPosition(uint64_t positionBytes)
 {
-    positionBytes = clampDataPosition(positionBytes);
+    positionBytes                = clampDataPosition(positionBytes);
     const uint64_t file_position = static_cast<uint64_t>(kWavHeaderBytes) + positionBytes;
     if (!file().seekSet(file_position))
     {

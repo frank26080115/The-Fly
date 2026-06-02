@@ -45,13 +45,13 @@ enum PngBrightness : uint8_t
 };
 
 DrawResult drawPng(const uint8_t* sprite,
-                   size_t sprite_bytes,
-                   int32_t x,
-                   int32_t y,
-                   uint32_t width,
-                   uint32_t height,
-                   bool fast_mode,
-                   uint8_t brightness = PNG_BRTNESS_100,
-                   DrawCallback callback = nullptr);
+                   size_t         sprite_bytes,
+                   int32_t        x,
+                   int32_t        y,
+                   uint32_t       width,
+                   uint32_t       height,
+                   bool           fast_mode,
+                   uint8_t        brightness = PNG_BRTNESS_100,
+                   DrawCallback   callback   = nullptr);
 
 } // namespace SpriteDraw

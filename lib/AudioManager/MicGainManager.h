@@ -8,10 +8,10 @@
 namespace MicGainManager
 {
 
-static constexpr uint16_t kGainDivisor = 8192;
-static constexpr float    kMinGain     = 1.0f;
-static constexpr float    kMaxGain     = 3.0f;
-static constexpr float    kInitialGain = 1.5f;
+static constexpr uint16_t kGainDivisor              = 8192;
+static constexpr float    kMinGain                  = 1.0f;
+static constexpr float    kMaxGain                  = 3.0f;
+static constexpr float    kInitialGain              = 1.5f;
 static constexpr uint32_t kStartupTransientIgnoreMs = 200;
 
 void init();

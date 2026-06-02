@@ -20,9 +20,9 @@ public:
 private:
     static float normalizeProgress(float progress);
 
-    void    drawFrame() const;
-    void    drawFill() const;
-    int16_t filledWidth() const;
+    void     drawFrame() const;
+    void     drawFill() const;
+    int16_t  filledWidth() const;
     uint16_t fillColor() const;
 
     float progress_ = 0.0f;

@@ -57,7 +57,18 @@ bool valid_date(const m5::rtc_date_t& date)
     }
 
     static constexpr int8_t kMonthDays[] = {
-        31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+        31,
+        28,
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
     };
 
     int8_t max_day = kMonthDays[date.month - 1];
@@ -71,14 +82,25 @@ bool valid_date(const m5::rtc_date_t& date)
 
 bool valid_time(const m5::rtc_time_t& time)
 {
-    return time.hours >= 0 && time.hours <= 23 && time.minutes >= 0 && time.minutes <= 59 && time.seconds >= 0 && time.seconds <= 59;
+    return time.hours >= 0 && time.hours <= 23 && time.minutes >= 0 && time.minutes <= 59 && time.seconds >= 0 &&
+           time.seconds <= 59;
 }
 
 int8_t month_from_name(const char* month)
 {
     static constexpr const char* kMonths[] = {
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
     };
 
     if (!month)
@@ -100,7 +122,8 @@ int8_t month_from_name(const char* month)
 int64_t datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime)
 {
     const int64_t days = days_from_civil(datetime.date.year, datetime.date.month, datetime.date.date);
-    return days * 86400LL + static_cast<int64_t>(datetime.time.hours) * 3600LL + static_cast<int64_t>(datetime.time.minutes) * 60LL + datetime.time.seconds;
+    return days * 86400LL + static_cast<int64_t>(datetime.time.hours) * 3600LL +
+           static_cast<int64_t>(datetime.time.minutes) * 60LL + datetime.time.seconds;
 }
 
 m5::rtc_datetime_t epoch_seconds_to_datetime(int64_t epoch_seconds)
@@ -178,7 +201,8 @@ bool parse_compiler_time(const char* text, m5::rtc_datetime_t& datetime)
     return true;
 }
 
-m5::rtc_datetime_t merge_datetime(const m5::rtc_datetime_t& base, const m5::rtc_date_t* date, const m5::rtc_time_t* time)
+m5::rtc_datetime_t
+merge_datetime(const m5::rtc_datetime_t& base, const m5::rtc_date_t* date, const m5::rtc_time_t* time)
 {
     m5::rtc_datetime_t merged = base;
     if (date)
@@ -206,13 +230,13 @@ bool datetime_to_local_epoch_seconds(const m5::rtc_datetime_t& datetime, time_t&
         return false;
     }
 
-    tm value = {};
-    value.tm_year = datetime.date.year - 1900;
-    value.tm_mon = datetime.date.month - 1;
-    value.tm_mday = datetime.date.date;
-    value.tm_hour = datetime.time.hours;
-    value.tm_min = datetime.time.minutes;
-    value.tm_sec = datetime.time.seconds;
+    tm value       = {};
+    value.tm_year  = datetime.date.year - 1900;
+    value.tm_mon   = datetime.date.month - 1;
+    value.tm_mday  = datetime.date.date;
+    value.tm_hour  = datetime.time.hours;
+    value.tm_min   = datetime.time.minutes;
+    value.tm_sec   = datetime.time.seconds;
     value.tm_isdst = -1;
 
     const time_t converted = mktime(&value);
@@ -228,7 +252,7 @@ bool datetime_to_local_epoch_seconds(const m5::rtc_datetime_t& datetime, time_t&
 bool apply_system_time(time_t epoch_seconds)
 {
     struct timeval value = {};
-    value.tv_sec = epoch_seconds;
+    value.tv_sec         = epoch_seconds;
     return settimeofday(&value, nullptr) == 0;
 }
 
@@ -272,7 +296,8 @@ bool ClockAgent::syncToCompileTime()
     }
 
     m5::rtc_datetime_t rtc_datetime = {};
-    const bool         rtc_valid = M5.Rtc.getDateTime(&rtc_datetime) && valid_date(rtc_datetime.date) && valid_time(rtc_datetime.time);
+    const bool         rtc_valid =
+        M5.Rtc.getDateTime(&rtc_datetime) && valid_date(rtc_datetime.date) && valid_time(rtc_datetime.time);
     if (!rtc_valid || static_cast<int64_t>(compile_epoch_seconds) > datetime_to_epoch_seconds(rtc_datetime))
     {
         return setUnixTime(compile_epoch_seconds);
@@ -357,7 +382,7 @@ bool ClockAgent::getUnixTime(time_t* epoch_seconds)
     }
 
     const int64_t current = currentEpochSeconds();
-    *epoch_seconds = static_cast<time_t>(current);
+    *epoch_seconds        = static_cast<time_t>(current);
     return static_cast<int64_t>(*epoch_seconds) == current;
 }
 

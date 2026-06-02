@@ -32,9 +32,9 @@ private:
     void dismiss();
     void launchDefaultSoftAp();
 
-    char message_[kMessageMax + 1] = {};
-    bool fatal_                    = true;
-    bool dismissed_                = false;
+    char       message_[kMessageMax + 1] = {};
+    bool       fatal_                    = true;
+    bool       dismissed_                = false;
     FlyGuiItem actionItem_;
 
     static ErrorView* activeView_;

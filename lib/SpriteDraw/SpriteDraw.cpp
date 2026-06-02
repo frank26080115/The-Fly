@@ -14,9 +14,9 @@ namespace SpriteDraw
 namespace
 {
 
-constexpr size_t kMaxRunChunkPixels = 128;
-constexpr const char* TAG = "SpriteDraw";
-constexpr uint8_t kTransparentAlphaThreshold = 255 / 4;
+constexpr size_t      kMaxRunChunkPixels         = 128;
+constexpr const char* TAG                        = "SpriteDraw";
+constexpr uint8_t     kTransparentAlphaThreshold = 255 / 4;
 
 struct PngDecodeContext
 {
@@ -57,8 +57,8 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
         return;
     }
 
-    int32_t dst_x = context->origin_x + static_cast<int32_t>(x);
-    int32_t dst_y = context->origin_y + static_cast<int32_t>(y);
+    int32_t    dst_x  = context->origin_x + static_cast<int32_t>(x);
+    int32_t    dst_y  = context->origin_y + static_cast<int32_t>(y);
     const bool dither = (context->brightness & PNG_DITHER_FLAG) != 0;
 
     ++context->callbacks;
@@ -94,8 +94,8 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
             if (!considered_transparent_pixel(argb) && pixel_x >= 0 && pixel_x < thefly_display.width())
             {
                 const lgfx::rgb565_t color = !dither || dither_pixel_enabled(pixel_x, dst_y)
-                                               ? argb_to_rgb565(argb, context->brightness)
-                                               : black_pixel();
+                                                 ? argb_to_rgb565(argb, context->brightness)
+                                                 : black_pixel();
                 thefly_display.drawPixel(pixel_x, dst_y, color);
             }
             argb += 4;
@@ -159,13 +159,16 @@ void draw_png_run(void* user_data, uint32_t x, uint32_t y, uint_fast8_t div_x, s
             while (index < chunk && !considered_transparent_pixel(argb + index * 4))
             {
                 const int32_t pixel_x = dst_x + static_cast<int32_t>(index);
-                line[span_len++] = !dither || dither_pixel_enabled(pixel_x, dst_y)
-                                       ? argb_to_rgb565(argb + index * 4, context->brightness)
-                                       : black_pixel();
+                line[span_len++]      = !dither || dither_pixel_enabled(pixel_x, dst_y)
+                                            ? argb_to_rgb565(argb + index * 4, context->brightness)
+                                            : black_pixel();
                 ++index;
             }
 
-            thefly_display.setAddrWindow(dst_x + static_cast<int32_t>(span_start), dst_y, static_cast<int32_t>(span_len), 1);
+            thefly_display.setAddrWindow(dst_x + static_cast<int32_t>(span_start),
+                                         dst_y,
+                                         static_cast<int32_t>(span_len),
+                                         1);
             thefly_display.writePixels(line, static_cast<int32_t>(span_len));
         }
 
@@ -247,14 +250,14 @@ lgfx::rgb565_t argb_to_rgb565(const uint8_t* argb, uint8_t brightness)
 } // namespace
 
 DrawResult drawPng(const uint8_t* sprite,
-                   size_t sprite_bytes,
-                   int32_t x,
-                   int32_t y,
-                   uint32_t width,
-                   uint32_t height,
-                   bool fast_mode,
-                   uint8_t brightness,
-                   DrawCallback callback)
+                   size_t         sprite_bytes,
+                   int32_t        x,
+                   int32_t        y,
+                   uint32_t       width,
+                   uint32_t       height,
+                   bool           fast_mode,
+                   uint8_t        brightness,
+                   DrawCallback   callback)
 {
     DrawResult result;
 
@@ -272,13 +275,13 @@ DrawResult drawPng(const uint8_t* sprite,
     }
 
     PngDecodeContext context;
-    context.data      = sprite;
-    context.data_size = sprite_bytes;
-    context.origin_x  = x;
-    context.origin_y  = y;
-    context.fast_mode = fast_mode;
+    context.data       = sprite;
+    context.data_size  = sprite_bytes;
+    context.origin_x   = x;
+    context.origin_y   = y;
+    context.fast_mode  = fast_mode;
     context.brightness = brightness;
-    context.callback  = callback;
+    context.callback   = callback;
 
     if (lgfx_pngle_prepare(pngle, read_png_bytes, &context) < 0)
     {

@@ -13,6 +13,6 @@ namespace DecryptedDownload
 void finishGet(AsyncWebServerRequest* request);
 void finish(AsyncWebServerRequest* request);
 void writeBody(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total);
-}
+} // namespace DecryptedDownload
 
 #endif

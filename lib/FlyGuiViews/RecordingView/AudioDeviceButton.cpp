@@ -34,8 +34,7 @@ uint16_t meter_color(uint8_t level)
 } // namespace
 
 AudioDeviceButton::AudioDeviceButton(Device device, int16_t x, int16_t y)
-    : FlyGuiItem(x, y, kButtonSize, kButtonSize),
-      device_(device)
+    : FlyGuiItem(x, y, kButtonSize, kButtonSize), device_(device)
 {
     if (device_ == Device::Mic)
     {
@@ -83,9 +82,10 @@ void AudioDeviceButton::drawAudioMeter()
         return;
     }
 
-    const uint8_t level = device_ == Device::Mic ? AudioManager::micScaledPeakLevel() : AudioManager::speakerPeakLevel();
+    const uint8_t level =
+        device_ == Device::Mic ? AudioManager::micScaledPeakLevel() : AudioManager::speakerPeakLevel();
     const int16_t center = x() + width() / 2;
-    const int16_t half = static_cast<int16_t>((static_cast<uint32_t>(width() / 2) * level) / 100U);
+    const int16_t half   = static_cast<int16_t>((static_cast<uint32_t>(width() / 2) * level) / 100U);
 
     thefly_display.drawFastHLine(x(), y(), width(), TFT_BLACK);
     if (half <= 0)

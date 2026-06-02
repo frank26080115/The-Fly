@@ -7,14 +7,14 @@
 
 namespace
 {
-constexpr int16_t kProgressWidth       = 300;
-constexpr int16_t kProgressHeight      = 12;
-constexpr int16_t kProgressY           = FlyGui::kTopBarHeight + 129;
-constexpr int16_t kProgressTextY       = kProgressY + kProgressHeight + 4;
-constexpr int16_t kProgressTextHeight  = 18;
-constexpr uint8_t kTextFont            = 2;
-constexpr uint8_t kSmallTextFont       = 1;
-constexpr float   kTextSize            = 1.0f;
+constexpr int16_t kProgressWidth      = 300;
+constexpr int16_t kProgressHeight     = 12;
+constexpr int16_t kProgressY          = FlyGui::kTopBarHeight + 129;
+constexpr int16_t kProgressTextY      = kProgressY + kProgressHeight + 4;
+constexpr int16_t kProgressTextHeight = 18;
+constexpr uint8_t kTextFont           = 2;
+constexpr uint8_t kSmallTextFont      = 1;
+constexpr float   kTextSize           = 1.0f;
 
 int16_t progress_x()
 {
@@ -85,7 +85,7 @@ void CloudUploadView::drawProgress()
     progressBar_.update(progressPercent());
 
     const uint8_t percent = roundedProgressPercent();
-    char text[48];
+    char          text[48];
     snprintf(text,
              sizeof(text),
              "%u%% %lu/%lu (%lu errs)",

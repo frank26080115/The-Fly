@@ -68,14 +68,14 @@ private:
     ScrubBar   scrubBar_;
     ScrubBar   precisionScrubBar_;
 
-    char     path_[96]      = {};
-    char     fileName_[64]  = {};
-    char     statusText_[96] = {};
-    uint8_t  volumeIndex_   = 0;
-    bool     playIconPause_ = false;
-    bool     deleteArmed_   = false;
-    bool     frameDirty_    = true;
-    bool     precisionWindowInitialized_ = false;
-    uint32_t deleteArmedAtMs_ = 0;
+    char                          path_[96]                   = {};
+    char                          fileName_[64]               = {};
+    char                          statusText_[96]             = {};
+    uint8_t                       volumeIndex_                = 0;
+    bool                          playIconPause_              = false;
+    bool                          deleteArmed_                = false;
+    bool                          frameDirty_                 = true;
+    bool                          precisionWindowInitialized_ = false;
+    uint32_t                      deleteArmedAtMs_            = 0;
     std::unique_ptr<FilePlayback> playback_;
 };

@@ -18,8 +18,8 @@ constexpr const char* TAG = "test_nvsloadsave";
 // Keep the large diagnostic objects at file scope so their zero-initialized
 // backing storage lives in .bss instead of the Arduino setup task stack.
 network_cfg_t  g_network_report_cfg = {};
-network_cfg_t  g_max_network_cfg = {};
-bt_host_list_t g_bt_report_cfg = {};
+network_cfg_t  g_max_network_cfg    = {};
+bt_host_list_t g_bt_report_cfg      = {};
 WifiManager    g_wifi;
 WifiManager    g_wifi_verify;
 BtHostList     g_bt_hosts;
@@ -46,8 +46,8 @@ void fill_alphabet(char* dst, size_t dst_size, size_t offset)
 
 void print_nvs_stats(const char* label)
 {
-    nvs_stats_t stats = {};
-    const esp_err_t err = nvs_get_stats(nullptr, &stats);
+    nvs_stats_t     stats = {};
+    const esp_err_t err   = nvs_get_stats(nullptr, &stats);
     if (err != ESP_OK)
     {
         Serial.printf("%s: NVS stats %s failed: %s\n", TAG, safe_text(label), esp_err_to_name(err));
@@ -88,7 +88,8 @@ void print_bt_host_item(size_t index, const bt_host_item_t& item)
 {
     char bdaddr[18] = {};
     format_bdaddr(item.bdaddr, bdaddr, sizeof(bdaddr));
-    Serial.printf("%s: bt_host[%u] bdaddr=%s name_custom=\"%s\" name_reported=\"%s\" display=\"%s\" bonded=%u last_used=%ld icon=%u\n",
+    Serial.printf("%s: bt_host[%u] bdaddr=%s name_custom=\"%s\" name_reported=\"%s\" display=\"%s\" bonded=%u "
+                  "last_used=%ld icon=%u\n",
                   TAG,
                   static_cast<unsigned>(index),
                   bdaddr,
@@ -111,7 +112,8 @@ void print_network_config(const char* label, const WifiManager& wifi)
                   safe_text(label),
                   wifi.lastLoadResultName(),
                   static_cast<unsigned>(sizeof(network_cfg_t)));
-    Serial.printf("%s: %s network magic=0x%08lX version=%lu security_level=%u station_count=%u access_point_count=%u cloud_endpoint_count=%u\n",
+    Serial.printf("%s: %s network magic=0x%08lX version=%lu security_level=%u station_count=%u access_point_count=%u "
+                  "cloud_endpoint_count=%u\n",
                   TAG,
                   safe_text(label),
                   static_cast<unsigned long>(cfg.magic),
@@ -171,9 +173,9 @@ void print_bt_host_list(const char* label, const BtHostList& hosts)
 void fill_max_network_config(network_cfg_t& cfg)
 {
     memset(&cfg, 0, sizeof(cfg));
-    cfg.security_level = BUILD_WITH_SECURITY_LEVEL;
-    cfg.station_count = static_cast<uint8_t>(kNetworkConfigMaxEntries);
-    cfg.access_point_count = static_cast<uint8_t>(kNetworkConfigMaxEntriesAP);
+    cfg.security_level       = BUILD_WITH_SECURITY_LEVEL;
+    cfg.station_count        = static_cast<uint8_t>(kNetworkConfigMaxEntries);
+    cfg.access_point_count   = static_cast<uint8_t>(kNetworkConfigMaxEntriesAP);
     cfg.cloud_endpoint_count = static_cast<uint8_t>(kNetworkConfigCloudMaxEntries);
 
     fill_alphabet(cfg.timezone, sizeof(cfg.timezone), 0);
@@ -217,7 +219,9 @@ void fill_max_bt_host_list(BtHostList& hosts)
 
         char reported_name[kBtHostNameMaxLength] = {};
         fill_alphabet(reported_name, sizeof(reported_name), i);
-        hosts.insert(reported_name, bdaddr, static_cast<uint8_t>(ICON_SMARTPHONE + (i % (ICON_LAST - ICON_SMARTPHONE))));
+        hosts.insert(reported_name,
+                     bdaddr,
+                     static_cast<uint8_t>(ICON_SMARTPHONE + (i % (ICON_LAST - ICON_SMARTPHONE))));
 
         bt_host_item_t* item = hosts.get(i);
         if (item)
@@ -257,14 +261,17 @@ void test_nvsloadsave()
 
     print_nvs_stats("before load");
 
-    WifiManager& wifi = g_wifi;
-    const bool wifi_loaded = wifi.loadFromNvs();
+    WifiManager& wifi        = g_wifi;
+    const bool   wifi_loaded = wifi.loadFromNvs();
     Serial.printf("%s: WifiManager::loadFromNvs=%u result=%s\n", TAG, wifi_loaded ? 1U : 0U, wifi.lastLoadResultName());
     print_network_config("loaded", wifi);
 
-    BtHostList& bt_hosts = g_bt_hosts;
-    const bool bt_loaded = bt_hosts.loadFromNvs();
-    Serial.printf("%s: BtHostList::loadFromNvs=%u result=%s\n", TAG, bt_loaded ? 1U : 0U, bt_hosts.lastLoadResultName());
+    BtHostList& bt_hosts  = g_bt_hosts;
+    const bool  bt_loaded = bt_hosts.loadFromNvs();
+    Serial.printf("%s: BtHostList::loadFromNvs=%u result=%s\n",
+                  TAG,
+                  bt_loaded ? 1U : 0U,
+                  bt_hosts.lastLoadResultName());
     print_bt_host_list("loaded", bt_hosts);
 
     network_cfg_t& max_network = g_max_network_cfg;
@@ -273,23 +280,26 @@ void test_nvsloadsave()
 
     Serial.printf("%s: writing maximum-size test data to NVS\n", TAG);
     const bool wifi_saved = wifi.replaceConfig(max_network);
-    Serial.printf("%s: WifiManager::replaceConfig/save=%u result=%s\n", TAG, wifi_saved ? 1U : 0U, wifi.lastLoadResultName());
+    Serial.printf("%s: WifiManager::replaceConfig/save=%u result=%s\n",
+                  TAG,
+                  wifi_saved ? 1U : 0U,
+                  wifi.lastLoadResultName());
 
     const bool bt_saved = bt_hosts.saveToNvs();
     Serial.printf("%s: BtHostList::saveToNvs=%u result=%s\n", TAG, bt_saved ? 1U : 0U, bt_hosts.lastLoadResultName());
 
     print_nvs_stats("after save");
 
-    WifiManager& wifi_verify = g_wifi_verify;
-    const bool wifi_verify_loaded = wifi_verify.loadFromNvs();
+    WifiManager& wifi_verify        = g_wifi_verify;
+    const bool   wifi_verify_loaded = wifi_verify.loadFromNvs();
     Serial.printf("%s: verify WifiManager::loadFromNvs=%u result=%s\n",
                   TAG,
                   wifi_verify_loaded ? 1U : 0U,
                   wifi_verify.lastLoadResultName());
     print_network_config("verified", wifi_verify);
 
-    BtHostList& bt_verify = g_bt_verify;
-    const bool bt_verify_loaded = bt_verify.loadFromNvs();
+    BtHostList& bt_verify        = g_bt_verify;
+    const bool  bt_verify_loaded = bt_verify.loadFromNvs();
     Serial.printf("%s: verify BtHostList::loadFromNvs=%u result=%s\n",
                   TAG,
                   bt_verify_loaded ? 1U : 0U,

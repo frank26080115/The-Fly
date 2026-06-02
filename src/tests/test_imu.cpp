@@ -36,9 +36,9 @@ void test_imu()
     Serial.begin(115200);
     delay(1000);
 
-    auto cfg          = M5.config();
-    cfg.internal_imu  = true;
-    cfg.external_imu  = false;
+    auto cfg         = M5.config();
+    cfg.internal_imu = true;
+    cfg.external_imu = false;
     M5.begin(cfg);
 
     Serial.println();
@@ -65,7 +65,8 @@ void test_imu()
         if (static_cast<uint32_t>(now_ms - report_started_ms) >= kReportPeriodMs)
         {
             const uint8_t orientation = ImuOrientation::orientation();
-            Serial.printf("%s: ms=%lu polls=%lu samples=%lu imu_enabled=%u orientation=%u(%s) upside_down=%u roll_deg=%d pitch_deg=%d\n",
+            Serial.printf("%s: ms=%lu polls=%lu samples=%lu imu_enabled=%u orientation=%u(%s) upside_down=%u "
+                          "roll_deg=%d pitch_deg=%d\n",
                           TAG,
                           static_cast<unsigned long>(now_ms),
                           static_cast<unsigned long>(poll_count),

@@ -13,7 +13,7 @@ namespace
 
 struct Candidate
 {
-    uint32_t created = 0;
+    uint32_t created                  = 0;
     char     name[kMaxFileNameLength] = {};
 };
 
@@ -30,18 +30,16 @@ bool is_recorded_file(FsFile& file)
 
 bool is_listable_recording_name(const char* name)
 {
-    if (ends_with_case_insensitive(name, ".wav") ||
-        ends_with_case_insensitive(name, ".mp3"))
+    if (ends_with_case_insensitive(name, ".wav") || ends_with_case_insensitive(name, ".mp3"))
     {
         return true;
     }
 
-    #ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
-    return ends_with_case_insensitive(name, ".rec") ||
-           ends_with_case_insensitive(name, ".fly");
-    #else
+#ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
+    return ends_with_case_insensitive(name, ".rec") || ends_with_case_insensitive(name, ".fly");
+#else
     return false;
-    #endif
+#endif
 }
 
 bool newer_than(const Candidate& lhs, uint32_t rhsCreated, const char* rhsName)
@@ -216,10 +214,10 @@ FileList get(size_t maxFiles)
         return result;
     }
 
-    FsFile    file;
-    char      name[kMaxFileNameLength] = {};
-    uint16_t  date = 0;
-    uint16_t  time = 0;
+    FsFile   file;
+    char     name[kMaxFileNameLength] = {};
+    uint16_t date                     = 0;
+    uint16_t time                     = 0;
 
     while (file.openNext(&root, O_RDONLY))
     {

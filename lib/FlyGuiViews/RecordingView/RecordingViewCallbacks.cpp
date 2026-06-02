@@ -9,7 +9,7 @@ namespace RecordingViewCallbacks
 namespace
 {
 
-bool    g_memo_bt_fifo_choked  = false;
+bool g_memo_bt_fifo_choked = false;
 
 void restore_memo_bt_fifo()
 {

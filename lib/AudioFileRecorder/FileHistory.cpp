@@ -20,9 +20,9 @@ namespace AudioFileRecorder
 namespace
 {
 
-constexpr const char* TAG                  = "FileHistory";
-constexpr const char* kCloudHistoryPath    = "/cloud_history.txt";
-constexpr const char* kCloudHistoryOldPath = "/cloud_history.old.txt";
+constexpr const char* TAG                      = "FileHistory";
+constexpr const char* kCloudHistoryPath        = "/cloud_history.txt";
+constexpr const char* kCloudHistoryOldPath     = "/cloud_history.old.txt";
 constexpr int64_t     kHistoryRetentionSeconds = 3LL * 24LL * 60LL * 60LL;
 constexpr size_t      kHistoryLineMaxLength    = 512;
 constexpr uint32_t    kPruneHistoryStackBytes  = 6144;
@@ -45,8 +45,7 @@ int64_t days_from_civil(int32_t year, int32_t month, int32_t day)
 int64_t datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime)
 {
     return days_from_civil(datetime.date.year, datetime.date.month, datetime.date.date) * 86400LL +
-           static_cast<int64_t>(datetime.time.hours) * 3600LL +
-           static_cast<int64_t>(datetime.time.minutes) * 60LL +
+           static_cast<int64_t>(datetime.time.hours) * 3600LL + static_cast<int64_t>(datetime.time.minutes) * 60LL +
            static_cast<int64_t>(datetime.time.seconds);
 }
 
@@ -182,7 +181,7 @@ void finish_prune_history(PruneHistoryState state, PruneHistoryError error)
 
 void prune_history_task(void*)
 {
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     if (!MicroSdCard::isReady())
     {
         finish_prune_history(PruneHistoryState::Error, PruneHistoryError::SdNotReady);
@@ -190,10 +189,10 @@ void prune_history_task(void*)
         return;
     }
 
-    SdFs& fs = MicroSdCard::fs();
-    const bool had_history = fs.exists(kCloudHistoryPath);
-    m5::rtc_datetime_t now = {};
-    int64_t now_epoch = 0;
+    SdFs&              fs          = MicroSdCard::fs();
+    const bool         had_history = fs.exists(kCloudHistoryPath);
+    m5::rtc_datetime_t now         = {};
+    int64_t            now_epoch   = 0;
     if (had_history)
     {
         if (!Clock.getDateTime(&now))
@@ -251,12 +250,13 @@ void prune_history_task(void*)
     {
         ++lines_processed;
 
-        bool keep_line = true;
+        bool keep_line      = true;
         char file_path[192] = {};
         if (extract_history_file_path(line, file_path, sizeof(file_path)))
         {
             m5::rtc_datetime_t file_time = {};
-            if (parse_datetime(basename_for_path(file_path), file_time) && datetime_is_older_than_retention(file_time, now_epoch))
+            if (parse_datetime(basename_for_path(file_path), file_time) &&
+                datetime_is_older_than_retention(file_time, now_epoch))
             {
                 if (!fs.exists(file_path) || fs.remove(file_path))
                 {
@@ -308,7 +308,7 @@ void prune_history_task(void*)
     }
 
     finish_prune_history(PruneHistoryState::Done, PruneHistoryError::None);
-    #endif
+#endif
 
     vTaskDelete(nullptr);
 }
@@ -317,7 +317,7 @@ void prune_history_task(void*)
 
 bool prune_history()
 {
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     {
         std::lock_guard<std::mutex> lock(g_prune_mutex);
         if (g_prune_status.state == PruneHistoryState::Busy)
@@ -357,7 +357,7 @@ bool prune_history()
         }
         return false;
     }
-    #else
+#else
     PruneHistoryCallback callback = nullptr;
     PruneHistoryStatus   status   = {};
     {
@@ -373,7 +373,7 @@ bool prune_history()
     {
         callback(status);
     }
-    #endif
+#endif
 
     return true;
 }

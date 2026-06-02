@@ -29,13 +29,13 @@ private:
     FlyGuiItem wifiIcon_;
     FlyGuiItem securityIcon_;
     FlyGuiItem eyeItem_;
-    bool       showSensitive_ = false;
-    uint8_t    statsIndex_ = 0;
+    bool       showSensitive_    = false;
+    uint8_t    statsIndex_       = 0;
     uint32_t   lastClientDrawMs_ = 0;
-    uint32_t   lastStatsDrawMs_ = 0;
-    uint32_t   qrHoldStartedMs_ = 0;
-    bool       qrHoldActive_ = false;
-    bool       qrHoldFadeDrawn_ = false;
+    uint32_t   lastStatsDrawMs_  = 0;
+    uint32_t   qrHoldStartedMs_  = 0;
+    bool       qrHoldActive_     = false;
+    bool       qrHoldFadeDrawn_  = false;
 
     static WifiApModeView* activeView_;
 };

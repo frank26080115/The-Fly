@@ -15,43 +15,44 @@
 #include "utilfuncs.h"
 
 extern ModalDialog* get_view_modal_dialog();
-extern ScrollView* get_view_scroll();
+extern ScrollView*  get_view_scroll();
 
 namespace
 {
 constexpr const char* TAG = "PlaybackView";
 
-constexpr int16_t kIconX       = 4;
-constexpr int16_t kIconY       = FlyGui::kTopBarHeight;
-constexpr int16_t kIconSize    = 50;
-constexpr int16_t kFileTextX   = 60;
-constexpr int16_t kFileTextY   = FlyGui::kTopBarHeight + 7;
-constexpr int16_t kFileTextMaxY = FlyGui::kTopBarHeight + kIconSize;
+constexpr int16_t kIconX               = 4;
+constexpr int16_t kIconY               = FlyGui::kTopBarHeight;
+constexpr int16_t kIconSize            = 50;
+constexpr int16_t kFileTextX           = 60;
+constexpr int16_t kFileTextY           = FlyGui::kTopBarHeight + 7;
+constexpr int16_t kFileTextMaxY        = FlyGui::kTopBarHeight + kIconSize;
 constexpr int16_t kFileTextRightMargin = 4;
-constexpr int16_t kFileLineHeight = 15;
-constexpr int16_t kScrubWidth  = 300;
-constexpr int16_t kScrubHeight = 20;
-constexpr int16_t kScrubY      = 64;
-constexpr int16_t kPrecisionScrubY = 124;
-constexpr int16_t kStatusTextY = static_cast<int16_t>(kScrubY + kScrubHeight + ((kPrecisionScrubY - (kScrubY + kScrubHeight)) / 2));
-constexpr int16_t kDeleteConfirmTextY = kScrubY - 17;
-constexpr int16_t kDeleteConfirmTextGap = 4;
-constexpr int16_t kButtonY     = 180;
-constexpr int16_t kButtonSize  = 50;
-constexpr uint8_t kNormalFont  = 2;
-constexpr uint8_t kLargeFileFont = 4;
-constexpr int16_t kLargeFileLineGap = 2;
-constexpr float   kTextSize    = 1.0f;
-constexpr uint32_t kLongFilePrecisionThresholdMs = 120000;
-constexpr uint32_t kPrecisionWindowMs = 60000;
-constexpr uint32_t kPrecisionHalfWindowMs = kPrecisionWindowMs / 2;
-constexpr uint32_t kPrecisionCatchupMs = 1000;
-constexpr uint32_t kDeleteConfirmDebounceMs = 1000;
-constexpr const char* kDeleteConfirmText = "confirm delete?";
-constexpr uint16_t kPrecisionScrubColor = 0xFDE0; // #FCBC00 converted to RGB565. 0xFF20 might also work
+constexpr int16_t kFileLineHeight      = 15;
+constexpr int16_t kScrubWidth          = 300;
+constexpr int16_t kScrubHeight         = 20;
+constexpr int16_t kScrubY              = 64;
+constexpr int16_t kPrecisionScrubY     = 124;
+constexpr int16_t kStatusTextY =
+    static_cast<int16_t>(kScrubY + kScrubHeight + ((kPrecisionScrubY - (kScrubY + kScrubHeight)) / 2));
+constexpr int16_t     kDeleteConfirmTextY           = kScrubY - 17;
+constexpr int16_t     kDeleteConfirmTextGap         = 4;
+constexpr int16_t     kButtonY                      = 180;
+constexpr int16_t     kButtonSize                   = 50;
+constexpr uint8_t     kNormalFont                   = 2;
+constexpr uint8_t     kLargeFileFont                = 4;
+constexpr int16_t     kLargeFileLineGap             = 2;
+constexpr float       kTextSize                     = 1.0f;
+constexpr uint32_t    kLongFilePrecisionThresholdMs = 120000;
+constexpr uint32_t    kPrecisionWindowMs            = 60000;
+constexpr uint32_t    kPrecisionHalfWindowMs        = kPrecisionWindowMs / 2;
+constexpr uint32_t    kPrecisionCatchupMs           = 1000;
+constexpr uint32_t    kDeleteConfirmDebounceMs      = 1000;
+constexpr const char* kDeleteConfirmText            = "confirm delete?";
+constexpr uint16_t    kPrecisionScrubColor          = 0xFDE0; // #FCBC00 converted to RGB565. 0xFF20 might also work
 
 constexpr size_t kWrapLineMax = 128;
-constexpr size_t kNoSpace = static_cast<size_t>(-1);
+constexpr size_t kNoSpace     = static_cast<size_t>(-1);
 
 void trim_leading_spaces(char* line, size_t& len)
 {
@@ -102,7 +103,7 @@ bool count_wrapped_line(char* line, size_t& len, int16_t& y, int16_t maxY, int16
     }
 
     y += lineHeight;
-    len = 0;
+    len     = 0;
     line[0] = '\0';
     return true;
 }
@@ -114,10 +115,10 @@ bool wrapped_text_fits(const char* text, int16_t width, int16_t y, int16_t maxY,
         return false;
     }
 
-    char line[kWrapLineMax] = {};
-    size_t len = 0;
-    size_t lastSpace = kNoSpace;
-    bool canFit = true;
+    char   line[kWrapLineMax] = {};
+    size_t len                = 0;
+    size_t lastSpace          = kNoSpace;
+    bool   canFit             = true;
 
     for (const char* p = text; *p && canFit; ++p)
     {
@@ -129,14 +130,14 @@ bool wrapped_text_fits(const char* text, int16_t width, int16_t y, int16_t maxY,
 
         if (c == '\n')
         {
-            canFit = count_wrapped_line(line, len, y, maxY, lineHeight);
+            canFit    = count_wrapped_line(line, len, y, maxY, lineHeight);
             lastSpace = kNoSpace;
             continue;
         }
 
         if (len + 1 >= sizeof(line))
         {
-            canFit = count_wrapped_line(line, len, y, maxY, lineHeight);
+            canFit    = count_wrapped_line(line, len, y, maxY, lineHeight);
             lastSpace = kNoSpace;
             if (!canFit)
             {
@@ -145,7 +146,7 @@ bool wrapped_text_fits(const char* text, int16_t width, int16_t y, int16_t maxY,
         }
 
         line[len++] = c;
-        line[len] = '\0';
+        line[len]   = '\0';
         if (c == ' ')
         {
             lastSpace = len - 1;
@@ -159,29 +160,29 @@ bool wrapped_text_fits(const char* text, int16_t width, int16_t y, int16_t maxY,
                 strncpy(remainder, line + lastSpace + 1, sizeof(remainder) - 1);
 
                 line[lastSpace] = '\0';
-                size_t lineLen = lastSpace;
-                canFit = count_wrapped_line(line, lineLen, y, maxY, lineHeight);
+                size_t lineLen  = lastSpace;
+                canFit          = count_wrapped_line(line, lineLen, y, maxY, lineHeight);
 
                 strncpy(line, remainder, sizeof(line) - 1);
                 line[sizeof(line) - 1] = '\0';
-                len = strlen(line);
+                len                    = strlen(line);
                 recalc_last_space(line, len, lastSpace);
             }
             else if (len > 1)
             {
                 const char overflow = line[len - 1];
-                line[len - 1] = '\0';
-                size_t lineLen = len - 1;
-                canFit = count_wrapped_line(line, lineLen, y, maxY, lineHeight);
+                line[len - 1]       = '\0';
+                size_t lineLen      = len - 1;
+                canFit              = count_wrapped_line(line, lineLen, y, maxY, lineHeight);
 
-                line[0] = overflow;
-                line[1] = '\0';
-                len = 1;
+                line[0]   = overflow;
+                line[1]   = '\0';
+                len       = 1;
                 lastSpace = overflow == ' ' ? 0 : kNoSpace;
             }
             else
             {
-                canFit = count_wrapped_line(line, len, y, maxY, lineHeight);
+                canFit    = count_wrapped_line(line, len, y, maxY, lineHeight);
                 lastSpace = kNoSpace;
             }
         }
@@ -211,7 +212,8 @@ int16_t delete_x()
     return static_cast<int16_t>(thefly_display.width() - kButtonSize);
 }
 
-void copy_wrapped_prefix_that_fits(const char* text, char* out, size_t outSize, int16_t width, int16_t y, int16_t maxY, int16_t lineHeight)
+void copy_wrapped_prefix_that_fits(
+    const char* text, char* out, size_t outSize, int16_t width, int16_t y, int16_t maxY, int16_t lineHeight)
 {
     if (!out || outSize == 0)
     {
@@ -224,9 +226,9 @@ void copy_wrapped_prefix_that_fits(const char* text, char* out, size_t outSize, 
         return;
     }
 
-    char   candidate[kWrapLineMax] = {};
-    size_t bestLen = 0;
-    const size_t maxLen = std::min(strlen(text), std::min(outSize - 1, sizeof(candidate) - 1));
+    char         candidate[kWrapLineMax] = {};
+    size_t       bestLen                 = 0;
+    const size_t maxLen                  = std::min(strlen(text), std::min(outSize - 1, sizeof(candidate) - 1));
     for (size_t len = 1; len <= maxLen; ++len)
     {
         memcpy(candidate, text, len);
@@ -257,7 +259,7 @@ uint32_t precision_window_start(uint32_t currentMs, uint32_t totalMs)
         return 0;
     }
 
-    const uint32_t latestStart = totalMs - kPrecisionWindowMs;
+    const uint32_t latestStart   = totalMs - kPrecisionWindowMs;
     const uint32_t centeredStart = currentMs - kPrecisionHalfWindowMs;
     return centeredStart > latestStart ? latestStart : centeredStart;
 }
@@ -288,22 +290,27 @@ struct VolumeOption
 };
 
 const VolumeOption kVolumeOptions[] = {
-    { AudioManager::kMaxVolume, sprite_speaker_50, SPRITE_SPEAKER_50_WIDTH, SPRITE_SPEAKER_50_HEIGHT, SPRITE_SPEAKER_50_BYTES },
-    { 20, sprite_speaker_66_50, SPRITE_SPEAKER_66_50_WIDTH, SPRITE_SPEAKER_66_50_HEIGHT, SPRITE_SPEAKER_66_50_BYTES },
-    { 10, sprite_speaker_33_50, SPRITE_SPEAKER_33_50_WIDTH, SPRITE_SPEAKER_33_50_HEIGHT, SPRITE_SPEAKER_33_50_BYTES },
-    { AudioManager::kMinVolume, sprite_speaker_00_50, SPRITE_SPEAKER_00_50_WIDTH, SPRITE_SPEAKER_00_50_HEIGHT, SPRITE_SPEAKER_00_50_BYTES },
+    {AudioManager::kMaxVolume,
+     sprite_speaker_50,
+     SPRITE_SPEAKER_50_WIDTH,
+     SPRITE_SPEAKER_50_HEIGHT,
+     SPRITE_SPEAKER_50_BYTES},
+    {20, sprite_speaker_66_50, SPRITE_SPEAKER_66_50_WIDTH, SPRITE_SPEAKER_66_50_HEIGHT, SPRITE_SPEAKER_66_50_BYTES},
+    {10, sprite_speaker_33_50, SPRITE_SPEAKER_33_50_WIDTH, SPRITE_SPEAKER_33_50_HEIGHT, SPRITE_SPEAKER_33_50_BYTES},
+    {AudioManager::kMinVolume,
+     sprite_speaker_00_50,
+     SPRITE_SPEAKER_00_50_WIDTH,
+     SPRITE_SPEAKER_00_50_HEIGHT,
+     SPRITE_SPEAKER_00_50_BYTES},
 };
 } // namespace
 
 PlaybackView* PlaybackView::activeInstance_ = nullptr;
 
 PlaybackView::PlaybackView()
-    : FlyGuiView(FLYGUI_VIEW_PLAYBACK),
-      recordIcon_(kIconX, kIconY, kIconSize, kIconSize),
-      deleteButton_(0, kIconY, kButtonSize, kButtonSize),
-      playPauseButton_(0, kButtonY, kButtonSize, kButtonSize),
-      volumeButton_(0, kButtonY, kButtonSize, kButtonSize),
-      exitButton_(0, kButtonY, kButtonSize, kButtonSize),
+    : FlyGuiView(FLYGUI_VIEW_PLAYBACK), recordIcon_(kIconX, kIconY, kIconSize, kIconSize),
+      deleteButton_(0, kIconY, kButtonSize, kButtonSize), playPauseButton_(0, kButtonY, kButtonSize, kButtonSize),
+      volumeButton_(0, kButtonY, kButtonSize, kButtonSize), exitButton_(0, kButtonY, kButtonSize, kButtonSize),
       scrubBar_(0, kScrubY, kScrubWidth, kScrubHeight),
       precisionScrubBar_(0, kPrecisionScrubY, kScrubWidth, kScrubHeight)
 {
@@ -330,7 +337,10 @@ PlaybackView::PlaybackView()
     volumeButton_.setCallback(volumeThunk);
     addItem(volumeButton_);
 
-    exitButton_.setSprite(sprite_squarex_50, SPRITE_SQUAREX_50_WIDTH, SPRITE_SQUAREX_50_HEIGHT, SPRITE_SQUAREX_50_BYTES);
+    exitButton_.setSprite(sprite_squarex_50,
+                          SPRITE_SQUAREX_50_WIDTH,
+                          SPRITE_SQUAREX_50_HEIGHT,
+                          SPRITE_SQUAREX_50_BYTES);
     exitButton_.setCallback(exitThunk);
     addItem(exitButton_);
 
@@ -408,8 +418,7 @@ void PlaybackView::onUnload()
 
 bool PlaybackView::handleTouch(const FlyGuiTouchEvent& event)
 {
-    if ((event.justPressed || event.pressed || event.justReleased) &&
-        event.y >= kButtonY &&
+    if ((event.justPressed || event.pressed || event.justReleased) && event.y >= kButtonY &&
         event.y < static_cast<int16_t>(kButtonY + kButtonSize))
     {
         const int16_t screenWidth = thefly_display.width();
@@ -432,8 +441,8 @@ bool PlaybackView::handleTouch(const FlyGuiTouchEvent& event)
             if (button)
             {
                 FlyGuiTouchEvent routed = event;
-                routed.x = static_cast<int16_t>(button->x() + button->width() / 2);
-                routed.y = static_cast<int16_t>(button->y() + button->height() / 2);
+                routed.x                = static_cast<int16_t>(button->x() + button->width() / 2);
+                routed.y                = static_cast<int16_t>(button->y() + button->height() / 2);
                 return button->handleTouch(routed);
             }
         }
@@ -577,8 +586,8 @@ void PlaybackView::handleDelete()
         gui()->setAudioActive(false);
     }
 
-    bool deleted = false;
-    const char* detail = nullptr;
+    bool        deleted = false;
+    const char* detail  = nullptr;
     if (path_[0] == '\0')
     {
         detail = "No file selected";
@@ -603,7 +612,7 @@ void PlaybackView::handleDelete()
         {
             file.close();
             deleted = MicroSdCard::fs().remove(path_);
-            detail = deleted ? deletedName : "File delete failed";
+            detail  = deleted ? deletedName : "File delete failed";
         }
     }
 
@@ -728,7 +737,7 @@ void PlaybackView::syncControls()
         }
     }
 
-    const uint32_t total = playback_ ? playback_->durationMs() : 0;
+    const uint32_t total   = playback_ ? playback_->durationMs() : 0;
     const uint32_t current = std::min(playback_ ? playback_->positionMs() : 0, total);
     scrubBar_.setTotalMs(total);
     scrubBar_.setPositionMs(current);
@@ -756,11 +765,11 @@ void PlaybackView::syncPrecisionScrubBar(uint32_t currentMs, uint32_t totalMs, b
         precisionScrubBar_.setVisible(true);
         precisionScrubBar_.setTouchable(true);
         precisionWindowInitialized_ = false;
-        frameDirty_ = true;
+        frameDirty_                 = true;
     }
 
     const uint32_t targetStart = precision_window_start(currentMs, totalMs);
-    uint32_t start = targetStart;
+    uint32_t       start       = targetStart;
     if (precisionWindowInitialized_)
     {
         start = step_toward(precisionScrubBar_.startMs(), targetStart, kPrecisionCatchupMs);
@@ -773,7 +782,7 @@ void PlaybackView::syncPrecisionScrubBar(uint32_t currentMs, uint32_t totalMs, b
     uint32_t end = start + kPrecisionWindowMs;
     if (end > totalMs)
     {
-        end = totalMs;
+        end   = totalMs;
         start = end > kPrecisionWindowMs ? end - kPrecisionWindowMs : 0;
     }
 
@@ -789,7 +798,7 @@ void PlaybackView::syncDeleteButton(bool playing)
 void PlaybackView::setVolumeIndex(uint8_t index)
 {
     const uint8_t count = static_cast<uint8_t>(sizeof(kVolumeOptions) / sizeof(kVolumeOptions[0]));
-    volumeIndex_ = count == 0 ? 0 : static_cast<uint8_t>(index % count);
+    volumeIndex_        = count == 0 ? 0 : static_cast<uint8_t>(index % count);
 
     const VolumeOption& option = kVolumeOptions[volumeIndex_];
     volumeButton_.setSprite(option.sprite, option.width, option.height, option.bytes);
@@ -829,7 +838,7 @@ void PlaybackView::setDeleteArmed(bool armed)
         return;
     }
 
-    deleteArmed_ = armed;
+    deleteArmed_     = armed;
     deleteArmedAtMs_ = armed ? millis() : 0;
     if (armed)
     {
@@ -917,7 +926,7 @@ void PlaybackView::drawFrame(bool forced)
 
 void PlaybackView::drawFileName() const
 {
-    const char* text = fileName_[0] != '\0' ? fileName_ : "No file";
+    const char*   text         = fileName_[0] != '\0' ? fileName_ : "No file";
     const int16_t fontFitWidth = static_cast<int16_t>(thefly_display.width() - kFileTextX - kFileTextRightMargin);
 
     thefly_display.setTextDatum(top_left);
@@ -926,25 +935,26 @@ void PlaybackView::drawFileName() const
 
     thefly_display.setTextFont(kLargeFileFont);
     const int16_t largeLineHeight = static_cast<int16_t>(thefly_display.fontHeight() + kLargeFileLineGap);
-    const bool useLargeFont = wrapped_text_fits(text, fontFitWidth, kFileTextY, kFileTextMaxY, largeLineHeight);
+    const bool    useLargeFont    = wrapped_text_fits(text, fontFitWidth, kFileTextY, kFileTextMaxY, largeLineHeight);
 
     thefly_display.setTextFont(useLargeFont ? kLargeFileFont : kNormalFont);
-    const int16_t lineHeight = useLargeFont ? largeLineHeight : kFileLineHeight;
-    int16_t drawWidth = fontFitWidth;
-    char clippedText[sizeof(fileName_)] = {};
+    const int16_t lineHeight                     = useLargeFont ? largeLineHeight : kFileLineHeight;
+    int16_t       drawWidth                      = fontFitWidth;
+    char          clippedText[sizeof(fileName_)] = {};
     if (deleteButton_.visible())
     {
         drawWidth = static_cast<int16_t>(deleteButton_.x() - kFileTextX - kFileTextRightMargin);
-        copy_wrapped_prefix_that_fits(text, clippedText, sizeof(clippedText), drawWidth, kFileTextY, kFileTextMaxY, lineHeight);
+        copy_wrapped_prefix_that_fits(text,
+                                      clippedText,
+                                      sizeof(clippedText),
+                                      drawWidth,
+                                      kFileTextY,
+                                      kFileTextMaxY,
+                                      lineHeight);
         text = clippedText;
     }
 
-    FlyGuiTextUtil::drawWrappedText(text,
-                                    kFileTextX,
-                                    kFileTextY,
-                                    drawWidth,
-                                    kFileTextMaxY,
-                                    lineHeight);
+    FlyGuiTextUtil::drawWrappedText(text, kFileTextX, kFileTextY, drawWidth, kFileTextMaxY, lineHeight);
 }
 
 void PlaybackView::drawDeleteConfirmText() const
@@ -959,9 +969,9 @@ void PlaybackView::drawDeleteConfirmText() const
     thefly_display.setTextFont(kNormalFont);
     thefly_display.setTextSize(kTextSize);
     thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
-    const int16_t textWidth = thefly_display.textWidth(kDeleteConfirmText);
+    const int16_t textWidth  = thefly_display.textWidth(kDeleteConfirmText);
     const int16_t textHeight = thefly_display.fontHeight();
-    const int16_t clearX = static_cast<int16_t>(std::max<int16_t>(0, textRight - textWidth - 2));
+    const int16_t clearX     = static_cast<int16_t>(std::max<int16_t>(0, textRight - textWidth - 2));
     thefly_display.fillRect(clearX,
                             kDeleteConfirmTextY,
                             static_cast<int16_t>(textRight - clearX + 2),

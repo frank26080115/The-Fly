@@ -47,20 +47,20 @@ private:
     void drawHourglassFrame(uint8_t frame);
     void drawProgress();
 
-    float   progressPercent() const;
-    uint8_t roundedProgressPercent() const;
+    float       progressPercent() const;
+    uint8_t     roundedProgressPercent() const;
     const char* failureText() const;
 
-    State      state_ = State::Prompt;
-    bool       batteryFullish_ = false;
-    bool       dismissed_ = false;
-    uint64_t   bytesWritten_ = 0;
-    uint64_t   bytesTotal_ = 0;
-    uint8_t    hourglassFrame_ = 0;
-    MicroSdCard::FirmwareUpdateResult result_ = MicroSdCard::FirmwareUpdateResult::Ok;
-    FlyGuiItem goItem_;
-    FlyGuiItem cancelItem_;
-    ProgressBar progressBar_;
+    State                             state_          = State::Prompt;
+    bool                              batteryFullish_ = false;
+    bool                              dismissed_      = false;
+    uint64_t                          bytesWritten_   = 0;
+    uint64_t                          bytesTotal_     = 0;
+    uint8_t                           hourglassFrame_ = 0;
+    MicroSdCard::FirmwareUpdateResult result_         = MicroSdCard::FirmwareUpdateResult::Ok;
+    FlyGuiItem                        goItem_;
+    FlyGuiItem                        cancelItem_;
+    ProgressBar                       progressBar_;
 
     static FirmwareUpdateView* activeView_;
 };

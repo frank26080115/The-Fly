@@ -21,13 +21,13 @@ constexpr uint32_t    kButtonPollMs   = 5;
 constexpr uint32_t    kCore0StackSize = 8192;
 constexpr UBaseType_t kCore0Priority  = 2;
 
-volatile bool g_stop_requested = false;
-TaskHandle_t  g_core0_task     = nullptr;
-uint16_t      g_cur_colour     = TFT_BLACK;
-uint16_t      g_next_colour    = TFT_BLACK;
-bool          g_bt2spk_overflowed = false;
-bool          g_bt2file_overflowed = false;
-bool          g_mic2bt_overflowed = false;
+volatile bool g_stop_requested      = false;
+TaskHandle_t  g_core0_task          = nullptr;
+uint16_t      g_cur_colour          = TFT_BLACK;
+uint16_t      g_next_colour         = TFT_BLACK;
+bool          g_bt2spk_overflowed   = false;
+bool          g_bt2file_overflowed  = false;
+bool          g_mic2bt_overflowed   = false;
 bool          g_mic2file_overflowed = false;
 
 void logf(const char* format, ...)
@@ -48,7 +48,7 @@ void request_stop(const char* reason)
     {
         logf("stop requested: %s", reason);
     }
-    g_next_colour = TFT_GREEN;
+    g_next_colour    = TFT_GREEN;
     g_stop_requested = true;
 }
 
@@ -69,7 +69,9 @@ void report_fifo_overflow_transition(const char* name, AudioFifo& fifo, bool& wa
 
 void report_fifo_overflow_transitions()
 {
-    report_fifo_overflow_transition("bluetooth_to_speaker", AudioManager::bluetoothToSpeakerFifo(), g_bt2spk_overflowed);
+    report_fifo_overflow_transition("bluetooth_to_speaker",
+                                    AudioManager::bluetoothToSpeakerFifo(),
+                                    g_bt2spk_overflowed);
     report_fifo_overflow_transition("bluetooth_to_file", AudioManager::bluetoothToFileFifo(), g_bt2file_overflowed);
     report_fifo_overflow_transition("mic_to_bluetooth", AudioManager::micToBluetoothFifo(), g_mic2bt_overflowed);
     report_fifo_overflow_transition("mic_to_file", AudioManager::micToFileFifo(), g_mic2file_overflowed);
@@ -82,9 +84,9 @@ void reset_fifo_overflow_watchers()
     AudioManager::micToBluetoothFifo().resetOverflowFlag();
     AudioManager::micToFileFifo().resetOverflowFlag();
 
-    g_bt2spk_overflowed = false;
-    g_bt2file_overflowed = false;
-    g_mic2bt_overflowed = false;
+    g_bt2spk_overflowed   = false;
+    g_bt2file_overflowed  = false;
+    g_mic2bt_overflowed   = false;
     g_mic2file_overflowed = false;
 }
 
@@ -185,16 +187,17 @@ uint64_t estimate_duration_ms_from_pcm_bytes(uint64_t pcm_bytes)
     return (pcm_bytes * 1000ULL + (bytes_per_second / 2ULL)) / bytes_per_second;
 }
 
-uint64_t encrypted_audio_payload_bytes(uint64_t encrypted_bytes, uint64_t encrypted_chunk_bytes, uint64_t plaintext_chunk_bytes)
+uint64_t
+encrypted_audio_payload_bytes(uint64_t encrypted_bytes, uint64_t encrypted_chunk_bytes, uint64_t plaintext_chunk_bytes)
 {
     if (encrypted_chunk_bytes <= RECORDER_ENCRYPTED_CHUNK_OVERHEAD)
     {
         return 0;
     }
 
-    const uint64_t full_chunks = encrypted_bytes / encrypted_chunk_bytes;
-    const uint64_t remainder   = encrypted_bytes % encrypted_chunk_bytes;
-    uint64_t payload_bytes     = full_chunks * plaintext_chunk_bytes;
+    const uint64_t full_chunks   = encrypted_bytes / encrypted_chunk_bytes;
+    const uint64_t remainder     = encrypted_bytes % encrypted_chunk_bytes;
+    uint64_t       payload_bytes = full_chunks * plaintext_chunk_bytes;
 
     if (remainder > RECORDER_ENCRYPTED_CHUNK_OVERHEAD)
     {
@@ -207,31 +210,31 @@ uint64_t encrypted_audio_payload_bytes(uint64_t encrypted_bytes, uint64_t encryp
 void print_recording_file_analysis(uint64_t file_bytes)
 {
 #if defined(BUILD_USE_MP3_COMPRESSION)
-    #if BUILD_WITH_SECURITY_LEVEL >= 1
-    const uint64_t mp3_payload_bytes = encrypted_audio_payload_bytes(file_bytes,
-                                                                     MP3_ENCRYPTED_CHUNK_LENGTH,
-                                                                     MP3_ENCRYPTED_PLAINTEXT_LENGTH);
+#if BUILD_WITH_SECURITY_LEVEL >= 1
+    const uint64_t mp3_payload_bytes =
+        encrypted_audio_payload_bytes(file_bytes, MP3_ENCRYPTED_CHUNK_LENGTH, MP3_ENCRYPTED_PLAINTEXT_LENGTH);
     const uint64_t estimated_ms =
         (mp3_payload_bytes * 1000ULL + (MP3_CBR_BYTES_PER_SECOND / 2ULL)) / MP3_CBR_BYTES_PER_SECOND;
-    logf("file analysis: format=encrypted-mp3 file_bytes=%llu mp3_payload_bytes=%llu estimated_duration_ms=%llu (%.3f seconds)",
+    logf("file analysis: format=encrypted-mp3 file_bytes=%llu mp3_payload_bytes=%llu estimated_duration_ms=%llu (%.3f "
+         "seconds)",
          static_cast<unsigned long long>(file_bytes),
          static_cast<unsigned long long>(mp3_payload_bytes),
          static_cast<unsigned long long>(estimated_ms),
          static_cast<double>(estimated_ms) / 1000.0);
-    #else
-    const uint64_t estimated_ms =
-        (file_bytes * 1000ULL + (MP3_CBR_BYTES_PER_SECOND / 2ULL)) / MP3_CBR_BYTES_PER_SECOND;
+#else
+    const uint64_t estimated_ms = (file_bytes * 1000ULL + (MP3_CBR_BYTES_PER_SECOND / 2ULL)) / MP3_CBR_BYTES_PER_SECOND;
     const uint64_t whole_mp3_frames = file_bytes / MP3_CBR_BYTES_PER_MP3_FRAME;
-    logf("file analysis: format=mp3-cbr file_bytes=%llu bitrate=%u kbps estimated_duration_ms=%llu (%.3f seconds) whole_mp3_frames=%llu remainder=%llu bytes",
+    logf("file analysis: format=mp3-cbr file_bytes=%llu bitrate=%u kbps estimated_duration_ms=%llu (%.3f seconds) "
+         "whole_mp3_frames=%llu remainder=%llu bytes",
          static_cast<unsigned long long>(file_bytes),
          static_cast<unsigned>(MP3_BITRATE_KBPS),
          static_cast<unsigned long long>(estimated_ms),
          static_cast<double>(estimated_ms) / 1000.0,
          static_cast<unsigned long long>(whole_mp3_frames),
          static_cast<unsigned long long>(file_bytes % MP3_CBR_BYTES_PER_MP3_FRAME));
-    #endif
+#endif
 #else
-    #if BUILD_WITH_SECURITY_LEVEL >= 1
+#if BUILD_WITH_SECURITY_LEVEL >= 1
     uint64_t encrypted_audio_bytes = 0;
     if (file_bytes > WAV_ENCRYPTED_RIFF_HEADER_LENGTH)
     {
@@ -241,13 +244,14 @@ void print_recording_file_analysis(uint64_t file_bytes)
     const uint64_t pcm_payload_bytes = encrypted_audio_payload_bytes(encrypted_audio_bytes,
                                                                      WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH,
                                                                      WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH);
-    const uint64_t estimated_ms = estimate_duration_ms_from_pcm_bytes(pcm_payload_bytes);
-    logf("file analysis: format=encrypted-wav file_bytes=%llu pcm_payload_bytes=%llu estimated_duration_ms=%llu (%.3f seconds)",
+    const uint64_t estimated_ms      = estimate_duration_ms_from_pcm_bytes(pcm_payload_bytes);
+    logf("file analysis: format=encrypted-wav file_bytes=%llu pcm_payload_bytes=%llu estimated_duration_ms=%llu (%.3f "
+         "seconds)",
          static_cast<unsigned long long>(file_bytes),
          static_cast<unsigned long long>(pcm_payload_bytes),
          static_cast<unsigned long long>(estimated_ms),
          static_cast<double>(estimated_ms) / 1000.0);
-    #else
+#else
     uint64_t pcm_payload_bytes = 0;
     if (file_bytes > WAV_RIFF_HEADER_LENGTH)
     {
@@ -255,12 +259,13 @@ void print_recording_file_analysis(uint64_t file_bytes)
     }
 
     const uint64_t estimated_ms = estimate_duration_ms_from_pcm_bytes(pcm_payload_bytes);
-    logf("file analysis: format=wav-pcm file_bytes=%llu pcm_payload_bytes=%llu estimated_duration_ms=%llu (%.3f seconds)",
+    logf("file analysis: format=wav-pcm file_bytes=%llu pcm_payload_bytes=%llu estimated_duration_ms=%llu (%.3f "
+         "seconds)",
          static_cast<unsigned long long>(file_bytes),
          static_cast<unsigned long long>(pcm_payload_bytes),
          static_cast<unsigned long long>(estimated_ms),
          static_cast<double>(estimated_ms) / 1000.0);
-    #endif
+#endif
 #endif
 }
 
@@ -337,11 +342,11 @@ void test_micrec()
     AudioManager::micToBluetoothFifo().setChoked(true);
 
     // indicates ready
-    g_cur_colour = TFT_BLUE;
+    g_cur_colour  = TFT_BLUE;
     g_next_colour = TFT_BLUE;
     thefly_display.fillScreen(g_cur_colour);
 
-    g_stop_requested = false;
+    g_stop_requested              = false;
     const BaseType_t task_created = xTaskCreatePinnedToCore(micrec_core0_task,
                                                             "micrec_core0",
                                                             kCore0StackSize,
@@ -360,7 +365,8 @@ void test_micrec()
     uint32_t next_status_ms = millis() + kStatusReportMs;
     while (!g_stop_requested)
     {
-        if (g_cur_colour != g_next_colour) {
+        if (g_cur_colour != g_next_colour)
+        {
             g_cur_colour = g_next_colour;
             thefly_display.fillScreen(g_cur_colour);
         }

@@ -18,25 +18,23 @@ constexpr float   kFooterTextSize = 1.0f;
 constexpr uint8_t kFooterTextFont = 2;
 } // namespace
 
-ModalDialog::ModalDialog() : FlyGuiView(FLYGUI_VIEW_MODAL_DIALOG)
-{
-}
+ModalDialog::ModalDialog() : FlyGuiView(FLYGUI_VIEW_MODAL_DIALOG) {}
 
-void ModalDialog::configure(const uint8_t* spriteData,
-                            size_t spriteBytes,
-                            uint32_t spriteWidth,
-                            uint32_t spriteHeight,
-                            const char* text,
-                            uint16_t nextViewId,
+void ModalDialog::configure(const uint8_t*             spriteData,
+                            size_t                     spriteBytes,
+                            uint32_t                   spriteWidth,
+                            uint32_t                   spriteHeight,
+                            const char*                text,
+                            uint16_t                   nextViewId,
                             ModalDialogDismissCallback dismissCallback)
 {
-    spriteData_       = spriteData;
-    spriteBytes_      = spriteBytes;
-    spriteWidth_      = spriteWidth;
-    spriteHeight_     = spriteHeight;
-    nextViewId_       = nextViewId;
-    dismissCallback_  = dismissCallback;
-    configured_       = true;
+    spriteData_      = spriteData;
+    spriteBytes_     = spriteBytes;
+    spriteWidth_     = spriteWidth;
+    spriteHeight_    = spriteHeight;
+    nextViewId_      = nextViewId;
+    dismissCallback_ = dismissCallback;
+    configured_      = true;
 
     strncpy(text_, text ? text : "", sizeof(text_) - 1);
     text_[sizeof(text_) - 1] = '\0';
@@ -51,7 +49,11 @@ void ModalDialog::onLoad()
 
 void ModalDialog::onUnload()
 {
-    thefly_display.fillRect(0, FlyGui::kTopBarHeight, thefly_display.width(), thefly_display.height() - FlyGui::kTopBarHeight, TFT_BLACK);
+    thefly_display.fillRect(0,
+                            FlyGui::kTopBarHeight,
+                            thefly_display.width(),
+                            thefly_display.height() - FlyGui::kTopBarHeight,
+                            TFT_BLACK);
     clearConfiguration();
     FlyGuiView::onUnload();
 }
@@ -107,7 +109,7 @@ void ModalDialog::dismiss()
         return;
     }
 
-    const uint16_t nextViewId = nextViewId_;
+    const uint16_t             nextViewId      = nextViewId_;
     ModalDialogDismissCallback dismissCallback = dismissCallback_;
     owner->showView(nextViewId);
     if (dismissCallback)

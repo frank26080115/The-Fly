@@ -32,19 +32,19 @@ namespace WebCfgHandlers
 namespace
 {
 
-constexpr const char* TAG = "WebCfgHandlers";
-constexpr size_t      kGcmNonceSize = 12;
-constexpr size_t      kGcmTagSize = 16;
+constexpr const char* TAG                     = "WebCfgHandlers";
+constexpr size_t      kGcmNonceSize           = 12;
+constexpr size_t      kGcmTagSize             = 16;
 constexpr size_t      kSetCfgMaxEncryptedSize = 64 * 1024;
-constexpr uint8_t     kGetCfgMagic[] = { 'T', 'F', 'G', 'C' };
-constexpr uint8_t     kGetCfgVersion = 2;
-constexpr size_t      kGetCfgHeaderSize = sizeof(kGetCfgMagic) + 1;
-constexpr uint8_t     kSetCfgMagic[] = { 'T', 'F', 'G', 'C' };
-constexpr uint8_t     kSetCfgVersion = 1;
-constexpr size_t      kSetCfgHeaderSize = sizeof(kSetCfgMagic) + 1 + kGcmNonceSize;
-constexpr size_t      kSetCfgMinEnvelopeSize = kSetCfgHeaderSize + kGcmTagSize;
-constexpr const char* kSetCfgErrorAttribute = "set_cfg_error";
-constexpr const char* kSetCfgStatusAttribute = "set_cfg_status";
+constexpr uint8_t     kGetCfgMagic[]          = {'T', 'F', 'G', 'C'};
+constexpr uint8_t     kGetCfgVersion          = 2;
+constexpr size_t      kGetCfgHeaderSize       = sizeof(kGetCfgMagic) + 1;
+constexpr uint8_t     kSetCfgMagic[]          = {'T', 'F', 'G', 'C'};
+constexpr uint8_t     kSetCfgVersion          = 1;
+constexpr size_t      kSetCfgHeaderSize       = sizeof(kSetCfgMagic) + 1 + kGcmNonceSize;
+constexpr size_t      kSetCfgMinEnvelopeSize  = kSetCfgHeaderSize + kGcmTagSize;
+constexpr const char* kSetCfgErrorAttribute   = "set_cfg_error";
+constexpr const char* kSetCfgStatusAttribute  = "set_cfg_status";
 constexpr const char* kSetCfgStartedAttribute = "set_cfg_started";
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 constexpr size_t      kPinCodePostMaxEncryptedSize = 2048;
@@ -121,7 +121,7 @@ void send_set_cfg_error(AsyncWebServerRequest* request)
         return;
     }
 
-    const String& error = request->getAttribute(kSetCfgErrorAttribute);
+    const String& error       = request->getAttribute(kSetCfgErrorAttribute);
     const long    status_code = request->getAttribute(kSetCfgStatusAttribute, 500L);
     note_web_error();
     request->send(static_cast<int>(status_code), "text/plain", error.isEmpty() ? "Config update failed" : error);
@@ -169,9 +169,9 @@ bool parse_unix_time_text(const String& text, time_t& out)
         return false;
     }
 
-    const char* begin = text.c_str();
-    char*       end   = nullptr;
-    errno             = 0;
+    const char* begin      = text.c_str();
+    char*       end        = nullptr;
+    errno                  = 0;
     const long long parsed = strtoll(begin, &end, 10);
     if (errno != 0 || end == begin || *end != '\0' || parsed <= 0)
     {
@@ -209,13 +209,13 @@ bool read_unix_time_param(AsyncWebServerRequest* request, time_t& out, String& e
 
 bool time_sync_allowed(String& error)
 {
-    #if BUILD_WITH_SECURITY_LEVEL >= 2
+#if BUILD_WITH_SECURITY_LEVEL >= 2
     if (!wifi_manager || !wifi_manager->isGeneratedSoftApActive())
     {
         error = "Time sync is only available from the generated soft AP";
         return false;
     }
-    #endif
+#endif
     return true;
 }
 
@@ -319,7 +319,7 @@ void append_cfg_cloud_item(String& json, const cloud_item_t* item, bool& first)
         return;
     }
 
-    const char* url  = item->url;
+    const char* url = item->url;
     if (!url || url[0] == '\0')
     {
         return;
@@ -394,7 +394,7 @@ bool build_cfg_json(String& json)
         append_cfg_wifi_item(json, wifi_manager->accessPoint(i), first);
     }
 
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     json += "],\"cloud_uploads\":[";
     first = true;
     for (size_t i = 0; wifi_manager && i < wifi_manager->cloudEndpointCount(); ++i)
@@ -402,9 +402,9 @@ bool build_cfg_json(String& json)
         append_cfg_cloud_item(json, wifi_manager->cloudEndpoint(i), first);
     }
     json += "]},";
-    #else
+#else
     json += "],\"cloud_uploads\":false},";
-    #endif
+#endif
 
     json += "\"bluetooth\":{\"hosts\":[";
     first = true;
@@ -414,17 +414,17 @@ bool build_cfg_json(String& json)
     }
 
     json += "]}";
-    #if BUILD_WITH_SECURITY_LEVEL >= 1
+#if BUILD_WITH_SECURITY_LEVEL >= 1
     append_pin_code_json(json);
-    #endif
+#endif
     json += "}";
     return true;
 }
 
-bool encrypt_cfg_json_blob(const String& json,
-                           const uint8_t session_key[WebServer::kSessionKeySize],
+bool encrypt_cfg_json_blob(const String&                json,
+                           const uint8_t                session_key[WebServer::kSessionKeySize],
                            std::shared_ptr<BinaryBlob>& blob,
-                           String& error)
+                           String&                      error)
 {
     blob.reset(new BinaryBlob());
     if (!blob)
@@ -451,7 +451,7 @@ bool encrypt_cfg_json_blob(const String& json,
     if (!blob->data)
     {
         blob->size = 0;
-        error = "Could not allocate encrypted config response";
+        error      = "Could not allocate encrypted config response";
         return false;
     }
 
@@ -468,16 +468,16 @@ bool encrypt_cfg_json_blob(const String& json,
     const int key_result = mbedtls_gcm_setkey(&gcm, MBEDTLS_CIPHER_ID_AES, session_key, WebServer::kSessionKeySize * 8);
     const int encrypt_result = key_result == 0
                                    ? mbedtls_gcm_crypt_and_tag(&gcm,
-                                                              MBEDTLS_GCM_ENCRYPT,
-                                                              plaintext_size,
-                                                              nonce,
-                                                              sizeof(nonce),
-                                                              nullptr,
-                                                              0,
-                                                              reinterpret_cast<const uint8_t*>(json.c_str()),
-                                                              ciphertext,
-                                                              kGcmTagSize,
-                                                              tag)
+                                                               MBEDTLS_GCM_ENCRYPT,
+                                                               plaintext_size,
+                                                               nonce,
+                                                               sizeof(nonce),
+                                                               nullptr,
+                                                               0,
+                                                               reinterpret_cast<const uint8_t*>(json.c_str()),
+                                                               ciphertext,
+                                                               kGcmTagSize,
+                                                               tag)
                                    : key_result;
     mbedtls_gcm_free(&gcm);
     mbedtls_platform_zeroize(nonce, sizeof(nonce));
@@ -507,7 +507,7 @@ void send_cfg_json_response(AsyncWebServerRequest* request)
         return;
     }
 
-    #if BUILD_WITH_SECURITY_LEVEL <= 0
+#if BUILD_WITH_SECURITY_LEVEL <= 0
     String json;
     if (!build_cfg_json(json))
     {
@@ -517,8 +517,8 @@ void send_cfg_json_response(AsyncWebServerRequest* request)
     }
 
     request->send(200, "application/json", json);
-    #else
-    uint8_t session_key[WebServer::kSessionKeySize] = {};
+#else
+    uint8_t                            session_key[WebServer::kSessionKeySize] = {};
     const WebServer::SessionAuthResult auth = WebServer::authenticateSessionRequest(request, session_key);
     if (auth != WebServer::SessionAuthResult::Ok)
     {
@@ -538,7 +538,7 @@ void send_cfg_json_response(AsyncWebServerRequest* request)
     }
 
     std::shared_ptr<BinaryBlob> blob;
-    String error;
+    String                      error;
     if (!encrypt_cfg_json_blob(json, session_key, blob, error))
     {
         mbedtls_platform_zeroize(session_key, sizeof(session_key));
@@ -548,20 +548,21 @@ void send_cfg_json_response(AsyncWebServerRequest* request)
     }
     mbedtls_platform_zeroize(session_key, sizeof(session_key));
 
-    AsyncWebServerResponse* response = request->beginResponse(
-        "application/octet-stream",
-        blob->size,
-        [blob](uint8_t* buffer, size_t max_len, size_t index) -> size_t {
-            if (!blob || !blob->data || index >= blob->size)
-            {
-                return 0;
-            }
+    AsyncWebServerResponse* response =
+        request->beginResponse("application/octet-stream",
+                               blob->size,
+                               [blob](uint8_t* buffer, size_t max_len, size_t index) -> size_t
+                               {
+                                   if (!blob || !blob->data || index >= blob->size)
+                                   {
+                                       return 0;
+                                   }
 
-            const size_t remaining = blob->size - index;
-            const size_t to_copy   = remaining < max_len ? remaining : max_len;
-            memcpy(buffer, blob->data + index, to_copy);
-            return to_copy;
-        });
+                                   const size_t remaining = blob->size - index;
+                                   const size_t to_copy   = remaining < max_len ? remaining : max_len;
+                                   memcpy(buffer, blob->data + index, to_copy);
+                                   return to_copy;
+                               });
     if (!response)
     {
         note_web_error();
@@ -574,15 +575,15 @@ void send_cfg_json_response(AsyncWebServerRequest* request)
     response->addHeader("X-TheFly-Encryption", "aes-256-gcm-session-v1");
     response->addHeader("X-TheFly-Blob-Format", "magic4|version1|ciphertext|tag16");
     request->send(response);
-    #endif
+#endif
 }
 
 struct SetCfgUploadState
 {
-    AsyncWebServerRequest* request = nullptr;
-    uint8_t* encrypted = nullptr;
-    size_t expected_size = 0;
-    size_t received_size = 0;
+    AsyncWebServerRequest* request       = nullptr;
+    uint8_t*               encrypted     = nullptr;
+    size_t                 expected_size = 0;
+    size_t                 received_size = 0;
 };
 
 SetCfgUploadState g_set_cfg_upload;
@@ -590,10 +591,10 @@ SetCfgUploadState g_set_cfg_upload;
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 struct PinCodePostUploadState
 {
-    AsyncWebServerRequest* request = nullptr;
-    uint8_t* encrypted = nullptr;
-    size_t expected_size = 0;
-    size_t received_size = 0;
+    AsyncWebServerRequest* request       = nullptr;
+    uint8_t*               encrypted     = nullptr;
+    size_t                 expected_size = 0;
+    size_t                 received_size = 0;
 };
 
 PinCodePostUploadState g_pin_code_post_upload;
@@ -640,8 +641,8 @@ void send_pin_code_post_error(AsyncWebServerRequest* request)
         return;
     }
 
-    const String& error = request->getAttribute(kPinCodePostErrorAttribute);
-    const long status_code = request->getAttribute(kPinCodePostStatusAttribute, 500L);
+    const String& error       = request->getAttribute(kPinCodePostErrorAttribute);
+    const long    status_code = request->getAttribute(kPinCodePostStatusAttribute, 500L);
     note_web_error();
     request->send(static_cast<int>(status_code), "text/plain", error.isEmpty() ? "PIN code update failed" : error);
 }
@@ -743,15 +744,15 @@ const cloud_item_t* find_cloud_by_url(const cloud_item_t* items, size_t count, c
     return nullptr;
 }
 
-bool parse_wifi_config_array(JsonObject network,
-                             const char* key,
+bool parse_wifi_config_array(JsonObject         network,
+                             const char*        key,
                              const wifi_item_t* existing,
-                             size_t existing_count,
-                             wifi_item_t* target,
-                             size_t target_capacity,
-                             uint8_t& target_count,
-                             uint8_t default_icon,
-                             String& error)
+                             size_t             existing_count,
+                             wifi_item_t*       target,
+                             size_t             target_capacity,
+                             uint8_t&           target_count,
+                             uint8_t            default_icon,
+                             String&            error)
 {
     JsonVariant array_value = network[key];
     if (array_value.isNull())
@@ -784,7 +785,7 @@ bool parse_wifi_config_array(JsonObject network,
         }
 
         wifi_item_t& item = target[target_count];
-        const char* ssid = item_json["ssid"].as<const char*>();
+        const char*  ssid = item_json["ssid"].as<const char*>();
         if (!copy_text_field(item.ssid, sizeof(item.ssid), ssid, true, error, "wifi ssid"))
         {
             return false;
@@ -822,14 +823,14 @@ bool parse_wifi_config_array(JsonObject network,
     return true;
 }
 
-bool parse_cloud_config_array(JsonObject network,
+bool parse_cloud_config_array(JsonObject          network,
                               const cloud_item_t* existing,
-                              size_t existing_count,
-                              cloud_item_t* target,
-                              uint8_t& target_count,
-                              String& error)
+                              size_t              existing_count,
+                              cloud_item_t*       target,
+                              uint8_t&            target_count,
+                              String&             error)
 {
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     JsonVariant array_value = network["cloud_uploads"];
     if (array_value.isNull())
     {
@@ -861,13 +862,13 @@ bool parse_cloud_config_array(JsonObject network,
         }
 
         cloud_item_t& item = target[target_count];
-        const char* url = item_json["url"].as<const char*>();
+        const char*   url  = item_json["url"].as<const char*>();
         if (!copy_text_field(item.url, sizeof(item.url), url, true, error, "cloud url"))
         {
             return false;
         }
 
-        #if BUILD_WITH_SECURITY_LEVEL <= 0
+#if BUILD_WITH_SECURITY_LEVEL <= 0
         const char* password = item_json["password"].as<const char*>();
         if (password && password[0] != '\0')
         {
@@ -890,20 +891,20 @@ bool parse_cloud_config_array(JsonObject network,
             }
             strlcpy(item.password, previous->password, sizeof(item.password));
         }
-        #else
+#else
         item.password[0] = '\0';
-        #endif
+#endif
         item.icon = parse_json_icon(item_json["icon"], ICON_UNKNOWN);
         ++target_count;
     }
-    #else
+#else
     (void)network;
     (void)existing;
     (void)existing_count;
     (void)target;
     (void)error;
     target_count = 0;
-    #endif
+#endif
 
     return true;
 }
@@ -994,19 +995,18 @@ bool parse_network_object(JsonObject network, const network_cfg_t& existing, net
                                       staged.access_point_count,
                                       ICON_UNKNOWN,
                                       error);
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     ok = ok && parse_cloud_config_array(network,
                                         existing.cloud,
                                         existing.cloud_endpoint_count,
                                         staged.cloud,
                                         staged.cloud_endpoint_count,
                                         error);
-    #else
+#else
     staged.cloud_endpoint_count = 0;
-    #endif
+#endif
 
-    return ok &&
-           validate_wifi_config_list(staged.station, staged.station_count, "stations", error) &&
+    return ok && validate_wifi_config_list(staged.station, staged.station_count, "stations", error) &&
            validate_wifi_config_list(staged.access_point, staged.access_point_count, "access_points", error);
 }
 
@@ -1028,12 +1028,8 @@ const bt_host_item_t* find_bt_host_by_mac(const bt_host_list_t& hosts, const esp
     return nullptr;
 }
 
-bool copy_optional_host_name(JsonObject host,
-                             const char* key,
-                             char* dst,
-                             size_t dst_size,
-                             const char* fallback,
-                             String& error)
+bool copy_optional_host_name(
+    JsonObject host, const char* key, char* dst, size_t dst_size, const char* fallback, String& error)
 {
     const char* value = fallback ? fallback : "";
     if (!host[key].isNull())
@@ -1099,7 +1095,7 @@ bool parse_bluetooth_object(JsonObject bluetooth, const bt_host_list_t& existing
         }
 
         const bt_host_item_t* previous = find_bt_host_by_mac(existing, bdaddr);
-        bt_host_item_t& item = staged.host[staged.count];
+        bt_host_item_t&       item     = staged.host[staged.count];
         copy_bda(item.bdaddr, bdaddr);
 
         const char* custom_fallback = previous ? previous->name_custom : "";
@@ -1107,7 +1103,12 @@ bool parse_bluetooth_object(JsonObject bluetooth, const bt_host_list_t& existing
         {
             custom_fallback = host_json["name"].as<const char*>();
         }
-        if (!copy_optional_host_name(host_json, "name_custom", item.name_custom, sizeof(item.name_custom), custom_fallback, error) ||
+        if (!copy_optional_host_name(host_json,
+                                     "name_custom",
+                                     item.name_custom,
+                                     sizeof(item.name_custom),
+                                     custom_fallback,
+                                     error) ||
             !copy_optional_host_name(host_json,
                                      "name_reported",
                                      item.name_reported,
@@ -1134,7 +1135,7 @@ bool parse_bluetooth_object(JsonObject bluetooth, const bt_host_list_t& existing
         }
 
         item.bonded = previous ? previous->bonded : false;
-        item.icon = parse_json_icon(host_json["icon"], previous ? previous->icon : ICON_UNKNOWN);
+        item.icon   = parse_json_icon(host_json["icon"], previous ? previous->icon : ICON_UNKNOWN);
         ++staged.count;
     }
 
@@ -1143,78 +1144,77 @@ bool parse_bluetooth_object(JsonObject bluetooth, const bt_host_list_t& existing
 
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 bool decrypt_set_cfg_blob(const uint8_t* encrypted,
-                          size_t encrypted_size,
-                          const uint8_t session_key[WebServer::kSessionKeySize],
-                          uint8_t*& plaintext,
-                          size_t& plaintext_size,
-                          int& status_code,
-                          String& error)
+                          size_t         encrypted_size,
+                          const uint8_t  session_key[WebServer::kSessionKeySize],
+                          uint8_t*&      plaintext,
+                          size_t&        plaintext_size,
+                          int&           status_code,
+                          String&        error)
 {
-    plaintext = nullptr;
+    plaintext      = nullptr;
     plaintext_size = 0;
 
     if (!encrypted || encrypted_size < kSetCfgMinEnvelopeSize)
     {
         status_code = 400;
-        error = "Encrypted config body is too small";
+        error       = "Encrypted config body is too small";
         return false;
     }
     if (memcmp(encrypted, kSetCfgMagic, sizeof(kSetCfgMagic)) != 0)
     {
         status_code = 400;
-        error = "Encrypted config magic is invalid";
+        error       = "Encrypted config magic is invalid";
         return false;
     }
     if (encrypted[sizeof(kSetCfgMagic)] != kSetCfgVersion)
     {
         status_code = 400;
-        error = "Encrypted config version is unsupported";
+        error       = "Encrypted config version is unsupported";
         return false;
     }
     if (!session_key)
     {
         status_code = 500;
-        error = "Session key unavailable";
+        error       = "Session key unavailable";
         return false;
     }
 
-    const uint8_t* nonce = encrypted + sizeof(kSetCfgMagic) + 1;
+    const uint8_t* nonce      = encrypted + sizeof(kSetCfgMagic) + 1;
     const uint8_t* ciphertext = encrypted + kSetCfgHeaderSize;
-    const uint8_t* tag = encrypted + encrypted_size - kGcmTagSize;
-    plaintext_size = encrypted_size - kSetCfgHeaderSize - kGcmTagSize;
+    const uint8_t* tag        = encrypted + encrypted_size - kGcmTagSize;
+    plaintext_size            = encrypted_size - kSetCfgHeaderSize - kGcmTagSize;
 
     plaintext = allocate_large_buffer(plaintext_size + 1);
     if (!plaintext)
     {
         status_code = 500;
-        error = "Could not allocate config plaintext buffer";
+        error       = "Could not allocate config plaintext buffer";
         return false;
     }
 
     mbedtls_gcm_context gcm;
     mbedtls_gcm_init(&gcm);
     const int key_result = mbedtls_gcm_setkey(&gcm, MBEDTLS_CIPHER_ID_AES, session_key, WebServer::kSessionKeySize * 8);
-    const int decrypt_result = key_result == 0
-                                   ? mbedtls_gcm_auth_decrypt(&gcm,
-                                                              plaintext_size,
-                                                              nonce,
-                                                              kGcmNonceSize,
-                                                              nullptr,
-                                                              0,
-                                                              tag,
-                                                              kGcmTagSize,
-                                                              ciphertext,
-                                                              plaintext)
-                                   : key_result;
+    const int decrypt_result = key_result == 0 ? mbedtls_gcm_auth_decrypt(&gcm,
+                                                                          plaintext_size,
+                                                                          nonce,
+                                                                          kGcmNonceSize,
+                                                                          nullptr,
+                                                                          0,
+                                                                          tag,
+                                                                          kGcmTagSize,
+                                                                          ciphertext,
+                                                                          plaintext)
+                                               : key_result;
     mbedtls_gcm_free(&gcm);
 
     if (decrypt_result != 0)
     {
         free(plaintext);
-        plaintext = nullptr;
+        plaintext      = nullptr;
         plaintext_size = 0;
-        status_code = 400;
-        error = "Config decryption failed";
+        status_code    = 400;
+        error          = "Config decryption failed";
         return false;
     }
 
@@ -1225,13 +1225,13 @@ bool decrypt_set_cfg_blob(const uint8_t* encrypted,
 
 bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& status_code, String& error)
 {
-    JsonDocument doc;
+    JsonDocument               doc;
     const DeserializationError json_error =
         deserializeJson(doc, reinterpret_cast<const char*>(plaintext), plaintext_size);
     if (json_error)
     {
         status_code = 400;
-        error = "Config JSON parse failed: ";
+        error       = "Config JSON parse failed: ";
         error += json_error.c_str();
         return false;
     }
@@ -1240,30 +1240,30 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
     if (root.isNull())
     {
         status_code = 400;
-        error = "Config JSON root must be an object";
+        error       = "Config JSON root must be an object";
         return false;
     }
 
-    const bool has_network = !root["network"].isNull();
+    const bool has_network   = !root["network"].isNull();
     const bool has_bluetooth = !root["bluetooth"].isNull();
     if (!has_network && !has_bluetooth)
     {
         status_code = 400;
-        error = "Config JSON must include network or bluetooth";
+        error       = "Config JSON must include network or bluetooth";
         return false;
     }
 
-    network_cfg_t network_existing = {};
-    network_cfg_t network_staged = {};
-    bt_host_list_t bluetooth_staged = {};
-    bool network_config_changed = false;
+    network_cfg_t  network_existing       = {};
+    network_cfg_t  network_staged         = {};
+    bt_host_list_t bluetooth_staged       = {};
+    bool           network_config_changed = false;
 
     if (has_network)
     {
         if (!wifi_manager || !wifi_manager->copyConfig(network_existing))
         {
             status_code = 500;
-            error = "Wi-Fi config is unavailable";
+            error       = "Wi-Fi config is unavailable";
             return false;
         }
         network_staged = network_existing;
@@ -1274,14 +1274,14 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
         }
 
         uint8_t existing_hash[Aegis::kSha1Size] = {};
-        uint8_t staged_hash[Aegis::kSha1Size] = {};
+        uint8_t staged_hash[Aegis::kSha1Size]   = {};
         if (!Aegis::networkConfigHash(&network_existing, sizeof(network_existing), existing_hash) ||
             !Aegis::networkConfigHash(&network_staged, sizeof(network_staged), staged_hash))
         {
             mbedtls_platform_zeroize(existing_hash, sizeof(existing_hash));
             mbedtls_platform_zeroize(staged_hash, sizeof(staged_hash));
             status_code = 500;
-            error = "Wi-Fi config hash failed";
+            error       = "Wi-Fi config hash failed";
             return false;
         }
 
@@ -1295,7 +1295,7 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
         if (!bt_host_list || !bt_host_list->copyHostList(bluetooth_staged))
         {
             status_code = 500;
-            error = "Bluetooth config is unavailable";
+            error       = "Bluetooth config is unavailable";
             return false;
         }
 
@@ -1310,7 +1310,7 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
     if (has_network && !wifi_manager->replaceConfig(network_staged))
     {
         status_code = 500;
-        error = "Wi-Fi config save failed";
+        error       = "Wi-Fi config save failed";
         return false;
     }
     if (has_network)
@@ -1318,27 +1318,27 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
         if (!Aegis::cacheNetworkConfigHash(&network_staged, sizeof(network_staged)))
         {
             status_code = 500;
-            error = "Wi-Fi config hash cache update failed";
+            error       = "Wi-Fi config hash cache update failed";
             return false;
         }
-        #if BUILD_WITH_SECURITY_LEVEL >= 2
+#if BUILD_WITH_SECURITY_LEVEL >= 2
         if (network_config_changed && !Aegis::generateFilecryptKey())
         {
             status_code = 500;
-            error = "Filecrypt-key regeneration failed";
+            error       = "Filecrypt-key regeneration failed";
             return false;
         }
         if (network_config_changed)
         {
             DBG_LOGI(TAG, "regenerated filecrypt-key after network config change");
         }
-        #endif
+#endif
     }
     if (has_bluetooth && !bt_host_list->replaceHostList(bluetooth_staged))
     {
         DBG_LOGW(TAG, "Bluetooth config save failed: %s", bt_host_list->lastLoadResultName());
         status_code = 500;
-        error = "Bluetooth config save failed: ";
+        error       = "Bluetooth config save failed: ";
         error += bt_host_list->lastLoadResultName();
         return false;
     }
@@ -1347,24 +1347,25 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
     return true;
 }
 
-bool process_set_cfg_blob(AsyncWebServerRequest* request, const uint8_t* encrypted, size_t encrypted_size, int& status_code, String& error)
+bool process_set_cfg_blob(
+    AsyncWebServerRequest* request, const uint8_t* encrypted, size_t encrypted_size, int& status_code, String& error)
 {
-    #if BUILD_WITH_SECURITY_LEVEL <= 0
+#if BUILD_WITH_SECURITY_LEVEL <= 0
     (void)request;
     return apply_set_cfg_json(encrypted, encrypted_size, status_code, error);
-    #else
-    uint8_t session_key[WebServer::kSessionKeySize] = {};
+#else
+    uint8_t                            session_key[WebServer::kSessionKeySize] = {};
     const WebServer::SessionAuthResult auth = WebServer::authenticateSessionRequest(request, session_key);
     if (auth != WebServer::SessionAuthResult::Ok)
     {
         mbedtls_platform_zeroize(session_key, sizeof(session_key));
         status_code = 401;
-        error = WebServer::sessionAuthResultName(auth);
+        error       = WebServer::sessionAuthResultName(auth);
         return false;
     }
 
-    uint8_t* plaintext = nullptr;
-    size_t plaintext_size = 0;
+    uint8_t* plaintext      = nullptr;
+    size_t   plaintext_size = 0;
     if (!decrypt_set_cfg_blob(encrypted, encrypted_size, session_key, plaintext, plaintext_size, status_code, error))
     {
         mbedtls_platform_zeroize(session_key, sizeof(session_key));
@@ -1375,16 +1376,14 @@ bool process_set_cfg_blob(AsyncWebServerRequest* request, const uint8_t* encrypt
     const bool ok = apply_set_cfg_json(plaintext, plaintext_size, status_code, error);
     free(plaintext);
     return ok;
-    #endif
+#endif
 }
 
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 bool begin_pin_code_post_upload(AsyncWebServerRequest* request, size_t total)
 {
     request->setAttribute(kPinCodePostStartedAttribute, true);
-    request->onDisconnect([]() {
-        reset_pin_code_post_upload();
-    });
+    request->onDisconnect([]() { reset_pin_code_post_upload(); });
 
     String runtime_error;
     if (!config_runtime_available(runtime_error))
@@ -1428,16 +1427,19 @@ bool begin_pin_code_post_upload(AsyncWebServerRequest* request, size_t total)
         return false;
     }
 
-    g_pin_code_post_upload.request = request;
+    g_pin_code_post_upload.request       = request;
     g_pin_code_post_upload.expected_size = expected_size;
     g_pin_code_post_upload.received_size = 0;
     return true;
 }
 
-bool decrypt_pin_code_post_body(const uint8_t session_key[WebServer::kSessionKeySize], JsonDocument& doc, int& status_code, String& error)
+bool decrypt_pin_code_post_body(const uint8_t session_key[WebServer::kSessionKeySize],
+                                JsonDocument& doc,
+                                int&          status_code,
+                                String&       error)
 {
-    uint8_t* plaintext = nullptr;
-    size_t plaintext_size = 0;
+    uint8_t* plaintext      = nullptr;
+    size_t   plaintext_size = 0;
     if (!decrypt_set_cfg_blob(g_pin_code_post_upload.encrypted,
                               g_pin_code_post_upload.expected_size,
                               session_key,
@@ -1455,7 +1457,7 @@ bool decrypt_pin_code_post_body(const uint8_t session_key[WebServer::kSessionKey
     if (json_error)
     {
         status_code = 400;
-        error = "PIN code JSON parse failed: ";
+        error       = "PIN code JSON parse failed: ";
         error += json_error.c_str();
         return false;
     }
@@ -1464,7 +1466,7 @@ bool decrypt_pin_code_post_body(const uint8_t session_key[WebServer::kSessionKey
     if (root.isNull())
     {
         status_code = 400;
-        error = "PIN code JSON root must be an object";
+        error       = "PIN code JSON root must be an object";
         return false;
     }
     status_code = 200;
@@ -1525,7 +1527,8 @@ bool pin_code_post_upload_complete(AsyncWebServerRequest* request)
     return true;
 }
 
-bool authenticate_pin_code_response_session(AsyncWebServerRequest* request, uint8_t session_key[WebServer::kSessionKeySize])
+bool authenticate_pin_code_response_session(AsyncWebServerRequest* request,
+                                            uint8_t                session_key[WebServer::kSessionKeySize])
 {
     const WebServer::SessionAuthResult auth = WebServer::authenticateSessionRequest(request, session_key);
     if (auth == WebServer::SessionAuthResult::Ok)
@@ -1542,9 +1545,7 @@ bool authenticate_pin_code_response_session(AsyncWebServerRequest* request, uint
 bool begin_set_cfg_upload(AsyncWebServerRequest* request, size_t total)
 {
     request->setAttribute(kSetCfgStartedAttribute, true);
-    request->onDisconnect([]() {
-        reset_set_cfg_upload();
-    });
+    request->onDisconnect([]() { reset_set_cfg_upload(); });
 
     String runtime_error;
     if (!config_runtime_available(runtime_error))
@@ -1564,13 +1565,13 @@ bool begin_set_cfg_upload(AsyncWebServerRequest* request, size_t total)
         set_cfg_error(request, 413, "Encrypted config body is too large");
         return false;
     }
-    #if BUILD_WITH_SECURITY_LEVEL >= 1
+#if BUILD_WITH_SECURITY_LEVEL >= 1
     if (expected_size < kSetCfgMinEnvelopeSize)
     {
         set_cfg_error(request, 400, "Encrypted config body is too small");
         return false;
     }
-    #endif
+#endif
     if (g_set_cfg_upload.request && g_set_cfg_upload.request != request)
     {
         set_cfg_error(request, 409, "Another config update is already in progress");
@@ -1585,7 +1586,7 @@ bool begin_set_cfg_upload(AsyncWebServerRequest* request, size_t total)
         return false;
     }
 
-    g_set_cfg_upload.request = request;
+    g_set_cfg_upload.request       = request;
     g_set_cfg_upload.expected_size = expected_size;
     g_set_cfg_upload.received_size = 0;
     return true;
@@ -1675,13 +1676,10 @@ void finishSetCfg(AsyncWebServerRequest* request)
         return;
     }
 
-    int status_code = 500;
-    String error;
-    const bool ok = process_set_cfg_blob(request,
-                                         g_set_cfg_upload.encrypted,
-                                         g_set_cfg_upload.expected_size,
-                                         status_code,
-                                         error);
+    int        status_code = 500;
+    String     error;
+    const bool ok =
+        process_set_cfg_blob(request, g_set_cfg_upload.encrypted, g_set_cfg_upload.expected_size, status_code, error);
     reset_set_cfg_upload(request);
 
     if (!ok)
@@ -1752,8 +1750,8 @@ void finishSetCustomPin(AsyncWebServerRequest* request)
         return;
     }
 
-    int status_code = 500;
-    String error;
+    int          status_code = 500;
+    String       error;
     JsonDocument doc;
     if (!decrypt_pin_code_post_body(session_key, doc, status_code, error))
     {
@@ -1765,8 +1763,8 @@ void finishSetCustomPin(AsyncWebServerRequest* request)
     }
     mbedtls_platform_zeroize(session_key, sizeof(session_key));
 
-    JsonObject root = doc.as<JsonObject>();
-    const char* pin = root["pincode"].as<const char*>();
+    JsonObject  root = doc.as<JsonObject>();
+    const char* pin  = root["pincode"].as<const char*>();
     if (!validate_custom_pin_text(pin, error))
     {
         reset_pin_code_post_upload(request);
@@ -1809,8 +1807,8 @@ void finishResetPinCode(AsyncWebServerRequest* request)
         return;
     }
 
-    int status_code = 500;
-    String error;
+    int          status_code = 500;
+    String       error;
     JsonDocument doc;
     if (!decrypt_pin_code_post_body(session_key, doc, status_code, error))
     {

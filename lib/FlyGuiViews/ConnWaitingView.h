@@ -15,10 +15,10 @@ enum ConnWaitingMode : uint8_t
 class ConnWaitingView : public FlyGuiView
 {
 public:
-    ConnWaitingView(ConnWaitingMode mode,
-                    const char* targetName,
+    ConnWaitingView(ConnWaitingMode    mode,
+                    const char*        targetName,
                     FlyGuiItemCallback cancelCallback,
-                    uint16_t viewId = FLYGUI_VIEW_CONN_WAITING);
+                    uint16_t           viewId = FLYGUI_VIEW_CONN_WAITING);
 
     ConnWaitingMode mode() const
     {
@@ -46,9 +46,9 @@ private:
     void drawMainSprite();
     void drawHourglassFrame(uint8_t frame);
 
-    ConnWaitingMode mode_                       = CONN_WAITING_BLUETOOTH_CONNECTING;
+    ConnWaitingMode mode_                           = CONN_WAITING_BLUETOOTH_CONNECTING;
     char            targetName_[kTargetNameMax + 1] = {};
     FlyGuiItem      cancelItem_;
-    uint8_t         hourglassFrame_             = 0;
-    uint32_t        lastHourglassDrawMs_        = 0;
+    uint8_t         hourglassFrame_      = 0;
+    uint32_t        lastHourglassDrawMs_ = 0;
 };

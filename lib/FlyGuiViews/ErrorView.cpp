@@ -12,16 +12,16 @@ extern WifiManager* wifi_manager;
 
 namespace
 {
-constexpr const char* TAG = "ErrorView";
-constexpr int16_t kIconY          = FlyGui::kTopBarHeight + 16;
-constexpr int16_t kTextX          = 4;
-constexpr int16_t kTextGap        = 5;
-constexpr int16_t kTextPadding    = 4;
-constexpr int16_t kTextLineHeight = 17;
-constexpr int16_t kActionSize     = 50;
-constexpr int16_t kActionY        = 188;
-constexpr float   kTextSize       = 1.0f;
-constexpr uint8_t kTextFont       = 2;
+constexpr const char* TAG             = "ErrorView";
+constexpr int16_t     kIconY          = FlyGui::kTopBarHeight + 16;
+constexpr int16_t     kTextX          = 4;
+constexpr int16_t     kTextGap        = 5;
+constexpr int16_t     kTextPadding    = 4;
+constexpr int16_t     kTextLineHeight = 17;
+constexpr int16_t     kActionSize     = 50;
+constexpr int16_t     kActionY        = 188;
+constexpr float       kTextSize       = 1.0f;
+constexpr uint8_t     kTextFont       = 2;
 
 int16_t action_x()
 {
@@ -31,9 +31,7 @@ int16_t action_x()
 
 ErrorView* ErrorView::activeView_ = nullptr;
 
-ErrorView::ErrorView()
-    : FlyGuiView(FLYGUI_VIEW_ERROR),
-      actionItem_(0, kActionY, kActionSize, kActionSize)
+ErrorView::ErrorView() : FlyGuiView(FLYGUI_VIEW_ERROR), actionItem_(0, kActionY, kActionSize, kActionSize)
 {
     actionItem_.setCallback(onActionTriggered);
     addItem(actionItem_);
@@ -51,7 +49,7 @@ void ErrorView::setMessage(const char* message, bool fatal)
 void ErrorView::onLoad()
 {
     activeView_ = this;
-    dismissed_ = false;
+    dismissed_  = false;
     syncActionButton();
     FlyGuiView::onLoad();
 }
@@ -97,7 +95,8 @@ void ErrorView::redraw(bool forced)
         gui()->requestTopBarFullRedraw();
     }
 
-    const int16_t icon_x = static_cast<int16_t>((thefly_display.width() - static_cast<int32_t>(SPRITE_WARNING_100_WIDTH)) / 2);
+    const int16_t icon_x =
+        static_cast<int16_t>((thefly_display.width() - static_cast<int32_t>(SPRITE_WARNING_100_WIDTH)) / 2);
     SpriteDraw::drawPng(sprite_warning_100,
                         SPRITE_WARNING_100_BYTES,
                         icon_x,
@@ -111,16 +110,15 @@ void ErrorView::redraw(bool forced)
     thefly_display.setTextDatum(top_left);
     thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
 
-    const int16_t text_y = static_cast<int16_t>(kIconY + SPRITE_WARNING_100_HEIGHT + kTextGap);
-    const int16_t text_max_y = actionItem_.visible()
-                                   ? static_cast<int16_t>(kActionY - kTextPadding)
-                                   : static_cast<int16_t>(thefly_display.height() - kTextPadding);
+    const int16_t text_y     = static_cast<int16_t>(kIconY + SPRITE_WARNING_100_HEIGHT + kTextGap);
+    const int16_t text_max_y = actionItem_.visible() ? static_cast<int16_t>(kActionY - kTextPadding)
+                                                     : static_cast<int16_t>(thefly_display.height() - kTextPadding);
     FlyGuiTextUtil::drawWrappedText(message_,
-                                     kTextX,
-                                     text_y,
-                                     static_cast<int16_t>(thefly_display.width() - (kTextX * 2)),
-                                     text_max_y,
-                                     kTextLineHeight);
+                                    kTextX,
+                                    text_y,
+                                    static_cast<int16_t>(thefly_display.width() - (kTextX * 2)),
+                                    text_max_y,
+                                    kTextLineHeight);
 
     if (actionItem_.visible())
     {

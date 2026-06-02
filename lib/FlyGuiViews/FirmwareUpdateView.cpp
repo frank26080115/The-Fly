@@ -14,30 +14,30 @@
 
 namespace
 {
-constexpr const char* TAG = "FirmwareUpdateView";
+constexpr const char* TAG                 = "FirmwareUpdateView";
 constexpr const char* kFirmwareUpdatePath = "/firmware.bin";
-constexpr int16_t kContentY = FlyGui::kTopBarHeight;
-constexpr int16_t kTopSpriteY = FlyGui::kTopBarHeight + 8;
-constexpr int16_t kTextX = 18;
-constexpr int16_t kTextY = FlyGui::kTopBarHeight + 118;
-constexpr int16_t kTextWidth = 284;
-constexpr int16_t kTextLineHeight = 17;
-constexpr int16_t kButtonSize = 50;
-constexpr int16_t kScreenWidth = 320;
-constexpr int16_t kButtonColumnWidth = kScreenWidth / 3;
-constexpr int16_t kGoX = (kButtonColumnWidth - kButtonSize) / 2;
-constexpr int16_t kCancelX = kScreenWidth - kButtonColumnWidth + (kButtonColumnWidth - kButtonSize) / 2;
-constexpr int16_t kButtonY = 185;
-constexpr int16_t kHourglassSize = 60;
-constexpr int16_t kHourglassY = 130;
-constexpr int16_t kProgressWidth = 300;
-constexpr int16_t kProgressHeight = 12;
-constexpr int16_t kProgressY = 199;
-constexpr int16_t kProgressTextY = kProgressY + kProgressHeight + 4;
-constexpr int16_t kProgressTextHeight = 18;
-constexpr uint8_t kTextFont = 2;
-constexpr uint8_t kSmallTextFont = 1;
-constexpr float kTextSize = 1.0f;
+constexpr int16_t     kContentY           = FlyGui::kTopBarHeight;
+constexpr int16_t     kTopSpriteY         = FlyGui::kTopBarHeight + 8;
+constexpr int16_t     kTextX              = 18;
+constexpr int16_t     kTextY              = FlyGui::kTopBarHeight + 118;
+constexpr int16_t     kTextWidth          = 284;
+constexpr int16_t     kTextLineHeight     = 17;
+constexpr int16_t     kButtonSize         = 50;
+constexpr int16_t     kScreenWidth        = 320;
+constexpr int16_t     kButtonColumnWidth  = kScreenWidth / 3;
+constexpr int16_t     kGoX                = (kButtonColumnWidth - kButtonSize) / 2;
+constexpr int16_t     kCancelX            = kScreenWidth - kButtonColumnWidth + (kButtonColumnWidth - kButtonSize) / 2;
+constexpr int16_t     kButtonY            = 185;
+constexpr int16_t     kHourglassSize      = 60;
+constexpr int16_t     kHourglassY         = 130;
+constexpr int16_t     kProgressWidth      = 300;
+constexpr int16_t     kProgressHeight     = 12;
+constexpr int16_t     kProgressY          = 199;
+constexpr int16_t     kProgressTextY      = kProgressY + kProgressHeight + 4;
+constexpr int16_t     kProgressTextHeight = 18;
+constexpr uint8_t     kTextFont           = 2;
+constexpr uint8_t     kSmallTextFont      = 1;
+constexpr float       kTextSize           = 1.0f;
 
 int16_t centered_x(uint32_t width)
 {
@@ -53,8 +53,7 @@ int16_t progress_x()
 FirmwareUpdateView* FirmwareUpdateView::activeView_ = nullptr;
 
 FirmwareUpdateView::FirmwareUpdateView()
-    : FlyGuiView(FLYGUI_VIEW_FIRMWARE_UPDATE),
-      goItem_(kGoX, kButtonY, kButtonSize, kButtonSize),
+    : FlyGuiView(FLYGUI_VIEW_FIRMWARE_UPDATE), goItem_(kGoX, kButtonY, kButtonSize, kButtonSize),
       cancelItem_(kCancelX, kButtonY, kButtonSize, kButtonSize),
       progressBar_(0, kProgressY, kProgressWidth, kProgressHeight)
 {
@@ -75,13 +74,13 @@ FirmwareUpdateView::FirmwareUpdateView()
 
 void FirmwareUpdateView::configure(bool batteryFullish)
 {
-    state_ = State::Prompt;
+    state_          = State::Prompt;
     batteryFullish_ = batteryFullish;
-    dismissed_ = false;
-    bytesWritten_ = 0;
-    bytesTotal_ = 0;
+    dismissed_      = false;
+    bytesWritten_   = 0;
+    bytesTotal_     = 0;
     hourglassFrame_ = 0;
-    result_ = MicroSdCard::FirmwareUpdateResult::Ok;
+    result_         = MicroSdCard::FirmwareUpdateResult::Ok;
     goItem_.setVisible(batteryFullish_);
     cancelItem_.setVisible(true);
     setDirty();
@@ -221,8 +220,8 @@ void FirmwareUpdateView::startUpdate()
 
 void FirmwareUpdateView::updateProgress(uint64_t bytesWritten, uint64_t bytesTotal)
 {
-    bytesWritten_ = bytesWritten;
-    bytesTotal_ = bytesTotal;
+    bytesWritten_   = bytesWritten;
+    bytesTotal_     = bytesTotal;
     hourglassFrame_ = static_cast<uint8_t>((hourglassFrame_ + 1) % 3);
     drawHourglassFrame(hourglassFrame_);
     drawProgress();
@@ -289,7 +288,10 @@ void FirmwareUpdateView::drawComplete()
 
     if (result_ == MicroSdCard::FirmwareUpdateResult::Ok)
     {
-        drawTopSprite(sprite_thumbsup_100, SPRITE_THUMBSUP_100_BYTES, SPRITE_THUMBSUP_100_WIDTH, SPRITE_THUMBSUP_100_HEIGHT);
+        drawTopSprite(sprite_thumbsup_100,
+                      SPRITE_THUMBSUP_100_BYTES,
+                      SPRITE_THUMBSUP_100_WIDTH,
+                      SPRITE_THUMBSUP_100_HEIGHT);
         drawMessage("Firmware update ready\nTouch screen to reboot", 224);
         return;
     }
@@ -313,11 +315,7 @@ void FirmwareUpdateView::drawTopSprite(const uint8_t* data, size_t bytes, uint32
 
 void FirmwareUpdateView::drawMessage(const char* text, int16_t maxY)
 {
-    thefly_display.fillRect(kTextX,
-                            kTextY,
-                            kTextWidth,
-                            static_cast<int16_t>(maxY - kTextY),
-                            TFT_BLACK);
+    thefly_display.fillRect(kTextX, kTextY, kTextWidth, static_cast<int16_t>(maxY - kTextY), TFT_BLACK);
     thefly_display.setTextFont(kTextFont);
     thefly_display.setTextSize(kTextSize);
     thefly_display.setTextDatum(top_left);
@@ -333,13 +331,31 @@ void FirmwareUpdateView::drawHourglassFrame(uint8_t frame)
     switch (frame % 3)
     {
     case 0:
-        SpriteDraw::drawPng(sprite_hourglass_60_1, SPRITE_HOURGLASS_60_1_BYTES, x, kHourglassY, SPRITE_HOURGLASS_60_1_WIDTH, SPRITE_HOURGLASS_60_1_HEIGHT, true);
+        SpriteDraw::drawPng(sprite_hourglass_60_1,
+                            SPRITE_HOURGLASS_60_1_BYTES,
+                            x,
+                            kHourglassY,
+                            SPRITE_HOURGLASS_60_1_WIDTH,
+                            SPRITE_HOURGLASS_60_1_HEIGHT,
+                            true);
         break;
     case 1:
-        SpriteDraw::drawPng(sprite_hourglass_60_2, SPRITE_HOURGLASS_60_2_BYTES, x, kHourglassY, SPRITE_HOURGLASS_60_2_WIDTH, SPRITE_HOURGLASS_60_2_HEIGHT, true);
+        SpriteDraw::drawPng(sprite_hourglass_60_2,
+                            SPRITE_HOURGLASS_60_2_BYTES,
+                            x,
+                            kHourglassY,
+                            SPRITE_HOURGLASS_60_2_WIDTH,
+                            SPRITE_HOURGLASS_60_2_HEIGHT,
+                            true);
         break;
     default:
-        SpriteDraw::drawPng(sprite_hourglass_60_3, SPRITE_HOURGLASS_60_3_BYTES, x, kHourglassY, SPRITE_HOURGLASS_60_3_WIDTH, SPRITE_HOURGLASS_60_3_HEIGHT, true);
+        SpriteDraw::drawPng(sprite_hourglass_60_3,
+                            SPRITE_HOURGLASS_60_3_BYTES,
+                            x,
+                            kHourglassY,
+                            SPRITE_HOURGLASS_60_3_WIDTH,
+                            SPRITE_HOURGLASS_60_3_HEIGHT,
+                            true);
         break;
     }
 }

@@ -30,47 +30,47 @@ struct SpriteRef
 };
 
 constexpr IconName kIconNames[] = {
-    { "unknown", ICON_UNKNOWN },
-    { "icon_unknown", ICON_UNKNOWN },
-    { "smartphone", ICON_SMARTPHONE },
-    { "phone", ICON_SMARTPHONE },
-    { "mobile", ICON_SMARTPHONE },
-    { "icon_smartphone", ICON_SMARTPHONE },
-    { "icon_phone", ICON_SMARTPHONE },
-    { "phone_ap", ICON_SMARTPHONE },
-    { "phone-ap", ICON_SMARTPHONE },
-    { "smartphone_ap", ICON_SMARTPHONE },
-    { "smartphone-ap", ICON_SMARTPHONE },
-    { "icon_phone_ap", ICON_SMARTPHONE },
-    { "laptop", ICON_LAPTOP },
-    { "computer", ICON_LAPTOP },
-    { "icon_laptop", ICON_LAPTOP },
-    { "tablet", ICON_TABLET },
-    { "icon_tablet", ICON_TABLET },
-    { "home", ICON_HOME },
-    { "house", ICON_HOME },
-    { "icon_home", ICON_HOME },
-        { "work", ICON_WORK },
-    { "briefcase", ICON_WORK },
-    { "icon_work", ICON_WORK },
-    { "car", ICON_CAR },
-    { "icon_car", ICON_CAR },
-    { "plane", ICON_PLANE },
-    { "icon_plane", ICON_PLANE },
-    { "airplane", ICON_PLANE },
-    { "icon_airplane", ICON_PLANE },
-    { "cat", ICON_CAT },
-    { "icon_cat", ICON_CAT },
-    { "dog", ICON_DOG },
-    { "icon_dog", ICON_DOG },
-    { "bird", ICON_BIRD },
-    { "icon_bird", ICON_BIRD },
-    { "circle", ICON_CIRCLE },
-    { "icon_circle", ICON_CIRCLE },
-    { "square", ICON_SQUARE },
-    { "icon_square", ICON_SQUARE },
-    { "triangle", ICON_TRIANGLE },
-    { "icon_triangle", ICON_TRIANGLE },
+    {"unknown", ICON_UNKNOWN},
+    {"icon_unknown", ICON_UNKNOWN},
+    {"smartphone", ICON_SMARTPHONE},
+    {"phone", ICON_SMARTPHONE},
+    {"mobile", ICON_SMARTPHONE},
+    {"icon_smartphone", ICON_SMARTPHONE},
+    {"icon_phone", ICON_SMARTPHONE},
+    {"phone_ap", ICON_SMARTPHONE},
+    {"phone-ap", ICON_SMARTPHONE},
+    {"smartphone_ap", ICON_SMARTPHONE},
+    {"smartphone-ap", ICON_SMARTPHONE},
+    {"icon_phone_ap", ICON_SMARTPHONE},
+    {"laptop", ICON_LAPTOP},
+    {"computer", ICON_LAPTOP},
+    {"icon_laptop", ICON_LAPTOP},
+    {"tablet", ICON_TABLET},
+    {"icon_tablet", ICON_TABLET},
+    {"home", ICON_HOME},
+    {"house", ICON_HOME},
+    {"icon_home", ICON_HOME},
+    {"work", ICON_WORK},
+    {"briefcase", ICON_WORK},
+    {"icon_work", ICON_WORK},
+    {"car", ICON_CAR},
+    {"icon_car", ICON_CAR},
+    {"plane", ICON_PLANE},
+    {"icon_plane", ICON_PLANE},
+    {"airplane", ICON_PLANE},
+    {"icon_airplane", ICON_PLANE},
+    {"cat", ICON_CAT},
+    {"icon_cat", ICON_CAT},
+    {"dog", ICON_DOG},
+    {"icon_dog", ICON_DOG},
+    {"bird", ICON_BIRD},
+    {"icon_bird", ICON_BIRD},
+    {"circle", ICON_CIRCLE},
+    {"icon_circle", ICON_CIRCLE},
+    {"square", ICON_SQUARE},
+    {"icon_square", ICON_SQUARE},
+    {"triangle", ICON_TRIANGLE},
+    {"icon_triangle", ICON_TRIANGLE},
 };
 
 bool equal_ignore_case(const char* lhs, const char* rhs)
@@ -141,137 +141,194 @@ void assign_overlay(sprite_desc_t* sprite, SpriteRef ref, OverlayCorner corner)
 
 SpriteRef cloud_upload()
 {
-    return { sprite_cloudupload_100, SPRITE_CLOUDUPLOAD_100_WIDTH, SPRITE_CLOUDUPLOAD_100_HEIGHT, SPRITE_CLOUDUPLOAD_100_BYTES };
+    return {sprite_cloudupload_100,
+            SPRITE_CLOUDUPLOAD_100_WIDTH,
+            SPRITE_CLOUDUPLOAD_100_HEIGHT,
+            SPRITE_CLOUDUPLOAD_100_BYTES};
 }
 
 SpriteRef generic_bt()
 {
-    return { sprite_genericdevice_bt_100, SPRITE_GENERICDEVICE_BT_100_WIDTH, SPRITE_GENERICDEVICE_BT_100_HEIGHT, SPRITE_GENERICDEVICE_BT_100_BYTES };
+    return {sprite_genericdevice_bt_100,
+            SPRITE_GENERICDEVICE_BT_100_WIDTH,
+            SPRITE_GENERICDEVICE_BT_100_HEIGHT,
+            SPRITE_GENERICDEVICE_BT_100_BYTES};
 }
 
 SpriteRef generic_wifi_router()
 {
-    return { sprite_genericwifirouter_100, SPRITE_GENERICWIFIROUTER_100_WIDTH, SPRITE_GENERICWIFIROUTER_100_HEIGHT, SPRITE_GENERICWIFIROUTER_100_BYTES };
+    return {sprite_genericwifirouter_100,
+            SPRITE_GENERICWIFIROUTER_100_WIDTH,
+            SPRITE_GENERICWIFIROUTER_100_HEIGHT,
+            SPRITE_GENERICWIFIROUTER_100_BYTES};
 }
 
 SpriteRef home()
 {
-    return { sprite_home_100, SPRITE_HOME_100_WIDTH, SPRITE_HOME_100_HEIGHT, SPRITE_HOME_100_BYTES };
+    return {sprite_home_100, SPRITE_HOME_100_WIDTH, SPRITE_HOME_100_HEIGHT, SPRITE_HOME_100_BYTES};
 }
 
 SpriteRef work()
 {
-    return { sprite_briefcase_100, SPRITE_BRIEFCASE_100_WIDTH, SPRITE_BRIEFCASE_100_HEIGHT, SPRITE_BRIEFCASE_100_BYTES };
+    return {sprite_briefcase_100, SPRITE_BRIEFCASE_100_WIDTH, SPRITE_BRIEFCASE_100_HEIGHT, SPRITE_BRIEFCASE_100_BYTES};
 }
 
 SpriteRef home_wifi()
 {
-    return { sprite_home_wifi_100, SPRITE_HOME_WIFI_100_WIDTH, SPRITE_HOME_WIFI_100_HEIGHT, SPRITE_HOME_WIFI_100_BYTES };
+    return {sprite_home_wifi_100, SPRITE_HOME_WIFI_100_WIDTH, SPRITE_HOME_WIFI_100_HEIGHT, SPRITE_HOME_WIFI_100_BYTES};
 }
 
 SpriteRef laptop()
 {
-    return { sprite_laptop_100, SPRITE_LAPTOP_100_WIDTH, SPRITE_LAPTOP_100_HEIGHT, SPRITE_LAPTOP_100_BYTES };
+    return {sprite_laptop_100, SPRITE_LAPTOP_100_WIDTH, SPRITE_LAPTOP_100_HEIGHT, SPRITE_LAPTOP_100_BYTES};
 }
 
 SpriteRef laptop_bt()
 {
-    return { sprite_laptop_bt_100, SPRITE_LAPTOP_BT_100_WIDTH, SPRITE_LAPTOP_BT_100_HEIGHT, SPRITE_LAPTOP_BT_100_BYTES };
+    return {sprite_laptop_bt_100, SPRITE_LAPTOP_BT_100_WIDTH, SPRITE_LAPTOP_BT_100_HEIGHT, SPRITE_LAPTOP_BT_100_BYTES};
 }
 
 SpriteRef overlay_bird()
 {
-    return { sprite_overlay_bird_50, SPRITE_OVERLAY_BIRD_50_WIDTH, SPRITE_OVERLAY_BIRD_50_HEIGHT, SPRITE_OVERLAY_BIRD_50_BYTES };
+    return {sprite_overlay_bird_50,
+            SPRITE_OVERLAY_BIRD_50_WIDTH,
+            SPRITE_OVERLAY_BIRD_50_HEIGHT,
+            SPRITE_OVERLAY_BIRD_50_BYTES};
 }
 
 SpriteRef overlay_bt()
 {
-    return { sprite_overlay_bt_50, SPRITE_OVERLAY_BT_50_WIDTH, SPRITE_OVERLAY_BT_50_HEIGHT, SPRITE_OVERLAY_BT_50_BYTES };
+    return {sprite_overlay_bt_50, SPRITE_OVERLAY_BT_50_WIDTH, SPRITE_OVERLAY_BT_50_HEIGHT, SPRITE_OVERLAY_BT_50_BYTES};
 }
 
 SpriteRef overlay_cat()
 {
-    return { sprite_overlay_cat_50, SPRITE_OVERLAY_CAT_50_WIDTH, SPRITE_OVERLAY_CAT_50_HEIGHT, SPRITE_OVERLAY_CAT_50_BYTES };
+    return {sprite_overlay_cat_50,
+            SPRITE_OVERLAY_CAT_50_WIDTH,
+            SPRITE_OVERLAY_CAT_50_HEIGHT,
+            SPRITE_OVERLAY_CAT_50_BYTES};
 }
 
 SpriteRef overlay_car()
 {
-    return { sprite_overlay_car_50, SPRITE_OVERLAY_CAR_50_WIDTH, SPRITE_OVERLAY_CAR_50_HEIGHT, SPRITE_OVERLAY_CAR_50_BYTES };
+    return {sprite_overlay_car_50,
+            SPRITE_OVERLAY_CAR_50_WIDTH,
+            SPRITE_OVERLAY_CAR_50_HEIGHT,
+            SPRITE_OVERLAY_CAR_50_BYTES};
 }
 
 SpriteRef overlay_plane()
 {
-    return { sprite_overlay_airplane_50, SPRITE_OVERLAY_AIRPLANE_50_WIDTH, SPRITE_OVERLAY_AIRPLANE_50_HEIGHT, SPRITE_OVERLAY_AIRPLANE_50_BYTES };
+    return {sprite_overlay_airplane_50,
+            SPRITE_OVERLAY_AIRPLANE_50_WIDTH,
+            SPRITE_OVERLAY_AIRPLANE_50_HEIGHT,
+            SPRITE_OVERLAY_AIRPLANE_50_BYTES};
 }
 
 SpriteRef overlay_circle()
 {
-    return { sprite_overlay_circle_40, SPRITE_OVERLAY_CIRCLE_40_WIDTH, SPRITE_OVERLAY_CIRCLE_40_HEIGHT, SPRITE_OVERLAY_CIRCLE_40_BYTES };
+    return {sprite_overlay_circle_40,
+            SPRITE_OVERLAY_CIRCLE_40_WIDTH,
+            SPRITE_OVERLAY_CIRCLE_40_HEIGHT,
+            SPRITE_OVERLAY_CIRCLE_40_BYTES};
 }
 
 SpriteRef overlay_cloud()
 {
-    return { sprite_overlay_cloud_50, SPRITE_OVERLAY_CLOUD_50_WIDTH, SPRITE_OVERLAY_CLOUD_50_HEIGHT, SPRITE_OVERLAY_CLOUD_50_BYTES };
+    return {sprite_overlay_cloud_50,
+            SPRITE_OVERLAY_CLOUD_50_WIDTH,
+            SPRITE_OVERLAY_CLOUD_50_HEIGHT,
+            SPRITE_OVERLAY_CLOUD_50_BYTES};
 }
 
 SpriteRef overlay_dog()
 {
-    return { sprite_overlay_dog_50, SPRITE_OVERLAY_DOG_50_WIDTH, SPRITE_OVERLAY_DOG_50_HEIGHT, SPRITE_OVERLAY_DOG_50_BYTES };
+    return {sprite_overlay_dog_50,
+            SPRITE_OVERLAY_DOG_50_WIDTH,
+            SPRITE_OVERLAY_DOG_50_HEIGHT,
+            SPRITE_OVERLAY_DOG_50_BYTES};
 }
 
 SpriteRef overlay_home()
 {
-    return { sprite_overlay_home_50, SPRITE_OVERLAY_HOME_50_WIDTH, SPRITE_OVERLAY_HOME_50_HEIGHT, SPRITE_OVERLAY_HOME_50_BYTES };
+    return {sprite_overlay_home_50,
+            SPRITE_OVERLAY_HOME_50_WIDTH,
+            SPRITE_OVERLAY_HOME_50_HEIGHT,
+            SPRITE_OVERLAY_HOME_50_BYTES};
 }
 
 SpriteRef overlay_work()
 {
-    return { sprite_overlay_briefcase_50, SPRITE_OVERLAY_BRIEFCASE_50_WIDTH, SPRITE_OVERLAY_BRIEFCASE_50_HEIGHT, SPRITE_OVERLAY_BRIEFCASE_50_BYTES };
+    return {sprite_overlay_briefcase_50,
+            SPRITE_OVERLAY_BRIEFCASE_50_WIDTH,
+            SPRITE_OVERLAY_BRIEFCASE_50_HEIGHT,
+            SPRITE_OVERLAY_BRIEFCASE_50_BYTES};
 }
 
 SpriteRef overlay_square()
 {
-    return { sprite_overlay_square_40, SPRITE_OVERLAY_SQUARE_40_WIDTH, SPRITE_OVERLAY_SQUARE_40_HEIGHT, SPRITE_OVERLAY_SQUARE_40_BYTES };
+    return {sprite_overlay_square_40,
+            SPRITE_OVERLAY_SQUARE_40_WIDTH,
+            SPRITE_OVERLAY_SQUARE_40_HEIGHT,
+            SPRITE_OVERLAY_SQUARE_40_BYTES};
 }
 
 SpriteRef overlay_triangle()
 {
-    return { sprite_overlay_triangle_40, SPRITE_OVERLAY_TRIANGLE_40_WIDTH, SPRITE_OVERLAY_TRIANGLE_40_HEIGHT, SPRITE_OVERLAY_TRIANGLE_40_BYTES };
+    return {sprite_overlay_triangle_40,
+            SPRITE_OVERLAY_TRIANGLE_40_WIDTH,
+            SPRITE_OVERLAY_TRIANGLE_40_HEIGHT,
+            SPRITE_OVERLAY_TRIANGLE_40_BYTES};
 }
 
 SpriteRef overlay_wifi()
 {
-    return { sprite_overlay_wifi_50, SPRITE_OVERLAY_WIFI_50_WIDTH, SPRITE_OVERLAY_WIFI_50_HEIGHT, SPRITE_OVERLAY_WIFI_50_BYTES };
+    return {sprite_overlay_wifi_50,
+            SPRITE_OVERLAY_WIFI_50_WIDTH,
+            SPRITE_OVERLAY_WIFI_50_HEIGHT,
+            SPRITE_OVERLAY_WIFI_50_BYTES};
 }
 
 SpriteRef smartphone()
 {
-    return { sprite_smartphone_100, SPRITE_SMARTPHONE_100_WIDTH, SPRITE_SMARTPHONE_100_HEIGHT, SPRITE_SMARTPHONE_100_BYTES };
+    return {sprite_smartphone_100,
+            SPRITE_SMARTPHONE_100_WIDTH,
+            SPRITE_SMARTPHONE_100_HEIGHT,
+            SPRITE_SMARTPHONE_100_BYTES};
 }
 
 SpriteRef smartphone_ap()
 {
-    return { sprite_smartphone_ap_100, SPRITE_SMARTPHONE_AP_100_WIDTH, SPRITE_SMARTPHONE_AP_100_HEIGHT, SPRITE_SMARTPHONE_AP_100_BYTES };
+    return {sprite_smartphone_ap_100,
+            SPRITE_SMARTPHONE_AP_100_WIDTH,
+            SPRITE_SMARTPHONE_AP_100_HEIGHT,
+            SPRITE_SMARTPHONE_AP_100_BYTES};
 }
 
 SpriteRef smartphone_bt()
 {
-    return { sprite_smartphone_bt_100, SPRITE_SMARTPHONE_BT_100_WIDTH, SPRITE_SMARTPHONE_BT_100_HEIGHT, SPRITE_SMARTPHONE_BT_100_BYTES };
+    return {sprite_smartphone_bt_100,
+            SPRITE_SMARTPHONE_BT_100_WIDTH,
+            SPRITE_SMARTPHONE_BT_100_HEIGHT,
+            SPRITE_SMARTPHONE_BT_100_BYTES};
 }
 
 SpriteRef tablet()
 {
-    return { sprite_tablet_100, SPRITE_TABLET_100_WIDTH, SPRITE_TABLET_100_HEIGHT, SPRITE_TABLET_100_BYTES };
+    return {sprite_tablet_100, SPRITE_TABLET_100_WIDTH, SPRITE_TABLET_100_HEIGHT, SPRITE_TABLET_100_BYTES};
 }
 
 SpriteRef tablet_bt()
 {
-    return { sprite_tablet_bt_100, SPRITE_TABLET_BT_100_WIDTH, SPRITE_TABLET_BT_100_HEIGHT, SPRITE_TABLET_BT_100_BYTES };
+    return {sprite_tablet_bt_100, SPRITE_TABLET_BT_100_WIDTH, SPRITE_TABLET_BT_100_HEIGHT, SPRITE_TABLET_BT_100_BYTES};
 }
 
 SpriteRef unknown_bt()
 {
-    return { sprite_unknown_bt_100, SPRITE_UNKNOWN_BT_100_WIDTH, SPRITE_UNKNOWN_BT_100_HEIGHT, SPRITE_UNKNOWN_BT_100_BYTES };
+    return {sprite_unknown_bt_100,
+            SPRITE_UNKNOWN_BT_100_WIDTH,
+            SPRITE_UNKNOWN_BT_100_HEIGHT,
+            SPRITE_UNKNOWN_BT_100_BYTES};
 }
 
 void assign_generic_overlay(sprite_desc_t* sprite, SpriteRef base, uint8_t icon)

@@ -87,24 +87,21 @@ bool FilePlayback::start(const char* playbackPath)
         return false;
     }
 
-    active_ = true;
-    eof_ = sourceDurationMs() == 0;
+    active_   = true;
+    eof_      = sourceDurationMs() == 0;
     finished_ = eof_;
-    playing_ = !eof_;
+    playing_  = !eof_;
 
     if (!setupSpeaker() || !seekToTimeMs(0))
     {
         closeFileAndSource();
-        active_ = false;
+        active_  = false;
         playing_ = false;
         path_[0] = '\0';
         return false;
     }
 
-    DBG_LOGI(tag(),
-             "started: %s duration=%lu ms",
-             path_,
-             static_cast<unsigned long>(sourceDurationMs()));
+    DBG_LOGI(tag(), "started: %s duration=%lu ms", path_, static_cast<unsigned long>(sourceDurationMs()));
     return true;
 }
 
@@ -118,11 +115,11 @@ void FilePlayback::stop()
     fifo.setWatermark(kSpeakerWatermarkSamples);
     AudioManager::stop();
 
-    active_ = false;
-    playing_ = false;
+    active_   = false;
+    playing_  = false;
     finished_ = false;
-    eof_ = false;
-    path_[0] = '\0';
+    eof_      = false;
+    path_[0]  = '\0';
 }
 
 void FilePlayback::pump()
@@ -206,8 +203,8 @@ void FilePlayback::setPlaying(bool shouldPlay)
     }
 
     finished_ = false;
-    eof_ = sourceAtEnd();
-    playing_ = !eof_;
+    eof_      = sourceAtEnd();
+    playing_  = !eof_;
     AudioManager::bluetoothToSpeakerFifo().setWatermark(kSpeakerWatermarkSamples);
 }
 
@@ -235,10 +232,10 @@ void FilePlayback::setPositionMs(uint32_t positionMs)
     }
 
     finished_ = false;
-    eof_ = sourceAtEnd();
+    eof_      = sourceAtEnd();
     if (eof_)
     {
-        playing_ = false;
+        playing_  = false;
         finished_ = true;
     }
 }
@@ -278,9 +275,7 @@ const char* FilePlayback::lastError() const
     return error_;
 }
 
-void FilePlayback::endSource()
-{
-}
+void FilePlayback::endSource() {}
 
 FsFile& FilePlayback::file()
 {
@@ -310,13 +305,13 @@ bool FilePlayback::eofMarked() const
 
 void FilePlayback::resetChannelActivity()
 {
-    left_zero_run_ = kInactiveZeroRunFrames;
+    left_zero_run_  = kInactiveZeroRunFrames;
     right_zero_run_ = kInactiveZeroRunFrames;
 }
 
 size_t FilePlayback::framesAvailableToQueue()
 {
-    AudioFifo& fifo = AudioManager::bluetoothToSpeakerFifo();
+    AudioFifo&   fifo      = AudioManager::bluetoothToSpeakerFifo();
     const size_t available = fifo.availableToWrite();
     return available >= kSpeakerWatermarkSamples ? available : 0;
 }
@@ -368,13 +363,13 @@ size_t FilePlayback::queuePcmFrames(const int16_t* samples, size_t frames, uint8
 
 int16_t FilePlayback::mixStereoFrameToMono(const int16_t* frame)
 {
-    const int16_t left = frame[0];
+    const int16_t left  = frame[0];
     const int16_t right = frame[1];
 
-    left_zero_run_ = left == 0 ? left_zero_run_ + 1 : 0;
+    left_zero_run_  = left == 0 ? left_zero_run_ + 1 : 0;
     right_zero_run_ = right == 0 ? right_zero_run_ + 1 : 0;
 
-    const bool left_active = left_zero_run_ < kInactiveZeroRunFrames;
+    const bool left_active  = left_zero_run_ < kInactiveZeroRunFrames;
     const bool right_active = right_zero_run_ < kInactiveZeroRunFrames;
 
     if (left_active && right_active)
@@ -445,9 +440,9 @@ bool FilePlayback::decryptChunk(const uint8_t* encrypted, size_t plaintextSize, 
         return false;
     }
 
-    const uint8_t* nonce = encrypted;
+    const uint8_t* nonce      = encrypted;
     const uint8_t* ciphertext = encrypted + RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH;
-    const uint8_t* tag = ciphertext + plaintextSize;
+    const uint8_t* tag        = ciphertext + plaintextSize;
     if (mbedtls_gcm_auth_decrypt(&playback_gcm_,
                                  plaintextSize,
                                  nonce,
@@ -469,16 +464,16 @@ bool FilePlayback::decryptChunk(const uint8_t* encrypted, size_t plaintextSize, 
 
 void FilePlayback::finish()
 {
-    playing_ = false;
+    playing_  = false;
     finished_ = true;
-    eof_ = true;
+    eof_      = true;
     AudioManager::bluetoothToSpeakerFifo().setWatermark(kSpeakerWatermarkSamples);
 }
 
 void FilePlayback::clearFifoAndMaybeRewind(bool rewindQueuedAudio)
 {
-    AudioFifo& fifo = AudioManager::bluetoothToSpeakerFifo();
-    uint32_t rewind_ms = 0;
+    AudioFifo& fifo      = AudioManager::bluetoothToSpeakerFifo();
+    uint32_t   rewind_ms = 0;
     if (rewindQueuedAudio)
     {
         rewind_ms = static_cast<uint32_t>((static_cast<uint64_t>(fifo.usedSamples()) * 1000ULL) / kSampleRateHz);
@@ -521,7 +516,7 @@ void FilePlayback::closeFileAndSource()
 
 uint32_t FilePlayback::clampedSourcePositionMs() const
 {
-    const uint32_t total = sourceDurationMs();
+    const uint32_t total   = sourceDurationMs();
     const uint32_t current = sourcePositionMs();
     return current > total ? total : current;
 }

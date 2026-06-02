@@ -47,16 +47,20 @@ using OutgoingAudioCallback = esp_hf_client_outgoing_data_cb_t;
 using PairedCallback        = void (*)(const PairedDevice& device);
 using StateChangedCallback  = void (*)(State state);
 
-bool init(const char* deviceName = nullptr, IncomingAudioCallback incomingAudio = AudioManager::hfp_incoming_audio, OutgoingAudioCallback outgoingAudio = AudioManager::hfp_outgoing_audio, const char* pin = nullptr);
+bool init(const char*           deviceName    = nullptr,
+          IncomingAudioCallback incomingAudio = AudioManager::hfp_incoming_audio,
+          OutgoingAudioCallback outgoingAudio = AudioManager::hfp_outgoing_audio,
+          const char*           pin           = nullptr);
 bool initBluetoothOnly(const char* deviceName = nullptr, const char* pin = nullptr);
-void setAudioCallbacks(IncomingAudioCallback incomingAudio = AudioManager::hfp_incoming_audio, OutgoingAudioCallback outgoingAudio = AudioManager::hfp_outgoing_audio);
+void setAudioCallbacks(IncomingAudioCallback incomingAudio = AudioManager::hfp_incoming_audio,
+                       OutgoingAudioCallback outgoingAudio = AudioManager::hfp_outgoing_audio);
 void poll();
 
 bool        generateLegacyPinFromMac();
 const char* generatedLegacyPin();
 
-void setPairedCallback(PairedCallback callback);
-void setStateChangedCallback(StateChangedCallback callback);
+void        setPairedCallback(PairedCallback callback);
+void        setStateChangedCallback(StateChangedCallback callback);
 BtHostList& hostList();
 
 Result connectToMac(const char* mac);

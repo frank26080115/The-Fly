@@ -16,7 +16,7 @@ namespace ShutdownView
 namespace
 {
 
-constexpr uint32_t kShutdownDelayMs = 3000;
+constexpr uint32_t kShutdownDelayMs    = 3000;
 constexpr uint8_t  kShutdownBrightness = 255;
 
 std::atomic<bool> g_shutdown_in_progress(false);
@@ -90,7 +90,10 @@ void showSleepAndShutdown()
 
 void showLowBatteryAndShutdown()
 {
-    show_and_shutdown(sprite_lowbatt_100, SPRITE_LOWBATT_100_BYTES, SPRITE_LOWBATT_100_WIDTH, SPRITE_LOWBATT_100_HEIGHT);
+    show_and_shutdown(sprite_lowbatt_100,
+                      SPRITE_LOWBATT_100_BYTES,
+                      SPRITE_LOWBATT_100_WIDTH,
+                      SPRITE_LOWBATT_100_HEIGHT);
 }
 
 } // namespace ShutdownView

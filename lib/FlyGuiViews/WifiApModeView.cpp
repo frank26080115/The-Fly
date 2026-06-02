@@ -11,37 +11,37 @@
 #include "sprites.h"
 
 extern WifiManager* wifi_manager;
-extern QrCodeView* get_view_qr_code();
+extern QrCodeView*  get_view_qr_code();
 
 namespace
 {
-constexpr int16_t  kContentY         = FlyGui::kTopBarHeight;
-constexpr int16_t  kWifiIconX        = 4;
-constexpr int16_t  kWifiIconY        = FlyGui::kTopBarHeight + 2;
-constexpr int16_t  kSecurityIconX    = 54;
-constexpr int16_t  kEyeSize          = 100;
-constexpr int16_t  kEyeX             = 220;
-constexpr int16_t  kEyeY             = 140;
-constexpr int16_t  kClientInfoX      = 108;
-constexpr int16_t  kClientInfoY      = FlyGui::kTopBarHeight + 2;
-constexpr int16_t  kClientInfoWidth  = 212;
-constexpr int16_t  kClientInfoLineHeight = 16;
-constexpr int16_t  kTextX            = 8;
-constexpr int16_t  kTextY            = 68;
-constexpr int16_t  kTextWidth        = 206;
-constexpr int16_t  kCredentialLabelLineHeight = 18;
-constexpr int16_t  kCredentialValueLineHeight = 28;
-constexpr int16_t  kStatsY           = 190;
-constexpr int16_t  kSmallLineHeight  = 10;
-constexpr uint8_t  kNormalTextFont   = 2;
-constexpr uint8_t  kClientInfoTextFont = kNormalTextFont;
-constexpr uint8_t  kCredentialValueTextFont = 4;
-constexpr uint8_t  kSmallTextFont    = 1;
-constexpr uint32_t kClientInfoDrawMs = 500;
-constexpr uint32_t kStatsCycleMs     = 3000;
-constexpr uint32_t kQrHoldMs         = 5000;
-constexpr const char* kHiddenText     = "**********";
-constexpr const char* kExitHint       = "power-off/reset to stop";
+constexpr int16_t     kContentY                  = FlyGui::kTopBarHeight;
+constexpr int16_t     kWifiIconX                 = 4;
+constexpr int16_t     kWifiIconY                 = FlyGui::kTopBarHeight + 2;
+constexpr int16_t     kSecurityIconX             = 54;
+constexpr int16_t     kEyeSize                   = 100;
+constexpr int16_t     kEyeX                      = 220;
+constexpr int16_t     kEyeY                      = 140;
+constexpr int16_t     kClientInfoX               = 108;
+constexpr int16_t     kClientInfoY               = FlyGui::kTopBarHeight + 2;
+constexpr int16_t     kClientInfoWidth           = 212;
+constexpr int16_t     kClientInfoLineHeight      = 16;
+constexpr int16_t     kTextX                     = 8;
+constexpr int16_t     kTextY                     = 68;
+constexpr int16_t     kTextWidth                 = 206;
+constexpr int16_t     kCredentialLabelLineHeight = 18;
+constexpr int16_t     kCredentialValueLineHeight = 28;
+constexpr int16_t     kStatsY                    = 190;
+constexpr int16_t     kSmallLineHeight           = 10;
+constexpr uint8_t     kNormalTextFont            = 2;
+constexpr uint8_t     kClientInfoTextFont        = kNormalTextFont;
+constexpr uint8_t     kCredentialValueTextFont   = 4;
+constexpr uint8_t     kSmallTextFont             = 1;
+constexpr uint32_t    kClientInfoDrawMs          = 500;
+constexpr uint32_t    kStatsCycleMs              = 3000;
+constexpr uint32_t    kQrHoldMs                  = 5000;
+constexpr const char* kHiddenText                = "**********";
+constexpr const char* kExitHint                  = "power-off/reset to stop";
 
 void set_text_style(uint8_t font, uint16_t color)
 {
@@ -70,7 +70,7 @@ void draw_fit_line(const char* text, int16_t x, int16_t y, int16_t width, uint8_
         line[len - 3] = '.';
         line[len - 2] = '.';
         line[len - 1] = '.';
-        line[len] = '\0';
+        line[len]     = '\0';
         if (thefly_display.textWidth(line) <= width)
         {
             thefly_display.drawString(line, x, y);
@@ -95,15 +95,7 @@ void format_mac_hyphen(const uint8_t mac[6], char* out, size_t out_size)
         return;
     }
 
-    snprintf(out,
-             out_size,
-             "%02X-%02X-%02X-%02X-%02X-%02X",
-             mac[0],
-             mac[1],
-             mac[2],
-             mac[3],
-             mac[4],
-             mac[5]);
+    snprintf(out, out_size, "%02X-%02X-%02X-%02X-%02X-%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 }
 
 bool append_char(char* out, size_t out_size, size_t& used, char value)
@@ -114,7 +106,7 @@ bool append_char(char* out, size_t out_size, size_t& used, char value)
     }
 
     out[used++] = value;
-    out[used] = '\0';
+    out[used]   = '\0';
     return true;
 }
 
@@ -152,15 +144,17 @@ bool append_wifi_qr_text(char* out, size_t out_size, size_t& used, const char* t
 WifiApModeView* WifiApModeView::activeView_ = nullptr;
 
 WifiApModeView::WifiApModeView()
-    : FlyGuiView(FLYGUI_VIEW_AP_MODE),
-      wifiIcon_(kWifiIconX, kWifiIconY, SPRITE_WIFI_50_WIDTH, SPRITE_WIFI_50_HEIGHT),
+    : FlyGuiView(FLYGUI_VIEW_AP_MODE), wifiIcon_(kWifiIconX, kWifiIconY, SPRITE_WIFI_50_WIDTH, SPRITE_WIFI_50_HEIGHT),
       securityIcon_(kSecurityIconX, kWifiIconY, SPRITE_SECURITY_50_WIDTH, SPRITE_SECURITY_50_HEIGHT),
       eyeItem_(kEyeX, kEyeY, kEyeSize, kEyeSize)
 {
     wifiIcon_.setSprite(sprite_wifi_50, SPRITE_WIFI_50_WIDTH, SPRITE_WIFI_50_HEIGHT, SPRITE_WIFI_50_BYTES);
     addItem(wifiIcon_);
 
-    securityIcon_.setSprite(sprite_security_50, SPRITE_SECURITY_50_WIDTH, SPRITE_SECURITY_50_HEIGHT, SPRITE_SECURITY_50_BYTES);
+    securityIcon_.setSprite(sprite_security_50,
+                            SPRITE_SECURITY_50_WIDTH,
+                            SPRITE_SECURITY_50_HEIGHT,
+                            SPRITE_SECURITY_50_BYTES);
     addItem(securityIcon_);
 
     syncEyeSprite();
@@ -169,11 +163,11 @@ WifiApModeView::WifiApModeView()
 
 void WifiApModeView::onLoad()
 {
-    activeView_ = this;
-    showSensitive_ = true;
-    statsIndex_ = 0;
+    activeView_       = this;
+    showSensitive_    = true;
+    statsIndex_       = 0;
     lastClientDrawMs_ = 0;
-    lastStatsDrawMs_ = 0;
+    lastStatsDrawMs_  = 0;
     resetQrHold();
     syncEyeSprite();
     FlyGuiView::onLoad();
@@ -199,7 +193,7 @@ bool WifiApModeView::handleTouch(const FlyGuiTouchEvent& event)
 
     if (event.justPressed && eyeItem_.contains(event.x, event.y))
     {
-        qrHoldActive_ = true;
+        qrHoldActive_    = true;
         qrHoldStartedMs_ = millis();
         qrHoldFadeDrawn_ = false;
         return true;
@@ -218,7 +212,7 @@ bool WifiApModeView::handleTouch(const FlyGuiTouchEvent& event)
 
     if (event.justReleased)
     {
-        const bool show_qr = held_ms >= kQrHoldMs;
+        const bool show_qr         = held_ms >= kQrHoldMs;
         const bool released_on_eye = eyeItem_.contains(event.x, event.y);
         resetQrHold();
         if (show_qr)
@@ -270,7 +264,7 @@ void WifiApModeView::toggleSensitive()
 void WifiApModeView::resetQrHold()
 {
     qrHoldStartedMs_ = 0;
-    qrHoldActive_ = false;
+    qrHoldActive_    = false;
     qrHoldFadeDrawn_ = false;
 }
 
@@ -287,9 +281,9 @@ void WifiApModeView::drawQrHoldFade()
 
 void WifiApModeView::showQrCode()
 {
-    QrCodeView* qr_view = get_view_qr_code();
-    FlyGui* owner = gui();
-    char qr_text[384] = {};
+    QrCodeView* qr_view      = get_view_qr_code();
+    FlyGui*     owner        = gui();
+    char        qr_text[384] = {};
     if (!qr_view || !owner || !makeWifiQrText(qr_text, sizeof(qr_text)))
     {
         setDirty();
@@ -304,11 +298,17 @@ void WifiApModeView::syncEyeSprite()
 {
     if (showSensitive_)
     {
-        eyeItem_.setSprite(sprite_eye_open_100, SPRITE_EYE_OPEN_100_WIDTH, SPRITE_EYE_OPEN_100_HEIGHT, SPRITE_EYE_OPEN_100_BYTES);
+        eyeItem_.setSprite(sprite_eye_open_100,
+                           SPRITE_EYE_OPEN_100_WIDTH,
+                           SPRITE_EYE_OPEN_100_HEIGHT,
+                           SPRITE_EYE_OPEN_100_BYTES);
         return;
     }
 
-    eyeItem_.setSprite(sprite_eye_closed_100, SPRITE_EYE_CLOSED_100_WIDTH, SPRITE_EYE_CLOSED_100_HEIGHT, SPRITE_EYE_CLOSED_100_BYTES);
+    eyeItem_.setSprite(sprite_eye_closed_100,
+                       SPRITE_EYE_CLOSED_100_WIDTH,
+                       SPRITE_EYE_CLOSED_100_HEIGHT,
+                       SPRITE_EYE_CLOSED_100_BYTES);
 }
 
 void WifiApModeView::drawStaticContent()
@@ -337,8 +337,8 @@ void WifiApModeView::drawClientInfo(bool forced)
 
     const bool secureAp = wifi_manager && wifi_manager->isGeneratedSoftApActive();
 
-    char client_text[24] = "To: nobody";
-    uint8_t client_mac[6] = {};
+    char    client_text[24] = "To: nobody";
+    uint8_t client_mac[6]   = {};
     if (wifi_manager && wifi_manager->softApClientMac(client_mac))
     {
         char mac_text[18] = {};
@@ -347,7 +347,7 @@ void WifiApModeView::drawClientInfo(bool forced)
     }
 
     const uint32_t connectionCount = wifi_manager ? wifi_manager->softApClientConnectionCount() : 0;
-    char count_text[24] = {};
+    char           count_text[24]  = {};
     snprintf(count_text,
              sizeof(count_text),
              "%lux %s",
@@ -381,10 +381,10 @@ void WifiApModeView::drawClientInfo(bool forced)
 
 void WifiApModeView::drawCredentials()
 {
-    const wifi_item_t* active = wifi_manager ? wifi_manager->activeWifi() : nullptr;
-    const char* ssid = active && active->ssid[0] != '\0' ? active->ssid : "";
-    const char* password = wifi_manager ? wifi_manager->softApPassword() : nullptr;
-    const String ipText = wifi_manager ? wifi_manager->softApIp().toString() : IPAddress().toString();
+    const wifi_item_t* active   = wifi_manager ? wifi_manager->activeWifi() : nullptr;
+    const char*        ssid     = active && active->ssid[0] != '\0' ? active->ssid : "";
+    const char*        password = wifi_manager ? wifi_manager->softApPassword() : nullptr;
+    const String       ipText   = wifi_manager ? wifi_manager->softApIp().toString() : IPAddress().toString();
 
     thefly_display.fillRect(kTextX, kTextY, kTextWidth, kStatsY - kTextY, TFT_BLACK);
 
@@ -415,11 +415,11 @@ void WifiApModeView::drawCredentials()
 void WifiApModeView::drawStatsLine(bool forced)
 {
     const uint32_t now = millis();
-    #if BUILD_WITH_SECURITY_LEVEL <= 0
+#if BUILD_WITH_SECURITY_LEVEL <= 0
     constexpr uint8_t kStatsCount = 4;
-    #else
+#else
     constexpr uint8_t kStatsCount = 5;
-    #endif
+#endif
 
     if (!forced && now - lastStatsDrawMs_ < kStatsCycleMs)
     {
@@ -450,12 +450,12 @@ void WifiApModeView::formatStatsLine(char* out, size_t out_size) const
     }
 
     const uint32_t pageLoads = wifi_manager ? wifi_manager->webPageLoadCount() : 0;
-    const uint32_t logins = wifi_manager ? wifi_manager->webLoginCount() : 0;
-    const uint32_t saves = wifi_manager ? wifi_manager->webSaveCount() : 0;
-    const uint32_t errors = wifi_manager ? wifi_manager->webErrorCount() : 0;
+    const uint32_t logins    = wifi_manager ? wifi_manager->webLoginCount() : 0;
+    const uint32_t saves     = wifi_manager ? wifi_manager->webSaveCount() : 0;
+    const uint32_t errors    = wifi_manager ? wifi_manager->webErrorCount() : 0;
     const uint32_t downloads = wifi_manager ? wifi_manager->webDownloadCount() : 0;
 
-    #if BUILD_WITH_SECURITY_LEVEL <= 0
+#if BUILD_WITH_SECURITY_LEVEL <= 0
     switch (statsIndex_ % 4)
     {
     case 0:
@@ -471,7 +471,7 @@ void WifiApModeView::formatStatsLine(char* out, size_t out_size) const
         snprintf(out, out_size, "downloads: %lu", static_cast<unsigned long>(downloads));
         break;
     }
-    #else
+#else
     switch (statsIndex_ % 5)
     {
     case 0:
@@ -490,7 +490,7 @@ void WifiApModeView::formatStatsLine(char* out, size_t out_size) const
         snprintf(out, out_size, "downloads: %lu", static_cast<unsigned long>(downloads));
         break;
     }
-    #endif
+#endif
 }
 
 bool WifiApModeView::makeWifiQrText(char* out, size_t out_size) const
@@ -500,10 +500,10 @@ bool WifiApModeView::makeWifiQrText(char* out, size_t out_size) const
         return false;
     }
 
-    out[0] = '\0';
-    const wifi_item_t* active = wifi_manager ? wifi_manager->activeWifi() : nullptr;
-    const char* ssid = active && active->ssid[0] != '\0' ? active->ssid : nullptr;
-    const char* password = wifi_manager ? wifi_manager->softApPassword() : nullptr;
+    out[0]                      = '\0';
+    const wifi_item_t* active   = wifi_manager ? wifi_manager->activeWifi() : nullptr;
+    const char*        ssid     = active && active->ssid[0] != '\0' ? active->ssid : nullptr;
+    const char*        password = wifi_manager ? wifi_manager->softApPassword() : nullptr;
     if (!password && active && active->password[0] != '\0')
     {
         password = active->password;
@@ -521,8 +521,7 @@ bool WifiApModeView::makeWifiQrText(char* out, size_t out_size) const
     }
 
     if (password && password[0] != '\0' &&
-        (!append_text(out, out_size, used, ";P:") ||
-         !append_wifi_qr_text(out, out_size, used, password)))
+        (!append_text(out, out_size, used, ";P:") || !append_wifi_qr_text(out, out_size, used, password)))
     {
         return false;
     }

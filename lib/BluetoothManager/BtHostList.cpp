@@ -18,11 +18,11 @@
 namespace
 {
 
-constexpr const char* TAG              = "BtHostList";
-constexpr const char* kDefaultPath     = "/bluetooth.json";
-constexpr size_t      kMaxJsonFileSize = 16 * 1024;
-constexpr uint32_t    kBtHostListMagic   = 0x54464254; // "TFBT"
-constexpr uint32_t    kBtHostListVersion = 3;
+constexpr const char* TAG                 = "BtHostList";
+constexpr const char* kDefaultPath        = "/bluetooth.json";
+constexpr size_t      kMaxJsonFileSize    = 16 * 1024;
+constexpr uint32_t    kBtHostListMagic    = 0x54464254; // "TFBT"
+constexpr uint32_t    kBtHostListVersion  = 3;
 constexpr const char* kBtHostNvsNamespace = "bt_hosts";
 constexpr const char* kBtHostNvsBlobName  = "hosts";
 
@@ -77,9 +77,9 @@ time_t current_host_time()
 
 void refresh_host_runtime(bt_host_item_t& item)
 {
-    item.name_custom[sizeof(item.name_custom) - 1] = '\0';
+    item.name_custom[sizeof(item.name_custom) - 1]     = '\0';
     item.name_reported[sizeof(item.name_reported) - 1] = '\0';
-    item.bonded = host_slot_used(item) && BtManager::isBonded(item.bdaddr);
+    item.bonded                                        = host_slot_used(item) && BtManager::isBonded(item.bdaddr);
 }
 
 void init_bt_host_list(bt_host_list_t& hosts)
@@ -96,8 +96,8 @@ void clear_host_slot(bt_host_item_t& item)
 
 void sanitize_bt_host_list(bt_host_list_t& hosts)
 {
-    hosts.magic   = kBtHostListMagic;
-    hosts.version = kBtHostListVersion;
+    hosts.magic            = kBtHostListMagic;
+    hosts.version          = kBtHostListVersion;
     const size_t old_count = hosts.count > kBtHostListMaxEntries ? kBtHostListMaxEntries : hosts.count;
     uint8_t      new_count = 0;
 
@@ -151,9 +151,9 @@ const bt_host_item_t* find_host_by_icon(const bt_host_list_t& hosts, uint8_t ico
 
 size_t choose_overwrite_slot(bt_host_list_t& hosts)
 {
-    size_t selected = 0;
-    bool found_unbonded = false;
-    time_t oldest = 0;
+    size_t selected       = 0;
+    bool   found_unbonded = false;
+    time_t oldest         = 0;
 
     for (size_t i = 0; i < hosts.count; ++i)
     {
@@ -164,8 +164,8 @@ size_t choose_overwrite_slot(bt_host_list_t& hosts)
         }
         if (!found_unbonded || hosts.host[i].last_used < oldest)
         {
-            selected = i;
-            oldest = hosts.host[i].last_used;
+            selected       = i;
+            oldest         = hosts.host[i].last_used;
             found_unbonded = true;
         }
     }
@@ -181,7 +181,7 @@ size_t choose_overwrite_slot(bt_host_list_t& hosts)
         if (hosts.host[i].last_used < oldest)
         {
             selected = i;
-            oldest = hosts.host[i].last_used;
+            oldest   = hosts.host[i].last_used;
         }
     }
     return selected;
@@ -263,7 +263,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
     }
     buffer[file_size] = '\0';
 
-    JsonDocument doc;
+    JsonDocument               doc;
     const DeserializationError error = deserializeJson(doc, buffer);
     free(buffer);
     if (error)
@@ -292,7 +292,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
             continue;
         }
 
-        JsonObject host = host_value.as<JsonObject>();
+        JsonObject  host = host_value.as<JsonObject>();
         const char* name = host["name"].is<const char*>() ? host["name"].as<const char*>() : "";
         const char* mac  = host["mac"].as<const char*>();
         const char* icon = host["icon"].as<const char*>();
@@ -325,7 +325,7 @@ bool BtHostList::loadFromMicroSd(const char* path)
 
     sanitize_bt_host_list(imported);
     m_hosts = imported;
-    m_size = m_hosts.count;
+    m_size  = m_hosts.count;
     if (!saveToNvs())
     {
         return false;
@@ -360,7 +360,7 @@ bool BtHostList::loadFromNvs()
     clear();
 
     nvs_handle_t handle = 0;
-    esp_err_t err = nvs_open(kBtHostNvsNamespace, NVS_READONLY, &handle);
+    esp_err_t    err    = nvs_open(kBtHostNvsNamespace, NVS_READONLY, &handle);
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         m_last_load_result = LoadResult::Ok;
@@ -375,7 +375,7 @@ bool BtHostList::loadFromNvs()
     }
 
     size_t hosts_size = 0;
-    err = nvs_get_blob(handle, kBtHostNvsBlobName, nullptr, &hosts_size);
+    err               = nvs_get_blob(handle, kBtHostNvsBlobName, nullptr, &hosts_size);
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         nvs_close(handle);
@@ -387,7 +387,10 @@ bool BtHostList::loadFromNvs()
     {
         nvs_close(handle);
         m_last_load_result = LoadResult::FileReadFailed;
-        DBG_LOGW(TAG, "could not load Bluetooth host list from NVS: %s size=%u", esp_err_to_name(err), static_cast<unsigned>(hosts_size));
+        DBG_LOGW(TAG,
+                 "could not load Bluetooth host list from NVS: %s size=%u",
+                 esp_err_to_name(err),
+                 static_cast<unsigned>(hosts_size));
         return false;
     }
 
@@ -395,18 +398,23 @@ bool BtHostList::loadFromNvs()
     {
         nvs_close(handle);
         m_last_load_result = LoadResult::Ok;
-        DBG_LOGW(TAG, "could not load Bluetooth host list from NVS: unexpected size=%u", static_cast<unsigned>(hosts_size));
+        DBG_LOGW(TAG,
+                 "could not load Bluetooth host list from NVS: unexpected size=%u",
+                 static_cast<unsigned>(hosts_size));
         return true;
     }
 
-    bt_host_list_t hosts = {};
-    size_t read_size = sizeof(hosts);
-    err = nvs_get_blob(handle, kBtHostNvsBlobName, &hosts, &read_size);
+    bt_host_list_t hosts     = {};
+    size_t         read_size = sizeof(hosts);
+    err                      = nvs_get_blob(handle, kBtHostNvsBlobName, &hosts, &read_size);
     nvs_close(handle);
     if (err != ESP_OK || read_size != sizeof(hosts))
     {
         m_last_load_result = LoadResult::FileReadFailed;
-        DBG_LOGW(TAG, "could not load Bluetooth host list from NVS: %s size=%u", esp_err_to_name(err), static_cast<unsigned>(read_size));
+        DBG_LOGW(TAG,
+                 "could not load Bluetooth host list from NVS: %s size=%u",
+                 esp_err_to_name(err),
+                 static_cast<unsigned>(read_size));
         return false;
     }
     if (hosts.magic != kBtHostListMagic || hosts.version != kBtHostListVersion)
@@ -417,8 +425,8 @@ bool BtHostList::loadFromNvs()
     }
 
     sanitize_bt_host_list(hosts);
-    m_hosts = hosts;
-    m_size = m_hosts.count;
+    m_hosts            = hosts;
+    m_size             = m_hosts.count;
     m_last_load_result = LoadResult::Ok;
 
     DBG_LOGI(TAG, "loaded %u Bluetooth hosts from NVS", static_cast<unsigned>(m_size));
@@ -432,7 +440,7 @@ bool BtHostList::saveToNvs()
     m_size = m_hosts.count;
 
     nvs_handle_t handle = 0;
-    esp_err_t err = nvs_open(kBtHostNvsNamespace, NVS_READWRITE, &handle);
+    esp_err_t    err    = nvs_open(kBtHostNvsNamespace, NVS_READWRITE, &handle);
     if (err != ESP_OK)
     {
         m_last_load_result = LoadResult::FileOpenFailed;
@@ -478,7 +486,7 @@ bool BtHostList::replaceHostList(const bt_host_list_t& hosts)
     sanitize_bt_host_list(staged);
 
     m_hosts = staged;
-    m_size = m_hosts.count;
+    m_size  = m_hosts.count;
     return pruneBonds();
 }
 
@@ -509,7 +517,7 @@ bool BtHostList::pruneBonds()
         return false;
     }
 
-    int listed = bonded_count;
+    int             listed   = bonded_count;
     const esp_err_t list_err = esp_bt_gap_get_bond_device_list(&listed, bonded);
     if (list_err != ESP_OK)
     {
@@ -518,7 +526,7 @@ bool BtHostList::pruneBonds()
         return false;
     }
 
-    bool ok = true;
+    bool ok     = true;
     int  pruned = 0;
     for (int i = 0; i < listed; ++i)
     {
@@ -573,13 +581,14 @@ bool BtHostList::insert(const char* name, const esp_bd_addr_t bdaddr, uint8_t ic
     bt_host_item_t* existing = find_host(m_hosts, bdaddr);
     if (existing)
     {
-        if (name && name[0] != '\0' && strlcpy(existing->name_reported, name, sizeof(existing->name_reported)) >= sizeof(existing->name_reported))
+        if (name && name[0] != '\0' &&
+            strlcpy(existing->name_reported, name, sizeof(existing->name_reported)) >= sizeof(existing->name_reported))
         {
             m_last_load_result = LoadResult::InvalidHost;
             DBG_LOGW(TAG, "Bluetooth reported host name is too long");
             return false;
         }
-        existing->bonded = true;
+        existing->bonded    = true;
         existing->last_used = current_host_time();
         if (icon > ICON_UNKNOWN && icon < ICON_LAST)
         {
@@ -634,7 +643,7 @@ bool BtHostList::unpair(size_t index)
     }
 
     bt_host_item_t& item = m_hosts.host[index];
-    char mac[18];
+    char            mac[18];
     format_mac(item.bdaddr, mac, sizeof(mac));
 
     if (item.bonded)

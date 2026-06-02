@@ -44,33 +44,33 @@ public:
     const char* lastError() const;
 
 protected:
-    static constexpr uint32_t kSampleRateHz = 16000;
-    static constexpr uint32_t kPumpTargetFrames = kSampleRateHz / 2;
+    static constexpr uint32_t kSampleRateHz            = 16000;
+    static constexpr uint32_t kPumpTargetFrames        = kSampleRateHz / 2;
     static constexpr size_t   kSpeakerWatermarkSamples = 240;
-    static constexpr size_t   kInactiveZeroRunFrames = 8;
-    static constexpr size_t   kMonoQueueBufferFrames = 1152;
+    static constexpr size_t   kInactiveZeroRunFrames   = 8;
+    static constexpr size_t   kMonoQueueBufferFrames   = 1152;
 
     FilePlayback() = default;
 
-    virtual const char* tag() const = 0;
-    virtual bool beginSource() = 0;
-    virtual void endSource();
-    virtual bool seekToTimeMs(uint32_t positionMs) = 0;
-    virtual bool pumpSource(size_t maxFrames) = 0;
-    virtual uint32_t sourceDurationMs() const = 0;
-    virtual uint32_t sourcePositionMs() const = 0;
-    virtual bool sourceAtEnd() const = 0;
+    virtual const char* tag() const   = 0;
+    virtual bool        beginSource() = 0;
+    virtual void        endSource();
+    virtual bool        seekToTimeMs(uint32_t positionMs) = 0;
+    virtual bool        pumpSource(size_t maxFrames)      = 0;
+    virtual uint32_t    sourceDurationMs() const          = 0;
+    virtual uint32_t    sourcePositionMs() const          = 0;
+    virtual bool        sourceAtEnd() const               = 0;
 
-    FsFile& file();
+    FsFile&       file();
     const FsFile& file() const;
 
-    void setError(const char* error);
-    void markEof();
-    bool eofMarked() const;
-    void resetChannelActivity();
-    size_t framesAvailableToQueue();
-    size_t queueMonoSamples(const int16_t* samples, size_t frames, uint32_t sampleRateHz = kSampleRateHz);
-    size_t queuePcmFrames(const int16_t* samples, size_t frames, uint8_t channels, uint32_t sampleRateHz);
+    void    setError(const char* error);
+    void    markEof();
+    bool    eofMarked() const;
+    void    resetChannelActivity();
+    size_t  framesAvailableToQueue();
+    size_t  queueMonoSamples(const int16_t* samples, size_t frames, uint32_t sampleRateHz = kSampleRateHz);
+    size_t  queuePcmFrames(const int16_t* samples, size_t frames, uint8_t channels, uint32_t sampleRateHz);
     int16_t mixStereoFrameToMono(const int16_t* frame);
 
 #ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
@@ -80,23 +80,23 @@ protected:
 #endif
 
 private:
-    void finish();
-    void clearFifoAndMaybeRewind(bool rewindQueuedAudio);
-    bool setupSpeaker();
-    void closeFileAndSource();
+    void     finish();
+    void     clearFifoAndMaybeRewind(bool rewindQueuedAudio);
+    bool     setupSpeaker();
+    void     closeFileAndSource();
     uint32_t clampedSourcePositionMs() const;
 
     mutable std::mutex mutex_;
     FsFile             file_;
-    bool               active_ = false;
-    bool               playing_ = false;
-    bool               finished_ = false;
-    bool               eof_ = false;
-    uint8_t            volume_ = 40;
-    char               path_[96] = {};
-    char               error_[96] = {};
-    size_t             left_zero_run_ = kInactiveZeroRunFrames;
-    size_t             right_zero_run_ = kInactiveZeroRunFrames;
+    bool               active_                              = false;
+    bool               playing_                             = false;
+    bool               finished_                            = false;
+    bool               eof_                                 = false;
+    uint8_t            volume_                              = 40;
+    char               path_[96]                            = {};
+    char               error_[96]                           = {};
+    size_t             left_zero_run_                       = kInactiveZeroRunFrames;
+    size_t             right_zero_run_                      = kInactiveZeroRunFrames;
     int16_t            mono_buffer_[kMonoQueueBufferFrames] = {};
 
 #ifdef BUILD_WITH_ENCRYPTED_PLAYBACK

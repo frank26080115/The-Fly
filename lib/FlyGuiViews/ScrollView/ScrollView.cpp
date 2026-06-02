@@ -15,18 +15,18 @@ extern ModalDialog* get_view_modal_dialog();
 
 namespace
 {
-constexpr int16_t kItemWidth      = 106;
-constexpr int16_t kItemHeight     = 114;
-constexpr int16_t kItemY          = 20;
-constexpr int16_t kTextY          = 140;
-constexpr int16_t kTextMaxY       = 188;
-constexpr int16_t kTextLineHeight = 17;
-constexpr int16_t kExitSize       = 50;
-constexpr int16_t kExitY          = 190;
-constexpr float   kTextSize       = 1.0f;
-constexpr uint8_t kTextFont       = 2;
-constexpr uint8_t kSmallTextFont  = 1;
-constexpr uint16_t kInsecureUrlTextColor = TFT_ORANGE;
+constexpr int16_t  kItemWidth                  = 106;
+constexpr int16_t  kItemHeight                 = 114;
+constexpr int16_t  kItemY                      = 20;
+constexpr int16_t  kTextY                      = 140;
+constexpr int16_t  kTextMaxY                   = 188;
+constexpr int16_t  kTextLineHeight             = 17;
+constexpr int16_t  kExitSize                   = 50;
+constexpr int16_t  kExitY                      = 190;
+constexpr float    kTextSize                   = 1.0f;
+constexpr uint8_t  kTextFont                   = 2;
+constexpr uint8_t  kSmallTextFont              = 1;
+constexpr uint16_t kInsecureUrlTextColor       = TFT_ORANGE;
 constexpr uint32_t kBluetoothDeleteLongPressMs = 3000;
 
 int32_t list_callback_value(size_t index)
@@ -60,7 +60,7 @@ int16_t delete_x()
 
 sprite_desc_t make_sprite(const uint8_t* data, uint32_t width, uint32_t height, size_t byte_cnt)
 {
-    return { data, width, height, byte_cnt };
+    return {data, width, height, byte_cnt};
 }
 
 void draw_centered_line(char* line, size_t& len, int16_t& y)
@@ -98,8 +98,8 @@ void draw_centered_wrapped_text(const char* text)
     constexpr size_t kLineMax = 128;
     constexpr size_t kNoSpace = static_cast<size_t>(-1);
 
-    const int16_t width = static_cast<int16_t>(thefly_display.width() - 8);
-    int16_t       y     = kTextY;
+    const int16_t width          = static_cast<int16_t>(thefly_display.width() - 8);
+    int16_t       y              = kTextY;
     char          line[kLineMax] = {};
     size_t        len            = 0;
     size_t        lastSpace      = kNoSpace;
@@ -175,7 +175,7 @@ void draw_centered_wrapped_text(const char* text)
 
 void truncate_to_width(char* text, size_t text_size, int16_t width)
 {
-    static constexpr const char* kEllipsis = "...";
+    static constexpr const char* kEllipsis    = "...";
     static constexpr size_t      kEllipsisLen = 3;
 
     if (!text || text_size <= kEllipsisLen + 1 || thefly_display.textWidth(text) <= width)
@@ -261,9 +261,9 @@ void draw_centered_fitted_cloud_url(const char* text)
         return;
     }
 
-    const bool  secure = is_secure_url(text);
-    const char* shown  = display_cloud_url(text);
-    const int16_t width = static_cast<int16_t>(thefly_display.width() - 8);
+    const bool    secure = is_secure_url(text);
+    const char*   shown  = display_cloud_url(text);
+    const int16_t width  = static_cast<int16_t>(thefly_display.width() - 8);
 
     thefly_display.setTextColor(secure ? TFT_WHITE : kInsecureUrlTextColor, TFT_BLACK);
     thefly_display.setTextFont(kTextFont);
@@ -292,13 +292,14 @@ void draw_centered_fitted_cloud_url(const char* text)
 ScrollView* ScrollView::activeDeleteView_ = nullptr;
 
 ScrollView::ScrollView(uint16_t viewId, FlyGuiItemCallback exitCallback)
-    : FlyGuiView(viewId),
-      exitItem_(exit_x(), kExitY, kExitSize, kExitSize),
-      deleteItem_(delete_x(), kExitY, kExitSize, kExitSize),
-      exitCallback_(exitCallback)
+    : FlyGuiView(viewId), exitItem_(exit_x(), kExitY, kExitSize, kExitSize),
+      deleteItem_(delete_x(), kExitY, kExitSize, kExitSize), exitCallback_(exitCallback)
 {
     activeDeleteView_ = this;
-    exitItem_.setSprite(sprite_canceldoor_50, SPRITE_CANCELDOOR_50_WIDTH, SPRITE_CANCELDOOR_50_HEIGHT, SPRITE_CANCELDOOR_50_BYTES);
+    exitItem_.setSprite(sprite_canceldoor_50,
+                        SPRITE_CANCELDOOR_50_WIDTH,
+                        SPRITE_CANCELDOOR_50_HEIGHT,
+                        SPRITE_CANCELDOOR_50_BYTES);
     exitItem_.setCallback(exitCallback_);
 
     deleteItem_.setSprite(sprite_trash_50, SPRITE_TRASH_50_WIDTH, SPRITE_TRASH_50_HEIGHT, SPRITE_TRASH_50_BYTES);
@@ -335,10 +336,11 @@ bool ScrollView::populateBluetooth(BtHostList* hostList)
     exitDeleteMode();
     clearGeneratedItems();
 
-    bool ok = appendSpriteScrollItem(SCROLL_ITEM_BLUETOOTH_SHOW_SELF_INFO,
-                                     SCROLL_TASK_BLUETOOTH_SHOW_SELF_INFO,
-                                     "Bluetooth Info",
-                                     make_sprite(sprite_info_100, SPRITE_INFO_100_WIDTH, SPRITE_INFO_100_HEIGHT, SPRITE_INFO_100_BYTES));
+    bool ok = appendSpriteScrollItem(
+        SCROLL_ITEM_BLUETOOTH_SHOW_SELF_INFO,
+        SCROLL_TASK_BLUETOOTH_SHOW_SELF_INFO,
+        "Bluetooth Info",
+        make_sprite(sprite_info_100, SPRITE_INFO_100_WIDTH, SPRITE_INFO_100_HEIGHT, SPRITE_INFO_100_BYTES));
 
     if (hostList)
     {
@@ -359,14 +361,19 @@ bool ScrollView::populateBluetooth(BtHostList* hostList)
                                       list_callback_value(i),
                                       bt_host_display_name(host),
                                       host->icon,
-                                      IconLookup::ICON_CONTEXT_BLUETOOTH) && ok;
+                                      IconLookup::ICON_CONTEXT_BLUETOOTH) &&
+                 ok;
         }
     }
 
     ok = appendSpriteScrollItem(SCROLL_ITEM_BLUETOOTH_PAIRING,
                                 SCROLL_TASK_BLUETOOTH_PAIRING,
                                 "Pair New Device",
-                                make_sprite(sprite_btpairing_100, SPRITE_BTPAIRING_100_WIDTH, SPRITE_BTPAIRING_100_HEIGHT, SPRITE_BTPAIRING_100_BYTES)) && ok;
+                                make_sprite(sprite_btpairing_100,
+                                            SPRITE_BTPAIRING_100_WIDTH,
+                                            SPRITE_BTPAIRING_100_HEIGHT,
+                                            SPRITE_BTPAIRING_100_BYTES)) &&
+         ok;
     return ok;
 }
 
@@ -380,7 +387,10 @@ bool ScrollView::populateWifi(const WifiManager* wifiManager)
     bool ok = appendSpriteScrollItem(SCROLL_ITEM_WIFI_SCAN_AND_CONNECT,
                                      SCROLL_TASK_WIFI_SCAN_AND_CONNECT,
                                      "Scan and Connect",
-                                     make_sprite(sprite_wifisearch_100, SPRITE_WIFISEARCH_100_WIDTH, SPRITE_WIFISEARCH_100_HEIGHT, SPRITE_WIFISEARCH_100_BYTES));
+                                     make_sprite(sprite_wifisearch_100,
+                                                 SPRITE_WIFISEARCH_100_WIDTH,
+                                                 SPRITE_WIFISEARCH_100_HEIGHT,
+                                                 SPRITE_WIFISEARCH_100_BYTES));
 
     ok = appendSpriteScrollItem(SCROLL_ITEM_WIFI_AP,
                                 SCROLL_TASK_WIFI_GENERATED_AP,
@@ -388,7 +398,8 @@ bool ScrollView::populateWifi(const WifiManager* wifiManager)
                                 make_sprite(sprite_default_wifi_ap,
                                             SPRITE_DEFAULT_WIFI_AP_WIDTH,
                                             SPRITE_DEFAULT_WIFI_AP_HEIGHT,
-                                            SPRITE_DEFAULT_WIFI_AP_BYTES)) && ok;
+                                            SPRITE_DEFAULT_WIFI_AP_BYTES)) &&
+         ok;
 
     if (wifiManager)
     {
@@ -404,7 +415,8 @@ bool ScrollView::populateWifi(const WifiManager* wifiManager)
                                       list_callback_value(i),
                                       station->ssid,
                                       station->icon,
-                                      IconLookup::ICON_CONTEXT_WIFI) && ok;
+                                      IconLookup::ICON_CONTEXT_WIFI) &&
+                 ok;
         }
 
         for (size_t i = 0; i < wifiManager->accessPointCount(); ++i)
@@ -419,7 +431,8 @@ bool ScrollView::populateWifi(const WifiManager* wifiManager)
                                       list_callback_value(i),
                                       accessPoint->ssid,
                                       accessPoint->icon,
-                                      IconLookup::ICON_CONTEXT_WIFI) && ok;
+                                      IconLookup::ICON_CONTEXT_WIFI) &&
+                 ok;
         }
     }
 
@@ -433,14 +446,15 @@ bool ScrollView::populateCloud(const WifiManager* wifiManager)
     exitDeleteMode();
     clearGeneratedItems();
 
-    bool ok = appendSpriteScrollItem(SCROLL_ITEM_WIFI_SHOW_SELF_INFO,
-                                     SCROLL_TASK_WIFI_SHOW_SELF_INFO,
-                                     "Wi-Fi Info",
-                                     make_sprite(sprite_wifi_100, SPRITE_WIFI_100_WIDTH, SPRITE_WIFI_100_HEIGHT, SPRITE_WIFI_100_BYTES));
+    bool ok = appendSpriteScrollItem(
+        SCROLL_ITEM_WIFI_SHOW_SELF_INFO,
+        SCROLL_TASK_WIFI_SHOW_SELF_INFO,
+        "Wi-Fi Info",
+        make_sprite(sprite_wifi_100, SPRITE_WIFI_100_WIDTH, SPRITE_WIFI_100_HEIGHT, SPRITE_WIFI_100_BYTES));
 
     if (wifiManager)
     {
-        #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
         for (size_t i = 0; i < wifiManager->cloudEndpointCount(); ++i)
         {
             const cloud_item_t* endpoint = wifiManager->cloudEndpoint(i);
@@ -453,15 +467,20 @@ bool ScrollView::populateCloud(const WifiManager* wifiManager)
                                       list_callback_value(i),
                                       endpoint->url,
                                       endpoint->icon,
-                                      IconLookup::ICON_CONTEXT_CLOUD) && ok;
+                                      IconLookup::ICON_CONTEXT_CLOUD) &&
+                 ok;
         }
-        #endif
+#endif
     }
 
     ok = appendSpriteScrollItem(SCROLL_ITEM_NTP_SYNC,
                                 SCROLL_TASK_NTP_SYNC,
                                 "Sync Time",
-                                make_sprite(sprite_ntpsync_100, SPRITE_NTPSYNC_100_WIDTH, SPRITE_NTPSYNC_100_HEIGHT, SPRITE_NTPSYNC_100_BYTES)) && ok;
+                                make_sprite(sprite_ntpsync_100,
+                                            SPRITE_NTPSYNC_100_WIDTH,
+                                            SPRITE_NTPSYNC_100_HEIGHT,
+                                            SPRITE_NTPSYNC_100_BYTES)) &&
+         ok;
     return ok;
 }
 
@@ -472,10 +491,11 @@ bool ScrollView::populateFiles()
     exitDeleteMode();
     clearGeneratedItems();
 
-    bool ok = appendSpriteScrollItem(SCROLL_ITEM_FILE_SHOW_INFO,
-                                     SCROLL_TASK_FILE_SHOW_INFO,
-                                     "Storage Info",
-                                     make_sprite(sprite_info_100, SPRITE_INFO_100_WIDTH, SPRITE_INFO_100_HEIGHT, SPRITE_INFO_100_BYTES));
+    bool ok = appendSpriteScrollItem(
+        SCROLL_ITEM_FILE_SHOW_INFO,
+        SCROLL_TASK_FILE_SHOW_INFO,
+        "Storage Info",
+        make_sprite(sprite_info_100, SPRITE_INFO_100_WIDTH, SPRITE_INFO_100_HEIGHT, SPRITE_INFO_100_BYTES));
 
     MostRecentFiles::FileList files = MostRecentFiles::get();
     for (size_t i = 0; i < files.count; ++i)
@@ -486,38 +506,50 @@ bool ScrollView::populateFiles()
             continue;
         }
 
-        ScrollItemKind kind = SCROLL_ITEM_FILE_UNKNOWN;
+        ScrollItemKind kind           = SCROLL_ITEM_FILE_UNKNOWN;
         int32_t        callback_value = list_callback_value(i);
-        sprite_desc_t  sprite = make_sprite(sprite_fileunknown_100,
-                                           SPRITE_FILEUNKNOWN_100_WIDTH,
-                                           SPRITE_FILEUNKNOWN_100_HEIGHT,
-                                           SPRITE_FILEUNKNOWN_100_BYTES);
+        sprite_desc_t  sprite         = make_sprite(sprite_fileunknown_100,
+                                                    SPRITE_FILEUNKNOWN_100_WIDTH,
+                                                    SPRITE_FILEUNKNOWN_100_HEIGHT,
+                                                    SPRITE_FILEUNKNOWN_100_BYTES);
 
         if (equals_case_insensitive(file_name, "firmware.bin"))
         {
             kind           = SCROLL_ITEM_FILE_FIRMWARE;
             callback_value = SCROLL_TASK_FILE_FIRMWARE_UPDATE;
-            sprite         = make_sprite(sprite_fwupdate, SPRITE_FWUPDATE_WIDTH, SPRITE_FWUPDATE_HEIGHT, SPRITE_FWUPDATE_BYTES);
+            sprite = make_sprite(sprite_fwupdate, SPRITE_FWUPDATE_WIDTH, SPRITE_FWUPDATE_HEIGHT, SPRITE_FWUPDATE_BYTES);
         }
         else if (ends_with_case_insensitive(file_name, ".wav"))
         {
             kind   = SCROLL_ITEM_FILE_WAV;
-            sprite = make_sprite(sprite_record_100, SPRITE_RECORD_100_WIDTH, SPRITE_RECORD_100_HEIGHT, SPRITE_RECORD_100_BYTES);
+            sprite = make_sprite(sprite_record_100,
+                                 SPRITE_RECORD_100_WIDTH,
+                                 SPRITE_RECORD_100_HEIGHT,
+                                 SPRITE_RECORD_100_BYTES);
         }
         else if (ends_with_case_insensitive(file_name, ".mp3"))
         {
             kind   = SCROLL_ITEM_FILE_MP3;
-            sprite = make_sprite(sprite_record_100, SPRITE_RECORD_100_WIDTH, SPRITE_RECORD_100_HEIGHT, SPRITE_RECORD_100_BYTES);
+            sprite = make_sprite(sprite_record_100,
+                                 SPRITE_RECORD_100_WIDTH,
+                                 SPRITE_RECORD_100_HEIGHT,
+                                 SPRITE_RECORD_100_BYTES);
         }
         else if (ends_with_case_insensitive(file_name, ".rec"))
         {
             kind   = SCROLL_ITEM_FILE_REC;
-            sprite = make_sprite(sprite_recordenc_100, SPRITE_RECORDENC_100_WIDTH, SPRITE_RECORDENC_100_HEIGHT, SPRITE_RECORDENC_100_BYTES);
+            sprite = make_sprite(sprite_recordenc_100,
+                                 SPRITE_RECORDENC_100_WIDTH,
+                                 SPRITE_RECORDENC_100_HEIGHT,
+                                 SPRITE_RECORDENC_100_BYTES);
         }
         else if (ends_with_case_insensitive(file_name, ".fly"))
         {
             kind   = SCROLL_ITEM_FILE_FLY;
-            sprite = make_sprite(sprite_recordenc_100, SPRITE_RECORDENC_100_WIDTH, SPRITE_RECORDENC_100_HEIGHT, SPRITE_RECORDENC_100_BYTES);
+            sprite = make_sprite(sprite_recordenc_100,
+                                 SPRITE_RECORDENC_100_WIDTH,
+                                 SPRITE_RECORDENC_100_HEIGHT,
+                                 SPRITE_RECORDENC_100_BYTES);
         }
 
         ok = appendSpriteScrollItem(kind, callback_value, file_name, sprite) && ok;
@@ -588,7 +620,7 @@ FlyGuiItem* ScrollView::selectedItem() const
 
 const char* ScrollView::selectedItemLabel() const
 {
-    const FlyGuiItem* item = selectedItem();
+    const FlyGuiItem* item       = selectedItem();
     const ScrollItem* scrollItem = generatedScrollItemFor(item);
     if (scrollItem)
     {
@@ -856,9 +888,9 @@ void ScrollView::drawItemInSlot(FlyGuiItem& item, Slot slot, bool faded)
 
 void ScrollView::drawSelectedText()
 {
-    const FlyGuiItem* item = selectedItem();
+    const FlyGuiItem* item       = selectedItem();
     const ScrollItem* scrollItem = generatedScrollItemFor(item);
-    const char*       text = scrollItem ? scrollItem->label() : (item ? item->mainText() : nullptr);
+    const char*       text       = scrollItem ? scrollItem->label() : (item ? item->mainText() : nullptr);
     if (!text || text[0] == '\0')
     {
         return;
@@ -897,7 +929,8 @@ void ScrollView::drawDeleteButton()
     deleteItem_.redraw(true);
 }
 
-bool ScrollView::appendIconScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon, IconLookup::IconContext iconContext)
+bool ScrollView::appendIconScrollItem(
+    ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon, IconLookup::IconContext iconContext)
 {
     ScrollItem* item = new (std::nothrow) ScrollItem();
     if (!item)
@@ -931,7 +964,10 @@ bool ScrollView::appendIconScrollItem(ScrollItemKind kind, int32_t callbackValue
     return true;
 }
 
-bool ScrollView::appendSpriteScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, const sprite_desc_t& sprite)
+bool ScrollView::appendSpriteScrollItem(ScrollItemKind       kind,
+                                        int32_t              callbackValue,
+                                        const char*          label,
+                                        const sprite_desc_t& sprite)
 {
     ScrollItem* item = new (std::nothrow) ScrollItem();
     if (!item)
@@ -999,10 +1035,10 @@ bool ScrollView::updateBluetoothDeleteHold(const FlyGuiTouchEvent& event, const 
 
     if (event.justPressed && centerHit)
     {
-        deleteHoldActive_ = true;
-        deleteHoldShown_ = false;
+        deleteHoldActive_    = true;
+        deleteHoldShown_     = false;
         deleteHoldHostIndex_ = item->callbackValue();
-        deleteHoldStartMs_ = millis();
+        deleteHoldStartMs_   = millis();
     }
 
     if (!event.pressed)
@@ -1028,10 +1064,10 @@ bool ScrollView::updateBluetoothDeleteHold(const FlyGuiTouchEvent& event, const 
 
 void ScrollView::resetBluetoothDeleteHold()
 {
-    deleteHoldActive_ = false;
-    deleteHoldShown_ = false;
+    deleteHoldActive_    = false;
+    deleteHoldShown_     = false;
     deleteHoldHostIndex_ = -1;
-    deleteHoldStartMs_ = 0;
+    deleteHoldStartMs_   = 0;
 }
 
 void ScrollView::enterBluetoothDeleteMode(int32_t hostIndex)
@@ -1069,10 +1105,10 @@ bool ScrollView::deleteArmedBluetoothHost()
         return false;
     }
 
-    const size_t hostIndex = static_cast<size_t>(deleteHostIndex_);
-    const bt_host_item_t* host = bluetoothHostList_->get(hostIndex);
-    char hostName[96] = {};
-    const char* displayName = bt_host_display_name(host);
+    const size_t          hostIndex    = static_cast<size_t>(deleteHostIndex_);
+    const bt_host_item_t* host         = bluetoothHostList_->get(hostIndex);
+    char                  hostName[96] = {};
+    const char*           displayName  = bt_host_display_name(host);
     strncpy(hostName, displayName[0] != '\0' ? displayName : "Bluetooth host", sizeof(hostName) - 1);
     hostName[sizeof(hostName) - 1] = '\0';
 
@@ -1202,12 +1238,12 @@ void ScrollView::handleScrollItem(ScrollItem& item, uint32_t pressDurationMs)
         break;
     case SCROLL_ITEM_FILE_REC:
     case SCROLL_ITEM_FILE_FLY:
-        #ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
+#ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
         if (onFilePlayable_)
         {
             onFilePlayable_(value, pressDurationMs);
         }
-        #endif
+#endif
         break;
     case SCROLL_ITEM_FILE_FIRMWARE:
         FlyGui::quickScreenFade();

@@ -15,14 +15,14 @@
 #include <stdint.h>
 #include <string.h>
 
-static constexpr const char* TAG = "FlyGui";
-static constexpr uint32_t kSlowPollIntervalMs   = 1000 / 15;
-static constexpr uint32_t kMediumPollIntervalMs = 1000 / 30;
-static constexpr int16_t  kTopBarDateTimeX      = 4;
-static constexpr int16_t  kTopBarDateTimeY      = 1;
-static constexpr int16_t  kTopBarDateTimeWidth  = 150;
-static constexpr int16_t  kTopBarDateTimeHeight = 8;
-static constexpr int16_t  kTopBarBatteryWidth   = 22;
+static constexpr const char* TAG                   = "FlyGui";
+static constexpr uint32_t    kSlowPollIntervalMs   = 1000 / 15;
+static constexpr uint32_t    kMediumPollIntervalMs = 1000 / 30;
+static constexpr int16_t     kTopBarDateTimeX      = 4;
+static constexpr int16_t     kTopBarDateTimeY      = 1;
+static constexpr int16_t     kTopBarDateTimeWidth  = 150;
+static constexpr int16_t     kTopBarDateTimeHeight = 8;
+static constexpr int16_t     kTopBarBatteryWidth   = 22;
 
 struct BatterySprite
 {
@@ -32,11 +32,15 @@ struct BatterySprite
     size_t         byte_cnt = 0;
 };
 
-static int32_t batteryStatusCode();
+static int32_t       batteryStatusCode();
 static BatterySprite batterySpriteForStatus(int32_t status);
-static const char* drawFailureStageName(SpriteDraw::DrawFailureStage stage);
+static const char*   drawFailureStageName(SpriteDraw::DrawFailureStage stage);
 
-FlyGui::FlyGui() : topBarDateTime_(new FlyGuiDateTime(kTopBarDateTimeX, kTopBarDateTimeY, kTopBarDateTimeWidth, kTopBarDateTimeHeight, 1.0f, 1)) {}
+FlyGui::FlyGui()
+    : topBarDateTime_(
+          new FlyGuiDateTime(kTopBarDateTimeX, kTopBarDateTimeY, kTopBarDateTimeWidth, kTopBarDateTimeHeight, 1.0f, 1))
+{
+}
 
 FlyGui::~FlyGui()
 {
@@ -331,8 +335,12 @@ void FlyGuiView::onUnload()
         item->onUnload();
     }
 
-    thefly_display.fillRect(0, FlyGui::kTopBarHeight, thefly_display.width(), thefly_display.height() - FlyGui::kTopBarHeight, TFT_BLACK);
-    //FlyGui::requestTopBarFullRedraw(); // optional, keep this here as a reminder
+    thefly_display.fillRect(0,
+                            FlyGui::kTopBarHeight,
+                            thefly_display.width(),
+                            thefly_display.height() - FlyGui::kTopBarHeight,
+                            TFT_BLACK);
+    // FlyGui::requestTopBarFullRedraw(); // optional, keep this here as a reminder
 }
 
 bool FlyGuiView::handleTouch(const FlyGuiTouchEvent& event)
@@ -382,7 +390,10 @@ void FlyGuiView::redraw(bool forced)
     markClean();
 }
 
-FlyGuiItem::FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* mainText, Button* button) : button_(button), x_(x), y_(y), width_(width), height_(height), mainText_(mainText), touchable_(button != nullptr) {}
+FlyGuiItem::FlyGuiItem(int16_t x, int16_t y, int16_t width, int16_t height, const char* mainText, Button* button)
+    : button_(button), x_(x), y_(y), width_(width), height_(height), mainText_(mainText), touchable_(button != nullptr)
+{
+}
 
 void FlyGuiItem::relocate(int16_t x, int16_t y, int16_t width, int16_t height)
 {
@@ -417,9 +428,7 @@ void FlyGuiItem::onLoad()
     setDirty();
 }
 
-void FlyGuiItem::onUnload()
-{
-}
+void FlyGuiItem::onUnload() {}
 
 void FlyGuiItem::setVisible(bool visible)
 {
@@ -475,14 +484,14 @@ bool FlyGuiItem::trigger(uint32_t pressDurationMs)
 
 void FlyGuiItem::setSprite(const uint8_t* data, uint32_t width, uint32_t height, size_t byte_cnt)
 {
-    spriteData_   = data;
-    spriteWidth_  = width;
-    spriteHeight_ = height;
-    spriteBytes_  = byte_cnt;
-    overlayData_ = nullptr;
-    overlayWidth_ = 0;
-    overlayHeight_ = 0;
-    overlayBytes_ = 0;
+    spriteData_     = data;
+    spriteWidth_    = width;
+    spriteHeight_   = height;
+    spriteBytes_    = byte_cnt;
+    overlayData_    = nullptr;
+    overlayWidth_   = 0;
+    overlayHeight_  = 0;
+    overlayBytes_   = 0;
     overlayOffsetX_ = 0;
     overlayOffsetY_ = 0;
     setDirty();
@@ -490,14 +499,14 @@ void FlyGuiItem::setSprite(const uint8_t* data, uint32_t width, uint32_t height,
 
 void FlyGuiItem::setSprite(const sprite_desc_t& sprite)
 {
-    spriteData_   = sprite.data;
-    spriteWidth_  = sprite.width;
-    spriteHeight_ = sprite.height;
-    spriteBytes_  = sprite.byte_cnt;
-    overlayData_ = sprite.overlay_data;
-    overlayWidth_ = sprite.overlay_width;
-    overlayHeight_ = sprite.overlay_height;
-    overlayBytes_ = sprite.overlay_byte_cnt;
+    spriteData_     = sprite.data;
+    spriteWidth_    = sprite.width;
+    spriteHeight_   = sprite.height;
+    spriteBytes_    = sprite.byte_cnt;
+    overlayData_    = sprite.overlay_data;
+    overlayWidth_   = sprite.overlay_width;
+    overlayHeight_  = sprite.overlay_height;
+    overlayBytes_   = sprite.overlay_byte_cnt;
     overlayOffsetX_ = static_cast<int16_t>(sprite.overlay_offset_x);
     overlayOffsetY_ = static_cast<int16_t>(sprite.overlay_offset_y);
     setDirty();
@@ -505,14 +514,14 @@ void FlyGuiItem::setSprite(const sprite_desc_t& sprite)
 
 void FlyGuiItem::clearSprite()
 {
-    spriteData_   = nullptr;
-    spriteWidth_  = 0;
-    spriteHeight_ = 0;
-    spriteBytes_  = 0;
-    overlayData_ = nullptr;
-    overlayWidth_ = 0;
-    overlayHeight_ = 0;
-    overlayBytes_ = 0;
+    spriteData_     = nullptr;
+    spriteWidth_    = 0;
+    spriteHeight_   = 0;
+    spriteBytes_    = 0;
+    overlayData_    = nullptr;
+    overlayWidth_   = 0;
+    overlayHeight_  = 0;
+    overlayBytes_   = 0;
     overlayOffsetX_ = 0;
     overlayOffsetY_ = 0;
     setDirty();
@@ -525,13 +534,13 @@ bool FlyGuiItem::handleTouch(const FlyGuiTouchEvent& event)
         return false;
     }
 
-    const bool hit = contains(event.x, event.y);
-    const bool wasPressed = pressed_;
-    const uint32_t now = millis();
+    const bool     hit        = contains(event.x, event.y);
+    const bool     wasPressed = pressed_;
+    const uint32_t now        = millis();
 
     if (hit && event.justPressed)
     {
-        pressStartedMs_ = now;
+        pressStartedMs_      = now;
         lastPressDurationMs_ = 0;
     }
 
@@ -569,7 +578,7 @@ bool FlyGuiItem::handleTouch(const FlyGuiTouchEvent& event)
     {
         if (!wasPressed)
         {
-            pressStartedMs_ = now;
+            pressStartedMs_      = now;
             lastPressDurationMs_ = 0;
         }
         pressed_ = true;
@@ -619,8 +628,10 @@ void FlyGuiItem::redraw(bool forced)
 
     if (spriteData_ && spriteBytes_ > 0 && spriteWidth_ > 0 && spriteHeight_ > 0)
     {
-        const uint8_t brightness = faded_ ? (SpriteDraw::PNG_BRTNESS_25 | SpriteDraw::PNG_DITHER_FLAG) : SpriteDraw::PNG_BRTNESS_100;
-        const SpriteDraw::DrawResult result = SpriteDraw::drawPng(spriteData_, spriteBytes_, x_, y_, spriteWidth_, spriteHeight_, true, brightness);
+        const uint8_t brightness =
+            faded_ ? (SpriteDraw::PNG_BRTNESS_25 | SpriteDraw::PNG_DITHER_FLAG) : SpriteDraw::PNG_BRTNESS_100;
+        const SpriteDraw::DrawResult result =
+            SpriteDraw::drawPng(spriteData_, spriteBytes_, x_, y_, spriteWidth_, spriteHeight_, true, brightness);
 
         if (!result.ok)
         {
@@ -652,7 +663,10 @@ void FlyGuiItem::redraw(bool forced)
     markClean();
 }
 
-FlyGuiModal::FlyGuiModal(int16_t x, int16_t y, int16_t width, int16_t height, const char* mainText) : FlyGuiItem(x, y, width, height, mainText) {}
+FlyGuiModal::FlyGuiModal(int16_t x, int16_t y, int16_t width, int16_t height, const char* mainText)
+    : FlyGuiItem(x, y, width, height, mainText)
+{
+}
 
 static const char* drawFailureStageName(SpriteDraw::DrawFailureStage stage)
 {
@@ -746,17 +760,26 @@ static BatterySprite batterySpriteForStatus(int32_t status)
     switch (status)
     {
     case 0x00:
-        return { sprite_batt_low, SPRITE_BATT_LOW_WIDTH, SPRITE_BATT_LOW_HEIGHT, SPRITE_BATT_LOW_BYTES };
+        return {sprite_batt_low, SPRITE_BATT_LOW_WIDTH, SPRITE_BATT_LOW_HEIGHT, SPRITE_BATT_LOW_BYTES};
     case 0x01:
-        return { sprite_batt_medium, SPRITE_BATT_MEDIUM_WIDTH, SPRITE_BATT_MEDIUM_HEIGHT, SPRITE_BATT_MEDIUM_BYTES };
+        return {sprite_batt_medium, SPRITE_BATT_MEDIUM_WIDTH, SPRITE_BATT_MEDIUM_HEIGHT, SPRITE_BATT_MEDIUM_BYTES};
     case 0x02:
-        return { sprite_batt_full, SPRITE_BATT_FULL_WIDTH, SPRITE_BATT_FULL_HEIGHT, SPRITE_BATT_FULL_BYTES };
+        return {sprite_batt_full, SPRITE_BATT_FULL_WIDTH, SPRITE_BATT_FULL_HEIGHT, SPRITE_BATT_FULL_BYTES};
     case 0x04:
-        return { sprite_batt_low_charging, SPRITE_BATT_LOW_CHARGING_WIDTH, SPRITE_BATT_LOW_CHARGING_HEIGHT, SPRITE_BATT_LOW_CHARGING_BYTES };
+        return {sprite_batt_low_charging,
+                SPRITE_BATT_LOW_CHARGING_WIDTH,
+                SPRITE_BATT_LOW_CHARGING_HEIGHT,
+                SPRITE_BATT_LOW_CHARGING_BYTES};
     case 0x05:
-        return { sprite_batt_medium_charging, SPRITE_BATT_MEDIUM_CHARGING_WIDTH, SPRITE_BATT_MEDIUM_CHARGING_HEIGHT, SPRITE_BATT_MEDIUM_CHARGING_BYTES };
+        return {sprite_batt_medium_charging,
+                SPRITE_BATT_MEDIUM_CHARGING_WIDTH,
+                SPRITE_BATT_MEDIUM_CHARGING_HEIGHT,
+                SPRITE_BATT_MEDIUM_CHARGING_BYTES};
     case 0x06:
-        return { sprite_batt_full_charging, SPRITE_BATT_FULL_CHARGING_WIDTH, SPRITE_BATT_FULL_CHARGING_HEIGHT, SPRITE_BATT_FULL_CHARGING_BYTES };
+        return {sprite_batt_full_charging,
+                SPRITE_BATT_FULL_CHARGING_WIDTH,
+                SPRITE_BATT_FULL_CHARGING_HEIGHT,
+                SPRITE_BATT_FULL_CHARGING_BYTES};
     default:
         return {};
     }

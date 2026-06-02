@@ -21,7 +21,7 @@ volatile bool g_pairing_finished = false;
 
 void print_local_bdaddr()
 {
-    esp_bd_addr_t bda = {};
+    esp_bd_addr_t   bda = {};
     const esp_err_t err = esp_read_mac(bda, ESP_MAC_BT);
     if (err != ESP_OK)
     {
@@ -37,7 +37,9 @@ void print_bonded_devices()
     const int bonded_count = esp_bt_gap_get_bond_device_num();
     if (bonded_count == ESP_ERR_INVALID_STATE)
     {
-        Serial.printf("%s: esp_bt_gap_get_bond_device_num failed: %s\n", TAG, esp_err_to_name(static_cast<esp_err_t>(bonded_count)));
+        Serial.printf("%s: esp_bt_gap_get_bond_device_num failed: %s\n",
+                      TAG,
+                      esp_err_to_name(static_cast<esp_err_t>(bonded_count)));
         return;
     }
 
@@ -54,8 +56,8 @@ void print_bonded_devices()
         return;
     }
 
-    int listed = bonded_count;
-    const esp_err_t err = esp_bt_gap_get_bond_device_list(&listed, bonded);
+    int             listed = bonded_count;
+    const esp_err_t err    = esp_bt_gap_get_bond_device_list(&listed, bonded);
     if (err != ESP_OK)
     {
         Serial.printf("%s: esp_bt_gap_get_bond_device_list failed: %s\n", TAG, esp_err_to_name(err));

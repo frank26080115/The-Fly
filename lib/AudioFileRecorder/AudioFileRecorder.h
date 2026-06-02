@@ -38,13 +38,13 @@ bool isRecording();
 bool purePcmMode();
 void setPurePcmMode(bool enabled);
 
-float writeDurationAverageMs();
-float writeDurationMaxMs();
-void  resetWriteDurationStats();
-bool  longWrite();
-bool  longWriteSinceReset();
-void  resetLongWrite();
-void  resetLongWriteSinceReset();
+float    writeDurationAverageMs();
+float    writeDurationMaxMs();
+void     resetWriteDurationStats();
+bool     longWrite();
+bool     longWriteSinceReset();
+void     resetLongWrite();
+void     resetLongWriteSinceReset();
 uint32_t lastLongWriteTimestampMs();
 
 uint64_t    bytesWritten();

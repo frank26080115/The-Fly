@@ -84,10 +84,7 @@ void report_wifi_summary(const WifiManager& wifi_manager, bool loaded)
 
     for (size_t i = 0; i < WifiManager::kNtpServerCount; ++i)
     {
-        Serial.printf("%s: ntp_server[%u]=%s\n",
-                      TAG,
-                      static_cast<unsigned>(i),
-                      wifi_manager.ntpServer(i));
+        Serial.printf("%s: ntp_server[%u]=%s\n", TAG, static_cast<unsigned>(i), wifi_manager.ntpServer(i));
     }
 
     for (size_t i = 0; i < wifi_manager.stationCount(); ++i)
@@ -139,11 +136,11 @@ void test_bootreadfiles()
     Serial.printf("%s: MicroSdCard begin=%u ready=%u\n", TAG, sd_ready ? 1U : 0U, MicroSdCard::isReady() ? 1U : 0U);
 
     WifiManager wifi_manager;
-    #if BUILD_WITH_SECURITY_LEVEL <= 0
-    const bool  wifi_loaded = wifi_manager.loadFromMicroSd();
-    #else
-    const bool  wifi_loaded = wifi_manager.loadFromNvs();
-    #endif
+#if BUILD_WITH_SECURITY_LEVEL <= 0
+    const bool wifi_loaded = wifi_manager.loadFromMicroSd();
+#else
+    const bool wifi_loaded = wifi_manager.loadFromNvs();
+#endif
     report_wifi_summary(wifi_manager, wifi_loaded);
 
     BtHostList bt_hosts;

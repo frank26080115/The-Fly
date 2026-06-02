@@ -7,14 +7,14 @@ namespace
 {
 
 constexpr const char* TAG            = "test_speaker";
-constexpr uint32_t    kSampleRateHz   = AudioManager::kSampleRateHz;
-constexpr size_t      kToneSamples    = kSampleRateHz / 2;
-constexpr size_t      kChunkSamples   = 240;
-constexpr int16_t     kToneAmplitude  = 10000;
-constexpr int         kI2sPort        = 0;
-constexpr int         kI2sBclkPin     = 12;
-constexpr int         kI2sLrckPin     = 0;
-constexpr int         kI2sDoutPin     = 2;
+constexpr uint32_t    kSampleRateHz  = AudioManager::kSampleRateHz;
+constexpr size_t      kToneSamples   = kSampleRateHz / 2;
+constexpr size_t      kChunkSamples  = 240;
+constexpr int16_t     kToneAmplitude = 10000;
+constexpr int         kI2sPort       = 0;
+constexpr int         kI2sBclkPin    = 12;
+constexpr int         kI2sLrckPin    = 0;
+constexpr int         kI2sDoutPin    = 2;
 
 int16_t square_sample(size_t sampleIndex, uint32_t frequencyHz)
 {

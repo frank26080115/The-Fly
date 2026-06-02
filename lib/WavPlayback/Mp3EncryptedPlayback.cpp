@@ -15,16 +15,16 @@ const char* Mp3EncryptedPlayback::tag() const
 bool Mp3EncryptedPlayback::parseMetadata()
 {
 #ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
-    file_size_ = file().fileSize();
-    data_start_offset_ = 0;
+    file_size_              = file().fileSize();
+    data_start_offset_      = 0;
     encoded_position_bytes_ = 0;
-    encoded_data_bytes_ = encryptedPayloadBytesForFileSize(file_size_);
-    decoded_frames_ = 0;
-    sample_rate_hz_ = AUDIO_RECORDER_SAMPLE_RATE_HZ;
-    bitrate_kbps_ = MP3_BITRATE_KBPS;
-    bytes_per_second_ = MP3_CBR_BYTES_PER_SECOND;
-    frame_size_bytes_ = MP3_CBR_BYTES_PER_MP3_FRAME;
-    duration_ms_ = static_cast<uint32_t>((encoded_data_bytes_ * 1000ULL) / bytes_per_second_);
+    encoded_data_bytes_     = encryptedPayloadBytesForFileSize(file_size_);
+    decoded_frames_         = 0;
+    sample_rate_hz_         = AUDIO_RECORDER_SAMPLE_RATE_HZ;
+    bitrate_kbps_           = MP3_BITRATE_KBPS;
+    bytes_per_second_       = MP3_CBR_BYTES_PER_SECOND;
+    frame_size_bytes_       = MP3_CBR_BYTES_PER_MP3_FRAME;
+    duration_ms_            = static_cast<uint32_t>((encoded_data_bytes_ * 1000ULL) / bytes_per_second_);
     resetLoadedChunk();
 
     return beginDecryption();
@@ -68,7 +68,7 @@ bool Mp3EncryptedPlayback::readEncodedBytes(uint8_t* data, size_t maxBytes, size
             return copied > 0;
         }
 
-        const size_t chunk_offset = static_cast<size_t>(byte_position % MP3_ENCRYPTED_PLAINTEXT_LENGTH);
+        const size_t chunk_offset    = static_cast<size_t>(byte_position % MP3_ENCRYPTED_PLAINTEXT_LENGTH);
         const size_t chunk_remaining = static_cast<size_t>(
             std::min<uint64_t>(MP3_ENCRYPTED_PLAINTEXT_LENGTH - chunk_offset, encoded_data_bytes_ - byte_position));
         const size_t copy_bytes = std::min(maxBytes - copied, chunk_remaining);
@@ -100,9 +100,9 @@ bool Mp3EncryptedPlayback::seekEncodedBytePosition(uint64_t positionBytes)
 
 uint64_t Mp3EncryptedPlayback::encryptedPayloadBytesForFileSize(uint64_t fileSize) const
 {
-    const uint64_t full_chunks = fileSize / MP3_ENCRYPTED_CHUNK_LENGTH;
-    const uint64_t remainder = fileSize % MP3_ENCRYPTED_CHUNK_LENGTH;
-    uint64_t payload_bytes = full_chunks * MP3_ENCRYPTED_PLAINTEXT_LENGTH;
+    const uint64_t full_chunks   = fileSize / MP3_ENCRYPTED_CHUNK_LENGTH;
+    const uint64_t remainder     = fileSize % MP3_ENCRYPTED_CHUNK_LENGTH;
+    uint64_t       payload_bytes = full_chunks * MP3_ENCRYPTED_PLAINTEXT_LENGTH;
 
     if (remainder > RECORDER_ENCRYPTED_CHUNK_OVERHEAD)
     {

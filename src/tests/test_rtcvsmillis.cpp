@@ -9,15 +9,13 @@ constexpr uint32_t    kReportPeriodMs = 5000;
 
 void print_rtc_vs_millis()
 {
-    m5::rtc_datetime_t now = {};
+    m5::rtc_datetime_t now    = {};
     const uint32_t     now_ms = millis();
     const bool         rtc_ok = M5.Rtc.getDateTime(&now);
 
     if (!rtc_ok)
     {
-        Serial.printf("%s: rtc_read=failed millis=%lu\n",
-                      TAG,
-                      static_cast<unsigned long>(now_ms));
+        Serial.printf("%s: rtc_read=failed millis=%lu\n", TAG, static_cast<unsigned long>(now_ms));
         return;
     }
 
@@ -48,9 +46,7 @@ void test_rtcvsmillis()
     }
 
     Serial.println();
-    Serial.printf("%s: starting real RTC vs millis test rtc_enabled=%u\n",
-                  TAG,
-                  M5.Rtc.isEnabled() ? 1U : 0U);
+    Serial.printf("%s: starting real RTC vs millis test rtc_enabled=%u\n", TAG, M5.Rtc.isEnabled() ? 1U : 0U);
     print_rtc_vs_millis();
 
     uint32_t last_report_ms = millis();

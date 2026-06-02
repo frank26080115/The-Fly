@@ -11,15 +11,14 @@ constexpr int16_t kScrollItemHeight = 114;
 
 void fallback_sprite(sprite_desc_t& sprite)
 {
-    sprite = { sprite_warning_100, SPRITE_WARNING_100_WIDTH, SPRITE_WARNING_100_HEIGHT, SPRITE_WARNING_100_BYTES };
+    sprite = {sprite_warning_100, SPRITE_WARNING_100_WIDTH, SPRITE_WARNING_100_HEIGHT, SPRITE_WARNING_100_BYTES};
 }
 } // namespace
 
-ScrollItem::ScrollItem() : FlyGuiItem(0, 0, kScrollItemWidth, kScrollItemHeight)
-{
-}
+ScrollItem::ScrollItem() : FlyGuiItem(0, 0, kScrollItemWidth, kScrollItemHeight) {}
 
-void ScrollItem::configure(ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon, IconLookup::IconContext iconContext)
+void ScrollItem::configure(
+    ScrollItemKind kind, int32_t callbackValue, const char* label, uint8_t icon, IconLookup::IconContext iconContext)
 {
     kind_          = kind;
     callbackValue_ = callbackValue;
@@ -37,7 +36,10 @@ void ScrollItem::configure(ScrollItemKind kind, int32_t callbackValue, const cha
     setSprite(sprite);
 }
 
-void ScrollItem::configureSprite(ScrollItemKind kind, int32_t callbackValue, const char* label, const sprite_desc_t& sprite)
+void ScrollItem::configureSprite(ScrollItemKind       kind,
+                                 int32_t              callbackValue,
+                                 const char*          label,
+                                 const sprite_desc_t& sprite)
 {
     kind_          = kind;
     callbackValue_ = callbackValue;

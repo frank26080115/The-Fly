@@ -8,9 +8,7 @@ namespace
 constexpr int16_t kRectY = FlyGui::kTopBarHeight + 1;
 } // namespace
 
-QrCodeView::QrCodeView() : FlyGuiView(FLYGUI_VIEW_QR_CODE)
-{
-}
+QrCodeView::QrCodeView() : FlyGuiView(FLYGUI_VIEW_QR_CODE) {}
 
 void QrCodeView::configure(const char* text)
 {

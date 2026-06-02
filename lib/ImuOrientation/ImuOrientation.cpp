@@ -16,16 +16,16 @@ constexpr float    kRadToDeg       = 57.2957795f;
 constexpr float kKeepOrientationScore   = 0.5735764f; // cos(55 degrees)
 constexpr float kSwitchOrientationScore = 0.8191521f; // cos(35 degrees)
 
-bool        g_initialized      = false;
-bool        g_have_sample      = false;
-bool        g_upside_down      = false;
-uint32_t    g_last_poll_ms     = 0;
-float       g_accel_x          = 0.0f;
-float       g_accel_y          = 0.0f;
-float       g_accel_z          = 0.0f;
-int16_t     g_roll_degrees     = 0;
-int16_t     g_pitch_degrees    = 0;
-Orientation g_orientation      = OrientationUnknown;
+bool        g_initialized   = false;
+bool        g_have_sample   = false;
+bool        g_upside_down   = false;
+uint32_t    g_last_poll_ms  = 0;
+float       g_accel_x       = 0.0f;
+float       g_accel_y       = 0.0f;
+float       g_accel_z       = 0.0f;
+int16_t     g_roll_degrees  = 0;
+int16_t     g_pitch_degrees = 0;
+Orientation g_orientation   = OrientationUnknown;
 
 int16_t rounded_degrees(float degrees)
 {
@@ -44,9 +44,9 @@ void update_filtered_accel(float x, float y, float z)
 {
     if (!g_have_sample)
     {
-        g_accel_x = x;
-        g_accel_y = y;
-        g_accel_z = z;
+        g_accel_x     = x;
+        g_accel_y     = y;
+        g_accel_z     = z;
         g_have_sample = true;
         return;
     }
@@ -98,7 +98,7 @@ Orientation candidate_orientation(float x, float y, float z, float magnitude, fl
         const float score = score_for_orientation(candidate, x, y, z, magnitude);
         if (score > best_score)
         {
-            best = candidate;
+            best       = candidate;
             best_score = score;
         }
     }
@@ -115,8 +115,8 @@ void update_orientation(float x, float y, float z)
         return;
     }
 
-    float candidate_score = 0.0f;
-    const Orientation candidate = candidate_orientation(x, y, z, magnitude, candidate_score);
+    float             candidate_score = 0.0f;
+    const Orientation candidate       = candidate_orientation(x, y, z, magnitude, candidate_score);
     if (g_orientation == OrientationUnknown)
     {
         g_orientation = candidate;

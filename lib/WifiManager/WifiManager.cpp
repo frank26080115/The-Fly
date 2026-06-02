@@ -34,17 +34,16 @@ namespace
 constexpr const char* TAG              = "WifiManager";
 constexpr size_t      kMaxJsonFileSize = 16 * 1024;
 
-constexpr const char* kDefaultTimezone = "UTC0";
+constexpr const char* kDefaultTimezone     = "UTC0";
 constexpr const char* kDefaultNtpServers[] = {
     "pool.ntp.org",
     "time.nist.gov",
     "time.google.com",
 };
-constexpr bool kWifiDebugBuild =
-    static_cast<int>(DBG_LOG_LOCAL_LEVEL) > static_cast<int>(DBG_LOG_ERROR);
-constexpr int kSoftApChannel       = 1;
-constexpr int kSoftApSsidHidden    = 0;
-constexpr int kSoftApMaxConnection = 1;
+constexpr bool        kWifiDebugBuild       = static_cast<int>(DBG_LOG_LOCAL_LEVEL) > static_cast<int>(DBG_LOG_ERROR);
+constexpr int         kSoftApChannel        = 1;
+constexpr int         kSoftApSsidHidden     = 0;
+constexpr int         kSoftApMaxConnection  = 1;
 constexpr uint32_t    kNetworkConfigMagic   = 0x54465749; // "TFWI"
 constexpr uint32_t    kNetworkConfigVersion = 3;
 constexpr const char* kNetworkNvsNamespace  = "wifi_cfg";
@@ -142,8 +141,8 @@ bool valid_network_config_version(uint32_t version)
 void init_network_config_defaults(network_cfg_t& cfg)
 {
     memset(&cfg, 0, sizeof(cfg));
-    cfg.magic   = kNetworkConfigMagic;
-    cfg.version = kNetworkConfigVersion;
+    cfg.magic          = kNetworkConfigMagic;
+    cfg.version        = kNetworkConfigVersion;
     cfg.security_level = BUILD_WITH_SECURITY_LEVEL;
     strlcpy(cfg.timezone, kDefaultTimezone, sizeof(cfg.timezone));
     for (size_t i = 0; i < kNetworkConfigNtpServerCount; ++i)
@@ -154,9 +153,9 @@ void init_network_config_defaults(network_cfg_t& cfg)
 
 void sanitize_network_config(network_cfg_t& cfg)
 {
-    cfg.magic   = kNetworkConfigMagic;
-    cfg.version = kNetworkConfigVersion;
-    cfg.security_level = BUILD_WITH_SECURITY_LEVEL;
+    cfg.magic                              = kNetworkConfigMagic;
+    cfg.version                            = kNetworkConfigVersion;
+    cfg.security_level                     = BUILD_WITH_SECURITY_LEVEL;
     cfg.timezone[sizeof(cfg.timezone) - 1] = '\0';
     if (cfg.timezone[0] == '\0')
     {
@@ -172,17 +171,22 @@ void sanitize_network_config(network_cfg_t& cfg)
         }
     }
 
-    cfg.station_count = cfg.station_count > kNetworkConfigMaxEntries ? static_cast<uint8_t>(kNetworkConfigMaxEntries) : cfg.station_count;
-    cfg.access_point_count = cfg.access_point_count > kNetworkConfigAllowedEntriesAP ? static_cast<uint8_t>(kNetworkConfigAllowedEntriesAP) : cfg.access_point_count;
-    #ifdef BUILD_CLOUD_FEATURES
-    cfg.cloud_endpoint_count = cfg.cloud_endpoint_count > kNetworkConfigCloudAllowedEntries ? static_cast<uint8_t>(kNetworkConfigCloudAllowedEntries) : cfg.cloud_endpoint_count;
-    #else
+    cfg.station_count = cfg.station_count > kNetworkConfigMaxEntries ? static_cast<uint8_t>(kNetworkConfigMaxEntries)
+                                                                     : cfg.station_count;
+    cfg.access_point_count = cfg.access_point_count > kNetworkConfigAllowedEntriesAP
+                                 ? static_cast<uint8_t>(kNetworkConfigAllowedEntriesAP)
+                                 : cfg.access_point_count;
+#ifdef BUILD_CLOUD_FEATURES
+    cfg.cloud_endpoint_count = cfg.cloud_endpoint_count > kNetworkConfigCloudAllowedEntries
+                                   ? static_cast<uint8_t>(kNetworkConfigCloudAllowedEntries)
+                                   : cfg.cloud_endpoint_count;
+#else
     cfg.cloud_endpoint_count = 0;
-    #endif
+#endif
 
     for (size_t i = 0; i < kNetworkConfigMaxEntries; ++i)
     {
-        cfg.station[i].ssid[sizeof(cfg.station[i].ssid) - 1] = '\0';
+        cfg.station[i].ssid[sizeof(cfg.station[i].ssid) - 1]         = '\0';
         cfg.station[i].password[sizeof(cfg.station[i].password) - 1] = '\0';
         if (cfg.station[i].icon >= ICON_LAST)
         {
@@ -193,7 +197,7 @@ void sanitize_network_config(network_cfg_t& cfg)
     for (size_t i = 0; i < kNetworkConfigCloudMaxEntries; ++i)
     {
         cfg.cloud[i].password[sizeof(cfg.cloud[i].password) - 1] = '\0';
-        cfg.cloud[i].url[sizeof(cfg.cloud[i].url) - 1] = '\0';
+        cfg.cloud[i].url[sizeof(cfg.cloud[i].url) - 1]           = '\0';
         if (cfg.cloud[i].icon >= ICON_LAST)
         {
             cfg.cloud[i].icon = ICON_UNKNOWN;
@@ -202,7 +206,7 @@ void sanitize_network_config(network_cfg_t& cfg)
 
     for (size_t i = 0; i < kNetworkConfigMaxEntriesAP; ++i)
     {
-        cfg.access_point[i].ssid[sizeof(cfg.access_point[i].ssid) - 1] = '\0';
+        cfg.access_point[i].ssid[sizeof(cfg.access_point[i].ssid) - 1]         = '\0';
         cfg.access_point[i].password[sizeof(cfg.access_point[i].password) - 1] = '\0';
         if (cfg.access_point[i].icon >= ICON_LAST)
         {
@@ -231,14 +235,14 @@ bool cache_network_config_hash(const network_cfg_t& cfg)
 }
 
 bool parse_network_wifi_array(JsonDocument& doc,
-                              const char* key,
-                              wifi_item_t* items,
-                              size_t item_capacity,
-                              uint8_t& count,
-                              uint8_t default_icon,
-                              size_t& skipped)
+                              const char*   key,
+                              wifi_item_t*  items,
+                              size_t        item_capacity,
+                              uint8_t&      count,
+                              uint8_t       default_icon,
+                              size_t&       skipped)
 {
-    count = 0;
+    count           = 0;
     JsonArray array = doc[key].as<JsonArray>();
     if (!array.isNull())
     {
@@ -250,12 +254,11 @@ bool parse_network_wifi_array(JsonDocument& doc,
                 continue;
             }
 
-            JsonObject item_json = value.as<JsonObject>();
-            const char* ssid     = item_json["ssid"].as<const char*>();
-            const char* password = item_json["password"].as<const char*>();
-            const char* icon     = item_json["icon"].as<const char*>();
-            if (item_json.isNull() ||
-                !copy_config_text(items[count].ssid, sizeof(items[count].ssid), ssid, true) ||
+            JsonObject  item_json = value.as<JsonObject>();
+            const char* ssid      = item_json["ssid"].as<const char*>();
+            const char* password  = item_json["password"].as<const char*>();
+            const char* icon      = item_json["icon"].as<const char*>();
+            if (item_json.isNull() || !copy_config_text(items[count].ssid, sizeof(items[count].ssid), ssid, true) ||
                 !copy_config_text(items[count].password, sizeof(items[count].password), password, false))
             {
                 ++skipped;
@@ -278,7 +281,7 @@ bool parse_network_wifi_array(JsonDocument& doc,
 bool parse_network_cloud_array(JsonDocument& doc, cloud_item_t* items, uint8_t& count, size_t& skipped)
 {
     count = 0;
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     JsonArray array = doc["cloud_uploads"].as<JsonArray>();
     if (!array.isNull())
     {
@@ -290,34 +293,33 @@ bool parse_network_cloud_array(JsonDocument& doc, cloud_item_t* items, uint8_t& 
                 continue;
             }
 
-            JsonObject item_json = value.as<JsonObject>();
-            const char* url      = item_json["url"].as<const char*>();
-            const char* password = item_json["password"].as<const char*>();
-            const char* icon     = item_json["icon"].as<const char*>();
-            if (item_json.isNull() ||
-                !copy_config_text(items[count].url, sizeof(items[count].url), url, true))
+            JsonObject  item_json = value.as<JsonObject>();
+            const char* url       = item_json["url"].as<const char*>();
+            const char* password  = item_json["password"].as<const char*>();
+            const char* icon      = item_json["icon"].as<const char*>();
+            if (item_json.isNull() || !copy_config_text(items[count].url, sizeof(items[count].url), url, true))
             {
                 ++skipped;
                 continue;
             }
 
-            #if BUILD_WITH_SECURITY_LEVEL <= 0
+#if BUILD_WITH_SECURITY_LEVEL <= 0
             if (!copy_config_text(items[count].password, sizeof(items[count].password), password, true))
             {
                 ++skipped;
                 continue;
             }
-            #else
+#else
             items[count].password[0] = '\0';
-            #endif
+#endif
             items[count].icon = parse_icon_or_default(icon, ICON_UNKNOWN);
             ++count;
         }
     }
-    #else
+#else
     (void)doc;
     (void)skipped;
-    #endif
+#endif
 
     for (size_t i = count; i < kNetworkConfigCloudMaxEntries; ++i)
     {
@@ -360,11 +362,23 @@ bool parse_network_config_json(JsonDocument& doc, network_cfg_t& cfg, size_t& sk
         }
     }
 
-    parse_network_wifi_array(doc, "stations", cfg.station, kNetworkConfigMaxEntries, cfg.station_count, ICON_UNKNOWN, skipped);
-    parse_network_wifi_array(doc, "access_points", cfg.access_point, kNetworkConfigAllowedEntriesAP, cfg.access_point_count, ICON_UNKNOWN, skipped);
-    #ifdef BUILD_CLOUD_FEATURES
+    parse_network_wifi_array(doc,
+                             "stations",
+                             cfg.station,
+                             kNetworkConfigMaxEntries,
+                             cfg.station_count,
+                             ICON_UNKNOWN,
+                             skipped);
+    parse_network_wifi_array(doc,
+                             "access_points",
+                             cfg.access_point,
+                             kNetworkConfigAllowedEntriesAP,
+                             cfg.access_point_count,
+                             ICON_UNKNOWN,
+                             skipped);
+#ifdef BUILD_CLOUD_FEATURES
     parse_network_cloud_array(doc, cfg.cloud, cfg.cloud_endpoint_count, skipped);
-    #endif
+#endif
     sanitize_network_config(cfg);
     return skipped == 0;
 }
@@ -441,18 +455,19 @@ void configure_soft_ap_security(wifi_config_t& config, const char* ssid, const c
     strlcpy(reinterpret_cast<char*>(config.ap.ssid), ssid, sizeof(config.ap.ssid));
     strlcpy(reinterpret_cast<char*>(config.ap.password), password, sizeof(config.ap.password));
 
-    config.ap.ssid_len       = strlen(ssid);
-    config.ap.channel        = kSoftApChannel;
-    config.ap.ssid_hidden    = kSoftApSsidHidden;
-    config.ap.authmode       = WIFI_AUTH_WPA3_PSK;
-    config.ap.max_connection = kSoftApMaxConnection;
-    config.ap.pmf_cfg.capable = true;
+    config.ap.ssid_len         = strlen(ssid);
+    config.ap.channel          = kSoftApChannel;
+    config.ap.ssid_hidden      = kSoftApSsidHidden;
+    config.ap.authmode         = WIFI_AUTH_WPA3_PSK;
+    config.ap.max_connection   = kSoftApMaxConnection;
+    config.ap.pmf_cfg.capable  = true;
     config.ap.pmf_cfg.required = true;
 #if defined(WIFI_CIPHER_TYPE_CCMP)
     config.ap.pairwise_cipher = WIFI_CIPHER_TYPE_CCMP; // if not set, WPA3 should still require modern cipher behavior
 #endif
 #if defined(WPA3_SAE_PWE_BOTH)
-    config.ap.sae_pwe_h2e = WPA3_SAE_PWE_BOTH; // if missing, possible client compatibility issue, not obvious insecurity
+    config.ap.sae_pwe_h2e =
+        WPA3_SAE_PWE_BOTH; // if missing, possible client compatibility issue, not obvious insecurity
 #endif
     // security review of these optional settings: all 4 configurations are safe
 }
@@ -582,7 +597,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
     }
     buffer[file_size] = '\0';
 
-    JsonDocument doc;
+    JsonDocument               doc;
     const DeserializationError error = deserializeJson(doc, buffer);
     free(buffer);
     if (error)
@@ -599,11 +614,11 @@ bool WifiManager::loadFromMicroSd(const char* path)
         DBG_LOGW(TAG, "Wi-Fi config import skipped %u invalid or extra item(s)", static_cast<unsigned>(skipped));
     }
 
-    m_station_count = m_network_cfg.station_count;
+    m_station_count      = m_network_cfg.station_count;
     m_access_point_count = m_network_cfg.access_point_count;
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
-    #endif
+#endif
 
     if (!saveToNvs())
     {
@@ -625,7 +640,7 @@ bool WifiManager::loadFromNvs()
     clear();
 
     nvs_handle_t handle = 0;
-    esp_err_t err = nvs_open(kNetworkNvsNamespace, NVS_READONLY, &handle);
+    esp_err_t    err    = nvs_open(kNetworkNvsNamespace, NVS_READONLY, &handle);
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         m_last_load_result = LoadResult::Ok;
@@ -641,7 +656,7 @@ bool WifiManager::loadFromNvs()
     }
 
     size_t cfg_size = 0;
-    err = nvs_get_blob(handle, kNetworkNvsBlobName, nullptr, &cfg_size);
+    err             = nvs_get_blob(handle, kNetworkNvsBlobName, nullptr, &cfg_size);
 
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
@@ -669,19 +684,21 @@ bool WifiManager::loadFromNvs()
         return cache_network_config_hash(m_network_cfg);
     }
 
-    network_cfg_t& cfg = m_network_cfg;
-    size_t read_size = sizeof(cfg);
-    err = nvs_get_blob(handle, kNetworkNvsBlobName, &cfg, &read_size);
+    network_cfg_t& cfg       = m_network_cfg;
+    size_t         read_size = sizeof(cfg);
+    err                      = nvs_get_blob(handle, kNetworkNvsBlobName, &cfg, &read_size);
     nvs_close(handle);
 
     if (err != ESP_OK || read_size != sizeof(cfg))
     {
         m_last_load_result = LoadResult::FileReadFailed;
-        DBG_LOGW(TAG, "could not load Wi-Fi config from NVS: %s size=%u", esp_err_to_name(err), static_cast<unsigned>(read_size));
+        DBG_LOGW(TAG,
+                 "could not load Wi-Fi config from NVS: %s size=%u",
+                 esp_err_to_name(err),
+                 static_cast<unsigned>(read_size));
         return false;
     }
-    if (cfg.magic != kNetworkConfigMagic ||
-        !valid_network_config_version(cfg.version) ||
+    if (cfg.magic != kNetworkConfigMagic || !valid_network_config_version(cfg.version) ||
         cfg.security_level != BUILD_WITH_SECURITY_LEVEL)
     {
         init_network_config_defaults(m_network_cfg);
@@ -692,12 +709,12 @@ bool WifiManager::loadFromNvs()
     }
 
     sanitize_network_config(cfg);
-    m_network_cfg = cfg;
-    m_station_count = m_network_cfg.station_count;
+    m_network_cfg        = cfg;
+    m_station_count      = m_network_cfg.station_count;
     m_access_point_count = m_network_cfg.access_point_count;
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
-    #endif
+#endif
     m_last_load_result = LoadResult::Ok;
     apply_timezone(timezone());
     if (!cache_network_config_hash(m_network_cfg))
@@ -715,19 +732,19 @@ bool WifiManager::loadFromNvs()
 
 bool WifiManager::saveToNvs()
 {
-    m_network_cfg.station_count = static_cast<uint8_t>(m_station_count);
-    m_network_cfg.access_point_count = static_cast<uint8_t>(m_access_point_count);
+    m_network_cfg.station_count        = static_cast<uint8_t>(m_station_count);
+    m_network_cfg.access_point_count   = static_cast<uint8_t>(m_access_point_count);
     m_network_cfg.cloud_endpoint_count = static_cast<uint8_t>(m_cloud_endpoint_count);
     sanitize_network_config(m_network_cfg);
-    m_station_count = m_network_cfg.station_count;
+    m_station_count      = m_network_cfg.station_count;
     m_access_point_count = m_network_cfg.access_point_count;
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
-    #endif
+#endif
     apply_timezone(timezone());
 
     nvs_handle_t handle = 0;
-    esp_err_t err = nvs_open(kNetworkNvsNamespace, NVS_READWRITE, &handle);
+    esp_err_t    err    = nvs_open(kNetworkNvsNamespace, NVS_READWRITE, &handle);
     if (err != ESP_OK)
     {
         m_last_load_result = LoadResult::FileOpenFailed;
@@ -765,16 +782,16 @@ bool WifiManager::replaceConfig(const network_cfg_t& config)
     network_cfg_t staged = config;
     sanitize_network_config(staged);
 
-    m_network_cfg = staged;
-    m_station_count = m_network_cfg.station_count;
+    m_network_cfg        = staged;
+    m_station_count      = m_network_cfg.station_count;
     m_access_point_count = m_network_cfg.access_point_count;
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
-    #else
+#else
     m_cloud_endpoint_count = 0;
-    #endif
-    m_active_wifi = nullptr;
-    m_connected_wifi = nullptr;
+#endif
+    m_active_wifi        = nullptr;
+    m_connected_wifi     = nullptr;
     m_reported_connected = false;
 
     return saveToNvs();
@@ -783,13 +800,13 @@ bool WifiManager::replaceConfig(const network_cfg_t& config)
 void WifiManager::clear()
 {
     init_network_config_defaults(m_network_cfg);
-    m_station_count = 0;
-    m_access_point_count = 0;
+    m_station_count        = 0;
+    m_access_point_count   = 0;
     m_cloud_endpoint_count = 0;
-    m_active_wifi = nullptr;
-    m_connected_wifi = nullptr;
-    m_reported_connected = false;
-    m_last_load_result = LoadResult::Ok;
+    m_active_wifi          = nullptr;
+    m_connected_wifi       = nullptr;
+    m_reported_connected   = false;
+    m_last_load_result     = LoadResult::Ok;
     cache_network_config_hash(m_network_cfg);
     apply_timezone(timezone());
 }
@@ -904,13 +921,16 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
 
     WiFi.disconnect(true, false);
 
-    const char* password = access_point->password && access_point->password[0] != '\0' ? access_point->password : nullptr;
+    const char* password =
+        access_point->password && access_point->password[0] != '\0' ? access_point->password : nullptr;
     if (!password || strlen(password) < 8)
     {
         resetSoftApClientTracking();
         m_status      = Status::AccessPointFailed;
         m_active_wifi = nullptr;
-        DBG_LOGW(TAG, "cannot start WPA3-only Wi-Fi access point \"%s\" without an 8+ character password", access_point->ssid);
+        DBG_LOGW(TAG,
+                 "cannot start WPA3-only Wi-Fi access point \"%s\" without an 8+ character password",
+                 access_point->ssid);
         return false;
     }
 
@@ -924,12 +944,15 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
         return false;
     }
 
-    m_active_wifi = access_point;
-    m_status      = Status::AccessPoint;
+    m_active_wifi      = access_point;
+    m_status           = Status::AccessPoint;
     m_wifi_has_started = true;
     resetWebCounters();
     notifyConnected(access_point);
-    DBG_LOGI(TAG, "started Wi-Fi access point \"%s\" at %s", access_point->ssid, current_soft_ap_ip().toString().c_str());
+    DBG_LOGI(TAG,
+             "started Wi-Fi access point \"%s\" at %s",
+             access_point->ssid,
+             current_soft_ap_ip().toString().c_str());
     return true;
 }
 
@@ -996,9 +1019,9 @@ bool WifiManager::scanAndConnect()
 
 bool WifiManager::disconnect()
 {
-    const wifi_item_t* disconnected_wifi = m_connected_wifi ? m_connected_wifi : m_active_wifi;
-    const bool station_disconnected = WiFi.disconnect(true, false);
-    const bool ap_disconnected      = WiFi.softAPdisconnect(true);
+    const wifi_item_t* disconnected_wifi    = m_connected_wifi ? m_connected_wifi : m_active_wifi;
+    const bool         station_disconnected = WiFi.disconnect(true, false);
+    const bool         ap_disconnected      = WiFi.softAPdisconnect(true);
     WiFi.mode(WIFI_OFF);
 
     if (m_reported_connected)
@@ -1006,9 +1029,9 @@ bool WifiManager::disconnect()
         notifyDisconnected(disconnected_wifi);
     }
 
-    m_active_wifi = nullptr;
+    m_active_wifi    = nullptr;
     m_connected_wifi = nullptr;
-    m_status      = Status::Idle;
+    m_status         = Status::Idle;
     resetSoftApClientTracking();
     return station_disconnected || ap_disconnected;
 }
@@ -1164,7 +1187,8 @@ const char* WifiManager::generatedSoftApSsid() const
 
 const char* WifiManager::softApPassword() const
 {
-    if (status() != Status::AccessPoint || !m_active_wifi || !m_active_wifi->password || m_active_wifi->password[0] == '\0')
+    if (status() != Status::AccessPoint || !m_active_wifi || !m_active_wifi->password ||
+        m_active_wifi->password[0] == '\0')
     {
         return nullptr;
     }
@@ -1251,10 +1275,10 @@ uint32_t WifiManager::webDownloadCount() const
 void WifiManager::resetWebCounters()
 {
     m_web_page_load_count = 0;
-    m_web_login_count = 0;
-    m_web_save_count = 0;
-    m_web_error_count = 0;
-    m_web_download_count = 0;
+    m_web_login_count     = 0;
+    m_web_save_count      = 0;
+    m_web_error_count     = 0;
+    m_web_download_count  = 0;
 }
 
 void WifiManager::resetSoftApClientTracking()
@@ -1274,7 +1298,7 @@ void WifiManager::updateSoftApClientTracking()
     }
 
     wifi_sta_list_t stations = {};
-    const esp_err_t err = esp_wifi_ap_get_sta_list(&stations);
+    const esp_err_t err      = esp_wifi_ap_get_sta_list(&stations);
     if (err != ESP_OK || stations.num <= 0)
     {
         m_soft_ap_client_connected = false;
@@ -1283,7 +1307,8 @@ void WifiManager::updateSoftApClientTracking()
     }
 
     const uint8_t* mac = stations.sta[0].mac;
-    const bool same_client = m_soft_ap_client_connected && memcmp(m_soft_ap_client_mac, mac, sizeof(m_soft_ap_client_mac)) == 0;
+    const bool     same_client =
+        m_soft_ap_client_connected && memcmp(m_soft_ap_client_mac, mac, sizeof(m_soft_ap_client_mac)) == 0;
     if (!same_client)
     {
         ++m_soft_ap_client_connection_count;
@@ -1294,7 +1319,7 @@ void WifiManager::updateSoftApClientTracking()
 
 void WifiManager::notifyConnected(const wifi_item_t* item)
 {
-    m_connected_wifi      = item;
+    m_connected_wifi     = item;
     m_reported_connected = true;
 
     if (m_on_connect)
@@ -1305,7 +1330,7 @@ void WifiManager::notifyConnected(const wifi_item_t* item)
 
 void WifiManager::notifyDisconnected(const wifi_item_t* item)
 {
-    m_connected_wifi      = nullptr;
+    m_connected_wifi     = nullptr;
     m_reported_connected = false;
 
     if (m_on_disconnect)
@@ -1324,29 +1349,29 @@ void WifiManager::notifyScanFinished(const wifi_item_t* item)
 
 size_t WifiManager::cloudEndpointCount() const
 {
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     return m_cloud_endpoint_count;
-    #else
+#else
     return 0;
-    #endif
+#endif
 }
 
 cloud_item_t* WifiManager::cloudEndpoint(size_t index)
 {
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     return const_cast<cloud_item_t*>(static_cast<const WifiManager*>(this)->cloudEndpoint(index));
-    #else
+#else
     return NULL;
-    #endif
+#endif
 }
 
 const cloud_item_t* WifiManager::cloudEndpoint(size_t index) const
 {
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     return index < m_cloud_endpoint_count ? &m_network_cfg.cloud[index] : nullptr;
-    #else
+#else
     return NULL;
-    #endif
+#endif
 }
 
 WifiManager::LoadResult WifiManager::lastLoadResult() const

@@ -18,8 +18,8 @@
 #include "nvs_flash.h"
 #include "utilfuncs.h"
 
-//#define USE_SPECIFIC_BDADDR    "F4:26:79:C6:FA:01" // PC
-#define USE_SPECIFIC_BDADDR    "58:79:e0:36:81:59" // phone
+// #define USE_SPECIFIC_BDADDR    "F4:26:79:C6:FA:01" // PC
+#define USE_SPECIFIC_BDADDR "58:79:e0:36:81:59" // phone
 // #define USE_SPECIFIC_BONDED_IDX    0
 
 #if defined(USE_SPECIFIC_BDADDR) && defined(USE_SPECIFIC_BONDED_IDX)
@@ -31,16 +31,16 @@ extern bool init_nvs();
 namespace
 {
 
-constexpr const char* TAG = "test_btspeakerphone";
-constexpr const char* kApSsid = "TheFly-BT-Web-Test";
-constexpr const char* kHelloWorld = "hello world\n";
+constexpr const char* TAG             = "test_btspeakerphone";
+constexpr const char* kApSsid         = "TheFly-BT-Web-Test";
+constexpr const char* kHelloWorld     = "hello world\n";
 constexpr uint32_t    kCore0StackSize = 8192;
 constexpr UBaseType_t kCore0Priority  = 2;
 constexpr uint32_t    kButtonPollMs   = 5;
 #ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
-constexpr uint32_t    kAudioDiagReportMs = 2000;
+constexpr uint32_t kAudioDiagReportMs = 2000;
 #endif
-constexpr uint16_t    kColourGrey     = 0x7BEF;
+constexpr uint16_t kColourGrey = 0x7BEF;
 
 enum class ControlCommand : uint8_t
 {
@@ -50,7 +50,7 @@ enum class ControlCommand : uint8_t
 };
 
 AsyncWebServer g_web_server(80);
-TaskHandle_t   g_core0_task = nullptr;
+TaskHandle_t   g_core0_task    = nullptr;
 QueueHandle_t  g_control_queue = nullptr;
 QueueHandle_t  g_colour_queue  = nullptr;
 
@@ -78,10 +78,12 @@ uint64_t delta64(uint64_t current, uint64_t previous)
     return current - previous;
 }
 
-void log_audio_diagnostics(const AudioManager::HfpAudioDiagnostics& diag, const AudioManager::HfpAudioDiagnostics& previous)
+void log_audio_diagnostics(const AudioManager::HfpAudioDiagnostics& diag,
+                           const AudioManager::HfpAudioDiagnostics& previous)
 {
     DBG_LOGI(TAG,
-             "audio diag in: cb=%" PRIu32 " (+%" PRIu32 ") bytes=%" PRIu64 " (+%" PRIu64 ") consumed=%" PRIu64 " pcm=%" PRIu64 " q_spk=%" PRIu64,
+             "audio diag in: cb=%" PRIu32 " (+%" PRIu32 ") bytes=%" PRIu64 " (+%" PRIu64 ") consumed=%" PRIu64
+             " pcm=%" PRIu64 " q_spk=%" PRIu64,
              diag.incomingCallbacks,
              delta32(diag.incomingCallbacks, previous.incomingCallbacks),
              diag.incomingBytes,
@@ -91,7 +93,8 @@ void log_audio_diagnostics(const AudioManager::HfpAudioDiagnostics& diag, const 
              diag.incomingQueuedSpkSamples);
 
     DBG_LOGI(TAG,
-             "audio diag out: cb=%" PRIu32 " (+%" PRIu32 ") req=%" PRIu64 " (+%" PRIu64 ") ret=%" PRIu64 " (+%" PRIu64 ") pcm_read=%" PRIu64 " underflow=%" PRIu32,
+             "audio diag out: cb=%" PRIu32 " (+%" PRIu32 ") req=%" PRIu64 " (+%" PRIu64 ") ret=%" PRIu64 " (+%" PRIu64
+             ") pcm_read=%" PRIu64 " underflow=%" PRIu32,
              diag.outgoingCallbacks,
              delta32(diag.outgoingCallbacks, previous.outgoingCallbacks),
              diag.outgoingRequestedBytes,
@@ -102,7 +105,8 @@ void log_audio_diagnostics(const AudioManager::HfpAudioDiagnostics& diag, const 
              diag.outgoingUnderflows);
 
     DBG_LOGI(TAG,
-             "audio diag spk: i2s_bytes=%" PRIu64 " (+%" PRIu64 ") i2s_frames=%" PRIu64 " chunks=%" PRIu64 " short=%" PRIu32 " err=%" PRIu32 " fifo=%u%%/%u samples mode=%d codec=%s rate=%lu",
+             "audio diag spk: i2s_bytes=%" PRIu64 " (+%" PRIu64 ") i2s_frames=%" PRIu64 " chunks=%" PRIu64
+             " short=%" PRIu32 " err=%" PRIu32 " fifo=%u%%/%u samples mode=%d codec=%s rate=%lu",
              diag.speakerI2sWriteBytes,
              delta64(diag.speakerI2sWriteBytes, previous.speakerI2sWriteBytes),
              diag.speakerI2sWriteFrames,
@@ -116,7 +120,11 @@ void log_audio_diagnostics(const AudioManager::HfpAudioDiagnostics& diag, const 
              static_cast<unsigned long>(AudioManager::hfpAudioSampleRateHz()));
 
     DBG_LOGI(TAG,
-             "audio diag mic: pump=%" PRIu32 " (+%" PRIu32 ") skip mode/no_i2s/full=%" PRIu32 "/%" PRIu32 "/%" PRIu32 " i2s=%" PRIu32 " (+%" PRIu32 ") req=%" PRIu64 " (+%" PRIu64 ") read=%" PRIu64 " (+%" PRIu64 ") empty=%" PRIu32 " err=%" PRIu32 " samp=%" PRIu64 " q_bt=%" PRIu64 " (+%" PRIu64 ") q_file=%" PRIu64 " bt_drop notready/full=%" PRIu64 "/%" PRIu64 " notify chk/ready/call=%" PRIu32 "/%" PRIu32 "/%" PRIu32 " block q/min/bt=%" PRIu32 "/%" PRIu32 "/%" PRIu32 " fifo=%u%%/%u min=%" PRIu32 " can_bt=%u",
+             "audio diag mic: pump=%" PRIu32 " (+%" PRIu32 ") skip mode/no_i2s/full=%" PRIu32 "/%" PRIu32 "/%" PRIu32
+             " i2s=%" PRIu32 " (+%" PRIu32 ") req=%" PRIu64 " (+%" PRIu64 ") read=%" PRIu64 " (+%" PRIu64
+             ") empty=%" PRIu32 " err=%" PRIu32 " samp=%" PRIu64 " q_bt=%" PRIu64 " (+%" PRIu64 ") q_file=%" PRIu64
+             " bt_drop notready/full=%" PRIu64 "/%" PRIu64 " notify chk/ready/call=%" PRIu32 "/%" PRIu32 "/%" PRIu32
+             " block q/min/bt=%" PRIu32 "/%" PRIu32 "/%" PRIu32 " fifo=%u%%/%u min=%" PRIu32 " can_bt=%u",
              diag.micPumpCalls,
              delta32(diag.micPumpCalls, previous.micPumpCalls),
              diag.micSkipNotMicMode,
@@ -151,7 +159,7 @@ void log_audio_diagnostics(const AudioManager::HfpAudioDiagnostics& diag, const 
 
 void print_local_bdaddr()
 {
-    esp_bd_addr_t bda = {};
+    esp_bd_addr_t   bda = {};
     const esp_err_t err = esp_read_mac(bda, ESP_MAC_BT);
     if (err != ESP_OK)
     {
@@ -221,7 +229,9 @@ void print_bonded_devices()
     const int bonded_count = esp_bt_gap_get_bond_device_num();
     if (bonded_count == ESP_ERR_INVALID_STATE)
     {
-        Serial.printf("%s: esp_bt_gap_get_bond_device_num failed: %s\n", TAG, esp_err_to_name(static_cast<esp_err_t>(bonded_count)));
+        Serial.printf("%s: esp_bt_gap_get_bond_device_num failed: %s\n",
+                      TAG,
+                      esp_err_to_name(static_cast<esp_err_t>(bonded_count)));
         return;
     }
 
@@ -238,8 +248,8 @@ void print_bonded_devices()
         return;
     }
 
-    int listed = bonded_count;
-    const esp_err_t err = esp_bt_gap_get_bond_device_list(&listed, bonded);
+    int             listed = bonded_count;
+    const esp_err_t err    = esp_bt_gap_get_bond_device_list(&listed, bonded);
     if (err != ESP_OK)
     {
         Serial.printf("%s: esp_bt_gap_get_bond_device_list failed: %s\n", TAG, esp_err_to_name(err));
@@ -261,7 +271,9 @@ bool get_nth_bonded_device(int index, esp_bd_addr_t device)
     const int bonded_count = esp_bt_gap_get_bond_device_num();
     if (bonded_count == ESP_ERR_INVALID_STATE)
     {
-        Serial.printf("%s: esp_bt_gap_get_bond_device_num failed: %s\n", TAG, esp_err_to_name(static_cast<esp_err_t>(bonded_count)));
+        Serial.printf("%s: esp_bt_gap_get_bond_device_num failed: %s\n",
+                      TAG,
+                      esp_err_to_name(static_cast<esp_err_t>(bonded_count)));
         return false;
     }
 
@@ -278,8 +290,8 @@ bool get_nth_bonded_device(int index, esp_bd_addr_t device)
         return false;
     }
 
-    int listed = bonded_count;
-    const esp_err_t err = esp_bt_gap_get_bond_device_list(&listed, bonded);
+    int             listed = bonded_count;
+    const esp_err_t err    = esp_bt_gap_get_bond_device_list(&listed, bonded);
     if (err != ESP_OK)
     {
         Serial.printf("%s: esp_bt_gap_get_bond_device_list failed: %s\n", TAG, esp_err_to_name(err));
@@ -502,7 +514,10 @@ void test_btspeakerphone()
     BtManager::setStateChangedCallback(on_state_changed);
 
     Serial.printf("%s: initializing BluetoothManager\n", TAG);
-    if (!BtManager::init(nullptr, AudioManager::hfp_incoming_audio, AudioManager::hfp_outgoing_audio, BtManager::generatedLegacyPin()))
+    if (!BtManager::init(nullptr,
+                         AudioManager::hfp_incoming_audio,
+                         AudioManager::hfp_outgoing_audio,
+                         BtManager::generatedLegacyPin()))
     {
         Serial.printf("%s: BluetoothManager init failed\n", TAG);
         idle_forever();
@@ -547,21 +562,21 @@ void test_btspeakerphone()
         idle_forever();
     }
 
-    #if 0
+#if 0
     if (!start_test_web_ap())
     {
         idle_forever();
     }
-    #endif
+#endif
 
     Serial.printf("%s: pumping Bluetooth audio forever\n", TAG);
 #ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
     AudioManager::resetHfpAudioDiagnostics();
-    AudioManager::HfpAudioDiagnostics previous_diag = {};
-    uint32_t last_diag_report_ms = millis();
+    AudioManager::HfpAudioDiagnostics previous_diag       = {};
+    uint32_t                          last_diag_report_ms = millis();
 #endif
-    bool     blue_sent           = false;
-    bool     stop_requested      = false;
+    bool blue_sent      = false;
+    bool stop_requested = false;
     while (!stop_requested)
     {
         ControlCommand command = ControlCommand::EnableSpeaker;

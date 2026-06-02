@@ -19,14 +19,14 @@
 namespace
 {
 
-constexpr const char* TAG          = "CloudUpload";
-constexpr const char* kHistoryPath = "/cloud_history.txt";
+constexpr const char* TAG                = "CloudUpload";
+constexpr const char* kHistoryPath       = "/cloud_history.txt";
 constexpr size_t      kResponseMaxLength = 1024;
-constexpr size_t      kUploadBufferSize = 1024;
-constexpr uint32_t    kDestroyPollMs = 10;
+constexpr size_t      kUploadBufferSize  = 1024;
+constexpr uint32_t    kDestroyPollMs     = 10;
 
 using PendingFile = CloudUpload::PendingFile;
-using UrlParts = CloudUpload::UrlParts;
+using UrlParts    = CloudUpload::UrlParts;
 
 extern const uint8_t x509_crt_bundle_start[] asm("_binary_x509_crt_bundle_start");
 extern const uint8_t x509_crt_bundle_end[] asm("_binary_x509_crt_bundle_end");
@@ -100,7 +100,7 @@ bool copy_text(char* dst, size_t dst_size, const char* src)
         return false;
     }
 
-    const char* value  = src ? src : "";
+    const char*  value = src ? src : "";
     const size_t chars = strlen(value);
     if (chars >= dst_size)
     {
@@ -125,8 +125,7 @@ bool ends_with_rec(const char* path)
     }
 
     const char* suffix = path + length - 4;
-    return suffix[0] == '.' &&
-           tolower(static_cast<unsigned char>(suffix[1])) == 'r' &&
+    return suffix[0] == '.' && tolower(static_cast<unsigned char>(suffix[1])) == 'r' &&
            tolower(static_cast<unsigned char>(suffix[2])) == 'e' &&
            tolower(static_cast<unsigned char>(suffix[3])) == 'c';
 }
@@ -139,7 +138,8 @@ bool make_child_path(const char* parent, const char* child, char* out, size_t ou
     }
 
     const bool parent_is_root = strcmp(parent, "/") == 0;
-    const int  written = parent_is_root ? snprintf(out, out_size, "/%s", child) : snprintf(out, out_size, "%s/%s", parent, child);
+    const int  written =
+        parent_is_root ? snprintf(out, out_size, "/%s", child) : snprintf(out, out_size, "%s/%s", parent, child);
     return written > 0 && static_cast<size_t>(written) < out_size;
 }
 
@@ -230,7 +230,7 @@ bool read_fs_line(FsFile& file, char* line, size_t line_size)
     }
 
     bool   saw_any = false;
-    size_t count = 0;
+    size_t count   = 0;
     while (true)
     {
         const int value = file.read();
@@ -262,7 +262,7 @@ bool history_line_matches(const char* line, const char* path)
         return false;
     }
 
-    const char* separator = strchr(line, ';');
+    const char*  separator    = strchr(line, ';');
     const size_t token_length = separator ? static_cast<size_t>(separator - line) : strlen(line);
     return strlen(path) == token_length && strncmp(line, path, token_length) == 0;
 }
@@ -427,8 +427,8 @@ bool parse_url(const char* url, UrlParts& out)
     const char* host_end   = path_start ? path_start : cursor + strlen(cursor);
     const char* port_start = static_cast<const char*>(memchr(cursor, ':', host_end - cursor));
 
-    const char* host_limit = port_start ? port_start : host_end;
-    const size_t host_len  = host_limit - cursor;
+    const char*  host_limit = port_start ? port_start : host_end;
+    const size_t host_len   = host_limit - cursor;
     if (host_len == 0 || host_len >= sizeof(out.host))
     {
         return false;
@@ -477,14 +477,14 @@ bool configure_secure_client(WiFiClientSecure& client, uint32_t timeout_ms, char
 
 String filename_hash(const char* filename, const char* datetime, const char* destination_password)
 {
-    const uint8_t* auth_key = nullptr;
-    size_t auth_key_len = 0;
-    #if BUILD_WITH_SECURITY_LEVEL <= 0
+    const uint8_t* auth_key     = nullptr;
+    size_t         auth_key_len = 0;
+#if BUILD_WITH_SECURITY_LEVEL <= 0
     // minimum security uses the password specified by the user for each cloud endpoint
     const char* safe_password = destination_password ? destination_password : "";
-    auth_key = reinterpret_cast<const uint8_t*>(safe_password);
-    auth_key_len = strlen(safe_password);
-    #else
+    auth_key                  = reinterpret_cast<const uint8_t*>(safe_password);
+    auth_key_len              = strlen(safe_password);
+#else
     // higher security uses network-key
     if (!Aegis::isInitialized())
     {
@@ -496,9 +496,9 @@ String filename_hash(const char* filename, const char* datetime, const char* des
     {
         return "";
     }
-    auth_key = network_key;
+    auth_key     = network_key;
     auth_key_len = Aegis::kNetworkKeySize;
-    #endif
+#endif
 
     if (!auth_key || auth_key_len == 0)
     {
@@ -525,7 +525,7 @@ String filename_hash(const char* filename, const char* datetime, const char* des
     {
         return "";
     }
-    static constexpr char kHex[] = "0123456789abcdef";
+    static constexpr char kHex[]                            = "0123456789abcdef";
     char                  hex[(Aegis::kSha256Size * 2) + 1] = {};
     for (size_t i = 0; i < Aegis::kSha256Size; ++i)
     {
@@ -564,7 +564,7 @@ bool read_client_line(Client& client, char* line, size_t line_size, uint32_t tim
     }
 
     const uint32_t started = millis();
-    size_t count = 0;
+    size_t         count   = 0;
     while (millis() - started < timeout_ms)
     {
         while (client.available() > 0)
@@ -599,7 +599,7 @@ bool read_client_line(Client& client, char* line, size_t line_size, uint32_t tim
 
 bool read_body_bytes(Client& client, char* body, size_t body_size, size_t byte_count, uint32_t timeout_ms)
 {
-    size_t count = strlen(body);
+    size_t         count   = strlen(body);
     const uint32_t started = millis();
     while (byte_count > 0 && millis() - started < timeout_ms)
     {
@@ -613,7 +613,7 @@ bool read_body_bytes(Client& client, char* body, size_t body_size, size_t byte_c
             if (count + 1 < body_size)
             {
                 body[count++] = static_cast<char>(value);
-                body[count] = '\0';
+                body[count]   = '\0';
             }
             --byte_count;
         }
@@ -634,7 +634,8 @@ bool read_body_bytes(Client& client, char* body, size_t body_size, size_t byte_c
     return byte_count == 0;
 }
 
-bool read_response_body(Client& client, bool chunked, int content_length, char* body, size_t body_size, uint32_t timeout_ms)
+bool read_response_body(
+    Client& client, bool chunked, int content_length, char* body, size_t body_size, uint32_t timeout_ms)
 {
     body[0] = '\0';
 
@@ -669,7 +670,7 @@ bool read_response_body(Client& client, bool chunked, int content_length, char* 
     }
 
     const uint32_t started = millis();
-    size_t count = 0;
+    size_t         count   = 0;
     while (millis() - started < timeout_ms)
     {
         while (client.available() > 0)
@@ -682,7 +683,7 @@ bool read_response_body(Client& client, bool chunked, int content_length, char* 
             if (count + 1 < body_size)
             {
                 body[count++] = static_cast<char>(value);
-                body[count] = '\0';
+                body[count]   = '\0';
             }
         }
 
@@ -698,7 +699,7 @@ bool read_response_body(Client& client, bool chunked, int content_length, char* 
 
 bool parse_upload_ack(const char* response_body, char* message, size_t message_size)
 {
-    JsonDocument doc;
+    JsonDocument               doc;
     const DeserializationError error = deserializeJson(doc, response_body ? response_body : "");
     if (error)
     {
@@ -706,7 +707,7 @@ bool parse_upload_ack(const char* response_body, char* message, size_t message_s
         return false;
     }
 
-    const char* status = doc["status"].as<const char*>();
+    const char* status         = doc["status"].as<const char*>();
     const char* server_message = doc["message"].as<const char*>();
     if (server_message)
     {
@@ -758,9 +759,9 @@ bool CloudUpload::start(const cloud_item_t* destination, uint32_t timeout_ms)
     if (!copyDestination(destination, timeout_ms))
     {
         portENTER_CRITICAL(&m_lock);
-        m_status = {};
-        m_status.state = State::Error;
-        m_status.error = Error::InvalidArgument;
+        m_status          = {};
+        m_status.state    = State::Error;
+        m_status.error    = Error::InvalidArgument;
         m_status.finished = true;
         copy_text(m_status.message, sizeof(m_status.message), "invalid cloud upload destination");
         portEXIT_CRITICAL(&m_lock);
@@ -769,9 +770,9 @@ bool CloudUpload::start(const cloud_item_t* destination, uint32_t timeout_ms)
 
     portENTER_CRITICAL(&m_lock);
     m_cancel_requested = false;
-    m_status = {};
-    m_status.state = State::Busy;
-    m_status.error = Error::None;
+    m_status           = {};
+    m_status.state     = State::Busy;
+    m_status.error     = Error::None;
     copy_text(m_status.destination, sizeof(m_status.destination), m_destination_name);
     portEXIT_CRITICAL(&m_lock);
 
@@ -799,9 +800,9 @@ bool CloudUpload::uploadSingleFile(const cloud_item_t* destination, const char* 
     if (!copyDestination(destination, timeout_ms))
     {
         portENTER_CRITICAL(&m_lock);
-        m_status = {};
-        m_status.state = State::Error;
-        m_status.error = Error::InvalidArgument;
+        m_status          = {};
+        m_status.state    = State::Error;
+        m_status.error    = Error::InvalidArgument;
         m_status.finished = true;
         copy_text(m_status.message, sizeof(m_status.message), "invalid cloud upload destination");
         portEXIT_CRITICAL(&m_lock);
@@ -810,10 +811,10 @@ bool CloudUpload::uploadSingleFile(const cloud_item_t* destination, const char* 
 
     portENTER_CRITICAL(&m_lock);
     m_cancel_requested = false;
-    m_task_handle = xTaskGetCurrentTaskHandle();
-    m_status = {};
-    m_status.state = State::Busy;
-    m_status.error = Error::None;
+    m_task_handle      = xTaskGetCurrentTaskHandle();
+    m_status           = {};
+    m_status.state     = State::Busy;
+    m_status.error     = Error::None;
     copy_text(m_status.destination, sizeof(m_status.destination), m_destination_name);
     portEXIT_CRITICAL(&m_lock);
 
@@ -888,28 +889,23 @@ bool CloudUpload::copyDestination(const cloud_item_t* destination, uint32_t time
         return false;
     }
 
-    #if BUILD_WITH_SECURITY_LEVEL <= 0
+#if BUILD_WITH_SECURITY_LEVEL <= 0
     if (!copy_text(m_destination_password, sizeof(m_destination_password), destination->password))
     {
         return false;
     }
-    #else
+#else
     m_destination_password[0] = '\0';
-    #endif
+#endif
     m_timeout_ms = timeout_ms == 0 ? kDefaultTimeoutMs : timeout_ms;
     return true;
 }
 
 bool CloudUpload::startTaskOnCurrentCore()
 {
-    TaskHandle_t task_handle = nullptr;
-    const BaseType_t created = xTaskCreatePinnedToCore(taskEntry,
-                                                       "CloudUpload",
-                                                       8192,
-                                                       this,
-                                                       1,
-                                                       &task_handle,
-                                                       xPortGetCoreID());
+    TaskHandle_t     task_handle = nullptr;
+    const BaseType_t created =
+        xTaskCreatePinnedToCore(taskEntry, "CloudUpload", 8192, this, 1, &task_handle, xPortGetCoreID());
     if (created != pdPASS)
     {
         return false;
@@ -931,16 +927,16 @@ void CloudUpload::setStatusMessage(Error error, const char* message)
 
 void CloudUpload::finish(State state, Error error, const char* message)
 {
-    CompleteCallback callback = nullptr;
+    CompleteCallback callback        = nullptr;
     Status           callback_status = {};
 
     portENTER_CRITICAL(&m_lock);
-    m_status.state = state;
-    m_status.error = error;
+    m_status.state    = state;
+    m_status.error    = error;
     m_status.finished = true;
-    m_task_handle = nullptr;
+    m_task_handle     = nullptr;
     copy_text(m_status.message, sizeof(m_status.message), message ? message : error_name(error));
-    callback = m_on_complete;
+    callback        = m_on_complete;
     callback_status = m_status;
     portEXIT_CRITICAL(&m_lock);
 
@@ -990,8 +986,8 @@ bool CloudUpload::uploadSingleFilePath(const char* path)
         return false;
     }
 
-    char last_message[kMessageMaxLength] = {};
-    PendingFile* item = nullptr;
+    char         last_message[kMessageMaxLength] = {};
+    PendingFile* item                            = nullptr;
     if (!make_single_pending_file(path, item, last_message, sizeof(last_message)))
     {
         const Error error = strstr(last_message, "allocate") ? Error::AllocationFailed : Error::FileOpenFailed;
@@ -1004,8 +1000,9 @@ bool CloudUpload::uploadSingleFilePath(const char* path)
     m_status.bytes_total = item->size;
     portEXIT_CRITICAL(&m_lock);
 
-    uint64_t committed_bytes = 0;
-    const PendingUploadResult result = uploadPendingFile(*item, url, committed_bytes, last_message, sizeof(last_message));
+    uint64_t                  committed_bytes = 0;
+    const PendingUploadResult result =
+        uploadPendingFile(*item, url, committed_bytes, last_message, sizeof(last_message));
     free_pending_list(item);
 
     switch (result)
@@ -1026,7 +1023,8 @@ bool CloudUpload::uploadSingleFilePath(const char* path)
     }
 }
 
-CloudUpload::PendingUploadResult CloudUpload::uploadPendingFile(PendingFile& item, const UrlParts& url, uint64_t& committed_bytes, char* last_message, size_t last_message_size)
+CloudUpload::PendingUploadResult CloudUpload::uploadPendingFile(
+    PendingFile& item, const UrlParts& url, uint64_t& committed_bytes, char* last_message, size_t last_message_size)
 {
     portENTER_CRITICAL(&m_lock);
     const bool cancel_requested = m_cancel_requested;
@@ -1042,7 +1040,7 @@ CloudUpload::PendingUploadResult CloudUpload::uploadPendingFile(PendingFile& ite
     m_status.bytes_uploaded = committed_bytes;
     portEXIT_CRITICAL(&m_lock);
 
-    bool file_ok = false;
+    bool file_ok   = false;
     bool cancelled = false;
     for (uint8_t attempt = 0; attempt < kMaxRetries && !file_ok && !cancelled; ++attempt)
     {
@@ -1109,46 +1107,61 @@ CloudUpload::PendingUploadResult CloudUpload::uploadPendingFile(PendingFile& ite
         }
 
         const String source_mac = WiFi.macAddress();
-        const char* boundary = "----TheFlyCloudUploadBoundary";
+        const char*  boundary   = "----TheFlyCloudUploadBoundary";
 
         char part_filename[CloudUpload::kPathMaxLength + 128];
         char part_timestamp[128];
         char part_hash[128];
         char part_source[128];
         char part_payload[CloudUpload::kPathMaxLength + 160];
-        snprintf(part_filename, sizeof(part_filename), "--%s\r\nContent-Disposition: form-data; name=\"filename\"\r\n\r\n%s\r\n", boundary, item.path);
-        snprintf(part_timestamp, sizeof(part_timestamp), "--%s\r\nContent-Disposition: form-data; name=\"timestamp\"\r\n\r\n%s\r\n", boundary, upload_timestamp);
-        snprintf(part_hash, sizeof(part_hash), "--%s\r\nContent-Disposition: form-data; name=\"hash\"\r\n\r\n%s\r\n", boundary, hash.c_str());
-        snprintf(part_source, sizeof(part_source), "--%s\r\nContent-Disposition: form-data; name=\"source_mac\"\r\n\r\n%s\r\n", boundary, source_mac.c_str());
+        snprintf(part_filename,
+                 sizeof(part_filename),
+                 "--%s\r\nContent-Disposition: form-data; name=\"filename\"\r\n\r\n%s\r\n",
+                 boundary,
+                 item.path);
+        snprintf(part_timestamp,
+                 sizeof(part_timestamp),
+                 "--%s\r\nContent-Disposition: form-data; name=\"timestamp\"\r\n\r\n%s\r\n",
+                 boundary,
+                 upload_timestamp);
+        snprintf(part_hash,
+                 sizeof(part_hash),
+                 "--%s\r\nContent-Disposition: form-data; name=\"hash\"\r\n\r\n%s\r\n",
+                 boundary,
+                 hash.c_str());
+        snprintf(part_source,
+                 sizeof(part_source),
+                 "--%s\r\nContent-Disposition: form-data; name=\"source_mac\"\r\n\r\n%s\r\n",
+                 boundary,
+                 source_mac.c_str());
         snprintf(part_payload,
                  sizeof(part_payload),
-                 "--%s\r\nContent-Disposition: form-data; name=\"payload\"; filename=\"%s\"\r\nContent-Type: application/octet-stream\r\n\r\n",
+                 "--%s\r\nContent-Disposition: form-data; name=\"payload\"; filename=\"%s\"\r\nContent-Type: "
+                 "application/octet-stream\r\n\r\n",
                  boundary,
                  item.path);
 
         char end_boundary[48];
         snprintf(end_boundary, sizeof(end_boundary), "\r\n--%s--\r\n", boundary);
 
-        const uint64_t content_length = strlen(part_filename) + strlen(part_timestamp) + strlen(part_hash) + strlen(part_source) + strlen(part_payload) + item.size + strlen(end_boundary);
+        const uint64_t content_length = strlen(part_filename) + strlen(part_timestamp) + strlen(part_hash) +
+                                        strlen(part_source) + strlen(part_payload) + item.size + strlen(end_boundary);
 
         char header[512];
         snprintf(header,
                  sizeof(header),
-                 "POST %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\nContent-Type: multipart/form-data; boundary=%s\r\nContent-Length: %llu\r\n\r\n",
+                 "POST %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\nContent-Type: multipart/form-data; "
+                 "boundary=%s\r\nContent-Length: %llu\r\n\r\n",
                  url.path,
                  url.host,
                  boundary,
                  static_cast<unsigned long long>(content_length));
 
-        bool ok = send_all(*client, header) &&
-                  send_all(*client, part_filename) &&
-                  send_all(*client, part_timestamp) &&
-                  send_all(*client, part_hash) &&
-                  send_all(*client, part_source) &&
-                  send_all(*client, part_payload);
+        bool ok = send_all(*client, header) && send_all(*client, part_filename) && send_all(*client, part_timestamp) &&
+                  send_all(*client, part_hash) && send_all(*client, part_source) && send_all(*client, part_payload);
 
         uint64_t attempt_bytes = 0;
-        uint8_t buffer[kUploadBufferSize];
+        uint8_t  buffer[kUploadBufferSize];
         while (ok && attempt_bytes < item.size)
         {
             portENTER_CRITICAL(&m_lock);
@@ -1156,14 +1169,16 @@ CloudUpload::PendingUploadResult CloudUpload::uploadPendingFile(PendingFile& ite
             portEXIT_CRITICAL(&m_lock);
             if (cancel_requested_inner)
             {
-                ok = false;
+                ok        = false;
                 cancelled = true;
                 copy_text(last_message, last_message_size, "cancelled during upload");
                 break;
             }
 
-            const size_t to_read = (item.size - attempt_bytes) < sizeof(buffer) ? static_cast<size_t>(item.size - attempt_bytes) : sizeof(buffer);
-            const int bytes_read = file.read(buffer, to_read);
+            const size_t to_read    = (item.size - attempt_bytes) < sizeof(buffer)
+                                          ? static_cast<size_t>(item.size - attempt_bytes)
+                                          : sizeof(buffer);
+            const int    bytes_read = file.read(buffer, to_read);
             if (bytes_read <= 0)
             {
                 ok = false;
@@ -1187,9 +1202,9 @@ CloudUpload::PendingUploadResult CloudUpload::uploadPendingFile(PendingFile& ite
         ok = ok && !cancelled && send_all(*client, end_boundary);
         file.close();
 
-        int http_status = 0;
-        bool chunked = false;
-        int content_length_response = -1;
+        int  http_status             = 0;
+        bool chunked                 = false;
+        int  content_length_response = -1;
         char response_body[kResponseMaxLength];
         char line[192];
 
@@ -1198,7 +1213,7 @@ CloudUpload::PendingUploadResult CloudUpload::uploadPendingFile(PendingFile& ite
             if (strncmp(line, "HTTP/", 5) == 0)
             {
                 const char* first_space = strchr(line, ' ');
-                http_status = first_space ? atoi(first_space + 1) : 0;
+                http_status             = first_space ? atoi(first_space + 1) : 0;
             }
 
             while (read_client_line(*client, line, sizeof(line), m_timeout_ms) && line[0] != '\0')
@@ -1225,7 +1240,12 @@ CloudUpload::PendingUploadResult CloudUpload::uploadPendingFile(PendingFile& ite
             snprintf(last_message, last_message_size, "HTTP status %d", http_status);
         }
 
-        if (ok && !read_response_body(*client, chunked, content_length_response, response_body, sizeof(response_body), m_timeout_ms))
+        if (ok && !read_response_body(*client,
+                                      chunked,
+                                      content_length_response,
+                                      response_body,
+                                      sizeof(response_body),
+                                      m_timeout_ms))
         {
             ok = false;
             copy_text(last_message, last_message_size, "HTTP body read failed");
@@ -1314,10 +1334,10 @@ void CloudUpload::taskMain()
         return;
     }
 
-    PendingFile* head = nullptr;
-    PendingFile* tail = nullptr;
-    uint32_t files_total = 0;
-    uint64_t bytes_total = 0;
+    PendingFile* head        = nullptr;
+    PendingFile* tail        = nullptr;
+    uint32_t     files_total = 0;
+    uint64_t     bytes_total = 0;
 
     if (!scan_directory("/", head, tail, files_total, bytes_total))
     {
@@ -1331,12 +1351,13 @@ void CloudUpload::taskMain()
     m_status.bytes_total = bytes_total;
     portEXIT_CRITICAL(&m_lock);
 
-    char last_message[kMessageMaxLength] = {};
-    uint64_t committed_bytes = 0;
+    char     last_message[kMessageMaxLength] = {};
+    uint64_t committed_bytes                 = 0;
 
     for (PendingFile* item = head; item; item = item->next)
     {
-        const PendingUploadResult result = uploadPendingFile(*item, url, committed_bytes, last_message, sizeof(last_message));
+        const PendingUploadResult result =
+            uploadPendingFile(*item, url, committed_bytes, last_message, sizeof(last_message));
         if (result == PendingUploadResult::Cancelled)
         {
             free_pending_list(head);

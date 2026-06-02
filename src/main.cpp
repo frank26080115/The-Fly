@@ -43,17 +43,17 @@
 
 constexpr const char* MAINTAG = "main.cpp";
 
-extern void all_init();
-extern void show_splash();
-extern void draw_splash_boot_info();
-extern ScrollView* get_view_scroll();
-extern ModalDialog* get_view_modal_dialog();
-extern RecordingView* get_view_recording();
-extern ConnWaitingView* get_view_conn_waiting();
-extern WifiStaModeView* get_view_wifi_sta_mode();
+extern void                all_init();
+extern void                show_splash();
+extern void                draw_splash_boot_info();
+extern ScrollView*         get_view_scroll();
+extern ModalDialog*        get_view_modal_dialog();
+extern RecordingView*      get_view_recording();
+extern ConnWaitingView*    get_view_conn_waiting();
+extern WifiStaModeView*    get_view_wifi_sta_mode();
 extern FirmwareUpdateView* get_view_firmware_update();
-extern PlaybackView* get_view_playback();
-extern PinPadView* get_view_pin_pad();
+extern PlaybackView*       get_view_playback();
+extern PinPadView*         get_view_pin_pad();
 
 #ifdef BUILD_CLOUD_FEATURES
 extern CloudUploadView* get_view_cloud_upload();
@@ -68,55 +68,56 @@ static void  handle_pending_bluetooth_recording();
 static void  handle_pending_bluetooth_pairing();
 static void  handle_pending_bluetooth_connect_failed();
 #ifdef BUILD_CLOUD_FEATURES
-static void  handle_pending_cloud_upload_complete();
+static void handle_pending_cloud_upload_complete();
 #endif
-static void  handle_pending_ntp_sync_complete();
-static void  handle_wifi_connection_waiting();
-static void  handle_wifi_station_connected();
-static void  handle_firmware_update_on_boot();
-static bool  battery_fullish_for_firmware_update();
-void         show_wifi_connection_failed(const char* text);
-bool         connect_to_bluetooth_host(const bt_host_item_t* host, const char* source);
-void         request_bluetooth_disconnect();
-bool         show_playback_view(const char* path);
+static void        handle_pending_ntp_sync_complete();
+static void        handle_wifi_connection_waiting();
+static void        handle_wifi_station_connected();
+static void        handle_firmware_update_on_boot();
+static bool        battery_fullish_for_firmware_update();
+void               show_wifi_connection_failed(const char* text);
+bool               connect_to_bluetooth_host(const bt_host_item_t* host, const char* source);
+void               request_bluetooth_disconnect();
+bool               show_playback_view(const char* path);
 static const char* ntp_error_name(NtpSync::Error error);
 
-FlyGui* gui;
-M5GFX& thefly_display = M5.Display;
-BtHostList* bt_host_list;
-WifiManager* wifi_manager;
-volatile bool g_pending_bluetooth_recording = false;
-volatile bool g_pending_bluetooth_disconnect = false;
-volatile bool g_pending_bluetooth_pairing = false;
-volatile bool g_bluetooth_connect_waiting = false;
-volatile bool g_pending_bluetooth_connect_failed = false;
-volatile bool g_suppress_bluetooth_auto_recording = false;
-bool g_wifi_connect_waiting = false;
-extern bool g_nvs_ready;
-NtpSync g_ntp_sync;
-bool g_ntp_sync_waiting = false;
-bool g_ntp_sync_completion_suppressed = false;
-volatile bool g_pending_ntp_sync_complete = false;
-NtpSync::Result g_pending_ntp_sync_result = {};
-static uint16_t g_conn_waiting_return_view_id = FLYGUI_VIEW_MAIN;
-BtManager::PairedDevice g_pending_paired_device = {};
+FlyGui*                 gui;
+M5GFX&                  thefly_display = M5.Display;
+BtHostList*             bt_host_list;
+WifiManager*            wifi_manager;
+volatile bool           g_pending_bluetooth_recording       = false;
+volatile bool           g_pending_bluetooth_disconnect      = false;
+volatile bool           g_pending_bluetooth_pairing         = false;
+volatile bool           g_bluetooth_connect_waiting         = false;
+volatile bool           g_pending_bluetooth_connect_failed  = false;
+volatile bool           g_suppress_bluetooth_auto_recording = false;
+bool                    g_wifi_connect_waiting              = false;
+extern bool             g_nvs_ready;
+NtpSync                 g_ntp_sync;
+bool                    g_ntp_sync_waiting               = false;
+bool                    g_ntp_sync_completion_suppressed = false;
+volatile bool           g_pending_ntp_sync_complete      = false;
+NtpSync::Result         g_pending_ntp_sync_result        = {};
+static uint16_t         g_conn_waiting_return_view_id    = FLYGUI_VIEW_MAIN;
+BtManager::PairedDevice g_pending_paired_device          = {};
 
 #ifdef BUILD_CLOUD_FEATURES
-CloudUpload g_cloud_upload;
-volatile bool g_pending_cloud_upload_complete = false;
-CloudUpload::Status g_pending_cloud_upload_status = {};
+CloudUpload         g_cloud_upload;
+volatile bool       g_pending_cloud_upload_complete = false;
+CloudUpload::Status g_pending_cloud_upload_status   = {};
 #endif
 
 void setup()
 {
     all_init();
 
-    //run_test();
+    // run_test();
 
     BattTracker::init();
     BattTracker::shutdownIfNeeded();
 
-    if (reset_was_magic == false) {
+    if (reset_was_magic == false)
+    {
         show_splash();
         draw_splash_boot_info();
     }
@@ -134,40 +135,42 @@ void setup()
         show_boot_error_f(true, "WifiManager allocation failed");
     }
 
-    #if BUILD_WITH_SECURITY_LEVEL > 0
+#if BUILD_WITH_SECURITY_LEVEL > 0
     if (!g_nvs_ready || !Aegis::init())
     {
         show_boot_error_f(true, "security subsystem init failed");
     }
-    #ifndef TEST_MOCK_NVS_FW_SECURED
-    if (!Aegis::isNvsEncrypted()) {
+#ifndef TEST_MOCK_NVS_FW_SECURED
+    if (!Aegis::isNvsEncrypted())
+    {
         show_boot_error_f(true, "NVS is not encrypted");
     }
-    if (!Aegis::isFwUpdateSecure()) {
+    if (!Aegis::isFwUpdateSecure())
+    {
         show_boot_error_f(true, "FW updates are not secured");
     }
-    #endif
-    #ifdef TEST_MOCK_PASSWORD
+#endif
+#ifdef TEST_MOCK_PASSWORD
     DBG_LOGD(MAINTAG, "[%u] setting test password...", millis());
     Aegis::setTestTempPassword((const uint8_t*)"123456");
     DBG_LOGD(MAINTAG, "[%u] test password finished setting", millis());
-    #endif
+#endif
     if (!Aegis::hasMasterKey())
     {
         show_boot_error_f(true, "no key, please setup a password");
     }
-    #else
+#else
     if (!g_nvs_ready)
     {
         show_boot_error_f(true, "NVS init failed");
     }
-    #endif
+#endif
 
-    #if BUILD_WITH_SECURITY_LEVEL <= 0
+#if BUILD_WITH_SECURITY_LEVEL <= 0
     if (!wifi_manager->loadFromMicroSd())
-    #else
+#else
     if (!wifi_manager->loadFromNvs())
-    #endif
+#endif
     {
         show_boot_error_f(false, "Wi-Fi configuration load failed: %s", wifi_manager->lastLoadResultName());
     }
@@ -187,17 +190,20 @@ void setup()
     BtManager::setAudioCallbacks(AudioManager::hfp_incoming_audio, AudioManager::hfp_outgoing_audio);
     BtManager::generateLegacyPinFromMac();
     DBG_LOGI(MAINTAG, "Bluetooth legacy pairing PIN: %s", BtManager::generatedLegacyPin());
-    if (!BtManager::init(nullptr, AudioManager::hfp_incoming_audio, AudioManager::hfp_outgoing_audio, BtManager::generatedLegacyPin()))
+    if (!BtManager::init(nullptr,
+                         AudioManager::hfp_incoming_audio,
+                         AudioManager::hfp_outgoing_audio,
+                         BtManager::generatedLegacyPin()))
     {
         show_boot_error_f(true, "BluetoothManager init failed");
     }
 
     bt_host_list = new BtHostList();
-    #if BUILD_WITH_SECURITY_LEVEL <= 0
+#if BUILD_WITH_SECURITY_LEVEL <= 0
     if (!bt_host_list->loadFromMicroSd())
-    #else
+#else
     if (!bt_host_list->loadFromNvs())
-    #endif
+#endif
     {
         show_boot_error_f(false, "Bluetooth host list load failed");
     }
@@ -222,7 +228,13 @@ void setup()
         }
     }
 
-    xTaskCreateUniversal(loopTask_core0, "loopTask_core0", getArduinoLoopTaskStackSize(), NULL, 1, &loopTask_core0_Handle, 0);
+    xTaskCreateUniversal(loopTask_core0,
+                         "loopTask_core0",
+                         getArduinoLoopTaskStackSize(),
+                         NULL,
+                         1,
+                         &loopTask_core0_Handle,
+                         0);
 }
 
 void loop()
@@ -241,9 +253,9 @@ void loop()
     handle_pending_bluetooth_pairing();
     handle_pending_bluetooth_connect_failed();
     handle_pending_bluetooth_recording();
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     handle_pending_cloud_upload_complete();
-    #endif
+#endif
     handle_pending_ntp_sync_complete();
 
     // this handles touch events and redraws as needed
@@ -253,7 +265,8 @@ void loop()
 
     if (AudioFileRecorder::needsPump())
     {
-        // as the above comment says, this `pump` call can use SPI, so it is in the same thread as the GUI, which uses SPI to draw to the LCD screen
+        // as the above comment says, this `pump` call can use SPI, so it is in the same thread as the GUI, which uses
+        // SPI to draw to the LCD screen
         AudioFileRecorder::pump();
     }
 
@@ -262,7 +275,8 @@ void loop()
         playback_view->pumpPlayback();
     }
 
-    if (wifi_manager) {
+    if (wifi_manager)
+    {
         wifi_manager->poll();
         handle_wifi_connection_waiting();
     }
@@ -501,12 +515,16 @@ static void handle_pending_bluetooth_pairing()
         if (!bt_host_list->insert(g_pending_paired_device.name, g_pending_paired_device.mac))
         {
             DBG_LOGW(MAINTAG, "failed to add paired Bluetooth host: %s", bt_host_list->lastLoadResultName());
-            show_fatal_error_f(false, "Bluetooth pair saved in NVS, but host list insert failed: %s", bt_host_list->lastLoadResultName());
+            show_fatal_error_f(false,
+                               "Bluetooth pair saved in NVS, but host list insert failed: %s",
+                               bt_host_list->lastLoadResultName());
         }
         else if (!bt_host_list->saveToNvs())
         {
             DBG_LOGW(MAINTAG, "failed to save Bluetooth host list: %s", bt_host_list->lastLoadResultName());
-            show_fatal_error_f(false, "Bluetooth pair saved in NVS, but Bluetooth host list save failed: %s", bt_host_list->lastLoadResultName());
+            show_fatal_error_f(false,
+                               "Bluetooth pair saved in NVS, but Bluetooth host list save failed: %s",
+                               bt_host_list->lastLoadResultName());
         }
     }
 
@@ -517,7 +535,7 @@ static void handle_pending_bluetooth_pairing()
     }
 
     g_suppress_bluetooth_auto_recording = true;
-    const bool pairing_dialog_shown = show_pairing_success_dialog(g_pending_paired_device);
+    const bool pairing_dialog_shown     = show_pairing_success_dialog(g_pending_paired_device);
     if (!pairing_dialog_shown)
     {
         g_suppress_bluetooth_auto_recording = false;
@@ -589,7 +607,8 @@ static void handle_pending_bluetooth_connect_failed()
 
     /*
     this should really never happen
-    when it actually did happen, we had a bad build configuration, parts of the HFP inside the ESP-IDF's Bluedroid implementation was simply missing
+    when it actually did happen, we had a bad build configuration, parts of the HFP inside the ESP-IDF's Bluedroid
+    implementation was simply missing
     */
 
     DBG_LOGW(MAINTAG, "Bluetooth host connection failed before HFP service level connection");
@@ -600,9 +619,7 @@ static void handle_pending_bluetooth_connect_failed()
         scroll_view->populateBluetooth(bt_host_list);
     }
 
-    error_remote_f(FLYGUI_VIEW_SCROLL,
-                   MAINTAG,
-                   "Unable to connect to host\nMaybe try connecting from the host.");
+    error_remote_f(FLYGUI_VIEW_SCROLL, MAINTAG, "Unable to connect to host\nMaybe try connecting from the host.");
 }
 
 #ifdef BUILD_CLOUD_FEATURES
@@ -615,7 +632,7 @@ static void handle_pending_cloud_upload_complete()
     g_pending_cloud_upload_complete = false;
 
     const CloudUpload::Status status = g_pending_cloud_upload_status;
-    const bool                succeeded = status.state == CloudUpload::State::Done && status.error == CloudUpload::Error::None;
+    const bool succeeded = status.state == CloudUpload::State::Done && status.error == CloudUpload::Error::None;
 
     ModalDialog* dialog = get_view_modal_dialog();
     if (!dialog || !gui)
@@ -672,10 +689,10 @@ static void handle_pending_ntp_sync_complete()
     }
     g_pending_ntp_sync_complete = false;
 
-    const NtpSync::Result result = g_pending_ntp_sync_result;
+    const NtpSync::Result result          = g_pending_ntp_sync_result;
     const bool            suppress_dialog = g_ntp_sync_completion_suppressed;
-    g_ntp_sync_waiting = false;
-    g_ntp_sync_completion_suppressed = false;
+    g_ntp_sync_waiting                    = false;
+    g_ntp_sync_completion_suppressed      = false;
 
     if (suppress_dialog)
     {
@@ -807,13 +824,13 @@ bool connect_to_bluetooth_host(const bt_host_item_t* host, const char* click_sou
     if (bluetooth_in_recording_state(BtManager::state()) && bda_equal(BtManager::connectedMac(), host->bdaddr))
     {
         DBG_LOGI(MAINTAG, "Bluetooth host is already connected; starting recording without a new HFP connection");
-        g_bluetooth_connect_waiting = false;
+        g_bluetooth_connect_waiting        = false;
         g_pending_bluetooth_connect_failed = false;
-        g_pending_bluetooth_recording = true;
+        g_pending_bluetooth_recording      = true;
         return true;
     }
 
-    g_bluetooth_connect_waiting = true;
+    g_bluetooth_connect_waiting        = true;
     g_pending_bluetooth_connect_failed = false;
 
     const BtManager::Result result = BtManager::connectToMac(host->bdaddr);

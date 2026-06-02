@@ -3,9 +3,7 @@
 #include <stdio.h>
 
 ScrubBar::ScrubBar(int16_t x, int16_t y, int16_t width, int16_t height, uint32_t totalMs)
-    : FlyGuiItem(x, y, width, height),
-      endMs_(totalMs),
-      hitboxEndOffsetY_(height)
+    : FlyGuiItem(x, y, width, height), endMs_(totalMs), hitboxEndOffsetY_(height)
 {
     setTouchable(true);
 }
@@ -27,10 +25,10 @@ void ScrubBar::setRangeMs(uint32_t startMs, uint32_t endMs)
         return;
     }
 
-    startMs_    = startMs;
-    endMs_      = endMs;
-    positionMs_ = clampPosition(positionMs_);
-    drawn_      = false;
+    startMs_                = startMs;
+    endMs_                  = endMs;
+    positionMs_             = clampPosition(positionMs_);
+    drawn_                  = false;
     lastTextPositionSecond_ = UINT32_MAX;
     lastTextEndSecond_      = UINT32_MAX;
     setDirty();
@@ -99,7 +97,7 @@ void ScrubBar::setShowText(bool showText)
         return;
     }
 
-    showText_ = showText;
+    showText_               = showText;
     lastTextPositionSecond_ = UINT32_MAX;
     lastTextEndSecond_      = UINT32_MAX;
     setDirty();
@@ -279,7 +277,7 @@ void ScrubBar::drawText(bool forced)
     formatTime(endMs_, endText, sizeof(endText));
 
     const int16_t screenW = thefly_display.width();
-    const int16_t totalY = static_cast<int16_t>(y() + height() + 9);
+    const int16_t totalY  = static_cast<int16_t>(y() + height() + 9);
     thefly_display.fillRect(static_cast<int16_t>(screenW - 96), totalY, 94, 16, TFT_BLACK);
     thefly_display.setTextDatum(top_right);
     thefly_display.setTextFont(2);
@@ -318,8 +316,8 @@ void ScrubBar::formatTime(uint32_t ms, char* out, size_t outSize) const
 
 int16_t ScrubBar::filledWidth() const
 {
-    const int16_t innerWidth = width() > 2 ? static_cast<int16_t>(width() - 2) : 0;
-    const uint32_t rangeMs = endMs_ > startMs_ ? endMs_ - startMs_ : 0;
+    const int16_t  innerWidth = width() > 2 ? static_cast<int16_t>(width() - 2) : 0;
+    const uint32_t rangeMs    = endMs_ > startMs_ ? endMs_ - startMs_ : 0;
     if (rangeMs == 0 || positionMs_ <= startMs_)
     {
         return 0;

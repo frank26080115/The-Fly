@@ -20,19 +20,18 @@ namespace
 
 constexpr const char* TAG = "Hotel";
 
-constexpr uint32_t kCpuMaxMhz          = 240;
-constexpr uint32_t kCpuMinMhz          = 80;
-constexpr uint8_t  kFullBrightness     = 255;
-constexpr uint8_t  kDimBrightness      = 32;
-constexpr uint64_t kFullCpuMs          = 10 * 1000ULL;
-constexpr uint64_t kLightSleepMs       = 30 * 1000ULL;
-constexpr uint64_t kFullBrightnessMs   = 60 * 1000ULL;
-constexpr uint64_t kShutdownMs         = 5 * 60 * 1000ULL;
-constexpr uint64_t kLightSleepWakeUs   = 50 * 1000ULL;
-constexpr uint32_t kSyncWindowMs       = 20;
-constexpr int      kHotelLocalLogLevel = static_cast<int>(DBG_LOG_LOCAL_LEVEL);
-constexpr bool kFullShutdownAllowedByLogging =
-    kHotelLocalLogLevel <= static_cast<int>(DBG_LOG_ERROR);
+constexpr uint32_t kCpuMaxMhz                    = 240;
+constexpr uint32_t kCpuMinMhz                    = 80;
+constexpr uint8_t  kFullBrightness               = 255;
+constexpr uint8_t  kDimBrightness                = 32;
+constexpr uint64_t kFullCpuMs                    = 10 * 1000ULL;
+constexpr uint64_t kLightSleepMs                 = 30 * 1000ULL;
+constexpr uint64_t kFullBrightnessMs             = 60 * 1000ULL;
+constexpr uint64_t kShutdownMs                   = 5 * 60 * 1000ULL;
+constexpr uint64_t kLightSleepWakeUs             = 50 * 1000ULL;
+constexpr uint32_t kSyncWindowMs                 = 20;
+constexpr int      kHotelLocalLogLevel           = static_cast<int>(DBG_LOG_LOCAL_LEVEL);
+constexpr bool     kFullShutdownAllowedByLogging = kHotelLocalLogLevel <= static_cast<int>(DBG_LOG_ERROR);
 #if defined(ENABLE_HOTEL_DEEP_POWER_SAVE)
 constexpr bool kDeepPowerSaveEnabled = true;
 #else
@@ -42,9 +41,10 @@ constexpr bool kDeepPowerSaveEnabled = false;
 // have broken Bluetooth HFP setup, and Core2/M5Unified light sleep has caused
 // RTCWDT resets after idle. Leave ENABLE_HOTEL_DEEP_POWER_SAVE undefined for
 // normal firmware builds.
-constexpr bool kLightSleepSupported = false;
+constexpr bool kLightSleepSupported        = false;
 constexpr bool kCpuFrequencyScalingAllowed = kDeepPowerSaveEnabled;
-constexpr bool kLightSleepAllowedByLogging = kDeepPowerSaveEnabled && kLightSleepSupported && kFullShutdownAllowedByLogging;
+constexpr bool kLightSleepAllowedByLogging =
+    kDeepPowerSaveEnabled && kLightSleepSupported && kFullShutdownAllowedByLogging;
 
 portMUX_TYPE g_lock = portMUX_INITIALIZER_UNLOCKED;
 
@@ -127,7 +127,8 @@ bool state_allows_light_sleep(State value)
 
 bool state_uses_full_brightness(State value)
 {
-    return value == State::Blocked || value == State::RecentlyActive || value == State::ActiveDimAllowed || value == State::LightSleepReady;
+    return value == State::Blocked || value == State::RecentlyActive || value == State::ActiveDimAllowed ||
+           value == State::LightSleepReady;
 }
 
 bool state_uses_max_cpu(State value)
@@ -203,17 +204,17 @@ void enter_light_sleep()
 
 void poll_core(uint8_t core)
 {
-    const uint64_t now_ms = monotonic_ms();
-    const bool     full_blocked = full_power_saving_blocked();
+    const uint64_t now_ms           = monotonic_ms();
+    const bool     full_blocked     = full_power_saving_blocked();
     const bool     playback_playing = file_playback_playing();
-    const bool     sleep_blocked = full_blocked || playback_playing;
+    const bool     sleep_blocked    = full_blocked || playback_playing;
     const bool     shutdown_blocked = sleep_blocked;
-    bool           sleep        = false;
-    bool           init_outputs = false;
-    bool           state_changed = false;
-    bool           shutdown      = false;
-    State          previous      = State::RecentlyActive;
-    State          next          = State::RecentlyActive;
+    bool           sleep            = false;
+    bool           init_outputs     = false;
+    bool           state_changed    = false;
+    bool           shutdown         = false;
+    State          previous         = State::RecentlyActive;
+    State          next             = State::RecentlyActive;
 
     portENTER_CRITICAL(&g_lock);
     init_outputs = ensure_initialized_locked(now_ms);
@@ -313,7 +314,7 @@ void noteUserActivity()
     bool           init_outputs;
 
     portENTER_CRITICAL(&g_lock);
-    init_outputs          = ensure_initialized_locked(now_ms);
+    init_outputs         = ensure_initialized_locked(now_ms);
     g_last_activity_ms   = now_ms;
     g_shutdown_requested = false;
     portEXIT_CRITICAL(&g_lock);

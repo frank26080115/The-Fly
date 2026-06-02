@@ -17,11 +17,11 @@ namespace WebFileHandlers
 namespace
 {
 
-constexpr const char* TAG = "WebFileHandlers";
-constexpr size_t      kFileNameBufferSize = 256;
-constexpr const char* kUploadErrorAttribute = "file_upload_error";
-constexpr const char* kUploadStatusAttribute = "file_upload_status";
-constexpr const char* kUploadPathAttribute = "file_upload_path";
+constexpr const char* TAG                     = "WebFileHandlers";
+constexpr size_t      kFileNameBufferSize     = 256;
+constexpr const char* kUploadErrorAttribute   = "file_upload_error";
+constexpr const char* kUploadStatusAttribute  = "file_upload_status";
+constexpr const char* kUploadPathAttribute    = "file_upload_path";
 constexpr const char* kUploadStartedAttribute = "file_upload_started";
 
 class FileListJsonStream;
@@ -60,8 +60,7 @@ bool path_has_parent_or_current_segment(const char* path)
         }
 
         const size_t length = static_cast<size_t>(cursor - segment);
-        if ((length == 1 && segment[0] == '.') ||
-            (length == 2 && segment[0] == '.' && segment[1] == '.'))
+        if ((length == 1 && segment[0] == '.') || (length == 2 && segment[0] == '.' && segment[1] == '.'))
         {
             return true;
         }
@@ -201,7 +200,7 @@ void send_file_upload_error(AsyncWebServerRequest* request)
     }
 
     remove_partial_upload(request);
-    const String& error = request->getAttribute(kUploadErrorAttribute);
+    const String& error       = request->getAttribute(kUploadErrorAttribute);
     const long    status_code = request->getAttribute(kUploadStatusAttribute, 500L);
     note_web_error();
     request->send(static_cast<int>(status_code), "text/plain", error.isEmpty() ? "File upload failed" : error);
@@ -302,11 +301,11 @@ private:
     }
 
     String m_pending;
-    size_t m_pending_offset   = 0;
-    bool   m_started          = false;
-    bool   m_first_file       = true;
+    size_t m_pending_offset    = 0;
+    bool   m_started           = false;
+    bool   m_first_file        = true;
     bool   m_end_after_pending = false;
-    bool   m_finished         = false;
+    bool   m_finished          = false;
 };
 
 void close_active_file_list_stream()
@@ -324,7 +323,7 @@ String safe_content_disposition(const char* disposition, const char* filename)
     header += "; filename=\"";
 
     const char* cursor = filename ? strrchr(filename, '/') : nullptr;
-    cursor = cursor ? cursor + 1 : filename;
+    cursor             = cursor ? cursor + 1 : filename;
     if (!cursor || cursor[0] == '\0')
     {
         cursor = "download";
@@ -359,7 +358,8 @@ void writeFileUploadBody(AsyncWebServerRequest* request, uint8_t* data, size_t l
     write_file_upload_bytes(request, data, len, index);
 }
 
-void writeFileUploadPart(AsyncWebServerRequest* request, const String&, size_t index, uint8_t* data, size_t len, bool final)
+void writeFileUploadPart(
+    AsyncWebServerRequest* request, const String&, size_t index, uint8_t* data, size_t len, bool final)
 {
     if (len == 0 && !final)
     {
@@ -454,23 +454,24 @@ void sendMicroSdFile(AsyncWebServerRequest* request)
         return;
     }
 
-    AsyncWebServerResponse* response = request->beginResponse(
-        "application/octet-stream",
-        static_cast<size_t>(file_size),
-        [file_name, file_size](uint8_t* buffer, size_t max_len, size_t index) -> size_t {
-            const int bytes_read = AsyncFsManager::readFileChunk(index, buffer, max_len);
-            if (bytes_read <= 0 && static_cast<uint64_t>(index) < file_size)
-            {
-                DBG_LOGW(TAG,
-                         "download chunk failed: path=%s index=%u max=%u read=%d size=%llu",
-                         file_name.c_str(),
-                         static_cast<unsigned>(index),
-                         static_cast<unsigned>(max_len),
-                         bytes_read,
-                         static_cast<unsigned long long>(file_size));
-            }
-            return bytes_read > 0 ? static_cast<size_t>(bytes_read) : 0;
-        });
+    AsyncWebServerResponse* response =
+        request->beginResponse("application/octet-stream",
+                               static_cast<size_t>(file_size),
+                               [file_name, file_size](uint8_t* buffer, size_t max_len, size_t index) -> size_t
+                               {
+                                   const int bytes_read = AsyncFsManager::readFileChunk(index, buffer, max_len);
+                                   if (bytes_read <= 0 && static_cast<uint64_t>(index) < file_size)
+                                   {
+                                       DBG_LOGW(TAG,
+                                                "download chunk failed: path=%s index=%u max=%u read=%d size=%llu",
+                                                file_name.c_str(),
+                                                static_cast<unsigned>(index),
+                                                static_cast<unsigned>(max_len),
+                                                bytes_read,
+                                                static_cast<unsigned long long>(file_size));
+                                   }
+                                   return bytes_read > 0 ? static_cast<size_t>(bytes_read) : 0;
+                               });
     if (!response)
     {
         DBG_LOGW(TAG,
@@ -483,15 +484,10 @@ void sendMicroSdFile(AsyncWebServerRequest* request)
         return;
     }
 
-    request->onDisconnect([]() {
-        AsyncFsManager::closeFile();
-    });
+    request->onDisconnect([]() { AsyncFsManager::closeFile(); });
 
     response->addHeader("Content-Disposition", safe_content_disposition("attachment", file_name.c_str()));
-    DBG_LOGI(TAG,
-             "download started: path=%s size=%llu",
-             file_name.c_str(),
-             static_cast<unsigned long long>(file_size));
+    DBG_LOGI(TAG, "download started: path=%s size=%llu", file_name.c_str(), static_cast<unsigned long long>(file_size));
     note_web_download();
     request->send(response);
 }
@@ -573,18 +569,19 @@ void sendMicroSdFileList(AsyncWebServerRequest* request)
     }
     g_active_file_list_stream = stream;
 
-    request->onDisconnect([stream]() {
-        if (stream)
+    request->onDisconnect(
+        [stream]()
         {
-            stream->close();
-        }
-    });
-
-    AsyncWebServerResponse* response = request->beginChunkedResponse(
-        "application/json",
-        [stream](uint8_t* buffer, size_t max_len, size_t) -> size_t {
-            return stream ? stream->fill(buffer, max_len) : 0;
+            if (stream)
+            {
+                stream->close();
+            }
         });
+
+    AsyncWebServerResponse* response =
+        request->beginChunkedResponse("application/json",
+                                      [stream](uint8_t* buffer, size_t max_len, size_t) -> size_t
+                                      { return stream ? stream->fill(buffer, max_len) : 0; });
     if (!response)
     {
         DBG_LOGW(TAG, "file list failed: beginChunkedResponse failed");

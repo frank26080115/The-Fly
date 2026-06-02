@@ -37,32 +37,33 @@ namespace // private
 constexpr const char* TAG = "AudioFileRecorder";
 
 constexpr uint32_t kPumpBudgetMs             = 20;
-constexpr uint8_t  kPumpTargetFillPercentage = 0;    // keep this at zero, draining the FIFO fully is the best way of letting the host decoder know that there was a gap in the data
-constexpr float    kWriteDurationAverageAlpha       = 0.05f;
-constexpr uint32_t kWriteDurationThresholdUs        = 10000;
-constexpr uint32_t kTimedFlushIntervalMs            = 2000;
-constexpr uint8_t  kMaxConsecutiveWriteFailures     = 3;
+constexpr uint8_t  kPumpTargetFillPercentage = 0; // keep this at zero, draining the FIFO fully is the best way of
+                                                  // letting the host decoder know that there was a gap in the data
+constexpr float    kWriteDurationAverageAlpha   = 0.05f;
+constexpr uint32_t kWriteDurationThresholdUs    = 10000;
+constexpr uint32_t kTimedFlushIntervalMs        = 2000;
+constexpr uint8_t  kMaxConsecutiveWriteFailures = 3;
 
-constexpr uint32_t kWavSampleRateHz             = AUDIO_RECORDER_SAMPLE_RATE_HZ;
-constexpr uint16_t kWavChannels                 = AUDIO_RECORDER_CHANNELS;
-constexpr uint16_t kWavBitsPerSample            = AUDIO_RECORDER_BITS_PER_SAMPLE;
-constexpr size_t   kWavHeaderSize               = WAV_RIFF_HEADER_LENGTH;
-constexpr size_t   kWavFrameBytes               = AUDIO_RECORDER_FRAME_BYTES;
-constexpr size_t   kWavPlaintextChunkBytes      = WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH;
-constexpr size_t   kMp3PcmFramesPerChunk        = MP3_PCM_FRAMES_PER_CHUNK;
-constexpr size_t   kWavPumpFrames               = kWavPlaintextChunkBytes / kWavFrameBytes;
-constexpr uint32_t kWavPlaceholderDataBytes     = 0x7FFFFFFF;
-constexpr uint32_t kWavMaxDataBytes             = 0xFFFFFFFFUL - 36UL;
+constexpr uint32_t kWavSampleRateHz         = AUDIO_RECORDER_SAMPLE_RATE_HZ;
+constexpr uint16_t kWavChannels             = AUDIO_RECORDER_CHANNELS;
+constexpr uint16_t kWavBitsPerSample        = AUDIO_RECORDER_BITS_PER_SAMPLE;
+constexpr size_t   kWavHeaderSize           = WAV_RIFF_HEADER_LENGTH;
+constexpr size_t   kWavFrameBytes           = AUDIO_RECORDER_FRAME_BYTES;
+constexpr size_t   kWavPlaintextChunkBytes  = WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH;
+constexpr size_t   kMp3PcmFramesPerChunk    = MP3_PCM_FRAMES_PER_CHUNK;
+constexpr size_t   kWavPumpFrames           = kWavPlaintextChunkBytes / kWavFrameBytes;
+constexpr uint32_t kWavPlaceholderDataBytes = 0x7FFFFFFF;
+constexpr uint32_t kWavMaxDataBytes         = 0xFFFFFFFFUL - 36UL;
 #if defined(BUILD_USE_MP3_COMPRESSION)
-constexpr size_t   kMp3PumpFrameCapacity        = MP3_ENCODER_MAX_SAMPLES_PER_PASS;
-constexpr size_t   kRecordingPumpFrames         = kMp3PumpFrameCapacity;
-constexpr size_t   kEncryptedAudioPlaintextBytes = MP3_ENCRYPTED_PLAINTEXT_LENGTH;
-constexpr size_t   kEncryptedAudioChunkBytes     = MP3_ENCRYPTED_CHUNK_LENGTH;
-constexpr uint8_t  kMp3CloseSilencePumpLimit     = 8;
+constexpr size_t  kMp3PumpFrameCapacity         = MP3_ENCODER_MAX_SAMPLES_PER_PASS;
+constexpr size_t  kRecordingPumpFrames          = kMp3PumpFrameCapacity;
+constexpr size_t  kEncryptedAudioPlaintextBytes = MP3_ENCRYPTED_PLAINTEXT_LENGTH;
+constexpr size_t  kEncryptedAudioChunkBytes     = MP3_ENCRYPTED_CHUNK_LENGTH;
+constexpr uint8_t kMp3CloseSilencePumpLimit     = 8;
 #else
-constexpr size_t   kRecordingPumpFrames         = kWavPumpFrames;
-constexpr size_t   kEncryptedAudioPlaintextBytes = WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH;
-constexpr size_t   kEncryptedAudioChunkBytes     = WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH;
+constexpr size_t kRecordingPumpFrames          = kWavPumpFrames;
+constexpr size_t kEncryptedAudioPlaintextBytes = WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH;
+constexpr size_t kEncryptedAudioChunkBytes     = WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH;
 #endif
 
 static_assert(kWavPlaintextChunkBytes % kWavFrameBytes == 0,
@@ -71,15 +72,15 @@ static_assert(kWavPlaintextChunkBytes % kWavFrameBytes == 0,
 static_assert(kMp3PumpFrameCapacity <= kMp3PcmFramesPerChunk,
               "MP3 pump frames must fit inside one configured MP3 PCM chunk");
 #endif
-static_assert(MP3_PCM_BYTES_PER_CHUNK % kWavFrameBytes == 0,
-              "MP3 PCM chunks must contain whole stereo frames");
+static_assert(MP3_PCM_BYTES_PER_CHUNK % kWavFrameBytes == 0, "MP3 PCM chunks must contain whole stereo frames");
 static_assert(MP3_PCM_FRAMES_PER_CHUNK % MP3_PCM_FRAMES_PER_MP3_FRAME == 0,
               "MP3 PCM chunks must contain whole MP3 frames");
-static_assert(WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH ==
-                  WAV_ENCRYPTED_CHUNK_NONCE_LENGTH + WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH + WAV_ENCRYPTED_CHUNK_TAG_LENGTH,
+static_assert(WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH == WAV_ENCRYPTED_CHUNK_NONCE_LENGTH +
+                                                      WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH +
+                                                      WAV_ENCRYPTED_CHUNK_TAG_LENGTH,
               "encrypted WAV audio chunk length must match nonce + ciphertext + tag");
-static_assert(MP3_ENCRYPTED_CHUNK_LENGTH ==
-                  RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH + MP3_ENCRYPTED_PLAINTEXT_LENGTH + RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH,
+static_assert(MP3_ENCRYPTED_CHUNK_LENGTH == RECORDER_ENCRYPTED_CHUNK_NONCE_LENGTH + MP3_ENCRYPTED_PLAINTEXT_LENGTH +
+                                                RECORDER_ENCRYPTED_CHUNK_TAG_LENGTH,
               "encrypted MP3 chunk length must match nonce + ciphertext + tag");
 static_assert(WAV_ENCRYPTED_RIFF_HEADER_LENGTH ==
                   WAV_ENCRYPTED_CHUNK_NONCE_LENGTH + WAV_RIFF_HEADER_LENGTH + WAV_ENCRYPTED_CHUNK_TAG_LENGTH,
@@ -104,43 +105,43 @@ using Mp3EncoderType = ShineWrapper;
 #endif
 #endif
 
-AudioFifo* g_host_fifo = nullptr;
-AudioFifo* g_mic_fifo  = nullptr;
-FsFile     g_file;
-char       g_sd_path[48]                            = {};
-char       g_recording_type_code                    = static_cast<char>(RecordingType::Unknown);
-MemoType   g_memo_type                              = MEMO_TYPE_NOTE;
-uint64_t   g_bytes_written                          = 0;
-uint32_t   g_last_flush_ms                          = 0;
-std::atomic<bool> g_recording                       = { false };
-bool       g_write_duration_average_valid           = false;
-float      g_write_duration_average_us              = 0.0f;
-uint32_t   g_write_duration_max_us                  = 0;
-uint32_t   g_last_longwrite_ms                      = 0;
-bool       g_longwrite                              = false;
-bool       g_longwrite_latched                      = false;
-uint8_t    g_consecutive_write_failures             = 0;
-bool       g_card_failure_reported                  = false;
-uint8_t    g_consecutive_silent_chunks              = 0;
-std::atomic<uint32_t> g_fifo_overflow_events        = { 0 };
-bool       g_host_fifo_overflow_latched             = false;
-bool       g_mic_fifo_overflow_latched              = false;
+AudioFifo*            g_host_fifo = nullptr;
+AudioFifo*            g_mic_fifo  = nullptr;
+FsFile                g_file;
+char                  g_sd_path[48]                  = {};
+char                  g_recording_type_code          = static_cast<char>(RecordingType::Unknown);
+MemoType              g_memo_type                    = MEMO_TYPE_NOTE;
+uint64_t              g_bytes_written                = 0;
+uint32_t              g_last_flush_ms                = 0;
+std::atomic<bool>     g_recording                    = {false};
+bool                  g_write_duration_average_valid = false;
+float                 g_write_duration_average_us    = 0.0f;
+uint32_t              g_write_duration_max_us        = 0;
+uint32_t              g_last_longwrite_ms            = 0;
+bool                  g_longwrite                    = false;
+bool                  g_longwrite_latched            = false;
+uint8_t               g_consecutive_write_failures   = 0;
+bool                  g_card_failure_reported        = false;
+uint8_t               g_consecutive_silent_chunks    = 0;
+std::atomic<uint32_t> g_fifo_overflow_events         = {0};
+bool                  g_host_fifo_overflow_latched   = false;
+bool                  g_mic_fifo_overflow_latched    = false;
 #if defined(BUILD_USE_MP3_COMPRESSION)
-Mp3EncoderType*          g_mp3_encoder              = nullptr;
-std::atomic<bool>        g_mp3_callback_failed      = { false };
-bool                     g_mp3_file_write_observed  = false;
-size_t                   g_mp3_samples_per_pass     = MP3_PCM_FRAMES_PER_MP3_FRAME;
+Mp3EncoderType*   g_mp3_encoder             = nullptr;
+std::atomic<bool> g_mp3_callback_failed     = {false};
+bool              g_mp3_file_write_observed = false;
+size_t            g_mp3_samples_per_pass    = MP3_PCM_FRAMES_PER_MP3_FRAME;
 #endif
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 mbedtls_gcm_context g_recording_gcm;
-bool                g_recording_gcm_ready           = false;
-uint32_t            g_encryption_sequence           = 0;
-size_t              g_plaintext_audio_chunk_used    = 0;
+bool                g_recording_gcm_ready        = false;
+uint32_t            g_encryption_sequence        = 0;
+size_t              g_plaintext_audio_chunk_used = 0;
 #endif
 std::mutex g_recorder_mutex;
 std::mutex g_pump_mutex;
-int16_t g_wav_mic_samples[kRecordingPumpFrames];
-int16_t g_wav_host_samples[kRecordingPumpFrames];
+int16_t    g_wav_mic_samples[kRecordingPumpFrames];
+int16_t    g_wav_host_samples[kRecordingPumpFrames];
 #if defined(BUILD_USE_MP3_COMPRESSION)
 int16_t g_mp3_stereo_samples[kMp3PumpFrameCapacity * kWavChannels];
 #endif
@@ -175,15 +176,15 @@ void make_recording_path(char type_code)
         now.time.minutes = 0;
         now.time.seconds = 0;
     }
-    #if defined(BUILD_USE_MP3_COMPRESSION) && BUILD_WITH_SECURITY_LEVEL >= 1
+#if defined(BUILD_USE_MP3_COMPRESSION) && BUILD_WITH_SECURITY_LEVEL >= 1
     const char* extension = "fly";
-    #elif defined(BUILD_USE_MP3_COMPRESSION)
+#elif defined(BUILD_USE_MP3_COMPRESSION)
     const char* extension = "mp3";
-    #elif BUILD_WITH_SECURITY_LEVEL >= 1
+#elif BUILD_WITH_SECURITY_LEVEL >= 1
     const char* extension = "rec";
-    #else
+#else
     const char* extension = "wav";
-    #endif
+#endif
 
     snprintf(g_sd_path,
              sizeof(g_sd_path),
@@ -369,10 +370,10 @@ void encrypted_chunk_nonce_locked(uint8_t nonce[kGcmNonceSize])
 }
 
 bool encrypt_chunk_locked(const uint8_t* plaintext,
-                          size_t plaintext_size,
-                          uint8_t* encrypted,
-                          size_t encrypted_capacity,
-                          size_t& encrypted_size)
+                          size_t         plaintext_size,
+                          uint8_t*       encrypted,
+                          size_t         encrypted_capacity,
+                          size_t&        encrypted_size)
 {
     encrypted_size = 0;
     if (!g_recording_gcm_ready)
@@ -495,7 +496,11 @@ bool write_encrypted_placeholder_wav_header_locked()
     build_wav_header(header, kWavPlaceholderDataBytes);
 
     size_t encrypted_size = 0;
-    if (!encrypt_chunk_locked(header, sizeof(header), g_wav_encrypted_audio, sizeof(g_wav_encrypted_audio), encrypted_size))
+    if (!encrypt_chunk_locked(header,
+                              sizeof(header),
+                              g_wav_encrypted_audio,
+                              sizeof(g_wav_encrypted_audio),
+                              encrypted_size))
     {
         return false;
     }
@@ -508,8 +513,8 @@ bool write_encrypted_placeholder_wav_header_locked()
         return false;
     }
 
-    g_bytes_written               = encrypted_size;
-    g_plaintext_audio_chunk_used  = 0;
+    g_bytes_written              = encrypted_size;
+    g_plaintext_audio_chunk_used = 0;
     return true;
 }
 #endif
@@ -543,7 +548,7 @@ void update_write_duration_stats(uint32_t duration_us)
     const bool exceeded_threshold = duration_us > kWriteDurationThresholdUs;
     if (exceeded_threshold)
     {
-        g_longwrite = true; // this is to be set false at the top of every pump
+        g_longwrite         = true; // this is to be set false at the top of every pump
         g_longwrite_latched = true;
         g_last_longwrite_ms = millis();
     }
@@ -555,7 +560,8 @@ void update_write_duration_stats(uint32_t duration_us)
     }
     else
     {
-        g_write_duration_average_us += (static_cast<float>(duration_us) - g_write_duration_average_us) * kWriteDurationAverageAlpha;
+        g_write_duration_average_us +=
+            (static_cast<float>(duration_us) - g_write_duration_average_us) * kWriteDurationAverageAlpha;
     }
 
     if (duration_us > g_write_duration_max_us)
@@ -566,7 +572,7 @@ void update_write_duration_stats(uint32_t duration_us)
 
 void flush_if_due()
 {
-    const uint32_t now_ms = millis();
+    const uint32_t              now_ms = millis();
     std::lock_guard<std::mutex> lock(g_recorder_mutex);
     if (!recording_file_ready_locked())
     {
@@ -607,7 +613,7 @@ bool is_silent_chunk(const int16_t* samples, size_t sample_count)
     constexpr int16_t kSilentSampleAbsLevel = 0;
     for (size_t i = 0; i < sample_count; ++i)
     {
-        const int32_t sample = samples[i];
+        const int32_t sample   = samples[i];
         const int32_t absolute = sample < 0 ? -sample : sample;
         if (absolute > kSilentSampleAbsLevel)
         {
@@ -723,7 +729,10 @@ bool write_full_encrypted_audio_chunk_locked(bool& encryption_failed, bool& stor
     return true;
 }
 
-bool append_encrypted_audio_locked(const uint8_t* data, size_t byte_count, bool& encryption_failed, bool& storage_failed)
+bool append_encrypted_audio_locked(const uint8_t* data,
+                                   size_t         byte_count,
+                                   bool&          encryption_failed,
+                                   bool&          storage_failed)
 {
     encryption_failed = false;
     storage_failed    = false;
@@ -777,7 +786,10 @@ bool finish_encrypted_audio_locked()
     bool storage_failed    = false;
     if (!write_full_encrypted_audio_chunk_locked(encryption_failed, storage_failed))
     {
-        DBG_LOGE(TAG, "%s", encryption_failed ? "final encrypted audio chunk encryption failed" : "final encrypted audio chunk write failed");
+        DBG_LOGE(TAG,
+                 "%s",
+                 encryption_failed ? "final encrypted audio chunk encryption failed"
+                                   : "final encrypted audio chunk write failed");
         return false;
     }
 
@@ -868,12 +880,12 @@ bool start_mp3_encoder_locked()
     }
 
     liblame::AudioInfo mp3_info;
-    mp3_info.sample_rate            = AUDIO_RECORDER_SAMPLE_RATE_HZ;
-    mp3_info.channels               = AUDIO_RECORDER_CHANNELS;
-    mp3_info.bits_per_sample        = AUDIO_RECORDER_BITS_PER_SAMPLE;
-    mp3_info.brate                  = MP3_BITRATE_KBPS;
-    mp3_info.quality                = MP3_ENCODER_QUALITY;
-    mp3_info.disable_bit_reservoir  = true;
+    mp3_info.sample_rate           = AUDIO_RECORDER_SAMPLE_RATE_HZ;
+    mp3_info.channels              = AUDIO_RECORDER_CHANNELS;
+    mp3_info.bits_per_sample       = AUDIO_RECORDER_BITS_PER_SAMPLE;
+    mp3_info.brate                 = MP3_BITRATE_KBPS;
+    mp3_info.quality               = MP3_ENCODER_QUALITY;
+    mp3_info.disable_bit_reservoir = true;
 
     g_mp3_encoder->setDataCallback(mp3_data_callback);
     if (!g_mp3_encoder->begin(mp3_info))
@@ -1082,7 +1094,7 @@ bool write_samples(const int16_t* samples, size_t byte_count)
     }
 
     const uint32_t started_us = micros();
-    const uint8_t* data_ptr = reinterpret_cast<const uint8_t*>(samples);
+    const uint8_t* data_ptr   = reinterpret_cast<const uint8_t*>(samples);
 
 #if BUILD_WITH_SECURITY_LEVEL >= 1
     bool encryption_failed = false;
@@ -1140,14 +1152,14 @@ bool pump_audio_chunk_locked(bool force)
 
     note_fifo_overflow_events();
 
-    #if BUILD_WITH_SECURITY_LEVEL >= 1
+#if BUILD_WITH_SECURITY_LEVEL >= 1
     if (encrypted_audio_chunk_full())
     {
         return retry_full_encrypted_audio_chunk();
     }
-    #endif
+#endif
 
-    const size_t mic_available  = force ? g_mic_fifo->usedSamples()  : g_mic_fifo->availableToRead();
+    const size_t mic_available  = force ? g_mic_fifo->usedSamples() : g_mic_fifo->availableToRead();
     const size_t host_available = force ? g_host_fifo->usedSamples() : g_host_fifo->availableToRead();
 
     if (force)
@@ -1222,15 +1234,15 @@ bool pump_audio_chunk_locked(bool force)
         stereo_samples[i * 2 + 1] = g_wav_host_samples[i];
     }
 
-    #ifdef BUILD_SILENCE_GAP_REMOVAL
+#ifdef BUILD_SILENCE_GAP_REMOVAL
     if (is_silent_chunk(stereo_samples, frames * kWavChannels))
     {
-        if (g_consecutive_silent_chunks >= 
-            #if defined(BUILD_USE_MP3_COMPRESSION)
-                20
-            #else
-                5
-            #endif
+        if (g_consecutive_silent_chunks >=
+#if defined(BUILD_USE_MP3_COMPRESSION)
+            20
+#else
+            5
+#endif
         )
         {
             return true;
@@ -1241,7 +1253,7 @@ bool pump_audio_chunk_locked(bool force)
     {
         g_consecutive_silent_chunks = 0;
     }
-    #endif
+#endif
 
 #if defined(BUILD_USE_MP3_COMPRESSION)
     if (!write_mp3_samples(stereo_samples, frames * kWavFrameBytes))
@@ -1271,7 +1283,8 @@ bool fifos_below_pump_target()
         return true;
     }
 
-    return g_host_fifo->getFillPercentage() <= kPumpTargetFillPercentage && g_mic_fifo->getFillPercentage() <= kPumpTargetFillPercentage;
+    return g_host_fifo->getFillPercentage() <= kPumpTargetFillPercentage &&
+           g_mic_fifo->getFillPercentage() <= kPumpTargetFillPercentage;
 }
 
 void set_queue_enabled(bool enabled)
@@ -1286,7 +1299,7 @@ void set_queue_enabled(bool enabled)
     }
 }
 
-} // private namespace
+} // namespace
 
 // public
 
@@ -1327,14 +1340,14 @@ bool startRecording(char typeCode)
     }
 
     g_host_fifo->setQueueEnabled(false);
-    g_mic_fifo ->setQueueEnabled(false);
+    g_mic_fifo->setQueueEnabled(false);
     g_host_fifo->clear();
-    g_mic_fifo ->clear();
+    g_mic_fifo->clear();
 
     char started_path[sizeof(g_sd_path)] = {};
-    bool recording_file_opened = false;
-    bool encryption_setup_failed = false;
-    bool wav_header_failed = false;
+    bool recording_file_opened           = false;
+    bool encryption_setup_failed         = false;
+    bool wav_header_failed               = false;
 #if defined(BUILD_USE_MP3_COMPRESSION)
     bool mp3_encoder_setup_failed = false;
 #endif
@@ -1353,7 +1366,7 @@ bool startRecording(char typeCode)
             if (!start_recording_encryption_locked())
             {
                 g_file.close();
-                g_sd_path[0] = '\0';
+                g_sd_path[0]            = '\0';
                 encryption_setup_failed = true;
             }
 #endif
@@ -1365,28 +1378,28 @@ bool startRecording(char typeCode)
                 grow_file(g_file, max_prealloc_size());
 #endif
 
-                g_bytes_written  = 0;
-                g_last_flush_ms  = millis();
+                g_bytes_written              = 0;
+                g_last_flush_ms              = millis();
                 g_consecutive_write_failures = 0;
                 g_card_failure_reported      = false;
                 g_consecutive_silent_chunks  = 0;
                 reset_fifo_overflow_tracking();
-                g_recording_type_code        = typeCode;
+                g_recording_type_code = typeCode;
                 memo_type_from_code(typeCode, g_memo_type);
 #if defined(BUILD_USE_MP3_COMPRESSION)
                 g_mp3_callback_failed.store(false, std::memory_order_relaxed);
-                g_mp3_file_write_observed    = false;
+                g_mp3_file_write_observed = false;
 #endif
-                #if BUILD_WITH_SECURITY_LEVEL >= 1
+#if BUILD_WITH_SECURITY_LEVEL >= 1
                 g_encryption_sequence        = 0;
                 g_plaintext_audio_chunk_used = 0;
-                #endif
+#endif
 
 #if defined(BUILD_USE_MP3_COMPRESSION)
                 if (!start_mp3_encoder_locked())
                 {
                     g_file.close();
-                    g_sd_path[0] = '\0';
+                    g_sd_path[0]             = '\0';
                     mp3_encoder_setup_failed = true;
                 }
                 else
@@ -1396,15 +1409,15 @@ bool startRecording(char typeCode)
                     strncpy(started_path, g_sd_path, sizeof(started_path) - 1);
                 }
 #else
-                #if BUILD_WITH_SECURITY_LEVEL >= 1
+#if BUILD_WITH_SECURITY_LEVEL >= 1
                 if (!write_encrypted_placeholder_wav_header_locked())
-                #else
+#else
                 if (!write_placeholder_wav_header_locked())
-                #endif
+#endif
                 {
                     DBG_LOGE(TAG, "WAV header write failed: %s", g_sd_path);
                     g_file.close();
-                    g_sd_path[0] = '\0';
+                    g_sd_path[0]      = '\0';
                     wav_header_failed = true;
                 }
                 else
@@ -1435,8 +1448,9 @@ bool startRecording(char typeCode)
             return false;
         }
 #endif
-        fatal_recording_storage_failure(wav_header_failed ? "writing WAV header" : "opening recording file",
-                                        wav_header_failed ? "microSD WAV header write failed" : "microSD recording file open failed");
+        fatal_recording_storage_failure(
+            wav_header_failed ? "writing WAV header" : "opening recording file",
+            wav_header_failed ? "microSD WAV header write failed" : "microSD recording file open failed");
         return false;
     }
 
@@ -1492,7 +1506,7 @@ void pump()
         return;
     }
 
-    g_longwrite = false;
+    g_longwrite            = false;
     const uint32_t started = millis();
     // pump until no data or until too much time has passed
     do
@@ -1517,14 +1531,15 @@ bool stopRecording(bool estop)
         }
     }
 
-    bool     ok = true;
-    char     stopped_path[sizeof(g_sd_path)] = {};
-    uint64_t stopped_bytes = 0;
-    bool     closed_file = false;
+    bool                        ok                              = true;
+    char                        stopped_path[sizeof(g_sd_path)] = {};
+    uint64_t                    stopped_bytes                   = 0;
+    bool                        closed_file                     = false;
     std::lock_guard<std::mutex> pump_lock(g_pump_mutex);
     if (!estop)
     {
-        // drain the last bit of the FIFO out, there is less pressure now since the FIFOs have been signalled to stop queuing
+        // drain the last bit of the FIFO out, there is less pressure now since the FIFOs have been signalled to stop
+        // queuing
         while (pump_audio_chunk_locked(true))
         {
             taskYIELD();
@@ -1573,24 +1588,24 @@ bool stopRecording(bool estop)
         if (g_file)
         {
 #if defined(BUILD_USE_MP3_COMPRESSION)
-            #if BUILD_WITH_SECURITY_LEVEL >= 1
+#if BUILD_WITH_SECURITY_LEVEL >= 1
             if (!finish_encrypted_audio_locked())
             {
                 ok = false;
             }
-            #endif
+#endif
 #else
-            #if BUILD_WITH_SECURITY_LEVEL >= 1
+#if BUILD_WITH_SECURITY_LEVEL >= 1
             if (!finish_encrypted_audio_locked())
             {
                 ok = false;
             }
-            #else
+#else
             if (!finish_wav_header_locked())
             {
                 ok = false;
             }
-            #endif
+#endif
 #endif
 
             g_file.flush(); // this makes sure the buffer actually makes it onto the card
@@ -1720,9 +1735,9 @@ const char* currentSdPath()
 bool grow_file(FsFile& file, uint64_t size)
 {
     // growing a file means making the file gigantic at creation
-    // this is so that while writing, there's no need to stop the writing in order to update the file table (or whatever mechanism is tracking file size)
-    // resulting in a significant performance increase for file writing, lower latency, less unexpected cache flushes
-    // the file will be truncated when it is closed
+    // this is so that while writing, there's no need to stop the writing in order to update the file table (or whatever
+    // mechanism is tracking file size) resulting in a significant performance increase for file writing, lower latency,
+    // less unexpected cache flushes the file will be truncated when it is closed
 
     if (size > kMaxGrowFileBytes)
     {

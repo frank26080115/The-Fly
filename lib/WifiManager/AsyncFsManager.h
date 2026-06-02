@@ -20,14 +20,14 @@ bool init();
 bool isReady();
 bool guiShouldYield();
 
-bool resetWalk();
+bool       resetWalk();
 WalkResult walkOne(char* file_name, size_t file_name_size);
-void closeWalk();
+void       closeWalk();
 
-bool openFileForDownload(const char* path, uint64_t* file_size = nullptr);
-int readFileChunk(uint64_t position, uint8_t* buffer, size_t max_len);
+bool     openFileForDownload(const char* path, uint64_t* file_size = nullptr);
+int      readFileChunk(uint64_t position, uint8_t* buffer, size_t max_len);
 uint64_t openFileSize();
-void closeFile();
+void     closeFile();
 
 bool writeFileChunk(const char* path, const uint8_t* data, size_t len, bool first_chunk);
 bool removeFile(const char* path);

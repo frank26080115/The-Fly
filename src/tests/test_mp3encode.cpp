@@ -13,24 +13,24 @@
 namespace
 {
 
-constexpr const char* TAG = "test_mp3encode";
-constexpr uint32_t    kSampleRateHz = AUDIO_RECORDER_SAMPLE_RATE_HZ;
-constexpr uint32_t    kDurationMs   = 10000;
+constexpr const char* TAG                   = "test_mp3encode";
+constexpr uint32_t    kSampleRateHz         = AUDIO_RECORDER_SAMPLE_RATE_HZ;
+constexpr uint32_t    kDurationMs           = 10000;
 constexpr uint32_t    kComfortTargetAudioMs = kDurationMs * 2;
-constexpr size_t      kChunkFrames  = MP3_PCM_FRAMES_PER_MP3_FRAME;
-constexpr size_t      kSineTableBits = 10;
-constexpr size_t      kSineTableSize = 1U << kSineTableBits;
-constexpr float       kLeftHz       = 440.0f;
-constexpr float       kRightHz      = 660.0f;
-constexpr float       kAmplitude    = 14000.0f;
-constexpr float       kTwoPi        = 6.28318530717958647692f;
+constexpr size_t      kChunkFrames          = MP3_PCM_FRAMES_PER_MP3_FRAME;
+constexpr size_t      kSineTableBits        = 10;
+constexpr size_t      kSineTableSize        = 1U << kSineTableBits;
+constexpr float       kLeftHz               = 440.0f;
+constexpr float       kRightHz              = 660.0f;
+constexpr float       kAmplitude            = 14000.0f;
+constexpr float       kTwoPi                = 6.28318530717958647692f;
 
-int16_t g_left_samples[kChunkFrames];
-int16_t g_right_samples[kChunkFrames];
-int16_t g_sine_table[kSineTableSize];
-uint32_t g_left_phase = 0;
-uint32_t g_right_phase = 0;
-uint32_t g_left_phase_step = 0;
+int16_t  g_left_samples[kChunkFrames];
+int16_t  g_right_samples[kChunkFrames];
+int16_t  g_sine_table[kSineTableSize];
+uint32_t g_left_phase       = 0;
+uint32_t g_right_phase      = 0;
+uint32_t g_left_phase_step  = 0;
 uint32_t g_right_phase_step = 0;
 
 bool has_mp3_extension(const char* path)
@@ -41,11 +41,8 @@ bool has_mp3_extension(const char* path)
     }
 
     const size_t len = strlen(path);
-    return len >= 4 &&
-           path[len - 4] == '.' &&
-           (path[len - 3] == 'm' || path[len - 3] == 'M') &&
-           (path[len - 2] == 'p' || path[len - 2] == 'P') &&
-           path[len - 1] == '3';
+    return len >= 4 && path[len - 4] == '.' && (path[len - 3] == 'm' || path[len - 3] == 'M') &&
+           (path[len - 2] == 'p' || path[len - 2] == 'P') && path[len - 1] == '3';
 }
 
 uint32_t sine_phase_step(float frequency_hz)
@@ -59,12 +56,12 @@ void init_sine_generator()
     for (size_t i = 0; i < kSineTableSize; ++i)
     {
         const float phase = (kTwoPi * static_cast<float>(i)) / static_cast<float>(kSineTableSize);
-        g_sine_table[i] = static_cast<int16_t>(sinf(phase) * kAmplitude);
+        g_sine_table[i]   = static_cast<int16_t>(sinf(phase) * kAmplitude);
     }
 
-    g_left_phase = 0;
-    g_right_phase = 0;
-    g_left_phase_step = sine_phase_step(kLeftHz);
+    g_left_phase       = 0;
+    g_right_phase      = 0;
+    g_left_phase_step  = sine_phase_step(kLeftHz);
     g_right_phase_step = sine_phase_step(kRightHz);
 }
 
@@ -79,16 +76,13 @@ void generate_sine_chunk(size_t frames)
     }
 }
 
-uint64_t queue_stereo_chunk_until(AudioFifo& left_fifo,
-                                  AudioFifo& right_fifo,
-                                  uint32_t started_ms,
-                                  uint32_t duration_ms,
-                                  bool& ok)
+uint64_t queue_stereo_chunk_until(
+    AudioFifo& left_fifo, AudioFifo& right_fifo, uint32_t started_ms, uint32_t duration_ms, bool& ok)
 {
-    uint64_t total_queued = 0;
-    size_t queued = 0;
+    uint64_t total_queued     = 0;
+    size_t   queued           = 0;
     uint32_t last_progress_ms = millis();
-    ok = true;
+    ok                        = true;
 
     generate_sine_chunk(kChunkFrames);
 
@@ -96,13 +90,13 @@ uint64_t queue_stereo_chunk_until(AudioFifo& left_fifo,
     {
         const size_t left_space  = left_fifo.availableToWrite();
         const size_t right_space = right_fifo.availableToWrite();
-        size_t to_queue = kChunkFrames - queued;
-        to_queue = min(to_queue, left_space);
-        to_queue = min(to_queue, right_space);
+        size_t       to_queue    = kChunkFrames - queued;
+        to_queue                 = min(to_queue, left_space);
+        to_queue                 = min(to_queue, right_space);
 
         if (to_queue > 0)
         {
-            const size_t left_written = left_fifo.queue(g_left_samples + queued, to_queue, kSampleRateHz);
+            const size_t left_written  = left_fifo.queue(g_left_samples + queued, to_queue, kSampleRateHz);
             const size_t right_written = right_fifo.queue(g_right_samples + queued, to_queue, kSampleRateHz);
             if (left_written != to_queue || right_written != to_queue)
             {
@@ -199,13 +193,14 @@ void test_mp3encode()
 
     Serial.println();
     Serial.println("starting MP3 encoder recording test");
-    Serial.printf("%s: throughput test wall=%u ms comfort_target_audio=%u ms left=%.1f Hz right=%.1f Hz sample_rate=%u Hz\n",
-                  TAG,
-                  static_cast<unsigned>(kDurationMs),
-                  static_cast<unsigned>(kComfortTargetAudioMs),
-                  static_cast<double>(kLeftHz),
-                  static_cast<double>(kRightHz),
-                  static_cast<unsigned>(kSampleRateHz));
+    Serial.printf(
+        "%s: throughput test wall=%u ms comfort_target_audio=%u ms left=%.1f Hz right=%.1f Hz sample_rate=%u Hz\n",
+        TAG,
+        static_cast<unsigned>(kDurationMs),
+        static_cast<unsigned>(kComfortTargetAudioMs),
+        static_cast<double>(kLeftHz),
+        static_cast<double>(kRightHz),
+        static_cast<unsigned>(kSampleRateHz));
 
     uint32_t step_started_ms = millis();
     init_sine_generator();
@@ -217,9 +212,10 @@ void test_mp3encode()
 #endif
 
 #if BUILD_WITH_SECURITY_LEVEL != 0
-    Serial.printf("%s: BUILD_WITH_SECURITY_LEVEL=%d; this test is intended for unencrypted .mp3 output at security level 0\n",
-                  TAG,
-                  BUILD_WITH_SECURITY_LEVEL);
+    Serial.printf(
+        "%s: BUILD_WITH_SECURITY_LEVEL=%d; this test is intended for unencrypted .mp3 output at security level 0\n",
+        TAG,
+        BUILD_WITH_SECURITY_LEVEL);
 #endif
 
     step_started_ms = millis();
@@ -257,29 +253,28 @@ void test_mp3encode()
     AudioFifo& right_fifo = AudioManager::bluetoothToFileFifo();
     AudioFifo& left_fifo  = AudioManager::micToFileFifo();
 
-    const uint64_t realtime_frames = (static_cast<uint64_t>(kSampleRateHz) * kDurationMs) / 1000ULL;
+    const uint64_t realtime_frames      = (static_cast<uint64_t>(kSampleRateHz) * kDurationMs) / 1000ULL;
     const uint32_t recording_started_ms = millis();
-    bool queue_ok = true;
-    const uint64_t submitted_frames = queue_stereo_chunk_until(left_fifo,
-                                                               right_fifo,
-                                                               recording_started_ms,
-                                                               kDurationMs,
-                                                               queue_ok);
+    bool           queue_ok             = true;
+    const uint64_t submitted_frames =
+        queue_stereo_chunk_until(left_fifo, right_fifo, recording_started_ms, kDurationMs, queue_ok);
     if (!queue_ok)
     {
-        Serial.printf("%s[%lu]: sample queue failed after %llu frames\n", TAG, millis(), static_cast<unsigned long long>(submitted_frames));
+        Serial.printf("%s[%lu]: sample queue failed after %llu frames\n",
+                      TAG,
+                      millis(),
+                      static_cast<unsigned long long>(submitted_frames));
         AudioFileRecorder::stopRecording(true);
         idle_forever();
     }
 
-    const uint32_t submit_elapsed_ms = elapsed_ms_since(recording_started_ms);
-    const uint64_t submitted_audio_ms =
-        (submitted_frames * 1000ULL + (kSampleRateHz / 2ULL)) / kSampleRateHz;
-    const double submitted_realtime_ratio = submit_elapsed_ms > 0
-        ? static_cast<double>(submitted_audio_ms) / static_cast<double>(submit_elapsed_ms)
-        : 0.0;
+    const uint32_t submit_elapsed_ms  = elapsed_ms_since(recording_started_ms);
+    const uint64_t submitted_audio_ms = (submitted_frames * 1000ULL + (kSampleRateHz / 2ULL)) / kSampleRateHz;
+    const double   submitted_realtime_ratio =
+        submit_elapsed_ms > 0 ? static_cast<double>(submitted_audio_ms) / static_cast<double>(submit_elapsed_ms) : 0.0;
     Serial.printf("%s[%lu]: submitted %llu stereo frames over %lu ms, realtime_reference=%llu frames\n",
-                  TAG, millis(),
+                  TAG,
+                  millis(),
                   static_cast<unsigned long long>(submitted_frames),
                   static_cast<unsigned long>(submit_elapsed_ms),
                   static_cast<unsigned long long>(realtime_frames));
@@ -314,15 +309,16 @@ void test_mp3encode()
     }
 
     const uint64_t final_file_duration_ms = print_duration_estimate(final_size);
-    const double final_file_realtime_ratio = submit_elapsed_ms > 0
-        ? static_cast<double>(final_file_duration_ms) / static_cast<double>(submit_elapsed_ms)
-        : 0.0;
-    Serial.printf("%s: comfort target result=%s final_file_audio=%llu ms target_audio=%u ms, file throughput=%.2fx realtime\n",
-                  TAG,
-                  final_file_duration_ms >= kComfortTargetAudioMs ? "PASS" : "FAIL",
-                  static_cast<unsigned long long>(final_file_duration_ms),
-                  static_cast<unsigned>(kComfortTargetAudioMs),
-                  final_file_realtime_ratio);
+    const double   final_file_realtime_ratio =
+        submit_elapsed_ms > 0 ? static_cast<double>(final_file_duration_ms) / static_cast<double>(submit_elapsed_ms)
+                              : 0.0;
+    Serial.printf(
+        "%s: comfort target result=%s final_file_audio=%llu ms target_audio=%u ms, file throughput=%.2fx realtime\n",
+        TAG,
+        final_file_duration_ms >= kComfortTargetAudioMs ? "PASS" : "FAIL",
+        static_cast<unsigned long long>(final_file_duration_ms),
+        static_cast<unsigned>(kComfortTargetAudioMs),
+        final_file_realtime_ratio);
     Serial.println("MP3 encoder recording test finished");
 
     idle_forever();

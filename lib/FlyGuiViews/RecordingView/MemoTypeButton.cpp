@@ -20,20 +20,35 @@ void MemoTypeButton::setMemoType(MemoType type)
     switch (type_)
     {
     case MEMO_TYPE_TODO:
-        setSprite(sprite_memotype_todo, SPRITE_MEMOTYPE_TODO_WIDTH, SPRITE_MEMOTYPE_TODO_HEIGHT, SPRITE_MEMOTYPE_TODO_BYTES);
+        setSprite(sprite_memotype_todo,
+                  SPRITE_MEMOTYPE_TODO_WIDTH,
+                  SPRITE_MEMOTYPE_TODO_HEIGHT,
+                  SPRITE_MEMOTYPE_TODO_BYTES);
         break;
     case MEMO_TYPE_JOURNAL:
-        setSprite(sprite_memotype_journal, SPRITE_MEMOTYPE_JOURNAL_WIDTH, SPRITE_MEMOTYPE_JOURNAL_HEIGHT, SPRITE_MEMOTYPE_JOURNAL_BYTES);
+        setSprite(sprite_memotype_journal,
+                  SPRITE_MEMOTYPE_JOURNAL_WIDTH,
+                  SPRITE_MEMOTYPE_JOURNAL_HEIGHT,
+                  SPRITE_MEMOTYPE_JOURNAL_BYTES);
         break;
     case MEMO_TYPE_IDEA:
-        setSprite(sprite_memotype_idea, SPRITE_MEMOTYPE_IDEA_WIDTH, SPRITE_MEMOTYPE_IDEA_HEIGHT, SPRITE_MEMOTYPE_IDEA_BYTES);
+        setSprite(sprite_memotype_idea,
+                  SPRITE_MEMOTYPE_IDEA_WIDTH,
+                  SPRITE_MEMOTYPE_IDEA_HEIGHT,
+                  SPRITE_MEMOTYPE_IDEA_BYTES);
         break;
     case MEMO_TYPE_REMINDER:
-        setSprite(sprite_memotype_reminder, SPRITE_MEMOTYPE_REMINDER_WIDTH, SPRITE_MEMOTYPE_REMINDER_HEIGHT, SPRITE_MEMOTYPE_REMINDER_BYTES);
+        setSprite(sprite_memotype_reminder,
+                  SPRITE_MEMOTYPE_REMINDER_WIDTH,
+                  SPRITE_MEMOTYPE_REMINDER_HEIGHT,
+                  SPRITE_MEMOTYPE_REMINDER_BYTES);
         break;
     case MEMO_TYPE_NOTE:
     default:
-        setSprite(sprite_memotype_note, SPRITE_MEMOTYPE_NOTE_WIDTH, SPRITE_MEMOTYPE_NOTE_HEIGHT, SPRITE_MEMOTYPE_NOTE_BYTES);
+        setSprite(sprite_memotype_note,
+                  SPRITE_MEMOTYPE_NOTE_WIDTH,
+                  SPRITE_MEMOTYPE_NOTE_HEIGHT,
+                  SPRITE_MEMOTYPE_NOTE_BYTES);
         break;
     }
 }

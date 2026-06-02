@@ -9,8 +9,7 @@
 namespace
 {
 
-constexpr bool kFlyGuiDebugClock =
-    static_cast<int>(DBG_LOG_LOCAL_LEVEL) > static_cast<int>(DBG_LOG_ERROR);
+constexpr bool kFlyGuiDebugClock = static_cast<int>(DBG_LOG_LOCAL_LEVEL) > static_cast<int>(DBG_LOG_ERROR);
 
 } // namespace
 
@@ -164,7 +163,15 @@ void drawWrappedText(const char* text, int16_t x, int16_t y, int16_t width, int1
 }
 } // namespace FlyGuiTextUtil
 
-FlyGuiText::FlyGuiText(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle, size_t maxLength, const char* initialText) : FlyGuiItem(x, y, width, height, initialText), fontSize_(fontSize), fontStyle_(fontStyle), maxLength_(maxLength)
+FlyGuiText::FlyGuiText(int16_t     x,
+                       int16_t     y,
+                       int16_t     width,
+                       int16_t     height,
+                       float       fontSize,
+                       uint8_t     fontStyle,
+                       size_t      maxLength,
+                       const char* initialText)
+    : FlyGuiItem(x, y, width, height, initialText), fontSize_(fontSize), fontStyle_(fontStyle), maxLength_(maxLength)
 {
     text_      = static_cast<char*>(calloc(maxLength_ + 1, sizeof(char)));
     drawnText_ = static_cast<char*>(calloc(maxLength_ + 1, sizeof(char)));
@@ -304,7 +311,10 @@ int32_t FlyGuiText::textHeight() const
     return height() > 0 ? height() : static_cast<int32_t>(fontSize_ * 8.0f) + 4;
 }
 
-FlyGuiDateTime::FlyGuiDateTime(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle) : FlyGuiText(x, y, width, height, fontSize, fontStyle, 20) {}
+FlyGuiDateTime::FlyGuiDateTime(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle)
+    : FlyGuiText(x, y, width, height, fontSize, fontStyle, 20)
+{
+}
 
 void FlyGuiDateTime::redraw(bool forced)
 {
@@ -313,17 +323,35 @@ void FlyGuiDateTime::redraw(bool forced)
     char                     text[21];
     if (kFlyGuiDebugClock)
     {
-        snprintf(text, sizeof(text), "DEBUG-%02u-%02u %02u:%02u:%02u", now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds);
+        snprintf(text,
+                 sizeof(text),
+                 "DEBUG-%02u-%02u %02u:%02u:%02u",
+                 now.date.month,
+                 now.date.date,
+                 now.time.hours,
+                 now.time.minutes,
+                 now.time.seconds);
     }
     else
     {
-        snprintf(text, sizeof(text), "%04u-%02u-%02u %02u:%02u:%02u", now.date.year, now.date.month, now.date.date, now.time.hours, now.time.minutes, now.time.seconds);
+        snprintf(text,
+                 sizeof(text),
+                 "%04u-%02u-%02u %02u:%02u:%02u",
+                 now.date.year,
+                 now.date.month,
+                 now.date.date,
+                 now.time.hours,
+                 now.time.minutes,
+                 now.time.seconds);
     }
     setText(text);
     FlyGuiText::redraw(forced);
 }
 
-FlyGuiStopwatch::FlyGuiStopwatch(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle) : FlyGuiText(x, y, width, height, fontSize, fontStyle, 12), startMs_(millis()) {}
+FlyGuiStopwatch::FlyGuiStopwatch(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle)
+    : FlyGuiText(x, y, width, height, fontSize, fontStyle, 12), startMs_(millis())
+{
+}
 
 void FlyGuiStopwatch::start(uint32_t startMs)
 {
@@ -350,7 +378,12 @@ void FlyGuiStopwatch::redraw(bool forced)
     const uint32_t seconds = elapsed % 60;
 
     char text[13];
-    snprintf(text, sizeof(text), "%02lu:%02lu:%02lu", static_cast<unsigned long>(hours), static_cast<unsigned long>(minutes), static_cast<unsigned long>(seconds));
+    snprintf(text,
+             sizeof(text),
+             "%02lu:%02lu:%02lu",
+             static_cast<unsigned long>(hours),
+             static_cast<unsigned long>(minutes),
+             static_cast<unsigned long>(seconds));
     setText(text);
     FlyGuiText::redraw(forced);
 }

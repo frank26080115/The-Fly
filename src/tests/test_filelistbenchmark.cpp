@@ -9,7 +9,7 @@
 namespace
 {
 
-constexpr const char* TAG = "test_filelistbenchmark";
+constexpr const char* TAG              = "test_filelistbenchmark";
 constexpr size_t      kTargetRootFiles = 50;
 constexpr size_t      kMaxCreateTries  = 500;
 
@@ -94,9 +94,9 @@ bool ensure_root_file_count(size_t target_count)
 
 void run_filelist_case(size_t max_files)
 {
-    const uint32_t started_us = micros();
-    MostRecentFiles::FileList files = MostRecentFiles::get(max_files);
-    const uint32_t elapsed_us = micros() - started_us;
+    const uint32_t            started_us = micros();
+    MostRecentFiles::FileList files      = MostRecentFiles::get(max_files);
+    const uint32_t            elapsed_us = micros() - started_us;
 
     Serial.printf("%s: max_files=%u populated=%u elapsed=%lu.%03lu ms",
                   TAG,

@@ -43,13 +43,13 @@ extern bool         g_nvs_ready;
 namespace
 {
 
-constexpr const char* TAG = "WebServer";
-constexpr const char* kHeaderSessionSaltFromClient = "X-TheFly-Session-Salt-From-Client";
+constexpr const char* TAG                              = "WebServer";
+constexpr const char* kHeaderSessionSaltFromClient     = "X-TheFly-Session-Salt-From-Client";
 constexpr const char* kHeaderSessionResponseFromClient = "X-TheFly-Session-Response-From-Client";
-constexpr const char* kBluedroidNvsNamespace = "bt_config.conf";
-constexpr const char* kBtHostListNvsNamespace = "bt_hosts";
-constexpr const char* kNetworkNvsNamespace = "wifi_cfg";
-constexpr uint16_t    kWebServerPort = 80;
+constexpr const char* kBluedroidNvsNamespace           = "bt_config.conf";
+constexpr const char* kBtHostListNvsNamespace          = "bt_hosts";
+constexpr const char* kNetworkNvsNamespace             = "wifi_cfg";
+constexpr uint16_t    kWebServerPort                   = 80;
 
 #if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
 // This is only a login gate for plain FTP. Replace these credentials before
@@ -58,8 +58,8 @@ constexpr const char* kFtpUser     = "thefly";
 constexpr const char* kFtpPassword = "replace-me";
 #endif
 
-AsyncWebServer g_server(kWebServerPort);
-bool           g_initialized = false;
+AsyncWebServer                  g_server(kWebServerPort);
+bool                            g_initialized = false;
 WebServer::SessionSecurityState g_session_security;
 
 void zero_session_key()
@@ -250,11 +250,13 @@ bool begin_new_session(const String& client_salt_hex)
     esp_fill_random(g_session_security.session_challenge, sizeof(g_session_security.session_challenge));
     esp_fill_random(g_session_security.session_salt_from_server, sizeof(g_session_security.session_salt_from_server));
     g_session_security.challenge_valid = true;
-    g_session_security.nonce_counter = 0;
+    g_session_security.nonce_counter   = 0;
 
     if (!client_salt_hex.isEmpty())
     {
-        hex_to_bytes(client_salt_hex, g_session_security.session_salt_from_client, sizeof(g_session_security.session_salt_from_client));
+        hex_to_bytes(client_salt_hex,
+                     g_session_security.session_salt_from_client,
+                     sizeof(g_session_security.session_salt_from_client));
     }
 
     const uint8_t* network_key = nullptr;
@@ -382,9 +384,9 @@ String self_ip_string()
 
 String self_wifi_mac_string()
 {
-    uint8_t mac[6] = {};
-    const bool use_station_mac = !ip_is_zero(WiFi.localIP());
-    const esp_mac_type_t mac_type = use_station_mac ? ESP_MAC_WIFI_STA : ESP_MAC_WIFI_SOFTAP;
+    uint8_t              mac[6]          = {};
+    const bool           use_station_mac = !ip_is_zero(WiFi.localIP());
+    const esp_mac_type_t mac_type        = use_station_mac ? ESP_MAC_WIFI_STA : ESP_MAC_WIFI_SOFTAP;
     if (esp_read_mac(mac, mac_type) != ESP_OK)
     {
         return String("");
@@ -411,26 +413,26 @@ void send_info(AsyncWebServerRequest* request)
     note_web_page_load();
     const bool security_ready = begin_new_session(request->header(kHeaderSessionSaltFromClient));
 
-    esp_bd_addr_t bdaddr = {};
+    esp_bd_addr_t bdaddr          = {};
     char          bdaddr_text[18] = "unknown";
     if (BtManager::localBdaddr(bdaddr))
     {
         WebServer::formatMac(bdaddr, bdaddr_text, sizeof(bdaddr_text));
     }
 
-    uint64_t total_bytes = 0;
-    uint64_t free_bytes  = 0;
-    const bool sd_ready = MicroSdCard::isReady();
-    const bool disk_ready = sd_ready && DiskStats::diskSpace(total_bytes, free_bytes);
-    const uint64_t used_bytes = total_bytes > free_bytes ? total_bytes - free_bytes : 0;
-    const char* disk_health = !sd_ready ? MicroSdCard::healthName(MicroSdCard::Health::NotReady) :
-                              !disk_ready ? "Unknown" :
-                              free_bytes == 0 ? MicroSdCard::healthName(MicroSdCard::Health::Full) :
-                              MicroSdCard::healthName(MicroSdCard::Health::Ready);
-    const bool default_soft_ap = wifi_manager && wifi_manager->isGeneratedSoftApActive();
-    const String wifi_mac = self_wifi_mac_string();
-    time_t current_time = 0;
-    const bool current_time_valid = Clock.getUnixTime(&current_time);
+    uint64_t       total_bytes        = 0;
+    uint64_t       free_bytes         = 0;
+    const bool     sd_ready           = MicroSdCard::isReady();
+    const bool     disk_ready         = sd_ready && DiskStats::diskSpace(total_bytes, free_bytes);
+    const uint64_t used_bytes         = total_bytes > free_bytes ? total_bytes - free_bytes : 0;
+    const char*    disk_health        = !sd_ready         ? MicroSdCard::healthName(MicroSdCard::Health::NotReady)
+                                        : !disk_ready     ? "Unknown"
+                                        : free_bytes == 0 ? MicroSdCard::healthName(MicroSdCard::Health::Full)
+                                                          : MicroSdCard::healthName(MicroSdCard::Health::Ready);
+    const bool     default_soft_ap    = wifi_manager && wifi_manager->isGeneratedSoftApActive();
+    const String   wifi_mac           = self_wifi_mac_string();
+    time_t         current_time       = 0;
+    const bool     current_time_valid = Clock.getUnixTime(&current_time);
 
     String session_challenge_hex;
     String session_response_hex;
@@ -438,9 +440,15 @@ void send_info(AsyncWebServerRequest* request)
     session_challenge_hex.reserve(WebServer::kSessionChallengeSize * 2);
     session_response_hex.reserve(WebServer::kSessionResponseSize * 2);
     session_salt_hex.reserve(WebServer::kSessionSaltHalfSize * 2);
-    bytes_to_hex(g_session_security.session_challenge, sizeof(g_session_security.session_challenge), session_challenge_hex);
-    bytes_to_hex(g_session_security.session_response_from_server, sizeof(g_session_security.session_response_from_server), session_response_hex);
-    bytes_to_hex(g_session_security.session_salt_from_server, sizeof(g_session_security.session_salt_from_server), session_salt_hex);
+    bytes_to_hex(g_session_security.session_challenge,
+                 sizeof(g_session_security.session_challenge),
+                 session_challenge_hex);
+    bytes_to_hex(g_session_security.session_response_from_server,
+                 sizeof(g_session_security.session_response_from_server),
+                 session_response_hex);
+    bytes_to_hex(g_session_security.session_salt_from_server,
+                 sizeof(g_session_security.session_salt_from_server),
+                 session_salt_hex);
 
     String json;
     json.reserve(1100);
@@ -474,11 +482,11 @@ void send_info(AsyncWebServerRequest* request)
     json += ",\"access_points\":";
     append_json_u64(json, kNetworkConfigAllowedEntriesAP);
     json += ",\"cloud_uploads\":";
-    #ifdef BUILD_CLOUD_FEATURES
+#ifdef BUILD_CLOUD_FEATURES
     append_json_u64(json, kNetworkConfigCloudAllowedEntries);
-    #else
+#else
     json += "false";
-    #endif
+#endif
     json += ",\"bluetooth_hosts\":";
     append_json_u64(json, kBtHostListMaxEntries);
     json += ",\"ntp_servers\":";
@@ -525,10 +533,10 @@ void reset_password(AsyncWebServerRequest* request)
         return;
     }
 
-    #if BUILD_WITH_SECURITY_LEVEL <= 0
+#if BUILD_WITH_SECURITY_LEVEL <= 0
     note_web_error();
     request->send(501, "text/plain", "Password reset is not implemented for security level 0");
-    #else
+#else
     if (!wifi_manager || !wifi_manager->isGeneratedSoftApActive())
     {
         note_web_error();
@@ -546,7 +554,7 @@ void reset_password(AsyncWebServerRequest* request)
     }
 
     bool ok = false;
-    #if BUILD_WITH_SECURITY_LEVEL == 1
+#if BUILD_WITH_SECURITY_LEVEL == 1
     uint8_t filecrypt_key[Aegis::kFilecryptKeySize] = {};
     if (!read_hex_key_param(request, "filecrypt_key", filecrypt_key, sizeof(filecrypt_key), error))
     {
@@ -558,9 +566,9 @@ void reset_password(AsyncWebServerRequest* request)
 
     ok = Aegis::setMasterKeys(filecrypt_key, network_key);
     mbedtls_platform_zeroize(filecrypt_key, sizeof(filecrypt_key));
-    #else
+#else
     ok = Aegis::setNetworkKeyAndGenerateFilecryptKey(network_key);
-    #endif
+#endif
 
     mbedtls_platform_zeroize(network_key, sizeof(network_key));
     if (!ok)
@@ -575,13 +583,13 @@ void reset_password(AsyncWebServerRequest* request)
     DBG_LOGI(TAG, "password reset updated Aegis keys");
     request->send(200, "application/json", "{\"status\":\"ok\"}");
     show_password_reset_reboot_dialog();
-    #endif
+#endif
 }
 
 bool erase_nvs_namespace(const char* name, String& error)
 {
     nvs_handle_t handle = 0;
-    esp_err_t err = nvs_open(name, NVS_READWRITE, &handle);
+    esp_err_t    err    = nvs_open(name, NVS_READWRITE, &handle);
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         return true;
@@ -626,10 +634,10 @@ void reset_memory(AsyncWebServerRequest* request)
         return;
     }
 
-    #if BUILD_WITH_SECURITY_LEVEL > 0
+#if BUILD_WITH_SECURITY_LEVEL > 0
     note_web_error();
     request->send(403, "text/plain", "Memory reset is only available under security level 0");
-    #else
+#else
     String error;
     if (!bt_host_list)
     {
@@ -678,7 +686,7 @@ void reset_memory(AsyncWebServerRequest* request)
     DBG_LOGI(TAG, "memory reset erased Bluetooth bonds, Bluetooth host list, and Wi-Fi/cloud config");
     request->send(200, "application/json", "{\"status\":\"ok\"}");
     show_memory_reset_reboot_dialog();
-    #endif
+#endif
 }
 
 } // namespace
@@ -812,7 +820,8 @@ bool WebServer::copyCachedSessionKey(uint8_t out_session_key[kSessionKeySize])
     return true;
 }
 
-WebServer::SessionAuthResult WebServer::authenticateSessionRequest(AsyncWebServerRequest* request, uint8_t out_session_key[kSessionKeySize])
+WebServer::SessionAuthResult WebServer::authenticateSessionRequest(AsyncWebServerRequest* request,
+                                                                   uint8_t out_session_key[kSessionKeySize])
 {
     if (!out_session_key)
     {
@@ -857,7 +866,10 @@ WebServer::SessionAuthResult WebServer::authenticateSessionRequest(AsyncWebServe
     }
 
     uint8_t expected_response[kSessionResponseSize] = {};
-    if (!compute_hmac(network_key, g_session_security.session_challenge, sizeof(g_session_security.session_challenge), expected_response) ||
+    if (!compute_hmac(network_key,
+                      g_session_security.session_challenge,
+                      sizeof(g_session_security.session_challenge),
+                      expected_response) ||
         !constant_time_equal(supplied_response, expected_response, sizeof(expected_response)))
     {
         mbedtls_platform_zeroize(supplied_response, sizeof(supplied_response));
@@ -866,8 +878,9 @@ WebServer::SessionAuthResult WebServer::authenticateSessionRequest(AsyncWebServe
         return SessionAuthResult::BadClientResponse;
     }
 
-    if (g_session_security.session_key_valid &&
-        constant_time_equal(supplied_client_salt, g_session_security.session_salt_from_client, sizeof(supplied_client_salt)))
+    if (g_session_security.session_key_valid && constant_time_equal(supplied_client_salt,
+                                                                    g_session_security.session_salt_from_client,
+                                                                    sizeof(supplied_client_salt)))
     {
         memcpy(out_session_key, g_session_security.session_key, kSessionKeySize);
         g_session_security.nonce_counter = 0;
@@ -877,10 +890,16 @@ WebServer::SessionAuthResult WebServer::authenticateSessionRequest(AsyncWebServe
         return SessionAuthResult::Ok;
     }
 
-    memcpy(g_session_security.session_salt_from_client, supplied_client_salt, sizeof(g_session_security.session_salt_from_client));
+    memcpy(g_session_security.session_salt_from_client,
+           supplied_client_salt,
+           sizeof(g_session_security.session_salt_from_client));
     uint8_t session_salt[kSessionSaltSize] = {};
-    memcpy(session_salt, g_session_security.session_salt_from_server, sizeof(g_session_security.session_salt_from_server));
-    memcpy(session_salt + sizeof(g_session_security.session_salt_from_server), supplied_client_salt, sizeof(supplied_client_salt));
+    memcpy(session_salt,
+           g_session_security.session_salt_from_server,
+           sizeof(g_session_security.session_salt_from_server));
+    memcpy(session_salt + sizeof(g_session_security.session_salt_from_server),
+           supplied_client_salt,
+           sizeof(supplied_client_salt));
 
     zero_session_key();
     const bool key_ok = Aegis::pbkdf2HmacSha256(network_key,
@@ -901,7 +920,7 @@ WebServer::SessionAuthResult WebServer::authenticateSessionRequest(AsyncWebServe
     }
 
     g_session_security.session_key_valid = true;
-    g_session_security.nonce_counter = 0;
+    g_session_security.nonce_counter     = 0;
     memcpy(out_session_key, g_session_security.session_key, kSessionKeySize);
     return SessionAuthResult::Ok;
 }
@@ -972,7 +991,11 @@ bool WebServer::init()
     g_server.on(AsyncURIMatcher::exact("/get_cfg"), HTTP_GET, WebCfgHandlers::sendCfg);
     DBG_LOGI(TAG, "registered session-encrypted config GET /get_cfg");
 
-    g_server.on(AsyncURIMatcher::exact("/set_cfg"), HTTP_POST, WebCfgHandlers::finishSetCfg, nullptr, WebCfgHandlers::writeSetCfgBody);
+    g_server.on(AsyncURIMatcher::exact("/set_cfg"),
+                HTTP_POST,
+                WebCfgHandlers::finishSetCfg,
+                nullptr,
+                WebCfgHandlers::writeSetCfgBody);
     DBG_LOGI(TAG, "registered encrypted config POST /set_cfg");
 
 #if BUILD_WITH_SECURITY_LEVEL == 1
@@ -1020,7 +1043,7 @@ bool WebServer::init()
     DBG_LOGI(TAG, "FTP server started");
 #endif
 
-    //DiskStats::refreshDiskSpace();
+    // DiskStats::refreshDiskSpace();
     start_mdns();
 
     g_server.begin();

@@ -3,19 +3,15 @@
 #include <cstring>
 #include <new>
 
-ShineWrapper::ShineWrapper(uint32_t sample_rate,
-                           int num_of_channels,
-                           int bits_per_channel,
-                           int quality,
-                           int bit_rate_kbps,
-                           bool disable_bit_reservoir,
+ShineWrapper::ShineWrapper(uint32_t       sample_rate,
+                           int            num_of_channels,
+                           int            bits_per_channel,
+                           int            quality,
+                           int            bit_rate_kbps,
+                           bool           disable_bit_reservoir,
                            MP3CallbackFDK callback)
-    : callback_(callback),
-      sample_rate_(sample_rate),
-      num_of_channels_(num_of_channels),
-      bits_per_channel_(bits_per_channel),
-      quality_(quality),
-      bit_rate_kbps_(bit_rate_kbps),
+    : callback_(callback), sample_rate_(sample_rate), num_of_channels_(num_of_channels),
+      bits_per_channel_(bits_per_channel), quality_(quality), bit_rate_kbps_(bit_rate_kbps),
       disable_bit_reservoir_(disable_bit_reservoir)
 {
     std::memset(&config_, 0, sizeof(config_));
@@ -76,11 +72,11 @@ bool ShineWrapper::begin()
 
 void ShineWrapper::end()
 {
-    active_                = false;
-    buffered_bytes_        = 0;
-    samples_per_pass_      = 0;
+    active_               = false;
+    buffered_bytes_       = 0;
+    samples_per_pass_     = 0;
     input_buffer_samples_ = 0;
-    input_buffer_bytes_    = 0;
+    input_buffer_bytes_   = 0;
 
     if (shine_)
     {
@@ -170,8 +166,8 @@ bool ShineWrapper::flush()
         buffered_bytes_ = 0;
     }
 
-    int written = 0;
-    unsigned char* data = shine_flush(shine_, &written);
+    int            written = 0;
+    unsigned char* data    = shine_flush(shine_, &written);
     provide_result(data, written);
     active_ = false;
     return written >= 0;
@@ -194,8 +190,8 @@ bool ShineWrapper::encode_pass(int16_t* interleaved_samples)
         return false;
     }
 
-    int written = 0;
-    unsigned char* data = shine_encode_buffer_interleaved(shine_, interleaved_samples, &written);
+    int            written = 0;
+    unsigned char* data    = shine_encode_buffer_interleaved(shine_, interleaved_samples, &written);
     if (written < 0)
     {
         return false;

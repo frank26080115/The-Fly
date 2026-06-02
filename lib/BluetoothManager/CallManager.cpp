@@ -52,7 +52,7 @@ bool append_format(char* out, size_t out_size, size_t& length, const char* forma
     const size_t remaining = out_size - length;
     if (static_cast<size_t>(written) >= remaining)
     {
-        length = out_size - 1;
+        length      = out_size - 1;
         out[length] = '\0';
         return false;
     }
@@ -247,7 +247,7 @@ bool formatCallMetaText(char* out, size_t outSize)
     out[0] = '\0';
 
     std::lock_guard<std::mutex> lock(g_mutex);
-    const PhoneUiState state = ui_state_from_phone_state(g_phone_state);
+    const PhoneUiState          state = ui_state_from_phone_state(g_phone_state);
 
     size_t length = 0;
     bool   fits   = true;
@@ -259,7 +259,8 @@ bool formatCallMetaText(char* out, size_t outSize)
                          g_phone_state.call,
                          g_phone_state.callsetup,
                          g_phone_state.callheld,
-                         g_phone_state.scoAudio ? 1U : 0U) && fits;
+                         g_phone_state.scoAudio ? 1U : 0U) &&
+           fits;
 
     for (CallerInfoItem* item = g_info_head; item; item = item->next)
     {

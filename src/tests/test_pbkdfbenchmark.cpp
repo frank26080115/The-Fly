@@ -11,23 +11,19 @@
 namespace
 {
 
-constexpr const char* TAG = "test_pbkdfbenchmark";
-constexpr uint32_t    kFirstIterationCount = 10;
+constexpr const char* TAG                      = "test_pbkdfbenchmark";
+constexpr uint32_t    kFirstIterationCount     = 10;
 constexpr uint32_t    kWatchdogServiceStartsAt = 256;
-constexpr uint32_t    kRestartAfterTotalMs = 2000;
+constexpr uint32_t    kRestartAfterTotalMs     = 2000;
 
 const uint8_t kPassword[] = {
-    0x2E, 0x92, 0x4A, 0x10, 0x54, 0xC1, 0x7B, 0x60,
-    0xAD, 0x42, 0x16, 0xEE, 0x71, 0x33, 0x8E, 0x19,
-    0xC8, 0xA4, 0xE0, 0x66, 0x53, 0x99, 0x20, 0xFD,
-    0x86, 0x31, 0x4F, 0xAA, 0x0D, 0x5B, 0x37, 0xC2,
+    0x2E, 0x92, 0x4A, 0x10, 0x54, 0xC1, 0x7B, 0x60, 0xAD, 0x42, 0x16, 0xEE, 0x71, 0x33, 0x8E, 0x19,
+    0xC8, 0xA4, 0xE0, 0x66, 0x53, 0x99, 0x20, 0xFD, 0x86, 0x31, 0x4F, 0xAA, 0x0D, 0x5B, 0x37, 0xC2,
 };
 
 const uint8_t kSalt[] = {
-    0x91, 0xE3, 0x5C, 0xF0, 0x12, 0x74, 0xA9, 0x8B,
-    0x43, 0xD6, 0x0E, 0xAF, 0x28, 0x6D, 0xB1, 0x7C,
-    0x5A, 0x09, 0xEE, 0x3F, 0xB8, 0x61, 0x14, 0xC5,
-    0x72, 0x9A, 0x01, 0xD4, 0xEF, 0x38, 0xBC, 0x27,
+    0x91, 0xE3, 0x5C, 0xF0, 0x12, 0x74, 0xA9, 0x8B, 0x43, 0xD6, 0x0E, 0xAF, 0x28, 0x6D, 0xB1, 0x7C,
+    0x5A, 0x09, 0xEE, 0x3F, 0xB8, 0x61, 0x14, 0xC5, 0x72, 0x9A, 0x01, 0xD4, 0xEF, 0x38, 0xBC, 0x27,
 };
 
 uint32_t next_iteration_count(uint32_t rounds)
@@ -77,11 +73,12 @@ bool pbkdf2_without_watchdog_service(uint32_t iterations, uint8_t out[Aegis::kSh
 
 bool run_pbkdf_case(uint32_t iterations, bool service_watchdog, uint32_t& elapsed_ms)
 {
-    uint8_t out[Aegis::kSha256Size] = {};
-    const uint32_t started = millis();
-    const bool ok = service_watchdog
-                        ? Aegis::pbkdf2HmacSha256(kPassword, sizeof(kPassword), kSalt, sizeof(kSalt), iterations, out, sizeof(out))
-                        : pbkdf2_without_watchdog_service(iterations, out);
+    uint8_t        out[Aegis::kSha256Size] = {};
+    const uint32_t started                 = millis();
+    const bool     ok =
+        service_watchdog
+            ? Aegis::pbkdf2HmacSha256(kPassword, sizeof(kPassword), kSalt, sizeof(kSalt), iterations, out, sizeof(out))
+            : pbkdf2_without_watchdog_service(iterations, out);
     elapsed_ms = millis() - started;
 
     Serial.printf("%s: rounds=%lu elapsed=%lu ms watchdog_service=%s ok=%s digest0=%02X\n",
@@ -99,13 +96,13 @@ bool run_pbkdf_case(uint32_t iterations, bool service_watchdog, uint32_t& elapse
 void run_benchmark_phase(bool service_watchdog, uint32_t stop_after_total_ms)
 {
     uint32_t iterations = kFirstIterationCount;
-    uint32_t total_ms = 0;
+    uint32_t total_ms   = 0;
 
     Serial.printf("%s: phase begin watchdog_service=%s\n", TAG, service_watchdog ? "yes" : "no");
     while (true)
     {
         const bool servicing_now = service_watchdog && iterations >= kWatchdogServiceStartsAt;
-        uint32_t elapsed_ms = 0;
+        uint32_t   elapsed_ms    = 0;
         if (!run_pbkdf_case(iterations, servicing_now, elapsed_ms))
         {
             Serial.printf("%s: PBKDF2 failed at rounds=%lu\n", TAG, static_cast<unsigned long>(iterations));
