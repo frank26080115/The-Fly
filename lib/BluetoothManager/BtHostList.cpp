@@ -31,181 +31,27 @@ constexpr uint32_t    kBtHostListVersion  = 3;
 constexpr const char* kBtHostNvsNamespace = "bt_hosts";
 constexpr const char* kBtHostNvsBlobName  = "hosts";
 
-const char* load_result_tostring(BtHostList::LoadResult result)
-{
-    switch (result)
-    {
-    case BtHostList::LoadResult::Ok:
-        return "Ok";
-    case BtHostList::LoadResult::SdNotReady:
-        return "SdNotReady";
-    case BtHostList::LoadResult::FileOpenFailed:
-        return "FileOpenFailed";
-    case BtHostList::LoadResult::FileTooLarge:
-        return "FileTooLarge";
-    case BtHostList::LoadResult::FileReadFailed:
-        return "FileReadFailed";
-    case BtHostList::LoadResult::JsonParseFailed:
-        return "JsonParseFailed";
-    case BtHostList::LoadResult::MissingHosts:
-        return "MissingHosts";
-    case BtHostList::LoadResult::InvalidHost:
-        return "InvalidHost";
-    case BtHostList::LoadResult::AllocationFailed:
-        return "AllocationFailed";
-    case BtHostList::LoadResult::EmptyList:
-        return "EmptyList";
-    case BtHostList::LoadResult::Destroyed:
-        return "Destroyed";
-    case BtHostList::LoadResult::FileWriteFailed:
-        return "FileWriteFailed";
-    default:
-        return "Unknown";
-    }
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-bool host_slot_used(const bt_host_item_t& item)
-{
-    const esp_bd_addr_t empty = {};
-    return !bda_equal(item.bdaddr, empty);
-}
-
-time_t current_host_time()
-{
-    time_t now = time(nullptr);
-    if (now <= 0)
-    {
-        now = static_cast<time_t>(millis() / 1000);
-    }
-    return now;
-}
-
-void refresh_host_runtime(bt_host_item_t& item)
-{
-    item.name_custom[sizeof(item.name_custom) - 1]     = '\0';
-    item.name_reported[sizeof(item.name_reported) - 1] = '\0';
-    item.bonded                                        = host_slot_used(item) && BtManager::isBonded(item.bdaddr);
-}
-
-void init_bt_host_list(bt_host_list_t& hosts)
-{
-    memset(&hosts, 0, sizeof(hosts));
-    hosts.magic   = kBtHostListMagic;
-    hosts.version = kBtHostListVersion;
-}
-
-void clear_host_slot(bt_host_item_t& item)
-{
-    memset(&item, 0, sizeof(item));
-}
-
-void sanitize_bt_host_list(bt_host_list_t& hosts)
-{
-    hosts.magic            = kBtHostListMagic;
-    hosts.version          = kBtHostListVersion;
-    const size_t old_count = hosts.count > kBtHostListMaxEntries ? kBtHostListMaxEntries : hosts.count;
-    uint8_t      new_count = 0;
-
-    for (size_t i = 0; i < old_count; ++i)
-    {
-        bt_host_item_t item = hosts.host[i];
-        if (!host_slot_used(item))
-        {
-            continue;
-        }
-
-        refresh_host_runtime(item);
-        if (item.icon >= ICON_LAST)
-        {
-            item.icon = ICON_UNKNOWN;
-        }
-        hosts.host[new_count++] = item;
-    }
-
-    for (size_t i = new_count; i < kBtHostListMaxEntries; ++i)
-    {
-        clear_host_slot(hosts.host[i]);
-    }
-
-    hosts.count = new_count;
-}
-
-bt_host_item_t* find_host(bt_host_list_t& hosts, const esp_bd_addr_t bdaddr)
-{
-    for (size_t i = 0; i < hosts.count; ++i)
-    {
-        if (bda_equal(hosts.host[i].bdaddr, bdaddr))
-        {
-            return &hosts.host[i];
-        }
-    }
-    return nullptr;
-}
-
-const bt_host_item_t* find_host_by_icon(const bt_host_list_t& hosts, uint8_t icon)
-{
-    for (size_t i = 0; i < hosts.count; ++i)
-    {
-        if (hosts.host[i].bonded && hosts.host[i].icon == icon)
-        {
-            return &hosts.host[i];
-        }
-    }
-    return nullptr;
-}
-
-size_t choose_overwrite_slot(bt_host_list_t& hosts)
-{
-    size_t selected       = 0;
-    bool   found_unbonded = false;
-    time_t oldest         = 0;
-
-    for (size_t i = 0; i < hosts.count; ++i)
-    {
-        refresh_host_runtime(hosts.host[i]);
-        if (hosts.host[i].bonded)
-        {
-            continue;
-        }
-        if (!found_unbonded || hosts.host[i].last_used < oldest)
-        {
-            selected       = i;
-            oldest         = hosts.host[i].last_used;
-            found_unbonded = true;
-        }
-    }
-
-    if (found_unbonded)
-    {
-        return selected;
-    }
-
-    oldest = hosts.host[0].last_used;
-    for (size_t i = 1; i < hosts.count; ++i)
-    {
-        if (hosts.host[i].last_used < oldest)
-        {
-            selected = i;
-            oldest   = hosts.host[i].last_used;
-        }
-    }
-    return selected;
-}
-
-void format_mac(const esp_bd_addr_t bdaddr, char* buffer, size_t buffer_size)
-{
-    snprintf(buffer,
-             buffer_size,
-             "%02X:%02X:%02X:%02X:%02X:%02X",
-             bdaddr[0],
-             bdaddr[1],
-             bdaddr[2],
-             bdaddr[3],
-             bdaddr[4],
-             bdaddr[5]);
-}
+static const char*           load_result_tostring(BtHostList::LoadResult result);
+static void                  init_bt_host_list(bt_host_list_t& hosts);
+static void                  sanitize_bt_host_list(bt_host_list_t& hosts);
+static void                  refresh_host_runtime(bt_host_item_t& item);
+static bt_host_item_t*       find_host(bt_host_list_t& hosts, const esp_bd_addr_t bdaddr);
+static const bt_host_item_t* find_host_by_icon(const bt_host_list_t& hosts, uint8_t icon);
+static size_t                choose_overwrite_slot(bt_host_list_t& hosts);
+static time_t                current_host_time();
+static bool                  host_slot_used(const bt_host_item_t& item);
+static void                  clear_host_slot(bt_host_item_t& item);
+static void                  format_mac(const esp_bd_addr_t bdaddr, char* buffer, size_t buffer_size);
 
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 BtHostList::BtHostList()
 {
@@ -760,3 +606,194 @@ const char* BtHostList::lastLoadResultName() const
 {
     return load_result_tostring(m_last_load_result);
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+const char* load_result_tostring(BtHostList::LoadResult result)
+{
+    switch (result)
+    {
+    case BtHostList::LoadResult::Ok:
+        return "Ok";
+    case BtHostList::LoadResult::SdNotReady:
+        return "SdNotReady";
+    case BtHostList::LoadResult::FileOpenFailed:
+        return "FileOpenFailed";
+    case BtHostList::LoadResult::FileTooLarge:
+        return "FileTooLarge";
+    case BtHostList::LoadResult::FileReadFailed:
+        return "FileReadFailed";
+    case BtHostList::LoadResult::JsonParseFailed:
+        return "JsonParseFailed";
+    case BtHostList::LoadResult::MissingHosts:
+        return "MissingHosts";
+    case BtHostList::LoadResult::InvalidHost:
+        return "InvalidHost";
+    case BtHostList::LoadResult::AllocationFailed:
+        return "AllocationFailed";
+    case BtHostList::LoadResult::EmptyList:
+        return "EmptyList";
+    case BtHostList::LoadResult::Destroyed:
+        return "Destroyed";
+    case BtHostList::LoadResult::FileWriteFailed:
+        return "FileWriteFailed";
+    default:
+        return "Unknown";
+    }
+}
+
+void init_bt_host_list(bt_host_list_t& hosts)
+{
+    memset(&hosts, 0, sizeof(hosts));
+    hosts.magic   = kBtHostListMagic;
+    hosts.version = kBtHostListVersion;
+}
+
+void sanitize_bt_host_list(bt_host_list_t& hosts)
+{
+    hosts.magic            = kBtHostListMagic;
+    hosts.version          = kBtHostListVersion;
+    const size_t old_count = hosts.count > kBtHostListMaxEntries ? kBtHostListMaxEntries : hosts.count;
+    uint8_t      new_count = 0;
+
+    for (size_t i = 0; i < old_count; ++i)
+    {
+        bt_host_item_t item = hosts.host[i];
+        if (!host_slot_used(item))
+        {
+            continue;
+        }
+
+        refresh_host_runtime(item);
+        if (item.icon >= ICON_LAST)
+        {
+            item.icon = ICON_UNKNOWN;
+        }
+        hosts.host[new_count++] = item;
+    }
+
+    for (size_t i = new_count; i < kBtHostListMaxEntries; ++i)
+    {
+        clear_host_slot(hosts.host[i]);
+    }
+
+    hosts.count = new_count;
+}
+
+void refresh_host_runtime(bt_host_item_t& item)
+{
+    item.name_custom[sizeof(item.name_custom) - 1]     = '\0';
+    item.name_reported[sizeof(item.name_reported) - 1] = '\0';
+    item.bonded                                        = host_slot_used(item) && BtManager::isBonded(item.bdaddr);
+}
+
+bt_host_item_t* find_host(bt_host_list_t& hosts, const esp_bd_addr_t bdaddr)
+{
+    for (size_t i = 0; i < hosts.count; ++i)
+    {
+        if (bda_equal(hosts.host[i].bdaddr, bdaddr))
+        {
+            return &hosts.host[i];
+        }
+    }
+    return nullptr;
+}
+
+const bt_host_item_t* find_host_by_icon(const bt_host_list_t& hosts, uint8_t icon)
+{
+    for (size_t i = 0; i < hosts.count; ++i)
+    {
+        if (hosts.host[i].bonded && hosts.host[i].icon == icon)
+        {
+            return &hosts.host[i];
+        }
+    }
+    return nullptr;
+}
+
+size_t choose_overwrite_slot(bt_host_list_t& hosts)
+{
+    size_t selected       = 0;
+    bool   found_unbonded = false;
+    time_t oldest         = 0;
+
+    for (size_t i = 0; i < hosts.count; ++i)
+    {
+        refresh_host_runtime(hosts.host[i]);
+        if (hosts.host[i].bonded)
+        {
+            continue;
+        }
+        if (!found_unbonded || hosts.host[i].last_used < oldest)
+        {
+            selected       = i;
+            oldest         = hosts.host[i].last_used;
+            found_unbonded = true;
+        }
+    }
+
+    if (found_unbonded)
+    {
+        return selected;
+    }
+
+    oldest = hosts.host[0].last_used;
+    for (size_t i = 1; i < hosts.count; ++i)
+    {
+        if (hosts.host[i].last_used < oldest)
+        {
+            selected = i;
+            oldest   = hosts.host[i].last_used;
+        }
+    }
+    return selected;
+}
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+time_t current_host_time()
+{
+    time_t now = time(nullptr);
+    if (now <= 0)
+    {
+        now = static_cast<time_t>(millis() / 1000);
+    }
+    return now;
+}
+
+bool host_slot_used(const bt_host_item_t& item)
+{
+    const esp_bd_addr_t empty = {};
+    return !bda_equal(item.bdaddr, empty);
+}
+
+void clear_host_slot(bt_host_item_t& item)
+{
+    memset(&item, 0, sizeof(item));
+}
+
+// -----------------------------------------------------------------------------
+// Formatting Helpers
+// -----------------------------------------------------------------------------
+
+void format_mac(const esp_bd_addr_t bdaddr, char* buffer, size_t buffer_size)
+{
+    snprintf(buffer,
+             buffer_size,
+             "%02X:%02X:%02X:%02X:%02X:%02X",
+             bdaddr[0],
+             bdaddr[1],
+             bdaddr[2],
+             bdaddr[3],
+             bdaddr[4],
+             bdaddr[5]);
+}
+
+} // namespace

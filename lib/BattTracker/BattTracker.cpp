@@ -24,86 +24,19 @@ ChargeLevel tracked_level   = ChargeLevel::unknown;
 bool        initialized     = false;
 uint32_t    start_time      = 0;
 
-ChargeLevel levelFromVoltage(float volts)
-{
-    if (!isfinite(volts) || volts <= 0.0f)
-    {
-        return ChargeLevel::unknown;
-    }
-    if (volts <= kLowThreshold)
-    {
-        return ChargeLevel::low;
-    }
-    if (volts >= kHighThreshold)
-    {
-        return ChargeLevel::high;
-    }
-    return ChargeLevel::medium;
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-ChargeLevel levelFromChargingVoltage(float volts, ChargeLevel current)
-{
-    if (!isfinite(volts) || volts <= 0.0f)
-    {
-        return ChargeLevel::unknown;
-    }
+static void        updateNow();
+static ChargeLevel levelFromVoltage(float volts);
+static ChargeLevel levelFromChargingVoltage(float volts, ChargeLevel current);
 
-    switch (current)
-    {
-    case ChargeLevel::low:
-        return volts >= kLowThreshold + kChargeHysteresis ? ChargeLevel::medium : ChargeLevel::low;
-
-    case ChargeLevel::medium:
-        if (volts <= kLowThreshold - kChargeHysteresis)
-        {
-            return ChargeLevel::low;
-        }
-        if (volts >= kHighThreshold + kChargeHysteresis)
-        {
-            return ChargeLevel::high;
-        }
-        return ChargeLevel::medium;
-
-    case ChargeLevel::high:
-        return volts <= kHighThreshold - kChargeHysteresis ? ChargeLevel::medium : ChargeLevel::high;
-
-    case ChargeLevel::unknown:
-    default:
-        return levelFromVoltage(volts);
-    }
-}
-
-void updateNow()
-{
-    const float measured_voltage  = halReadBatteryVoltage();
-    const bool  measured_charging = halReadUsbAvailable();
-
-    charging = measured_charging;
-
-    if (!isfinite(measured_voltage) || measured_voltage <= 0.0f)
-    {
-        tracked_voltage = kUnknownVoltage;
-        tracked_level   = ChargeLevel::unknown;
-        return;
-    }
-
-    if (tracked_voltage <= 0.0f)
-    {
-        tracked_voltage = measured_voltage;
-    }
-    else if (measured_charging)
-    {
-        tracked_voltage = measured_voltage;
-    }
-    else if (measured_voltage < tracked_voltage)
-    {
-        tracked_voltage = measured_voltage;
-    }
-
-    tracked_level = measured_charging ? levelFromChargingVoltage(tracked_voltage, tracked_level)
-                                      : levelFromVoltage(tracked_voltage);
-}
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 void init()
 {
@@ -191,6 +124,103 @@ float voltage()
 {
     return tracked_voltage;
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+void updateNow()
+{
+    const float measured_voltage  = halReadBatteryVoltage();
+    const bool  measured_charging = halReadUsbAvailable();
+
+    charging = measured_charging;
+
+    if (!isfinite(measured_voltage) || measured_voltage <= 0.0f)
+    {
+        tracked_voltage = kUnknownVoltage;
+        tracked_level   = ChargeLevel::unknown;
+        return;
+    }
+
+    if (tracked_voltage <= 0.0f)
+    {
+        tracked_voltage = measured_voltage;
+    }
+    else if (measured_charging)
+    {
+        tracked_voltage = measured_voltage;
+    }
+    else if (measured_voltage < tracked_voltage)
+    {
+        tracked_voltage = measured_voltage;
+    }
+
+    tracked_level = measured_charging ? levelFromChargingVoltage(tracked_voltage, tracked_level)
+                                      : levelFromVoltage(tracked_voltage);
+}
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+ChargeLevel levelFromVoltage(float volts)
+{
+    if (!isfinite(volts) || volts <= 0.0f)
+    {
+        return ChargeLevel::unknown;
+    }
+    if (volts <= kLowThreshold)
+    {
+        return ChargeLevel::low;
+    }
+    if (volts >= kHighThreshold)
+    {
+        return ChargeLevel::high;
+    }
+    return ChargeLevel::medium;
+}
+
+ChargeLevel levelFromChargingVoltage(float volts, ChargeLevel current)
+{
+    if (!isfinite(volts) || volts <= 0.0f)
+    {
+        return ChargeLevel::unknown;
+    }
+
+    switch (current)
+    {
+    case ChargeLevel::low:
+        return volts >= kLowThreshold + kChargeHysteresis ? ChargeLevel::medium : ChargeLevel::low;
+
+    case ChargeLevel::medium:
+        if (volts <= kLowThreshold - kChargeHysteresis)
+        {
+            return ChargeLevel::low;
+        }
+        if (volts >= kHighThreshold + kChargeHysteresis)
+        {
+            return ChargeLevel::high;
+        }
+        return ChargeLevel::medium;
+
+    case ChargeLevel::high:
+        return volts <= kHighThreshold - kChargeHysteresis ? ChargeLevel::medium : ChargeLevel::high;
+
+    case ChargeLevel::unknown:
+    default:
+        return levelFromVoltage(volts);
+    }
+}
+
+} // namespace
+
+// -----------------------------------------------------------------------------
+// HAL Helpers
+// -----------------------------------------------------------------------------
 
 float halReadBatteryVoltage()
 {

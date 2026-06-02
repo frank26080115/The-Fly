@@ -58,186 +58,31 @@ bool     g_have_hpf_state  = false;
 bool     g_have_last_hpf   = false;
 uint32_t g_ignore_until_ms = 0;
 
-uint16_t clamp_gain_units(uint16_t gain)
-{
-    return std::min<uint16_t>(kMaxGainUnits, std::max<uint16_t>(kMinGainUnits, gain));
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-uint16_t gain_to_units(float gain)
-{
-    if (gain <= kMinGain)
-    {
-        return kMinGainUnits;
-    }
-    if (gain >= kMaxGain)
-    {
-        return kMaxGainUnits;
-    }
-
-    return clamp_gain_units(static_cast<uint16_t>((gain * static_cast<float>(kGainDivisor)) + 0.5f));
-}
-
-float units_to_gain(uint16_t gain)
-{
-    return static_cast<float>(gain) / static_cast<float>(kGainDivisor);
-}
-
-uint16_t sample_abs_peak(int16_t sample)
-{
-    if (sample == std::numeric_limits<int16_t>::min())
-    {
-        return 32768U;
-    }
-
-    const int16_t magnitude = sample < 0 ? -sample : sample;
-    return static_cast<uint16_t>(magnitude);
-}
-
-int16_t saturate_int16(int32_t sample)
-{
-    if (sample > std::numeric_limits<int16_t>::max())
-    {
-        return std::numeric_limits<int16_t>::max();
-    }
-    if (sample < std::numeric_limits<int16_t>::min())
-    {
-        return std::numeric_limits<int16_t>::min();
-    }
-
-    return static_cast<int16_t>(sample);
-}
-
-uint16_t scaled_abs_peak(int16_t sample, uint16_t gain)
-{
-    const int32_t scaled =
-        (static_cast<int32_t>(sample) * static_cast<int32_t>(gain)) / static_cast<int32_t>(kGainDivisor);
-    return sample_abs_peak(saturate_int16(scaled));
-}
-
-int32_t saturate_int32(int64_t sample)
-{
-    if (sample > std::numeric_limits<int32_t>::max())
-    {
-        return std::numeric_limits<int32_t>::max();
-    }
-    if (sample < std::numeric_limits<int32_t>::min())
-    {
-        return std::numeric_limits<int32_t>::min();
-    }
-
-    return static_cast<int32_t>(sample);
-}
-
-int16_t high_pass_filter(int16_t sample)
-{
-    const int32_t x = sample;
-    if (!g_have_hpf_state)
-    {
-        g_previous_hpf_x = x;
-        g_previous_hpf_y = 0;
-        g_have_hpf_state = true;
-        return 0;
-    }
-
-    const int64_t filtered = static_cast<int64_t>(x) - g_previous_hpf_x +
-                             (static_cast<int64_t>(kHighPassFilterR) * g_previous_hpf_y) / kGainDivisor;
-    g_previous_hpf_x       = x;
-    g_previous_hpf_y       = saturate_int32(filtered);
-    return saturate_int16(g_previous_hpf_y);
-}
-
-bool zero_crossed(int16_t sample)
-{
-    if (sample == 0)
-    {
-        return true;
-    }
-    if (!g_have_last_hpf)
-    {
-        return false;
-    }
-
-    return (g_last_hpf_sample < 0 && sample > 0) || (g_last_hpf_sample > 0 && sample < 0);
-}
-
-void decay_peak(uint16_t& peak, size_t frames)
-{
-    uint32_t decay = 1;
-    if (frames > 0)
-    {
-        decay = std::max<uint32_t>(decay,
-                                   (static_cast<uint32_t>(kMaxSampleMagnitude) * static_cast<uint32_t>(frames) * 2U) /
-                                       (kNominalSampleRateHz * 3U));
-    }
-
-    peak = decay >= peak ? 0 : static_cast<uint16_t>(peak - decay);
-}
-
-void update_target_gain()
-{
-    if (g_fixed_gain_mode)
-    {
-        g_target_gain = g_fixed_gain;
-        return;
-    }
-
-    if (g_raw_peak == 0)
-    {
-        g_target_gain = kMaxGainUnits;
-        return;
-    }
-
-    const uint32_t gain =
-        (static_cast<uint32_t>(kTargetPeak) * static_cast<uint32_t>(kGainDivisor) + (g_raw_peak / 2U)) / g_raw_peak;
-    g_target_gain = clamp_gain_units(static_cast<uint16_t>(std::min<uint32_t>(gain, kMaxGainUnits)));
-}
-
-void update_current_gain()
-{
-    if (g_current_gain < g_target_gain)
-    {
-        g_current_gain = static_cast<uint16_t>(std::min<uint16_t>(g_target_gain, g_current_gain + kGainStepUpUnits));
-        return;
-    }
-
-    if (g_current_gain > g_target_gain)
-    {
-        const uint16_t next_gain = g_current_gain > kGainStepDownUnits
-                                       ? static_cast<uint16_t>(g_current_gain - kGainStepDownUnits)
-                                       : kMinGainUnits;
-        g_current_gain           = std::max<uint16_t>(g_target_gain, next_gain);
-    }
-}
-
-uint8_t peak_to_level(uint16_t peak)
-{
-    return static_cast<uint8_t>(std::min<uint32_t>(100U, (static_cast<uint32_t>(peak) * 100U) / kMaxSampleMagnitude));
-}
-
-void init_unlocked()
-{
-    g_bypass          = false;
-    g_fixed_gain_mode = false;
-    g_fixed_gain      = kInitialGainUnits;
-    g_target_gain     = kInitialGainUnits;
-    g_current_gain    = kInitialGainUnits;
-    g_previous_gain   = kInitialGainUnits;
-    g_raw_peak        = 0;
-    g_scaled_peak     = 0;
-    g_previous_hpf_x  = 0;
-    g_previous_hpf_y  = 0;
-    g_last_hpf_sample = 0;
-    g_have_hpf_state  = false;
-    g_have_last_hpf   = false;
-    g_ignore_until_ms = 0;
-}
-
-bool ignoring_samples(uint32_t nowMs)
-{
-    return static_cast<int32_t>(nowMs - g_ignore_until_ms) < 0;
-}
+static void     init_unlocked();
+static bool     ignoring_samples(uint32_t nowMs);
+static void     decay_peak(uint16_t& peak, size_t frames);
+static int16_t  high_pass_filter(int16_t sample);
+static bool     zero_crossed(int16_t sample);
+static void     update_target_gain();
+static void     update_current_gain();
+static uint16_t gain_to_units(float gain);
+static float    units_to_gain(uint16_t gain);
+static uint16_t scaled_abs_peak(int16_t sample, uint16_t gain);
+static uint8_t  peak_to_level(uint16_t peak);
+static uint16_t clamp_gain_units(uint16_t gain);
+static uint16_t sample_abs_peak(int16_t sample);
+static int16_t  saturate_int16(int32_t sample);
+static int32_t  saturate_int32(int64_t sample);
 
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 void init()
 {
@@ -457,5 +302,197 @@ uint8_t scaledPeakLevel()
                                        g_current_gain));
     return peak_to_level(peak);
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+void init_unlocked()
+{
+    g_bypass          = false;
+    g_fixed_gain_mode = false;
+    g_fixed_gain      = kInitialGainUnits;
+    g_target_gain     = kInitialGainUnits;
+    g_current_gain    = kInitialGainUnits;
+    g_previous_gain   = kInitialGainUnits;
+    g_raw_peak        = 0;
+    g_scaled_peak     = 0;
+    g_previous_hpf_x  = 0;
+    g_previous_hpf_y  = 0;
+    g_last_hpf_sample = 0;
+    g_have_hpf_state  = false;
+    g_have_last_hpf   = false;
+    g_ignore_until_ms = 0;
+}
+
+bool ignoring_samples(uint32_t nowMs)
+{
+    return static_cast<int32_t>(nowMs - g_ignore_until_ms) < 0;
+}
+
+void decay_peak(uint16_t& peak, size_t frames)
+{
+    uint32_t decay = 1;
+    if (frames > 0)
+    {
+        decay = std::max<uint32_t>(decay,
+                                   (static_cast<uint32_t>(kMaxSampleMagnitude) * static_cast<uint32_t>(frames) * 2U) /
+                                       (kNominalSampleRateHz * 3U));
+    }
+
+    peak = decay >= peak ? 0 : static_cast<uint16_t>(peak - decay);
+}
+
+int16_t high_pass_filter(int16_t sample)
+{
+    const int32_t x = sample;
+    if (!g_have_hpf_state)
+    {
+        g_previous_hpf_x = x;
+        g_previous_hpf_y = 0;
+        g_have_hpf_state = true;
+        return 0;
+    }
+
+    const int64_t filtered = static_cast<int64_t>(x) - g_previous_hpf_x +
+                             (static_cast<int64_t>(kHighPassFilterR) * g_previous_hpf_y) / kGainDivisor;
+    g_previous_hpf_x       = x;
+    g_previous_hpf_y       = saturate_int32(filtered);
+    return saturate_int16(g_previous_hpf_y);
+}
+
+bool zero_crossed(int16_t sample)
+{
+    if (sample == 0)
+    {
+        return true;
+    }
+    if (!g_have_last_hpf)
+    {
+        return false;
+    }
+
+    return (g_last_hpf_sample < 0 && sample > 0) || (g_last_hpf_sample > 0 && sample < 0);
+}
+
+void update_target_gain()
+{
+    if (g_fixed_gain_mode)
+    {
+        g_target_gain = g_fixed_gain;
+        return;
+    }
+
+    if (g_raw_peak == 0)
+    {
+        g_target_gain = kMaxGainUnits;
+        return;
+    }
+
+    const uint32_t gain =
+        (static_cast<uint32_t>(kTargetPeak) * static_cast<uint32_t>(kGainDivisor) + (g_raw_peak / 2U)) / g_raw_peak;
+    g_target_gain = clamp_gain_units(static_cast<uint16_t>(std::min<uint32_t>(gain, kMaxGainUnits)));
+}
+
+void update_current_gain()
+{
+    if (g_current_gain < g_target_gain)
+    {
+        g_current_gain = static_cast<uint16_t>(std::min<uint16_t>(g_target_gain, g_current_gain + kGainStepUpUnits));
+        return;
+    }
+
+    if (g_current_gain > g_target_gain)
+    {
+        const uint16_t next_gain = g_current_gain > kGainStepDownUnits
+                                       ? static_cast<uint16_t>(g_current_gain - kGainStepDownUnits)
+                                       : kMinGainUnits;
+        g_current_gain           = std::max<uint16_t>(g_target_gain, next_gain);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+uint16_t gain_to_units(float gain)
+{
+    if (gain <= kMinGain)
+    {
+        return kMinGainUnits;
+    }
+    if (gain >= kMaxGain)
+    {
+        return kMaxGainUnits;
+    }
+
+    return clamp_gain_units(static_cast<uint16_t>((gain * static_cast<float>(kGainDivisor)) + 0.5f));
+}
+
+float units_to_gain(uint16_t gain)
+{
+    return static_cast<float>(gain) / static_cast<float>(kGainDivisor);
+}
+
+uint16_t scaled_abs_peak(int16_t sample, uint16_t gain)
+{
+    const int32_t scaled =
+        (static_cast<int32_t>(sample) * static_cast<int32_t>(gain)) / static_cast<int32_t>(kGainDivisor);
+    return sample_abs_peak(saturate_int16(scaled));
+}
+
+uint8_t peak_to_level(uint16_t peak)
+{
+    return static_cast<uint8_t>(std::min<uint32_t>(100U, (static_cast<uint32_t>(peak) * 100U) / kMaxSampleMagnitude));
+}
+
+uint16_t clamp_gain_units(uint16_t gain)
+{
+    return std::min<uint16_t>(kMaxGainUnits, std::max<uint16_t>(kMinGainUnits, gain));
+}
+
+uint16_t sample_abs_peak(int16_t sample)
+{
+    if (sample == std::numeric_limits<int16_t>::min())
+    {
+        return 32768U;
+    }
+
+    const int16_t magnitude = sample < 0 ? -sample : sample;
+    return static_cast<uint16_t>(magnitude);
+}
+
+int16_t saturate_int16(int32_t sample)
+{
+    if (sample > std::numeric_limits<int16_t>::max())
+    {
+        return std::numeric_limits<int16_t>::max();
+    }
+    if (sample < std::numeric_limits<int16_t>::min())
+    {
+        return std::numeric_limits<int16_t>::min();
+    }
+
+    return static_cast<int16_t>(sample);
+}
+
+int32_t saturate_int32(int64_t sample)
+{
+    if (sample > std::numeric_limits<int32_t>::max())
+    {
+        return std::numeric_limits<int32_t>::max();
+    }
+    if (sample < std::numeric_limits<int32_t>::min())
+    {
+        return std::numeric_limits<int32_t>::min();
+    }
+
+    return static_cast<int32_t>(sample);
+}
+
+} // namespace
 
 } // namespace MicGainManager

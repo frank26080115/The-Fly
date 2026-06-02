@@ -15,6 +15,69 @@ constexpr uint16_t kMaxSampleMagnitude  = 32767;
 std::mutex g_mutex;
 uint16_t   g_raw_peak = 0;
 
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
+
+static uint16_t sample_abs_peak(int16_t sample);
+static void     decay_peak(uint16_t& peak, size_t frames);
+static uint8_t  peak_to_level(uint16_t peak);
+
+} // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
+
+void init()
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+    g_raw_peak = 0;
+}
+
+void process(const int16_t* samples, size_t sampleCount)
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+
+    decay_peak(g_raw_peak, sampleCount);
+
+    if (!samples || sampleCount == 0)
+    {
+        return;
+    }
+
+    uint16_t chunk_peak = 0;
+    for (size_t i = 0; i < sampleCount; ++i)
+    {
+        chunk_peak = std::max<uint16_t>(chunk_peak, sample_abs_peak(samples[i]));
+    }
+
+    g_raw_peak = std::max<uint16_t>(g_raw_peak, chunk_peak);
+}
+
+// -----------------------------------------------------------------------------
+// Accessors
+// -----------------------------------------------------------------------------
+
+uint16_t rawPeak()
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+    return g_raw_peak;
+}
+
+uint8_t rawPeakLevel()
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+    return peak_to_level(g_raw_peak);
+}
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
 uint16_t sample_abs_peak(int16_t sample)
 {
     if (sample == std::numeric_limits<int16_t>::min())
@@ -45,43 +108,5 @@ uint8_t peak_to_level(uint16_t peak)
 }
 
 } // namespace
-
-void init()
-{
-    std::lock_guard<std::mutex> lock(g_mutex);
-    g_raw_peak = 0;
-}
-
-void process(const int16_t* samples, size_t sampleCount)
-{
-    std::lock_guard<std::mutex> lock(g_mutex);
-
-    decay_peak(g_raw_peak, sampleCount);
-
-    if (!samples || sampleCount == 0)
-    {
-        return;
-    }
-
-    uint16_t chunk_peak = 0;
-    for (size_t i = 0; i < sampleCount; ++i)
-    {
-        chunk_peak = std::max<uint16_t>(chunk_peak, sample_abs_peak(samples[i]));
-    }
-
-    g_raw_peak = std::max<uint16_t>(g_raw_peak, chunk_peak);
-}
-
-uint16_t rawPeak()
-{
-    std::lock_guard<std::mutex> lock(g_mutex);
-    return g_raw_peak;
-}
-
-uint8_t rawPeakLevel()
-{
-    std::lock_guard<std::mutex> lock(g_mutex);
-    return peak_to_level(g_raw_peak);
-}
 
 } // namespace SpeakerPeakActivity

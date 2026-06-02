@@ -32,138 +32,21 @@ CallerInfoItem* g_info_head   = nullptr;
 CallerInfoItem* g_info_tail   = nullptr;
 size_t          g_info_count  = 0;
 
-bool append_format(char* out, size_t out_size, size_t& length, const char* format, ...)
-{
-    if (!out || out_size == 0 || !format)
-    {
-        return false;
-    }
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-    if (length >= out_size)
-    {
-        out[out_size - 1] = '\0';
-        return false;
-    }
-
-    va_list args;
-    va_start(args, format);
-    const int written = vsnprintf(out + length, out_size - length, format, args);
-    va_end(args);
-
-    if (written < 0)
-    {
-        return false;
-    }
-
-    const size_t remaining = out_size - length;
-    if (static_cast<size_t>(written) >= remaining)
-    {
-        length      = out_size - 1;
-        out[length] = '\0';
-        return false;
-    }
-
-    length += static_cast<size_t>(written);
-    return true;
-}
-
-PhoneUiState ui_state_from_phone_state(const PhoneState& state)
-{
-    if (state.callsetup == 1)
-    {
-        return PhoneUiState::IncomingCall;
-    }
-
-    if (state.callsetup == 2 || state.callsetup == 3)
-    {
-        return PhoneUiState::OutgoingCall;
-    }
-
-    if (state.callheld != 0)
-    {
-        return PhoneUiState::HeldCall;
-    }
-
-    if (state.call == 1)
-    {
-        return PhoneUiState::ActiveCall;
-    }
-
-    if (state.scoAudio)
-    {
-        return PhoneUiState::AudioConnected;
-    }
-
-    return PhoneUiState::Idle;
-}
-
-bool has_info_unlocked(const char* text)
-{
-    for (CallerInfoItem* item = g_info_head; item; item = item->next)
-    {
-        if (item->text && strcmp(item->text, text) == 0)
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-void clear_info_unlocked()
-{
-    CallerInfoItem* item = g_info_head;
-    while (item)
-    {
-        CallerInfoItem* next = item->next;
-        free(item->text);
-        free(item);
-        item = next;
-    }
-
-    g_info_head  = nullptr;
-    g_info_tail  = nullptr;
-    g_info_count = 0;
-}
-
-bool add_info_unlocked(const char* text)
-{
-    char* clone = clone_trimmed_string(text);
-    if (!clone)
-    {
-        return false;
-    }
-
-    if (has_info_unlocked(clone))
-    {
-        free(clone);
-        return true;
-    }
-
-    CallerInfoItem* item = static_cast<CallerInfoItem*>(calloc(1, sizeof(CallerInfoItem)));
-    if (!item)
-    {
-        free(clone);
-        return false;
-    }
-
-    item->text = clone;
-
-    if (g_info_tail)
-    {
-        g_info_tail->next = item;
-    }
-    else
-    {
-        g_info_head = item;
-    }
-
-    g_info_tail = item;
-    ++g_info_count;
-    return true;
-}
+static PhoneUiState ui_state_from_phone_state(const PhoneState& state);
+static bool         add_info_unlocked(const char* text);
+static void         clear_info_unlocked();
+static bool         has_info_unlocked(const char* text);
+static bool         append_format(char* out, size_t out_size, size_t& length, const char* format, ...);
 
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 void reset()
 {
@@ -310,5 +193,149 @@ const char* getCallerInfoAt(size_t index)
 
     return item ? item->text : nullptr;
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+PhoneUiState ui_state_from_phone_state(const PhoneState& state)
+{
+    if (state.callsetup == 1)
+    {
+        return PhoneUiState::IncomingCall;
+    }
+
+    if (state.callsetup == 2 || state.callsetup == 3)
+    {
+        return PhoneUiState::OutgoingCall;
+    }
+
+    if (state.callheld != 0)
+    {
+        return PhoneUiState::HeldCall;
+    }
+
+    if (state.call == 1)
+    {
+        return PhoneUiState::ActiveCall;
+    }
+
+    if (state.scoAudio)
+    {
+        return PhoneUiState::AudioConnected;
+    }
+
+    return PhoneUiState::Idle;
+}
+
+bool add_info_unlocked(const char* text)
+{
+    char* clone = clone_trimmed_string(text);
+    if (!clone)
+    {
+        return false;
+    }
+
+    if (has_info_unlocked(clone))
+    {
+        free(clone);
+        return true;
+    }
+
+    CallerInfoItem* item = static_cast<CallerInfoItem*>(calloc(1, sizeof(CallerInfoItem)));
+    if (!item)
+    {
+        free(clone);
+        return false;
+    }
+
+    item->text = clone;
+
+    if (g_info_tail)
+    {
+        g_info_tail->next = item;
+    }
+    else
+    {
+        g_info_head = item;
+    }
+
+    g_info_tail = item;
+    ++g_info_count;
+    return true;
+}
+
+void clear_info_unlocked()
+{
+    CallerInfoItem* item = g_info_head;
+    while (item)
+    {
+        CallerInfoItem* next = item->next;
+        free(item->text);
+        free(item);
+        item = next;
+    }
+
+    g_info_head  = nullptr;
+    g_info_tail  = nullptr;
+    g_info_count = 0;
+}
+
+bool has_info_unlocked(const char* text)
+{
+    for (CallerInfoItem* item = g_info_head; item; item = item->next)
+    {
+        if (item->text && strcmp(item->text, text) == 0)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// -----------------------------------------------------------------------------
+// Formatting Helpers
+// -----------------------------------------------------------------------------
+
+bool append_format(char* out, size_t out_size, size_t& length, const char* format, ...)
+{
+    if (!out || out_size == 0 || !format)
+    {
+        return false;
+    }
+
+    if (length >= out_size)
+    {
+        out[out_size - 1] = '\0';
+        return false;
+    }
+
+    va_list args;
+    va_start(args, format);
+    const int written = vsnprintf(out + length, out_size - length, format, args);
+    va_end(args);
+
+    if (written < 0)
+    {
+        return false;
+    }
+
+    const size_t remaining = out_size - length;
+    if (static_cast<size_t>(written) >= remaining)
+    {
+        length      = out_size - 1;
+        out[length] = '\0';
+        return false;
+    }
+
+    length += static_cast<size_t>(written);
+    return true;
+}
+
+} // namespace
 
 } // namespace CallManager
