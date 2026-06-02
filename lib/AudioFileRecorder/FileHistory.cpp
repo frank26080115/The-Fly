@@ -62,11 +62,9 @@ void        update_prune_status_counts(uint32_t lines_processed,
                                        uint32_t delete_failures);
 bool        datetime_is_older_than_retention(const m5::rtc_datetime_t& datetime, int64_t now_epoch);
 int64_t     datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime);
-int64_t     days_from_civil(int32_t year, int32_t month, int32_t day);
 bool        read_history_line(FsFile& file, char* line, size_t line_size);
 bool        write_history_line(FsFile& file, const char* line);
 bool        extract_history_file_path(const char* line, char* path, size_t path_size);
-const char* basename_for_path(const char* path);
 
 } // namespace
 
@@ -358,17 +356,6 @@ int64_t datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime)
            static_cast<int64_t>(datetime.time.seconds);
 }
 
-int64_t days_from_civil(int32_t year, int32_t month, int32_t day)
-{
-    year -= month <= 2;
-    const int32_t  era = (year >= 0 ? year : year - 399) / 400;
-    const uint32_t yoe = static_cast<uint32_t>(year - era * 400);
-    const uint32_t mp  = static_cast<uint32_t>(month + (month > 2 ? -3 : 9));
-    const uint32_t doy = (153 * mp + 2) / 5 + static_cast<uint32_t>(day) - 1;
-    const uint32_t doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
-    return static_cast<int64_t>(era) * 146097 + static_cast<int64_t>(doe) - 719468;
-}
-
 bool read_history_line(FsFile& file, char* line, size_t line_size)
 {
     if (!line || line_size == 0)
@@ -431,17 +418,6 @@ bool extract_history_file_path(const char* line, char* path, size_t path_size)
     memcpy(path, line, length);
     path[length] = '\0';
     return true;
-}
-
-const char* basename_for_path(const char* path)
-{
-    if (!path)
-    {
-        return "";
-    }
-
-    const char* slash = strrchr(path, '/');
-    return slash ? slash + 1 : path;
 }
 
 } // namespace

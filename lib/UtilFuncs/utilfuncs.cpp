@@ -15,32 +15,6 @@ namespace
 constexpr const char* TAG         = "utilfuncs";
 constexpr char        kHexChars[] = "0123456789abcdef";
 
-bool is_leap_year(int32_t year)
-{
-    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
-}
-
-int64_t days_from_civil(int32_t year, int32_t month, int32_t day)
-{
-    year -= month <= 2;
-    const int32_t  era = (year >= 0 ? year : year - 399) / 400;
-    const uint32_t yoe = static_cast<uint32_t>(year - era * 400);
-    const uint32_t mp  = static_cast<uint32_t>(month + (month > 2 ? -3 : 9));
-    const uint32_t doy = (153 * mp + 2) / 5 + static_cast<uint32_t>(day) - 1;
-    const uint32_t doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
-    return static_cast<int64_t>(era) * 146097 + static_cast<int64_t>(doe) - 719468;
-}
-
-int8_t weekday_from_days(int64_t days)
-{
-    int64_t weekday = (days + 4) % 7;
-    if (weekday < 0)
-    {
-        weekday += 7;
-    }
-    return static_cast<int8_t>(weekday);
-}
-
 bool valid_date(int32_t year, int32_t month, int32_t day)
 {
     if (year < 1900 || year > 2099 || month < 1 || month > 12)
@@ -92,6 +66,46 @@ int32_t parse_digits(const char* digits, size_t offset, size_t width, int32_t fa
     return value;
 }
 } // namespace
+
+bool is_leap_year(int32_t year)
+{
+    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+}
+
+int64_t days_from_civil(int32_t year, int32_t month, int32_t day)
+{
+    year -= month <= 2;
+    const int32_t  era = (year >= 0 ? year : year - 399) / 400;
+    const uint32_t yoe = static_cast<uint32_t>(year - era * 400);
+    const uint32_t mp  = static_cast<uint32_t>(month + (month > 2 ? -3 : 9));
+    const uint32_t doy = (153 * mp + 2) / 5 + static_cast<uint32_t>(day) - 1;
+    const uint32_t doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    return static_cast<int64_t>(era) * 146097 + static_cast<int64_t>(doe) - 719468;
+}
+
+void civil_from_days(int64_t days, int32_t& year, int32_t& month, int32_t& day)
+{
+    days += 719468;
+    const int64_t  era = (days >= 0 ? days : days - 146096) / 146097;
+    const uint32_t doe = static_cast<uint32_t>(days - era * 146097);
+    const uint32_t yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    year               = static_cast<int32_t>(yoe) + static_cast<int32_t>(era) * 400;
+    const uint32_t doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    const uint32_t mp  = (5 * doy + 2) / 153;
+    day                = static_cast<int32_t>(doy - (153 * mp + 2) / 5 + 1);
+    month              = static_cast<int32_t>(mp + (mp < 10 ? 3 : -9));
+    year += month <= 2;
+}
+
+int8_t weekday_from_days(int64_t days)
+{
+    int64_t weekday = (days + 4) % 7;
+    if (weekday < 0)
+    {
+        weekday += 7;
+    }
+    return static_cast<int8_t>(weekday);
+}
 
 bool ok(esp_err_t err, const char* what)
 {

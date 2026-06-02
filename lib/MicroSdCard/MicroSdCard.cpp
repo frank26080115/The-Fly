@@ -30,67 +30,19 @@ SdFs     g_sd;
 bool     g_ready         = false;
 uint32_t g_frequency_mhz = 0;
 
-void sdFatDateTime(uint16_t* date, uint16_t* time, uint8_t* ms10)
-{
-    m5::rtc_datetime_t now;
-    if (!Clock.getDateTime(&now))
-    {
-        now.date.year    = 2026;
-        now.date.month   = 1;
-        now.date.date    = 1;
-        now.time.hours   = 0;
-        now.time.minutes = 0;
-        now.time.seconds = 0;
-    }
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-    *date = FS_DATE(now.date.year, now.date.month, now.date.date);
-    *time = FS_TIME(now.time.hours, now.time.minutes, now.time.seconds);
-    *ms10 = 0;
-}
-
-bool tryBeginAtFrequency(uint32_t frequencyMHz)
-{
-    g_sd.end();
-
-    const SdSpiConfig config(kCore2SdCs, SHARED_SPI, SD_SCK_MHZ(frequencyMHz), &SPI);
-    if (!g_sd.cardBegin(config))
-    {
-        DBG_LOGW(TAG,
-                 "microSD card init failed at %lu MHz: error=0x%02X data=0x%02X",
-                 static_cast<unsigned long>(frequencyMHz),
-                 g_sd.sdErrorCode(),
-                 g_sd.sdErrorData());
-        return false;
-    }
-
-    if (!g_sd.volumeBegin())
-    {
-        DBG_LOGW(TAG,
-                 "microSD filesystem mount failed at %lu MHz: cardType=%u sectors=%lu error=0x%02X data=0x%02X",
-                 static_cast<unsigned long>(frequencyMHz),
-                 g_sd.card()->type(),
-                 static_cast<unsigned long>(g_sd.card()->sectorCount()),
-                 g_sd.sdErrorCode(),
-                 g_sd.sdErrorData());
-        g_sd.end();
-        return false;
-    }
-
-    DBG_LOGI(TAG, "microSD initialized at %lu MHz", static_cast<unsigned long>(frequencyMHz));
-    g_frequency_mhz = frequencyMHz;
-    return true;
-}
-
-void enableCore2SdPower()
-{
-    if (M5.Power.getType() == m5::Power_Class::pmic_axp192)
-    {
-        M5.Power.Axp192.setLDO2(3300);
-        delay(50);
-    }
-}
+static bool tryBeginAtFrequency(uint32_t frequencyMHz);
+static void enableCore2SdPower();
+static void sdFatDateTime(uint16_t* date, uint16_t* time, uint8_t* ms10);
 
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 bool begin()
 {
@@ -200,5 +152,78 @@ uint64_t freeBytes() // warning: this function is slow, it does actual IO, use D
     }
     return static_cast<uint64_t>(freeClusters) * static_cast<uint64_t>(g_sd.bytesPerCluster());
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+bool tryBeginAtFrequency(uint32_t frequencyMHz)
+{
+    g_sd.end();
+
+    const SdSpiConfig config(kCore2SdCs, SHARED_SPI, SD_SCK_MHZ(frequencyMHz), &SPI);
+    if (!g_sd.cardBegin(config))
+    {
+        DBG_LOGW(TAG,
+                 "microSD card init failed at %lu MHz: error=0x%02X data=0x%02X",
+                 static_cast<unsigned long>(frequencyMHz),
+                 g_sd.sdErrorCode(),
+                 g_sd.sdErrorData());
+        return false;
+    }
+
+    if (!g_sd.volumeBegin())
+    {
+        DBG_LOGW(TAG,
+                 "microSD filesystem mount failed at %lu MHz: cardType=%u sectors=%lu error=0x%02X data=0x%02X",
+                 static_cast<unsigned long>(frequencyMHz),
+                 g_sd.card()->type(),
+                 static_cast<unsigned long>(g_sd.card()->sectorCount()),
+                 g_sd.sdErrorCode(),
+                 g_sd.sdErrorData());
+        g_sd.end();
+        return false;
+    }
+
+    DBG_LOGI(TAG, "microSD initialized at %lu MHz", static_cast<unsigned long>(frequencyMHz));
+    g_frequency_mhz = frequencyMHz;
+    return true;
+}
+
+void enableCore2SdPower()
+{
+    if (M5.Power.getType() == m5::Power_Class::pmic_axp192)
+    {
+        M5.Power.Axp192.setLDO2(3300);
+        delay(50);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+void sdFatDateTime(uint16_t* date, uint16_t* time, uint8_t* ms10)
+{
+    m5::rtc_datetime_t now;
+    if (!Clock.getDateTime(&now))
+    {
+        now.date.year    = 2026;
+        now.date.month   = 1;
+        now.date.date    = 1;
+        now.time.hours   = 0;
+        now.time.minutes = 0;
+        now.time.seconds = 0;
+    }
+
+    *date = FS_DATE(now.date.year, now.date.month, now.date.date);
+    *time = FS_TIME(now.time.hours, now.time.minutes, now.time.seconds);
+    *ms10 = 0;
+}
+
+} // namespace
 
 } // namespace MicroSdCard

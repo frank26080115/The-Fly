@@ -8,6 +8,7 @@
 #include "ClockAgent.h"
 #include "dbg_log.h"
 #include "esp_sntp.h"
+#include "utilfuncs.h"
 
 namespace
 {
@@ -17,177 +18,26 @@ constexpr uint32_t    kPollIntervalMs = 100;
 constexpr uint32_t    kDestroyWaitMs  = 2000;
 constexpr uint32_t    kTaskStackBytes = 4096;
 
-const char* status_name(NtpSync::Status status)
-{
-    switch (status)
-    {
-    case NtpSync::Status::Idle:
-        return "Idle";
-    case NtpSync::Status::Busy:
-        return "Busy";
-    case NtpSync::Status::Done:
-        return "Done";
-    case NtpSync::Status::Error:
-        return "Error";
-    case NtpSync::Status::Cancelled:
-        return "Cancelled";
-    default:
-        return "Unknown";
-    }
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
 
-const char* error_name(NtpSync::Error error)
-{
-    switch (error)
-    {
-    case NtpSync::Error::None:
-        return "None";
-    case NtpSync::Error::AlreadyBusy:
-        return "AlreadyBusy";
-    case NtpSync::Error::InvalidArgument:
-        return "InvalidArgument";
-    case NtpSync::Error::WifiNotConnected:
-        return "WifiNotConnected";
-    case NtpSync::Error::TaskCreateFailed:
-        return "TaskCreateFailed";
-    case NtpSync::Error::Cancelled:
-        return "Cancelled";
-    case NtpSync::Error::Timeout:
-        return "Timeout";
-    case NtpSync::Error::RtcReadFailed:
-        return "RtcReadFailed";
-    case NtpSync::Error::NtpReadFailed:
-        return "NtpReadFailed";
-    case NtpSync::Error::RtcWriteFailed:
-        return "RtcWriteFailed";
-    case NtpSync::Error::NoNtpResult:
-        return "NoNtpResult";
-    default:
-        return "Unknown";
-    }
-}
-
-bool is_leap_year(int32_t year)
-{
-    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
-}
-
-int64_t days_from_civil(int32_t year, int32_t month, int32_t day)
-{
-    year -= month <= 2;
-    const int32_t  era = (year >= 0 ? year : year - 399) / 400;
-    const uint32_t yoe = static_cast<uint32_t>(year - era * 400);
-    const uint32_t mp  = static_cast<uint32_t>(month + (month > 2 ? -3 : 9));
-    const uint32_t doy = (153 * mp + 2) / 5 + static_cast<uint32_t>(day) - 1;
-    const uint32_t doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
-    return static_cast<int64_t>(era) * 146097 + static_cast<int64_t>(doe) - 719468;
-}
-
-bool valid_date(const m5::rtc_date_t& date)
-{
-    if (date.year < 2020 || date.year > 2099 || date.month < 1 || date.month > 12)
-    {
-        return false;
-    }
-
-    static constexpr int8_t kMonthDays[] = {
-        31,
-        28,
-        31,
-        30,
-        31,
-        30,
-        31,
-        31,
-        30,
-        31,
-        30,
-        31,
-    };
-
-    int8_t max_day = kMonthDays[date.month - 1];
-    if (date.month == 2 && is_leap_year(date.year))
-    {
-        ++max_day;
-    }
-
-    return date.date >= 1 && date.date <= max_day;
-}
-
-bool valid_time(const m5::rtc_time_t& time)
-{
-    return time.hours >= 0 && time.hours <= 23 && time.minutes >= 0 && time.minutes <= 59 && time.seconds >= 0 &&
-           time.seconds <= 59;
-}
-
-bool valid_datetime(const m5::rtc_datetime_t& datetime)
-{
-    return valid_date(datetime.date) && valid_time(datetime.time);
-}
-
-int64_t datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime)
-{
-    const int64_t days = days_from_civil(datetime.date.year, datetime.date.month, datetime.date.date);
-    return days * 86400LL + static_cast<int64_t>(datetime.time.hours) * 3600LL +
-           static_cast<int64_t>(datetime.time.minutes) * 60LL + datetime.time.seconds;
-}
-
-int64_t datetime_delta_seconds(const m5::rtc_datetime_t& lhs, const m5::rtc_datetime_t& rhs)
-{
-    int64_t delta = datetime_to_epoch_seconds(lhs) - datetime_to_epoch_seconds(rhs);
-    return delta < 0 ? -delta : delta;
-}
-
-m5::rtc_datetime_t tm_to_datetime(const tm& value)
-{
-    m5::rtc_datetime_t datetime = {};
-    datetime.date.year          = static_cast<int16_t>(value.tm_year + 1900);
-    datetime.date.month         = static_cast<int8_t>(value.tm_mon + 1);
-    datetime.date.date          = static_cast<int8_t>(value.tm_mday);
-    datetime.date.weekDay       = static_cast<int8_t>(value.tm_wday);
-    datetime.time.hours         = static_cast<int8_t>(value.tm_hour);
-    datetime.time.minutes       = static_cast<int8_t>(value.tm_min);
-    datetime.time.seconds       = static_cast<int8_t>(value.tm_sec);
-    return datetime;
-}
-
-bool copy_text(char* dst, size_t dst_size, const char* src)
-{
-    if (!dst || dst_size == 0)
-    {
-        return false;
-    }
-
-    const char*  value = src ? src : "";
-    const size_t chars = strlen(value);
-    if (chars >= dst_size)
-    {
-        return false;
-    }
-
-    memcpy(dst, value, chars + 1);
-    return true;
-}
-
-bool write_rtc_datetime(const m5::rtc_datetime_t& datetime)
-{
-    if (!valid_datetime(datetime))
-    {
-        return false;
-    }
-
-    const int64_t epoch_seconds = datetime_to_epoch_seconds(datetime);
-    const time_t  unix_time     = static_cast<time_t>(epoch_seconds);
-    if (static_cast<int64_t>(unix_time) != epoch_seconds || !Clock.setUnixTime(unix_time))
-    {
-        return false;
-    }
-
-    m5::rtc_datetime_t verified = {};
-    return M5.Rtc.getDateTime(&verified) && valid_datetime(verified) && datetime_delta_seconds(datetime, verified) <= 2;
-}
+static bool               write_rtc_datetime(const m5::rtc_datetime_t& datetime);
+static bool               valid_datetime(const m5::rtc_datetime_t& datetime);
+static bool               valid_date(const m5::rtc_date_t& date);
+static bool               valid_time(const m5::rtc_time_t& time);
+static int64_t            datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime);
+static int64_t            datetime_delta_seconds(const m5::rtc_datetime_t& lhs, const m5::rtc_datetime_t& rhs);
+static m5::rtc_datetime_t tm_to_datetime(const tm& value);
+static bool               copy_text(char* dst, size_t dst_size, const char* src);
+static const char*        status_name(NtpSync::Status status);
+static const char*        error_name(NtpSync::Error error);
 
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 NtpSync::NtpSync()
 {
@@ -561,3 +411,174 @@ void NtpSync::finish(Status status, Error error)
         callback(callback_result);
     }
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Supporting Functions
+// -----------------------------------------------------------------------------
+
+bool write_rtc_datetime(const m5::rtc_datetime_t& datetime)
+{
+    if (!valid_datetime(datetime))
+    {
+        return false;
+    }
+
+    const int64_t epoch_seconds = datetime_to_epoch_seconds(datetime);
+    const time_t  unix_time     = static_cast<time_t>(epoch_seconds);
+    if (static_cast<int64_t>(unix_time) != epoch_seconds || !Clock.setUnixTime(unix_time))
+    {
+        return false;
+    }
+
+    m5::rtc_datetime_t verified = {};
+    return M5.Rtc.getDateTime(&verified) && valid_datetime(verified) && datetime_delta_seconds(datetime, verified) <= 2;
+}
+
+bool valid_datetime(const m5::rtc_datetime_t& datetime)
+{
+    return valid_date(datetime.date) && valid_time(datetime.time);
+}
+
+bool valid_date(const m5::rtc_date_t& date)
+{
+    if (date.year < 2020 || date.year > 2099 || date.month < 1 || date.month > 12)
+    {
+        return false;
+    }
+
+    static constexpr int8_t kMonthDays[] = {
+        31,
+        28,
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
+    };
+
+    int8_t max_day = kMonthDays[date.month - 1];
+    if (date.month == 2 && is_leap_year(date.year))
+    {
+        ++max_day;
+    }
+
+    return date.date >= 1 && date.date <= max_day;
+}
+
+bool valid_time(const m5::rtc_time_t& time)
+{
+    return time.hours >= 0 && time.hours <= 23 && time.minutes >= 0 && time.minutes <= 59 && time.seconds >= 0 &&
+           time.seconds <= 59;
+}
+
+int64_t datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime)
+{
+    const int64_t days = days_from_civil(datetime.date.year, datetime.date.month, datetime.date.date);
+    return days * 86400LL + static_cast<int64_t>(datetime.time.hours) * 3600LL +
+           static_cast<int64_t>(datetime.time.minutes) * 60LL + datetime.time.seconds;
+}
+
+int64_t datetime_delta_seconds(const m5::rtc_datetime_t& lhs, const m5::rtc_datetime_t& rhs)
+{
+    int64_t delta = datetime_to_epoch_seconds(lhs) - datetime_to_epoch_seconds(rhs);
+    return delta < 0 ? -delta : delta;
+}
+
+m5::rtc_datetime_t tm_to_datetime(const tm& value)
+{
+    m5::rtc_datetime_t datetime = {};
+    datetime.date.year          = static_cast<int16_t>(value.tm_year + 1900);
+    datetime.date.month         = static_cast<int8_t>(value.tm_mon + 1);
+    datetime.date.date          = static_cast<int8_t>(value.tm_mday);
+    datetime.date.weekDay       = static_cast<int8_t>(value.tm_wday);
+    datetime.time.hours         = static_cast<int8_t>(value.tm_hour);
+    datetime.time.minutes       = static_cast<int8_t>(value.tm_min);
+    datetime.time.seconds       = static_cast<int8_t>(value.tm_sec);
+    return datetime;
+}
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+bool copy_text(char* dst, size_t dst_size, const char* src)
+{
+    if (!dst || dst_size == 0)
+    {
+        return false;
+    }
+
+    const char*  value = src ? src : "";
+    const size_t chars = strlen(value);
+    if (chars >= dst_size)
+    {
+        return false;
+    }
+
+    memcpy(dst, value, chars + 1);
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// Debug / Logging Helpers
+// -----------------------------------------------------------------------------
+
+const char* status_name(NtpSync::Status status)
+{
+    switch (status)
+    {
+    case NtpSync::Status::Idle:
+        return "Idle";
+    case NtpSync::Status::Busy:
+        return "Busy";
+    case NtpSync::Status::Done:
+        return "Done";
+    case NtpSync::Status::Error:
+        return "Error";
+    case NtpSync::Status::Cancelled:
+        return "Cancelled";
+    default:
+        return "Unknown";
+    }
+}
+
+const char* error_name(NtpSync::Error error)
+{
+    switch (error)
+    {
+    case NtpSync::Error::None:
+        return "None";
+    case NtpSync::Error::AlreadyBusy:
+        return "AlreadyBusy";
+    case NtpSync::Error::InvalidArgument:
+        return "InvalidArgument";
+    case NtpSync::Error::WifiNotConnected:
+        return "WifiNotConnected";
+    case NtpSync::Error::TaskCreateFailed:
+        return "TaskCreateFailed";
+    case NtpSync::Error::Cancelled:
+        return "Cancelled";
+    case NtpSync::Error::Timeout:
+        return "Timeout";
+    case NtpSync::Error::RtcReadFailed:
+        return "RtcReadFailed";
+    case NtpSync::Error::NtpReadFailed:
+        return "NtpReadFailed";
+    case NtpSync::Error::RtcWriteFailed:
+        return "RtcWriteFailed";
+    case NtpSync::Error::NoNtpResult:
+        return "NoNtpResult";
+    default:
+        return "Unknown";
+    }
+}
+
+} // namespace

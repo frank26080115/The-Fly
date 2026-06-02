@@ -13,16 +13,66 @@ This module handles physical buttons
 
 Button* buttons[BUTTONS_MAX_CNT] = {};
 
-static inline uint32_t nonZeroMillis()
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
+
+static uint32_t nonZeroMillis();
+static void     gpioButtonIsr(void* arg);
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
+
+void buttons_init(void)
 {
-    uint32_t now = millis();
-    return now == 0 ? 1 : now;
+    for (uint8_t i = 0; i < BUTTONS_MAX_CNT; ++i)
+    {
+        if (buttons[i] != nullptr)
+        {
+            buttons[i]->clrPressed();
+        }
+    }
 }
 
-static void IRAM_ATTR gpioButtonIsr(void* arg)
+void buttons_poll(void)
 {
-    static_cast<GpioButton*>(arg)->handleInterrupt();
+    M5.update();
+    for (uint8_t i = 0; i < BUTTONS_MAX_CNT; ++i)
+    {
+        if (buttons[i] != nullptr)
+        {
+            buttons[i]->poll();
+        }
+    }
 }
+
+bool buttons_anyPressed()
+{
+    for (uint8_t i = 0; i < BUTTONS_MAX_CNT; ++i)
+    {
+        if (buttons[i] != nullptr && buttons[i]->hasPressed())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void buttons_clrAnyPressed()
+{
+    for (uint8_t i = 0; i < BUTTONS_MAX_CNT; ++i)
+    {
+        if (buttons[i] != nullptr)
+        {
+            buttons[i]->clrPressed();
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Button Classes
+// -----------------------------------------------------------------------------
 
 Button::Button(int idx, void (*app_fptr)(void)) : app_fptr(app_fptr), internal_index(static_cast<uint8_t>(idx))
 {
@@ -204,48 +254,17 @@ bool PwrButton::isPressed()
     return M5.BtnPWR.isPressed();
 }
 
-void buttons_init(void)
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+static uint32_t nonZeroMillis()
 {
-    for (uint8_t i = 0; i < BUTTONS_MAX_CNT; ++i)
-    {
-        if (buttons[i] != nullptr)
-        {
-            buttons[i]->clrPressed();
-        }
-    }
+    uint32_t now = millis();
+    return now == 0 ? 1 : now;
 }
 
-void buttons_poll(void)
+static void IRAM_ATTR gpioButtonIsr(void* arg)
 {
-    M5.update();
-    for (uint8_t i = 0; i < BUTTONS_MAX_CNT; ++i)
-    {
-        if (buttons[i] != nullptr)
-        {
-            buttons[i]->poll();
-        }
-    }
-}
-
-bool buttons_anyPressed()
-{
-    for (uint8_t i = 0; i < BUTTONS_MAX_CNT; ++i)
-    {
-        if (buttons[i] != nullptr && buttons[i]->hasPressed())
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-void buttons_clrAnyPressed()
-{
-    for (uint8_t i = 0; i < BUTTONS_MAX_CNT; ++i)
-    {
-        if (buttons[i] != nullptr)
-        {
-            buttons[i]->clrPressed();
-        }
-    }
+    static_cast<GpioButton*>(arg)->handleInterrupt();
 }

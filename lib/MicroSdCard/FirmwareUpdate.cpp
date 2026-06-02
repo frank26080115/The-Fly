@@ -32,13 +32,17 @@ static_assert(kMockChunkCount * kMockChunkDelayMs >= kMockDurationMs, "mock upda
 
 uint8_t g_buffer[kBufferSize];
 
-void feed_watchdog()
-{
-    esp_task_wdt_reset();
-    taskYIELD();
-}
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
+
+static void feed_watchdog();
 
 } // namespace
+
+// -----------------------------------------------------------------------------
+// Main Flow
+// -----------------------------------------------------------------------------
 
 FirmwareUpdateResult update_firmware(FirmwareUpdateProgressCallback progressCallback)
 {
@@ -195,5 +199,20 @@ FirmwareUpdateResult update_firmware(FirmwareUpdateProgressCallback progressCall
     DBG_LOGI(TAG, "firmware update staged: %llu bytes written", static_cast<unsigned long long>(bytes_written));
     return FirmwareUpdateResult::Ok;
 }
+
+namespace
+{
+
+// -----------------------------------------------------------------------------
+// Small Helpers
+// -----------------------------------------------------------------------------
+
+void feed_watchdog()
+{
+    esp_task_wdt_reset();
+    taskYIELD();
+}
+
+} // namespace
 
 } // namespace MicroSdCard

@@ -1,8 +1,9 @@
 #include "IconLookup.h"
 
-#include <ctype.h>
 #include <stddef.h>
 #include <string.h>
+
+#include "utilfuncs.h"
 
 namespace IconLookup
 {
@@ -72,28 +73,6 @@ constexpr IconName kIconNames[] = {
     {"triangle", ICON_TRIANGLE},
     {"icon_triangle", ICON_TRIANGLE},
 };
-
-bool equal_ignore_case(const char* lhs, const char* rhs)
-{
-    if (!lhs || !rhs)
-    {
-        return false;
-    }
-
-    while (*lhs && *rhs)
-    {
-        const int a = tolower(static_cast<unsigned char>(*lhs));
-        const int b = tolower(static_cast<unsigned char>(*rhs));
-        if (a != b)
-        {
-            return false;
-        }
-        ++lhs;
-        ++rhs;
-    }
-
-    return *lhs == '\0' && *rhs == '\0';
-}
 
 void clear_sprite(sprite_desc_t* sprite)
 {
@@ -495,7 +474,7 @@ uint8_t fromString(const char* value)
 
     for (const IconName& item : kIconNames)
     {
-        if (equal_ignore_case(value, item.name))
+        if (equals_case_insensitive(value, item.name))
         {
             return item.icon;
         }
