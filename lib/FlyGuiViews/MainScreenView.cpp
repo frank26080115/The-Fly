@@ -1,6 +1,7 @@
 #include "MainScreenView.h"
 
 #include "BtHostList.h"
+#include "ClockAgent.h"
 #include "SpriteDraw.h"
 #include "main_callbacks.h"
 #include "sprites.h"
@@ -41,7 +42,7 @@ MainScreenView::MainScreenView()
     bluetoothItem_.setCallback(onclick_main_bluetooth);
     addItem(bluetoothItem_);
 
-    filesItem_.setSprite(sprite_floppy_100, SPRITE_FLOPPY_100_WIDTH, SPRITE_FLOPPY_100_HEIGHT, SPRITE_FLOPPY_100_BYTES);
+    syncFilesIcon();
     filesItem_.setCallback(onclick_main_files);
     addItem(filesItem_);
 
@@ -70,6 +71,7 @@ MainScreenView::MainScreenView()
 
 void MainScreenView::onLoad()
 {
+    syncFilesIcon();
     syncBluetoothHostButtonFades();
     FlyGuiView::onLoad();
 }
@@ -112,6 +114,48 @@ void MainScreenView::showMemoStartingFeedback()
                         SPRITE_HOURGLASS_30_OVERLAY_WIDTH,
                         SPRITE_HOURGLASS_30_OVERLAY_HEIGHT,
                         true);
+}
+
+void MainScreenView::syncFilesIcon()
+{
+    const m5::rtc_time_t now = Clock.getTime();
+    switch (now.minutes % 6)
+    {
+    case 0:
+        filesItem_.setSprite(
+            sprite_floppy_100, SPRITE_FLOPPY_100_WIDTH, SPRITE_FLOPPY_100_HEIGHT, SPRITE_FLOPPY_100_BYTES);
+        break;
+    case 1:
+        filesItem_.setSprite(sprite_microsdcard_100,
+                             SPRITE_MICROSDCARD_100_WIDTH,
+                             SPRITE_MICROSDCARD_100_HEIGHT,
+                             SPRITE_MICROSDCARD_100_BYTES);
+        break;
+    case 2:
+        filesItem_.setSprite(sprite_stackedfiles_100,
+                             SPRITE_STACKEDFILES_100_WIDTH,
+                             SPRITE_STACKEDFILES_100_HEIGHT,
+                             SPRITE_STACKEDFILES_100_BYTES);
+        break;
+    case 3:
+        filesItem_.setSprite(sprite_folderwfiles_100,
+                             SPRITE_FOLDERWFILES_100_WIDTH,
+                             SPRITE_FOLDERWFILES_100_HEIGHT,
+                             SPRITE_FOLDERWFILES_100_BYTES);
+        break;
+    case 4:
+        filesItem_.setSprite(sprite_harddrive_100,
+                             SPRITE_HARDDRIVE_100_WIDTH,
+                             SPRITE_HARDDRIVE_100_HEIGHT,
+                             SPRITE_HARDDRIVE_100_BYTES);
+        break;
+    default:
+        filesItem_.setSprite(sprite_filecabinet_100,
+                             SPRITE_FILECABINET_100_WIDTH,
+                             SPRITE_FILECABINET_100_HEIGHT,
+                             SPRITE_FILECABINET_100_BYTES);
+        break;
+    }
 }
 
 void MainScreenView::syncBluetoothHostButtonFades()

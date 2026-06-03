@@ -116,6 +116,11 @@ extern const uint8_t sprite_fileback_blue[];
 #define SPRITE_FILEBACK_YELLOW_BYTES 7847u
 extern const uint8_t sprite_fileback_yellow[];
 
+#define SPRITE_FILECABINET_100_WIDTH 100u
+#define SPRITE_FILECABINET_100_HEIGHT 100u
+#define SPRITE_FILECABINET_100_BYTES 10489u
+extern const uint8_t sprite_filecabinet_100[];
+
 #define SPRITE_FILETOP_ALARM_WIDTH 50u
 #define SPRITE_FILETOP_ALARM_HEIGHT 50u
 #define SPRITE_FILETOP_ALARM_BYTES 5753u
@@ -181,6 +186,11 @@ extern const uint8_t sprite_firstaidwifi_50[];
 #define SPRITE_FLOPPY_100_BYTES 11213u
 extern const uint8_t sprite_floppy_100[];
 
+#define SPRITE_FOLDERWFILES_100_WIDTH 100u
+#define SPRITE_FOLDERWFILES_100_HEIGHT 100u
+#define SPRITE_FOLDERWFILES_100_BYTES 8992u
+extern const uint8_t sprite_folderwfiles_100[];
+
 #define SPRITE_FWUPDATE_WIDTH 100u
 #define SPRITE_FWUPDATE_HEIGHT 100u
 #define SPRITE_FWUPDATE_BYTES 12806u
@@ -205,6 +215,11 @@ extern const uint8_t sprite_greencheckmark_100[];
 #define SPRITE_GREENCHECKMARK_50_HEIGHT 50u
 #define SPRITE_GREENCHECKMARK_50_BYTES 2854u
 extern const uint8_t sprite_greencheckmark_50[];
+
+#define SPRITE_HARDDRIVE_100_WIDTH 100u
+#define SPRITE_HARDDRIVE_100_HEIGHT 100u
+#define SPRITE_HARDDRIVE_100_BYTES 14782u
+extern const uint8_t sprite_harddrive_100[];
 
 #define SPRITE_HOME_100_WIDTH 100u
 #define SPRITE_HOME_100_HEIGHT 100u
@@ -290,6 +305,11 @@ extern const uint8_t sprite_memotype_todo[];
 #define SPRITE_MIC_100_HEIGHT 100u
 #define SPRITE_MIC_100_BYTES 10530u
 extern const uint8_t sprite_mic_100[];
+
+#define SPRITE_MICROSDCARD_100_WIDTH 100u
+#define SPRITE_MICROSDCARD_100_HEIGHT 100u
+#define SPRITE_MICROSDCARD_100_BYTES 8897u
+extern const uint8_t sprite_microsdcard_100[];
 
 #define SPRITE_MUTED_X_WIDTH 40u
 #define SPRITE_MUTED_X_HEIGHT 40u
@@ -456,10 +476,20 @@ extern const uint8_t sprite_speaker_66_50[];
 #define SPRITE_SPLASH_BYTES 48938u
 extern const uint8_t sprite_splash[];
 
+#define SPRITE_SPLASH2_WIDTH 320u
+#define SPRITE_SPLASH2_HEIGHT 240u
+#define SPRITE_SPLASH2_BYTES 68814u
+extern const uint8_t sprite_splash2[];
+
 #define SPRITE_SQUAREX_50_WIDTH 50u
 #define SPRITE_SQUAREX_50_HEIGHT 50u
 #define SPRITE_SQUAREX_50_BYTES 2365u
 extern const uint8_t sprite_squarex_50[];
+
+#define SPRITE_STACKEDFILES_100_WIDTH 100u
+#define SPRITE_STACKEDFILES_100_HEIGHT 100u
+#define SPRITE_STACKEDFILES_100_BYTES 12776u
+extern const uint8_t sprite_stackedfiles_100[];
 
 #define SPRITE_TABLET_100_WIDTH 100u
 #define SPRITE_TABLET_100_HEIGHT 100u

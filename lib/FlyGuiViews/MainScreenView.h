@@ -17,6 +17,7 @@ public:
     void showMemoStartingFeedback();
 
 private:
+    void syncFilesIcon();
     void syncBluetoothHostButtonFades();
 
     FlyGuiItem bluetoothItem_;
