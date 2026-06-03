@@ -135,11 +135,11 @@ bool FirmwareUpdateView::handleTouch(const FlyGuiTouchEvent& event)
     return true;
 }
 
-void FirmwareUpdateView::redraw(bool forced)
+bool FirmwareUpdateView::redraw(bool forced)
 {
     if (!forced && !dirty())
     {
-        return;
+        return false;
     }
 
     switch (state_)
@@ -156,6 +156,7 @@ void FirmwareUpdateView::redraw(bool forced)
     }
 
     markClean();
+    return true;
 }
 
 void FirmwareUpdateView::onPressLeft()

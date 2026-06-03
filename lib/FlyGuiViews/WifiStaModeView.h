@@ -12,7 +12,7 @@ public:
     void onLoad() override;
     void onUnload() override;
     bool handleTouch(const FlyGuiTouchEvent& event) override;
-    void redraw(bool forced) override;
+    bool redraw(bool forced) override;
     void onPressRight() override;
 
 private:
@@ -23,7 +23,7 @@ private:
     void drawConnectionInfo();
     void drawNetworkDetails();
     void drawStopHint();
-    void drawStatsLine(bool forced);
+    bool drawStatsLine(bool forced);
     void formatStatsLine(char* out, size_t out_size) const;
 
     FlyGuiItem wifiIcon_;

@@ -12,7 +12,7 @@ public:
 
     void onLoad() override;
     bool handleTouch(const FlyGuiTouchEvent& event) override;
-    void redraw(bool forced) override;
+    bool redraw(bool forced) override;
     void onPressLeft() override;
     void onPressMid() override;
     void onPressRight() override;
@@ -21,7 +21,7 @@ private:
     static constexpr size_t kTextMax = 383;
 
     void dismiss();
-    void drawQrCode();
+    bool drawQrCode();
 
     char text_[kTextMax + 1] = {};
 };

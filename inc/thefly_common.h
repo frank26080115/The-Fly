@@ -14,6 +14,7 @@ literally every source file probably includes this file
 #include "thefly_utils.h"
 #include "dbg_log.h"
 #include "error_report.h"
+#include "diagnostics.h"
 
 // extern/global variables and functions go here
 

@@ -88,16 +88,17 @@ bool PinPadView::handleTouch(const FlyGuiTouchEvent& event)
     return false;
 }
 
-void PinPadView::redraw(bool forced)
+bool PinPadView::redraw(bool forced)
 {
     const bool needsRedraw = forced || dirty() || lineDirty_ || cooldownActive_ || anyButtonDirty();
     if (!needsRedraw)
     {
-        return;
+        return false;
     }
 
     const uint32_t now        = millis();
     const bool     fullRedraw = forced || dirty();
+    bool           drawn      = false;
 
     if (fullRedraw)
     {
@@ -112,6 +113,7 @@ void PinPadView::redraw(bool forced)
                                 static_cast<int16_t>(thefly_display.height() - FlyGui::topBarHeight()),
                                 TFT_BLACK);
         drawBottomButtons();
+        drawn = true;
         if (cooldownActive_)
         {
             cooldownLinePrimed_ = false;
@@ -121,22 +123,23 @@ void PinPadView::redraw(bool forced)
 
     for (PinNumBtn& button : buttons_)
     {
-        button.redraw(fullRedraw);
+        drawn |= button.redraw(fullRedraw);
     }
 
     if (cooldownActive_)
     {
-        drawCooldownLine(now);
+        drawn |= drawCooldownLine(now);
     }
     else if (lineDirty_ || fullRedraw)
     {
-        drawProgressLine();
+        drawn |= drawProgressLine();
     }
 
     if (fullRedraw)
     {
         markClean();
     }
+    return drawn;
 }
 
 void PinPadView::onPressLeft()
@@ -269,7 +272,7 @@ void PinPadView::drawBottomButtons()
     thefly_display.drawString("EXIT", static_cast<int16_t>((screenW * 5) / 6), labelY);
 }
 
-void PinPadView::drawProgressLine()
+bool PinPadView::drawProgressLine()
 {
     const int16_t screenW       = thefly_display.width();
     const size_t  pinLength     = targetLength();
@@ -283,18 +286,21 @@ void PinPadView::drawProgressLine()
         drawSegmentTicks(width);
     }
     lineDirty_ = false;
+    return true;
 }
 
-void PinPadView::drawCooldownLine(uint32_t now)
+bool PinPadView::drawCooldownLine(uint32_t now)
 {
     const int16_t  screenW = thefly_display.width();
     const uint32_t elapsed = now - cooldownStartedMs_;
+    bool           drawn   = false;
 
     if (elapsed >= cooldownDurationMs_ || cooldownDurationMs_ == 0)
     {
         if (cooldownLastWidth_ > 0)
         {
             thefly_display.fillRect(0, line_y(), cooldownLastWidth_, kLineHeightPx, TFT_BLACK);
+            drawn = true;
         }
         cooldownActive_       = false;
         cooldownLinePrimed_   = false;
@@ -304,7 +310,7 @@ void PinPadView::drawCooldownLine(uint32_t now)
         hiddenFailurePending_ = false;
         lineDirty_            = false;
         setButtonsDimmed(false);
-        return;
+        return drawn;
     }
 
     if (!cooldownLinePrimed_)
@@ -314,7 +320,7 @@ void PinPadView::drawCooldownLine(uint32_t now)
         cooldownLastWidth_  = screenW;
         cooldownLinePrimed_ = true;
         lineDirty_          = false;
-        return;
+        return true;
     }
 
     const uint32_t remainingMs    = cooldownDurationMs_ - elapsed;
@@ -338,7 +344,9 @@ void PinPadView::drawCooldownLine(uint32_t now)
                                 kLineHeightPx,
                                 TFT_BLACK);
         cooldownLastWidth_ = remainingWidth;
+        drawn              = true;
     }
+    return drawn;
 }
 
 void PinPadView::drawSegmentTicks(int16_t width)
@@ -541,17 +549,17 @@ bool PinNumBtn::handleTouch(const FlyGuiTouchEvent& event)
     return true;
 }
 
-void PinNumBtn::redraw(bool forced)
+bool PinNumBtn::redraw(bool forced)
 {
     if (!forced && !dirty())
     {
-        return;
+        return false;
     }
 
     if (width_ <= 0 || height_ <= 0)
     {
         markClean();
-        return;
+        return false;
     }
 
     const uint16_t borderColour = pressed_ ? TFT_YELLOW : TFT_DARKGREY;
@@ -567,6 +575,7 @@ void PinNumBtn::redraw(bool forced)
                               static_cast<int16_t>(x_ + (width_ / 2)),
                               static_cast<int16_t>(y_ + (height_ / 2) + 4));
     markClean();
+    return true;
 }
 
 namespace

@@ -59,14 +59,15 @@ void ProgressBar::onLoad()
     FlyGuiItem::onLoad();
 }
 
-void ProgressBar::redraw(bool forced)
+bool ProgressBar::redraw(bool forced)
 {
     if (!visible() || (!forced && !dirty()))
     {
-        return;
+        return false;
     }
 
     firstDraw();
+    return true;
 }
 
 // -----------------------------------------------------------------------------

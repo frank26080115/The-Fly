@@ -155,14 +155,15 @@ bool ScrubBar::handleTouch(const FlyGuiTouchEvent& event)
     return false;
 }
 
-void ScrubBar::redraw(bool forced)
+bool ScrubBar::redraw(bool forced)
 {
     if (!visible() || (!forced && !dirty()))
     {
-        return;
+        return false;
     }
 
     firstDraw();
+    return true;
 }
 
 // -----------------------------------------------------------------------------

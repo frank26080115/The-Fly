@@ -36,14 +36,14 @@ bool QrCodeView::handleTouch(const FlyGuiTouchEvent& event)
     return true;
 }
 
-void QrCodeView::redraw(bool forced)
+bool QrCodeView::redraw(bool forced)
 {
     if (!forced && !dirty())
     {
-        return;
+        return false;
     }
 
-    drawQrCode();
+    return drawQrCode();
 }
 
 void QrCodeView::onPressLeft()
@@ -70,19 +70,19 @@ void QrCodeView::dismiss()
     }
 }
 
-void QrCodeView::drawQrCode()
+bool QrCodeView::drawQrCode()
 {
     const int16_t rect_h = static_cast<int16_t>(thefly_display.height() - kRectY);
     if (rect_h <= 0)
     {
-        return;
+        return false;
     }
 
     thefly_display.fillRect(0, kRectY, thefly_display.width(), rect_h, TFT_WHITE);
     if (text_[0] == '\0')
     {
         markClean();
-        return;
+        return true;
     }
 
     const int16_t qr_size = thefly_display.width() < rect_h ? thefly_display.width() : rect_h;
@@ -90,4 +90,5 @@ void QrCodeView::drawQrCode()
     const int16_t qr_y    = static_cast<int16_t>(kRectY + ((rect_h - qr_size) / 2));
     thefly_display.qrcode(text_, qr_x, qr_y, qr_size, 1, true);
     markClean();
+    return true;
 }

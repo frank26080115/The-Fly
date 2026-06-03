@@ -10,7 +10,7 @@ public:
     void onLoad() override;
     void onUnload() override;
     bool handleTouch(const FlyGuiTouchEvent& event) override;
-    void redraw(bool forced) override;
+    bool redraw(bool forced) override;
     void onPressRight() override;
 
 private:
@@ -21,8 +21,8 @@ private:
     void showQrCode();
     void drawStaticContent();
     void drawCredentials();
-    void drawClientInfo(bool forced);
-    void drawStatsLine(bool forced);
+    bool drawClientInfo(bool forced);
+    bool drawStatsLine(bool forced);
     void formatStatsLine(char* out, size_t out_size) const;
     bool makeWifiQrText(char* out, size_t out_size) const;
 

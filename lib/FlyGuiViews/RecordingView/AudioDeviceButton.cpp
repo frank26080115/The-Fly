@@ -62,11 +62,11 @@ void AudioDeviceButton::setMutedOverlay(bool muted)
     }
 }
 
-void AudioDeviceButton::drawAudioMeter()
+bool AudioDeviceButton::drawAudioMeter()
 {
     if (!visible())
     {
-        return;
+        return false;
     }
 
     const uint8_t level =
@@ -77,24 +77,27 @@ void AudioDeviceButton::drawAudioMeter()
     thefly_display.drawFastHLine(x(), y(), width(), TFT_BLACK);
     if (half <= 0)
     {
-        return;
+        return true;
     }
 
     thefly_display.drawFastHLine(center - half, y(), half * 2, meter_color(level));
+    return true;
 }
 
-void AudioDeviceButton::redraw(bool forced)
+bool AudioDeviceButton::redraw(bool forced)
 {
     const bool shouldDrawOverlay = visible() && (forced || dirty());
-    FlyGuiItem::redraw(forced);
+    bool       drawn             = FlyGuiItem::redraw(forced);
     if (shouldDrawOverlay && mutedOverlay_)
     {
         draw_muted_overlay(*this);
+        drawn = true;
     }
     if (shouldDrawOverlay)
     {
-        drawAudioMeter();
+        drawn |= drawAudioMeter();
     }
+    return drawn;
 }
 
 namespace

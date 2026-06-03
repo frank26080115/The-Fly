@@ -18,6 +18,7 @@
 #include "esp_heap_caps.h"
 #include "dbg_log.h"
 #include "BluetoothManager.h"
+#include "diagnostics.h"
 #include "utilfuncs.h"
 
 namespace AudioManager
@@ -131,13 +132,6 @@ template <typename Updater> void update_hfp_diag(Updater updater)
     } while (false)
 #endif
 
-#ifndef ENABLE_HFP_AUDIO_DIAGNOSTICS
-#define note_speaker_i2s_write(...)                                                                                    \
-    do                                                                                                                 \
-    {                                                                                                                  \
-    } while (false)
-#endif
-
 // -----------------------------------------------------------------------------
 // Function Prototypes
 // -----------------------------------------------------------------------------
@@ -168,9 +162,7 @@ bool   preload_silence(i2s_chan_handle_t handle);
 bool   enable_channel(i2s_chan_handle_t handle, const char* label);
 void   log_heap_after_fifo_begin(const char* fifo_name, bool result);
 
-#ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
 void note_speaker_i2s_write(size_t requested, size_t written, size_t bytes_per_frame, esp_err_t err);
-#endif
 
 } // namespace
 
@@ -243,6 +235,8 @@ P2TMode mode()
 
 void pump_bt2spk()
 {
+    SpeakerPeakActivity::decay_peak();
+
     std::unique_lock<std::mutex> lock(g_pump_mutex, std::try_to_lock);
     if (!lock.owns_lock())
     {
@@ -419,6 +413,8 @@ void pump_mic2bt()
         MicGainManager::process(nullptr, 0);
         return;
     }
+
+    Diagnostics::i2s_input_samples(static_cast<uint32_t>(ext_mic ? samples / 2 : samples));
 
     HFP_AUDIO_DIAG(
         [bytes_read, samples](HfpAudioDiagnostics& diag)
@@ -1156,9 +1152,14 @@ bool enable_channel(i2s_chan_handle_t handle, const char* label)
     return true;
 }
 
-#ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
 void note_speaker_i2s_write(size_t requested, size_t written, size_t bytes_per_frame, esp_err_t err)
 {
+    if (written > 0 && bytes_per_frame > 0)
+    {
+        Diagnostics::i2s_output_samples(static_cast<uint32_t>(written / bytes_per_frame));
+    }
+
+#ifdef ENABLE_HFP_AUDIO_DIAGNOSTICS
     HFP_AUDIO_DIAG(
         [requested, written, bytes_per_frame, err](HfpAudioDiagnostics& diag)
         {
@@ -1177,8 +1178,8 @@ void note_speaker_i2s_write(size_t requested, size_t written, size_t bytes_per_f
                 ++diag.speakerI2sWriteErrors;
             }
         });
-}
 #endif
+}
 
 // -----------------------------------------------------------------------------
 // Debug / Logging Helpers

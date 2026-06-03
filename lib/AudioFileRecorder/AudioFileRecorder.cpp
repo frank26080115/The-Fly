@@ -428,6 +428,8 @@ bool needsPump()
 
 void pump()
 {
+    Diagnostics::memory_check_in();
+
     if (!needsPump())
     {
         return;
@@ -1131,6 +1133,7 @@ void update_write_duration_stats(uint32_t duration_us)
     const bool exceeded_threshold = duration_us > kWriteDurationThresholdUs;
     if (exceeded_threshold)
     {
+        Diagnostics::long_write_exceeded();
         g_longwrite         = true; // this is to be set false at the top of every pump
         g_longwrite_latched = true;
         g_last_longwrite_ms = millis();

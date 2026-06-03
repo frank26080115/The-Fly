@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <new>
@@ -20,6 +21,12 @@ public:
     {
         Filling,  // watermark level is not met
         Draining, // watermark level has been met and we are allowed to drain
+    };
+
+    struct FlowEvents
+    {
+        uint32_t overflow  = 0;
+        uint32_t underflow = 0;
     };
 
     explicit AudioFifo(size_t capacitySamples = kDefaultCapacitySamples, size_t watermarkSamples = 0)
@@ -152,7 +159,7 @@ public:
         std::lock_guard<std::mutex> lock(mutex_);
         if (!buffer_)
         {
-            underflowed_ = true;
+            noteUnderflowLocked();
             if (silenceWhenEmpty_)
             {
                 return writeSilenceLocked(samples, maxSamples);
@@ -163,7 +170,7 @@ public:
         {
             if (usedSamples_ == 0)
             {
-                underflowed_ = true;
+                noteUnderflowLocked();
                 if (silenceWhenEmpty_)
                 {
                     return writeSilenceLocked(samples, maxSamples);
@@ -174,6 +181,7 @@ public:
 
         const size_t toRead = sampleRateHz == 8000 ? readDownsampled8kLocked(samples, maxSamples)
                                                    : readLocked(samples, minSize(maxSamples, usedSamples_));
+        noteUnderflowRecoveredLocked();
         noteEmptyLocked();
         return toRead;
     }
@@ -188,7 +196,7 @@ public:
         std::lock_guard<std::mutex> lock(mutex_);
         if (!buffer_)
         {
-            underflowed_ = true;
+            noteUnderflowLocked();
             if (silenceWhenEmpty_)
             {
                 return writeSilenceLocked(samples, maxSamples);
@@ -197,7 +205,7 @@ public:
         }
         if (usedSamples_ == 0)
         {
-            underflowed_ = true;
+            noteUnderflowLocked();
             if (silenceWhenEmpty_)
             {
                 return writeSilenceLocked(samples, maxSamples);
@@ -207,6 +215,7 @@ public:
 
         const size_t toRead = sampleRateHz == 8000 ? readDownsampled8kLocked(samples, maxSamples)
                                                    : readLocked(samples, minSize(maxSamples, usedSamples_));
+        noteUnderflowRecoveredLocked();
         noteEmptyLocked();
         return toRead;
     }
@@ -221,7 +230,7 @@ public:
         std::lock_guard<std::mutex> lock(mutex_);
         if (!buffer_)
         {
-            underflowed_ = true;
+            noteUnderflowLocked();
             if (silenceWhenEmpty_)
             {
                 return writeStereoSilenceLocked(interleavedSamples, maxFrames);
@@ -232,7 +241,7 @@ public:
         {
             if (usedSamples_ == 0)
             {
-                underflowed_ = true;
+                noteUnderflowLocked();
                 if (silenceWhenEmpty_)
                 {
                     return writeStereoSilenceLocked(interleavedSamples, maxFrames);
@@ -252,6 +261,7 @@ public:
                 readIndex_                    = (readIndex_ + 2) % capacitySamples_;
             }
             usedSamples_ -= frames * 2;
+            noteUnderflowRecoveredLocked();
             noteEmptyLocked();
             return frames;
         }
@@ -268,6 +278,7 @@ public:
 
         readIndex_ = (readIndex_ + frames) % capacitySamples_;
         usedSamples_ -= frames;
+        noteUnderflowRecoveredLocked();
         noteEmptyLocked();
         return frames;
     }
@@ -476,23 +487,39 @@ public:
         return underflowed_;
     }
 
+    FlowEvents flowEvents() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return {overflowEvents_, underflowEvents_};
+    }
+
+    static FlowEvents takeGlobalFlowEvents()
+    {
+        return {s_globalOverflowEvents_.exchange(0, std::memory_order_relaxed),
+                s_globalUnderflowEvents_.exchange(0, std::memory_order_relaxed)};
+    }
+
     void resetOverflowFlag()
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        overflowed_ = false;
+        overflowed_     = false;
+        overflowActive_ = false;
     }
 
     void resetUnderflowFlag()
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        underflowed_ = false;
+        underflowed_     = false;
+        underflowActive_ = false;
     }
 
     void resetFlowFlags()
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        overflowed_  = false;
-        underflowed_ = false;
+        overflowed_      = false;
+        underflowed_     = false;
+        overflowActive_  = false;
+        underflowActive_ = false;
     }
 
 private:
@@ -521,13 +548,15 @@ private:
 
     void resetLocked()
     {
-        readIndex_       = 0;
-        writeIndex_      = 0;
-        usedSamples_     = 0;
-        state_           = watermarkSamples_ == 0 ? State::Draining : State::Filling;
-        emptySinceMs_    = millis();
-        upsampleHasPrev_ = false;
-        upsamplePrev_    = 0;
+        readIndex_        = 0;
+        writeIndex_       = 0;
+        usedSamples_      = 0;
+        state_            = watermarkSamples_ == 0 ? State::Draining : State::Filling;
+        emptySinceMs_     = millis();
+        upsampleHasPrev_  = false;
+        upsamplePrev_     = 0;
+        overflowActive_   = false;
+        underflowActive_  = false;
     }
 
     size_t queue16kLocked(const int16_t* samples, size_t sampleCount)
@@ -535,7 +564,11 @@ private:
         const size_t toWrite = minSize(sampleCount, capacitySamples_ - usedSamples_);
         if (toWrite < sampleCount)
         {
-            overflowed_ = true;
+            noteOverflowLocked();
+        }
+        else
+        {
+            noteOverflowRecoveredLocked();
         }
         if (toWrite == 0)
         {
@@ -578,7 +611,11 @@ private:
         const size_t toWrite = minSize(sampleCount, capacitySamples_ - usedSamples_);
         if (toWrite < sampleCount)
         {
-            overflowed_ = true;
+            noteOverflowLocked();
+        }
+        else
+        {
+            noteOverflowRecoveredLocked();
         }
         if (toWrite == 0)
         {
@@ -607,7 +644,11 @@ private:
         const size_t toWrite = minSize(frameCount, capacitySamples_ - usedSamples_);
         if (toWrite < frameCount)
         {
-            overflowed_ = true;
+            noteOverflowLocked();
+        }
+        else
+        {
+            noteOverflowRecoveredLocked();
         }
 
         for (size_t i = 0; i < toWrite; ++i)
@@ -628,7 +669,11 @@ private:
         const size_t inputToWrite = minSize(sampleCount, (capacitySamples_ - usedSamples_) / 2);
         if (inputToWrite < sampleCount)
         {
-            overflowed_ = true;
+            noteOverflowLocked();
+        }
+        else
+        {
+            noteOverflowRecoveredLocked();
         }
         int32_t prev    = upsamplePrev_;
         bool    hasPrev = upsampleHasPrev_;
@@ -656,7 +701,11 @@ private:
         const size_t inputToWrite = minSize(frameCount, (capacitySamples_ - usedSamples_) / 2);
         if (inputToWrite < frameCount)
         {
-            overflowed_ = true;
+            noteOverflowLocked();
+        }
+        else
+        {
+            noteOverflowRecoveredLocked();
         }
 
         int32_t prev    = upsamplePrev_;
@@ -727,6 +776,42 @@ private:
         return state_ == State::Draining && usedSamples_ > 0;
     }
 
+    void noteOverflowLocked()
+    {
+        overflowed_ = true;
+        if (overflowActive_)
+        {
+            return;
+        }
+
+        overflowActive_ = true;
+        ++overflowEvents_;
+        s_globalOverflowEvents_.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    void noteOverflowRecoveredLocked()
+    {
+        overflowActive_ = false;
+    }
+
+    void noteUnderflowLocked()
+    {
+        underflowed_ = true;
+        if (underflowActive_)
+        {
+            return;
+        }
+
+        underflowActive_ = true;
+        ++underflowEvents_;
+        s_globalUnderflowEvents_.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    void noteUnderflowRecoveredLocked()
+    {
+        underflowActive_ = false;
+    }
+
     void updateWatermarkLocked() const
     {
         if (state_ == State::Filling && usedSamples_ >= watermarkSamples_)
@@ -761,8 +846,14 @@ private:
     bool                       silenceWhenEmpty_  = false;
     bool                       overflowed_        = false;
     bool                       underflowed_       = false;
+    bool                       overflowActive_    = false;
+    bool                       underflowActive_   = false;
+    uint32_t                   overflowEvents_    = 0;
+    uint32_t                   underflowEvents_   = 0;
     mutable State              state_             = State::Filling;
     uint32_t                   emptySinceMs_      = 0;
     mutable uint32_t           lastFillLatencyMs_ = 0;
     mutable std::mutex         mutex_;
+    static std::atomic<uint32_t> s_globalOverflowEvents_;
+    static std::atomic<uint32_t> s_globalUnderflowEvents_;
 };

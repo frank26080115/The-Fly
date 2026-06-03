@@ -272,20 +272,22 @@ bool PlaybackView::handleTouch(const FlyGuiTouchEvent& event)
     return FlyGuiView::handleTouch(event);
 }
 
-void PlaybackView::redraw(bool forced)
+bool PlaybackView::redraw(bool forced)
 {
     layoutItems();
     syncControls();
 
     const bool repaintFrame = forced || frameDirty_;
+    bool       drawn        = repaintFrame;
     drawFrame(repaintFrame);
-    FlyGuiView::redraw(repaintFrame);
+    drawn |= FlyGuiView::redraw(repaintFrame);
 
     if (repaintFrame)
     {
         frameDirty_ = false;
         markClean();
     }
+    return drawn;
 }
 
 void PlaybackView::onPressLeft()

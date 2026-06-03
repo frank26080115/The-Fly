@@ -178,11 +178,11 @@ void FlyGuiText::setClearOnUpdate(bool clearOnUpdate)
     setDirty();
 }
 
-void FlyGuiText::redraw(bool forced)
+bool FlyGuiText::redraw(bool forced)
 {
     if (!visible() || (!forced && !dirty()))
     {
-        return;
+        return false;
     }
 
     thefly_display.setTextSize(fontSize_);
@@ -196,10 +196,11 @@ void FlyGuiText::redraw(bool forced)
         thefly_display.drawString(text_, x(), y());
         updateRememberedText();
         markClean();
-        return;
+        return true;
     }
 
     // Design: FlyGuiText redraws only character ranges that changed.
+    bool         drawn       = false;
     size_t       start       = 0;
     const size_t oldLength   = strlen(drawnText_);
     const size_t newLength   = strlen(text_);
@@ -224,11 +225,13 @@ void FlyGuiText::redraw(bool forced)
         }
 
         drawTextRun(start, end);
+        drawn = true;
         start = end;
     }
 
     updateRememberedText();
     markClean();
+    return drawn;
 }
 
 // -----------------------------------------------------------------------------
@@ -285,7 +288,7 @@ FlyGuiDateTime::FlyGuiDateTime(int16_t x, int16_t y, int16_t width, int16_t heig
 {
 }
 
-void FlyGuiDateTime::redraw(bool forced)
+bool FlyGuiDateTime::redraw(bool forced)
 {
     // Design: FlyGuiDateTime always shows current date/time and keeps frequent draws quick.
     const m5::rtc_datetime_t now = Clock.getDateTime();
@@ -314,7 +317,7 @@ void FlyGuiDateTime::redraw(bool forced)
                  now.time.seconds);
     }
     setText(text);
-    FlyGuiText::redraw(forced);
+    return FlyGuiText::redraw(forced);
 }
 
 FlyGuiStopwatch::FlyGuiStopwatch(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle)
@@ -338,7 +341,7 @@ uint32_t FlyGuiStopwatch::elapsedMs() const
     return millis() - startMs_;
 }
 
-void FlyGuiStopwatch::redraw(bool forced)
+bool FlyGuiStopwatch::redraw(bool forced)
 {
     // Design: FlyGuiStopwatch shows elapsed time since a starting time.
     const uint32_t elapsed = elapsedMs() / 1000;
@@ -354,7 +357,7 @@ void FlyGuiStopwatch::redraw(bool forced)
              static_cast<unsigned long>(minutes),
              static_cast<unsigned long>(seconds));
     setText(text);
-    FlyGuiText::redraw(forced);
+    return FlyGuiText::redraw(forced);
 }
 
 // -----------------------------------------------------------------------------

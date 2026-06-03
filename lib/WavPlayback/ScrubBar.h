@@ -44,7 +44,7 @@ public:
 
     void onLoad() override;
     bool handleTouch(const FlyGuiTouchEvent& event) override;
-    void redraw(bool forced) override;
+    bool redraw(bool forced) override;
 
 private:
     uint32_t clampPosition(uint32_t positionMs) const;

@@ -100,22 +100,23 @@ bool WifiStaModeView::handleTouch(const FlyGuiTouchEvent& event)
     return false;
 }
 
-void WifiStaModeView::redraw(bool forced)
+bool WifiStaModeView::redraw(bool forced)
 {
     const bool redrawStatic = forced || dirty();
     if (redrawStatic)
     {
         drawStaticContent();
-        drawStatsLine(true);
+        bool drawn = true;
+        drawn |= drawStatsLine(true);
         if (showDismissButton_)
         {
-            dismissItem_.redraw(true);
+            drawn |= dismissItem_.redraw(true);
         }
         markClean();
-        return;
+        return drawn;
     }
 
-    drawStatsLine(false);
+    return drawStatsLine(false);
 }
 
 void WifiStaModeView::onPressRight()
@@ -220,7 +221,7 @@ void WifiStaModeView::drawStopHint()
                   TFT_RED);
 }
 
-void WifiStaModeView::drawStatsLine(bool forced)
+bool WifiStaModeView::drawStatsLine(bool forced)
 {
     const uint32_t now = millis();
 #if BUILD_WITH_SECURITY_LEVEL <= 0
@@ -231,7 +232,7 @@ void WifiStaModeView::drawStatsLine(bool forced)
 
     if (!forced && now - lastStatsDrawMs_ < kStatsCycleMs)
     {
-        return;
+        return false;
     }
 
     if (forced)
@@ -248,6 +249,7 @@ void WifiStaModeView::drawStatsLine(bool forced)
     formatStatsLine(text, sizeof(text));
     thefly_display.fillRect(kTextX, kStatsY, kTextWidth, kSmallLineHeight, TFT_BLACK);
     draw_fit_line(text, kTextX, kStatsY, kTextWidth, kSmallTextFont, TFT_WHITE);
+    return true;
 }
 
 void WifiStaModeView::formatStatsLine(char* out, size_t out_size) const

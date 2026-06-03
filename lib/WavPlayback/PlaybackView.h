@@ -23,7 +23,7 @@ public:
     void onLoad() override;
     void onUnload() override;
     bool handleTouch(const FlyGuiTouchEvent& event) override;
-    void redraw(bool forced) override;
+    bool redraw(bool forced) override;
 
     void onPressLeft() override;
     void onPressMid() override;

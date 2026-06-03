@@ -29,7 +29,7 @@ public:
     }
     void setClearOnUpdate(bool clearOnUpdate);
 
-    void redraw(bool forced) override;
+    bool redraw(bool forced) override;
 
 protected:
     void   updateRememberedText();
@@ -56,7 +56,7 @@ class FlyGuiDateTime : public FlyGuiText
 public:
     FlyGuiDateTime(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle);
 
-    void redraw(bool forced) override;
+    bool redraw(bool forced) override;
 };
 
 class FlyGuiStopwatch : public FlyGuiText
@@ -67,7 +67,7 @@ public:
     void     start(uint32_t startMs = millis());
     void     reset(uint32_t startMs = millis());
     uint32_t elapsedMs() const;
-    void     redraw(bool forced) override;
+    bool     redraw(bool forced) override;
 
 private:
     uint32_t startMs_ = 0;

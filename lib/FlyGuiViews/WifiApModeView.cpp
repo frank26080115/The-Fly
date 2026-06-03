@@ -144,25 +144,27 @@ bool WifiApModeView::handleTouch(const FlyGuiTouchEvent& event)
     return true;
 }
 
-void WifiApModeView::redraw(bool forced)
+bool WifiApModeView::redraw(bool forced)
 {
     if (qrHoldFadeDrawn_)
     {
-        return;
+        return false;
     }
 
     const bool redrawStatic = forced || dirty();
     if (redrawStatic)
     {
         drawStaticContent();
-        drawClientInfo(true);
-        drawStatsLine(true);
+        bool drawn = true;
+        drawn |= drawClientInfo(true);
+        drawn |= drawStatsLine(true);
         markClean();
-        return;
+        return drawn;
     }
 
-    drawClientInfo(false);
-    drawStatsLine(false);
+    bool drawn = drawClientInfo(false);
+    drawn |= drawStatsLine(false);
+    return drawn;
 }
 
 void WifiApModeView::onPressRight()
@@ -242,12 +244,12 @@ void WifiApModeView::drawStaticContent()
     drawCredentials();
 }
 
-void WifiApModeView::drawClientInfo(bool forced)
+bool WifiApModeView::drawClientInfo(bool forced)
 {
     const uint32_t now = millis();
     if (!forced && now - lastClientDrawMs_ < kClientInfoDrawMs)
     {
-        return;
+        return false;
     }
     lastClientDrawMs_ = now;
 
@@ -293,6 +295,7 @@ void WifiApModeView::drawClientInfo(bool forced)
                   kClientInfoWidth,
                   kClientInfoTextFont,
                   TFT_WHITE);
+    return true;
 }
 
 void WifiApModeView::drawCredentials()
@@ -328,7 +331,7 @@ void WifiApModeView::drawCredentials()
     draw_fit_line(kExitHint, kTextX, hintY, kTextWidth, kSmallTextFont, TFT_RED);
 }
 
-void WifiApModeView::drawStatsLine(bool forced)
+bool WifiApModeView::drawStatsLine(bool forced)
 {
     const uint32_t now = millis();
 #if BUILD_WITH_SECURITY_LEVEL <= 0
@@ -339,7 +342,7 @@ void WifiApModeView::drawStatsLine(bool forced)
 
     if (!forced && now - lastStatsDrawMs_ < kStatsCycleMs)
     {
-        return;
+        return false;
     }
 
     if (forced)
@@ -356,6 +359,7 @@ void WifiApModeView::drawStatsLine(bool forced)
     formatStatsLine(text, sizeof(text));
     thefly_display.fillRect(kTextX, kStatsY, kTextWidth, kSmallLineHeight, TFT_BLACK);
     draw_fit_line(text, kTextX, kStatsY, kTextWidth, kSmallTextFont, TFT_WHITE);
+    return true;
 }
 
 void WifiApModeView::formatStatsLine(char* out, size_t out_size) const

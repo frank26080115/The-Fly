@@ -82,7 +82,7 @@ bool ConnWaitingView::handleTouch(const FlyGuiTouchEvent& event)
     return cancelItem_.handleTouch(event);
 }
 
-void ConnWaitingView::redraw(bool forced)
+bool ConnWaitingView::redraw(bool forced)
 {
     const bool     redrawStatic = forced || dirty();
     const uint32_t now          = millis();
@@ -92,13 +92,14 @@ void ConnWaitingView::redraw(bool forced)
         drawStaticContent();
         hourglassFrame_      = 0;
         lastHourglassDrawMs_ = now;
-        updateHourglass(now, true);
-        cancelItem_.redraw(true);
+        bool drawn = true;
+        drawn |= updateHourglass(now, true);
+        drawn |= cancelItem_.redraw(true);
         markClean();
-        return;
+        return drawn;
     }
 
-    updateHourglass(now, false);
+    return updateHourglass(now, false);
 }
 
 void ConnWaitingView::drawStaticContent()

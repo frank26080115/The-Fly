@@ -8,7 +8,7 @@ public:
     MainScreenView();
 
     void onLoad() override;
-    void redraw(bool forced) override;
+    bool redraw(bool forced) override;
 
     void onPressLeft() override;
     void onPressMid() override;

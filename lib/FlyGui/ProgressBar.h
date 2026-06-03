@@ -15,7 +15,7 @@ public:
     }
 
     void onLoad() override;
-    void redraw(bool forced) override;
+    bool redraw(bool forced) override;
 
 private:
     static float normalizeProgress(float progress);

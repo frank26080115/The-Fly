@@ -86,7 +86,7 @@ public:
     void setAudioActive(bool active);
 
     void poll();
-    void redraw(bool forced = false);
+    bool redraw(bool forced = false);
 
     void         showModal(FlyGuiModal& modal);
     void         removeModal(FlyGuiModal& modal);
@@ -107,7 +107,7 @@ private:
     void dispatchButtons();
     bool dispatchButtonToItem(Button& button);
     bool shouldRunScheduledPoll(FlyGuiPollMode mode, uint32_t now);
-    void drawTopBar(bool forced);
+    bool drawTopBar(bool forced);
 
     FlyGuiView*     firstView_             = nullptr;
     FlyGuiView*     lastView_              = nullptr;
@@ -160,7 +160,7 @@ public:
     virtual void onUnload();
     virtual bool handleTouch(const FlyGuiTouchEvent& event);
     virtual bool handleButtonPress(Button& button);
-    virtual void redraw(bool forced);
+    virtual bool redraw(bool forced);
 
     virtual void onPressLeft() {}
     virtual void onPressMid() {}
@@ -285,7 +285,7 @@ public:
     virtual void onUnload();
     virtual bool handleTouch(const FlyGuiTouchEvent& event);
     virtual bool handleButtonPress(Button& button);
-    virtual void redraw(bool forced);
+    virtual bool redraw(bool forced);
 
 protected:
     void markClean()

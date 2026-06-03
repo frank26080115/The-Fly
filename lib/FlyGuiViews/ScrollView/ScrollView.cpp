@@ -498,16 +498,17 @@ bool ScrollView::handleTouch(const FlyGuiTouchEvent& event)
     return false;
 }
 
-void ScrollView::redraw(bool forced)
+bool ScrollView::redraw(bool forced)
 {
     const bool visibleDeleteItemDirty = deleteMode_ && deleteItem_.dirty();
     if (!forced && !dirty() && !exitItem_.dirty() && !visibleDeleteItemDirty)
     {
-        return;
+        return false;
     }
 
     drawContent();
     markClean();
+    return true;
 }
 
 void ScrollView::onPressLeft()
@@ -602,6 +603,14 @@ void ScrollView::drawContent()
             {
                 drawItemInSlot(*only, SLOT_LEFT, true);
                 drawItemInSlot(*only, SLOT_RIGHT, true);
+            }
+        }
+        else if (itemCount_ == 2)
+        {
+            FlyGuiItem* neighbor = selectedIndex_ == 0 ? itemAt(1) : itemAt(0);
+            if (neighbor)
+            {
+                drawItemInSlot(*neighbor, selectedIndex_ == 0 ? SLOT_RIGHT : SLOT_LEFT, true);
             }
         }
         else

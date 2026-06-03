@@ -23,7 +23,7 @@ public:
     void release();
 
     bool handleTouch(const FlyGuiTouchEvent& event) override;
-    void redraw(bool forced) override;
+    bool redraw(bool forced) override;
 
 private:
     bool contains(int16_t x, int16_t y) const;
@@ -49,7 +49,7 @@ public:
 
     void onLoad() override;
     bool handleTouch(const FlyGuiTouchEvent& event) override;
-    void redraw(bool forced) override;
+    bool redraw(bool forced) override;
     void onPressLeft() override;
     void onPressRight() override;
 
@@ -59,8 +59,8 @@ private:
     void   resetEntry();
     void   startFailureCooldown();
     void   drawBottomButtons();
-    void   drawProgressLine();
-    void   drawCooldownLine(uint32_t now);
+    bool   drawProgressLine();
+    bool   drawCooldownLine(uint32_t now);
     void   drawSegmentTicks(int16_t width);
     void   layoutButtons();
     void   releaseButtons();

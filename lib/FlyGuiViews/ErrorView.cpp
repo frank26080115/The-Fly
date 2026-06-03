@@ -84,11 +84,11 @@ void ErrorView::onPressRight()
     }
 }
 
-void ErrorView::redraw(bool forced)
+bool ErrorView::redraw(bool forced)
 {
     if (!forced && !dirty())
     {
-        return;
+        return false;
     }
 
     syncActionButton();
@@ -129,6 +129,7 @@ void ErrorView::redraw(bool forced)
     }
 
     markClean();
+    return true;
 }
 
 void ErrorView::onActionTriggered(uint32_t)

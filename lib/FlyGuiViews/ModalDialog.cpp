@@ -72,11 +72,11 @@ bool ModalDialog::handleTouch(const FlyGuiTouchEvent& event)
     return true;
 }
 
-void ModalDialog::redraw(bool forced)
+bool ModalDialog::redraw(bool forced)
 {
     if (!configured_ || (!forced && !dirty()))
     {
-        return;
+        return false;
     }
 
     thefly_display.fillRect(0,
@@ -88,6 +88,7 @@ void ModalDialog::redraw(bool forced)
     drawText();
     drawFooter();
     markClean();
+    return true;
 }
 
 void ModalDialog::onPressLeft()

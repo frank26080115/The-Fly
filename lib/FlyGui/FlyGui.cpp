@@ -21,7 +21,7 @@
 
 static constexpr const char* TAG                   = "FlyGui";
 static constexpr uint32_t    kSlowPollIntervalMs   = 1000 / 15;
-static constexpr uint32_t    kMediumPollIntervalMs = 1000 / 30;
+static constexpr uint32_t    kMediumPollIntervalMs = 1000 / 60;
 static constexpr int16_t     kTopBarDateTimeX      = 4;
 static constexpr int16_t     kTopBarDateTimeY      = 1;
 static constexpr int16_t     kTopBarDateTimeWidth  = 150;
@@ -117,6 +117,8 @@ void FlyGui::setAudioActive(bool active)
 
 void FlyGui::poll()
 {
+    Diagnostics::memory_check_in();
+
     if (AsyncFsManager::guiShouldYield())
     {
         return;
@@ -155,28 +157,36 @@ void FlyGui::poll()
         }
     }
 
-    redraw(false);
+    bool drawn = redraw(false);
+    if (drawn)
+    {
+        Diagnostics::gui_drew();
+    }
 }
 
-void FlyGui::redraw(bool forced)
+bool FlyGui::redraw(bool forced)
 {
+    bool drawn = false;
+
     // Design: FlyGui owns frame-level redraw policy and invokes the active view redraw.
-    drawTopBar(forced);
+    drawn |= drawTopBar(forced);
 
     if (currentView_)
     {
-        currentView_->redraw(forced);
+        drawn |= currentView_->redraw(forced);
     }
 
     if (modal_)
     {
-        modal_->redraw(forced);
+        drawn |= modal_->redraw(forced);
     }
 
     if (topBarNeedsFullRedraw_)
     {
-        drawTopBar(false);
+        drawn |= drawTopBar(false);
     }
+
+    return drawn;
 }
 
 void FlyGui::showModal(FlyGuiModal& modal)
@@ -304,7 +314,7 @@ bool FlyGui::shouldRunScheduledPoll(FlyGuiPollMode mode, uint32_t now)
     return true;
 }
 
-void FlyGui::drawTopBar(bool forced)
+bool FlyGui::drawTopBar(bool forced)
 {
     const int32_t  battery    = batteryStatusCode();
     const uint32_t currentMs  = millis();
@@ -312,7 +322,7 @@ void FlyGui::drawTopBar(bool forced)
 
     if (!fullRedraw && battery == topBarLastBattery_ && currentMs - lastTopBarDrawMs_ < 1000)
     {
-        return;
+        return false;
     }
 
     // Design: FlyGui is responsible for drawing the top bar with date/time and battery status.
@@ -346,6 +356,7 @@ void FlyGui::drawTopBar(bool forced)
     topBarLastBattery_     = battery;
     lastTopBarDrawMs_      = currentMs;
     topBarNeedsFullRedraw_ = false;
+    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -436,26 +447,28 @@ bool FlyGuiView::handleButtonPress(Button& button)
     return false;
 }
 
-void FlyGuiView::redraw(bool forced)
+bool FlyGuiView::redraw(bool forced)
 {
     // Design: views and items both have dirty-aware redraw functions.
+    bool drawn = false;
     if (!forced && !dirty_)
     {
         for (FlyGuiItem* item = firstItem_; item; item = item->next_)
         {
             if (item->dirty())
             {
-                item->redraw(false);
+                drawn |= item->redraw(false);
             }
         }
-        return;
+        return drawn;
     }
 
     for (FlyGuiItem* item = firstItem_; item; item = item->next_)
     {
-        item->redraw(forced);
+        drawn |= item->redraw(forced);
     }
     markClean();
+    return drawn;
 }
 
 // -----------------------------------------------------------------------------
@@ -690,14 +703,15 @@ bool FlyGuiItem::handleButtonPress(Button& button)
     return handled;
 }
 
-void FlyGuiItem::redraw(bool forced)
+bool FlyGuiItem::redraw(bool forced)
 {
     // Design: redraw accepts a forced flag and otherwise honors the item dirty flag.
     if (!visible_ || (!forced && !dirty_))
     {
-        return;
+        return false;
     }
 
+    bool drawn = false;
     if (spriteData_ && spriteBytes_ > 0 && spriteWidth_ > 0 && spriteHeight_ > 0)
     {
         const uint8_t brightness =
@@ -707,8 +721,9 @@ void FlyGuiItem::redraw(bool forced)
 
         if (!result.ok)
         {
-            return;
+            return false;
         }
+        drawn = true;
 
         if (overlayData_ && overlayBytes_ > 0 && overlayWidth_ > 0 && overlayHeight_ > 0)
         {
@@ -720,19 +735,23 @@ void FlyGuiItem::redraw(bool forced)
                                 overlayHeight_,
                                 true,
                                 brightness);
+            drawn = true;
         }
     }
     else if (width_ > 0 && height_ > 0)
     {
         thefly_display.fillRect(x_, y_, width_, height_, TFT_BLACK);
+        drawn = true;
     }
 
     if (mainText_)
     {
         thefly_display.drawString(mainText_, x_, y_);
+        drawn = true;
     }
 
     markClean();
+    return drawn;
 }
 
 // -----------------------------------------------------------------------------

@@ -158,12 +158,20 @@ void RecordingView::onLoad()
     syncBluetoothIcon();
     syncAudioButtons();
     syncAnswerCallButton();
+    if (gui())
+    {
+        gui()->setAudioActive(true);
+    }
     frameDirty_ = true;
     FlyGuiView::onLoad();
 }
 
 void RecordingView::onUnload()
 {
+    if (gui())
+    {
+        gui()->setAudioActive(false);
+    }
     FlyGuiView::onUnload();
 }
 
@@ -189,21 +197,23 @@ bool RecordingView::handleTouch(const FlyGuiTouchEvent& event)
     return FlyGuiView::handleTouch(event);
 }
 
-void RecordingView::redraw(bool forced)
+bool RecordingView::redraw(bool forced)
 {
     syncBluetoothIcon();
     syncAudioButtons();
     syncAnswerCallButton();
     syncText();
     const bool repaintFrame = forced || frameDirty_;
+    bool       drawn        = repaintFrame;
     drawFrame(repaintFrame);
-    FlyGuiView::redraw(repaintFrame ? true : false);
+    drawn |= FlyGuiView::redraw(repaintFrame ? true : false);
     if (repaintFrame)
     {
         frameDirty_ = false;
         markClean();
     }
-    drawAudioMeters();
+    drawn |= drawAudioMeters();
+    return drawn;
 }
 
 void RecordingView::onPressLeft()
@@ -499,11 +509,12 @@ void RecordingView::drawFrame(bool forced)
     thefly_display.fillRect(kBorderX, screenH - kBorderSize, screenW, kBorderSize, TFT_RED);
 }
 
-void RecordingView::drawAudioMeters()
+bool RecordingView::drawAudioMeters()
 {
-    micButton_.drawAudioMeter();
+    bool drawn = micButton_.drawAudioMeter();
     if (mode_ == Mode::Bluetooth)
     {
-        speakerButton_.drawAudioMeter();
+        drawn |= speakerButton_.drawAudioMeter();
     }
+    return drawn;
 }

@@ -27,7 +27,7 @@ public:
     void onLoad() override;
     void onUnload() override;
     bool handleTouch(const FlyGuiTouchEvent& event) override;
-    void redraw(bool forced) override;
+    bool redraw(bool forced) override;
 
     void onPressLeft() override;
     void onPressMid() override;
@@ -53,7 +53,7 @@ private:
     void syncText();
     void refreshRecordingFileName();
     void drawFrame(bool forced);
-    void drawAudioMeters();
+    bool drawAudioMeters();
 
     static RecordingView* activeInstance_;
 

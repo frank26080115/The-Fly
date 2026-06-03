@@ -1,5 +1,6 @@
 #include "SpeakerPeakActivity.h"
 
+#include <Arduino.h>
 #include <algorithm>
 #include <limits>
 #include <mutex>
@@ -10,17 +11,19 @@ namespace
 {
 
 constexpr uint32_t kNominalSampleRateHz = 16000;
+constexpr uint32_t kIdleDecayIntervalMs = 20;
 constexpr uint16_t kMaxSampleMagnitude  = 32767;
 
 std::mutex g_mutex;
 uint16_t   g_raw_peak = 0;
+uint32_t   g_last_decay_ms = 0;
 
 // -----------------------------------------------------------------------------
 // Function Prototypes
 // -----------------------------------------------------------------------------
 
 static uint16_t sample_abs_peak(int16_t sample);
-static void     decay_peak(uint16_t& peak, size_t frames);
+static void     decay_peak_internal(size_t frames);
 static uint8_t  peak_to_level(uint16_t peak);
 
 } // namespace
@@ -32,14 +35,15 @@ static uint8_t  peak_to_level(uint16_t peak);
 void init()
 {
     std::lock_guard<std::mutex> lock(g_mutex);
-    g_raw_peak = 0;
+    g_raw_peak       = 0;
+    g_last_decay_ms  = millis();
 }
 
 void process(const int16_t* samples, size_t sampleCount)
 {
     std::lock_guard<std::mutex> lock(g_mutex);
 
-    decay_peak(g_raw_peak, sampleCount);
+    decay_peak_internal(sampleCount);
 
     if (!samples || sampleCount == 0)
     {
@@ -53,6 +57,21 @@ void process(const int16_t* samples, size_t sampleCount)
     }
 
     g_raw_peak = std::max<uint16_t>(g_raw_peak, chunk_peak);
+}
+
+void decay_peak()
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+
+    const uint32_t now        = millis();
+    const uint32_t elapsed_ms = now - g_last_decay_ms;
+    if (elapsed_ms < kIdleDecayIntervalMs)
+    {
+        return;
+    }
+
+    const size_t frames = static_cast<size_t>((static_cast<uint64_t>(elapsed_ms) * kNominalSampleRateHz) / 1000U);
+    decay_peak_internal(frames);
 }
 
 // -----------------------------------------------------------------------------
@@ -89,7 +108,7 @@ uint16_t sample_abs_peak(int16_t sample)
     return static_cast<uint16_t>(magnitude);
 }
 
-void decay_peak(uint16_t& peak, size_t frames)
+void decay_peak_internal(size_t frames)
 {
     uint32_t decay = 1;
     if (frames > 0)
@@ -99,7 +118,8 @@ void decay_peak(uint16_t& peak, size_t frames)
                                        (kNominalSampleRateHz * 3U));
     }
 
-    peak = decay >= peak ? 0 : static_cast<uint16_t>(peak - decay);
+    g_raw_peak      = decay >= g_raw_peak ? 0 : static_cast<uint16_t>(g_raw_peak - decay);
+    g_last_decay_ms = millis();
 }
 
 uint8_t peak_to_level(uint16_t peak)

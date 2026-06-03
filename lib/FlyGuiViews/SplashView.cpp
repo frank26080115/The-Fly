@@ -34,11 +34,11 @@ bool SplashView::handleTouch(const FlyGuiTouchEvent& event)
     return true;
 }
 
-void SplashView::redraw(bool forced)
+bool SplashView::redraw(bool forced)
 {
     if (!forced && !dirty())
     {
-        return;
+        return false;
     }
 
     const SpriteDraw::DrawResult result =
@@ -49,4 +49,5 @@ void SplashView::redraw(bool forced)
     }
 
     markClean();
+    return true;
 }

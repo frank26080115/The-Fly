@@ -74,10 +74,10 @@ void MainScreenView::onLoad()
     FlyGuiView::onLoad();
 }
 
-void MainScreenView::redraw(bool forced)
+bool MainScreenView::redraw(bool forced)
 {
     syncBluetoothHostButtonFades();
-    FlyGuiView::redraw(forced);
+    return FlyGuiView::redraw(forced);
 }
 
 void MainScreenView::onPressLeft()

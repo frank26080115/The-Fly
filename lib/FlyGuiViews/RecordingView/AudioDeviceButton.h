@@ -15,8 +15,8 @@ public:
 
     void setMicMode(bool micMode);
     void setMutedOverlay(bool muted);
-    void drawAudioMeter();
-    void redraw(bool forced) override;
+    bool drawAudioMeter();
+    bool redraw(bool forced) override;
 
 private:
     Device device_;

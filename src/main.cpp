@@ -271,6 +271,8 @@ void loop()
     handle_wifi_connection_waiting();
 
     Hotel::pollCore1();
+    Diagnostics::core1Tick();
+    Diagnostics::poll();
 
     taskYIELD();
 }
@@ -295,7 +297,10 @@ static void loopTask_core0(void* pvParameters)
         BtManager::poll();
         AudioManager::pump_task();
         Hotel::pollCore0();
+        Diagnostics::core0Tick();
         vTaskDelay(pdMS_TO_TICKS(1));
+        // we use vTaskDelay instead of taskYIELD to give other tasks more breathing room
+        // other tasks could be Wi-Fi and Bluetooth internal tasks
     }
 }
 
