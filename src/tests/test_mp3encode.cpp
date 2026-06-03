@@ -10,6 +10,12 @@
 #include "conf.h"
 #include "utilfuncs.h"
 
+#define TEST_MP3ENCODE_USE_RANDOM_INPUT 1
+
+#ifndef TEST_MP3ENCODE_USE_RANDOM_INPUT
+#define TEST_MP3ENCODE_USE_RANDOM_INPUT 0
+#endif
+
 namespace
 {
 
@@ -24,6 +30,7 @@ constexpr float       kLeftHz               = 440.0f;
 constexpr float       kRightHz              = 660.0f;
 constexpr float       kAmplitude            = 14000.0f;
 constexpr float       kTwoPi                = 6.28318530717958647692f;
+constexpr uint32_t    kRandomSeed           = 0xA53C9E2DU;
 
 int16_t  g_left_samples[kChunkFrames];
 int16_t  g_right_samples[kChunkFrames];
@@ -32,6 +39,7 @@ uint32_t g_left_phase       = 0;
 uint32_t g_right_phase      = 0;
 uint32_t g_left_phase_step  = 0;
 uint32_t g_right_phase_step = 0;
+uint32_t g_random_state     = kRandomSeed;
 
 bool has_mp3_extension(const char* path)
 {
@@ -76,6 +84,58 @@ void generate_sine_chunk(size_t frames)
     }
 }
 
+uint32_t next_random_u32()
+{
+    uint32_t value = g_random_state;
+    value ^= value << 13;
+    value ^= value >> 17;
+    value ^= value << 5;
+    g_random_state = value;
+    return value;
+}
+
+void init_sample_generator()
+{
+#if TEST_MP3ENCODE_USE_RANDOM_INPUT
+    g_random_state = kRandomSeed;
+#else
+    init_sine_generator();
+#endif
+}
+
+void generate_sample_chunk(size_t frames)
+{
+#if TEST_MP3ENCODE_USE_RANDOM_INPUT
+    for (size_t i = 0; i < frames; ++i)
+    {
+        const uint32_t left  = next_random_u32();
+        const uint32_t right = next_random_u32();
+        g_left_samples[i]   = static_cast<int16_t>(left & 0xFFFFU);
+        g_right_samples[i]  = static_cast<int16_t>(right & 0xFFFFU);
+    }
+#else
+    generate_sine_chunk(frames);
+#endif
+}
+
+const char* sample_generator_name()
+{
+#if TEST_MP3ENCODE_USE_RANDOM_INPUT
+    return "independent int16 pseudo-random noise";
+#else
+    return "two sine waves";
+#endif
+}
+
+const char* sample_generator_init_step_name()
+{
+#if TEST_MP3ENCODE_USE_RANDOM_INPUT
+    return "random generator init";
+#else
+    return "sine generator init";
+#endif
+}
+
 uint64_t queue_stereo_chunk_until(
     AudioFifo& left_fifo, AudioFifo& right_fifo, uint32_t started_ms, uint32_t duration_ms, bool& ok)
 {
@@ -84,7 +144,7 @@ uint64_t queue_stereo_chunk_until(
     uint32_t last_progress_ms = millis();
     ok                        = true;
 
-    generate_sine_chunk(kChunkFrames);
+    generate_sample_chunk(kChunkFrames);
 
     while (static_cast<uint32_t>(millis() - started_ms) < duration_ms)
     {
@@ -116,7 +176,7 @@ uint64_t queue_stereo_chunk_until(
             if (queued == kChunkFrames)
             {
                 queued = 0;
-                generate_sine_chunk(kChunkFrames);
+                generate_sample_chunk(kChunkFrames);
             }
         }
 
@@ -194,17 +254,23 @@ void test_mp3encode()
     Serial.println();
     Serial.println("starting MP3 encoder recording test");
     Serial.printf(
-        "%s: throughput test wall=%u ms comfort_target_audio=%u ms left=%.1f Hz right=%.1f Hz sample_rate=%u Hz\n",
+        "%s: throughput test wall=%u ms comfort_target_audio=%u ms input=%s sample_rate=%u Hz\n",
         TAG,
         static_cast<unsigned>(kDurationMs),
         static_cast<unsigned>(kComfortTargetAudioMs),
-        static_cast<double>(kLeftHz),
-        static_cast<double>(kRightHz),
+        sample_generator_name(),
         static_cast<unsigned>(kSampleRateHz));
+#if !TEST_MP3ENCODE_USE_RANDOM_INPUT
+    Serial.printf("%s: sine input left=%.1f Hz right=%.1f Hz amplitude=%.1f\n",
+                  TAG,
+                  static_cast<double>(kLeftHz),
+                  static_cast<double>(kRightHz),
+                  static_cast<double>(kAmplitude));
+#endif
 
     uint32_t step_started_ms = millis();
-    init_sine_generator();
-    print_step_elapsed("sine generator init", step_started_ms);
+    init_sample_generator();
+    print_step_elapsed(sample_generator_init_step_name(), step_started_ms);
 
 #if !defined(BUILD_USE_MP3_COMPRESSION)
     Serial.printf("%s: BUILD_USE_MP3_COMPRESSION is not enabled; this test expects MP3 recording\n", TAG);
