@@ -42,8 +42,7 @@ constexpr int16_t kScrubWidth          = 300;
 constexpr int16_t kScrubHeight         = 20;
 constexpr int16_t kScrubY              = 64;
 constexpr int16_t kPrecisionScrubY     = 124;
-constexpr int16_t kStatusTextY =
-    static_cast<int16_t>(kScrubY + kScrubHeight + ((kPrecisionScrubY - (kScrubY + kScrubHeight)) / 2));
+constexpr int16_t kStatusTextY = kPrecisionScrubY + kScrubHeight + 2;
 constexpr int16_t     kDeleteConfirmTextY           = kScrubY - 17;
 constexpr int16_t     kDeleteConfirmTextGap         = 4;
 constexpr int16_t     kButtonY                      = 180;
