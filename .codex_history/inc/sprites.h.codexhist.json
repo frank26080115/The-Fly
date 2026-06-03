@@ -549,5 +549,63 @@
     "type": "git_commit",
     "commit_message": "file list view now use deterministic unique icon graphics",
     "commit_hash": "0e12e6b2d47a1972c811a105fcc7c2c8f1409e52"
+  },
+  {
+    "timestamp": "2026-06-03T08:01:36.594Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/MainScreenView.cpp",
+      "",
+      "## Active selection of the file:",
+      "    const int gfx_choice = now.minutes % 4;",
+      "    switch(gfx_choice)",
+      "    {",
+      "        case 0:",
+      "            filesItem_.setSprite(",
+      "            sprite_floppy_100, SPRITE_FLOPPY_100_WIDTH, SPRITE_FLOPPY_100_HEIGHT, SPRITE_FLOPPY_100_BYTES);",
+      "            break;",
+      "        case 1:",
+      "            filesItem_.setSprite(",
+      "            sprite_microsdcard_100, SPRITE_MICROSDCARD_100_WIDTH, SPRITE_MICROSDCARD_100_HEIGHT, SPRITE_MICROSDCARD_100_BYTES);",
+      "            break;",
+      "        case 1:",
+      "            filesItem_.setSprite(",
+      "            sprite_microsdcard_100, SPRITE_MICROSDCARD_100_WIDTH, SPRITE_MICROSDCARD_100_HEIGHT, SPRITE_MICROSDCARD_100_BYTES);",
+      "            break;",
+      "        case 1:",
+      "            filesItem_.setSprite(",
+      "            sprite_microsdcard_100, SPRITE_MICROSDCARD_100_WIDTH, SPRITE_MICROSDCARD_100_HEIGHT, SPRITE_MICROSDCARD_100_BYTES);",
+      "            break;",
+      "        case 1:",
+      "            filesItem_.setSprite(",
+      "            sprite_microsdcard_100, SPRITE_MICROSDCARD_100_WIDTH, SPRITE_MICROSDCARD_100_HEIGHT, SPRITE_MICROSDCARD_100_BYTES);",
+      "            break;",
+      "    }",
+      "",
+      "## My request for Codex:",
+      "see this code block highlighted",
+      "",
+      "I want to use: `floppy`, `microsdcard`, `stackedfiles`, `folderwfiles`, `harddrive`, `filecabinet`"
+    ],
+    "agent_reply": [
+      "Done. I replaced the highlighted logic with `syncFilesIcon()` in [MainScreenView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/MainScreenView.cpp:116), using `Clock.getTime().minutes % 6`:",
+      "",
+      "`floppy`, `microsdcard`, `stackedfiles`, `folderwfiles`, `harddrive`, `filecabinet`.",
+      "",
+      "It runs in the constructor before the files button is added, and again in `onLoad()` so the icon can update when returning to the main screen."
+    ],
+    "files": [
+      "lib/FlyGuiViews/MainScreenView.h",
+      "lib/FlyGuiViews/MainScreenView.cpp",
+      "inc/sprites.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-03T08:33:25Z",
+    "type": "git_commit",
+    "commit_message": "randomized file explorer buttons",
+    "commit_hash": "c833ed8c68cc020bff501c8dc9ed6f083d7df971"
   }
 ]

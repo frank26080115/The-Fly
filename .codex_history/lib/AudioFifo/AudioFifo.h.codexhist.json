@@ -1178,5 +1178,77 @@
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
+  },
+  {
+    "timestamp": "2026-06-03T05:42:29.854Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "",
+      "## My request for Codex:",
+      "### implement `src\\diagnostics.cpp`",
+      "",
+      "and the associated header file",
+      "",
+      "First, I want a `Diagnostics::memory_check_in` function that measures worst case free stack and free heap from within the call, this information is cached for display later. It will be inserted into many poll and pump calls, and into things that are event handlers or request handlers. make sure it is thread safe, as both CPUs and many threads will call into it",
+      "",
+      "we need to track in `void FlyGui::poll()` how many times `bool drawn = redraw(false);` is true. Have it call into `Diagnostics::gui_drew()` if `drawn` is true",
+      "",
+      "I also want to see how often `exceeded_threshold` is true inside `void update_write_duration_stats(uint32_t duration_us)`",
+      "",
+      "I also want to track how many overflow events. To `AudioFifo`, add a counter for both overflow and underflow events, an event is going from normal to overflow  or normal to underflow states. Have `Diagnostics` report this as a rate per second.",
+      "",
+      "Have a `Diagnostics::poll()` function, it doesn’t poll much, it might have its own `memory_check_in` , but more importantly, every 1 second, it emits a diagnostic message to serial port with the memory data and the frame rate (so it needs to reset the counter for the draw calls and for the long-write)."
+    ],
+    "agent_reply": [
+      "Implemented the diagnostics path.",
+      "",
+      "Added `Diagnostics::memory_check_in`, `memory_stats`, `gui_drew`, `long_write_exceeded`, and `poll` in [diagnostics.h](D:/GithubRepos/The-Fly/inc/diagnostics.h:9) / [diagnostics.cpp](D:/GithubRepos/The-Fly/src/diagnostics.cpp:37). The counters/minimums use atomics, and `Diagnostics::poll()` emits one serial line per second with worst observed free stack/heap, GUI draw FPS, long-write rate, FIFO overflow rate, and FIFO underflow rate.",
+      "",
+      "Wired it into:",
+      "- [FlyGui.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:120): memory check-in and `Diagnostics::gui_drew()` when `redraw(false)` returns true.",
+      "- [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:431): memory check-in during pump, and long-write threshold counting.",
+      "- [AudioFifo.h](D:/GithubRepos/The-Fly/lib/AudioFifo/AudioFifo.h:26): transition-based overflow/underflow event counters, with aggregate static counters defined in [AudioFifo.cpp](D:/GithubRepos/The-Fly/lib/AudioFifo/AudioFifo.cpp:1).",
+      "- [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:274): one-second diagnostics poll on core 1, plus memory check-in on core 0.",
+      "",
+      "Verified with `pio run -e thefly_sec0`: passed. Only warning was the existing third-party `ESP-FTP-Server` deprecation. `src/version.c` was touched by the build script again.",
+      "",
+      "Implemented the diagnostics path.",
+      "",
+      "Added `Diagnostics::memory_check_in`, `memory_stats`, `gui_drew`, `long_write_exceeded`, and `poll` in [diagnostics.h](D:/GithubRepos/The-Fly/inc/diagnostics.h:9) / [diagnostics.cpp](D:/GithubRepos/The-Fly/src/diagnostics.cpp:37). The counters/minimums use atomics, and `Diagnostics::poll()` emits one serial line per second with worst observed free stack/heap, GUI draw FPS, long-write rate, FIFO overflow rate, and FIFO underflow rate.",
+      "",
+      "Wired it into:",
+      "- [FlyGui.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:120): memory check-in and `Diagnostics::gui_drew()` when `redraw(false)` returns true.",
+      "- [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:431): memory check-in during pump, and long-write threshold counting.",
+      "- [AudioFifo.h](D:/GithubRepos/The-Fly/lib/AudioFifo/AudioFifo.h:26): transition-based overflow/underflow event counters, with aggregate static counters defined in [AudioFifo.cpp](D:/GithubRepos/The-Fly/lib/AudioFifo/AudioFifo.cpp:1).",
+      "- [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:274): one-second diagnostics poll on core 1, plus memory check-in on core 0.",
+      "",
+      "Verified with `pio run -e thefly_sec0`: passed. Only warning was the existing third-party `ESP-FTP-Server` deprecation. `src/version.c` was touched by the build script again."
+    ],
+    "files": [
+      "inc/diagnostics.h",
+      "src/diagnostics.cpp",
+      "lib/AudioFifo/AudioFifo.h",
+      "lib/AudioFifo/AudioFifo.cpp",
+      "lib/FlyGui/FlyGui.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "src/main.cpp",
+      "src/version.c",
+      "inc/thefly_common.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-03T06:51:45Z",
+    "type": "git_commit",
+    "commit_message": "diagnostics, fixed a bug with speaker peak decay",
+    "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
+  },
+  {
+    "timestamp": "2026-06-03T07:03:56Z",
+    "type": "git_commit",
+    "commit_message": "more clang format stuff",
+    "commit_hash": "fa8a1e27b6b4982ce7a05c70f69ab0eb2ff14f79"
   }
 ]

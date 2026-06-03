@@ -33,5 +33,11 @@
       "html/index.html",
       "html/webcrypto-bundle/node_modules/webcrypto-liner/build/webcrypto-liner.shim.mjs"
     ]
+  },
+  {
+    "timestamp": "2026-06-02T17:26:11Z",
+    "type": "git_commit",
+    "commit_message": "add the bundle for webcrypto shim",
+    "commit_hash": "7be6ce0df407868e4e85d82edb31b1e0b37b9ca6"
   }
 ]

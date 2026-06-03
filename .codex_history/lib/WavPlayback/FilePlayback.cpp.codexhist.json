@@ -228,5 +228,59 @@
       "lib/WavPlayback/FilePlayback.cpp",
       "lib/WavPlayback/Mp3EncryptedPlayback.cpp"
     ]
+  },
+  {
+    "timestamp": "2026-06-03T07:24:26.108Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WavPlayback/PlaybackView.cpp",
+      "",
+      "## Active selection of the file:",
+      "statusText_",
+      "",
+      "## My request for Codex:",
+      "In `PlaybackView`, is there any case where playback is possible but the status text also has an error?"
+    ],
+    "agent_reply": [
+      "Yes, there is one notable case.",
+      "",
+      "In [PlaybackView.cpp](/d:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.cpp:489), `startPlayback()` sets `statusText_` when `playback_->start(path_)` returns false, but it does **not** clear or reset `playback_`. In [FilePlayback::start()](/d:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.cpp:62), most failures leave `active_ = false`; however, if `sourceDurationMs() == 0`, it sets:",
+      "",
+      "```cpp",
+      "active_ = true;",
+      "eof_ = true;",
+      "finished_ = true;",
+      "playing_ = false;",
+      "```",
+      "",
+      "Then if `setupSpeaker()` or `seekToTimeMs(0)` fails, it clears `active_`. But if those succeed, `start()` returns `true` even though the file is finished/empty and not playing.",
+      "",
+      "So for normal failed-start errors, playback is not active. But `PlaybackView` can retain a non-null `playback_` with an error status after a failed `start()`, meaning the UI may still have a playback object and controls wired up even though `active()` is false.",
+      "",
+      "More directly: **I don’t see a path where `statusText_` contains an error and `playback_->playing()` is true.** But there can be a path where `statusText_` has an error and `playback_` still exists, so play/pause/scrub handlers are callable but no actual playback can occur because `FilePlayback::active()` is false.",
+      "",
+      "Yes, there is one notable case.",
+      "",
+      "In [PlaybackView.cpp](/d:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.cpp:489), `startPlayback()` sets `statusText_` when `playback_->start(path_)` returns false, but it does **not** clear or reset `playback_`. In [FilePlayback::start()](/d:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.cpp:62), most failures leave `active_ = false`; however, if `sourceDurationMs() == 0`, it sets:",
+      "",
+      "```cpp",
+      "active_ = true;",
+      "eof_ = true;",
+      "finished_ = true;",
+      "playing_ = false;",
+      "```",
+      "",
+      "Then if `setupSpeaker()` or `seekToTimeMs(0)` fails, it clears `active_`. But if those succeed, `start()` returns `true` even though the file is finished/empty and not playing.",
+      "",
+      "So for normal failed-start errors, playback is not active. But `PlaybackView` can retain a non-null `playback_` with an error status after a failed `start()`, meaning the UI may still have a playback object and controls wired up even though `active()` is false.",
+      "",
+      "More directly: **I don’t see a path where `statusText_` contains an error and `playback_->playing()` is true.** But there can be a path where `statusText_` has an error and `playback_` still exists, so play/pause/scrub handlers are callable but no actual playback can occur because `FilePlayback::active()` is false."
+    ],
+    "files": [
+      "lib/WavPlayback/PlaybackView.cpp",
+      "lib/WavPlayback/FilePlayback.cpp"
+    ]
   }
 ]

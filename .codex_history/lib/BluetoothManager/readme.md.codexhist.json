@@ -81,5 +81,34 @@
     "type": "git_commit",
     "commit_message": "change bluetooth init behavior to be connectable",
     "commit_hash": "c413b9460ff7cad507efe70c6364120b3b62ea0b"
+  },
+  {
+    "timestamp": "2026-06-03T07:06:48.525Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BluetoothManager/readme.md",
+      "",
+      "## Active selection of the file:",
+      "TODO: draw a mermaid state diagram here, about how the bluetooth connection workflow",
+      "",
+      "## My request for Codex:",
+      "execute the highlighted todo"
+    ],
+    "agent_reply": [
+      "Done. Replaced the highlighted TODO in [lib/BluetoothManager/readme.md](D:/GithubRepos/The-Fly/lib/BluetoothManager/readme.md) with a Mermaid `stateDiagram-v2` covering connect, pairing, audio availability, disconnect, shutdown, and reconnect paths.",
+      "",
+      "No build needed; docs-only change."
+    ],
+    "files": [
+      "lib/BluetoothManager/readme.md"
+    ]
+  },
+  {
+    "timestamp": "2026-06-03T07:14:20Z",
+    "type": "git_commit",
+    "commit_message": "Update readme.md",
+    "commit_hash": "bd213f60cff7a769c95bec2328b0e7c9762461b7"
   }
 ]
