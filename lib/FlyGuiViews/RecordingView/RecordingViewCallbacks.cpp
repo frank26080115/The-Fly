@@ -77,15 +77,19 @@ bool promoteMemoRecordingToBluetooth()
 
 bool stopRecording(bool disconnectBluetooth)
 {
+    if (disconnectBluetooth)
+    {
+        BtManager::disconnectNonConnectable();
+    }
     setSpeakerMuted(false);
     restore_memo_bt_fifo();
     AudioManager::stop();
-    const bool stopped = AudioFileRecorder::stopRecording();
-    if (disconnectBluetooth)
-    {
-        BtManager::disconnect();
-    }
-    return stopped;
+    return AudioFileRecorder::stopRecording();
+}
+
+bool restoreBluetoothConnectable()
+{
+    return BtManager::setConnectableNonDiscoverable() == BtManager::Result::Ok;
 }
 
 bool enableMicMode()
