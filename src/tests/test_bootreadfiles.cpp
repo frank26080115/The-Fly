@@ -71,35 +71,35 @@ void report_bt_host_item(size_t index, const bt_host_item_t* item)
                   static_cast<unsigned>(item->icon));
 }
 
-void report_wifi_summary(const WifiManager& wifi_manager, bool loaded)
+void report_wifi_summary(bool loaded)
 {
     Serial.printf("%s: WifiManager load=%u result=%s stations=%u access_points=%u cloud_endpoints=%u timezone=%s\n",
                   TAG,
                   loaded ? 1U : 0U,
-                  wifi_manager.lastLoadResultName(),
-                  static_cast<unsigned>(wifi_manager.stationCount()),
-                  static_cast<unsigned>(wifi_manager.accessPointCount()),
-                  static_cast<unsigned>(wifi_manager.cloudEndpointCount()),
-                  wifi_manager.timezone());
+                  WifiManager::lastLoadResultName(),
+                  static_cast<unsigned>(WifiManager::stationCount()),
+                  static_cast<unsigned>(WifiManager::accessPointCount()),
+                  static_cast<unsigned>(WifiManager::cloudEndpointCount()),
+                  WifiManager::timezone());
 
     for (size_t i = 0; i < WifiManager::kNtpServerCount; ++i)
     {
-        Serial.printf("%s: ntp_server[%u]=%s\n", TAG, static_cast<unsigned>(i), wifi_manager.ntpServer(i));
+        Serial.printf("%s: ntp_server[%u]=%s\n", TAG, static_cast<unsigned>(i), WifiManager::ntpServer(i));
     }
 
-    for (size_t i = 0; i < wifi_manager.stationCount(); ++i)
+    for (size_t i = 0; i < WifiManager::stationCount(); ++i)
     {
-        report_wifi_item("station", i, wifi_manager.station(i));
+        report_wifi_item("station", i, WifiManager::station(i));
     }
 
-    for (size_t i = 0; i < wifi_manager.accessPointCount(); ++i)
+    for (size_t i = 0; i < WifiManager::accessPointCount(); ++i)
     {
-        report_wifi_item("access_point", i, wifi_manager.accessPoint(i));
+        report_wifi_item("access_point", i, WifiManager::accessPoint(i));
     }
 
-    for (size_t i = 0; i < wifi_manager.cloudEndpointCount(); ++i)
+    for (size_t i = 0; i < WifiManager::cloudEndpointCount(); ++i)
     {
-        report_cloud_item(i, wifi_manager.cloudEndpoint(i));
+        report_cloud_item(i, WifiManager::cloudEndpoint(i));
     }
 }
 
@@ -135,13 +135,12 @@ void test_bootreadfiles()
     const bool sd_ready = MicroSdCard::begin();
     Serial.printf("%s: MicroSdCard begin=%u ready=%u\n", TAG, sd_ready ? 1U : 0U, MicroSdCard::isReady() ? 1U : 0U);
 
-    WifiManager wifi_manager;
 #if BUILD_WITH_SECURITY_LEVEL <= 0
-    const bool wifi_loaded = wifi_manager.loadFromMicroSd();
+    const bool wifi_loaded = WifiManager::loadFromMicroSd();
 #else
-    const bool wifi_loaded = wifi_manager.loadFromNvs();
+    const bool wifi_loaded = WifiManager::loadFromNvs();
 #endif
-    report_wifi_summary(wifi_manager, wifi_loaded);
+    report_wifi_summary(wifi_loaded);
 
     BtHostList bt_hosts;
     const bool bt_loaded = bt_hosts.loadFromMicroSd();

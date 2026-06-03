@@ -84,7 +84,6 @@ static const char* ntp_error_name(NtpSync::Error error);
 FlyGui*                 gui;
 M5GFX&                  thefly_display = M5.Display;
 BtHostList*             bt_host_list;
-WifiManager*            wifi_manager;
 volatile bool           g_pending_bluetooth_recording       = false;
 volatile bool           g_pending_bluetooth_disconnect      = false;
 volatile bool           g_pending_bluetooth_pairing         = false;
@@ -128,12 +127,7 @@ void setup()
     }
 
     handle_firmware_update_on_boot();
-
-    wifi_manager = new (std::nothrow) WifiManager();
-    if (!wifi_manager)
-    {
-        show_boot_error_f(true, "WifiManager allocation failed");
-    }
+    WifiManager::clear();
 
 #if BUILD_WITH_SECURITY_LEVEL > 0
     if (!g_nvs_ready || !Aegis::init())
@@ -167,14 +161,14 @@ void setup()
 #endif
 
 #if BUILD_WITH_SECURITY_LEVEL <= 0
-    if (!wifi_manager->loadFromMicroSd())
+    if (!WifiManager::loadFromMicroSd())
 #else
-    if (!wifi_manager->loadFromNvs())
+    if (!WifiManager::loadFromNvs())
 #endif
     {
-        show_boot_error_f(false, "Wi-Fi configuration load failed: %s", wifi_manager->lastLoadResultName());
+        show_boot_error_f(false, "Wi-Fi configuration load failed: %s", WifiManager::lastLoadResultName());
     }
-    wifi_manager->setOnScanFinished(on_wifi_scan_finished);
+    WifiManager::setOnScanFinished(on_wifi_scan_finished);
     if (gui->currentView() && gui->currentView()->id() == FLYGUI_VIEW_SPLASH)
     {
         draw_splash_boot_info();
@@ -273,11 +267,8 @@ void loop()
         playback_view->pumpPlayback();
     }
 
-    if (wifi_manager)
-    {
-        wifi_manager->poll();
-        handle_wifi_connection_waiting();
-    }
+    WifiManager::poll();
+    handle_wifi_connection_waiting();
 
     Hotel::pollCore1();
 
@@ -739,12 +730,12 @@ static void handle_pending_ntp_sync_complete()
 
 static void handle_wifi_connection_waiting()
 {
-    if (!g_wifi_connect_waiting || !wifi_manager)
+    if (!g_wifi_connect_waiting)
     {
         return;
     }
 
-    switch (wifi_manager->status())
+    switch (WifiManager::status())
     {
     case WifiManager::Status::StationConnected:
         g_wifi_connect_waiting = false;
@@ -768,7 +759,7 @@ static void handle_wifi_station_connected()
 {
     DBG_LOGI(MAINTAG,
              "Wi-Fi station connected: ssid=%s ip=%s gateway=%s",
-             wifi_manager->connectedWifi() ? wifi_manager->connectedWifi()->ssid : "",
+             WifiManager::connectedWifi() ? WifiManager::connectedWifi()->ssid : "",
              WiFi.localIP().toString().c_str(),
              WiFi.gatewayIP().toString().c_str());
 
@@ -780,7 +771,7 @@ static void handle_wifi_station_connected()
 
     ScrollView* scroll_view = get_view_scroll();
 
-    if (!scroll_view->populateCloud(wifi_manager))
+    if (!scroll_view->populateCloud())
     {
         show_fatal_error_f(false, "Wi-Fi action list failed");
         return;
@@ -797,7 +788,7 @@ void show_wifi_connection_failed(const char* text)
     g_wifi_connect_waiting = false;
 
     ScrollView* scroll_view = get_view_scroll();
-    scroll_view->populateWifi(wifi_manager);
+    scroll_view->populateWifi();
 
     error_remote_f(FLYGUI_VIEW_SCROLL, MAINTAG, "%s", text ? text : "Wi-Fi connection failed");
 }

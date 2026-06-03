@@ -9,8 +9,6 @@
 #include "WifiManager.h"
 #include "sprites.h"
 
-extern WifiManager* wifi_manager;
-
 namespace
 {
 constexpr int16_t     kContentY                 = FlyGui::kTopBarHeight;
@@ -259,11 +257,11 @@ void WifiStaModeView::formatStatsLine(char* out, size_t out_size) const
         return;
     }
 
-    const uint32_t pageLoads = wifi_manager ? wifi_manager->webPageLoadCount() : 0;
-    const uint32_t logins    = wifi_manager ? wifi_manager->webLoginCount() : 0;
-    const uint32_t saves     = wifi_manager ? wifi_manager->webSaveCount() : 0;
-    const uint32_t errors    = wifi_manager ? wifi_manager->webErrorCount() : 0;
-    const uint32_t downloads = wifi_manager ? wifi_manager->webDownloadCount() : 0;
+    const uint32_t pageLoads = WifiManager::webPageLoadCount();
+    const uint32_t logins    = WifiManager::webLoginCount();
+    const uint32_t saves     = WifiManager::webSaveCount();
+    const uint32_t errors    = WifiManager::webErrorCount();
+    const uint32_t downloads = WifiManager::webDownloadCount();
 
 #if BUILD_WITH_SECURITY_LEVEL <= 0
     switch (statsIndex_ % 4)
@@ -356,8 +354,8 @@ void set_text_style(uint8_t font, uint16_t color)
 
 const wifi_item_t* current_station()
 {
-    const wifi_item_t* connected = wifi_manager ? wifi_manager->connectedWifi() : nullptr;
-    return connected ? connected : (wifi_manager ? wifi_manager->activeWifi() : nullptr);
+    const wifi_item_t* connected = WifiManager::connectedWifi();
+    return connected ? connected : WifiManager::activeWifi();
 }
 
 } // namespace

@@ -14,8 +14,6 @@
 #include "WifiManager.h"
 #include "dbg_log.h"
 
-extern WifiManager* wifi_manager;
-
 namespace WebFileHandlers
 {
 namespace
@@ -422,18 +420,12 @@ namespace
 
 void note_web_download()
 {
-    if (wifi_manager)
-    {
-        wifi_manager->noteWebDownload();
-    }
+    WifiManager::noteWebDownload();
 }
 
 void note_web_error()
 {
-    if (wifi_manager)
-    {
-        wifi_manager->noteWebError();
-    }
+    WifiManager::noteWebError();
 }
 
 bool path_has_parent_or_current_segment(const char* path)

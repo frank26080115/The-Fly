@@ -9,8 +9,6 @@
 #include "SpriteDraw.h"
 #include "WifiManager.h"
 #include "sprites.h"
-
-extern WifiManager* wifi_manager;
 extern QrCodeView*  get_view_qr_code();
 
 namespace
@@ -237,7 +235,7 @@ void WifiApModeView::drawStaticContent()
                             static_cast<int16_t>(thefly_display.height() - kContentY),
                             TFT_BLACK);
 
-    securityIcon_.setVisible(wifi_manager && wifi_manager->isGeneratedSoftApActive());
+    securityIcon_.setVisible(WifiManager::isGeneratedSoftApActive());
     wifiIcon_.redraw(true);
     securityIcon_.redraw(true);
     eyeItem_.redraw(true);
@@ -253,18 +251,18 @@ void WifiApModeView::drawClientInfo(bool forced)
     }
     lastClientDrawMs_ = now;
 
-    const bool secureAp = wifi_manager && wifi_manager->isGeneratedSoftApActive();
+    const bool secureAp = WifiManager::isGeneratedSoftApActive();
 
     char    client_text[24] = "To: nobody";
     uint8_t client_mac[6]   = {};
-    if (wifi_manager && wifi_manager->softApClientMac(client_mac))
+    if (WifiManager::softApClientMac(client_mac))
     {
         char mac_text[18] = {};
         format_mac_hyphen(client_mac, mac_text, sizeof(mac_text));
         snprintf(client_text, sizeof(client_text), "TO: %s", mac_text);
     }
 
-    const uint32_t connectionCount = wifi_manager ? wifi_manager->softApClientConnectionCount() : 0;
+    const uint32_t connectionCount = WifiManager::softApClientConnectionCount();
     char           count_text[24]  = {};
     snprintf(count_text,
              sizeof(count_text),
@@ -299,10 +297,10 @@ void WifiApModeView::drawClientInfo(bool forced)
 
 void WifiApModeView::drawCredentials()
 {
-    const wifi_item_t* active   = wifi_manager ? wifi_manager->activeWifi() : nullptr;
+    const wifi_item_t* active   = WifiManager::activeWifi();
     const char*        ssid     = active && active->ssid[0] != '\0' ? active->ssid : "";
-    const char*        password = wifi_manager ? wifi_manager->softApPassword() : nullptr;
-    const String       ipText   = wifi_manager ? wifi_manager->softApIp().toString() : IPAddress().toString();
+    const char*        password = WifiManager::softApPassword();
+    const String       ipText   = WifiManager::softApIp().toString();
 
     thefly_display.fillRect(kTextX, kTextY, kTextWidth, kStatsY - kTextY, TFT_BLACK);
 
@@ -367,11 +365,11 @@ void WifiApModeView::formatStatsLine(char* out, size_t out_size) const
         return;
     }
 
-    const uint32_t pageLoads = wifi_manager ? wifi_manager->webPageLoadCount() : 0;
-    const uint32_t logins    = wifi_manager ? wifi_manager->webLoginCount() : 0;
-    const uint32_t saves     = wifi_manager ? wifi_manager->webSaveCount() : 0;
-    const uint32_t errors    = wifi_manager ? wifi_manager->webErrorCount() : 0;
-    const uint32_t downloads = wifi_manager ? wifi_manager->webDownloadCount() : 0;
+    const uint32_t pageLoads = WifiManager::webPageLoadCount();
+    const uint32_t logins    = WifiManager::webLoginCount();
+    const uint32_t saves     = WifiManager::webSaveCount();
+    const uint32_t errors    = WifiManager::webErrorCount();
+    const uint32_t downloads = WifiManager::webDownloadCount();
 
 #if BUILD_WITH_SECURITY_LEVEL <= 0
     switch (statsIndex_ % 4)
@@ -419,9 +417,9 @@ bool WifiApModeView::makeWifiQrText(char* out, size_t out_size) const
     }
 
     out[0]                      = '\0';
-    const wifi_item_t* active   = wifi_manager ? wifi_manager->activeWifi() : nullptr;
+    const wifi_item_t* active   = WifiManager::activeWifi();
     const char*        ssid     = active && active->ssid[0] != '\0' ? active->ssid : nullptr;
-    const char*        password = wifi_manager ? wifi_manager->softApPassword() : nullptr;
+    const char*        password = WifiManager::softApPassword();
     if (!password && active && active->password[0] != '\0')
     {
         password = active->password;

@@ -20,8 +20,6 @@ constexpr const char* TAG = "test_nvsloadsave";
 network_cfg_t  g_network_report_cfg = {};
 network_cfg_t  g_max_network_cfg    = {};
 bt_host_list_t g_bt_report_cfg      = {};
-WifiManager    g_wifi;
-WifiManager    g_wifi_verify;
 BtHostList     g_bt_hosts;
 BtHostList     g_bt_verify;
 
@@ -101,16 +99,16 @@ void print_bt_host_item(size_t index, const bt_host_item_t& item)
                   static_cast<unsigned>(item.icon));
 }
 
-void print_network_config(const char* label, const WifiManager& wifi)
+void print_network_config(const char* label)
 {
     network_cfg_t& cfg = g_network_report_cfg;
     memset(&cfg, 0, sizeof(cfg));
-    wifi.copyConfig(cfg);
+    WifiManager::copyConfig(cfg);
 
     Serial.printf("%s: %s WifiManager result=%s sizeof(network_cfg_t)=%u\n",
                   TAG,
                   safe_text(label),
-                  wifi.lastLoadResultName(),
+                  WifiManager::lastLoadResultName(),
                   static_cast<unsigned>(sizeof(network_cfg_t)));
     Serial.printf("%s: %s network magic=0x%08lX version=%lu security_level=%u station_count=%u access_point_count=%u "
                   "cloud_endpoint_count=%u\n",
@@ -261,10 +259,12 @@ void test_nvsloadsave()
 
     print_nvs_stats("before load");
 
-    WifiManager& wifi        = g_wifi;
-    const bool   wifi_loaded = wifi.loadFromNvs();
-    Serial.printf("%s: WifiManager::loadFromNvs=%u result=%s\n", TAG, wifi_loaded ? 1U : 0U, wifi.lastLoadResultName());
-    print_network_config("loaded", wifi);
+    const bool wifi_loaded = WifiManager::loadFromNvs();
+    Serial.printf("%s: WifiManager::loadFromNvs=%u result=%s\n",
+                  TAG,
+                  wifi_loaded ? 1U : 0U,
+                  WifiManager::lastLoadResultName());
+    print_network_config("loaded");
 
     BtHostList& bt_hosts  = g_bt_hosts;
     const bool  bt_loaded = bt_hosts.loadFromNvs();
@@ -279,24 +279,23 @@ void test_nvsloadsave()
     fill_max_bt_host_list(bt_hosts);
 
     Serial.printf("%s: writing maximum-size test data to NVS\n", TAG);
-    const bool wifi_saved = wifi.replaceConfig(max_network);
+    const bool wifi_saved = WifiManager::replaceConfig(max_network);
     Serial.printf("%s: WifiManager::replaceConfig/save=%u result=%s\n",
                   TAG,
                   wifi_saved ? 1U : 0U,
-                  wifi.lastLoadResultName());
+                  WifiManager::lastLoadResultName());
 
     const bool bt_saved = bt_hosts.saveToNvs();
     Serial.printf("%s: BtHostList::saveToNvs=%u result=%s\n", TAG, bt_saved ? 1U : 0U, bt_hosts.lastLoadResultName());
 
     print_nvs_stats("after save");
 
-    WifiManager& wifi_verify        = g_wifi_verify;
-    const bool   wifi_verify_loaded = wifi_verify.loadFromNvs();
+    const bool wifi_verify_loaded = WifiManager::loadFromNvs();
     Serial.printf("%s: verify WifiManager::loadFromNvs=%u result=%s\n",
                   TAG,
                   wifi_verify_loaded ? 1U : 0U,
-                  wifi_verify.lastLoadResultName());
-    print_network_config("verified", wifi_verify);
+                  WifiManager::lastLoadResultName());
+    print_network_config("verified");
 
     BtHostList& bt_verify        = g_bt_verify;
     const bool  bt_verify_loaded = bt_verify.loadFromNvs();

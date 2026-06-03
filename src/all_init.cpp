@@ -20,7 +20,6 @@
 #include "thefly_version.h"
 #include "Aegis.h"
 #include "BattTracker.h"
-#include "WifiManager.h"
 #include "esp_mac.h"
 #include <stdarg.h>
 #include <stdio.h>
@@ -38,7 +37,6 @@ bool                   reset_was_magic = false;
 bool                   g_nvs_ready     = false;
 
 extern FlyGui*      gui;
-extern WifiManager* wifi_manager;
 
 namespace
 {

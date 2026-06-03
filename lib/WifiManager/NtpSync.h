@@ -61,8 +61,7 @@ public:
     NtpSync(const NtpSync&)            = delete;
     NtpSync& operator=(const NtpSync&) = delete;
 
-    bool
-    start(const WifiManager& wifi_manager, uint32_t timeout_ms = kDefaultTimeoutMs, bool write_rtc_after_sync = false);
+    bool start(uint32_t timeout_ms = kDefaultTimeoutMs, bool write_rtc_after_sync = false);
 
     bool cancel();
     bool writeRtc();
@@ -82,7 +81,7 @@ public:
 private:
     static void taskEntry(void* argument);
 
-    bool copyConfig(const WifiManager& wifi_manager, uint32_t timeout_ms, bool write_rtc_after_sync);
+    bool copyConfig(uint32_t timeout_ms, bool write_rtc_after_sync);
     bool startTaskOnCurrentCore();
     void taskMain();
     void finish(Status status, Error error);

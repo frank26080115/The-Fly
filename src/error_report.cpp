@@ -12,7 +12,6 @@
 #include <stdio.h>
 
 extern FlyGui*      gui;
-extern WifiManager* wifi_manager;
 extern ErrorView*   get_view_error();
 extern ModalDialog* get_view_modal_dialog();
 
@@ -153,10 +152,7 @@ bool show_error_view(thefly_error_t type, bool blocking, const char* message)
     {
         gui->poll();
         BattTracker::poll();
-        if (wifi_manager)
-        {
-            wifi_manager->poll();
-        }
+        WifiManager::poll();
         delay(10);
     }
 

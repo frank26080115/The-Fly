@@ -6,18 +6,16 @@
 #include "WebServer.h"
 #include "WifiManager.h"
 
-extern WifiManager* wifi_manager;
-
 namespace
 {
 
 constexpr const char* TAG = "test_webserver";
 
-void idle_forever(WifiManager& wifi_manager)
+void idle_forever()
 {
     while (true)
     {
-        wifi_manager.poll();
+        WifiManager::poll();
         delay(10);
     }
 }
@@ -40,26 +38,25 @@ void test_webserver()
     const bool sd_ready = MicroSdCard::begin();
     Serial.printf("%s: microSD ready=%u\n", TAG, sd_ready ? 1U : 0U);
 
-    WifiManager web_wifi_manager;
-    wifi_manager = &web_wifi_manager;
-    if (!web_wifi_manager.startGeneratedSoftAp())
+    WifiManager::clear();
+    if (!WifiManager::startGeneratedSoftAp())
     {
-        Serial.printf("%s: generated SoftAP start failed: %s\n", TAG, web_wifi_manager.statusName());
-        idle_forever(web_wifi_manager);
+        Serial.printf("%s: generated SoftAP start failed: %s\n", TAG, WifiManager::statusName());
+        idle_forever();
     }
 
     Serial.printf("%s: SoftAP ssid=\"%s\" password=\"%s\" ip=%s\n",
                   TAG,
-                  web_wifi_manager.generatedSoftApSsid() ? web_wifi_manager.generatedSoftApSsid() : "",
-                  web_wifi_manager.softApPassword() ? web_wifi_manager.softApPassword() : "",
+                  WifiManager::generatedSoftApSsid() ? WifiManager::generatedSoftApSsid() : "",
+                  WifiManager::softApPassword() ? WifiManager::softApPassword() : "",
                   WiFi.softAPIP().toString().c_str());
 
     if (!WebServer::init())
     {
         Serial.printf("%s: web server init failed\n", TAG);
-        idle_forever(web_wifi_manager);
+        idle_forever();
     }
 
     Serial.printf("%s: HTTP server ready, spinning forever\n", TAG);
-    idle_forever(web_wifi_manager);
+    idle_forever();
 }

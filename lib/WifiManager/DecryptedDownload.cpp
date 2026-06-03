@@ -25,8 +25,6 @@
 #include "mbedtls/platform_util.h"
 #include "utilfuncs.h"
 
-extern WifiManager* wifi_manager;
-
 namespace DecryptedDownload
 {
 namespace
@@ -303,18 +301,12 @@ namespace
 
 void note_web_download()
 {
-    if (wifi_manager)
-    {
-        wifi_manager->noteWebDownload();
-    }
+    WifiManager::noteWebDownload();
 }
 
 void note_web_error()
 {
-    if (wifi_manager)
-    {
-        wifi_manager->noteWebError();
-    }
+    WifiManager::noteWebError();
 }
 
 void set_error(AsyncWebServerRequest* request, int status_code, const char* message)

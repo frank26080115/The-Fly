@@ -52,7 +52,6 @@ constexpr const char* kDefaultNtpServers[] = {
     "time.nist.gov",
     "time.google.com",
 };
-constexpr bool        kWifiDebugBuild       = static_cast<int>(DBG_LOG_LOCAL_LEVEL) > static_cast<int>(DBG_LOG_ERROR);
 constexpr int         kSoftApChannel        = 1;
 constexpr int         kSoftApSsidHidden     = 0;
 constexpr int         kSoftApMaxConnection  = 1;
@@ -60,6 +59,31 @@ constexpr uint32_t    kNetworkConfigMagic   = 0x54465749; // "TFWI"
 constexpr uint32_t    kNetworkConfigVersion = 3;
 constexpr const char* kNetworkNvsNamespace  = "wifi_cfg";
 constexpr const char* kNetworkNvsBlobName   = "network";
+
+network_cfg_t                     g_network_cfg = {};
+size_t                            g_station_count = 0;
+size_t                            g_access_point_count = 0;
+size_t                            g_cloud_endpoint_count = 0;
+WifiManager::LoadResult           g_last_load_result = WifiManager::LoadResult::Ok;
+WifiManager::Status               g_status = WifiManager::Status::Idle;
+const wifi_item_t*                g_active_wifi = nullptr;
+const wifi_item_t*                g_connected_wifi = nullptr;
+bool                              g_wifi_has_started = false;
+bool                              g_reported_connected = false;
+WifiManager::ConnectionCallback   g_on_connect = nullptr;
+WifiManager::ConnectionCallback   g_on_disconnect = nullptr;
+WifiManager::ScanFinishedCallback g_on_scan_finished = nullptr;
+char                              g_generated_soft_ap_ssid[WifiManager::kGeneratedSoftApSsidLength + 1] = {};
+char                              g_generated_soft_ap_password[WifiManager::kGeneratedSoftApPasswordLength + 1] = {};
+wifi_item_t                       g_generated_soft_ap = {};
+uint32_t                          g_web_page_load_count = 0;
+uint32_t                          g_web_login_count = 0;
+uint32_t                          g_web_save_count = 0;
+uint32_t                          g_web_error_count = 0;
+uint32_t                          g_web_download_count = 0;
+bool                              g_soft_ap_client_connected = false;
+uint8_t                           g_soft_ap_client_mac[6] = {};
+uint32_t                          g_soft_ap_client_connection_count = 0;
 
 // -----------------------------------------------------------------------------
 // Function Prototypes
@@ -89,19 +113,20 @@ IPAddress current_soft_ap_ip();
 
 } // namespace
 
+namespace WifiManager
+{
+bool connectToHotspot(const wifi_item_t* hotspot, bool shutdown_first);
+void resetWebCounters();
+void resetSoftApClientTracking();
+void updateSoftApClientTracking();
+void notifyConnected(const wifi_item_t* item);
+void notifyDisconnected(const wifi_item_t* item);
+void notifyScanFinished(const wifi_item_t* item);
+} // namespace WifiManager
+
 // -----------------------------------------------------------------------------
 // Main Flow
 // -----------------------------------------------------------------------------
-
-WifiManager::WifiManager()
-{
-    clear();
-}
-
-WifiManager::~WifiManager()
-{
-    clear();
-}
 
 #if BUILD_WITH_SECURITY_LEVEL <= 0
 bool WifiManager::loadFromMicroSd(const char* path)
@@ -130,7 +155,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
     {
         file.close();
         DBG_LOGW(TAG, "Wi-Fi config import is too large: %llu bytes", static_cast<unsigned long long>(file_size));
-        m_last_load_result = LoadResult::Ok;
+        g_last_load_result = LoadResult::Ok;
         return true;
     }
 
@@ -139,7 +164,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
     {
         file.close();
         DBG_LOGW(TAG, "could not allocate Wi-Fi config import buffer");
-        m_last_load_result = LoadResult::Ok;
+        g_last_load_result = LoadResult::Ok;
         return true;
     }
 
@@ -150,7 +175,7 @@ bool WifiManager::loadFromMicroSd(const char* path)
     {
         free(buffer);
         DBG_LOGW(TAG, "could not read Wi-Fi config import");
-        m_last_load_result = LoadResult::Ok;
+        g_last_load_result = LoadResult::Ok;
         return true;
     }
     buffer[file_size] = '\0';
@@ -161,21 +186,21 @@ bool WifiManager::loadFromMicroSd(const char* path)
     if (error)
     {
         DBG_LOGW(TAG, "could not parse Wi-Fi config import: %s", error.c_str());
-        m_last_load_result = LoadResult::Ok;
+        g_last_load_result = LoadResult::Ok;
         return true;
     }
 
     size_t skipped = 0;
-    parse_network_config_json(doc, m_network_cfg, skipped);
+    parse_network_config_json(doc, g_network_cfg, skipped);
     if (skipped > 0)
     {
         DBG_LOGW(TAG, "Wi-Fi config import skipped %u invalid or extra item(s)", static_cast<unsigned>(skipped));
     }
 
-    m_station_count      = m_network_cfg.station_count;
-    m_access_point_count = m_network_cfg.access_point_count;
+    g_station_count      = g_network_cfg.station_count;
+    g_access_point_count = g_network_cfg.access_point_count;
 #ifdef BUILD_CLOUD_FEATURES
-    m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
+    g_cloud_endpoint_count = g_network_cfg.cloud_endpoint_count;
 #endif
 
     if (!saveToNvs())
@@ -183,12 +208,12 @@ bool WifiManager::loadFromMicroSd(const char* path)
         return false;
     }
 
-    m_last_load_result = LoadResult::Ok;
+    g_last_load_result = LoadResult::Ok;
     DBG_LOGI(TAG,
              "imported Wi-Fi config into NVS: stations=%u access_points=%u cloud_endpoints=%u",
-             static_cast<unsigned>(m_station_count),
-             static_cast<unsigned>(m_access_point_count),
-             static_cast<unsigned>(m_cloud_endpoint_count));
+             static_cast<unsigned>(g_station_count),
+             static_cast<unsigned>(g_access_point_count),
+             static_cast<unsigned>(g_cloud_endpoint_count));
     return true;
 }
 #endif
@@ -201,14 +226,14 @@ bool WifiManager::loadFromNvs()
     esp_err_t    err    = nvs_open(kNetworkNvsNamespace, NVS_READONLY, &handle);
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
-        m_last_load_result = LoadResult::Ok;
+        g_last_load_result = LoadResult::Ok;
         DBG_LOGI(TAG, "no Wi-Fi config namespace in NVS; using defaults");
         apply_timezone(timezone());
-        return cache_network_config_hash(m_network_cfg);
+        return cache_network_config_hash(g_network_cfg);
     }
     if (err != ESP_OK)
     {
-        m_last_load_result = LoadResult::FileOpenFailed;
+        g_last_load_result = LoadResult::FileOpenFailed;
         DBG_LOGW(TAG, "could not open Wi-Fi NVS namespace: %s", esp_err_to_name(err));
         return false;
     }
@@ -219,37 +244,37 @@ bool WifiManager::loadFromNvs()
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         nvs_close(handle);
-        m_last_load_result = LoadResult::Ok;
+        g_last_load_result = LoadResult::Ok;
         DBG_LOGI(TAG, "no Wi-Fi config in NVS; using defaults");
         apply_timezone(timezone());
-        return cache_network_config_hash(m_network_cfg);
+        return cache_network_config_hash(g_network_cfg);
     }
     if (err != ESP_OK)
     {
         nvs_close(handle);
-        m_last_load_result = LoadResult::FileReadFailed;
+        g_last_load_result = LoadResult::FileReadFailed;
         DBG_LOGW(TAG, "could not query Wi-Fi config from NVS: %s", esp_err_to_name(err));
         return false;
     }
     if (cfg_size != sizeof(network_cfg_t))
     {
         nvs_close(handle);
-        m_last_load_result = LoadResult::Ok;
+        g_last_load_result = LoadResult::Ok;
         DBG_LOGW(TAG,
                  "ignoring incompatible Wi-Fi config size in NVS: stored=%u expected=%u",
                  static_cast<unsigned>(cfg_size),
                  static_cast<unsigned>(sizeof(network_cfg_t)));
-        return cache_network_config_hash(m_network_cfg);
+        return cache_network_config_hash(g_network_cfg);
     }
 
-    network_cfg_t& cfg       = m_network_cfg;
+    network_cfg_t& cfg       = g_network_cfg;
     size_t         read_size = sizeof(cfg);
     err                      = nvs_get_blob(handle, kNetworkNvsBlobName, &cfg, &read_size);
     nvs_close(handle);
 
     if (err != ESP_OK || read_size != sizeof(cfg))
     {
-        m_last_load_result = LoadResult::FileReadFailed;
+        g_last_load_result = LoadResult::FileReadFailed;
         DBG_LOGW(TAG,
                  "could not load Wi-Fi config from NVS: %s size=%u",
                  esp_err_to_name(err),
@@ -259,45 +284,45 @@ bool WifiManager::loadFromNvs()
     if (cfg.magic != kNetworkConfigMagic || !valid_network_config_version(cfg.version) ||
         cfg.security_level != BUILD_WITH_SECURITY_LEVEL)
     {
-        init_network_config_defaults(m_network_cfg);
-        m_last_load_result = LoadResult::Ok;
+        init_network_config_defaults(g_network_cfg);
+        g_last_load_result = LoadResult::Ok;
         DBG_LOGW(TAG, "ignoring incompatible Wi-Fi config in NVS");
         apply_timezone(timezone());
-        return cache_network_config_hash(m_network_cfg);
+        return cache_network_config_hash(g_network_cfg);
     }
 
     sanitize_network_config(cfg);
-    m_network_cfg        = cfg;
-    m_station_count      = m_network_cfg.station_count;
-    m_access_point_count = m_network_cfg.access_point_count;
+    g_network_cfg        = cfg;
+    g_station_count      = g_network_cfg.station_count;
+    g_access_point_count = g_network_cfg.access_point_count;
 #ifdef BUILD_CLOUD_FEATURES
-    m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
+    g_cloud_endpoint_count = g_network_cfg.cloud_endpoint_count;
 #endif
-    m_last_load_result = LoadResult::Ok;
+    g_last_load_result = LoadResult::Ok;
     apply_timezone(timezone());
-    if (!cache_network_config_hash(m_network_cfg))
+    if (!cache_network_config_hash(g_network_cfg))
     {
         return false;
     }
 
     DBG_LOGI(TAG,
              "loaded Wi-Fi config from NVS: stations=%u access_points=%u cloud_endpoints=%u",
-             static_cast<unsigned>(m_station_count),
-             static_cast<unsigned>(m_access_point_count),
-             static_cast<unsigned>(m_cloud_endpoint_count));
+             static_cast<unsigned>(g_station_count),
+             static_cast<unsigned>(g_access_point_count),
+             static_cast<unsigned>(g_cloud_endpoint_count));
     return true;
 }
 
 bool WifiManager::saveToNvs()
 {
-    m_network_cfg.station_count        = static_cast<uint8_t>(m_station_count);
-    m_network_cfg.access_point_count   = static_cast<uint8_t>(m_access_point_count);
-    m_network_cfg.cloud_endpoint_count = static_cast<uint8_t>(m_cloud_endpoint_count);
-    sanitize_network_config(m_network_cfg);
-    m_station_count      = m_network_cfg.station_count;
-    m_access_point_count = m_network_cfg.access_point_count;
+    g_network_cfg.station_count        = static_cast<uint8_t>(g_station_count);
+    g_network_cfg.access_point_count   = static_cast<uint8_t>(g_access_point_count);
+    g_network_cfg.cloud_endpoint_count = static_cast<uint8_t>(g_cloud_endpoint_count);
+    sanitize_network_config(g_network_cfg);
+    g_station_count      = g_network_cfg.station_count;
+    g_access_point_count = g_network_cfg.access_point_count;
 #ifdef BUILD_CLOUD_FEATURES
-    m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
+    g_cloud_endpoint_count = g_network_cfg.cloud_endpoint_count;
 #endif
     apply_timezone(timezone());
 
@@ -305,12 +330,12 @@ bool WifiManager::saveToNvs()
     esp_err_t    err    = nvs_open(kNetworkNvsNamespace, NVS_READWRITE, &handle);
     if (err != ESP_OK)
     {
-        m_last_load_result = LoadResult::FileOpenFailed;
+        g_last_load_result = LoadResult::FileOpenFailed;
         DBG_LOGW(TAG, "could not open Wi-Fi NVS namespace for write: %s", esp_err_to_name(err));
         return false;
     }
 
-    err = nvs_set_blob(handle, kNetworkNvsBlobName, &m_network_cfg, sizeof(m_network_cfg));
+    err = nvs_set_blob(handle, kNetworkNvsBlobName, &g_network_cfg, sizeof(g_network_cfg));
     if (err == ESP_OK)
     {
         err = nvs_commit(handle);
@@ -319,18 +344,18 @@ bool WifiManager::saveToNvs()
 
     if (err != ESP_OK)
     {
-        m_last_load_result = LoadResult::FileWriteFailed;
+        g_last_load_result = LoadResult::FileWriteFailed;
         DBG_LOGW(TAG, "could not save Wi-Fi config to NVS: %s", esp_err_to_name(err));
         return false;
     }
 
-    m_last_load_result = LoadResult::Ok;
-    return cache_network_config_hash(m_network_cfg);
+    g_last_load_result = LoadResult::Ok;
+    return cache_network_config_hash(g_network_cfg);
 }
 
-bool WifiManager::copyConfig(network_cfg_t& out) const
+bool WifiManager::copyConfig(network_cfg_t& out)
 {
-    out = m_network_cfg;
+    out = g_network_cfg;
     sanitize_network_config(out);
     return true;
 }
@@ -340,77 +365,67 @@ bool WifiManager::replaceConfig(const network_cfg_t& config)
     network_cfg_t staged = config;
     sanitize_network_config(staged);
 
-    m_network_cfg        = staged;
-    m_station_count      = m_network_cfg.station_count;
-    m_access_point_count = m_network_cfg.access_point_count;
+    g_network_cfg        = staged;
+    g_station_count      = g_network_cfg.station_count;
+    g_access_point_count = g_network_cfg.access_point_count;
 #ifdef BUILD_CLOUD_FEATURES
-    m_cloud_endpoint_count = m_network_cfg.cloud_endpoint_count;
+    g_cloud_endpoint_count = g_network_cfg.cloud_endpoint_count;
 #else
-    m_cloud_endpoint_count = 0;
+    g_cloud_endpoint_count = 0;
 #endif
-    m_active_wifi        = nullptr;
-    m_connected_wifi     = nullptr;
-    m_reported_connected = false;
+    g_active_wifi        = nullptr;
+    g_connected_wifi     = nullptr;
+    g_reported_connected = false;
 
     return saveToNvs();
 }
 
 void WifiManager::clear()
 {
-    init_network_config_defaults(m_network_cfg);
-    m_station_count        = 0;
-    m_access_point_count   = 0;
-    m_cloud_endpoint_count = 0;
-    m_active_wifi          = nullptr;
-    m_connected_wifi       = nullptr;
-    m_reported_connected   = false;
-    m_last_load_result     = LoadResult::Ok;
-    cache_network_config_hash(m_network_cfg);
+    init_network_config_defaults(g_network_cfg);
+    g_station_count        = 0;
+    g_access_point_count   = 0;
+    g_cloud_endpoint_count = 0;
+    g_active_wifi          = nullptr;
+    g_connected_wifi       = nullptr;
+    g_reported_connected   = false;
+    g_last_load_result     = LoadResult::Ok;
+    cache_network_config_hash(g_network_cfg);
     apply_timezone(timezone());
 }
 
-const char* WifiManager::timezone() const
+const char* WifiManager::timezone()
 {
-    return m_network_cfg.timezone[0] != '\0' ? m_network_cfg.timezone : kDefaultTimezone;
+    return g_network_cfg.timezone[0] != '\0' ? g_network_cfg.timezone : kDefaultTimezone;
 }
 
-const char* WifiManager::ntpServer(size_t index) const
+const char* WifiManager::ntpServer(size_t index)
 {
     if (index >= kNtpServerCount)
     {
         return nullptr;
     }
-    return m_network_cfg.ntp_server[index][0] != '\0' ? m_network_cfg.ntp_server[index] : kDefaultNtpServers[index];
+    return g_network_cfg.ntp_server[index][0] != '\0' ? g_network_cfg.ntp_server[index] : kDefaultNtpServers[index];
 }
 
-size_t WifiManager::stationCount() const
+size_t WifiManager::stationCount()
 {
-    return m_station_count;
+    return g_station_count;
 }
 
-wifi_item_t* WifiManager::station(size_t index)
+const wifi_item_t* WifiManager::station(size_t index)
 {
-    return const_cast<wifi_item_t*>(static_cast<const WifiManager*>(this)->station(index));
+    return index < g_station_count ? &g_network_cfg.station[index] : nullptr;
 }
 
-const wifi_item_t* WifiManager::station(size_t index) const
+size_t WifiManager::accessPointCount()
 {
-    return index < m_station_count ? &m_network_cfg.station[index] : nullptr;
+    return g_access_point_count;
 }
 
-size_t WifiManager::accessPointCount() const
+const wifi_item_t* WifiManager::accessPoint(size_t index)
 {
-    return m_access_point_count;
-}
-
-wifi_item_t* WifiManager::accessPoint(size_t index)
-{
-    return const_cast<wifi_item_t*>(static_cast<const WifiManager*>(this)->accessPoint(index));
-}
-
-const wifi_item_t* WifiManager::accessPoint(size_t index) const
-{
-    return index < m_access_point_count ? &m_network_cfg.access_point[index] : nullptr;
+    return index < g_access_point_count ? &g_network_cfg.access_point[index] : nullptr;
 }
 
 bool WifiManager::connectToHotspot(const wifi_item_t* hotspot)
@@ -422,8 +437,8 @@ bool WifiManager::connectToHotspot(const wifi_item_t* hotspot, bool shutdown_fir
 {
     if (!hotspot || !hotspot->ssid || hotspot->ssid[0] == '\0')
     {
-        m_status      = Status::ConnectFailed;
-        m_active_wifi = nullptr;
+        g_status      = Status::ConnectFailed;
+        g_active_wifi = nullptr;
         DBG_LOGW(TAG, "cannot connect to missing Wi-Fi hotspot");
         return false;
     }
@@ -434,26 +449,26 @@ bool WifiManager::connectToHotspot(const wifi_item_t* hotspot, bool shutdown_fir
     }
     resetSoftApClientTracking();
 
-    if (m_reported_connected)
+    if (g_reported_connected)
     {
-        notifyDisconnected(m_connected_wifi);
+        notifyDisconnected(g_connected_wifi);
     }
 
     WiFi.softAPdisconnect(true);
     if (!WiFi.mode(WIFI_STA))
     {
-        m_status      = Status::ConnectFailed;
-        m_active_wifi = nullptr;
+        g_status      = Status::ConnectFailed;
+        g_active_wifi = nullptr;
         DBG_LOGW(TAG, "could not switch Wi-Fi to station mode");
         return false;
     }
-    m_wifi_has_started = true;
+    g_wifi_has_started = true;
 
     const char* password = hotspot->password && hotspot->password[0] != '\0' ? hotspot->password : nullptr;
     WiFi.begin(hotspot->ssid, password);
 
-    m_active_wifi = hotspot;
-    m_status      = Status::StationConnecting;
+    g_active_wifi = hotspot;
+    g_status      = Status::StationConnecting;
     DBG_LOGI(TAG, "started Wi-Fi station connection to \"%s\"", hotspot->ssid);
     return true;
 }
@@ -463,8 +478,8 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     if (!access_point || !access_point->ssid || access_point->ssid[0] == '\0')
     {
         resetSoftApClientTracking();
-        m_status      = Status::AccessPointFailed;
-        m_active_wifi = nullptr;
+        g_status      = Status::AccessPointFailed;
+        g_active_wifi = nullptr;
         DBG_LOGW(TAG, "cannot start missing Wi-Fi access point");
         return false;
     }
@@ -472,9 +487,9 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     shutdown_for_wifi_activation();
     resetSoftApClientTracking();
 
-    if (m_reported_connected)
+    if (g_reported_connected)
     {
-        notifyDisconnected(m_connected_wifi);
+        notifyDisconnected(g_connected_wifi);
     }
 
     WiFi.disconnect(true, false);
@@ -484,8 +499,8 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     if (!password || strlen(password) < 8)
     {
         resetSoftApClientTracking();
-        m_status      = Status::AccessPointFailed;
-        m_active_wifi = nullptr;
+        g_status      = Status::AccessPointFailed;
+        g_active_wifi = nullptr;
         DBG_LOGW(TAG,
                  "cannot start WPA3-only Wi-Fi access point \"%s\" without an 8+ character password",
                  access_point->ssid);
@@ -496,15 +511,15 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     {
         WiFi.softAPdisconnect(true);
         resetSoftApClientTracking();
-        m_status      = Status::AccessPointFailed;
-        m_active_wifi = nullptr;
+        g_status      = Status::AccessPointFailed;
+        g_active_wifi = nullptr;
         DBG_LOGW(TAG, "could not start WPA3-only Wi-Fi access point \"%s\"", access_point->ssid);
         return false;
     }
 
-    m_active_wifi      = access_point;
-    m_status           = Status::AccessPoint;
-    m_wifi_has_started = true;
+    g_active_wifi      = access_point;
+    g_status           = Status::AccessPoint;
+    g_wifi_has_started = true;
     resetWebCounters();
     notifyConnected(access_point);
     DBG_LOGI(TAG,
@@ -516,33 +531,33 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
 
 bool WifiManager::startGeneratedSoftAp()
 {
-    format_generated_soft_ap_ssid(m_generated_soft_ap_ssid, sizeof(m_generated_soft_ap_ssid));
-    format_generated_soft_ap_password(m_generated_soft_ap_password, sizeof(m_generated_soft_ap_password));
+    format_generated_soft_ap_ssid(g_generated_soft_ap_ssid, sizeof(g_generated_soft_ap_ssid));
+    format_generated_soft_ap_password(g_generated_soft_ap_password, sizeof(g_generated_soft_ap_password));
 
-    strlcpy(m_generated_soft_ap.ssid, m_generated_soft_ap_ssid, sizeof(m_generated_soft_ap.ssid));
-    strlcpy(m_generated_soft_ap.password, m_generated_soft_ap_password, sizeof(m_generated_soft_ap.password));
+    strlcpy(g_generated_soft_ap.ssid, g_generated_soft_ap_ssid, sizeof(g_generated_soft_ap.ssid));
+    strlcpy(g_generated_soft_ap.password, g_generated_soft_ap_password, sizeof(g_generated_soft_ap.password));
 
-    m_generated_soft_ap.icon = ICON_UNKNOWN;
-    return startSoftAp(&m_generated_soft_ap);
+    g_generated_soft_ap.icon = ICON_UNKNOWN;
+    return startSoftAp(&g_generated_soft_ap);
 }
 
 bool WifiManager::scanAndConnect()
 {
-    if (m_status == Status::StationScanning)
+    if (g_status == Status::StationScanning)
     {
         return true;
     }
 
-    if (m_reported_connected)
+    if (g_reported_connected)
     {
-        notifyDisconnected(m_connected_wifi);
+        notifyDisconnected(g_connected_wifi);
     }
     resetSoftApClientTracking();
 
-    if (m_station_count == 0)
+    if (g_station_count == 0)
     {
-        m_status      = Status::NoKnownNetwork;
-        m_active_wifi = nullptr;
+        g_status      = Status::NoKnownNetwork;
+        g_active_wifi = nullptr;
         DBG_LOGW(TAG, "cannot scan/connect: no configured Wi-Fi stations");
         return false;
     }
@@ -552,51 +567,51 @@ bool WifiManager::scanAndConnect()
     WiFi.softAPdisconnect(true);
     if (!WiFi.mode(WIFI_STA))
     {
-        m_status      = Status::ScanFailed;
-        m_active_wifi = nullptr;
+        g_status      = Status::ScanFailed;
+        g_active_wifi = nullptr;
         DBG_LOGW(TAG, "could not switch Wi-Fi to station mode for scan");
         return false;
     }
-    m_wifi_has_started = true;
+    g_wifi_has_started = true;
 
     const int scan_result = WiFi.scanNetworks(true);
     if (scan_result != WIFI_SCAN_RUNNING)
     {
-        m_status      = Status::ScanFailed;
-        m_active_wifi = nullptr;
+        g_status      = Status::ScanFailed;
+        g_active_wifi = nullptr;
         DBG_LOGW(TAG, "could not start async Wi-Fi scan: %d", scan_result);
         WiFi.scanDelete();
         return false;
     }
 
-    m_active_wifi = nullptr;
-    m_status      = Status::StationScanning;
+    g_active_wifi = nullptr;
+    g_status      = Status::StationScanning;
     DBG_LOGI(TAG, "started async Wi-Fi scan");
     return true;
 }
 
 bool WifiManager::disconnect()
 {
-    const wifi_item_t* disconnected_wifi    = m_connected_wifi ? m_connected_wifi : m_active_wifi;
+    const wifi_item_t* disconnected_wifi    = g_connected_wifi ? g_connected_wifi : g_active_wifi;
     const bool         station_disconnected = WiFi.disconnect(true, false);
     const bool         ap_disconnected      = WiFi.softAPdisconnect(true);
     WiFi.mode(WIFI_OFF);
 
-    if (m_reported_connected)
+    if (g_reported_connected)
     {
         notifyDisconnected(disconnected_wifi);
     }
 
-    m_active_wifi    = nullptr;
-    m_connected_wifi = nullptr;
-    m_status         = Status::Idle;
+    g_active_wifi    = nullptr;
+    g_connected_wifi = nullptr;
+    g_status         = Status::Idle;
     resetSoftApClientTracking();
     return station_disconnected || ap_disconnected;
 }
 
-bool WifiManager::wifiHasStarted() const
+bool WifiManager::wifiHasStarted()
 {
-    return m_wifi_has_started;
+    return g_wifi_has_started;
 }
 
 void WifiManager::poll()
@@ -605,7 +620,7 @@ void WifiManager::poll()
     FtpServer::poll();
 #endif
 
-    if (m_status == Status::StationScanning)
+    if (g_status == Status::StationScanning)
     {
         const int network_count = WiFi.scanComplete();
         if (network_count == WIFI_SCAN_RUNNING)
@@ -615,15 +630,15 @@ void WifiManager::poll()
 
         if (network_count < 0)
         {
-            m_status      = Status::ScanFailed;
-            m_active_wifi = nullptr;
+            g_status      = Status::ScanFailed;
+            g_active_wifi = nullptr;
             DBG_LOGW(TAG, "Wi-Fi scan failed: %d", network_count);
             WiFi.scanDelete();
             return;
         }
 
         const wifi_item_t* found_item = nullptr;
-        for (size_t i = 0; i < m_station_count; ++i)
+        for (size_t i = 0; i < g_station_count; ++i)
         {
             const wifi_item_t* item = station(i);
             if (item && scan_has_ssid(network_count, item->ssid))
@@ -635,14 +650,14 @@ void WifiManager::poll()
         }
 
         WiFi.scanDelete();
-        m_active_wifi = nullptr;
+        g_active_wifi = nullptr;
         if (found_item)
         {
-            m_status = Status::Idle;
+            g_status = Status::Idle;
         }
         else
         {
-            m_status = Status::NoKnownNetwork;
+            g_status = Status::NoKnownNetwork;
             DBG_LOGW(TAG, "no configured Wi-Fi stations were found in scan");
         }
 
@@ -654,39 +669,39 @@ void WifiManager::poll()
 
     if (is_connected_status(current))
     {
-        m_status = current;
+        g_status = current;
         if (current == Status::AccessPoint)
         {
             updateSoftApClientTracking();
         }
-        if (!m_reported_connected && m_active_wifi)
+        if (!g_reported_connected && g_active_wifi)
         {
-            notifyConnected(m_active_wifi);
+            notifyConnected(g_active_wifi);
         }
         return;
     }
 
-    if (m_reported_connected)
+    if (g_reported_connected)
     {
-        notifyDisconnected(m_connected_wifi);
+        notifyDisconnected(g_connected_wifi);
     }
 
-    if (m_status == Status::StationConnecting)
+    if (g_status == Status::StationConnecting)
     {
         const wl_status_t wifi_status = WiFi.status();
         if (wifi_status == WL_CONNECT_FAILED || wifi_status == WL_NO_SSID_AVAIL || wifi_status == WL_CONNECTION_LOST)
         {
-            m_status = Status::ConnectFailed;
+            g_status = Status::ConnectFailed;
             DBG_LOGW(TAG, "Wi-Fi station connection failed, status=%d", static_cast<int>(wifi_status));
         }
     }
 }
 
-WifiManager::Status WifiManager::status() const
+WifiManager::Status WifiManager::status()
 {
-    if (m_status == Status::StationScanning)
+    if (g_status == Status::StationScanning)
     {
-        return m_status;
+        return g_status;
     }
 
     const wifi_mode_t mode = WiFi.getMode();
@@ -700,61 +715,61 @@ WifiManager::Status WifiManager::status() const
         return Status::StationConnected;
     }
 
-    return m_status;
+    return g_status;
 }
 
-const char* WifiManager::statusName() const
+const char* WifiManager::statusName()
 {
     return status_name(status());
 }
 
 void WifiManager::setOnConnectCallback(ConnectionCallback callback)
 {
-    m_on_connect = callback;
+    g_on_connect = callback;
 }
 
 void WifiManager::setOnDisconnectCallback(ConnectionCallback callback)
 {
-    m_on_disconnect = callback;
+    g_on_disconnect = callback;
 }
 
 void WifiManager::setOnScanFinished(ScanFinishedCallback callback)
 {
-    m_on_scan_finished = callback;
+    g_on_scan_finished = callback;
 }
 
-const wifi_item_t* WifiManager::activeWifi() const
+const wifi_item_t* WifiManager::activeWifi()
 {
-    return m_active_wifi;
+    return g_active_wifi;
 }
 
-const wifi_item_t* WifiManager::connectedWifi() const
+const wifi_item_t* WifiManager::connectedWifi()
 {
-    return m_connected_wifi;
+    return g_connected_wifi;
 }
 
-bool WifiManager::isGeneratedSoftApActive() const
+bool WifiManager::isGeneratedSoftApActive()
 {
-    return status() == Status::AccessPoint && m_active_wifi == &m_generated_soft_ap;
+    return status() == Status::AccessPoint && g_active_wifi == &g_generated_soft_ap;
 }
 
-const char* WifiManager::generatedSoftApSsid() const
+const char* WifiManager::generatedSoftApSsid()
 {
-    return m_generated_soft_ap_ssid[0] != '\0' ? m_generated_soft_ap_ssid : nullptr;
+    return g_generated_soft_ap_ssid[0] != '\0' ? g_generated_soft_ap_ssid : nullptr;
 }
 
-const char* WifiManager::softApPassword() const
+const char* WifiManager::softApPassword()
 {
-    if (status() != Status::AccessPoint || !m_active_wifi || !m_active_wifi->password ||
-        m_active_wifi->password[0] == '\0')
+    if (status() != Status::AccessPoint || !g_active_wifi || !g_active_wifi->password ||
+        g_active_wifi->password[0] == '\0')
     {
         return nullptr;
     }
 
-    return m_active_wifi->password;
+    return g_active_wifi->password;
 }
 
-IPAddress WifiManager::softApIp() const
+IPAddress WifiManager::softApIp()
 {
     if (status() != Status::AccessPoint)
     {
@@ -764,94 +779,94 @@ IPAddress WifiManager::softApIp() const
     return current_soft_ap_ip();
 }
 
-bool WifiManager::softApClientMac(uint8_t out[6]) const
+bool WifiManager::softApClientMac(uint8_t out[6])
 {
-    if (!out || !m_soft_ap_client_connected)
+    if (!out || !g_soft_ap_client_connected)
     {
         return false;
     }
 
-    memcpy(out, m_soft_ap_client_mac, sizeof(m_soft_ap_client_mac));
+    memcpy(out, g_soft_ap_client_mac, sizeof(g_soft_ap_client_mac));
     return true;
 }
 
-uint32_t WifiManager::softApClientConnectionCount() const
+uint32_t WifiManager::softApClientConnectionCount()
 {
-    return m_soft_ap_client_connection_count;
+    return g_soft_ap_client_connection_count;
 }
 
 void WifiManager::noteWebPageLoad()
 {
-    ++m_web_page_load_count;
+    ++g_web_page_load_count;
 }
 
 void WifiManager::noteWebLogin()
 {
-    ++m_web_login_count;
+    ++g_web_login_count;
 }
 
 void WifiManager::noteWebSave()
 {
-    ++m_web_save_count;
+    ++g_web_save_count;
 }
 
 void WifiManager::noteWebError()
 {
-    ++m_web_error_count;
+    ++g_web_error_count;
 }
 
 void WifiManager::noteWebDownload()
 {
-    ++m_web_download_count;
+    ++g_web_download_count;
 }
 
-uint32_t WifiManager::webPageLoadCount() const
+uint32_t WifiManager::webPageLoadCount()
 {
-    return m_web_page_load_count;
+    return g_web_page_load_count;
 }
 
-uint32_t WifiManager::webLoginCount() const
+uint32_t WifiManager::webLoginCount()
 {
-    return m_web_login_count;
+    return g_web_login_count;
 }
 
-uint32_t WifiManager::webSaveCount() const
+uint32_t WifiManager::webSaveCount()
 {
-    return m_web_save_count;
+    return g_web_save_count;
 }
 
-uint32_t WifiManager::webErrorCount() const
+uint32_t WifiManager::webErrorCount()
 {
-    return m_web_error_count;
+    return g_web_error_count;
 }
 
-uint32_t WifiManager::webDownloadCount() const
+uint32_t WifiManager::webDownloadCount()
 {
-    return m_web_download_count;
+    return g_web_download_count;
 }
 
 void WifiManager::resetWebCounters()
 {
-    m_web_page_load_count = 0;
-    m_web_login_count     = 0;
-    m_web_save_count      = 0;
-    m_web_error_count     = 0;
-    m_web_download_count  = 0;
+    g_web_page_load_count = 0;
+    g_web_login_count     = 0;
+    g_web_save_count      = 0;
+    g_web_error_count     = 0;
+    g_web_download_count  = 0;
 }
 
 void WifiManager::resetSoftApClientTracking()
 {
-    m_soft_ap_client_connected = false;
-    memset(m_soft_ap_client_mac, 0, sizeof(m_soft_ap_client_mac));
-    m_soft_ap_client_connection_count = 0;
+    g_soft_ap_client_connected = false;
+    memset(g_soft_ap_client_mac, 0, sizeof(g_soft_ap_client_mac));
+    g_soft_ap_client_connection_count = 0;
 }
 
 void WifiManager::updateSoftApClientTracking()
 {
     if (status() != Status::AccessPoint)
     {
-        m_soft_ap_client_connected = false;
-        memset(m_soft_ap_client_mac, 0, sizeof(m_soft_ap_client_mac));
+        g_soft_ap_client_connected = false;
+        memset(g_soft_ap_client_mac, 0, sizeof(g_soft_ap_client_mac));
         return;
     }
 
@@ -859,87 +874,78 @@ void WifiManager::updateSoftApClientTracking()
     const esp_err_t err      = esp_wifi_ap_get_sta_list(&stations);
     if (err != ESP_OK || stations.num <= 0)
     {
-        m_soft_ap_client_connected = false;
-        memset(m_soft_ap_client_mac, 0, sizeof(m_soft_ap_client_mac));
+        g_soft_ap_client_connected = false;
+        memset(g_soft_ap_client_mac, 0, sizeof(g_soft_ap_client_mac));
         return;
     }
 
     const uint8_t* mac = stations.sta[0].mac;
     const bool     same_client =
-        m_soft_ap_client_connected && memcmp(m_soft_ap_client_mac, mac, sizeof(m_soft_ap_client_mac)) == 0;
+        g_soft_ap_client_connected && memcmp(g_soft_ap_client_mac, mac, sizeof(g_soft_ap_client_mac)) == 0;
     if (!same_client)
     {
-        ++m_soft_ap_client_connection_count;
-        memcpy(m_soft_ap_client_mac, mac, sizeof(m_soft_ap_client_mac));
+        ++g_soft_ap_client_connection_count;
+        memcpy(g_soft_ap_client_mac, mac, sizeof(g_soft_ap_client_mac));
     }
-    m_soft_ap_client_connected = true;
+    g_soft_ap_client_connected = true;
 }
 
 void WifiManager::notifyConnected(const wifi_item_t* item)
 {
-    m_connected_wifi     = item;
-    m_reported_connected = true;
+    g_connected_wifi     = item;
+    g_reported_connected = true;
 
-    if (m_on_connect)
+    if (g_on_connect)
     {
-        m_on_connect(item);
+        g_on_connect(item);
     }
 }
 
 void WifiManager::notifyDisconnected(const wifi_item_t* item)
 {
-    m_connected_wifi     = nullptr;
-    m_reported_connected = false;
+    g_connected_wifi     = nullptr;
+    g_reported_connected = false;
 
-    if (m_on_disconnect)
+    if (g_on_disconnect)
     {
-        m_on_disconnect(item);
+        g_on_disconnect(item);
     }
 }
 
 void WifiManager::notifyScanFinished(const wifi_item_t* item)
 {
-    if (m_on_scan_finished)
+    if (g_on_scan_finished)
     {
-        m_on_scan_finished(item);
+        g_on_scan_finished(item);
     }
 }
 
-size_t WifiManager::cloudEndpointCount() const
+size_t WifiManager::cloudEndpointCount()
 {
 #ifdef BUILD_CLOUD_FEATURES
-    return m_cloud_endpoint_count;
+    return g_cloud_endpoint_count;
 #else
     return 0;
 #endif
 }
 
-cloud_item_t* WifiManager::cloudEndpoint(size_t index)
+const cloud_item_t* WifiManager::cloudEndpoint(size_t index)
 {
 #ifdef BUILD_CLOUD_FEATURES
-    return const_cast<cloud_item_t*>(static_cast<const WifiManager*>(this)->cloudEndpoint(index));
+    return index < g_cloud_endpoint_count ? &g_network_cfg.cloud[index] : nullptr;
 #else
     return NULL;
 #endif
 }
 
-const cloud_item_t* WifiManager::cloudEndpoint(size_t index) const
+WifiManager::LoadResult WifiManager::lastLoadResult()
 {
-#ifdef BUILD_CLOUD_FEATURES
-    return index < m_cloud_endpoint_count ? &m_network_cfg.cloud[index] : nullptr;
-#else
-    return NULL;
-#endif
+    return g_last_load_result;
 }
 
-WifiManager::LoadResult WifiManager::lastLoadResult() const
+const char* WifiManager::lastLoadResultName()
 {
-    return m_last_load_result;
-}
-
-const char* WifiManager::lastLoadResultName() const
-{
-    return load_result_tostring(m_last_load_result);
+    return load_result_tostring(g_last_load_result);
 }
 
 namespace
@@ -1336,12 +1342,6 @@ void format_generated_soft_ap_password(char* password, size_t password_size)
 {
     if (!password || password_size == 0)
     {
-        return;
-    }
-
-    if (kWifiDebugBuild)
-    {
-        strlcpy(password, "12345678", password_size);
         return;
     }
 

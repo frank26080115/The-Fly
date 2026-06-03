@@ -140,7 +140,7 @@ bool ScrollView::populateBluetooth(BtHostList* hostList)
     return ok;
 }
 
-bool ScrollView::populateWifi(const WifiManager* wifiManager)
+bool ScrollView::populateWifi()
 {
     context_           = CONTEXT_WIFI;
     bluetoothHostList_ = nullptr;
@@ -164,45 +164,42 @@ bool ScrollView::populateWifi(const WifiManager* wifiManager)
                                             SPRITE_DEFAULT_WIFI_AP_BYTES)) &&
          ok;
 
-    if (wifiManager)
+    for (size_t i = 0; i < WifiManager::stationCount(); ++i)
     {
-        for (size_t i = 0; i < wifiManager->stationCount(); ++i)
+        const wifi_item_t* station = WifiManager::station(i);
+        if (!station)
         {
-            const wifi_item_t* station = wifiManager->station(i);
-            if (!station)
-            {
-                continue;
-            }
-
-            ok = appendIconScrollItem(SCROLL_ITEM_WIFI_STATION,
-                                      list_callback_value(i),
-                                      station->ssid,
-                                      station->icon,
-                                      IconLookup::ICON_CONTEXT_WIFI) &&
-                 ok;
+            continue;
         }
 
-        for (size_t i = 0; i < wifiManager->accessPointCount(); ++i)
-        {
-            const wifi_item_t* accessPoint = wifiManager->accessPoint(i);
-            if (!accessPoint)
-            {
-                continue;
-            }
+        ok = appendIconScrollItem(SCROLL_ITEM_WIFI_STATION,
+                                  list_callback_value(i),
+                                  station->ssid,
+                                  station->icon,
+                                  IconLookup::ICON_CONTEXT_WIFI) &&
+             ok;
+    }
 
-            ok = appendIconScrollItem(SCROLL_ITEM_WIFI_AP,
-                                      list_callback_value(i),
-                                      accessPoint->ssid,
-                                      accessPoint->icon,
-                                      IconLookup::ICON_CONTEXT_WIFI) &&
-                 ok;
+    for (size_t i = 0; i < WifiManager::accessPointCount(); ++i)
+    {
+        const wifi_item_t* accessPoint = WifiManager::accessPoint(i);
+        if (!accessPoint)
+        {
+            continue;
         }
+
+        ok = appendIconScrollItem(SCROLL_ITEM_WIFI_AP,
+                                  list_callback_value(i),
+                                  accessPoint->ssid,
+                                  accessPoint->icon,
+                                  IconLookup::ICON_CONTEXT_WIFI) &&
+             ok;
     }
 
     return ok;
 }
 
-bool ScrollView::populateCloud(const WifiManager* wifiManager)
+bool ScrollView::populateCloud()
 {
     context_           = CONTEXT_CLOUD;
     bluetoothHostList_ = nullptr;
@@ -215,26 +212,23 @@ bool ScrollView::populateCloud(const WifiManager* wifiManager)
         "Wi-Fi Info",
         make_sprite(sprite_wifi_100, SPRITE_WIFI_100_WIDTH, SPRITE_WIFI_100_HEIGHT, SPRITE_WIFI_100_BYTES));
 
-    if (wifiManager)
-    {
 #ifdef BUILD_CLOUD_FEATURES
-        for (size_t i = 0; i < wifiManager->cloudEndpointCount(); ++i)
+    for (size_t i = 0; i < WifiManager::cloudEndpointCount(); ++i)
+    {
+        const cloud_item_t* endpoint = WifiManager::cloudEndpoint(i);
+        if (!endpoint)
         {
-            const cloud_item_t* endpoint = wifiManager->cloudEndpoint(i);
-            if (!endpoint)
-            {
-                continue;
-            }
-
-            ok = appendIconScrollItem(SCROLL_ITEM_CLOUD_ENDPOINT,
-                                      list_callback_value(i),
-                                      endpoint->url,
-                                      endpoint->icon,
-                                      IconLookup::ICON_CONTEXT_CLOUD) &&
-                 ok;
+            continue;
         }
-#endif
+
+        ok = appendIconScrollItem(SCROLL_ITEM_CLOUD_ENDPOINT,
+                                  list_callback_value(i),
+                                  endpoint->url,
+                                  endpoint->icon,
+                                  IconLookup::ICON_CONTEXT_CLOUD) &&
+             ok;
     }
+#endif
 
     ok = appendSpriteScrollItem(SCROLL_ITEM_NTP_SYNC,
                                 SCROLL_TASK_NTP_SYNC,

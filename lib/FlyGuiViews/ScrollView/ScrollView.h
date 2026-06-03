@@ -5,7 +5,6 @@
 #include <stddef.h>
 
 class BtHostList;
-class WifiManager;
 
 using ScrollViewClickCallback = void (*)(int32_t value, uint32_t pressDurationMs);
 
@@ -23,8 +22,8 @@ public:
     void addItem(FlyGuiItem& item);
     void removeAllItems();
     bool populateBluetooth(BtHostList* hostList);
-    bool populateWifi(const WifiManager* wifiManager);
-    bool populateCloud(const WifiManager* wifiManager);
+    bool populateWifi();
+    bool populateCloud();
     bool populateFiles();
 
     void setOnClickBluetoothHost(ScrollViewClickCallback callback);

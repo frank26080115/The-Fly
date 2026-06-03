@@ -26,8 +26,6 @@
 #include "mbedtls/gcm.h"
 #include "mbedtls/platform_util.h"
 #include "utilfuncs.h"
-
-extern WifiManager* wifi_manager;
 extern BtHostList*  bt_host_list;
 extern bool         g_nvs_ready;
 
@@ -446,26 +444,17 @@ namespace
 
 void note_web_login()
 {
-    if (wifi_manager)
-    {
-        wifi_manager->noteWebLogin();
-    }
+    WifiManager::noteWebLogin();
 }
 
 void note_web_save()
 {
-    if (wifi_manager)
-    {
-        wifi_manager->noteWebSave();
-    }
+    WifiManager::noteWebSave();
 }
 
 void note_web_error()
 {
-    if (wifi_manager)
-    {
-        wifi_manager->noteWebError();
-    }
+    WifiManager::noteWebError();
 }
 
 uint8_t* allocate_large_buffer(size_t size)
@@ -515,7 +504,7 @@ bool config_runtime_available(String& error)
         return false;
     }
 
-    if (!wifi_manager || wifi_manager->lastLoadResult() != WifiManager::LoadResult::Ok)
+    if (WifiManager::lastLoadResult() != WifiManager::LoadResult::Ok)
     {
         error = "Wi-Fi config is unavailable";
         return false;
@@ -590,7 +579,7 @@ bool read_unix_time_param(AsyncWebServerRequest* request, time_t& out, String& e
 bool time_sync_allowed(String& error)
 {
 #if BUILD_WITH_SECURITY_LEVEL >= 2
-    if (!wifi_manager || !wifi_manager->isGeneratedSoftApActive())
+    if (!WifiManager::isGeneratedSoftApActive())
     {
         error = "Time sync is only available from the generated soft AP";
         return false;
@@ -748,38 +737,38 @@ bool build_cfg_json(String& json)
     }
 
     json += "{\"network\":{\"timezone\":";
-    json += WebServer::jsonString(wifi_manager ? wifi_manager->timezone() : "");
+    json += WebServer::jsonString(WifiManager::timezone());
     json += ",\"ntp_servers\":[";
 
-    for (size_t i = 0; wifi_manager && i < WifiManager::kNtpServerCount; ++i)
+    for (size_t i = 0; i < WifiManager::kNtpServerCount; ++i)
     {
         if (i > 0)
         {
             json += ",";
         }
-        json += WebServer::jsonString(wifi_manager->ntpServer(i));
+        json += WebServer::jsonString(WifiManager::ntpServer(i));
     }
 
     json += "],\"stations\":[";
     bool first = true;
-    for (size_t i = 0; wifi_manager && i < wifi_manager->stationCount(); ++i)
+    for (size_t i = 0; i < WifiManager::stationCount(); ++i)
     {
-        append_cfg_wifi_item(json, wifi_manager->station(i), first);
+        append_cfg_wifi_item(json, WifiManager::station(i), first);
     }
 
     json += "],\"access_points\":[";
     first = true;
-    for (size_t i = 0; wifi_manager && i < wifi_manager->accessPointCount(); ++i)
+    for (size_t i = 0; i < WifiManager::accessPointCount(); ++i)
     {
-        append_cfg_wifi_item(json, wifi_manager->accessPoint(i), first);
+        append_cfg_wifi_item(json, WifiManager::accessPoint(i), first);
     }
 
 #ifdef BUILD_CLOUD_FEATURES
     json += "],\"cloud_uploads\":[";
     first = true;
-    for (size_t i = 0; wifi_manager && i < wifi_manager->cloudEndpointCount(); ++i)
+    for (size_t i = 0; i < WifiManager::cloudEndpointCount(); ++i)
     {
-        append_cfg_cloud_item(json, wifi_manager->cloudEndpoint(i), first);
+        append_cfg_cloud_item(json, WifiManager::cloudEndpoint(i), first);
     }
     json += "]},";
 #else
@@ -1618,7 +1607,7 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
 
     if (has_network)
     {
-        if (!wifi_manager || !wifi_manager->copyConfig(network_existing))
+        if (!WifiManager::copyConfig(network_existing))
         {
             status_code = 500;
             error       = "Wi-Fi config is unavailable";
@@ -1665,7 +1654,7 @@ bool apply_set_cfg_json(const uint8_t* plaintext, size_t plaintext_size, int& st
         }
     }
 
-    if (has_network && !wifi_manager->replaceConfig(network_staged))
+    if (has_network && !WifiManager::replaceConfig(network_staged))
     {
         status_code = 500;
         error       = "Wi-Fi config save failed";
@@ -1749,7 +1738,7 @@ bool begin_pin_code_post_upload(AsyncWebServerRequest* request, size_t total)
         set_pin_code_post_error(request, 503, runtime_error.c_str());
         return false;
     }
-    if (!wifi_manager || !wifi_manager->isGeneratedSoftApActive())
+    if (!WifiManager::isGeneratedSoftApActive())
     {
         set_pin_code_post_error(request, 403, "PIN code reset is only available from the generated soft AP");
         return false;

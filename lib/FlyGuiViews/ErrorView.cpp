@@ -8,8 +8,6 @@
 #include "sprites.h"
 #include <string.h>
 
-extern WifiManager* wifi_manager;
-
 namespace
 {
 constexpr const char* TAG             = "ErrorView";
@@ -154,7 +152,7 @@ void ErrorView::syncActionButton()
     actionItem_.relocate(action_x(), kActionY, kActionSize, kActionSize);
     if (fatal_)
     {
-        actionItem_.setVisible(wifi_manager != nullptr);
+        actionItem_.setVisible(true);
         actionItem_.setSprite(sprite_firstaidwifi_50,
                               SPRITE_FIRSTAIDWIFI_50_WIDTH,
                               SPRITE_FIRSTAIDWIFI_50_HEIGHT,
@@ -176,15 +174,10 @@ void ErrorView::dismiss()
 
 void ErrorView::launchDefaultSoftAp()
 {
-    if (!wifi_manager)
-    {
-        return;
-    }
-
-    const bool ap_ready = wifi_manager->isGeneratedSoftApActive() || wifi_manager->startGeneratedSoftAp();
+    const bool ap_ready = WifiManager::isGeneratedSoftApActive() || WifiManager::startGeneratedSoftAp();
     if (!ap_ready)
     {
-        DBG_LOGW(TAG, "emergency default SoftAP start failed: %s", wifi_manager->statusName());
+        DBG_LOGW(TAG, "emergency default SoftAP start failed: %s", WifiManager::statusName());
         return;
     }
 

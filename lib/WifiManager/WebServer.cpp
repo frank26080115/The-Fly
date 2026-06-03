@@ -37,8 +37,6 @@
 #include "thefly_version.h"
 #include "utilfuncs.h"
 #include "web_assets.h"
-
-extern WifiManager* wifi_manager;
 extern BtHostList*  bt_host_list;
 extern FlyGui*      gui;
 extern ModalDialog* get_view_modal_dialog();
@@ -497,26 +495,17 @@ void reset_session_security()
 
 void note_web_page_load()
 {
-    if (wifi_manager)
-    {
-        wifi_manager->noteWebPageLoad();
-    }
+    WifiManager::noteWebPageLoad();
 }
 
 void note_web_save()
 {
-    if (wifi_manager)
-    {
-        wifi_manager->noteWebSave();
-    }
+    WifiManager::noteWebSave();
 }
 
 void note_web_error()
 {
-    if (wifi_manager)
-    {
-        wifi_manager->noteWebError();
-    }
+    WifiManager::noteWebError();
 }
 
 void send_nvs_unavailable(AsyncWebServerRequest* request)
@@ -800,7 +789,7 @@ String self_ip_string()
         return station_ip.toString();
     }
 
-    const IPAddress soft_ap_ip = wifi_manager ? wifi_manager->softApIp() : IPAddress();
+    const IPAddress soft_ap_ip = WifiManager::softApIp();
     return ip_is_zero(soft_ap_ip) ? String("") : soft_ap_ip.toString();
 }
 
@@ -851,7 +840,7 @@ void send_info(AsyncWebServerRequest* request)
                                         : !disk_ready     ? "Unknown"
                                         : free_bytes == 0 ? MicroSdCard::healthName(MicroSdCard::Health::Full)
                                                           : MicroSdCard::healthName(MicroSdCard::Health::Ready);
-    const bool     default_soft_ap    = wifi_manager && wifi_manager->isGeneratedSoftApActive();
+    const bool     default_soft_ap    = WifiManager::isGeneratedSoftApActive();
     const String   wifi_mac           = self_wifi_mac_string();
     time_t         current_time       = 0;
     const bool     current_time_valid = Clock.getUnixTime(&current_time);
@@ -959,7 +948,7 @@ void reset_password(AsyncWebServerRequest* request)
     note_web_error();
     request->send(501, "text/plain", "Password reset is not implemented for security level 0");
 #else
-    if (!wifi_manager || !wifi_manager->isGeneratedSoftApActive())
+    if (!WifiManager::isGeneratedSoftApActive())
     {
         note_web_error();
         request->send(403, "text/plain", "Password reset is only available from the generated soft AP");
@@ -1067,13 +1056,6 @@ void reset_memory(AsyncWebServerRequest* request)
         request->send(500, "text/plain", "Bluetooth host list is unavailable");
         return;
     }
-    if (!wifi_manager)
-    {
-        note_web_error();
-        request->send(500, "text/plain", "Wi-Fi config is unavailable");
-        return;
-    }
-
     if (BtManager::shutdown() != BtManager::Result::Ok)
     {
         note_web_error();
@@ -1102,7 +1084,7 @@ void reset_memory(AsyncWebServerRequest* request)
         request->send(500, "text/plain", error);
         return;
     }
-    wifi_manager->clear();
+    WifiManager::clear();
 
     note_web_save();
     DBG_LOGI(TAG, "memory reset erased Bluetooth bonds, Bluetooth host list, and Wi-Fi/cloud config");

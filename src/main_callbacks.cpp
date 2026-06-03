@@ -28,7 +28,6 @@ constexpr const char* MAINTAG = "main_callbacks.cpp";
 
 extern FlyGui*                 gui;
 extern BtHostList*             bt_host_list;
-extern WifiManager*            wifi_manager;
 extern volatile bool           g_pending_bluetooth_recording;
 extern volatile bool           g_pending_bluetooth_pairing;
 extern volatile bool           g_bluetooth_connect_waiting;
@@ -270,7 +269,7 @@ void onclick_main_wifi(uint32_t pressDurationMs)
     ScrollView* scroll_view = get_view_scroll();
     if (scroll_view && gui)
     {
-        scroll_view->populateWifi(wifi_manager);
+        scroll_view->populateWifi();
         gui->showView(FLYGUI_VIEW_SCROLL);
     }
 }
@@ -320,7 +319,7 @@ void conn_waiting_cancel(uint32_t pressDurationMs)
     if (g_wifi_connect_waiting)
     {
         g_wifi_connect_waiting = false;
-        wifi_manager->disconnect();
+        WifiManager::disconnect();
         const uint16_t return_view = conn_waiting_return_view_id();
         if (!gui->showView(return_view))
         {
@@ -379,7 +378,7 @@ void onclick_scroll_exit(uint32_t pressDurationMs)
     }
 
     // by policy, if Wi-Fi has been used, we do not allow restarting of Bluetooth, so we do a reboot
-    if (scroll_view && scroll_view->isWifiContext() && wifi_manager && wifi_manager->wifiHasStarted())
+    if (scroll_view && scroll_view->isWifiContext() && WifiManager::wifiHasStarted())
     {
         thefly_display.fillScreen(TFT_BLACK);
         DBG_LOGI(MAINTAG, "Wi-Fi scroll exit selected after Wi-Fi start; rebooting");
@@ -433,15 +432,10 @@ void onclick_wifi_scan_and_connect(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     DBG_LOGI(MAINTAG, "scroll wifi scan/connect selected: task=%ld", static_cast<long>(value));
-    if (!wifi_manager)
-    {
-        DBG_LOGW(MAINTAG, "cannot scan/connect: Wi-Fi manager is not available");
-        return;
-    }
 
-    if (!wifi_manager->scanAndConnect())
+    if (!WifiManager::scanAndConnect())
     {
-        DBG_LOGW(MAINTAG, "could not start Wi-Fi scan/connect: %s", wifi_manager->statusName());
+        DBG_LOGW(MAINTAG, "could not start Wi-Fi scan/connect: %s", WifiManager::statusName());
         show_wifi_connection_failed("Wi-Fi scan failed to start");
         return;
     }
@@ -450,7 +444,7 @@ void onclick_wifi_scan_and_connect(int32_t value, uint32_t pressDurationMs)
     if (!show_conn_waiting_wifi_scanning("known Wi-Fi"))
     {
         g_wifi_connect_waiting = false;
-        wifi_manager->disconnect();
+        WifiManager::disconnect();
         show_fatal_error_f(false, "Wi-Fi connection view failed");
     }
 }
@@ -460,22 +454,22 @@ void onclick_wifi_station(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     DBG_LOGI(MAINTAG, "scroll wifi station selected: index=%ld", static_cast<long>(value));
-    if (value < 0 || !wifi_manager)
+    if (value < 0)
     {
         show_fatal_error_f(false, "Wi-Fi station selection is invalid");
         return;
     }
 
-    const wifi_item_t* station = wifi_manager->station(static_cast<size_t>(value));
+    const wifi_item_t* station = WifiManager::station(static_cast<size_t>(value));
     if (!station)
     {
         show_fatal_error_f(false, "Wi-Fi station index is invalid");
         return;
     }
 
-    if (!wifi_manager->connectToHotspot(station))
+    if (!WifiManager::connectToHotspot(station))
     {
-        DBG_LOGW(MAINTAG, "could not start Wi-Fi station connection: %s", wifi_manager->statusName());
+        DBG_LOGW(MAINTAG, "could not start Wi-Fi station connection: %s", WifiManager::statusName());
         show_wifi_connection_failed("Wi-Fi connection failed to start");
         return;
     }
@@ -484,7 +478,7 @@ void onclick_wifi_station(int32_t value, uint32_t pressDurationMs)
     if (!show_conn_waiting_wifi_connecting(station->ssid))
     {
         g_wifi_connect_waiting = false;
-        wifi_manager->disconnect();
+        WifiManager::disconnect();
         show_fatal_error_f(false, "Wi-Fi connection view failed");
     }
 }
@@ -494,26 +488,21 @@ void onclick_wifi_ap(int32_t value, uint32_t pressDurationMs)
 {
     (void)pressDurationMs;
     DBG_LOGI(MAINTAG, "scroll wifi ap selected: index=%ld", static_cast<long>(value));
-    if (!wifi_manager)
-    {
-        show_fatal_error_f(false, "Wi-Fi AP is unavailable");
-        return;
-    }
 
     bool started = false;
     if (value == SCROLL_TASK_WIFI_GENERATED_AP)
     {
-        started = wifi_manager->startGeneratedSoftAp();
+        started = WifiManager::startGeneratedSoftAp();
     }
     else if (value >= 0)
     {
-        const wifi_item_t* access_point = wifi_manager->accessPoint(static_cast<size_t>(value));
+        const wifi_item_t* access_point = WifiManager::accessPoint(static_cast<size_t>(value));
         if (!access_point)
         {
             show_fatal_error_f(false, "Wi-Fi AP index is invalid");
             return;
         }
-        started = wifi_manager->startSoftAp(access_point);
+        started = WifiManager::startSoftAp(access_point);
     }
     else
     {
@@ -523,7 +512,7 @@ void onclick_wifi_ap(int32_t value, uint32_t pressDurationMs)
 
     if (!started)
     {
-        show_fatal_error_f(false, "Wi-Fi AP start failed: %s", wifi_manager->statusName());
+        show_fatal_error_f(false, "Wi-Fi AP start failed: %s", WifiManager::statusName());
         return;
     }
 
@@ -546,13 +535,13 @@ void onclick_cloud_upload(int32_t value, uint32_t pressDurationMs)
     (void)pressDurationMs;
     DBG_LOGI(MAINTAG, "scroll cloud upload selected: index=%ld", static_cast<long>(value));
 
-    if (value < 0 || !wifi_manager)
+    if (value < 0)
     {
         show_fatal_error_f(false, "Cloud upload selection is invalid");
         return;
     }
 
-    const cloud_item_t* endpoint = wifi_manager->cloudEndpoint(static_cast<size_t>(value));
+    const cloud_item_t* endpoint = WifiManager::cloudEndpoint(static_cast<size_t>(value));
     if (!endpoint)
     {
         show_fatal_error_f(false, "Cloud upload endpoint is invalid");
@@ -605,18 +594,12 @@ void onclick_ntp_sync(int32_t value, uint32_t pressDurationMs)
     (void)pressDurationMs;
     DBG_LOGI(MAINTAG, "scroll ntp sync selected: task=%ld", static_cast<long>(value));
 
-    if (!wifi_manager)
-    {
-        error_unexpected_f(FLYGUI_VIEW_SCROLL, MAINTAG, "NTP sync unavailable");
-        return;
-    }
-
-    const char* primary_server       = wifi_manager->ntpServer(0);
+    const char* primary_server       = WifiManager::ntpServer(0);
     g_pending_ntp_sync_complete      = false;
     g_ntp_sync_completion_suppressed = false;
     g_ntp_sync_waiting               = true;
     g_ntp_sync.setOnCompleteCallback(on_ntp_sync_complete);
-    if (!g_ntp_sync.start(*wifi_manager, NtpSync::kDefaultTimeoutMs, true))
+    if (!g_ntp_sync.start(NtpSync::kDefaultTimeoutMs, true))
     {
         g_ntp_sync_waiting = false;
         error_unexpected_f(FLYGUI_VIEW_SCROLL, MAINTAG, "NTP sync failed\n%s", g_ntp_sync.errorName());
@@ -657,7 +640,7 @@ void onclick_wifi_show_info(int32_t value, uint32_t pressDurationMs)
     (void)pressDurationMs;
     DBG_LOGI(MAINTAG, "scroll wifi info selected: task=%ld", static_cast<long>(value));
 
-    if (wifi_manager && wifi_manager->status() == WifiManager::Status::StationConnected)
+    if (WifiManager::status() == WifiManager::Status::StationConnected)
     {
         if (!show_wifi_sta_mode_view(true))
         {
@@ -670,16 +653,15 @@ void onclick_wifi_show_info(int32_t value, uint32_t pressDurationMs)
     // the code below may never execute under normal circumstances
     // but there is the chance that the Wi-Fi station disconnected at some point before the user clicks the button
 
-    const WifiManager::Status status               = wifi_manager ? wifi_manager->status() : WifiManager::Status::Idle;
+    const WifiManager::Status status               = WifiManager::status();
     const bool                is_ap                = status == WifiManager::Status::AccessPoint;
     const bool                is_station_connected = status == WifiManager::Status::StationConnected;
     const bool                is_connected         = is_ap || is_station_connected;
     const wifi_item_t*        item =
-        is_connected && wifi_manager
-            ? (wifi_manager->connectedWifi() ? wifi_manager->connectedWifi() : wifi_manager->activeWifi())
-            : nullptr;
+        is_connected ? (WifiManager::connectedWifi() ? WifiManager::connectedWifi() : WifiManager::activeWifi())
+                     : nullptr;
     const char*     ssid    = item && item->ssid ? item->ssid : "";
-    const IPAddress ip      = is_ap ? wifi_manager->softApIp() : (is_station_connected ? WiFi.localIP() : IPAddress());
+    const IPAddress ip      = is_ap ? WifiManager::softApIp() : (is_station_connected ? WiFi.localIP() : IPAddress());
     const String    ip_text = ip.toString();
 
     char text[192];
@@ -763,12 +745,6 @@ void on_ntp_sync_complete(const NtpSync::Result& result)
 
 void on_wifi_scan_finished(const wifi_item_t* item)
 {
-    if (!wifi_manager)
-    {
-        show_fatal_error_f(true, "on_wifi_scan_finished has no wifi_manager");
-        return;
-    }
-
     if (!item)
     {
         DBG_LOGW(MAINTAG, "Wi-Fi scan/connect did not find a configured station");
@@ -778,9 +754,9 @@ void on_wifi_scan_finished(const wifi_item_t* item)
 
     DBG_LOGI(MAINTAG, "Wi-Fi scan/connect found \"%s\", starting connection", item->ssid ? item->ssid : "");
     update_conn_waiting_wifi_target(item->ssid);
-    if (!wifi_manager->connectToHotspot(item))
+    if (!WifiManager::connectToHotspot(item))
     {
-        DBG_LOGW(MAINTAG, "could not connect to scanned Wi-Fi station: %s", wifi_manager->statusName());
+        DBG_LOGW(MAINTAG, "could not connect to scanned Wi-Fi station: %s", WifiManager::statusName());
         show_wifi_connection_failed("Wi-Fi connection failed to start");
     }
 }

@@ -48,9 +48,8 @@ typedef struct
     cloud_item_t cloud[kNetworkConfigCloudMaxEntries];
 } network_cfg_t;
 
-class WifiManager
+namespace WifiManager
 {
-public:
     static constexpr size_t kNtpServerCount                = kNetworkConfigNtpServerCount;
     static constexpr size_t kGeneratedSoftApSsidLength     = 12;
     static constexpr size_t kGeneratedSoftApPasswordLength = 8;
@@ -84,101 +83,58 @@ public:
     using ConnectionCallback   = void (*)(const wifi_item_t* item);
     using ScanFinishedCallback = void (*)(const wifi_item_t* item);
 
-    WifiManager();
-    ~WifiManager();
-
-    WifiManager(const WifiManager&)            = delete;
-    WifiManager& operator=(const WifiManager&) = delete;
-
 #if BUILD_WITH_SECURITY_LEVEL <= 0
     bool loadFromMicroSd(const char* path = "/wifi.json");
 #endif
     bool loadFromNvs();
     bool saveToNvs();
-    bool copyConfig(network_cfg_t& out) const;
+    bool copyConfig(network_cfg_t& out);
     bool replaceConfig(const network_cfg_t& config);
     void clear();
 
-    const char* timezone() const;
-    const char* ntpServer(size_t index) const;
+    const char* timezone();
+    const char* ntpServer(size_t index);
 
-    size_t             stationCount() const;
-    wifi_item_t*       station(size_t index);
-    const wifi_item_t* station(size_t index) const;
+    size_t             stationCount();
+    const wifi_item_t* station(size_t index);
 
-    size_t             accessPointCount() const;
-    wifi_item_t*       accessPoint(size_t index);
-    const wifi_item_t* accessPoint(size_t index) const;
+    size_t             accessPointCount();
+    const wifi_item_t* accessPoint(size_t index);
 
     bool               connectToHotspot(const wifi_item_t* hotspot);
     bool               startSoftAp(const wifi_item_t* access_point);
     bool               startGeneratedSoftAp();
     bool               scanAndConnect();
     bool               disconnect();
-    bool               wifiHasStarted() const;
+    bool               wifiHasStarted();
     void               poll();
-    Status             status() const;
-    const char*        statusName() const;
+    Status             status();
+    const char*        statusName();
     void               setOnConnectCallback(ConnectionCallback callback);
     void               setOnDisconnectCallback(ConnectionCallback callback);
     void               setOnScanFinished(ScanFinishedCallback callback);
-    const wifi_item_t* activeWifi() const;
-    const wifi_item_t* connectedWifi() const;
-    bool               isGeneratedSoftApActive() const;
-    const char*        generatedSoftApSsid() const;
-    const char*        softApPassword() const;
-    IPAddress          softApIp() const;
-    bool               softApClientMac(uint8_t out[6]) const;
-    uint32_t           softApClientConnectionCount() const;
+    const wifi_item_t* activeWifi();
+    const wifi_item_t* connectedWifi();
+    bool               isGeneratedSoftApActive();
+    const char*        generatedSoftApSsid();
+    const char*        softApPassword();
+    IPAddress          softApIp();
+    bool               softApClientMac(uint8_t out[6]);
+    uint32_t           softApClientConnectionCount();
     void               noteWebPageLoad();
     void               noteWebLogin();
     void               noteWebSave();
     void               noteWebError();
     void               noteWebDownload();
-    uint32_t           webPageLoadCount() const;
-    uint32_t           webLoginCount() const;
-    uint32_t           webSaveCount() const;
-    uint32_t           webErrorCount() const;
-    uint32_t           webDownloadCount() const;
+    uint32_t           webPageLoadCount();
+    uint32_t           webLoginCount();
+    uint32_t           webSaveCount();
+    uint32_t           webErrorCount();
+    uint32_t           webDownloadCount();
 
-    size_t              cloudEndpointCount() const;
-    cloud_item_t*       cloudEndpoint(size_t index);
-    const cloud_item_t* cloudEndpoint(size_t index) const;
+    size_t              cloudEndpointCount();
+    const cloud_item_t* cloudEndpoint(size_t index);
 
-    LoadResult  lastLoadResult() const;
-    const char* lastLoadResultName() const;
-
-private:
-    bool connectToHotspot(const wifi_item_t* hotspot, bool shutdown_first);
-    void resetWebCounters();
-    void resetSoftApClientTracking();
-    void updateSoftApClientTracking();
-    void notifyConnected(const wifi_item_t* item);
-    void notifyDisconnected(const wifi_item_t* item);
-    void notifyScanFinished(const wifi_item_t* item);
-
-    network_cfg_t        m_network_cfg                                                    = {};
-    size_t               m_station_count                                                  = 0;
-    size_t               m_access_point_count                                             = 0;
-    size_t               m_cloud_endpoint_count                                           = 0;
-    LoadResult           m_last_load_result                                               = LoadResult::Ok;
-    Status               m_status                                                         = Status::Idle;
-    const wifi_item_t*   m_active_wifi                                                    = nullptr;
-    const wifi_item_t*   m_connected_wifi                                                 = nullptr;
-    bool                 m_wifi_has_started                                               = false;
-    bool                 m_reported_connected                                             = false;
-    ConnectionCallback   m_on_connect                                                     = nullptr;
-    ConnectionCallback   m_on_disconnect                                                  = nullptr;
-    ScanFinishedCallback m_on_scan_finished                                               = nullptr;
-    char                 m_generated_soft_ap_ssid[kGeneratedSoftApSsidLength + 1]         = {};
-    char                 m_generated_soft_ap_password[kGeneratedSoftApPasswordLength + 1] = {};
-    wifi_item_t          m_generated_soft_ap                                              = {};
-    uint32_t             m_web_page_load_count                                            = 0;
-    uint32_t             m_web_login_count                                                = 0;
-    uint32_t             m_web_save_count                                                 = 0;
-    uint32_t             m_web_error_count                                                = 0;
-    uint32_t             m_web_download_count                                             = 0;
-    bool                 m_soft_ap_client_connected                                       = false;
-    uint8_t              m_soft_ap_client_mac[6]                                          = {};
-    uint32_t             m_soft_ap_client_connection_count                                = 0;
-};
+    LoadResult  lastLoadResult();
+    const char* lastLoadResultName();
+} // namespace WifiManager

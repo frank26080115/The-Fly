@@ -66,7 +66,7 @@ NtpSync::~NtpSync()
     }
 }
 
-bool NtpSync::start(const WifiManager& wifi_manager, uint32_t timeout_ms, bool write_rtc_after_sync)
+bool NtpSync::start(uint32_t timeout_ms, bool write_rtc_after_sync)
 {
     portENTER_CRITICAL(&m_lock);
     const bool busy = m_status == Status::Busy;
@@ -81,7 +81,7 @@ bool NtpSync::start(const WifiManager& wifi_manager, uint32_t timeout_ms, bool w
         return false;
     }
 
-    if (!copyConfig(wifi_manager, timeout_ms, write_rtc_after_sync))
+    if (!copyConfig(timeout_ms, write_rtc_after_sync))
     {
         portENTER_CRITICAL(&m_lock);
         m_status        = Status::Error;
@@ -246,9 +246,9 @@ void NtpSync::taskEntry(void* argument)
     vTaskDelete(nullptr);
 }
 
-bool NtpSync::copyConfig(const WifiManager& wifi_manager, uint32_t timeout_ms, bool write_rtc_after_sync)
+bool NtpSync::copyConfig(uint32_t timeout_ms, bool write_rtc_after_sync)
 {
-    if (!copy_text(m_timezone, sizeof(m_timezone), wifi_manager.timezone()))
+    if (!copy_text(m_timezone, sizeof(m_timezone), WifiManager::timezone()))
     {
         return false;
     }
@@ -256,7 +256,7 @@ bool NtpSync::copyConfig(const WifiManager& wifi_manager, uint32_t timeout_ms, b
     bool has_server = false;
     for (size_t i = 0; i < kServerCount; ++i)
     {
-        const char* server = wifi_manager.ntpServer(i);
+        const char* server = WifiManager::ntpServer(i);
         if (!copy_text(m_servers[i], sizeof(m_servers[i]), server))
         {
             return false;
