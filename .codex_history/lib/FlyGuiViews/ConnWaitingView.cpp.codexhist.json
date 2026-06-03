@@ -358,7 +358,8 @@
       "src/all_init.cpp",
       "src/main.cpp",
       "tools/sterile_rebuild.py",
-      "firmware.bin"
+      "firmware.bin",
+      "managed_components/espressif__esp-serial-flasher/examples/binaries/ESP32_AT_Firmware/Firmware.bin"
     ]
   },
   {
@@ -544,5 +545,17 @@
     "type": "git_commit",
     "commit_message": "code neatening for the views",
     "commit_hash": "3dbd6b2cd2fdecdb22e7dcef84a89989f2e63669"
+  },
+  {
+    "timestamp": "2026-06-03T06:51:45Z",
+    "type": "git_commit",
+    "commit_message": "diagnostics, fixed a bug with speaker peak decay",
+    "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
+  },
+  {
+    "timestamp": "2026-06-03T07:03:56Z",
+    "type": "git_commit",
+    "commit_message": "more clang format stuff",
+    "commit_hash": "fa8a1e27b6b4982ce7a05c70f69ab0eb2ff14f79"
   }
 ]

@@ -2105,5 +2105,61 @@
     "type": "git_commit",
     "commit_message": "nneaten",
     "commit_hash": "3d7a26fcceaef14d95f8411cc106b2808772450b"
+  },
+  {
+    "timestamp": "2026-06-03T06:51:45Z",
+    "type": "git_commit",
+    "commit_message": "diagnostics, fixed a bug with speaker peak decay",
+    "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
+  },
+  {
+    "timestamp": "2026-06-03T19:45:35.259Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "i2s_input_samples",
+      "",
+      "## My request for Codex:",
+      "the diagnostic mechanism is telling me that during a bluetooth call session with recording active, if my local mic is off, then the redraw rate is 60 FPS as expected as it is capped at 60, but when I use push-to-talk, the frame rate drops to 45 FPS",
+      "",
+      "the diagnostics show that 16000 samples goes both ways in both circumstances, and I don't detect any FIFO overflows, and everything does seem to function correctly",
+      "",
+      "but the frame rate dropping is weird, the audio processing, the AGC and HPF, those are all core0, while the GUI draws are core1. The file writing and encoding are done after 2 mono streams are mixed into stereo so it shouldn't matter if the mic is on or off",
+      "",
+      "what am I missing?"
+    ],
+    "agent_reply": [
+      "You’re probably missing that the recorder/encoder is on core1 with the GUI, not core0.",
+      "",
+      "In [main.cpp](/c:/GitHubRepos/The-Fly/src/main.cpp:258), `gui->poll()` runs on core1, then [AudioFileRecorder::pump()](/c:/GitHubRepos/The-Fly/src/main.cpp:262) runs immediately after it on the same core. The recording view sets audio mode to a 60 Hz GUI poll cap in [RecordingView.cpp](/c:/GitHubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingView.cpp:163), and FPS is counted only when `gui->poll()` actually draws in [FlyGui.cpp](/c:/GitHubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:163). So if the recorder pump gets heavier, the GUI simply misses 60 Hz slots.",
+      "",
+      "The key detail: MP3 compression is enabled in [conf.h](/c:/GitHubRepos/The-Fly/inc/conf.h:21). With mic off, the mic channel going to the recording is synthesized silence via `queue_silence_to_match()` in [AudioManager.cpp](/c:/GitHubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:913). With push-to-talk, the mic channel is real signal and gets mixed into stereo, then encoded by `write_mp3_samples()` in [AudioFileRecorder.cpp](/c:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:1771). Same 16k samples/sec, different encoder cost. Silence is cheap; live mic noise/speech is not.",
+      "",
+      "There’s also a mode-routing change: PTT enters mic mode and chokes the speaker FIFO in [AudioManager.cpp](/c:/GitHubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:856), so the recorder is pairing real mic FIFO data with BT host FIFO data rather than pairing BT host data with generated silence. That can change burstiness and mutex/FIFO pressure even when average sample rates look perfect.",
+      "",
+      "I’d verify by timing `AudioFileRecorder::pump()` total duration and separately timing `write_mp3_samples()`. Your existing long-write stats only catch SD/encrypted write duration, not encoder time. Quick A/B: temporarily disable `BUILD_USE_MP3_COMPRESSION`; if PTT goes back to 60 FPS, that’s the smoking crater.",
+      "",
+      "You’re probably missing that the recorder/encoder is on core1 with the GUI, not core0.",
+      "",
+      "In [main.cpp](/c:/GitHubRepos/The-Fly/src/main.cpp:258), `gui->poll()` runs on core1, then [AudioFileRecorder::pump()](/c:/GitHubRepos/The-Fly/src/main.cpp:262) runs immediately after it on the same core. The recording view sets audio mode to a 60 Hz GUI poll cap in [RecordingView.cpp](/c:/GitHubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingView.cpp:163), and FPS is counted only when `gui->poll()` actually draws in [FlyGui.cpp](/c:/GitHubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:163). So if the recorder pump gets heavier, the GUI simply misses 60 Hz slots.",
+      "",
+      "The key detail: MP3 compression is enabled in [conf.h](/c:/GitHubRepos/The-Fly/inc/conf.h:21). With mic off, the mic channel going to the recording is synthesized silence via `queue_silence_to_match()` in [AudioManager.cpp](/c:/GitHubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:913). With push-to-talk, the mic channel is real signal and gets mixed into stereo, then encoded by `write_mp3_samples()` in [AudioFileRecorder.cpp](/c:/GitHubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:1771). Same 16k samples/sec, different encoder cost. Silence is cheap; live mic noise/speech is not.",
+      "",
+      "There’s also a mode-routing change: PTT enters mic mode and chokes the speaker FIFO in [AudioManager.cpp](/c:/GitHubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:856), so the recorder is pairing real mic FIFO data with BT host FIFO data rather than pairing BT host data with generated silence. That can change burstiness and mutex/FIFO pressure even when average sample rates look perfect.",
+      "",
+      "I’d verify by timing `AudioFileRecorder::pump()` total duration and separately timing `write_mp3_samples()`. Your existing long-write stats only catch SD/encrypted write duration, not encoder time. Quick A/B: temporarily disable `BUILD_USE_MP3_COMPRESSION`; if PTT goes back to 60 FPS, that’s the smoking crater."
+    ],
+    "files": [
+      "src/main.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingView.cpp",
+      "lib/FlyGui/FlyGui.cpp",
+      "inc/conf.h",
+      "lib/AudioManager/AudioManager.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp"
+    ]
   }
 ]

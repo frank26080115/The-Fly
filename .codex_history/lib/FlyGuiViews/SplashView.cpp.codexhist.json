@@ -27,7 +27,9 @@
       "splash.png",
       "lib/FlyGuiViews/SplashView.h",
       "lib/FlyGuiViews/SplashView.cpp",
-      "lib/FlyGui/FlyGui.h"
+      "lib/FlyGui/FlyGui.h",
+      "src/main.cpp",
+      "gfx-assets/sprites/splash.png"
     ]
   },
   {
@@ -574,5 +576,80 @@
     "type": "git_commit",
     "commit_message": "code neatening for the views",
     "commit_hash": "3dbd6b2cd2fdecdb22e7dcef84a89989f2e63669"
+  },
+  {
+    "timestamp": "2026-06-03T06:51:45Z",
+    "type": "git_commit",
+    "commit_message": "diagnostics, fixed a bug with speaker peak decay",
+    "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
+  },
+  {
+    "timestamp": "2026-06-03T08:51:21Z",
+    "type": "git_commit",
+    "commit_message": "another splash screen",
+    "commit_hash": "83135e1888229b49c87664d8aaa2e97a3503ae33"
+  },
+  {
+    "timestamp": "2026-06-03T18:29:20.443Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/SplashView.cpp",
+      "",
+      "## Active selection of the file:",
+      "void draw_splash_boot_info()",
+      "",
+      "## My request for Codex:",
+      "it looks like `void draw_splash_boot_info()` is called twice, which is fine",
+      "",
+      "on the second call, there's more information available. such as free disk space and the configured time zone, add these, but only if the info is valid"
+    ],
+    "agent_reply": [
+      "Updated [SplashView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:192) so the second splash boot-info draw can add:",
+      "",
+      "```text",
+      "Free: <free> / <total>",
+      "TZ: <configured timezone>",
+      "```",
+      "",
+      "The extra block only appears when `DiskStats::diskSpace(...)` is valid. The timezone line also requires `WifiManager::lastLoadResult() == Ok` and a non-empty timezone string. Long lines are truncated to fit the available splash text width.",
+      "",
+      "Verification passed:",
+      "",
+      "```text",
+      "pio run -e thefly_sec0",
+      "SUCCESS",
+      "```",
+      "",
+      "`git diff --check` is clean except for the repo’s usual CRLF warning.",
+      "",
+      "Updated [SplashView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:192) so the second splash boot-info draw can add:",
+      "",
+      "```text",
+      "Free: <free> / <total>",
+      "TZ: <configured timezone>",
+      "```",
+      "",
+      "The extra block only appears when `DiskStats::diskSpace(...)` is valid. The timezone line also requires `WifiManager::lastLoadResult() == Ok` and a non-empty timezone string. Long lines are truncated to fit the available splash text width.",
+      "",
+      "Verification passed:",
+      "",
+      "```text",
+      "pio run -e thefly_sec0",
+      "SUCCESS",
+      "```",
+      "",
+      "`git diff --check` is clean except for the repo’s usual CRLF warning."
+    ],
+    "files": [
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-03T18:38:11Z",
+    "type": "git_commit",
+    "commit_message": "boot splash disk info and timezone",
+    "commit_hash": "f1886bf526bb4ee8b1f81bc602ccea00ecf9b49d"
   }
 ]

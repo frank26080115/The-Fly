@@ -120,5 +120,62 @@
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
+  },
+  {
+    "timestamp": "2026-06-03T17:41:48.790Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "",
+      "## Active selection of the file:",
+      "void ScrollView::drawSelectedText()",
+      "",
+      "## My request for Codex:",
+      "Modify `MostRecentFiles` so that each `Candidate` contains a `file_size`, in bytes. And then the actual `FileList` also contains a `file_size` member.",
+      "",
+      "`FileScrollItem` is initialized with knowledge about the `file_size`, and is responsible to calculate it into an estimated playback duration using the file size and file format. It generates a string internally as \"<file size> / <duration HH:mm:SS>\", and this can be read by `void ScrollView::drawSelectedText()` to be displayed underneath its label."
+    ],
+    "agent_reply": [
+      "Implemented it.",
+      "",
+      "`MostRecentFiles` now carries byte sizes alongside filenames via `FileList::fileSize(index)`, populated from `FsFile::fileSize()` while building the recent-file list.",
+      "",
+      "`FileScrollItem` now takes `fileSize` during `configureFile(...)`, formats an internal detail string like:",
+      "",
+      "```text",
+      "12M / 00:24:13",
+      "```",
+      "",
+      "and exposes it through `detailText()`.",
+      "",
+      "`ScrollView::drawSelectedText()` now keeps `scrollItem->label()` as the real filename, but renders the optional detail line underneath it when present.",
+      "",
+      "Verification passed:",
+      "",
+      "```text",
+      "pio run -e thefly_sec0",
+      "SUCCESS",
+      "```",
+      "",
+      "`git diff --check` is clean except for the repo’s usual CRLF warning. `src/version.c` is still modified in the worktree; I left it alone."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/MostRecentFiles.cpp",
+      "lib/AudioFileRecorder/MostRecentFiles.h",
+      "lib/FlyGuiViews/ScrollView/FileScrollItem.cpp",
+      "lib/FlyGuiViews/ScrollView/FileScrollItem.h",
+      "lib/FlyGuiViews/ScrollView/ScrollItem.h",
+      "lib/FlyGuiViews/ScrollView/ScrollView.h",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-03T18:37:57Z",
+    "type": "git_commit",
+    "commit_message": "file size/duration in scrollview",
+    "commit_hash": "6508f6595eb442daba8ba77aca0531ff1f75eab5"
   }
 ]

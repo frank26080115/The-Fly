@@ -582,5 +582,150 @@
     "type": "git_commit",
     "commit_message": "code neatening for the views",
     "commit_hash": "3dbd6b2cd2fdecdb22e7dcef84a89989f2e63669"
+  },
+  {
+    "timestamp": "2026-06-03T22:41:21.625Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: developer-docs/test-results/diag-bt-call-record.md",
+      "",
+      "## My request for Codex:",
+      "how quickly is the Bluetooth connection broken down and then set to not discoverable after the user ends a recording?"
+    ],
+    "agent_reply": [
+      "From the normal user “exit recording” path, the order is:",
+      "",
+      "1. [RecordingView.cpp](/c:/GitHubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingView.cpp:259) calls `RecordingViewCallbacks::stopRecording(mode_ == Mode::Bluetooth)`.",
+      "2. [RecordingViewCallbacks.cpp](/c:/GitHubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp:78) does:",
+      "   ```cpp",
+      "   AudioManager::stop();",
+      "   AudioFileRecorder::stopRecording();",
+      "   BtManager::disconnect();",
+      "   ```",
+      "3. [BluetoothManager.cpp](/c:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:335) `BtManager::disconnect()` immediately calls:",
+      "   ```cpp",
+      "   close_pairing_window();",
+      "   ```",
+      "   which sets:",
+      "   ```cpp",
+      "   ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE",
+      "   ```",
+      "",
+      "So: **once `BtManager::disconnect()` is reached, discoverability is turned off immediately**, before the HFP audio/control disconnect requests are made.",
+      "",
+      "The variable delay is before that: `AudioFileRecorder::stopRecording()` is synchronous and may drain FIFOs, flush the MP3 encoder, flush/truncate/close the file, and refresh disk stats. So from the user tapping stop:",
+      "",
+      "```text",
+      "tap",
+      "-> quick fade immediately",
+      "-> stop audio manager",
+      "-> drain/flush/close recording file",
+      "-> immediately set BT connectable + non-discoverable",
+      "-> request HFP audio/control disconnect",
+      "-> actual disconnected event arrives asynchronously",
+      "```",
+      "",
+      "There is no explicit timer like “wait 5 seconds then become non-discoverable.” It is **as soon as recording close finishes**.",
+      "",
+      "One nuance: this makes Bluetooth **non-discoverable but still connectable**. The call teardown itself is asynchronous after `esp_hf_client_disconnect_audio()` / `esp_hf_client_disconnect()`, and the final disconnected event closes the pairing window again for good measure."
+    ],
+    "files": [
+      "lib/FlyGuiViews/RecordingView/RecordingView.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
+      "lib/BluetoothManager/BluetoothManager.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-03T22:47:40Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: developer-docs/test-results/diag-bt-call-record.md",
+      "",
+      "## My request for Codex:",
+      "reorder that:",
+      "",
+      " 1. quick fade",
+      " 2. make BT non-connectable and non-discoverable",
+      " 3. request HFP audio/control disconnect (actual disconnected event arrives asynchronously)",
+      " 4. drain/flush/close recording file",
+      " 5. show dialog",
+      " 6. on dismiss, set BT connectable and non-discoverable"
+    ],
+    "agent_reply": [
+      "Implemented the recording-exit reorder.",
+      "",
+      "Bluetooth recording stop now does:",
+      "",
+      "1. quick fade in [RecordingView.cpp](/c:/GitHubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingView.cpp)",
+      "2. `BtManager::disconnectNonConnectable()` sets BT non-connectable/non-discoverable",
+      "3. requests HFP audio/control disconnect asynchronously",
+      "4. stops audio and drains/flushes/closes the recording file",
+      "5. shows the completion dialog",
+      "6. dialog dismiss callback restores BT to connectable/non-discoverable",
+      "",
+      "I added `BtManager::disconnectNonConnectable()` in [BluetoothManager.h](/c:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.h) / [BluetoothManager.cpp](/c:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp), while leaving normal `disconnect()` behavior unchanged. The async disconnected event now respects a “hold non-connectable” latch so it won’t reopen connectability before the modal is dismissed.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes."
+    ],
+    "files": [
+      "lib/BluetoothManager/BluetoothManager.h",
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.h",
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-03T22:57:11Z",
+    "type": "git_commit",
+    "commit_message": "prevent rare race condition that restarts a recording from phone",
+    "commit_hash": "ec0b41e94db41f542a220a0d668ecc30f0bfcf5b"
+  },
+  {
+    "timestamp": "2026-06-03T23:01:36.847Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
+      "",
+      "## My request for Codex:",
+      "There's a case during recording when the speaker is muted by the user, then the user unmutes the mic.",
+      "",
+      "Currently, when this happens, the speaker stays muted but the X icon is not drawn over it, when the user unmutes the mic, the speaker is unmuted",
+      "",
+      "I want the activation of the mic to remember if the speaker was previously muted or unmuted, and then restore the state when the mic is off. Visually I don't want the X drawn over the muted speaker to go away if it was already there"
+    ],
+    "agent_reply": [
+      "Implemented that behavior.",
+      "",
+      "The mic activation path now snapshots the current speaker mute preference before entering mic mode, and restores it when returning to speaker mode. I also removed the old forced `setSpeakerMuted(false)` when pressing the mic, which was the bit erasing the user’s choice.",
+      "",
+      "Visually, the speaker X now follows the actual speaker mute preference even while the speaker button is faded during mic mode, so a previously-muted speaker keeps its X.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes.",
+      "",
+      "Implemented that behavior.",
+      "",
+      "The mic activation path now snapshots the current speaker mute preference before entering mic mode, and restores it when returning to speaker mode. I also removed the old forced `setSpeakerMuted(false)` when pressing the mic, which was the bit erasing the user’s choice.",
+      "",
+      "Visually, the speaker X now follows the actual speaker mute preference even while the speaker button is faded during mic mode, so a previously-muted speaker keeps its X.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes."
+    ],
+    "files": [
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-03T23:04:56Z",
+    "type": "git_commit",
+    "commit_message": "mic usage now remembers speaker preference",
+    "commit_hash": "fcb012c6df0855e2a7f0c0ce74c9c666ef2984c6"
   }
 ]

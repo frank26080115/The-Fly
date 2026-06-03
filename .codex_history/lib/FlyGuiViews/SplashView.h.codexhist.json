@@ -27,7 +27,9 @@
       "splash.png",
       "lib/FlyGuiViews/SplashView.h",
       "lib/FlyGuiViews/SplashView.cpp",
-      "lib/FlyGui/FlyGui.h"
+      "lib/FlyGui/FlyGui.h",
+      "src/main.cpp",
+      "gfx-assets/sprites/splash.png"
     ]
   },
   {
@@ -285,5 +287,11 @@
     "type": "git_commit",
     "commit_message": "better splashview",
     "commit_hash": "5d6e3cd59cf0a071c90542106fc384b1e1e8eab2"
+  },
+  {
+    "timestamp": "2026-06-03T06:51:45Z",
+    "type": "git_commit",
+    "commit_message": "diagnostics, fixed a bug with speaker peak decay",
+    "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
   }
 ]
