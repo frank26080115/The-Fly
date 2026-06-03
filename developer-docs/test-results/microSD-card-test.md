@@ -2,6 +2,8 @@ Card is a PNY 32 GB `Elite Class 10 U1 V10 A1 microSDHC Trail Camera Flash Memor
 
 Test date is 2026-05-14
 
+Test conclusion: worst case latency is under 60ms, data rate 
+
 starting microSD recorder smoke test
 free heap before FIFO init: 267572
 [  1032][I][esp32-hal-i2c.c:125] i2cInit(): Initializing I2C Master: sda=21 scl=22 freq=100000

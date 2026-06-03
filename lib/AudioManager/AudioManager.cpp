@@ -19,6 +19,7 @@
 #include "dbg_log.h"
 #include "BluetoothManager.h"
 #include "diagnostics.h"
+#include "pins.h"
 #include "utilfuncs.h"
 
 namespace AudioManager
@@ -34,23 +35,11 @@ constexpr const char* TAG = "AudioManager";
 
 constexpr i2s_port_t kI2sPort = I2S_NUM_0;
 
-constexpr int kNS4168SpeakerBclk = 12;
-constexpr int kNS4168SpeakerLrck = 0;
-constexpr int kNS4168SpeakerDout = 2;
-constexpr int kSPM1423MicClk     = 0;
-constexpr int kSPM1423MicDin     = 34;
-
-constexpr uint8_t kAxp192Address      = 0x34;
-constexpr uint8_t kAxp192Gpio2Control = 0x93;
-constexpr int     kInternalI2cSda     = 21;
-constexpr int     kInternalI2cScl     = 22;
-
-constexpr size_t   kFifoWatermarkSamples          = 240;
 constexpr size_t   kPumpSamples                   = 240;
 constexpr size_t   kDmaBufferCount                = 8;
 constexpr uint8_t  kVolumeStep                    = 3;
 constexpr uint8_t  kVolumeGainShift               = 10;
-constexpr size_t   kHfpOutgoingNotifyMinSamples   = 120;
+constexpr size_t   kHfpOutgoingNotifyMinSamples   = AUDIOFIFO_MS_TO_SAMPLES_16K(50);
 constexpr uint16_t kVolumeGainByLevel[kMaxVolume] = {
     // gain = 10^(dB / 20) ; -50 dB was used to generate this table
     3,  4,  5,  6,   7,   9,   11,  13,  16,  19,  24,  29,  35,  43,  52,
@@ -75,16 +64,10 @@ enum class SpeakerPath
 // Globals
 // -----------------------------------------------------------------------------
 
-AudioFifo g_fifo_bt2spk(1024 * 4, kFifoWatermarkSamples);
-AudioFifo g_fifo_mic2bt(1024 * 4, kFifoWatermarkSamples);
-
-#if BUILD_WITH_SECURITY_LEVEL >= 1
-AudioFifo g_fifo_bt2file(1024 * 8, 0);
-AudioFifo g_fifo_mic2file(1024 * 8, 0);
-#else
-AudioFifo g_fifo_bt2file(1024 * 8, 512);
-AudioFifo g_fifo_mic2file(1024 * 8, 512);
-#endif
+AudioFifo g_fifo_bt2spk  (AUDIOFIFO_MS_TO_SAMPLES_16K(500), AUDIOFIFO_MS_TO_SAMPLES_16K(100));
+AudioFifo g_fifo_mic2bt  (AUDIOFIFO_MS_TO_SAMPLES_16K(500), AUDIOFIFO_MS_TO_SAMPLES_16K(100));
+AudioFifo g_fifo_bt2file (AUDIOFIFO_MS_TO_SAMPLES_16K(500), AUDIOFIFO_MS_TO_SAMPLES_16K(50));
+AudioFifo g_fifo_mic2file(AUDIOFIFO_MS_TO_SAMPLES_16K(500), AUDIOFIFO_MS_TO_SAMPLES_16K(50));
 
 Hardware          g_hardware               = Hardware::M5StackInternal;
 P2TMode           g_mode                   = P2TMode::Stopped;
