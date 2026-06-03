@@ -10,6 +10,7 @@
 
 #include "AudioManager.h"
 #include "MicroSdCard.h"
+#include "DiskStats.h"
 #include "../Hotel/Hotel.h"
 #include "../FlyGui/FlyGuiText.h"
 #include "../FlyGuiViews/ModalDialog.h"
@@ -408,6 +409,8 @@ void PlaybackView::handleDelete()
         gui()->setAudioActive(false);
     }
 
+    FlyGui::quickScreenFade();
+
     bool        deleted = false;
     const char* detail  = nullptr;
     if (path_[0] == '\0')
@@ -440,6 +443,8 @@ void PlaybackView::handleDelete()
 
     if (deleted)
     {
+        DiskStats::refreshDiskSpace();
+        DiskStats::refreshRecordingUploadStats();
         DBG_LOGI(TAG, "deleted playback file: %s", path_);
         if (ScrollView* scrollView = get_view_scroll())
         {
