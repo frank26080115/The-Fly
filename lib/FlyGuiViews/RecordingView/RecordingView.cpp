@@ -240,7 +240,6 @@ void RecordingView::handleMicButton()
     }
     else
     {
-        RecordingViewCallbacks::setSpeakerMuted(false);
         RecordingViewCallbacks::enableMicMode();
     }
     syncAudioButtons();
@@ -453,7 +452,7 @@ void RecordingView::syncAudioButtons()
     const bool micMode = AudioManager::mode() == AudioManager::P2TMode::Mic;
     micButton_.setMicMode(micMode);
     speakerButton_.setMicMode(micMode);
-    speakerButton_.setMutedOverlay(!micMode && RecordingViewCallbacks::speakerMuted());
+    speakerButton_.setMutedOverlay(RecordingViewCallbacks::speakerMuted());
 }
 
 void RecordingView::syncAnswerCallButton()
