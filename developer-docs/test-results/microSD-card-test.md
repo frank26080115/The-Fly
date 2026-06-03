@@ -2,7 +2,9 @@ Card is a PNY 32 GB `Elite Class 10 U1 V10 A1 microSDHC Trail Camera Flash Memor
 
 Test date is 2026-05-14
 
-Test conclusion: worst case latency is under 60ms, data rate 
+Test conclusion: worst case latency is under 60ms, data rate is more than sufficient for raw WAV recording
+
+NOTE: I tested this later and encryption does not change these numbers at all
 
 starting microSD recorder smoke test
 free heap before FIFO init: 267572
