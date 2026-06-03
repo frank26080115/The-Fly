@@ -99,3 +99,5 @@ Conclusions:
  * fifo_under_hz is not zero during mic activity, increasing watermark levels of the FIFO helps with this, unsure if I should be worried. I don't hear audio drops from a real test
  * at a pump size of 240 samples, the core 0 only needs to execute at 67 Hz, and the lowest that core has dipped is in the 400 Hz range
  * core 1 is the GUI and file writing core, it gets busy with more MP3 compression to do. In theory, again, this needs to run at 67 Hz minimum, lowest observed is 114
+ * heap memory healthy
+ * stack memory is healthy (it's the thread's stack so it's out of about 8K)
