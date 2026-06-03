@@ -156,6 +156,7 @@ bool hasNetworkKey()
 
 bool isNvsEncrypted()
 {
+    // NOTE: we are depending on full flash encryption, not just encrypted NVS alone
     return esp_flash_encryption_enabled();
 }
 
