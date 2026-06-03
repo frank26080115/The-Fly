@@ -26,8 +26,8 @@
 #include "mbedtls/gcm.h"
 #include "mbedtls/platform_util.h"
 #include "utilfuncs.h"
-extern BtHostList*  bt_host_list;
-extern bool         g_nvs_ready;
+extern BtHostList* bt_host_list;
+extern bool        g_nvs_ready;
 
 namespace WebCfgHandlers
 {

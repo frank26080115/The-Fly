@@ -99,7 +99,7 @@ private:
                                            IconLookup::IconContext iconContext);
     bool
     appendSpriteScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* label, const sprite_desc_t& sprite);
-    bool appendFileScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* fileName);
+    bool        appendFileScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* fileName);
     void        clearGeneratedItems();
     bool        updateBluetoothDeleteHold(const FlyGuiTouchEvent& event, const ScrollItem* item, bool centerHit);
     void        resetBluetoothDeleteHold();

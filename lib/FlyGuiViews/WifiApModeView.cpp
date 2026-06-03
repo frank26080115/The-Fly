@@ -9,7 +9,7 @@
 #include "SpriteDraw.h"
 #include "WifiManager.h"
 #include "sprites.h"
-extern QrCodeView*  get_view_qr_code();
+extern QrCodeView* get_view_qr_code();
 
 namespace
 {

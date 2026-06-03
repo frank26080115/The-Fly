@@ -36,7 +36,7 @@ RTC_DATA_ATTR uint32_t reset_magic     = 0;
 bool                   reset_was_magic = false;
 bool                   g_nvs_ready     = false;
 
-extern FlyGui*      gui;
+extern FlyGui* gui;
 
 namespace
 {
