@@ -7,10 +7,18 @@ ignore_dirs=(
     "lib/libhelix-esp32-arduino"
     "lib/ShineWrapper/shine"
 )
+ignore_files=(
+    "src/sprites.cpp"
+    "src/version.c"
+    "src/version.cpp"
+)
 
 prune_args=()
 for dir in "${ignore_dirs[@]}"; do
     prune_args+=( -path "$dir" -o )
+done
+for file in "${ignore_files[@]}"; do
+    prune_args+=( -path "$file" -o )
 done
 
 if ((${#prune_args[@]} > 0)); then

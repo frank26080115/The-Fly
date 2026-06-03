@@ -548,15 +548,15 @@ private:
 
     void resetLocked()
     {
-        readIndex_        = 0;
-        writeIndex_       = 0;
-        usedSamples_      = 0;
-        state_            = watermarkSamples_ == 0 ? State::Draining : State::Filling;
-        emptySinceMs_     = millis();
-        upsampleHasPrev_  = false;
-        upsamplePrev_     = 0;
-        overflowActive_   = false;
-        underflowActive_  = false;
+        readIndex_       = 0;
+        writeIndex_      = 0;
+        usedSamples_     = 0;
+        state_           = watermarkSamples_ == 0 ? State::Draining : State::Filling;
+        emptySinceMs_    = millis();
+        upsampleHasPrev_ = false;
+        upsamplePrev_    = 0;
+        overflowActive_  = false;
+        underflowActive_ = false;
     }
 
     size_t queue16kLocked(const int16_t* samples, size_t sampleCount)
@@ -832,28 +832,28 @@ private:
         state_        = watermarkSamples_ == 0 ? State::Draining : State::Filling;
     }
 
-    const size_t               capacitySamples_;
-    size_t                     watermarkSamples_;
-    std::unique_ptr<int16_t[]> buffer_;
-    size_t                     readIndex_         = 0;
-    size_t                     writeIndex_        = 0;
-    size_t                     usedSamples_       = 0;
-    bool                       upsampleHasPrev_   = false;
-    int16_t                    upsamplePrev_      = 0;
-    bool                       queueEnabled_      = true;
-    bool                       muted_             = false;
-    bool                       choked_            = false;
-    bool                       silenceWhenEmpty_  = false;
-    bool                       overflowed_        = false;
-    bool                       underflowed_       = false;
-    bool                       overflowActive_    = false;
-    bool                       underflowActive_   = false;
-    uint32_t                   overflowEvents_    = 0;
-    uint32_t                   underflowEvents_   = 0;
-    mutable State              state_             = State::Filling;
-    uint32_t                   emptySinceMs_      = 0;
-    mutable uint32_t           lastFillLatencyMs_ = 0;
-    mutable std::mutex         mutex_;
+    const size_t                 capacitySamples_;
+    size_t                       watermarkSamples_;
+    std::unique_ptr<int16_t[]>   buffer_;
+    size_t                       readIndex_         = 0;
+    size_t                       writeIndex_        = 0;
+    size_t                       usedSamples_       = 0;
+    bool                         upsampleHasPrev_   = false;
+    int16_t                      upsamplePrev_      = 0;
+    bool                         queueEnabled_      = true;
+    bool                         muted_             = false;
+    bool                         choked_            = false;
+    bool                         silenceWhenEmpty_  = false;
+    bool                         overflowed_        = false;
+    bool                         underflowed_       = false;
+    bool                         overflowActive_    = false;
+    bool                         underflowActive_   = false;
+    uint32_t                     overflowEvents_    = 0;
+    uint32_t                     underflowEvents_   = 0;
+    mutable State                state_             = State::Filling;
+    uint32_t                     emptySinceMs_      = 0;
+    mutable uint32_t             lastFillLatencyMs_ = 0;
+    mutable std::mutex           mutex_;
     static std::atomic<uint32_t> s_globalOverflowEvents_;
     static std::atomic<uint32_t> s_globalUnderflowEvents_;
 };

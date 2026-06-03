@@ -15,7 +15,7 @@ constexpr uint32_t kIdleDecayIntervalMs = 20;
 constexpr uint16_t kMaxSampleMagnitude  = 32767;
 
 std::mutex g_mutex;
-uint16_t   g_raw_peak = 0;
+uint16_t   g_raw_peak      = 0;
 uint32_t   g_last_decay_ms = 0;
 
 // -----------------------------------------------------------------------------
@@ -35,8 +35,8 @@ static uint8_t  peak_to_level(uint16_t peak);
 void init()
 {
     std::lock_guard<std::mutex> lock(g_mutex);
-    g_raw_peak       = 0;
-    g_last_decay_ms  = millis();
+    g_raw_peak      = 0;
+    g_last_decay_ms = millis();
 }
 
 void process(const int16_t* samples, size_t sampleCount)

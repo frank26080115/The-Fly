@@ -57,8 +57,8 @@ void poll()
 {
     memory_check_in();
 
-    const uint32_t now = millis();
-    uint32_t last_report_ms = g_last_report_ms.load(std::memory_order_relaxed);
+    const uint32_t now            = millis();
+    uint32_t       last_report_ms = g_last_report_ms.load(std::memory_order_relaxed);
     if (last_report_ms == 0)
     {
         g_last_report_ms.compare_exchange_strong(last_report_ms, now, std::memory_order_relaxed);
@@ -96,7 +96,7 @@ void poll()
 
     format_report_time(time_text, sizeof(time_text));
 
-    #ifdef BUILD_IS_DEBUG
+#ifdef BUILD_IS_DEBUG
     Serial.printf("diag time=%s stack_free_min=%lu heap_free_min=%lu core0_hz=%.1f core1_hz=%.1f fps=%.1f "
                   "long_write_hz=%.1f i2s_in_sps=%.1f i2s_out_sps=%.1f fifo_over_hz=%.1f fifo_under_hz=%.1f\n",
                   time_text,
@@ -110,7 +110,7 @@ void poll()
                   i2s_out_rate,
                   over_rate,
                   under_rate);
-    #endif
+#endif
 }
 
 // -----------------------------------------------------------------------------

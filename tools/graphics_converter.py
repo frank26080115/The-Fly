@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
 import re
+import shutil
+import subprocess
 
 try:
     from PIL import Image
@@ -171,6 +173,19 @@ def write_source(sprites: list[Sprite]) -> None:
     SOURCE_PATH.write_text("\n".join(lines), encoding="utf-8")
 
 
+def format_source(path: Path) -> None:
+    if not path.exists() or not shutil.which("clang-format"):
+        return
+
+    subprocess.run(
+        ["clang-format", "-i", str(path)],
+        cwd=ROOT_DIR,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+
+
 def main() -> None:
     if not SOURCE_DIR.is_dir():
         raise SystemExit(f"sprite source directory not found: {SOURCE_DIR}")
@@ -185,6 +200,7 @@ def main() -> None:
 
     write_header(sprites)
     write_source(sprites)
+    format_source(SOURCE_PATH)
 
     print(f"generated {len(sprites)} sprite(s)")
     for sprite in sprites:

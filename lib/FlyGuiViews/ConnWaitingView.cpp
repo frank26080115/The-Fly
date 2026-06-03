@@ -92,7 +92,7 @@ bool ConnWaitingView::redraw(bool forced)
         drawStaticContent();
         hourglassFrame_      = 0;
         lastHourglassDrawMs_ = now;
-        bool drawn = true;
+        bool drawn           = true;
         drawn |= updateHourglass(now, true);
         drawn |= cancelItem_.redraw(true);
         markClean();

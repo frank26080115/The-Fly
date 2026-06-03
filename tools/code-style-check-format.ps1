@@ -8,6 +8,11 @@ $ignoreDirs = @(
     'lib\libhelix-esp32-arduino',
     'lib\ShineWrapper\shine'
 )
+$ignoreFiles = @(
+    'src\sprites.cpp',
+    'src\version.c',
+    'src\version.cpp'
+)
 $extensions = @('.c', '.cpp', '.h', '.hpp')
 
 $pathSeparators = @([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
@@ -16,11 +21,22 @@ $ignoreDirPaths = @(
         [System.IO.Path]::GetFullPath((Join-Path $repoRoot $dir)).TrimEnd([char[]]$pathSeparators)
     }
 )
+$ignoreFilePaths = @(
+    foreach ($file in $ignoreFiles) {
+        [System.IO.Path]::GetFullPath((Join-Path $repoRoot $file))
+    }
+)
 
 function Test-IsIgnoredPath {
     param([string]$Path)
 
     $fullPath = [System.IO.Path]::GetFullPath($Path)
+    foreach ($ignoreFilePath in $ignoreFilePaths) {
+        if ($fullPath.Equals($ignoreFilePath, [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
+    }
+
     foreach ($ignoreDirPath in $ignoreDirPaths) {
         if ($fullPath.Equals($ignoreDirPath, [System.StringComparison]::OrdinalIgnoreCase)) {
             return $true

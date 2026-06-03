@@ -3,6 +3,7 @@ Regenerate src/version.c before every build so compiler date/time macros refresh
 """
 
 from pathlib import Path
+import shutil
 import subprocess
 
 Import("env")
@@ -39,6 +40,18 @@ def git_text(*args):
 def c_string(text):
     return text.replace("\\", "\\\\").replace('"', '\\"')
 
+def format_source(path):
+    if not path.exists() or not shutil.which("clang-format"):
+        return
+
+    subprocess.run(
+        ["clang-format", "-i", str(path)],
+        cwd=project_dir,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+
 git_version = git_text("describe", "--exact-match", "--tags", "HEAD")
 if not git_version:
     git_version = git_text("rev-parse", "--short=8", "HEAD")
@@ -71,3 +84,5 @@ const char* compiler_time_str = __DATE__ " " __TIME__;
 
 version_source.write_text(content, encoding="utf-8", newline="\r\n")
 remove_stale_version_objects()
+format_source(version_source)
+format_source(project_dir / "src" / "version.cpp")

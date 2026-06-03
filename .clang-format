@@ -2,6 +2,7 @@ BasedOnStyle: LLVM
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
+LineEnding: CRLF
 ColumnLimit: 120
 
 BreakBeforeBraces: Allman
