@@ -274,9 +274,12 @@ button:disabled,
   display: inline-block;
   width: 34px;
   height: 34px;
+  padding: 0;
+  border: 0;
   border-radius: 8px;
   background: #2a2024;
   color: #ff8a9a;
+  cursor: pointer;
   vertical-align: middle;
 }
 
@@ -306,6 +309,34 @@ button:disabled,
 
 .delete-link:hover {
   background: #3a2229;
+  color: #ffd3da;
+}
+
+.delete-link:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.files-status {
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid #30333a;
+  border-radius: 8px;
+  background: #15171c;
+  color: #d8dae2;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+}
+
+.files-status.notice {
+  border-color: #315d3c;
+  background: #17251b;
+  color: #b8f3c5;
+}
+
+.files-status.error {
+  border-color: #6f3338;
+  background: #27171a;
   color: #ffd3da;
 }
 

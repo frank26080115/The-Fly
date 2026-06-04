@@ -85,6 +85,23 @@ function show_file_upload_status(message, class_name)
     status_panel.style.display = "";
 }
 
+function show_files_status(message, class_name)
+{
+    const status_panel = document.getElementById("files_status");
+    if (!status_panel)
+    {
+        return;
+    }
+
+    status_panel.classList.remove("notice", "error");
+    if (class_name)
+    {
+        status_panel.classList.add(class_name);
+    }
+    status_panel.textContent = message || "";
+    status_panel.style.display = message ? "" : "none";
+}
+
 function set_file_upload_progress(percent)
 {
     const progress = document.getElementById("file_upload_progress");
@@ -97,6 +114,23 @@ function set_file_upload_progress(percent)
     if (label)
     {
         label.textContent = clamped + "%";
+    }
+}
+
+async function read_json_or_text_response(response)
+{
+    const text = await response.text();
+    if (!text)
+    {
+        return {};
+    }
+    try
+    {
+        return JSON.parse(text);
+    }
+    catch (error)
+    {
+        return { message: text };
     }
 }
 
@@ -182,7 +216,7 @@ function render_file_list(files)
         const encoded_name = encodeURIComponent(file_name);
         const file_link = row.querySelector(".file-link");
         const unlock_button = row.querySelector(".unlock-link");
-        const delete_link = row.querySelector(".delete-link");
+        const delete_button = row.querySelector(".delete-link");
         const can_decrypt = is_decryptable_recording_file(file_name);
 
         if (file_link)
@@ -198,10 +232,13 @@ function render_file_list(files)
             } : null;
             unlock_button.setAttribute("aria-label", "Decrypt " + file_name);
         }
-        if (delete_link)
+        if (delete_button)
         {
-            delete_link.href = "/delete_file?file_name=" + encoded_name;
-            delete_link.setAttribute("aria-label", "Delete " + file_name);
+            delete_button.disabled = false;
+            delete_button.onclick = function() {
+                delete_file(file_name, delete_button);
+            };
+            delete_button.setAttribute("aria-label", "Delete " + file_name);
         }
     });
 
@@ -236,6 +273,50 @@ function hide_all_unlock_buttons()
     {
         button.style.display = "none";
         button.disabled = true;
+    }
+}
+
+async function delete_file(file_name, button)
+{
+    const requested_file = String(file_name || "");
+    if (!requested_file)
+    {
+        show_files_status("Missing file name.", "error");
+        return;
+    }
+    if (button && button.disabled)
+    {
+        return;
+    }
+
+    if (button)
+    {
+        button.disabled = true;
+    }
+    show_files_status("Deleting " + requested_file + "...", "");
+
+    try
+    {
+        const response = await fetch("/delete_file?file_name=" + encodeURIComponent(requested_file), {
+            method: "POST",
+            cache: "no-store"
+        });
+        const payload = await read_json_or_text_response(response);
+        if (!response.ok || payload.ok === false)
+        {
+            throw new Error(payload.message || ("Delete failed: " + response.status));
+        }
+
+        show_files_status("Deleted " + requested_file + ".", "notice");
+        fetch_file_list();
+    }
+    catch (error)
+    {
+        show_files_status(error.message || "File delete failed.", "error");
+        if (button)
+        {
+            button.disabled = false;
+        }
     }
 }
 

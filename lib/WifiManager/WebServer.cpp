@@ -153,6 +153,8 @@ bool WebServer::init()
 
     g_server.on(AsyncURIMatcher::exact("/delete_file"), HTTP_GET, WebFileHandlers::deleteMicroSdFile);
     DBG_LOGI(TAG, "registered microSD delete GET /delete_file");
+    g_server.on(AsyncURIMatcher::exact("/delete_file"), HTTP_POST, WebFileHandlers::deleteMicroSdFile);
+    DBG_LOGI(TAG, "registered microSD delete POST /delete_file");
 
     g_server.on(AsyncURIMatcher::exact("/list_files.json"), HTTP_GET, WebFileHandlers::sendMicroSdFileList);
     DBG_LOGI(TAG, "registered microSD file list GET /list_files.json");

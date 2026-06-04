@@ -156,6 +156,7 @@ bool   path_has_parent_or_current_segment(const char* path);
 bool   prepare_file_upload(AsyncWebServerRequest* request, char* upload_path, size_t upload_path_size);
 void   remove_partial_upload(AsyncWebServerRequest* request);
 String safe_content_disposition(const char* disposition, const char* filename);
+void   send_delete_response(AsyncWebServerRequest* request, int status_code, bool ok, const char* message);
 void   send_file_upload_error(AsyncWebServerRequest* request);
 void   set_upload_error(AsyncWebServerRequest* request, int status_code, const char* message);
 uint32_t upload_session_id(AsyncWebServerRequest* request);
@@ -348,14 +349,14 @@ void deleteMicroSdFile(AsyncWebServerRequest* request)
     if (!request->hasParam("file_name"))
     {
         note_web_error();
-        request->send(400, "text/plain", "Missing file_name");
+        send_delete_response(request, 400, false, "Missing file_name");
         return;
     }
 
     if (!AsyncFsManager::isReady())
     {
         note_web_error();
-        request->send(503, "text/plain", "microSD card is not ready");
+        send_delete_response(request, 503, false, "microSD card is not ready");
         return;
     }
 
@@ -363,14 +364,14 @@ void deleteMicroSdFile(AsyncWebServerRequest* request)
     if (file_name.isEmpty())
     {
         note_web_error();
-        request->send(400, "text/plain", "Missing file_name");
+        send_delete_response(request, 400, false, "Missing file_name");
         return;
     }
 
     if (!AsyncFsManager::isFile(file_name.c_str()))
     {
         note_web_error();
-        request->send(404, "text/plain", "File not found");
+        send_delete_response(request, 404, false, "File not found");
         return;
     }
 
@@ -378,13 +379,13 @@ void deleteMicroSdFile(AsyncWebServerRequest* request)
     {
         DBG_LOGW(TAG, "could not delete microSD file %s", file_name.c_str());
         note_web_error();
-        request->send(500, "text/plain", "File delete failed");
+        send_delete_response(request, 500, false, "File delete failed");
         return;
     }
 
     DBG_LOGI(TAG, "deleted microSD file %s", file_name.c_str());
     note_web_download();
-    request->send(200, "text/plain", "Deleted");
+    send_delete_response(request, 200, true, "File deleted.");
 }
 
 void sendMicroSdFileList(AsyncWebServerRequest* request)
@@ -650,6 +651,21 @@ void close_active_file_list_stream()
         active->close();
     }
     g_active_file_list_stream.reset();
+}
+
+void send_delete_response(AsyncWebServerRequest* request, int status_code, bool ok, const char* message)
+{
+    if (!request)
+    {
+        return;
+    }
+
+    String body = "{\"ok\":";
+    body += ok ? "true" : "false";
+    body += ",\"message\":\"";
+    body += message ? message : "";
+    body += "\"}";
+    request->send(status_code, "application/json", body);
 }
 
 String safe_content_disposition(const char* disposition, const char* filename)
