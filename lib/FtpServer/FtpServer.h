@@ -10,5 +10,6 @@ namespace FtpServer
 bool start(SdFs& microSdFs, const char* username, const char* password);
 void poll();
 bool started();
+bool isBusy();
 
 } // namespace FtpServer

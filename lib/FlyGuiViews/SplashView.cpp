@@ -114,6 +114,52 @@ bool SplashView::redraw(bool forced)
         thefly_display.fillScreen(TFT_BLACK);
     }
 
+    #ifdef SPLASH_SHOW_SPECIAL_ICON
+    #if SPLASH_SHOW_SPECIAL_ICON == 1
+    if (g_splash_mode == 2)
+    {
+        SpriteDraw::drawPng(sprite_overlay_cat_50,
+                            SPRITE_OVERLAY_CAT_50_BYTES,
+                            0,
+                            static_cast<int16_t>(thefly_display.height() - SPRITE_OVERLAY_CAT_50_HEIGHT),
+                            SPRITE_OVERLAY_CAT_50_WIDTH,
+                            SPRITE_OVERLAY_CAT_50_HEIGHT,
+                            true);
+    }
+    else
+    {
+        SpriteDraw::drawPng(sprite_overlay_cat_50,
+                            SPRITE_OVERLAY_CAT_50_BYTES,
+                            static_cast<int16_t>(thefly_display.width() - SPRITE_OVERLAY_CAT_50_WIDTH),
+                            static_cast<int16_t>(thefly_display.height() - SPRITE_OVERLAY_CAT_50_HEIGHT),
+                            SPRITE_OVERLAY_CAT_50_WIDTH,
+                            SPRITE_OVERLAY_CAT_50_HEIGHT,
+                            true);
+    }
+    #elif SPLASH_SHOW_SPECIAL_ICON == 2
+    if (g_splash_mode == 2)
+    {
+        SpriteDraw::drawPng(sprite_overlay_dog_50,
+                            SPRITE_OVERLAY_DOG_50_BYTES,
+                            0,
+                            static_cast<int16_t>(thefly_display.height() - SPRITE_OVERLAY_DOG_50_HEIGHT),
+                            SPRITE_OVERLAY_DOG_50_WIDTH,
+                            SPRITE_OVERLAY_DOG_50_HEIGHT,
+                            true);
+    }
+    else
+    {
+        SpriteDraw::drawPng(sprite_overlay_dog_50,
+                            SPRITE_OVERLAY_DOG_50_BYTES,
+                            static_cast<int16_t>(thefly_display.width() - SPRITE_OVERLAY_DOG_50_WIDTH),
+                            static_cast<int16_t>(thefly_display.height() - SPRITE_OVERLAY_DOG_50_HEIGHT),
+                            SPRITE_OVERLAY_DOG_50_WIDTH,
+                            SPRITE_OVERLAY_DOG_50_HEIGHT,
+                            true);
+    }
+    #endif
+    #endif
+
     markClean();
     return true;
 }

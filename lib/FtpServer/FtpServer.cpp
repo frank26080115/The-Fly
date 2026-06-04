@@ -48,4 +48,9 @@ bool started()
     return g_started;
 }
 
+bool isBusy()
+{
+    return g_started && g_ftp_server.isBusy();
+}
+
 } // namespace FtpServer

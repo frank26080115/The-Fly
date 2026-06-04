@@ -72,6 +72,12 @@ class MdnsService:
     address: str
 
 
+@dataclass
+class RemoteFile:
+    name: str
+    size: Optional[int] = None
+
+
 def warn(message: str) -> None:
     print(f"warning: {message}", file=sys.stderr)
 
@@ -124,17 +130,40 @@ def urlopen_bytes(url: str, timeout: float) -> bytes:
         raise DesktopError(f"could not reach {url}: {exc.reason}") from exc
 
 
-def list_remote_files(base_url: str, timeout: float) -> list[str]:
+def parse_remote_file_item(item: object) -> RemoteFile:
+    if isinstance(item, str):
+        if not item:
+            raise DesktopError("device /list_files.json response contained a blank file name")
+        return RemoteFile(name=item)
+
+    if isinstance(item, dict):
+        name = item.get("name")
+        if not isinstance(name, str) or not name:
+            raise DesktopError("device /list_files.json response contained a file object without a valid name")
+
+        size: Optional[int] = None
+        raw_size = item.get("size")
+        if raw_size is not None:
+            if isinstance(raw_size, bool) or not isinstance(raw_size, int) or raw_size < 0:
+                raise DesktopError(f"device /list_files.json response contained an invalid size for {name!r}")
+            size = raw_size
+
+        return RemoteFile(name=name, size=size)
+
+    raise DesktopError("device /list_files.json response contained an unsupported file entry")
+
+
+def list_remote_files(base_url: str, timeout: float) -> list[RemoteFile]:
     payload = urlopen_bytes(endpoint_url(base_url, "/list_files.json"), timeout)
     try:
         parsed = json.loads(payload.decode("utf-8"))
     except json.JSONDecodeError as exc:
         raise DesktopError("device /list_files.json response was not valid JSON") from exc
 
-    if not isinstance(parsed, list) or not all(isinstance(item, str) for item in parsed):
-        raise DesktopError("device /list_files.json response was not a JSON string array")
+    if not isinstance(parsed, list):
+        raise DesktopError("device /list_files.json response was not a JSON file array")
 
-    return parsed
+    return [parse_remote_file_item(item) for item in parsed]
 
 
 def safe_local_name(remote_name: str) -> str:
@@ -343,17 +372,18 @@ def transcribe_all_missing(paths: DbPaths, args: argparse.Namespace) -> None:
 
 def sync_device_files(base_url: str, paths: DbPaths, key: Optional[bytes], args: argparse.Namespace) -> list[Path]:
     remote_files = list_remote_files(base_url, args.device_timeout)
-    remote_recording_files = [name for name in remote_files if is_audio_file(name)]
+    remote_recording_files = [remote_file for remote_file in remote_files if is_audio_file(remote_file.name)]
     downloaded_audio: list[Path] = []
 
     suffix_counts = {
-        suffix: sum(1 for name in remote_recording_files if Path(name).suffix.lower() == suffix)
+        suffix: sum(1 for remote_file in remote_recording_files if Path(remote_file.name).suffix.lower() == suffix)
         for suffix in sorted(thefly_audio_decryptor.AUDIO_SUFFIXES)
     }
     suffix_summary = ", ".join(f"{count} {suffix}" for suffix, count in suffix_counts.items())
     print(f"device files: {len(remote_files)} total, {suffix_summary}")
 
-    for remote_name in remote_recording_files:
+    for remote_file in remote_recording_files:
+        remote_name = remote_file.name
         local_name = safe_local_name(remote_name)
         suffix = Path(local_name).suffix.lower()
         local_path = paths.audio / local_name

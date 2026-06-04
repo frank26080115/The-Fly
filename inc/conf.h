@@ -95,6 +95,8 @@ use this file for preprocessor definitions that are used to configure parts of t
 #endif
 #endif
 
+//#define SPLASH_SHOW_SPECIAL_ICON    2
+
 // file preallocation constants, not used
 constexpr uint64_t kHalfGiB = 512ULL * 1024ULL * 1024ULL;
 constexpr uint64_t kMaxGrowFileBytes = 2ULL * 1024ULL * 1024ULL * 1024ULL;
