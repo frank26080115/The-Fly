@@ -19,6 +19,10 @@ enum class WalkResult
 bool init();
 bool isReady();
 bool guiShouldYield();
+void beginGuiUpdate();
+void endGuiUpdate();
+void beginWebUpload();
+void endWebUpload();
 
 bool       resetWalk();
 WalkResult walkOne(char* file_name, size_t file_name_size);

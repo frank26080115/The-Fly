@@ -29,6 +29,7 @@ constexpr const char* kUploadErrorAttribute   = "file_upload_error";
 constexpr const char* kUploadStatusAttribute  = "file_upload_status";
 constexpr const char* kUploadPathAttribute    = "file_upload_path";
 constexpr const char* kUploadStartedAttribute = "file_upload_started";
+constexpr const char* kUploadActiveAttribute  = "file_upload_active";
 
 // -----------------------------------------------------------------------------
 // Types
@@ -147,6 +148,7 @@ std::weak_ptr<FileListJsonStream> g_active_file_list_stream;
 // -----------------------------------------------------------------------------
 
 void   close_active_file_list_stream();
+void   end_upload_activity(AsyncWebServerRequest* request);
 void   note_web_download();
 void   note_web_error();
 bool   normalize_upload_path(const String& file_name, char* out, size_t out_size);
@@ -224,6 +226,7 @@ void finishFileUpload(AsyncWebServerRequest* request)
     const String& upload_path = request->getAttribute(kUploadPathAttribute);
     DBG_LOGI(TAG, "uploaded microSD file %s", upload_path.c_str());
     note_web_download();
+    end_upload_activity(request);
     request->send(200, "application/json", "{\"status\":\"ok\"}");
 }
 
@@ -508,6 +511,12 @@ bool prepare_file_upload(AsyncWebServerRequest* request, char* upload_path, size
     }
 
     request->setAttribute(kUploadStartedAttribute, true);
+    if (!request->hasAttribute(kUploadActiveAttribute))
+    {
+        request->setAttribute(kUploadActiveAttribute, true);
+        AsyncFsManager::beginWebUpload();
+        request->onDisconnect([]() { AsyncFsManager::endWebUpload(); });
+    }
 
     if (!AsyncFsManager::isReady())
     {
@@ -588,7 +597,16 @@ void send_file_upload_error(AsyncWebServerRequest* request)
     const String& error       = request->getAttribute(kUploadErrorAttribute);
     const long    status_code = request->getAttribute(kUploadStatusAttribute, 500L);
     note_web_error();
+    end_upload_activity(request);
     request->send(static_cast<int>(status_code), "text/plain", error.isEmpty() ? "File upload failed" : error);
+}
+
+void end_upload_activity(AsyncWebServerRequest* request)
+{
+    if (request && request->hasAttribute(kUploadActiveAttribute))
+    {
+        AsyncFsManager::endWebUpload();
+    }
 }
 
 void close_active_file_list_stream()

@@ -140,6 +140,7 @@ void FlyGui::poll()
         return;
     }
 
+    AsyncFsManager::beginGuiUpdate();
     M5.update();
     dispatchButtons();
 
@@ -165,6 +166,7 @@ void FlyGui::poll()
     }
 
     bool drawn = redraw(false);
+    AsyncFsManager::endGuiUpdate();
     if (drawn)
     {
         Diagnostics::gui_drew();

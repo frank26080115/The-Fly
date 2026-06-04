@@ -5,7 +5,11 @@
 #include "AsyncFsManager.h"
 
 #include <SdFat.h>
+#include <atomic>
 #include <string.h>
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #include "MicroSdCard.h"
 #include "dbg_log.h"
@@ -49,6 +53,9 @@ FsFile            g_download_file;
 uint64_t          g_download_file_size               = 0;
 uint64_t          g_download_position                = 0;
 char              g_download_path[kDownloadPathSize] = {};
+std::atomic<bool> g_web_upload_active                = {false};
+std::atomic<bool> g_gui_update_active                = {false};
+std::atomic<TaskHandle_t> g_gui_update_task          = {nullptr};
 
 // -----------------------------------------------------------------------------
 // Function Prototypes
@@ -60,6 +67,8 @@ void close_download_locked();
 bool reset_walk_locked();
 bool reopen_download_locked();
 int  read_download_locked(uint64_t position, uint8_t* buffer, size_t max_len);
+bool current_task_owns_gui_update();
+void wait_for_gui_update_idle();
 
 } // namespace
 
@@ -89,8 +98,42 @@ bool isReady()
 
 bool guiShouldYield()
 {
+    if (g_web_upload_active.load(std::memory_order_relaxed) ||
+        g_gui_update_active.load(std::memory_order_acquire))
+    {
+        return true;
+    }
+
     Lock lock;
     return lock.locked() && (g_download_file.isOpen() || g_walk_root.isOpen());
+}
+
+void beginGuiUpdate()
+{
+    Lock lock;
+    if (!lock.locked())
+    {
+        return;
+    }
+
+    g_gui_update_task.store(xTaskGetCurrentTaskHandle(), std::memory_order_release);
+    g_gui_update_active.store(true, std::memory_order_release);
+}
+
+void endGuiUpdate()
+{
+    g_gui_update_active.store(false, std::memory_order_release);
+    g_gui_update_task.store(nullptr, std::memory_order_release);
+}
+
+void beginWebUpload()
+{
+    g_web_upload_active.store(true, std::memory_order_relaxed);
+}
+
+void endWebUpload()
+{
+    g_web_upload_active.store(false, std::memory_order_relaxed);
 }
 
 bool resetWalk()
@@ -326,7 +369,12 @@ bool writeFileChunk(const char* path, const uint8_t* data, size_t len, bool firs
     const oflag_t flags = O_WRONLY | O_CREAT | (first_chunk ? O_TRUNC : O_APPEND);
     if (!file.open(path, flags))
     {
-        DBG_LOGW(TAG, "write file failed: open failed path=%s first=%d", path, first_chunk ? 1 : 0);
+        DBG_LOGW(TAG,
+                 "write file failed: open failed path=%s first=%d sd_error=0x%02X sd_data=0x%02X",
+                 path,
+                 first_chunk ? 1 : 0,
+                 MicroSdCard::fs().sdErrorCode(),
+                 MicroSdCard::fs().sdErrorData());
         return false;
     }
 
@@ -335,10 +383,12 @@ bool writeFileChunk(const char* path, const uint8_t* data, size_t len, bool firs
     if (!ok)
     {
         DBG_LOGW(TAG,
-                 "write file failed: path=%s wanted=%u wrote=%u sync_or_write_failed",
+                 "write file failed: path=%s wanted=%u wrote=%u sync_or_write_failed sd_error=0x%02X sd_data=0x%02X",
                  path,
                  static_cast<unsigned>(len),
-                 static_cast<unsigned>(written));
+                 static_cast<unsigned>(written),
+                 MicroSdCard::fs().sdErrorCode(),
+                 MicroSdCard::fs().sdErrorData());
     }
     file.close();
     return ok;
@@ -362,7 +412,11 @@ bool removeFile(const char* path)
     const bool removed = MicroSdCard::fs().remove(path);
     if (!removed)
     {
-        DBG_LOGW(TAG, "remove file failed: fs remove failed path=%s", path);
+        DBG_LOGW(TAG,
+                 "remove file failed: fs remove failed path=%s sd_error=0x%02X sd_data=0x%02X",
+                 path,
+                 MicroSdCard::fs().sdErrorCode(),
+                 MicroSdCard::fs().sdErrorData());
     }
     return removed;
 }
@@ -401,6 +455,7 @@ namespace
 
 Lock::Lock()
 {
+    wait_for_gui_update_idle();
     if (ensure_mutex())
     {
         m_locked = xSemaphoreTakeRecursive(g_mutex, portMAX_DELAY) == pdTRUE;
@@ -531,6 +586,20 @@ int read_download_locked(uint64_t position, uint8_t* buffer, size_t max_len)
         g_download_position += static_cast<uint64_t>(bytes_read);
     }
     return bytes_read;
+}
+
+bool current_task_owns_gui_update()
+{
+    return g_gui_update_active.load(std::memory_order_acquire) &&
+           g_gui_update_task.load(std::memory_order_acquire) == xTaskGetCurrentTaskHandle();
+}
+
+void wait_for_gui_update_idle()
+{
+    while (g_gui_update_active.load(std::memory_order_acquire) && !current_task_owns_gui_update())
+    {
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
 }
 
 } // namespace
