@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <string.h>
 
+#include "HapticsWrapper.h"
+
 namespace
 {
 constexpr int16_t  kLineTopGapPx              = 2;
@@ -149,6 +151,7 @@ void PinPadView::onPressLeft()
         return;
     }
 
+    haptic_play_click();
     resetEntry();
 }
 
@@ -159,6 +162,7 @@ void PinPadView::onPressRight()
         return;
     }
 
+    haptic_play_click();
     releaseButtons();
     if (onExit_)
     {
@@ -213,6 +217,7 @@ void PinPadView::registerDigit(uint8_t digit)
         }
         resetEntry();
         releaseButtons();
+        haptic_play_done();
         if (onSuccess_)
         {
             onSuccess_();
@@ -246,6 +251,7 @@ void PinPadView::startFailureCooldown()
         DBG_LOGW("PinPadView", "failed to log bad PIN attempt");
         failedAttempts = 1;
     }
+    haptic_play_done();
     if (onFailedAttempt_)
     {
         onFailedAttempt_(failedAttempts);
@@ -519,6 +525,7 @@ bool PinNumBtn::handleTouch(const FlyGuiTouchEvent& event)
             return false;
         }
 
+        haptic_play_click();
         pressed_ = true;
         setDirty();
         return true;
