@@ -26,3 +26,4 @@ extern void test_filelistbenchmark();
 extern void test_pbkdfbenchmark();
 extern void test_mp3encode();
 extern void test_rtcvsmillis();
+extern void test_hapticfeedback();

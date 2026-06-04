@@ -2,6 +2,7 @@
 
 #include "Aegis.h"
 #include "DiskStats.h"
+#include "HapticsWrapper.h"
 #include "SpriteDraw.h"
 #include "WifiManager.h"
 #include "esp_mac.h"
@@ -88,6 +89,7 @@ bool SplashView::handleTouch(const FlyGuiTouchEvent& event)
 {
     if (event.justPressed || event.justReleased)
     {
+        haptic_play_click();
         if (gui())
         {
             gui()->showView(FLYGUI_VIEW_MAIN);

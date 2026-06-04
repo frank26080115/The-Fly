@@ -5,6 +5,7 @@
 
 #include "Display.h"
 #include "FlyGuiText.h"
+#include "HapticsWrapper.h"
 #include "MicroSdCard.h"
 #include "SpriteDraw.h"
 #include "dbg_log.h"
@@ -112,6 +113,7 @@ bool FirmwareUpdateView::handleTouch(const FlyGuiTouchEvent& event)
         if (event.justPressed || event.justReleased)
         {
             FlyGui::quickScreenFade();
+            haptic_play_click();
             delay(50);
             esp_restart();
         }

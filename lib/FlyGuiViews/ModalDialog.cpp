@@ -1,6 +1,7 @@
 #include "ModalDialog.h"
 
 #include "FlyGuiText.h"
+#include "HapticsWrapper.h"
 #include "SpriteDraw.h"
 #include <string.h>
 
@@ -66,6 +67,7 @@ bool ModalDialog::handleTouch(const FlyGuiTouchEvent& event)
 {
     if (event.justPressed || event.justReleased)
     {
+        haptic_play_click();
         dismiss();
     }
 

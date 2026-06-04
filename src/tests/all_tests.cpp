@@ -22,4 +22,5 @@ void run_test()
     // test_pbkdfbenchmark();
     // test_mp3encode();
     // test_rtcvsmillis();
+    // test_hapticfeedback();
 }

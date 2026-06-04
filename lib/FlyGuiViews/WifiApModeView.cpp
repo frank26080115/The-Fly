@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "Display.h"
+#include "HapticsWrapper.h"
 #include "QrCodeView.h"
 #include "SpriteDraw.h"
 #include "WifiManager.h"
@@ -123,6 +124,7 @@ bool WifiApModeView::handleTouch(const FlyGuiTouchEvent& event)
     const uint32_t held_ms = millis() - qrHoldStartedMs_;
     if (event.pressed && held_ms >= kQrHoldMs && !qrHoldFadeDrawn_)
     {
+        haptic_play_click();
         drawQrHoldFade();
     }
 

@@ -22,6 +22,7 @@
 #include "ClockAgent.h"
 #include "DiskStats.h"
 #include "MicroSdCard.h"
+#include "HapticsWrapper.h"
 #include "dbg_log.h"
 #include "defs.h"
 #include "freertos/FreeRTOS.h"
@@ -593,6 +594,8 @@ bool stopRecording(bool estop)
         DBG_LOGE(TAG, "recording close failed");
         return false;
     }
+
+    haptic_play_buzz();
 
     DBG_LOGI(TAG, "recording stopped: %s bytes=%llu", stopped_path, static_cast<unsigned long long>(stopped_bytes));
     return true;

@@ -16,6 +16,7 @@
 #include "FlyGui.h"
 #include "Display.h"
 #include "FirmwareUpdateView.h"
+#include "HapticsWrapper.h"
 #include "MainScreenView.h"
 #include "MicroSdCard.h"
 #include "ModalDialog.h"
@@ -530,7 +531,11 @@ static void handle_pending_bluetooth_pairing()
 
     g_suppress_bluetooth_auto_recording = true;
     const bool pairing_dialog_shown     = show_pairing_success_dialog(g_pending_paired_device);
-    if (!pairing_dialog_shown)
+    if (pairing_dialog_shown)
+    {
+        haptic_play_done();
+    }
+    else
     {
         g_suppress_bluetooth_auto_recording = false;
         if (gui && gui->currentView() && gui->currentView()->id() == FLYGUI_VIEW_CONN_WAITING)
@@ -709,6 +714,7 @@ static void handle_pending_ntp_sync_complete()
                           SPRITE_THUMBSUP_100_HEIGHT,
                           text,
                           FLYGUI_VIEW_SCROLL);
+        haptic_play_done();
     }
     else if (result.status == NtpSync::Status::Cancelled || result.error == NtpSync::Error::Cancelled)
     {
@@ -785,7 +791,10 @@ static void handle_wifi_station_connected()
     if (!gui->showView(FLYGUI_VIEW_SCROLL))
     {
         show_fatal_error_f(false, "Wi-Fi action view failed");
+        return;
     }
+
+    haptic_play_done();
 }
 
 void show_wifi_connection_failed(const char* text)

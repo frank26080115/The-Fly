@@ -3,6 +3,7 @@
 #include "../Buttons/Buttons.h"
 #include "../BattTracker/BattTracker.h"
 #include "../Hotel/Hotel.h"
+#include "../HapticsWrapper/HapticsWrapper.h"
 #include "../WifiManager/AsyncFsManager.h"
 #include "../SpriteDraw/IconLookup.h"
 #include "DiskStats.h"
@@ -561,6 +562,7 @@ bool FlyGuiItem::trigger(uint32_t pressDurationMs)
 
     if (callback_)
     {
+        haptic_play_click();
         callback_(pressDurationMs);
     }
 

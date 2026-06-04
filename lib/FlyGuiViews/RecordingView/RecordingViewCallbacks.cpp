@@ -3,6 +3,7 @@
 #include "AudioFileRecorder.h"
 #include "AudioManager.h"
 #include "BluetoothManager.h"
+#include "HapticsWrapper.h"
 
 namespace RecordingViewCallbacks
 {
@@ -44,6 +45,7 @@ bool beginBluetoothRecording(AudioFileRecorder::RecordingType type)
         return false;
     }
 
+    haptic_play_buzz();
     return true;
 }
 
@@ -79,6 +81,7 @@ bool promoteMemoRecordingToBluetooth()
     if (promoted)
     {
         AudioFileRecorder::setRecordingType(AudioFileRecorder::RecordingType::Meeting);
+        haptic_play_buzz();
     }
     return promoted;
 }

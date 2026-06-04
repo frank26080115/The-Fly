@@ -17,6 +17,7 @@
 #include "AsyncFsManager.h"
 #include "BluetoothManager.h"
 #include "Aegis.h"
+#include "HapticsWrapper.h"
 #if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
 #include "FtpServer.h"
 #endif
@@ -886,6 +887,7 @@ void WifiManager::updateSoftApClientTracking()
     {
         ++g_soft_ap_client_connection_count;
         memcpy(g_soft_ap_client_mac, mac, sizeof(g_soft_ap_client_mac));
+        haptic_play_done();
     }
     g_soft_ap_client_connected = true;
 }

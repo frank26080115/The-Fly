@@ -3,6 +3,7 @@
 #include "../../AudioFileRecorder/MostRecentFiles.h"
 #include "../../BluetoothManager/BtHostList.h"
 #include "../../FlyGui/FlyGuiText.h"
+#include "../../HapticsWrapper/HapticsWrapper.h"
 #include "../../WifiManager/WifiManager.h"
 #include "../ModalDialog.h"
 #include "FileScrollItem.h"
@@ -485,12 +486,14 @@ bool ScrollView::handleTouch(const FlyGuiTouchEvent& event)
 
     if (event.justPressed && containsSlot(SLOT_LEFT, event.x, event.y))
     {
+        haptic_play_click();
         scrollLeft();
         return true;
     }
 
     if (event.justPressed && containsSlot(SLOT_RIGHT, event.x, event.y))
     {
+        haptic_play_click();
         scrollRight();
         return true;
     }
@@ -885,6 +888,7 @@ void ScrollView::enterBluetoothDeleteMode(int32_t hostIndex)
     deleteMode_      = true;
     deleteHostIndex_ = hostIndex;
     deleteHoldShown_ = true;
+    haptic_play_click();
     deleteItem_.setDirty();
     setDirty();
 }
