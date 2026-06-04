@@ -65,6 +65,7 @@ bool FilePlayback::start(const char* playbackPath)
 
     std::lock_guard<std::mutex> lock(mutex_);
     setError("");
+    setWarning("");
 
     if (!playbackPath || playbackPath[0] == '\0')
     {
@@ -111,6 +112,11 @@ bool FilePlayback::start(const char* playbackPath)
 
     DBG_LOGI(tag(), "started: %s duration=%lu ms", path_, static_cast<unsigned long>(sourceDurationMs()));
     return true;
+}
+
+uint32_t FilePlayback::speakerSampleRateHz() const
+{
+    return kSampleRateHz;
 }
 
 void FilePlayback::stop()
@@ -283,6 +289,11 @@ const char* FilePlayback::lastError() const
     return error_;
 }
 
+const char* FilePlayback::lastWarning() const
+{
+    return warning_;
+}
+
 // -----------------------------------------------------------------------------
 // Feature Logic
 // -----------------------------------------------------------------------------
@@ -380,6 +391,11 @@ const FsFile& FilePlayback::file() const
 void FilePlayback::setError(const char* error)
 {
     strlcpy(error_, error ? error : "", sizeof(error_));
+}
+
+void FilePlayback::setWarning(const char* warning)
+{
+    strlcpy(warning_, warning ? warning : "", sizeof(warning_));
 }
 
 void FilePlayback::markEof()
@@ -516,7 +532,7 @@ bool FilePlayback::setupSpeaker()
     fifo.setWatermark(kSpeakerWatermarkSamples);
     AudioManager::setSpeakerMuted(false);
     AudioManager::setVolume(volume_);
-    if (!AudioManager::enableSpeakerMode())
+    if (!AudioManager::enableSpeakerMode(speakerSampleRateHz()))
     {
         setError("speaker failed");
         return false;

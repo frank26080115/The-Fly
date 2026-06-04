@@ -42,6 +42,7 @@ public:
     uint8_t     volume() const;
     const char* path() const;
     const char* lastError() const;
+    const char* lastWarning() const;
 
 protected:
     static constexpr uint32_t kSampleRateHz            = 16000;
@@ -60,11 +61,13 @@ protected:
     virtual uint32_t    sourceDurationMs() const          = 0;
     virtual uint32_t    sourcePositionMs() const          = 0;
     virtual bool        sourceAtEnd() const               = 0;
+    virtual uint32_t    speakerSampleRateHz() const;
 
     FsFile&       file();
     const FsFile& file() const;
 
     void    setError(const char* error);
+    void    setWarning(const char* warning);
     void    markEof();
     bool    eofMarked() const;
     void    resetChannelActivity();
@@ -95,6 +98,7 @@ private:
     uint8_t            volume_                              = 40;
     char               path_[96]                            = {};
     char               error_[96]                           = {};
+    char               warning_[64]                         = {};
     size_t             left_zero_run_                       = kInactiveZeroRunFrames;
     size_t             right_zero_run_                      = kInactiveZeroRunFrames;
     int16_t            mono_buffer_[kMonoQueueBufferFrames] = {};

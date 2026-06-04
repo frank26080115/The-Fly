@@ -517,6 +517,11 @@ void PlaybackView::startPlayback()
             snprintf(statusText_, sizeof(statusText_), "Playback failed: %s", playback_->lastError());
             DBG_LOGW(TAG, "%s", statusText_);
         }
+        else if (playback_->lastWarning()[0] != '\0')
+        {
+            snprintf(statusText_, sizeof(statusText_), "%s", playback_->lastWarning());
+            DBG_LOGW(TAG, "Playback warning: %s", statusText_);
+        }
     }
 
     scrubBar_.setTotalMs(playback_ ? playback_->durationMs() : 0);
@@ -741,8 +746,7 @@ void PlaybackView::drawFrame(bool forced)
 
     if (statusText_[0] != '\0')
     {
-        // this displays as a red text, below the first scrub bar
-        // it can only be errors in the current implementation
+        // this displays status text below the first scrub bar; normally errors, occasionally warnings.
         thefly_display.setTextDatum(top_center);
         thefly_display.setTextFont(kNormalFont);
         thefly_display.setTextSize(kTextSize);

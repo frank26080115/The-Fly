@@ -121,9 +121,9 @@ template <typename Updater> void update_hfp_diag(Updater updater)
 
 bool   begin_fifos();
 void   stop_i2s();
-bool   enable_ns4168_speaker();
+bool   enable_ns4168_speaker(uint32_t sampleRateHz = kSampleRateHz);
 bool   enable_spm1423_mic();
-bool   enable_exti2scodec_speaker();
+bool   enable_exti2scodec_speaker(uint32_t sampleRateHz = kSampleRateHz);
 bool   enable_exti2scodec_mic();
 void   queue_hfp_pcm(const uint8_t* buf, uint32_t len);
 bool   should_notify_hfp_outgoing_ready(size_t queued_bt, bool allow_existing_fifo);
@@ -134,6 +134,7 @@ void   queue_silence_to_reduce_lag(AudioFifo& lagging_fifo, AudioFifo& leading_f
 void   set_ns4168_speaker_enabled(bool enabled);
 void   update_hardware_volume();
 bool   using_ns4168_speaker();
+uint32_t speaker_sample_rate_or_default(uint32_t sampleRateHz);
 size_t speaker_bytes_per_frame();
 void   apply_ns4168_software_volume(int16_t* samples, size_t sampleCount);
 size_t take_i2s_tx_frames(size_t maxFrames);
@@ -187,14 +188,16 @@ void stop()
     stop_i2s();
 }
 
-bool enableSpeakerMode()
+bool enableSpeakerMode(uint32_t sampleRateHz)
 {
     if (!g_initialized)
     {
         init(g_hardware);
     }
 
-    return g_hardware == Hardware::M5StackInternal ? enable_ns4168_speaker() : enable_exti2scodec_speaker();
+    sampleRateHz = speaker_sample_rate_or_default(sampleRateHz);
+    return g_hardware == Hardware::M5StackInternal ? enable_ns4168_speaker(sampleRateHz)
+                                                   : enable_exti2scodec_speaker(sampleRateHz);
 }
 
 bool enableMicMode()
@@ -799,8 +802,9 @@ void stop_i2s()
     g_pending_speaker_bytes = 0;
 }
 
-bool enable_ns4168_speaker()
+bool enable_ns4168_speaker(uint32_t sampleRateHz)
 {
+    sampleRateHz = speaker_sample_rate_or_default(sampleRateHz);
     stop_i2s();
     g_fifo_bt2spk.clear();
     g_fifo_bt2spk.setChoked(false);
@@ -812,7 +816,7 @@ bool enable_ns4168_speaker()
     chan_config.auto_clear        = true;
 
     i2s_std_config_t config   = {};
-    config.clk_cfg            = I2S_STD_CLK_DEFAULT_CONFIG(kSampleRateHz);
+    config.clk_cfg            = I2S_STD_CLK_DEFAULT_CONFIG(sampleRateHz);
     config.slot_cfg           = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
     config.slot_cfg.slot_mask = I2S_STD_SLOT_BOTH;
     config.slot_cfg.ws_width  = 16;
@@ -868,8 +872,9 @@ bool enable_spm1423_mic()
     return true;
 }
 
-bool enable_exti2scodec_speaker()
+bool enable_exti2scodec_speaker(uint32_t sampleRateHz)
 {
+    (void)sampleRateHz;
     DBG_LOGE(TAG, "ExternalI2SCodec I2S pin/codec setup is not implemented yet");
     return false;
 }
@@ -1038,6 +1043,11 @@ void update_hardware_volume()
 bool using_ns4168_speaker()
 {
     return g_speaker_path == SpeakerPath::NS4168;
+}
+
+uint32_t speaker_sample_rate_or_default(uint32_t sampleRateHz)
+{
+    return sampleRateHz == 0 ? kSampleRateHz : sampleRateHz;
 }
 
 size_t speaker_bytes_per_frame()

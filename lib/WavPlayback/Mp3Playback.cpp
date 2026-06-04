@@ -10,6 +10,13 @@
 namespace
 {
 
+enum class Mp3HeaderParseResult
+{
+    Invalid,
+    Unsupported,
+    Valid,
+};
+
 // -----------------------------------------------------------------------------
 // Globals
 // -----------------------------------------------------------------------------
@@ -20,13 +27,13 @@ Mp3Playback* g_decode_target = nullptr;
 // Function Prototypes
 // -----------------------------------------------------------------------------
 
-void     mp3_data_callback(MP3FrameInfo& info, short* pcm, size_t sample_count);
-uint32_t id3v2_size(const uint8_t* header);
-bool     parse_mp3_header(uint32_t  header,
-                          uint32_t& bitrate_kbps,
-                          uint32_t& sample_rate_hz,
-                          uint32_t& frame_size_bytes,
-                          uint16_t& samples_per_frame);
+void                 mp3_data_callback(MP3FrameInfo& info, short* pcm, size_t sample_count);
+uint32_t             id3v2_size(const uint8_t* header);
+Mp3HeaderParseResult parse_mp3_header(uint32_t  header,
+                                      uint32_t& bitrate_kbps,
+                                      uint32_t& sample_rate_hz,
+                                      uint32_t& frame_size_bytes,
+                                      uint16_t& samples_per_frame);
 
 } // namespace
 
@@ -227,40 +234,133 @@ bool Mp3Playback::sourceAtEnd() const
            sourcePositionMs() >= duration_ms_;
 }
 
+uint32_t Mp3Playback::speakerSampleRateHz() const
+{
+    return sample_rate_hz_ == 0 ? kSampleRateHz : sample_rate_hz_;
+}
+
 bool Mp3Playback::parseMetadata()
 {
-    uint8_t scan[2048] = {};
+    static constexpr size_t   kScanBufferBytes        = 2048;
+    static constexpr uint64_t kMaxMp3HeaderSearchBytes = 64ULL * 1024ULL;
+
+    uint8_t scan[kScanBufferBytes] = {};
     if (!file().seekSet(0))
     {
         setError("seek failed");
         return false;
     }
 
-    const int bytes_read = file().read(scan, sizeof(scan));
+    const int bytes_read = file().read(scan, 10);
     if (bytes_read < 4)
     {
         setError("MP3 header read failed");
         return false;
     }
 
-    size_t start = 0;
+    uint64_t search_offset = 0;
     if (bytes_read >= 10 && memcmp(scan, "ID3", 3) == 0)
     {
-        start = 10 + id3v2_size(scan);
+        search_offset = 10ULL + id3v2_size(scan);
+        if ((scan[5] & 0x10) != 0)
+        {
+            search_offset += 10ULL;
+        }
     }
 
-    bool     found             = false;
-    uint16_t samples_per_frame = MP3_PCM_FRAMES_PER_MP3_FRAME;
-    for (size_t i = start; i + 4 <= static_cast<size_t>(bytes_read); ++i)
+    bool     found                  = false;
+    uint16_t samples_per_frame      = MP3_PCM_FRAMES_PER_MP3_FRAME;
+    uint64_t scanned_bytes          = 0;
+    bool     saw_unsupported_header = false;
+    while (search_offset < file_size_ && scanned_bytes < kMaxMp3HeaderSearchBytes)
     {
-        const uint32_t header = (static_cast<uint32_t>(scan[i]) << 24) | (static_cast<uint32_t>(scan[i + 1]) << 16) |
-                                (static_cast<uint32_t>(scan[i + 2]) << 8) | static_cast<uint32_t>(scan[i + 3]);
-        if (parse_mp3_header(header, bitrate_kbps_, sample_rate_hz_, frame_size_bytes_, samples_per_frame))
+        if (!file().seekSet(search_offset))
         {
-            data_start_offset_ = i;
-            found              = true;
+            setError("seek failed");
+            return false;
+        }
+
+        const uint64_t bytes_left       = file_size_ - search_offset;
+        const uint64_t search_left      = kMaxMp3HeaderSearchBytes - scanned_bytes;
+        const size_t   bytes_to_read =
+            static_cast<size_t>(std::min<uint64_t>(sizeof(scan), std::min(bytes_left, search_left)));
+        const int scan_bytes_read = file().read(scan, bytes_to_read);
+        if (scan_bytes_read < 4)
+        {
             break;
         }
+
+        const size_t scan_size = static_cast<size_t>(scan_bytes_read);
+        for (size_t i = 0; i + 4 <= scan_size; ++i)
+        {
+            const uint32_t header = (static_cast<uint32_t>(scan[i]) << 24) |
+                                    (static_cast<uint32_t>(scan[i + 1]) << 16) |
+                                    (static_cast<uint32_t>(scan[i + 2]) << 8) | static_cast<uint32_t>(scan[i + 3]);
+            uint32_t candidate_bitrate_kbps      = 0;
+            uint32_t candidate_sample_rate_hz    = 0;
+            uint32_t candidate_frame_size_bytes  = 0;
+            uint16_t candidate_samples_per_frame = 0;
+            const Mp3HeaderParseResult parse_result = parse_mp3_header(header,
+                                                                       candidate_bitrate_kbps,
+                                                                       candidate_sample_rate_hz,
+                                                                       candidate_frame_size_bytes,
+                                                                       candidate_samples_per_frame);
+            if (parse_result == Mp3HeaderParseResult::Unsupported)
+            {
+                saw_unsupported_header = true;
+            }
+            if (parse_result != Mp3HeaderParseResult::Valid)
+            {
+                continue;
+            }
+
+            uint32_t next_bitrate_kbps      = 0;
+            uint32_t next_sample_rate_hz    = 0;
+            uint32_t next_frame_size_bytes  = 0;
+            uint16_t next_samples_per_frame = 0;
+            const uint64_t candidate_offset  = search_offset + i;
+            const uint64_t next_frame_offset = candidate_offset + candidate_frame_size_bytes;
+            uint8_t        next_header_bytes[4]  = {};
+            bool           next_frame_valid      = next_frame_offset >= file_size_;
+            if (!next_frame_valid && file().seekSet(next_frame_offset) &&
+                file().read(next_header_bytes, sizeof(next_header_bytes)) == static_cast<int>(sizeof(next_header_bytes)))
+            {
+                const uint32_t next_header = (static_cast<uint32_t>(next_header_bytes[0]) << 24) |
+                                             (static_cast<uint32_t>(next_header_bytes[1]) << 16) |
+                                             (static_cast<uint32_t>(next_header_bytes[2]) << 8) |
+                                             static_cast<uint32_t>(next_header_bytes[3]);
+                const Mp3HeaderParseResult next_parse_result = parse_mp3_header(next_header,
+                                                                                next_bitrate_kbps,
+                                                                                next_sample_rate_hz,
+                                                                                next_frame_size_bytes,
+                                                                                next_samples_per_frame);
+                if (next_parse_result == Mp3HeaderParseResult::Unsupported)
+                {
+                    saw_unsupported_header = true;
+                }
+                next_frame_valid = next_parse_result == Mp3HeaderParseResult::Valid &&
+                                   next_sample_rate_hz == candidate_sample_rate_hz &&
+                                   next_samples_per_frame == candidate_samples_per_frame;
+            }
+            if (next_frame_valid)
+            {
+                bitrate_kbps_      = candidate_bitrate_kbps;
+                sample_rate_hz_    = candidate_sample_rate_hz;
+                frame_size_bytes_  = candidate_frame_size_bytes;
+                samples_per_frame  = candidate_samples_per_frame;
+                data_start_offset_ = candidate_offset;
+                found              = true;
+                break;
+            }
+        }
+        if (found)
+        {
+            break;
+        }
+
+        const size_t advance = scan_size > 3 ? scan_size - 3 : scan_size;
+        search_offset += advance;
+        scanned_bytes += advance;
     }
 
     if (!found)
@@ -269,7 +369,7 @@ bool Mp3Playback::parseMetadata()
         return false;
     }
 
-    if (file_size_ <= data_start_offset_ || bytes_per_second_ == 0)
+    if (file_size_ <= data_start_offset_)
     {
         setError("empty MP3");
         return false;
@@ -277,7 +377,17 @@ bool Mp3Playback::parseMetadata()
 
     encoded_data_bytes_ = file_size_ - data_start_offset_;
     bytes_per_second_   = (bitrate_kbps_ * 1000UL) / 8UL;
+    if (bytes_per_second_ == 0)
+    {
+        setError("bad MP3 bitrate");
+        return false;
+    }
+
     duration_ms_        = static_cast<uint32_t>((encoded_data_bytes_ * 1000ULL) / bytes_per_second_);
+    if (saw_unsupported_header || sample_rate_hz_ != AUDIO_RECORDER_SAMPLE_RATE_HZ || bitrate_kbps_ != MP3_BITRATE_KBPS)
+    {
+        setWarning("unsupported format");
+    }
     (void)samples_per_frame;
     return true;
 }
@@ -392,28 +502,41 @@ uint32_t id3v2_size(const uint8_t* header)
            (static_cast<uint32_t>(header[8] & 0x7F) << 7) | static_cast<uint32_t>(header[9] & 0x7F);
 }
 
-bool parse_mp3_header(uint32_t  header,
-                      uint32_t& bitrate_kbps,
-                      uint32_t& sample_rate_hz,
-                      uint32_t& frame_size_bytes,
-                      uint16_t& samples_per_frame)
+Mp3HeaderParseResult parse_mp3_header(uint32_t  header,
+                                      uint32_t& bitrate_kbps,
+                                      uint32_t& sample_rate_hz,
+                                      uint32_t& frame_size_bytes,
+                                      uint16_t& samples_per_frame)
 {
     if ((header & 0xFFE00000UL) != 0xFFE00000UL)
     {
-        return false;
+        return Mp3HeaderParseResult::Invalid;
     }
 
+    // MPEG audio frame header layout:
+    // version: 3=MPEG-1, 2=MPEG-2, 0=MPEG-2.5, 1=reserved/invalid.
+    // layer:   1=Layer III. This decoder path is MP3-only, so Layer I/II are rejected.
     const uint8_t version           = static_cast<uint8_t>((header >> 19) & 0x03);
     const uint8_t layer             = static_cast<uint8_t>((header >> 17) & 0x03);
     const uint8_t bitrate_index     = static_cast<uint8_t>((header >> 12) & 0x0F);
     const uint8_t sample_rate_index = static_cast<uint8_t>((header >> 10) & 0x03);
     const uint8_t padding           = static_cast<uint8_t>((header >> 9) & 0x01);
 
-    if (version == 1 || layer != 1 || bitrate_index == 0 || bitrate_index == 15 || sample_rate_index == 3)
+    // Version 1 and layer 0 are reserved; bitrate index 15 is forbidden; sample-rate index 3 is reserved.
+    if (version == 1 || layer == 0 || bitrate_index == 15 || sample_rate_index == 3)
     {
-        return false;
+        return Mp3HeaderParseResult::Invalid;
     }
 
+    // Layer I/II and free-format bitrate are valid MPEG audio cases, but this player
+    // cannot estimate frame boundaries/duration for them.
+    if ((layer == 2 || layer == 3) || bitrate_index == 0)
+    {
+        return Mp3HeaderParseResult::Unsupported;
+    }
+
+    // Layer III has different bitrate tables for MPEG-1 vs MPEG-2/2.5.
+    // The header indices are 1..14 after the rejection above; slot 0 is kept only to match the spec index values.
     static constexpr uint16_t kMpeg1Bitrates[]     = {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320};
     static constexpr uint16_t kMpeg2Bitrates[]     = {0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160};
     static constexpr uint32_t kMpeg1SampleRates[]  = {44100, 48000, 32000};
@@ -425,6 +548,8 @@ bool parse_mp3_header(uint32_t  header,
         bitrate_kbps      = kMpeg1Bitrates[bitrate_index];
         sample_rate_hz    = kMpeg1SampleRates[sample_rate_index];
         samples_per_frame = 1152;
+        // MPEG-1 Layer III frame length: floor(144 * bitrate / sample_rate) + padding.
+        // bitrate is stored as kbps, so 144 * 1000 becomes 144000.
         frame_size_bytes  = ((144000UL * bitrate_kbps) / sample_rate_hz) + padding;
     }
     else
@@ -432,10 +557,13 @@ bool parse_mp3_header(uint32_t  header,
         bitrate_kbps      = kMpeg2Bitrates[bitrate_index];
         sample_rate_hz    = version == 2 ? kMpeg2SampleRates[sample_rate_index] : kMpeg25SampleRates[sample_rate_index];
         samples_per_frame = 576;
+        // MPEG-2/2.5 Layer III uses half the MPEG-1 samples per frame, so the frame-length
+        // coefficient is 72 instead of 144.
         frame_size_bytes  = ((72000UL * bitrate_kbps) / sample_rate_hz) + padding;
     }
 
-    return bitrate_kbps > 0 && sample_rate_hz > 0 && frame_size_bytes > 0;
+    return bitrate_kbps > 0 && sample_rate_hz > 0 && frame_size_bytes > 0 ? Mp3HeaderParseResult::Valid
+                                                                           : Mp3HeaderParseResult::Invalid;
 }
 
 } // namespace

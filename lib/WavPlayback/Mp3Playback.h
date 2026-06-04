@@ -27,6 +27,7 @@ protected:
     uint32_t    sourceDurationMs() const override;
     uint32_t    sourcePositionMs() const override;
     bool        sourceAtEnd() const override;
+    uint32_t    speakerSampleRateHz() const override;
 
     virtual bool parseMetadata();
     virtual bool readEncodedBytes(uint8_t* data, size_t maxBytes, size_t& bytesRead);
