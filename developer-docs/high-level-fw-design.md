@@ -20,7 +20,7 @@ Assume the microSD card is permanently attached, always available. Unavailabilit
 
 ### File name conventions
 
-The file name will look like `T-YYYY-MM-DD-HH-MM-SS`. Where `T` is a letter code representing the categorization of the recording. The rest is the time according to the RTC.
+The file name will look like `T-YYYY-MM-DD-HH-MM` (or `T-YYYY-MM-DD-HH-MM-SS`) when needed. Where `T` is a letter code representing the categorization of the recording. The rest is the time according to the RTC.
 
 For `wav` file mode firmware builds, `.wav` file extension is used for unencrypted files, and `*.rec` extension is used for encrypted files.
 

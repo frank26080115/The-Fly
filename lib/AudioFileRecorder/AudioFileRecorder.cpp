@@ -11,6 +11,7 @@
 #include <new>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 #include "Aegis.h"
@@ -164,7 +165,7 @@ uint8_t g_wav_encrypted_audio[WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH];
 // -----------------------------------------------------------------------------
 
 uint64_t max_prealloc_size();
-void     make_recording_path(char type_code);
+void     make_recording_path(char type_code, uint8_t attempt);
 bool     memo_type_from_code(char type_code, MemoType& type);
 bool     recording_type_is_memo(char type_code);
 char*    basename_for_path(char* path);
@@ -295,7 +296,17 @@ bool startRecording(char typeCode)
         std::lock_guard<std::mutex> lock(g_recorder_mutex);
 
         // make the new file name and open it
-        make_recording_path(typeCode);
+        make_recording_path(typeCode, 0);
+        SdFs& fs = MicroSdCard::fs();
+        if (fs.exists(g_sd_path))
+        {
+            make_recording_path(typeCode, 1);
+            if (fs.exists(g_sd_path))
+            {
+                make_recording_path(typeCode, 3);
+            }
+        }
+
         if (!g_file.open(g_sd_path, O_RDWR | O_CREAT | O_TRUNC))
         {
             DBG_LOGE(TAG, "open failed: %s", g_sd_path);
@@ -545,11 +556,13 @@ bool stopRecording(bool estop)
             g_file.flush(); // this makes sure the buffer actually makes it onto the card
             g_last_flush_ms = millis();
 
+            #ifdef ENABLE_FILE_PREALLOCATION
             // shrink the grown file to what is required
             if (!g_file.truncate(g_bytes_written))
             {
                 ok = false;
             }
+            #endif
 
             g_file.close();
             closed_file = true;
@@ -749,7 +762,7 @@ uint64_t max_prealloc_size()
     return size;
 }
 
-void make_recording_path(char type_code)
+void make_recording_path(char type_code, uint8_t attempt)
 {
     m5::rtc_datetime_t now = {};
     if (!Clock.getDateTime(&now))
@@ -771,7 +784,66 @@ void make_recording_path(char type_code)
     const char* extension = "wav";
 #endif
 
-    snprintf(g_sd_path,
+    if (attempt == 0)
+    {
+        snprintf(g_sd_path,
+             sizeof(g_sd_path),
+             "/%c-%04d-%02d-%02d-%02d-%02d.%s",
+             type_code,
+             now.date.year,
+             now.date.month,
+             now.date.date,
+             now.time.hours,
+             now.time.minutes,
+             extension);
+    }
+    else if (attempt == 1)
+    {
+        tm next_minute = {};
+        next_minute.tm_year = now.date.year - 1900;
+        next_minute.tm_mon  = now.date.month - 1;
+        next_minute.tm_mday = now.date.date;
+        next_minute.tm_hour = now.time.hours;
+        next_minute.tm_min  = now.time.minutes + 1;
+        next_minute.tm_sec  = now.time.seconds;
+
+        const time_t normalized_time = mktime(&next_minute);
+        if (normalized_time != static_cast<time_t>(-1))
+        {
+            tm normalized = {};
+            if (localtime_r(&normalized_time, &normalized))
+            {
+                now.date.year    = normalized.tm_year + 1900;
+                now.date.month   = normalized.tm_mon + 1;
+                now.date.date    = normalized.tm_mday;
+                now.time.hours   = normalized.tm_hour;
+                now.time.minutes = normalized.tm_min;
+                now.time.seconds = normalized.tm_sec;
+            }
+        }
+        else
+        {
+            now.time.minutes = static_cast<uint8_t>((now.time.minutes + 1) % 60);
+            if (now.time.minutes == 0)
+            {
+                now.time.hours = static_cast<uint8_t>((now.time.hours + 1) % 24);
+            }
+        }
+
+        snprintf(g_sd_path,
+             sizeof(g_sd_path),
+             "/%c-%04d-%02d-%02d-%02d-%02d.%s",
+             type_code,
+             now.date.year,
+             now.date.month,
+             now.date.date,
+             now.time.hours,
+             now.time.minutes,
+             extension);
+    }
+    else
+    {
+        snprintf(g_sd_path,
              sizeof(g_sd_path),
              "/%c-%04d-%02d-%02d-%02d-%02d-%02d.%s",
              type_code,
@@ -782,6 +854,7 @@ void make_recording_path(char type_code)
              now.time.minutes,
              now.time.seconds,
              extension);
+    }
 }
 
 bool memo_type_from_code(char type_code, MemoType& type)
