@@ -118,8 +118,14 @@ void FlyGui::setPollMode(FlyGuiPollMode mode)
 
 void FlyGui::setAudioActive(bool active)
 {
-    // Design: when audio is active, the GUI defaults to medium polling.
-    setPollMode(active ? FLYGUI_POLL_MEDIUM : FLYGUI_POLL_FAST);
+    audioActive_ = active;
+    updatePollMode();
+}
+
+void FlyGui::setWifiActive(bool active)
+{
+    wifiActive_ = active;
+    updatePollMode();
 }
 
 void FlyGui::poll()
@@ -321,6 +327,18 @@ bool FlyGui::shouldRunScheduledPoll(FlyGuiPollMode mode, uint32_t now)
 
     lastScheduledPollMs_ = now;
     return true;
+}
+
+void FlyGui::updatePollMode()
+{
+    if (wifiActive_)
+    {
+        setPollMode(FLYGUI_POLL_SLOW);
+        return;
+    }
+
+    // Design: when audio is active, the GUI defaults to medium polling.
+    setPollMode(audioActive_ ? FLYGUI_POLL_MEDIUM : FLYGUI_POLL_FAST);
 }
 
 bool FlyGui::drawTopBar(bool forced)

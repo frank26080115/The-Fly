@@ -774,6 +774,10 @@ static void handle_wifi_station_connected()
              WiFi.localIP().toString().c_str(),
              WiFi.gatewayIP().toString().c_str());
 
+    haptic_play_done();
+
+    gui->setWifiActive(true); // signals to the GUI to use a slower polling mode
+
     if (!WebServer::init())
     {
         show_fatal_error_f(false, "Wi-Fi web server failed to start");
@@ -793,8 +797,6 @@ static void handle_wifi_station_connected()
         show_fatal_error_f(false, "Wi-Fi action view failed");
         return;
     }
-
-    haptic_play_done();
 }
 
 void show_wifi_connection_failed(const char* text)

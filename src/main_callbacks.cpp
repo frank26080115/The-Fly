@@ -517,6 +517,8 @@ void onclick_wifi_ap(int32_t value, uint32_t pressDurationMs)
         return;
     }
 
+    gui->setWifiActive(true); // this signals the GUI to use a slow polling mode
+
     if (!WebServer::init())
     {
         show_fatal_error_f(false, "Wi-Fi web server failed to start");

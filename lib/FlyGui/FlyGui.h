@@ -85,6 +85,7 @@ public:
         return pollMode_;
     }
     void setAudioActive(bool active);
+    void setWifiActive(bool active);
 
     void poll();
     bool redraw(bool forced = false);
@@ -109,12 +110,15 @@ private:
     bool dispatchButtonToItem(Button& button);
     bool shouldRunScheduledPoll(FlyGuiPollMode mode, uint32_t now);
     bool drawTopBar(bool forced);
+    void updatePollMode();
 
     FlyGuiView*     firstView_             = nullptr;
     FlyGuiView*     lastView_              = nullptr;
     FlyGuiView*     currentView_           = nullptr;
     FlyGuiModal*    modal_                 = nullptr;
     FlyGuiPollMode  pollMode_              = FLYGUI_POLL_FAST;
+    bool            audioActive_           = false;
+    bool            wifiActive_            = false;
     bool            topBarNeedsFullRedraw_ = false;
     uint32_t        lastScheduledPollMs_   = 0;
     uint32_t        lastTopBarDrawMs_      = 0;
