@@ -12,6 +12,7 @@ namespace
 
 constexpr uint32_t kNominalSampleRateHz = 16000;
 constexpr uint32_t kIdleDecayIntervalMs = 20;
+constexpr uint32_t kDecayRateMultiplier = 8;
 constexpr uint16_t kMaxSampleMagnitude  = 32767;
 
 std::mutex g_mutex;
@@ -114,7 +115,8 @@ void decay_peak_internal(size_t frames)
     if (frames > 0)
     {
         decay = std::max<uint32_t>(decay,
-                                   (static_cast<uint32_t>(kMaxSampleMagnitude) * static_cast<uint32_t>(frames) * 2U) /
+                                   (static_cast<uint32_t>(kMaxSampleMagnitude) * static_cast<uint32_t>(frames) *
+                                    kDecayRateMultiplier) /
                                        (kNominalSampleRateHz * 3U));
     }
 
