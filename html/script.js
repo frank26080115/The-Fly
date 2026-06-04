@@ -178,16 +178,28 @@ function render_file_list(files)
     const list = Array.isArray(files) ? files : [];
     const rows = make_rows_from_template("files_table_body", file_row_template, list.length);
     rows.forEach((row, index) => {
-        const file_name = String(list[index] || "");
+        const file_info = normalize_file_list_item(list[index]);
+        const file_name = file_info.name;
         const encoded_name = encodeURIComponent(file_name);
         const file_link = row.querySelector(".file-link");
+        const file_name_node = row.querySelector(".file-name");
+        const file_size_node = row.querySelector(".file-size");
         const unlock_button = row.querySelector(".unlock-link");
         const delete_link = row.querySelector(".delete-link");
         const can_decrypt = is_decryptable_recording_file(file_name);
 
         if (file_link)
         {
-            file_link.textContent = file_name;
+            const file_size_text = Number.isFinite(file_info.size) ? " [" + format_bytes(file_info.size) + "]" : "";
+            if (file_name_node && file_size_node)
+            {
+                file_name_node.textContent = file_name;
+                file_size_node.textContent = file_size_text;
+            }
+            else
+            {
+                file_link.textContent = file_name + file_size_text;
+            }
             file_link.href = "/download_file?file_name=" + encoded_name;
         }
         if (unlock_button)
@@ -216,6 +228,23 @@ function render_file_list(files)
     {
         show_all_unlock_buttons();
     }
+}
+
+function normalize_file_list_item(item)
+{
+    if (item && typeof item === "object")
+    {
+        const size = Number(item.size);
+        return {
+            name: String(item.name || ""),
+            size: Number.isFinite(size) && size >= 0 ? size : NaN,
+        };
+    }
+
+    return {
+        name: String(item || ""),
+        size: NaN,
+    };
 }
 
 function show_all_unlock_buttons()

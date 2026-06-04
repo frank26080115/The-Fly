@@ -7,6 +7,7 @@
 #include <ESPAsyncWebServer.h>
 
 #include <memory>
+#include <stdio.h>
 #include <string.h>
 
 #include "AsyncFsManager.h"
@@ -101,10 +102,12 @@ private:
             return;
         }
 
-        char file_name[kFileNameBufferSize] = {};
+        char     file_name[kFileNameBufferSize] = {};
+        uint64_t file_size                      = 0;
         while (true)
         {
-            const AsyncFsManager::WalkResult result = AsyncFsManager::walkOne(file_name, sizeof(file_name));
+            const AsyncFsManager::WalkResult result =
+                AsyncFsManager::walkOne(file_name, sizeof(file_name), &file_size);
             if (result == AsyncFsManager::WalkResult::End)
             {
                 m_pending           = "]";
@@ -123,7 +126,13 @@ private:
             {
                 m_pending = ",";
             }
+            char size_text[24] = {};
+            snprintf(size_text, sizeof(size_text), "%llu", static_cast<unsigned long long>(file_size));
+            m_pending += "{\"name\":";
             m_pending += WebServer::jsonString(file_name);
+            m_pending += ",\"size\":";
+            m_pending += size_text;
+            m_pending += "}";
             m_first_file = false;
             return;
         }

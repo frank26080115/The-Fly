@@ -25,7 +25,7 @@ void beginWebUpload();
 void endWebUpload();
 
 bool       resetWalk();
-WalkResult walkOne(char* file_name, size_t file_name_size);
+WalkResult walkOne(char* file_name, size_t file_name_size, uint64_t* file_size = nullptr);
 void       closeWalk();
 
 bool     openFileForDownload(const char* path, uint64_t* file_size = nullptr);

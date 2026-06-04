@@ -142,8 +142,12 @@ bool resetWalk()
     return lock.locked() && reset_walk_locked();
 }
 
-WalkResult walkOne(char* file_name, size_t file_name_size)
+WalkResult walkOne(char* file_name, size_t file_name_size, uint64_t* file_size)
 {
+    if (file_size)
+    {
+        *file_size = 0;
+    }
     if (!file_name || file_name_size == 0)
     {
         return WalkResult::Error;
@@ -177,9 +181,14 @@ WalkResult walkOne(char* file_name, size_t file_name_size)
         }
 
         g_walk_child.getName(file_name, file_name_size);
+        const uint64_t child_size = g_walk_child.fileSize();
         g_walk_child.close();
         if (file_name[0] != '\0')
         {
+            if (file_size)
+            {
+                *file_size = child_size;
+            }
             return WalkResult::File;
         }
     }
