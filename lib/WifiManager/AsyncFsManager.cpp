@@ -291,14 +291,13 @@ bool openFileForDownload(const char* path, uint64_t* file_size)
                  MicroSdCard::isReady() ? 1 : 0);
         return false;
     }
+    note_file_activity();
     if (!g_download_file.open(path, O_RDONLY))
     {
-        note_file_activity();
         DBG_LOGW(TAG, "open download failed: could not open path=%s", path);
         close_download_locked();
         return false;
     }
-    note_file_activity();
     if (g_download_file.isDir())
     {
         DBG_LOGW(TAG, "open download failed: path is directory path=%s", path);
@@ -307,15 +306,12 @@ bool openFileForDownload(const char* path, uint64_t* file_size)
     }
     if (!g_download_file.seekSet(0))
     {
-        note_file_activity();
         DBG_LOGW(TAG, "open download failed: seek to start failed path=%s", path);
         close_download_locked();
         return false;
     }
-    note_file_activity();
 
     g_download_file_size = g_download_file.fileSize();
-    note_file_activity();
     g_download_position  = 0;
     strlcpy(g_download_path, path, sizeof(g_download_path));
     if (file_size)
@@ -455,7 +451,6 @@ bool openFileForUpload(const char* path, uint64_t expected_size, uint32_t* sessi
 
     if (!g_upload_file.open(path, O_WRONLY | O_CREAT | O_TRUNC))
     {
-        note_file_activity();
         DBG_LOGW(TAG,
                  "open upload failed: could not open path=%s sd_error=0x%02X sd_data=0x%02X",
                  path,
@@ -464,20 +459,16 @@ bool openFileForUpload(const char* path, uint64_t expected_size, uint32_t* sessi
         close_upload_locked();
         return false;
     }
-    note_file_activity();
 
     if (expected_size > 0)
     {
         if (g_upload_file.preAllocate(expected_size))
         {
-            note_file_activity();
             g_upload_file.rewind();
-            note_file_activity();
             DBG_LOGI(TAG, "upload preallocated path=%s size=%llu", path, static_cast<unsigned long long>(expected_size));
         }
         else
         {
-            note_file_activity();
             DBG_LOGW(TAG,
                      "upload preallocate failed, continuing path=%s size=%llu sd_error=0x%02X sd_data=0x%02X",
                      path,
@@ -485,7 +476,6 @@ bool openFileForUpload(const char* path, uint64_t expected_size, uint32_t* sessi
                      MicroSdCard::fs().sdErrorCode(),
                      MicroSdCard::fs().sdErrorData());
             g_upload_file.rewind();
-            note_file_activity();
         }
     }
 
@@ -542,7 +532,6 @@ bool writeUploadFileChunk(uint32_t session_id, uint64_t position, const uint8_t*
     }
 
     const size_t written = g_upload_file.write(data, len);
-    note_file_activity();
     if (written != len)
     {
         DBG_LOGW(TAG,
@@ -558,7 +547,6 @@ bool writeUploadFileChunk(uint32_t session_id, uint64_t position, const uint8_t*
     {
         if (!g_upload_file.sync())
         {
-            note_file_activity();
             DBG_LOGW(TAG,
                      "write upload failed: periodic sync failed path=%s size=%llu sd_error=0x%02X sd_data=0x%02X",
                      g_upload_path[0] ? g_upload_path : "(empty)",
@@ -567,7 +555,6 @@ bool writeUploadFileChunk(uint32_t session_id, uint64_t position, const uint8_t*
                      MicroSdCard::fs().sdErrorData());
             return false;
         }
-        note_file_activity();
         g_upload_last_sync_position = g_upload_position;
     }
     return true;
@@ -598,10 +585,8 @@ bool closeUploadFile(uint32_t session_id)
 
     bool ok = true;
     const uint64_t upload_file_size = g_upload_file.fileSize();
-    note_file_activity();
     if (upload_file_size != g_upload_position && !g_upload_file.truncate(g_upload_position))
     {
-        note_file_activity();
         ok = false;
         DBG_LOGW(TAG,
                  "close upload failed: truncate failed path=%s size=%llu file_size=%llu sd_error=0x%02X sd_data=0x%02X",
@@ -612,7 +597,6 @@ bool closeUploadFile(uint32_t session_id)
                  MicroSdCard::fs().sdErrorData());
     }
     const bool closed = g_upload_file.close();
-    note_file_activity();
     if (!closed)
     {
         ok = false;
@@ -682,12 +666,9 @@ bool writeFileChunk(const char* path, const uint8_t* data, size_t len, bool firs
                  MicroSdCard::fs().sdErrorData());
         return false;
     }
-    note_file_activity();
 
     const size_t written = len == 0 ? 0 : file.write(data, len);
-    note_file_activity();
     const bool   ok      = written == len && file.sync();
-    note_file_activity();
     if (!ok)
     {
         DBG_LOGW(TAG,
@@ -699,7 +680,6 @@ bool writeFileChunk(const char* path, const uint8_t* data, size_t len, bool firs
                  MicroSdCard::fs().sdErrorData());
     }
     file.close();
-    note_file_activity();
     return ok;
 }
 
@@ -726,7 +706,6 @@ bool removeFile(const char* path)
         return false;
     }
     const bool removed = MicroSdCard::fs().remove(path);
-    note_file_activity();
     if (!removed)
     {
         DBG_LOGW(TAG,
@@ -761,15 +740,12 @@ bool isFile(const char* path)
     FsFile file;
     if (!file.open(path, O_RDONLY))
     {
-        note_file_activity();
         DBG_LOGW(TAG, "is file failed: open failed path=%s", path);
         return false;
     }
-    note_file_activity();
 
     const bool result = file.isFile();
     file.close();
-    note_file_activity();
     return result;
 }
 
@@ -833,7 +809,6 @@ void close_walk_locked()
     note_file_activity();
     g_walk_child.close();
     g_walk_root.close();
-    note_file_activity();
 }
 
 void close_download_locked()
@@ -843,7 +818,6 @@ void close_download_locked()
     g_download_file_size = 0;
     g_download_position  = 0;
     g_download_path[0]   = '\0';
-    note_file_activity();
 }
 
 void close_upload_locked()
@@ -854,7 +828,6 @@ void close_upload_locked()
     g_upload_last_sync_position = 0;
     g_upload_path[0]            = '\0';
     g_upload_session_id         = 0;
-    note_file_activity();
 }
 
 bool upload_session_matches_locked(uint32_t session_id)
@@ -876,11 +849,9 @@ bool reset_walk_locked()
 
     if (!g_walk_root.open("/", O_RDONLY))
     {
-        note_file_activity();
         DBG_LOGW(TAG, "reset walk failed: could not open root directory");
         return false;
     }
-    note_file_activity();
     return true;
 }
 
@@ -895,20 +866,17 @@ bool reopen_download_locked()
         return false;
     }
 
-    g_download_file.close();
-    note_file_activity();
-    if (!g_download_file.open(g_download_path, O_RDONLY) || g_download_file.isDir())
-    {
-        note_file_activity();
-        DBG_LOGW(TAG, "reopen download failed: open failed path=%s", g_download_path);
-        g_download_file.close();
-        note_file_activity();
-        return false;
-    }
     note_file_activity();
 
+    g_download_file.close();
+    if (!g_download_file.open(g_download_path, O_RDONLY) || g_download_file.isDir())
+    {
+        DBG_LOGW(TAG, "reopen download failed: open failed path=%s", g_download_path);
+        g_download_file.close();
+        return false;
+    }
+
     const uint64_t reopened_size = g_download_file.fileSize();
-    note_file_activity();
     if (reopened_size != g_download_file_size)
     {
         DBG_LOGW(TAG,
@@ -917,7 +885,6 @@ bool reopen_download_locked()
                  static_cast<unsigned long long>(g_download_file_size),
                  static_cast<unsigned long long>(reopened_size));
         g_download_file.close();
-        note_file_activity();
         return false;
     }
 
@@ -928,7 +895,6 @@ bool reopen_download_locked()
                  g_download_path,
                  static_cast<unsigned long long>(g_download_position));
         g_download_file.close();
-        note_file_activity();
         return false;
     }
 
@@ -947,8 +913,9 @@ int read_download_locked(uint64_t position, uint8_t* buffer, size_t max_len)
         return -1;
     }
 
-    const int bytes_read = g_download_file.read(buffer, max_len);
     note_file_activity();
+
+    const int bytes_read = g_download_file.read(buffer, max_len);
     if (bytes_read > 0)
     {
         g_download_position += static_cast<uint64_t>(bytes_read);

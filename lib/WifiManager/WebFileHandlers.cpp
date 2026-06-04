@@ -554,7 +554,16 @@ bool prepare_file_upload(AsyncWebServerRequest* request, char* upload_path, size
     {
         request->setAttribute(kUploadActiveAttribute, true);
         AsyncFsManager::beginWebUpload();
-        request->onDisconnect([]() { AsyncFsManager::endWebUpload(); });
+        request->onDisconnect(
+            [request]()
+            {
+                const uint32_t session_id = upload_session_id(request);
+                if (session_id != 0)
+                {
+                    AsyncFsManager::cancelUploadFile(session_id);
+                }
+                AsyncFsManager::endWebUpload();
+            });
     }
 
     if (!AsyncFsManager::isReady())
@@ -583,7 +592,6 @@ bool prepare_file_upload(AsyncWebServerRequest* request, char* upload_path, size
     request->setAttribute(kUploadStartedAttribute, true);
     request->setAttribute(kUploadPathAttribute, upload_path);
     request->setAttribute(kUploadSessionAttribute, static_cast<long>(session_id));
-    request->onDisconnect([session_id]() { AsyncFsManager::cancelUploadFile(session_id); });
     return true;
 }
 
