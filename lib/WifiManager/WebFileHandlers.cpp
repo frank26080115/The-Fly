@@ -29,6 +29,8 @@ constexpr const char* kUploadErrorAttribute   = "file_upload_error";
 constexpr const char* kUploadStatusAttribute  = "file_upload_status";
 constexpr const char* kUploadPathAttribute    = "file_upload_path";
 constexpr const char* kUploadStartedAttribute = "file_upload_started";
+constexpr const char* kUploadRawBodyAttribute = "file_upload_raw_body";
+constexpr const char* kUploadSessionAttribute = "file_upload_session";
 
 // -----------------------------------------------------------------------------
 // Types
@@ -156,8 +158,9 @@ void   remove_partial_upload(AsyncWebServerRequest* request);
 String safe_content_disposition(const char* disposition, const char* filename);
 void   send_file_upload_error(AsyncWebServerRequest* request);
 void   set_upload_error(AsyncWebServerRequest* request, int status_code, const char* message);
+uint32_t upload_session_id(AsyncWebServerRequest* request);
 void   write_file_upload_bytes(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index);
-bool   write_upload_chunk(const char* upload_path, const uint8_t* data, size_t len, bool first_chunk);
+bool   write_upload_chunk(uint32_t session_id, const uint8_t* data, size_t len, size_t index);
 
 } // namespace
 
@@ -172,6 +175,10 @@ void writeFileUploadBody(AsyncWebServerRequest* request, uint8_t* data, size_t l
         return;
     }
 
+    if (request && !request->hasAttribute(kUploadRawBodyAttribute))
+    {
+        request->setAttribute(kUploadRawBodyAttribute, true);
+    }
     write_file_upload_bytes(request, data, len, index);
 }
 
@@ -209,16 +216,38 @@ void finishFileUpload(AsyncWebServerRequest* request)
         }
 
         char upload_path[kFileNameBufferSize] = {};
-        if (!prepare_file_upload(request, upload_path, sizeof(upload_path)) ||
-            !write_upload_chunk(upload_path, nullptr, 0, true))
+        if (!prepare_file_upload(request, upload_path, sizeof(upload_path)))
         {
             if (!request->hasAttribute(kUploadErrorAttribute))
             {
-                set_upload_error(request, 500, "File write failed");
+                set_upload_error(request, 500, "File upload failed");
             }
             send_file_upload_error(request);
             return;
         }
+    }
+
+    if (request->hasAttribute(kUploadRawBodyAttribute))
+    {
+        const uint64_t expected_size = static_cast<uint64_t>(request->contentLength());
+        const uint64_t actual_size   = AsyncFsManager::uploadFileSize(upload_session_id(request));
+        if (actual_size != expected_size)
+        {
+            DBG_LOGW(TAG,
+                     "upload size mismatch: expected=%llu actual=%llu",
+                     static_cast<unsigned long long>(expected_size),
+                     static_cast<unsigned long long>(actual_size));
+            set_upload_error(request, 500, "Incomplete file upload");
+            send_file_upload_error(request);
+            return;
+        }
+    }
+
+    if (!AsyncFsManager::closeUploadFile(upload_session_id(request)))
+    {
+        set_upload_error(request, 500, "File close failed");
+        send_file_upload_error(request);
+        return;
     }
 
     const String& upload_path = request->getAttribute(kUploadPathAttribute);
@@ -507,8 +536,6 @@ bool prepare_file_upload(AsyncWebServerRequest* request, char* upload_path, size
         return false;
     }
 
-    request->setAttribute(kUploadStartedAttribute, true);
-
     if (!AsyncFsManager::isReady())
     {
         set_upload_error(request, 503, "microSD card is not ready");
@@ -522,23 +549,46 @@ bool prepare_file_upload(AsyncWebServerRequest* request, char* upload_path, size
         return false;
     }
 
+    const uint64_t expected_size = request->hasAttribute(kUploadRawBodyAttribute)
+                                       ? static_cast<uint64_t>(request->contentLength())
+                                       : 0;
+    uint32_t session_id = 0;
+    if (!AsyncFsManager::openFileForUpload(upload_path, expected_size, &session_id))
+    {
+        set_upload_error(request, 500, "File open failed");
+        return false;
+    }
+
+    request->setAttribute(kUploadStartedAttribute, true);
     request->setAttribute(kUploadPathAttribute, upload_path);
+    request->setAttribute(kUploadSessionAttribute, static_cast<long>(session_id));
+    request->onDisconnect([session_id]() { AsyncFsManager::cancelUploadFile(session_id); });
     return true;
 }
 
-bool write_upload_chunk(const char* upload_path, const uint8_t* data, size_t len, bool first_chunk)
+uint32_t upload_session_id(AsyncWebServerRequest* request)
 {
-    return AsyncFsManager::writeFileChunk(upload_path, data, len, first_chunk);
+    return request ? static_cast<uint32_t>(request->getAttribute(kUploadSessionAttribute, 0L)) : 0;
+}
+
+bool write_upload_chunk(uint32_t session_id, const uint8_t* data, size_t len, size_t index)
+{
+    return AsyncFsManager::writeUploadFileChunk(session_id, static_cast<uint64_t>(index), data, len);
 }
 
 void remove_partial_upload(AsyncWebServerRequest* request)
 {
-    if (!request || !AsyncFsManager::isReady())
+    if (!request)
     {
         return;
     }
 
     const String& upload_path = request->getAttribute(kUploadPathAttribute);
+    AsyncFsManager::cancelUploadFile(upload_session_id(request));
+    if (!AsyncFsManager::isReady())
+    {
+        return;
+    }
     if (!upload_path.isEmpty())
     {
         AsyncFsManager::removeFile(upload_path.c_str());
@@ -571,9 +621,11 @@ void write_file_upload_bytes(AsyncWebServerRequest* request, uint8_t* data, size
         memcpy(upload_path, saved_path.c_str(), saved_path.length() + 1);
     }
 
-    if (!write_upload_chunk(upload_path, data, len, index == 0))
+    (void)upload_path;
+    if (!write_upload_chunk(upload_session_id(request), data, len, index))
     {
-        set_upload_error(request, 500, "File write failed");
+        set_upload_error(request, 500, "File chunk write failed");
+        AsyncFsManager::cancelUploadFile(upload_session_id(request));
     }
 }
 

@@ -122,7 +122,7 @@ function file_upload_onsubmit()
 
     const request = new XMLHttpRequest();
     request.open("POST", "/file_upload?file_name=" + encodeURIComponent(file.name), true);
-    request.timeout = 120000;
+    request.timeout = 600000;
     request.setRequestHeader("Content-Type", "application/octet-stream");
 
     request.upload.onprogress = function(event) {
