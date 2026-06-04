@@ -70,6 +70,7 @@ public:
     }
 
     static void quickScreenFade();
+    static bool guiShouldYield();
 
     void        addView(FlyGuiView& view);
     bool        showView(uint16_t viewId);

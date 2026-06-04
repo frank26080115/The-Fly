@@ -2,6 +2,7 @@
 
 #include "../Buttons/Buttons.h"
 #include "../BattTracker/BattTracker.h"
+#include "../FtpServer/FtpServer.h"
 #include "../Hotel/Hotel.h"
 #include "../HapticsWrapper/HapticsWrapper.h"
 #include "../WifiManager/AsyncFsManager.h"
@@ -73,6 +74,11 @@ void FlyGui::quickScreenFade()
     }
 }
 
+bool FlyGui::guiShouldYield()
+{
+    return AsyncFsManager::guiShouldYield() || FtpServer::isBusy();
+}
+
 void FlyGui::addView(FlyGuiView& view)
 {
     appendView(view);
@@ -120,7 +126,7 @@ void FlyGui::poll()
 {
     Diagnostics::memory_check_in();
 
-    if (AsyncFsManager::guiShouldYield())
+    if (FlyGui::guiShouldYield())
     {
         return;
     }
