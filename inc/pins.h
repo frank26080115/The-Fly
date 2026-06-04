@@ -9,6 +9,7 @@ use this file to specify pin mappings
 constexpr int kNS4168SpeakerBclk = 12;
 constexpr int kNS4168SpeakerLrck = 0;
 constexpr int kNS4168SpeakerDout = 2;
+constexpr int kNS4168SpeakerMclk = -1;
 constexpr int kSPM1423MicClk     = 0;
 constexpr int kSPM1423MicDin     = 34;
 

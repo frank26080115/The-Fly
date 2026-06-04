@@ -816,7 +816,7 @@ bool enable_ns4168_speaker()
     config.slot_cfg           = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
     config.slot_cfg.slot_mask = I2S_STD_SLOT_BOTH;
     config.slot_cfg.ws_width  = 16;
-    config.gpio_cfg.mclk      = I2S_GPIO_UNUSED;
+    config.gpio_cfg.mclk      = static_cast<gpio_num_t>(kNS4168SpeakerMclk);
     config.gpio_cfg.bclk      = static_cast<gpio_num_t>(kNS4168SpeakerBclk);
     config.gpio_cfg.ws        = static_cast<gpio_num_t>(kNS4168SpeakerLrck);
     config.gpio_cfg.dout      = static_cast<gpio_num_t>(kNS4168SpeakerDout);
