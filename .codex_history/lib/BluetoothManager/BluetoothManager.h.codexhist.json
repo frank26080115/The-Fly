@@ -740,5 +740,53 @@
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
+  },
+  {
+    "timestamp": "2026-06-03T22:47:40Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: developer-docs/test-results/diag-bt-call-record.md",
+      "",
+      "## My request for Codex:",
+      "reorder that:",
+      "",
+      " 1. quick fade",
+      " 2. make BT non-connectable and non-discoverable",
+      " 3. request HFP audio/control disconnect (actual disconnected event arrives asynchronously)",
+      " 4. drain/flush/close recording file",
+      " 5. show dialog",
+      " 6. on dismiss, set BT connectable and non-discoverable"
+    ],
+    "agent_reply": [
+      "Implemented the recording-exit reorder.",
+      "",
+      "Bluetooth recording stop now does:",
+      "",
+      "1. quick fade in [RecordingView.cpp](/c:/GitHubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingView.cpp)",
+      "2. `BtManager::disconnectNonConnectable()` sets BT non-connectable/non-discoverable",
+      "3. requests HFP audio/control disconnect asynchronously",
+      "4. stops audio and drains/flushes/closes the recording file",
+      "5. shows the completion dialog",
+      "6. dialog dismiss callback restores BT to connectable/non-discoverable",
+      "",
+      "I added `BtManager::disconnectNonConnectable()` in [BluetoothManager.h](/c:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.h) / [BluetoothManager.cpp](/c:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp), while leaving normal `disconnect()` behavior unchanged. The async disconnected event now respects a “hold non-connectable” latch so it won’t reopen connectability before the modal is dismissed.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes."
+    ],
+    "files": [
+      "lib/BluetoothManager/BluetoothManager.h",
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.h",
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-03T22:57:11Z",
+    "type": "git_commit",
+    "commit_message": "prevent rare race condition that restarts a recording from phone",
+    "commit_hash": "ec0b41e94db41f542a220a0d668ecc30f0bfcf5b"
   }
 ]

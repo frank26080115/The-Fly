@@ -10,12 +10,17 @@ namespace
 {
 
 bool g_memo_bt_fifo_choked = false;
+bool g_have_speaker_mute_before_mic = false;
+bool g_speaker_muted_before_mic     = false;
 
 // -----------------------------------------------------------------------------
 // Function Prototypes
 // -----------------------------------------------------------------------------
 
 static void restore_memo_bt_fifo();
+static void remember_speaker_mute_before_mic();
+static void restore_speaker_mute_after_mic();
+static void clear_speaker_mute_before_mic();
 
 } // namespace
 
@@ -25,6 +30,7 @@ static void restore_memo_bt_fifo();
 
 bool beginBluetoothRecording(AudioFileRecorder::RecordingType type)
 {
+    clear_speaker_mute_before_mic();
     restore_memo_bt_fifo();
     setSpeakerMuted(false);
     if (!AudioFileRecorder::startRecording(type))
@@ -43,6 +49,7 @@ bool beginBluetoothRecording(AudioFileRecorder::RecordingType type)
 
 bool beginMemoRecording(char typeCode)
 {
+    clear_speaker_mute_before_mic();
     setSpeakerMuted(false);
     AudioManager::micToBluetoothFifo().setChoked(true);
     g_memo_bt_fifo_choked = true;
@@ -66,6 +73,7 @@ bool beginMemoRecording(char typeCode)
 bool promoteMemoRecordingToBluetooth()
 {
     restore_memo_bt_fifo();
+    clear_speaker_mute_before_mic();
     setSpeakerMuted(false);
     const bool promoted = AudioManager::mode() == AudioManager::P2TMode::Mic || AudioManager::enableMicMode();
     if (promoted)
@@ -77,26 +85,48 @@ bool promoteMemoRecordingToBluetooth()
 
 bool stopRecording(bool disconnectBluetooth)
 {
+    if (disconnectBluetooth)
+    {
+        BtManager::disconnectNonConnectable();
+    }
+    clear_speaker_mute_before_mic();
     setSpeakerMuted(false);
     restore_memo_bt_fifo();
     AudioManager::stop();
-    const bool stopped = AudioFileRecorder::stopRecording();
-    if (disconnectBluetooth)
-    {
-        BtManager::disconnect();
-    }
-    return stopped;
+    return AudioFileRecorder::stopRecording();
+}
+
+bool restoreBluetoothConnectable()
+{
+    return BtManager::setConnectableNonDiscoverable() == BtManager::Result::Ok;
 }
 
 bool enableMicMode()
 {
-    return AudioManager::enableMicMode();
+    const bool enteringMic = AudioManager::mode() != AudioManager::P2TMode::Mic && !g_have_speaker_mute_before_mic;
+    if (enteringMic)
+    {
+        remember_speaker_mute_before_mic();
+    }
+
+    const bool enabled = AudioManager::enableMicMode();
+    if (!enabled && enteringMic)
+    {
+        clear_speaker_mute_before_mic();
+    }
+    return enabled;
 }
 
 bool enableSpeakerMode()
 {
+    const bool leavingMic = AudioManager::mode() == AudioManager::P2TMode::Mic;
     AudioManager::bluetoothToSpeakerFifo().clear();
-    return AudioManager::enableSpeakerMode();
+    const bool enabled = AudioManager::enableSpeakerMode();
+    if (enabled && leavingMic)
+    {
+        restore_speaker_mute_after_mic();
+    }
+    return enabled;
 }
 
 bool setSpeakerMuted(bool muted)
@@ -133,6 +163,29 @@ void restore_memo_bt_fifo()
         AudioManager::micToBluetoothFifo().setChoked(false);
         g_memo_bt_fifo_choked = false;
     }
+}
+
+void remember_speaker_mute_before_mic()
+{
+    g_speaker_muted_before_mic     = AudioManager::speakerMuted();
+    g_have_speaker_mute_before_mic = true;
+}
+
+void restore_speaker_mute_after_mic()
+{
+    if (!g_have_speaker_mute_before_mic)
+    {
+        return;
+    }
+
+    AudioManager::setSpeakerMuted(g_speaker_muted_before_mic);
+    clear_speaker_mute_before_mic();
+}
+
+void clear_speaker_mute_before_mic()
+{
+    g_have_speaker_mute_before_mic = false;
+    g_speaker_muted_before_mic     = false;
 }
 
 } // namespace

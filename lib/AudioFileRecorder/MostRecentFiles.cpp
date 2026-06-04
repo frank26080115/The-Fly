@@ -27,6 +27,7 @@ namespace
 struct Candidate
 {
     uint32_t created                  = 0;
+    uint64_t file_size                = 0;
     char     name[kMaxFileNameLength] = {};
 };
 
@@ -34,7 +35,8 @@ struct Candidate
 // Function Prototypes
 // -----------------------------------------------------------------------------
 
-void     insert_candidate(Candidate* recent, size_t capacity, size_t& count, const char* name, uint32_t created);
+void     insert_candidate(
+    Candidate* recent, size_t capacity, size_t& count, const char* name, uint32_t created, uint64_t file_size);
 bool     newer_than(const Candidate& lhs, uint32_t rhsCreated, const char* rhsName);
 bool     is_listable_recording_name(const char* name);
 bool     is_recorded_file(FsFile& file);
@@ -63,6 +65,10 @@ FileList::FileList(const FileList& other)
     {
         memcpy(names, other.names, count * kMaxFileNameLength);
     }
+    if (file_sizes && other.file_sizes && count > 0)
+    {
+        memcpy(file_sizes, other.file_sizes, count * sizeof(file_sizes[0]));
+    }
 }
 
 FileList& FileList::operator=(const FileList& other)
@@ -73,6 +79,7 @@ FileList& FileList::operator=(const FileList& other)
     }
 
     char (*new_names)[kMaxFileNameLength] = nullptr;
+    uint64_t* new_file_sizes              = nullptr;
     if (other.capacity > 0)
     {
         new_names = new (std::nothrow) char[other.capacity][kMaxFileNameLength];
@@ -80,28 +87,43 @@ FileList& FileList::operator=(const FileList& other)
         {
             return *this;
         }
+        new_file_sizes = new (std::nothrow) uint64_t[other.capacity];
+        if (!new_file_sizes)
+        {
+            delete[] new_names;
+            return *this;
+        }
         memset(new_names, 0, other.capacity * kMaxFileNameLength);
+        memset(new_file_sizes, 0, other.capacity * sizeof(new_file_sizes[0]));
         if (other.names && other.count > 0)
         {
             memcpy(new_names, other.names, other.count * kMaxFileNameLength);
         }
+        if (other.file_sizes && other.count > 0)
+        {
+            memcpy(new_file_sizes, other.file_sizes, other.count * sizeof(new_file_sizes[0]));
+        }
     }
 
     delete[] names;
-    names    = new_names;
-    count    = other.count;
-    capacity = other.capacity;
+    delete[] file_sizes;
+    names      = new_names;
+    file_sizes = new_file_sizes;
+    count      = other.count;
+    capacity   = other.capacity;
     return *this;
 }
 
 FileList::FileList(FileList&& other) noexcept
 {
-    names          = other.names;
-    count          = other.count;
-    capacity       = other.capacity;
-    other.names    = nullptr;
-    other.count    = 0;
-    other.capacity = 0;
+    names            = other.names;
+    file_sizes       = other.file_sizes;
+    count            = other.count;
+    capacity         = other.capacity;
+    other.names      = nullptr;
+    other.file_sizes = nullptr;
+    other.count      = 0;
+    other.capacity   = 0;
 }
 
 FileList& FileList::operator=(FileList&& other) noexcept
@@ -112,12 +134,15 @@ FileList& FileList::operator=(FileList&& other) noexcept
     }
 
     delete[] names;
-    names          = other.names;
-    count          = other.count;
-    capacity       = other.capacity;
-    other.names    = nullptr;
-    other.count    = 0;
-    other.capacity = 0;
+    delete[] file_sizes;
+    names            = other.names;
+    file_sizes       = other.file_sizes;
+    count            = other.count;
+    capacity         = other.capacity;
+    other.names      = nullptr;
+    other.file_sizes = nullptr;
+    other.count      = 0;
+    other.capacity   = 0;
     return *this;
 }
 
@@ -139,8 +164,16 @@ bool FileList::init(size_t requestedCapacity)
     {
         return false;
     }
+    file_sizes = new (std::nothrow) uint64_t[requestedCapacity];
+    if (!file_sizes)
+    {
+        delete[] names;
+        names = nullptr;
+        return false;
+    }
 
     memset(names, 0, requestedCapacity * kMaxFileNameLength);
+    memset(file_sizes, 0, requestedCapacity * sizeof(file_sizes[0]));
     capacity = requestedCapacity;
     return true;
 }
@@ -148,9 +181,11 @@ bool FileList::init(size_t requestedCapacity)
 void FileList::reset()
 {
     delete[] names;
-    names    = nullptr;
-    count    = 0;
-    capacity = 0;
+    delete[] file_sizes;
+    names      = nullptr;
+    file_sizes = nullptr;
+    count      = 0;
+    capacity   = 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -191,7 +226,7 @@ FileList get(size_t maxFiles)
             file.getName(name, sizeof(name));
             if (is_listable_recording_name(name))
             {
-                insert_candidate(recent, maxFiles, result.count, name, created_key(date, time));
+                insert_candidate(recent, maxFiles, result.count, name, created_key(date, time), file.fileSize());
             }
         }
         file.close();
@@ -203,6 +238,7 @@ FileList get(size_t maxFiles)
     for (size_t i = 0; i < result.count; ++i)
     {
         strlcpy(result.names[i], recent[i].name, sizeof(result.names[i]));
+        result.file_sizes[i] = recent[i].file_size;
     }
 
     delete[] recent;
@@ -216,7 +252,8 @@ namespace
 // Supporting Functions
 // -----------------------------------------------------------------------------
 
-void insert_candidate(Candidate* recent, size_t capacity, size_t& count, const char* name, uint32_t created)
+void insert_candidate(
+    Candidate* recent, size_t capacity, size_t& count, const char* name, uint32_t created, uint64_t file_size)
 {
     if (!recent || capacity == 0)
     {
@@ -240,7 +277,8 @@ void insert_candidate(Candidate* recent, size_t capacity, size_t& count, const c
         recent[i] = recent[i - 1];
     }
 
-    recent[insert_at].created = created;
+    recent[insert_at].created   = created;
+    recent[insert_at].file_size = file_size;
     strlcpy(recent[insert_at].name, name, sizeof(recent[insert_at].name));
 
     if (count < capacity)

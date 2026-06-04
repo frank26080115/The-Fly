@@ -371,6 +371,7 @@ void onclick_scroll_exit(uint32_t pressDurationMs)
     // by policy, if Wi-Fi has been used, we do not allow restarting of Bluetooth, so we do a reboot
     if (scroll_view && scroll_view->isCloudContext())
     {
+        FlyGui::quickScreenFade();
         DBG_LOGI(MAINTAG, "cloud scroll exit selected; rebooting");
         delay(50);
         esp_restart();
@@ -380,7 +381,7 @@ void onclick_scroll_exit(uint32_t pressDurationMs)
     // by policy, if Wi-Fi has been used, we do not allow restarting of Bluetooth, so we do a reboot
     if (scroll_view && scroll_view->isWifiContext() && WifiManager::wifiHasStarted())
     {
-        thefly_display.fillScreen(TFT_BLACK);
+        FlyGui::quickScreenFade();
         DBG_LOGI(MAINTAG, "Wi-Fi scroll exit selected after Wi-Fi start; rebooting");
         delay(50);
         esp_restart();
@@ -574,6 +575,7 @@ void on_cloud_upload_complete(const CloudUpload::Status& status)
 
 void on_cloud_upload_dialog_dismissed()
 {
+    FlyGui::quickScreenFade();
     DBG_LOGI(MAINTAG, "cloud upload confirmation dismissed; rebooting");
     delay(50);
     esp_restart();
@@ -730,6 +732,7 @@ void on_pairing_success_dialog_dismissed()
     so the work around is, we allow the connection but deny the recording, only for right after pairing success
     and then we reboot the device to fake a disconnection, this will refresh the internal BtHostList and such
     */
+    FlyGui::quickScreenFade();
     DBG_LOGI(MAINTAG, "pairing confirmation dismissed; rebooting to restart Bluetooth cleanly");
     g_suppress_bluetooth_auto_recording = false;
     Serial.flush();

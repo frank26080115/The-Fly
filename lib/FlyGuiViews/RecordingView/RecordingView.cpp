@@ -46,6 +46,7 @@ constexpr uint32_t kCallerInfoCycleMs  = 3000;
 // -----------------------------------------------------------------------------
 
 static const char* path_basename(const char* path);
+static void        restore_bluetooth_connectable_after_dialog();
 
 } // namespace
 
@@ -239,7 +240,6 @@ void RecordingView::handleMicButton()
     }
     else
     {
-        RecordingViewCallbacks::setSpeakerMuted(false);
         RecordingViewCallbacks::enableMicMode();
     }
     syncAudioButtons();
@@ -260,8 +260,9 @@ void RecordingView::handleExitButton()
 {
     FlyGui::quickScreenFade();
 
+    const bool bluetoothMode = mode_ == Mode::Bluetooth;
     char fileName[80] = {};
-    RecordingViewCallbacks::stopRecording(mode_ == Mode::Bluetooth);
+    RecordingViewCallbacks::stopRecording(bluetoothMode);
     const char* name = path_basename(AudioFileRecorder::currentSdPath());
     strncpy(fileName, name && name[0] != '\0' ? name : "Recording", sizeof(fileName) - 1);
     fileName[sizeof(fileName) - 1] = '\0';
@@ -290,13 +291,22 @@ void RecordingView::handleExitButton()
                               SPRITE_THUMBSUP_100_WIDTH,
                               SPRITE_THUMBSUP_100_HEIGHT,
                               message,
-                              FLYGUI_VIEW_MAIN);
+                              FLYGUI_VIEW_MAIN,
+                              bluetoothMode ? restore_bluetooth_connectable_after_dialog : nullptr);
             gui()->showView(FLYGUI_VIEW_MODAL_DIALOG);
         }
         else
         {
             gui()->showView(FLYGUI_VIEW_MAIN);
+            if (bluetoothMode)
+            {
+                RecordingViewCallbacks::restoreBluetoothConnectable();
+            }
         }
+    }
+    else if (bluetoothMode)
+    {
+        RecordingViewCallbacks::restoreBluetoothConnectable();
     }
 }
 
@@ -324,6 +334,11 @@ const char* path_basename(const char* path)
     }
 
     return name;
+}
+
+void restore_bluetooth_connectable_after_dialog()
+{
+    RecordingViewCallbacks::restoreBluetoothConnectable();
 }
 
 } // namespace
@@ -437,7 +452,7 @@ void RecordingView::syncAudioButtons()
     const bool micMode = AudioManager::mode() == AudioManager::P2TMode::Mic;
     micButton_.setMicMode(micMode);
     speakerButton_.setMicMode(micMode);
-    speakerButton_.setMutedOverlay(!micMode && RecordingViewCallbacks::speakerMuted());
+    speakerButton_.setMutedOverlay(RecordingViewCallbacks::speakerMuted());
 }
 
 void RecordingView::syncAnswerCallButton()

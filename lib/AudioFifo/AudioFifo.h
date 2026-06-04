@@ -10,6 +10,8 @@
 #include <mutex>
 #include <new>
 
+#define AUDIOFIFO_MS_TO_SAMPLES_16K(ms) ((((static_cast<size_t>(ms) * 16000u + 999u) / 1000u) + 7u) & ~static_cast<size_t>(7u))
+
 class AudioFifo
 {
 public:

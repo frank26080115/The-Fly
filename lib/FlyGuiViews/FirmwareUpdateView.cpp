@@ -111,6 +111,7 @@ bool FirmwareUpdateView::handleTouch(const FlyGuiTouchEvent& event)
     {
         if (event.justPressed || event.justReleased)
         {
+            FlyGui::quickScreenFade();
             delay(50);
             esp_restart();
         }

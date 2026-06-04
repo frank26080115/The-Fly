@@ -67,6 +67,7 @@ Result connectToMac(const char* mac);
 Result connectToMac(const esp_bd_addr_t mac);
 Result startPairing();
 Result disconnect();
+Result disconnectNonConnectable();
 Result shutdown();
 Result setConnectableNonDiscoverable();
 Result setNonConnectableNonDiscoverable();

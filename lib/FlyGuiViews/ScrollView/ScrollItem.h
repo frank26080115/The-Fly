@@ -74,6 +74,11 @@ public:
         return label_;
     }
 
+    virtual const char* detailText() const
+    {
+        return "";
+    }
+
     bool trigger(uint32_t pressDurationMs = 0) override;
 
 private:

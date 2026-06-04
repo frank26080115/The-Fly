@@ -20,6 +20,6 @@ void run_test()
     // test_nvsloadsave();
     // test_filelistbenchmark();
     // test_pbkdfbenchmark();
-    test_mp3encode();
+    // test_mp3encode();
     // test_rtcvsmillis();
 }

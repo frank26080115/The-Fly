@@ -2,6 +2,7 @@
 
 #include "thefly_common.h"
 #include <cstddef>
+#include <cstdint>
 
 namespace MostRecentFiles
 {
@@ -28,9 +29,15 @@ struct FileList
         return names && index < count ? names[index] : "";
     }
 
+    uint64_t fileSize(size_t index) const
+    {
+        return file_sizes && index < count ? file_sizes[index] : 0;
+    }
+
     size_t count                      = 0;
     size_t capacity                   = 0;
     char (*names)[kMaxFileNameLength] = nullptr;
+    uint64_t* file_sizes              = nullptr;
 };
 
 FileList get(size_t maxFiles = kDefaultMaxFiles);

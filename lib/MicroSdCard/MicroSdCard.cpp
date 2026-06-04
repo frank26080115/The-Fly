@@ -7,6 +7,7 @@
 #include "ClockAgent.h"
 #include "DiskStats.h"
 #include "dbg_log.h"
+#include "pins.h"
 
 namespace MicroSdCard
 {
@@ -14,11 +15,6 @@ namespace
 {
 
 constexpr const char* TAG = "MicroSdCard";
-
-constexpr int kCore2SdSclk = 18;
-constexpr int kCore2SdMiso = 38;
-constexpr int kCore2SdMosi = 23;
-constexpr int kCore2SdCs   = 4;
 
 constexpr uint32_t kSdFrequenciesMHz[] = {
     // 40, // 40 MHz never works

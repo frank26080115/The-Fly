@@ -428,3 +428,33 @@ function remember_session_info(info)
     session_security.nonceCounter = 0;
     session_security.securityReady = Boolean(info.security_ready);
 }
+
+function benchmark_key_derivation()
+{
+    const iteration_counts = [
+        1,
+        5,
+        10,
+        50,
+        100,
+        500,
+        1000,
+        5000,
+        10000,
+        50000,
+        100000,
+    ];
+    const encoder = new TextEncoder();
+    const secret = encoder.encode("The Fly PBKDF2 benchmark password");
+    const salt = encoder.encode("The Fly PBKDF2 benchmark salt");
+
+    console.log("PBKDF2-HMAC-SHA-256 benchmark using JavaScript shim implementation");
+    for (const iterations of iteration_counts)
+    {
+        const start = performance.now();
+        pbkdf2_hmac_sha256_fallback(secret, salt, iterations, sha256_size);
+        const elapsed_ms = performance.now() - start;
+        console.log(`${iterations} iterations: ${elapsed_ms.toFixed(3)} ms`);
+    }
+    console.log("PBKDF2 benchmark complete");
+}

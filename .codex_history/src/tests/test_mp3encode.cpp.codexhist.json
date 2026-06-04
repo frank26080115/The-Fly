@@ -483,5 +483,59 @@
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
+  },
+  {
+    "timestamp": "2026-06-03T19:53:53.745Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "i2s_input_samples",
+      "",
+      "## My request for Codex:",
+      "modify `src\\tests\\test_mp3encode.cpp` to have another mode, switchable via a preprocessor define on the top of the file, the second mode uses random data instead of sine waves"
+    ],
+    "agent_reply": [
+      "Done in [src/tests/test_mp3encode.cpp](/c:/GitHubRepos/The-Fly/src/tests/test_mp3encode.cpp:13).",
+      "",
+      "I added `TEST_MP3ENCODE_USE_RANDOM_INPUT` at the top of the file. Default is `0`, preserving the existing two-sine-wave benchmark. Flip it to `1` to feed independent full-range `int16_t` pseudo-random noise into left/right channels.",
+      "",
+      "I used a deterministic xorshift PRNG instead of `esp_random()` so the benchmark stresses MP3 encoding, not RNG cost.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed. One side effect: the build regenerated [inc/web_assets.h](/c:/GitHubRepos/The-Fly/inc/web_assets.h) because the PlatformIO pre-build asset packager ran.",
+      "",
+      "Done in [src/tests/test_mp3encode.cpp](/c:/GitHubRepos/The-Fly/src/tests/test_mp3encode.cpp:13).",
+      "",
+      "I added `TEST_MP3ENCODE_USE_RANDOM_INPUT` at the top of the file. Default is `0`, preserving the existing two-sine-wave benchmark. Flip it to `1` to feed independent full-range `int16_t` pseudo-random noise into left/right channels.",
+      "",
+      "I used a deterministic xorshift PRNG instead of `esp_random()` so the benchmark stresses MP3 encoding, not RNG cost.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed. One side effect: the build regenerated [inc/web_assets.h](/c:/GitHubRepos/The-Fly/inc/web_assets.h) because the PlatformIO pre-build asset packager ran."
+    ],
+    "files": [
+      "src/tests/test_mp3encode.cpp",
+      "inc/web_assets.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-03T20:34:06Z",
+    "type": "git_commit",
+    "commit_message": "benchmarked mp3 encoder again with random noise",
+    "commit_hash": "146eefa9beca269c0cb76575f1d97a9f63b67182"
   }
 ]

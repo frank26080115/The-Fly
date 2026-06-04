@@ -300,7 +300,7 @@ bool ScrollView::populateFiles()
 
         if (use_file_item)
         {
-            ok = appendFileScrollItem(kind, callback_value, file_name) && ok;
+            ok = appendFileScrollItem(kind, callback_value, file_name, files.fileSize(i)) && ok;
         }
         else
         {
@@ -653,6 +653,7 @@ void ScrollView::drawSelectedText()
     const FlyGuiItem* item       = selectedItem();
     const ScrollItem* scrollItem = generatedScrollItemFor(item);
     const char*       text       = scrollItem ? scrollItem->label() : (item ? item->mainText() : nullptr);
+    const char*       detail     = scrollItem ? scrollItem->detailText() : nullptr;
     if (!text || text[0] == '\0')
     {
         return;
@@ -667,6 +668,14 @@ void ScrollView::drawSelectedText()
     if (scrollItem && scrollItem->kind() == SCROLL_ITEM_CLOUD_ENDPOINT)
     {
         draw_centered_fitted_cloud_url(text);
+        return;
+    }
+
+    if (detail && detail[0] != '\0')
+    {
+        char detailedText[ScrollItem::kLabelCapacity + 40] = {};
+        snprintf(detailedText, sizeof(detailedText), "%s\n%s", text, detail);
+        draw_centered_wrapped_text(detailedText);
         return;
     }
 
@@ -763,7 +772,7 @@ bool ScrollView::appendSpriteScrollItem(ScrollItemKind       kind,
     return true;
 }
 
-bool ScrollView::appendFileScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* fileName)
+bool ScrollView::appendFileScrollItem(ScrollItemKind kind, int32_t callbackValue, const char* fileName, uint64_t fileSize)
 {
     FileScrollItem* item = new (std::nothrow) FileScrollItem();
     if (!item)
@@ -778,7 +787,7 @@ bool ScrollView::appendFileScrollItem(ScrollItemKind kind, int32_t callbackValue
         return false;
     }
 
-    item->configureFile(kind, callbackValue, fileName);
+    item->configureFile(kind, callbackValue, fileName, fileSize);
     item->setScrollCallback(onScrollItemTriggered, this);
 
     node->item = item;

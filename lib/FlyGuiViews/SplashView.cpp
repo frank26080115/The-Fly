@@ -1,11 +1,14 @@
 #include "SplashView.h"
 
 #include "Aegis.h"
+#include "DiskStats.h"
 #include "SpriteDraw.h"
+#include "WifiManager.h"
 #include "esp_mac.h"
 #include "esp_system.h"
 #include "sprites.h"
 #include "thefly_version.h"
+#include "utilfuncs.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -25,6 +28,7 @@ static constexpr int16_t kBtNameY         = 77;
 static constexpr int16_t kBdaddrY         = 94;
 static constexpr int16_t kWifiLabelY      = 116;
 static constexpr int16_t kWifiMacY        = 133;
+static constexpr int16_t kExtraInfoY      = 154;
 
 // -----------------------------------------------------------------------------
 // Types
@@ -56,7 +60,10 @@ void draw_splash_boot_info();
 static void         choose_splash_mode();
 static SplashSprite current_splash_sprite();
 static void         draw_splash_mac_info(int16_t textX);
+static void         draw_splash_optional_boot_info(int16_t textX);
+static void         draw_splash_text_line(const char* text, int16_t textX, int16_t y);
 static void         draw_splash_tamper_code();
+static void         truncate_to_width(char* text, size_t text_size, int16_t width);
 static void         format_mac_hyphen(const uint8_t mac[6], char* out, size_t out_size);
 static void         format_default_bt_name(const uint8_t mac[6], char* out, size_t out_size);
 
@@ -142,8 +149,8 @@ void draw_splash_boot_info()
         line = newline ? newline + 1 : nullptr;
     }
 
-    // Add more splash boot-info lines here.
     draw_splash_mac_info(splash.textX);
+    draw_splash_optional_boot_info(splash.textX);
     draw_splash_tamper_code();
 
     if (gui)
@@ -180,6 +187,54 @@ static void draw_splash_mac_info(int16_t textX)
     thefly_display.drawString(bdaddr_text, textX, kBdaddrY);
     thefly_display.drawString("Wi-Fi MAC:", textX, kWifiLabelY);
     thefly_display.drawString(wifi_text, textX, kWifiMacY);
+}
+
+static void draw_splash_optional_boot_info(int16_t textX)
+{
+    uint64_t totalBytes = 0;
+    uint64_t freeBytes  = 0;
+    if (!DiskStats::diskSpace(totalBytes, freeBytes) || totalBytes == 0)
+    {
+        return;
+    }
+
+    char    freeText[12]  = {};
+    char    totalText[12] = {};
+    char    line[80]      = {};
+    int16_t y             = kExtraInfoY;
+
+    format_bytes(freeBytes, freeText, sizeof(freeText));
+    format_bytes(totalBytes, totalText, sizeof(totalText));
+    snprintf(line, sizeof(line), "Free: %s / %s", freeText, totalText);
+    draw_splash_text_line(line, textX, y);
+    y = static_cast<int16_t>(y + kTextLineHeight);
+
+    const char* timezone = WifiManager::timezone();
+    if (WifiManager::lastLoadResult() == WifiManager::LoadResult::Ok && timezone && timezone[0] != '\0')
+    {
+        snprintf(line, sizeof(line), "TZ: %s", timezone);
+        draw_splash_text_line(line, textX, y);
+    }
+}
+
+static void draw_splash_text_line(const char* text, int16_t textX, int16_t y)
+{
+    if (!text || text[0] == '\0')
+    {
+        return;
+    }
+
+    char line[80] = {};
+    strlcpy(line, text, sizeof(line));
+
+    thefly_display.setTextFont(kTextFont);
+    thefly_display.setTextSize(kTextSize);
+    thefly_display.setTextDatum(top_left);
+    thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
+
+    const int16_t width = static_cast<int16_t>(thefly_display.width() - textX - 4);
+    truncate_to_width(line, sizeof(line), width);
+    thefly_display.drawString(line, textX, y);
 }
 
 static void draw_splash_tamper_code()
@@ -226,6 +281,32 @@ static SplashSprite current_splash_sprite()
 // -----------------------------------------------------------------------------
 // Small Helpers
 // -----------------------------------------------------------------------------
+
+static void truncate_to_width(char* text, size_t text_size, int16_t width)
+{
+    static constexpr const char* kEllipsis    = "...";
+    static constexpr size_t      kEllipsisLen = 3;
+
+    if (!text || text_size <= kEllipsisLen + 1 || width <= 0 || thefly_display.textWidth(text) <= width)
+    {
+        return;
+    }
+
+    size_t len = strlen(text);
+    while (len > 0)
+    {
+        --len;
+        text[len] = '\0';
+        strncat(text, kEllipsis, text_size - strlen(text) - 1);
+        if (thefly_display.textWidth(text) <= width)
+        {
+            return;
+        }
+        text[len] = '\0';
+    }
+
+    strlcpy(text, kEllipsis, text_size);
+}
 
 static void format_mac_hyphen(const uint8_t mac[6], char* out, size_t out_size)
 {

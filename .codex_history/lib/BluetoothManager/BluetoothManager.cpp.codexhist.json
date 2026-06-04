@@ -1,4 +1,4 @@
-[
+﻿[
   {
     "timestamp": "2026-05-04T04:53:46.024Z",
     "type": "codex_task",
@@ -13,7 +13,7 @@
     "agent_reply": [
       "Implemented `lib/BluetoothManager` from the README.",
       "",
-      "What’s in place:",
+      "Whatâ€™s in place:",
       "- `BtManager` namespace with the requested state machine.",
       "- HFP client init and callbacks.",
       "- Connect by MAC, with a bonded-device check that returns `NotBonded`.",
@@ -27,9 +27,9 @@
       "Verification:",
       "- I added a temporary compile harness so PlatformIO would actually build `lib/BluetoothManager`, and that passed.",
       "- I removed the harness afterward and ran the normal `pio run`; that also passed.",
-      "- One caveat: because nothing in `src` currently includes `BluetoothManager.h`, PlatformIO won’t link it into the final firmware until a real module starts using it.",
+      "- One caveat: because nothing in `src` currently includes `BluetoothManager.h`, PlatformIO wonâ€™t link it into the final firmware until a real module starts using it.",
       "",
-      "Strategy note: your plan makes sense overall. The only part I’d want to test on hardware is “waiting for incoming connection”, because HFP client/server roles and phone behavior can be picky there. The implementation matches the existing pairing demo style: make the ESP32 connectable/discoverable, then let the HFP callbacks drive state."
+      "Strategy note: your plan makes sense overall. The only part Iâ€™d want to test on hardware is â€œwaiting for incoming connectionâ€, because HFP client/server roles and phone behavior can be picky there. The implementation matches the existing pairing demo style: make the ESP32 connectable/discoverable, then let the HFP callbacks drive state."
     ],
     "files": [
       "lib/BluetoothManager/BluetoothManager.h",
@@ -55,7 +55,7 @@
     "agent_reply": [
       "Done in [BluetoothManager.cpp](d:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:257).",
       "",
-      "`ESP_HF_CLIENT_VOLUME_CONTROL_EVT` now handles speaker volume by mapping the HFP `0..15` value into `AudioManager`’s `0..10` range and calling:",
+      "`ESP_HF_CLIENT_VOLUME_CONTROL_EVT` now handles speaker volume by mapping the HFP `0..15` value into `AudioManager`â€™s `0..10` range and calling:",
       "",
       "```cpp",
       "AudioManager::setVolume(audio_volume);",
@@ -456,7 +456,8 @@
       "lib/FlyGui/FlyGui.cpp",
       "lib/MicroSdCard/MicroSdCard.cpp",
       "src/mic_sd_recorder_demo.cpp",
-      "lib/AudioFileRecorder/AudioFileRecorder.cpp"
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/SdCard/SdCard.h"
     ]
   },
   {
@@ -931,7 +932,7 @@
       "esp_bt_controller_init(&bt_cfg);",
       "```",
       "",
-      "`BT_CONTROLLER_INIT_CONFIG_DEFAULT()` uses the SDK’s effective mode, which is probably BTDM/dual-mode. But after releasing BLE memory, initializing a BTDM controller config is invalid.",
+      "`BT_CONTROLLER_INIT_CONFIG_DEFAULT()` uses the SDKâ€™s effective mode, which is probably BTDM/dual-mode. But after releasing BLE memory, initializing a BTDM controller config is invalid.",
       "",
       "I patched [BluetoothManager.cpp](d:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp) so when the controller is `IDLE`, it now forces:",
       "",
@@ -950,7 +951,7 @@
       "...",
       "```",
       "",
-      "and then we’ll see whether scan mode actually opens."
+      "and then weâ€™ll see whether scan mode actually opens."
     ],
     "files": [
       "lib/BluetoothManager/BluetoothManager.cpp"
@@ -986,7 +987,7 @@
       "- Now initializes with `BT_CONTROLLER_INIT_CONFIG_DEFAULT()`",
       "- Enables the controller using that same config mode",
       "",
-      "The previous code was likely creating a mismatch: releasing BLE memory, then trying to initialize/enable a controller mode that may not match the framework’s configured BTDM mode.",
+      "The previous code was likely creating a mismatch: releasing BLE memory, then trying to initialize/enable a controller mode that may not match the frameworkâ€™s configured BTDM mode.",
       "",
       "Build passes. The next log should show something like:",
       "",
@@ -997,7 +998,7 @@
       "bt controller enable ok",
       "```",
       "",
-      "If it still returns invalid state at init after this, then something lower-level is already touching or partially configuring BT before `setup()`, and we’ll pivot to the Arduino `btStart()` path carefully."
+      "If it still returns invalid state at init after this, then something lower-level is already touching or partially configuring BT before `setup()`, and weâ€™ll pivot to the Arduino `btStart()` path carefully."
     ],
     "files": [
       "lib/BluetoothManager/BluetoothManager.cpp"
@@ -1018,7 +1019,7 @@
       "use the Arduino way, lots of github comments saying so"
     ],
     "agent_reply": [
-      "Done. `BluetoothManager` now uses Arduino’s BT controller lifecycle wrapper:",
+      "Done. `BluetoothManager` now uses Arduinoâ€™s BT controller lifecycle wrapper:",
       "",
       "- Includes `esp32-hal-bt.h`",
       "- Uses `btStarted()` to check if the controller is already enabled",
@@ -2559,9 +2560,9 @@
       "",
       "The big one: `hfp_outgoing_audio()` now only calls the userspace mSBC encoder after the callback payload has been positively detected as encoded mSBC, not while it is still `Unknown`: [AudioManager.cpp](</d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1039>). That prevents the speculative encoder call that led into `EncPacking`.",
       "",
-      "I also fixed the deeper ticking time bomb: the bundled Bluedroid mSBC wrapper was getting linked against ESP-IDF’s `SBC_Encoder` symbol. I added a local symbol prefix header so the bundled wrapper calls its own bundled encoder ABI: [sbc_symbol_prefix.h](</d:/GithubRepos/The-Fly/lib/bluedroid/encoder/include/sbc_symbol_prefix.h:1>) and included it from [sbc_encoder.h](</d:/GithubRepos/The-Fly/lib/bluedroid/encoder/include/sbc_encoder.h:28>). I checked the final map and `bluedroid_sbc_encode` now points to `bluedroid_local_SBC_Encoder`.",
+      "I also fixed the deeper ticking time bomb: the bundled Bluedroid mSBC wrapper was getting linked against ESP-IDFâ€™s `SBC_Encoder` symbol. I added a local symbol prefix header so the bundled wrapper calls its own bundled encoder ABI: [sbc_symbol_prefix.h](</d:/GithubRepos/The-Fly/lib/bluedroid/encoder/include/sbc_symbol_prefix.h:1>) and included it from [sbc_encoder.h](</d:/GithubRepos/The-Fly/lib/bluedroid/encoder/include/sbc_encoder.h:28>). I checked the final map and `bluedroid_sbc_encode` now points to `bluedroid_local_SBC_Encoder`.",
       "",
-      "I also kept Bluetooth “ready” false until after `AudioManager::setHfpAudioFormat()` finishes, so the outgoing callback cannot race codec setup: [BluetoothManager.cpp](</d:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:619>).",
+      "I also kept Bluetooth â€œreadyâ€ false until after `AudioManager::setHfpAudioFormat()` finishes, so the outgoing callback cannot race codec setup: [BluetoothManager.cpp](</d:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:619>).",
       "",
       "Verified with:",
       "",
@@ -2697,7 +2698,7 @@
       "  g_state == State::Connected && g_hfp_audio_connected && g_data_callback_ready",
       "  ```",
       "",
-      "So if UI currently shows “Connected”, that does not necessarily mean speaker/mic audio is flowing yet.",
+      "So if UI currently shows â€œConnectedâ€, that does not necessarily mean speaker/mic audio is flowing yet.",
       "",
       "`BtManager::State::Connected` means the HFP service-level connection is complete, not that audio routing is complete.",
       "",
@@ -2733,7 +2734,7 @@
       "  g_state == State::Connected && g_hfp_audio_connected && g_data_callback_ready",
       "  ```",
       "",
-      "So if UI currently shows “Connected”, that does not necessarily mean speaker/mic audio is flowing yet."
+      "So if UI currently shows â€œConnectedâ€, that does not necessarily mean speaker/mic audio is flowing yet."
     ],
     "files": [
       "lib/BluetoothManager/BluetoothManager.cpp"
@@ -2822,10 +2823,10 @@
       "Implemented the flow change.",
       "",
       "I did find the old idea in two places:",
-      "- [bluetooth-workflow.md](D:/GithubRepos/The-Fly/developer-docs/bluetooth-workflow.md): “wait for an incoming connection”",
-      "- [readme.md](D:/GithubRepos/The-Fly/lib/BluetoothManager/readme.md): “Start waiting for incoming connection”",
+      "- [bluetooth-workflow.md](D:/GithubRepos/The-Fly/developer-docs/bluetooth-workflow.md): â€œwait for an incoming connectionâ€",
+      "- [readme.md](D:/GithubRepos/The-Fly/lib/BluetoothManager/readme.md): â€œStart waiting for incoming connectionâ€",
       "",
-      "I updated those. The only remaining “wait for incoming connection” text is in [ui-design.md](D:/GithubRepos/The-Fly/developer-docs/ui-design.md), but that is about Wi-Fi AP mode, so I left it alone.",
+      "I updated those. The only remaining â€œwait for incoming connectionâ€ text is in [ui-design.md](D:/GithubRepos/The-Fly/developer-docs/ui-design.md), but that is about Wi-Fi AP mode, so I left it alone.",
       "",
       "Code changes:",
       "- Bluetooth now initializes as connectable but non-discoverable.",
@@ -2843,10 +2844,10 @@
       "Implemented the flow change.",
       "",
       "I did find the old idea in two places:",
-      "- [bluetooth-workflow.md](D:/GithubRepos/The-Fly/developer-docs/bluetooth-workflow.md): “wait for an incoming connection”",
-      "- [readme.md](D:/GithubRepos/The-Fly/lib/BluetoothManager/readme.md): “Start waiting for incoming connection”",
+      "- [bluetooth-workflow.md](D:/GithubRepos/The-Fly/developer-docs/bluetooth-workflow.md): â€œwait for an incoming connectionâ€",
+      "- [readme.md](D:/GithubRepos/The-Fly/lib/BluetoothManager/readme.md): â€œStart waiting for incoming connectionâ€",
       "",
-      "I updated those. The only remaining “wait for incoming connection” text is in [ui-design.md](D:/GithubRepos/The-Fly/developer-docs/ui-design.md), but that is about Wi-Fi AP mode, so I left it alone.",
+      "I updated those. The only remaining â€œwait for incoming connectionâ€ text is in [ui-design.md](D:/GithubRepos/The-Fly/developer-docs/ui-design.md), but that is about Wi-Fi AP mode, so I left it alone.",
       "",
       "Code changes:",
       "- Bluetooth now initializes as connectable but non-discoverable.",
@@ -3020,7 +3021,7 @@
       "- If Wi-Fi is in AP mode, it also shows the AP password.",
       "- Dismiss returns to `FLYGUI_VIEW_SCROLL`.",
       "",
-      "I added small read-only getters so this doesn’t have to guess:",
+      "I added small read-only getters so this doesnâ€™t have to guess:",
       "- `BtManager::localDeviceName()`",
       "- `BtManager::localBdaddr(...)`",
       "- `WifiManager::activeWifi()`",
@@ -3070,7 +3071,7 @@
       "- `connectToMac` allows `State::Reconnecting`: [BluetoothManager.cpp](</d:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:983>)",
       "- Initial mode is connectable/non-discoverable: [BluetoothManager.cpp](</d:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:871>)",
       "",
-      "So the name `Reconnecting` currently means “we are disconnected unexpectedly and willing to reconnect,” not “we have an active reconnect loop running.”",
+      "So the name `Reconnecting` currently means â€œwe are disconnected unexpectedly and willing to reconnect,â€ not â€œwe have an active reconnect loop running.â€",
       "",
       "In our code, a non-user-initiated HFP disconnect does **not** actively reconnect by itself.",
       "",
@@ -3087,7 +3088,7 @@
       "- `connectToMac` allows `State::Reconnecting`: [BluetoothManager.cpp](</d:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:983>)",
       "- Initial mode is connectable/non-discoverable: [BluetoothManager.cpp](</d:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:871>)",
       "",
-      "So the name `Reconnecting` currently means “we are disconnected unexpectedly and willing to reconnect,” not “we have an active reconnect loop running.”"
+      "So the name `Reconnecting` currently means â€œwe are disconnected unexpectedly and willing to reconnect,â€ not â€œwe have an active reconnect loop running.â€"
     ],
     "files": [
       "lib/BluetoothManager/BluetoothManager.cpp"
@@ -3116,8 +3117,8 @@
       "- Added `BtManager::poll()` in [BluetoothManager.h](</d:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.h>) / [BluetoothManager.cpp](</d:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp>).",
       "- On unexpected disconnect, `BtManager` now remembers the last peer MAC and enters `Reconnecting`.",
       "- `BtManager::poll()` attempts `esp_hf_client_connect(...)` every 2 seconds while in `Reconnecting`.",
-      "- If the stack accepts a reconnect attempt, state moves to `Connecting` and waits for Bluedroid’s connection result before trying again.",
-      "- User-requested `disconnect()`, `shutdown()`, and pairing mode clear the reconnect schedule so they don’t fight the user.",
+      "- If the stack accepts a reconnect attempt, state moves to `Connecting` and waits for Bluedroidâ€™s connection result before trying again.",
+      "- User-requested `disconnect()`, `shutdown()`, and pairing mode clear the reconnect schedule so they donâ€™t fight the user.",
       "- Added `BtManager::poll();` before `AudioManager::pump_task();` in [main.cpp](</d:/GithubRepos/The-Fly/src/main.cpp>).",
       "",
       "Verified with:",
@@ -3199,12 +3200,12 @@
       "I changed the flow:",
       "",
       "- GAP auth callback now only copies the paired device data and sets a pending flag.",
-      "- `BtManager::poll()` handles the Bluetooth-side post-pair work later: insert into BtManager’s internal list, fire paired callback, close pairing window, return state to idle.",
+      "- `BtManager::poll()` handles the Bluetooth-side post-pair work later: insert into BtManagerâ€™s internal list, fire paired callback, close pairing window, return state to idle.",
       "- `main.cpp` now registers a paired callback and defers app-side work to the main loop: insert into the JSON-backed `bt_host_list`, save `bluetooth.json`, and return from `ConnWaitingView`.",
       "",
       "Build passed for `m5stack-core2`.",
       "",
-      "This should stop the watchdog reset and also make a successful pair persist into the UI’s host list."
+      "This should stop the watchdog reset and also make a successful pair persist into the UIâ€™s host list."
     ],
     "files": [
       "lib/BluetoothManager/BluetoothManager.cpp",
@@ -3391,7 +3392,7 @@
     "agent_reply": [
       "Added event-sequence logging without changing the recording trigger behavior.",
       "",
-      "You’ll now see:",
+      "Youâ€™ll now see:",
       "",
       "- `bt state: X -> Y` from `BtManager`",
       "- `Bluetooth state callback: X` from `main.cpp`",
@@ -3400,7 +3401,7 @@
       "- First few and then 1/sec `hfp outgoing audio callback`",
       "- Summary when SCO audio disconnects",
       "",
-      "This should tell us whether “talk first” is viable by watching for outgoing mic callbacks before any incoming speaker audio.",
+      "This should tell us whether â€œtalk firstâ€ is viable by watching for outgoing mic callbacks before any incoming speaker audio.",
       "",
       "Build passed:",
       "",
@@ -3444,7 +3445,7 @@
       "pio run -e m5stack-core2",
       "```",
       "",
-      "I don’t see an obvious name-serving break in the code: we still call `esp_bt_gap_set_device_name(...)`, and the scan mode is discoverable during pairing. If Android shows only addresses, the new init log will confirm whether we’re setting something like `\"The Fly C6A6\"` or accidentally setting an empty/default name."
+      "I donâ€™t see an obvious name-serving break in the code: we still call `esp_bt_gap_set_device_name(...)`, and the scan mode is discoverable during pairing. If Android shows only addresses, the new init log will confirm whether weâ€™re setting something like `\"The Fly C6A6\"` or accidentally setting an empty/default name."
     ],
     "files": [
       "lib/BluetoothManager/BluetoothManager.cpp"
@@ -3529,7 +3530,7 @@
       "",
       "Build passes: `pio run -e m5stack-core2`.",
       "",
-      "For the next test, Android should forget the old `\"The Fly\"` bond before pairing again. Same BDADDR plus stale Android profile state can absolutely preserve the bad “Calls off / address-only” behavior across firmware changes. The new boot log should show `device_name=\"The Fly C6A6\"` and `hfp profile state: ESP_HF_INIT_SUCCESS`.",
+      "For the next test, Android should forget the old `\"The Fly\"` bond before pairing again. Same BDADDR plus stale Android profile state can absolutely preserve the bad â€œCalls off / address-onlyâ€ behavior across firmware changes. The new boot log should show `device_name=\"The Fly C6A6\"` and `hfp profile state: ESP_HF_INIT_SUCCESS`.",
       "",
       "The log still shows the phone closing HFP before we ever reach `CONNECTED` or `SLC_CONNECTED`, so the ESP32 API call is starting, but Android is rejecting the profile connection.",
       "",
@@ -3543,7 +3544,7 @@
       "",
       "Build passes: `pio run -e m5stack-core2`.",
       "",
-      "For the next test, Android should forget the old `\"The Fly\"` bond before pairing again. Same BDADDR plus stale Android profile state can absolutely preserve the bad “Calls off / address-only” behavior across firmware changes. The new boot log should show `device_name=\"The Fly C6A6\"` and `hfp profile state: ESP_HF_INIT_SUCCESS`."
+      "For the next test, Android should forget the old `\"The Fly\"` bond before pairing again. Same BDADDR plus stale Android profile state can absolutely preserve the bad â€œCalls off / address-onlyâ€ behavior across firmware changes. The new boot log should show `device_name=\"The Fly C6A6\"` and `hfp profile state: ESP_HF_INIT_SUCCESS`."
     ],
     "files": [
       "lib/BluetoothManager/BluetoothManager.h",
@@ -3639,26 +3640,26 @@
       "the phone says it's trying to connect to `The Fly C6A6`, but gives up after a while"
     ],
     "agent_reply": [
-      "Yep, that `CONNECTED (2)` is not “ready”. It means the HFP/RFCOMM control link opened, but the HFP service-level connection never completed. The real success event is `SLC_CONNECTED (3)`. Android timed that half-open connection out.",
+      "Yep, that `CONNECTED (2)` is not â€œreadyâ€. It means the HFP/RFCOMM control link opened, but the HFP service-level connection never completed. The real success event is `SLC_CONNECTED (3)`. Android timed that half-open connection out.",
       "",
       "I changed the behavior accordingly:",
       "",
       "- Removed the hidden post-pair HFP probe from [src/main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:227), so the pairing success `ModalDialog` no longer sits there while we secretly start a connection behind it.",
       "- Kept auto-record suppressed while the pairing confirmation dialog is visible. If the phone itself connects successfully during that dialog, dismissal now queues the recording start.",
-      "- Added `g_hfp_slc_connected` in [BluetoothManager.cpp](D:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:54), so `CONNECTED (2)` is treated as “waiting for SLC”, not as a completed connection.",
+      "- Added `g_hfp_slc_connected` in [BluetoothManager.cpp](D:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:54), so `CONNECTED (2)` is treated as â€œwaiting for SLCâ€, not as a completed connection.",
       "- Reconnects now only happen after a real `SLC_CONNECTED (3)` connection existed. A timeout from `CONNECTED (2)` goes back to `Idle` instead of entering the reconnect loop.",
       "",
       "Build passes: `pio run -e m5stack-core2`.",
       "",
       "Next log to look for: there should be no `starting post-pairing HFP profile probe` while the pairing dialog is up. If Android connects on its own, we want to see whether it reaches `SLC_CONNECTED (3)` now.",
       "",
-      "Yep, that `CONNECTED (2)` is not “ready”. It means the HFP/RFCOMM control link opened, but the HFP service-level connection never completed. The real success event is `SLC_CONNECTED (3)`. Android timed that half-open connection out.",
+      "Yep, that `CONNECTED (2)` is not â€œreadyâ€. It means the HFP/RFCOMM control link opened, but the HFP service-level connection never completed. The real success event is `SLC_CONNECTED (3)`. Android timed that half-open connection out.",
       "",
       "I changed the behavior accordingly:",
       "",
       "- Removed the hidden post-pair HFP probe from [src/main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:227), so the pairing success `ModalDialog` no longer sits there while we secretly start a connection behind it.",
       "- Kept auto-record suppressed while the pairing confirmation dialog is visible. If the phone itself connects successfully during that dialog, dismissal now queues the recording start.",
-      "- Added `g_hfp_slc_connected` in [BluetoothManager.cpp](D:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:54), so `CONNECTED (2)` is treated as “waiting for SLC”, not as a completed connection.",
+      "- Added `g_hfp_slc_connected` in [BluetoothManager.cpp](D:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:54), so `CONNECTED (2)` is treated as â€œwaiting for SLCâ€, not as a completed connection.",
       "- Reconnects now only happen after a real `SLC_CONNECTED (3)` connection existed. A timeout from `CONNECTED (2)` goes back to `Idle` instead of entering the reconnect loop.",
       "",
       "Build passes: `pio run -e m5stack-core2`.",
@@ -3811,7 +3812,7 @@
       "- current code: ESP32 initiates HFP while still connectable, phone immediately rejects / tears it down, you get instant `DISCONNECTED`",
       "- phone-initiated connection still works because the current code intentionally made that path easier",
       "",
-      "There is a secondary difference after pairing too: old code called `disconnect()` on pairing completion, which tore down the transient ACL/profile state. Current code just closes the pairing window to connectable/non-discoverable, which can leave Android in that “I’ll initiate the headset connection” posture.",
+      "There is a secondary difference after pairing too: old code called `disconnect()` on pairing completion, which tore down the transient ACL/profile state. Current code just closes the pairing window to connectable/non-discoverable, which can leave Android in that â€œIâ€™ll initiate the headset connectionâ€ posture.",
       "",
       "My suggested test/fix: for ESP32-initiated `connectToMac()`, temporarily force `ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE` immediately before `esp_hf_client_connect()`. Keep always-connectable behavior for idle/host-initiated mode if you still want that.",
       "",
@@ -3845,7 +3846,7 @@
       "- current code: ESP32 initiates HFP while still connectable, phone immediately rejects / tears it down, you get instant `DISCONNECTED`",
       "- phone-initiated connection still works because the current code intentionally made that path easier",
       "",
-      "There is a secondary difference after pairing too: old code called `disconnect()` on pairing completion, which tore down the transient ACL/profile state. Current code just closes the pairing window to connectable/non-discoverable, which can leave Android in that “I’ll initiate the headset connection” posture.",
+      "There is a secondary difference after pairing too: old code called `disconnect()` on pairing completion, which tore down the transient ACL/profile state. Current code just closes the pairing window to connectable/non-discoverable, which can leave Android in that â€œIâ€™ll initiate the headset connectionâ€ posture.",
       "",
       "My suggested test/fix: for ESP32-initiated `connectToMac()`, temporarily force `ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE` immediately before `esp_hf_client_connect()`. Keep always-connectable behavior for idle/host-initiated mode if you still want that."
     ],
@@ -3995,7 +3996,7 @@
       "no improvement"
     ],
     "agent_reply": [
-      "The 200 ms “settle non-connectable mode” test really was a dead end by itself. The bigger find: your build was still compiling against the stale pioarduino package `sdkconfig.h`, which still had the aggressive Bluetooth cuts enabled.",
+      "The 200 ms â€œsettle non-connectable modeâ€ test really was a dead end by itself. The bigger find: your build was still compiling against the stale pioarduino package `sdkconfig.h`, which still had the aggressive Bluetooth cuts enabled.",
       "",
       "I changed [platformio.ini](</D:/GithubRepos/The-Fly/platformio.ini>) to restore the Bluetooth stack closer to the old working config: BTDM mode back on, BLE/A2DP/SPP present again, ACL connections back to 4, bonds back to 15, BT alarms back to 50, and sync conn effective count set to 1.",
       "",
@@ -4019,7 +4020,7 @@
       "pio run -e thefly_bringuptest -j 4",
       "```",
       "",
-      "So the next test is meaningful now: flash this build and retry ESP32-initiated connection. The previous “no improvement” run was almost certainly not testing the restored Bluetooth config at all."
+      "So the next test is meaningful now: flash this build and retry ESP32-initiated connection. The previous â€œno improvementâ€ run was almost certainly not testing the restored Bluetooth config at all."
     ],
     "files": [
       "platformio.ini",
@@ -4075,7 +4076,7 @@
       "pio run -e thefly_bringuptest -j 4",
       "```",
       "",
-      "The meaningful next check is to flash this exact build and try the menu-initiated connection again. If it still does ACL-only then times out, we’ve eliminated scan mode and BT config, and the next place to dig is the HFP/RFCOMM/SDP trace path itself."
+      "The meaningful next check is to flash this exact build and try the menu-initiated connection again. If it still does ACL-only then times out, weâ€™ve eliminated scan mode and BT config, and the next place to dig is the HFP/RFCOMM/SDP trace path itself."
     ],
     "files": [
       "lib/BluetoothManager/BluetoothManager.cpp"
@@ -4236,7 +4237,7 @@
       "",
       "It does **not** call `BtManager::disconnect()`, `shutdown()`, or change Bluetooth scan/connectability.",
       "",
-      "Important catch: Bluetooth is currently initialized as **non-connectable / non-discoverable** in `BluetoothManager.cpp`, and `setConnectableNonDiscoverable()` exists but does not appear to be used in normal startup. So host-initiated “incoming” connections may already be disabled most of the time, but not because memo recording started.",
+      "Important catch: Bluetooth is currently initialized as **non-connectable / non-discoverable** in `BluetoothManager.cpp`, and `setConnectableNonDiscoverable()` exists but does not appear to be used in normal startup. So host-initiated â€œincomingâ€ connections may already be disabled most of the time, but not because memo recording started.",
       "",
       "This is **not already implemented**. In [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:244), `handle_pending_bluetooth_recording()` currently does this:",
       "",
@@ -4254,7 +4255,7 @@
       "1. Decide where Bluetooth should be connectable.",
       "   If you want incoming connections during memo, call `BtManager::setConnectableNonDiscoverable()` during normal idle/memo-capable operation, and avoid it during Wi-Fi/AP modes.",
       "",
-      "2. Add a “promote memo to Bluetooth UI” path.",
+      "2. Add a â€œpromote memo to Bluetooth UIâ€ path.",
       "   Do not call `AudioFileRecorder::startRecording()` again. Just switch the existing `RecordingView` with `configureBluetoothMode()` and force redraw.",
       "",
       "3. Unchoke mic-to-Bluetooth without restarting the file.",
@@ -4265,7 +4266,7 @@
       "",
       "5. Optional but smart: clear `AudioManager::bluetoothToSpeakerFifo()` when the user first switches to speaker, so old buffered call audio does not play late.",
       "",
-      "The file write should be fine: `AudioFileRecorder` already records both Bluetooth-to-file and mic-to-file FIFOs into the same open file. A memo recording can become a hybrid recording without closing/reopening the file. The main caveat is that the filename/type code would still be memo unless we deliberately add metadata for “memo became Bluetooth.”",
+      "The file write should be fine: `AudioFileRecorder` already records both Bluetooth-to-file and mic-to-file FIFOs into the same open file. A memo recording can become a hybrid recording without closing/reopening the file. The main caveat is that the filename/type code would still be memo unless we deliberately add metadata for â€œmemo became Bluetooth.â€",
       "",
       "No code edited.",
       "",
@@ -4277,7 +4278,7 @@
       "",
       "It does **not** call `BtManager::disconnect()`, `shutdown()`, or change Bluetooth scan/connectability.",
       "",
-      "Important catch: Bluetooth is currently initialized as **non-connectable / non-discoverable** in `BluetoothManager.cpp`, and `setConnectableNonDiscoverable()` exists but does not appear to be used in normal startup. So host-initiated “incoming” connections may already be disabled most of the time, but not because memo recording started.",
+      "Important catch: Bluetooth is currently initialized as **non-connectable / non-discoverable** in `BluetoothManager.cpp`, and `setConnectableNonDiscoverable()` exists but does not appear to be used in normal startup. So host-initiated â€œincomingâ€ connections may already be disabled most of the time, but not because memo recording started.",
       "",
       "This is **not already implemented**. In [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:244), `handle_pending_bluetooth_recording()` currently does this:",
       "",
@@ -4295,7 +4296,7 @@
       "1. Decide where Bluetooth should be connectable.",
       "   If you want incoming connections during memo, call `BtManager::setConnectableNonDiscoverable()` during normal idle/memo-capable operation, and avoid it during Wi-Fi/AP modes.",
       "",
-      "2. Add a “promote memo to Bluetooth UI” path.",
+      "2. Add a â€œpromote memo to Bluetooth UIâ€ path.",
       "   Do not call `AudioFileRecorder::startRecording()` again. Just switch the existing `RecordingView` with `configureBluetoothMode()` and force redraw.",
       "",
       "3. Unchoke mic-to-Bluetooth without restarting the file.",
@@ -4306,7 +4307,7 @@
       "",
       "5. Optional but smart: clear `AudioManager::bluetoothToSpeakerFifo()` when the user first switches to speaker, so old buffered call audio does not play late.",
       "",
-      "The file write should be fine: `AudioFileRecorder` already records both Bluetooth-to-file and mic-to-file FIFOs into the same open file. A memo recording can become a hybrid recording without closing/reopening the file. The main caveat is that the filename/type code would still be memo unless we deliberately add metadata for “memo became Bluetooth.”"
+      "The file write should be fine: `AudioFileRecorder` already records both Bluetooth-to-file and mic-to-file FIFOs into the same open file. A memo recording can become a hybrid recording without closing/reopening the file. The main caveat is that the filename/type code would still be memo unless we deliberately add metadata for â€œmemo became Bluetooth.â€"
     ],
     "files": [
       "src/main.cpp",
@@ -4365,7 +4366,7 @@
       "| bad default config | `0x1fd2f` / 130,351 B | overflows by 308 B |",
       "| bad custom framework zips | `0x1ff43` / 130,883 B | overflows by 840 B |",
       "",
-      "The big IRAM delta is not mainly Bluetooth. It is `libc.a` being pulled into IRAM. In the bad/custom-package map, about 8.9 KB extra comes from routines like `mktime`, `tzset_r`, `findfp`, `fvwrite`, `fflush`, `strtol`, etc. That matches the `CONFIG_SPIRAM_CACHE_LIB*IN_IRAM` settings being effectively “on” in the linker script.",
+      "The big IRAM delta is not mainly Bluetooth. It is `libc.a` being pulled into IRAM. In the bad/custom-package map, about 8.9 KB extra comes from routines like `mktime`, `tzset_r`, `findfp`, `fvwrite`, `fflush`, `strtol`, etc. That matches the `CONFIG_SPIRAM_CACHE_LIB*IN_IRAM` settings being effectively â€œonâ€ in the linker script.",
       "",
       "The custom package fixes the missing HFP symbol: `esp_hf_client_outgoing_data_ready` is present in the custom-package map, while the default build only has the unresolved reference from `BluetoothManager.cpp`.",
       "",
@@ -4373,7 +4374,7 @@
       "",
       "[custom sections.ld](D:/GithubRepos/The-Fly/iram0_overflow_problem/custom-framework-arduinoespressif32-libs/esp32/ld/sections.ld:232)",
       "",
-      "It is still default/upstream and explicitly places lots of `libc.a:*` objects into `.iram0.text`. The good build’s generated linker script does not:",
+      "It is still default/upstream and explicitly places lots of `libc.a:*` objects into `.iram0.text`. The good buildâ€™s generated linker script does not:",
       "",
       "[good sections.ld](D:/GithubRepos/The-Fly/iram0_overflow_problem/good_working_build/sections.ld:235)",
       "",
@@ -4407,7 +4408,7 @@
       "| bad default config | `0x1fd2f` / 130,351 B | overflows by 308 B |",
       "| bad custom framework zips | `0x1ff43` / 130,883 B | overflows by 840 B |",
       "",
-      "The big IRAM delta is not mainly Bluetooth. It is `libc.a` being pulled into IRAM. In the bad/custom-package map, about 8.9 KB extra comes from routines like `mktime`, `tzset_r`, `findfp`, `fvwrite`, `fflush`, `strtol`, etc. That matches the `CONFIG_SPIRAM_CACHE_LIB*IN_IRAM` settings being effectively “on” in the linker script.",
+      "The big IRAM delta is not mainly Bluetooth. It is `libc.a` being pulled into IRAM. In the bad/custom-package map, about 8.9 KB extra comes from routines like `mktime`, `tzset_r`, `findfp`, `fvwrite`, `fflush`, `strtol`, etc. That matches the `CONFIG_SPIRAM_CACHE_LIB*IN_IRAM` settings being effectively â€œonâ€ in the linker script.",
       "",
       "The custom package fixes the missing HFP symbol: `esp_hf_client_outgoing_data_ready` is present in the custom-package map, while the default build only has the unresolved reference from `BluetoothManager.cpp`.",
       "",
@@ -4415,7 +4416,7 @@
       "",
       "[custom sections.ld](D:/GithubRepos/The-Fly/iram0_overflow_problem/custom-framework-arduinoespressif32-libs/esp32/ld/sections.ld:232)",
       "",
-      "It is still default/upstream and explicitly places lots of `libc.a:*` objects into `.iram0.text`. The good build’s generated linker script does not:",
+      "It is still default/upstream and explicitly places lots of `libc.a:*` objects into `.iram0.text`. The good buildâ€™s generated linker script does not:",
       "",
       "[good sections.ld](D:/GithubRepos/The-Fly/iram0_overflow_problem/good_working_build/sections.ld:235)",
       "",
@@ -4473,7 +4474,7 @@
       "- Added `BtManager::initBluetoothOnly()` in [BluetoothManager.h](D:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.h).",
       "- Changed `setup()` in [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp) to use GAP-only init, while still storing audio callbacks.",
       "- Changed `startPairing()` in [BluetoothManager.cpp](D:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp) to avoid HFP during pairing, and deinit HFP before pairing if it was already up.",
-      "- Left the internal HFP debug flags disabled in [platformio.ini](D:/GithubRepos/The-Fly/platformio.ini), since they’re still too close to the WDT path for comfort.",
+      "- Left the internal HFP debug flags disabled in [platformio.ini](D:/GithubRepos/The-Fly/platformio.ini), since theyâ€™re still too close to the WDT path for comfort.",
       "",
       "Verified with `pio run -e thefly_sec0`, build passes."
     ],
@@ -4871,7 +4872,7 @@
       "I (1948) esp_core_dump_flash: Init core dump to flash",
       "I (1959) esp_core_dump_flash: Found partition 'coredump' @ ff0000 65536 bytes",
       "D (1983) esp_core_dump_crc: Total length of hashed data: 19264",
-      "I (1983) esp_core_dump_flash: Core dump data ch��ksum is correct",
+      "I (1983) esp_core_dump_flash: Core dump data chï¿½ï¿½ksum is correct",
       "I (1983) esp_core_dump_flash: Found core dump 19268 bytes in flash @ 0xff0000",
       "NVS initialized",
       "```"
@@ -4879,11 +4880,11 @@
     "agent_reply": [
       "That trace is still the same Bluedroid HFP SLC path, now specifically dying while sending `AT+BAC` for codec negotiation.",
       "",
-      "I added a targeted workaround: [BluetoothManager.cpp](D:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp) now wraps Bluedroid’s internal `bta_hf_client_send_at_bac()` and skips straight to the next SLC step (`AT+CIND`). [platformio.ini](D:/GithubRepos/The-Fly/platformio.ini) adds the linker wrap flag. This should avoid the crashing `AT+BAC` path and force the connection toward default/CVSD audio instead of mSBC/wideband.",
+      "I added a targeted workaround: [BluetoothManager.cpp](D:/GithubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp) now wraps Bluedroidâ€™s internal `bta_hf_client_send_at_bac()` and skips straight to the next SLC step (`AT+CIND`). [platformio.ini](D:/GithubRepos/The-Fly/platformio.ini) adds the linker wrap flag. This should avoid the crashing `AT+BAC` path and force the connection toward default/CVSD audio instead of mSBC/wideband.",
       "",
       "I also kept the previous GAP-only pairing changes, so pairing no longer starts HFP immediately.",
       "",
-      "Verified with `pio run -e thefly_sec0`, build passes. The tradeoff is that HFP audio may be narrowband only for now, but that is a much better place to debug from than “phone click detonates inside Bluedroid.”"
+      "Verified with `pio run -e thefly_sec0`, build passes. The tradeoff is that HFP audio may be narrowband only for now, but that is a much better place to debug from than â€œphone click detonates inside Bluedroid.â€"
     ],
     "files": [
       "lib/BluetoothManager/BluetoothManager.cpp",
@@ -5237,7 +5238,7 @@
       "I (1948) esp_core_dump_flash: Init core dump to flash",
       "I (1959) esp_core_dump_flash: Found partition 'coredump' @ ff0000 65536 bytes",
       "D (1983) esp_core_dump_crc: Total length of hashed data: 19520",
-      "I (1983) esp_core_dump_flash: Core dump data ch����յ�is correct",
+      "I (1983) esp_core_dump_flash: Core dump data chï¿½ï¿½ï¿½ï¿½Õµï¿½is correct",
       "I (1983) esp_core_dump_flash: Found core dump 19524 bytes in flash @ 0xff0000",
       "NVS initialized",
       "```"
@@ -5616,7 +5617,7 @@
       ""
     ],
     "agent_reply": [
-      "You’re right: this is the normal HFP connect path, not pairing/NVS.",
+      "Youâ€™re right: this is the normal HFP connect path, not pairing/NVS.",
       "",
       "The new backtrace lands here:",
       "",
@@ -5628,16 +5629,16 @@
       "pio run -e thefly_sec0",
       "```",
       "",
-      "What I’d do for the next custom package rebuild:",
+      "What Iâ€™d do for the next custom package rebuild:",
       "",
       "```ini",
       "CONFIG_BT_HFP_WBS_ENABLE=n",
       "# CONFIG_BT_HFP_WBS_ENABLE is not set",
       "```",
       "",
-      "But that alone may not be enough, because Espressif’s HFP client source still advertises codec negotiation through `BTC_HF_CLIENT_FEATURES`, and `bta_hf_client_slc_seq()` sends `AT+BAC` if the phone advertises codec support. For a narrow “make normal phone HFP connect stable again” package, I’d also remove `BTA_HF_CLIENT_FEAT_CODEC` from `BTC_HF_CLIENT_FEATURES`, or patch `bta_hf_client_slc_seq()` so it only sends `AT+BAC` when both peer and local features include codec negotiation.",
+      "But that alone may not be enough, because Espressifâ€™s HFP client source still advertises codec negotiation through `BTC_HF_CLIENT_FEATURES`, and `bta_hf_client_slc_seq()` sends `AT+BAC` if the phone advertises codec support. For a narrow â€œmake normal phone HFP connect stable againâ€ package, Iâ€™d also remove `BTA_HF_CLIENT_FEAT_CODEC` from `BTC_HF_CLIENT_FEATURES`, or patch `bta_hf_client_slc_seq()` so it only sends `AT+BAC` when both peer and local features include codec negotiation.",
       "",
-      "The current package already has `CONFIG_BT_BTC_TASK_STACK_SIZE=8192` and `CONFIG_BT_BTU_TASK_STACK_SIZE=8192`, so this does not look like the old obvious “BT task stack too small” problem. The codec negotiation path is the hot spot."
+      "The current package already has `CONFIG_BT_BTC_TASK_STACK_SIZE=8192` and `CONFIG_BT_BTU_TASK_STACK_SIZE=8192`, so this does not look like the old obvious â€œBT task stack too smallâ€ problem. The codec negotiation path is the hot spot."
     ],
     "files": [
       "lib/BluetoothManager/BluetoothManager.cpp",
@@ -5682,7 +5683,7 @@
       "- Pairing mode suppresses auto-recording immediately, so a phone can connect after pairing without starting a recording.",
       "- Pairing success dialog now falls back to `FLYGUI_VIEW_MAIN` before reboot, so it cannot land on splash if reboot is delayed or interrupted.",
       "- Bluetooth long-hold delete now shows the trash icon as soon as the hold threshold is reached.",
-      "- Unpair no longer immediately saves through the path that re-reads bond state too early, which should fix the “delete twice before it disappears” behavior.",
+      "- Unpair no longer immediately saves through the path that re-reads bond state too early, which should fix the â€œdelete twice before it disappearsâ€ behavior.",
       "",
       "Build passes. One note: `pio` regenerated `src/version.c` during the build."
     ],
@@ -5776,5 +5777,107 @@
     "type": "git_commit",
     "commit_message": "ran clang format",
     "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"
+  },
+  {
+    "timestamp": "2026-06-03T22:41:21.625Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: developer-docs/test-results/diag-bt-call-record.md",
+      "",
+      "## My request for Codex:",
+      "how quickly is the Bluetooth connection broken down and then set to not discoverable after the user ends a recording?"
+    ],
+    "agent_reply": [
+      "From the normal user â€œexit recordingâ€ path, the order is:",
+      "",
+      "1. [RecordingView.cpp](/c:/GitHubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingView.cpp:259) calls `RecordingViewCallbacks::stopRecording(mode_ == Mode::Bluetooth)`.",
+      "2. [RecordingViewCallbacks.cpp](/c:/GitHubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp:78) does:",
+      "   ```cpp",
+      "   AudioManager::stop();",
+      "   AudioFileRecorder::stopRecording();",
+      "   BtManager::disconnect();",
+      "   ```",
+      "3. [BluetoothManager.cpp](/c:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp:335) `BtManager::disconnect()` immediately calls:",
+      "   ```cpp",
+      "   close_pairing_window();",
+      "   ```",
+      "   which sets:",
+      "   ```cpp",
+      "   ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE",
+      "   ```",
+      "",
+      "So: **once `BtManager::disconnect()` is reached, discoverability is turned off immediately**, before the HFP audio/control disconnect requests are made.",
+      "",
+      "The variable delay is before that: `AudioFileRecorder::stopRecording()` is synchronous and may drain FIFOs, flush the MP3 encoder, flush/truncate/close the file, and refresh disk stats. So from the user tapping stop:",
+      "",
+      "```text",
+      "tap",
+      "-> quick fade immediately",
+      "-> stop audio manager",
+      "-> drain/flush/close recording file",
+      "-> immediately set BT connectable + non-discoverable",
+      "-> request HFP audio/control disconnect",
+      "-> actual disconnected event arrives asynchronously",
+      "```",
+      "",
+      "There is no explicit timer like â€œwait 5 seconds then become non-discoverable.â€ It is **as soon as recording close finishes**.",
+      "",
+      "One nuance: this makes Bluetooth **non-discoverable but still connectable**. The call teardown itself is asynchronous after `esp_hf_client_disconnect_audio()` / `esp_hf_client_disconnect()`, and the final disconnected event closes the pairing window again for good measure."
+    ],
+    "files": [
+      "lib/FlyGuiViews/RecordingView/RecordingView.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
+      "lib/BluetoothManager/BluetoothManager.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-03T22:47:40Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: developer-docs/test-results/diag-bt-call-record.md",
+      "",
+      "## My request for Codex:",
+      "reorder that:",
+      "",
+      " 1. quick fade",
+      " 2. make BT non-connectable and non-discoverable",
+      " 3. request HFP audio/control disconnect (actual disconnected event arrives asynchronously)",
+      " 4. drain/flush/close recording file",
+      " 5. show dialog",
+      " 6. on dismiss, set BT connectable and non-discoverable"
+    ],
+    "agent_reply": [
+      "Implemented the recording-exit reorder.",
+      "",
+      "Bluetooth recording stop now does:",
+      "",
+      "1. quick fade in [RecordingView.cpp](/c:/GitHubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingView.cpp)",
+      "2. `BtManager::disconnectNonConnectable()` sets BT non-connectable/non-discoverable",
+      "3. requests HFP audio/control disconnect asynchronously",
+      "4. stops audio and drains/flushes/closes the recording file",
+      "5. shows the completion dialog",
+      "6. dialog dismiss callback restores BT to connectable/non-discoverable",
+      "",
+      "I added `BtManager::disconnectNonConnectable()` in [BluetoothManager.h](/c:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.h) / [BluetoothManager.cpp](/c:/GitHubRepos/The-Fly/lib/BluetoothManager/BluetoothManager.cpp), while leaving normal `disconnect()` behavior unchanged. The async disconnected event now respects a â€œhold non-connectableâ€ latch so it wonâ€™t reopen connectability before the modal is dismissed.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes."
+    ],
+    "files": [
+      "lib/BluetoothManager/BluetoothManager.h",
+      "lib/BluetoothManager/BluetoothManager.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.h",
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-03T22:57:11Z",
+    "type": "git_commit",
+    "commit_message": "prevent rare race condition that restarts a recording from phone",
+    "commit_hash": "ec0b41e94db41f542a220a0d668ecc30f0bfcf5b"
   }
 ]

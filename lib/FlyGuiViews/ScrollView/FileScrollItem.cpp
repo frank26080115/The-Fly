@@ -1,6 +1,10 @@
 #include "FileScrollItem.h"
 
+#include "defs.h"
 #include "sprites.h"
+#include "utilfuncs.h"
+#include <stdio.h>
+#include <string.h>
 
 namespace
 {
@@ -142,6 +146,12 @@ const SpriteChoice kTodoTops[] = {
 
 static uint32_t      hash_file_name(const char* fileName);
 static sprite_desc_t make_file_sprite(const char* fileName, uint32_t hash);
+static void          format_file_detail(const char* fileName, uint64_t fileSize, char* out, size_t outSize);
+static uint32_t      estimate_duration_ms(const char* fileName, uint64_t fileSize);
+static uint32_t      wav_duration_ms_for_payload(uint64_t payloadBytes);
+static uint64_t      encrypted_wav_payload_bytes(uint64_t fileSize);
+static uint64_t      encrypted_mp3_payload_bytes(uint64_t fileSize);
+static void          format_duration(uint32_t durationMs, char* out, size_t outSize);
 static SpriteChoice  file_backdrop_for(uint32_t hash);
 static SpriteChoice  file_top_for(const char* fileName, uint32_t hash, const SpriteChoice& backdrop);
 static SpriteChoice  generic_top_for(uint32_t hash, const SpriteChoice& backdrop);
@@ -158,9 +168,11 @@ static bool          is_record_top(const SpriteChoice& sprite);
 
 FileScrollItem::FileScrollItem() = default;
 
-void FileScrollItem::configureFile(ScrollItemKind kind, int32_t callbackValue, const char* fileName)
+void FileScrollItem::configureFile(ScrollItemKind kind, int32_t callbackValue, const char* fileName, uint64_t fileSize)
 {
     fileHash_ = hash_file_name(fileName);
+    fileSize_ = fileSize;
+    format_file_detail(fileName, fileSize_, detailText_, sizeof(detailText_));
     configureSprite(kind, callbackValue, fileName, make_file_sprite(fileName, fileHash_));
 }
 
@@ -199,6 +211,97 @@ sprite_desc_t make_file_sprite(const char* fileName, uint32_t hash)
         kOverlayOffset,
         kOverlayOffset,
     };
+}
+
+void format_file_detail(const char* fileName, uint64_t fileSize, char* out, size_t outSize)
+{
+    if (!out || outSize == 0)
+    {
+        return;
+    }
+
+    char sizeText[12]     = {};
+    char durationText[12] = {};
+    format_bytes(fileSize, sizeText, sizeof(sizeText));
+    format_duration(estimate_duration_ms(fileName, fileSize), durationText, sizeof(durationText));
+    snprintf(out, outSize, "%s / %s", sizeText, durationText);
+    out[outSize - 1] = '\0';
+}
+
+uint32_t estimate_duration_ms(const char* fileName, uint64_t fileSize)
+{
+    if (ends_with_case_insensitive(fileName, ".wav"))
+    {
+        const uint64_t payloadBytes = fileSize > WAV_RIFF_HEADER_LENGTH ? fileSize - WAV_RIFF_HEADER_LENGTH : 0;
+        return wav_duration_ms_for_payload(payloadBytes);
+    }
+    if (ends_with_case_insensitive(fileName, ".rec"))
+    {
+        return wav_duration_ms_for_payload(encrypted_wav_payload_bytes(fileSize));
+    }
+    if (ends_with_case_insensitive(fileName, ".mp3"))
+    {
+        return static_cast<uint32_t>((fileSize * 1000ULL) / MP3_CBR_BYTES_PER_SECOND);
+    }
+    if (ends_with_case_insensitive(fileName, ".fly"))
+    {
+        return static_cast<uint32_t>((encrypted_mp3_payload_bytes(fileSize) * 1000ULL) / MP3_CBR_BYTES_PER_SECOND);
+    }
+
+    return 0;
+}
+
+uint32_t wav_duration_ms_for_payload(uint64_t payloadBytes)
+{
+    payloadBytes -= payloadBytes % AUDIO_RECORDER_FRAME_BYTES;
+    constexpr uint32_t kBytesPerSecond = AUDIO_RECORDER_SAMPLE_RATE_HZ * AUDIO_RECORDER_FRAME_BYTES;
+    return static_cast<uint32_t>((payloadBytes * 1000ULL) / kBytesPerSecond);
+}
+
+uint64_t encrypted_wav_payload_bytes(uint64_t fileSize)
+{
+    if (fileSize <= WAV_ENCRYPTED_RIFF_HEADER_LENGTH)
+    {
+        return 0;
+    }
+
+    const uint64_t encryptedAudioBytes = fileSize - WAV_ENCRYPTED_RIFF_HEADER_LENGTH;
+    const uint64_t encryptedChunks     = encryptedAudioBytes / WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH;
+    return encryptedChunks * WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH;
+}
+
+uint64_t encrypted_mp3_payload_bytes(uint64_t fileSize)
+{
+    const uint64_t fullChunks = fileSize / MP3_ENCRYPTED_CHUNK_LENGTH;
+    const uint64_t remainder  = fileSize % MP3_ENCRYPTED_CHUNK_LENGTH;
+    uint64_t       payload    = fullChunks * MP3_ENCRYPTED_PLAINTEXT_LENGTH;
+
+    if (remainder > RECORDER_ENCRYPTED_CHUNK_OVERHEAD)
+    {
+        payload += remainder - RECORDER_ENCRYPTED_CHUNK_OVERHEAD;
+    }
+
+    return payload;
+}
+
+void format_duration(uint32_t durationMs, char* out, size_t outSize)
+{
+    if (!out || outSize == 0)
+    {
+        return;
+    }
+
+    const uint32_t totalSeconds = (durationMs + 500UL) / 1000UL;
+    const uint32_t hours        = totalSeconds / 3600UL;
+    const uint32_t minutes      = (totalSeconds / 60UL) % 60UL;
+    const uint32_t seconds      = totalSeconds % 60UL;
+    snprintf(out,
+             outSize,
+             "%02lu:%02lu:%02lu",
+             static_cast<unsigned long>(hours),
+             static_cast<unsigned long>(minutes),
+             static_cast<unsigned long>(seconds));
+    out[outSize - 1] = '\0';
 }
 
 SpriteChoice file_backdrop_for(uint32_t hash)

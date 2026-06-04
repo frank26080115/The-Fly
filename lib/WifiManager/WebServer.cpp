@@ -558,6 +558,7 @@ void start_mdns()
 
 void reboot_after_reset_dialog()
 {
+    FlyGui::quickScreenFade();
     DBG_LOGI(TAG, "reset confirmation dismissed; rebooting");
     delay(50);
     esp_restart();

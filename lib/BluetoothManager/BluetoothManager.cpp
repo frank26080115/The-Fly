@@ -65,6 +65,7 @@ bool                  g_data_callback_ready                     = false;
 volatile bool         g_hfp_profile_ready                       = false;
 volatile bool         g_hfp_profile_failed                      = false;
 bool                  g_disconnect_requested                    = false;
+bool                  g_hold_non_connectable_after_disconnect   = false;
 volatile bool         g_hfp_audio_connecting                    = false;
 volatile bool         g_hfp_audio_connected                     = false;
 volatile bool         g_hfp_slc_connected                       = false;
@@ -110,6 +111,7 @@ bool         close_pairing_window();
 bool         make_bluetooth_non_connectable();
 void         settle_outbound_connect_scan_mode();
 Result       result_from_esp(esp_err_t err, const char* what);
+Result       request_disconnect(bool hold_non_connectable);
 esp_bt_cod_t handsfree_cod();
 const char*  controller_status_name(esp_bt_controller_status_t status);
 const char*  bluedroid_status_name(esp_bluedroid_status_t status);
@@ -334,42 +336,17 @@ Result startPairing()
 
 Result disconnect()
 {
-    if (!g_bt_ready)
-    {
-        clear_reconnect_schedule(false);
-        g_hfp_slc_connected = false;
-        set_state(State::Idle);
-        return Result::Ok;
-    }
+    return request_disconnect(false);
+}
 
-    g_disconnect_requested = true;
-    close_pairing_window();
-
-    if (g_has_connected_mac)
-    {
-        ok(esp_hf_client_disconnect_audio(g_connected_mac), "hfp audio disconnect");
-        ok(esp_hf_client_disconnect(g_connected_mac), "hfp disconnect");
-    }
-    else if (g_state == State::Connecting && g_has_reconnect_target)
-    {
-        ok(esp_hf_client_disconnect(g_reconnect_target_mac), "hfp connect cancel");
-        clear_reconnect_schedule(false);
-        g_hfp_slc_connected = false;
-        set_state(State::Idle);
-    }
-    else
-    {
-        clear_reconnect_schedule(false);
-        g_hfp_slc_connected = false;
-        set_state(State::Idle);
-        g_disconnect_requested = false;
-    }
-
-    return Result::Ok;
+Result disconnectNonConnectable()
+{
+    return request_disconnect(true);
 }
 
 Result setConnectableNonDiscoverable()
 {
+    g_hold_non_connectable_after_disconnect = false;
     if (!g_bt_ready)
     {
         return Result::InitFailed;
@@ -398,7 +375,8 @@ Result shutdown()
         return Result::Ok;
     }
 
-    g_disconnect_requested = true;
+    g_disconnect_requested                  = true;
+    g_hold_non_connectable_after_disconnect = false;
     if (g_bt_ready)
     {
         make_bluetooth_non_connectable();
@@ -449,6 +427,7 @@ Result shutdown()
     g_bt_ready                     = false;
     g_data_callback_ready          = false;
     g_disconnect_requested         = false;
+    g_hold_non_connectable_after_disconnect = false;
     set_state(State::Idle);
     return ok_all ? Result::Ok : Result::EspError;
 }
@@ -657,6 +636,52 @@ void log_local_identity(const char* reason, const char* device_name)
 void schedule_reconnect_attempt(uint32_t delay_ms)
 {
     g_next_reconnect_attempt_ms = millis() + delay_ms;
+}
+
+Result request_disconnect(bool hold_non_connectable)
+{
+    if (!g_bt_ready)
+    {
+        clear_reconnect_schedule(false);
+        g_hfp_slc_connected                     = false;
+        g_disconnect_requested                  = false;
+        g_hold_non_connectable_after_disconnect = false;
+        set_state(State::Idle);
+        return Result::Ok;
+    }
+
+    g_disconnect_requested                  = true;
+    g_hold_non_connectable_after_disconnect = hold_non_connectable;
+    if (hold_non_connectable)
+    {
+        make_bluetooth_non_connectable();
+    }
+    else
+    {
+        close_pairing_window();
+    }
+
+    if (g_has_connected_mac)
+    {
+        ok(esp_hf_client_disconnect_audio(g_connected_mac), "hfp audio disconnect");
+        ok(esp_hf_client_disconnect(g_connected_mac), "hfp disconnect");
+    }
+    else if (g_state == State::Connecting && g_has_reconnect_target)
+    {
+        ok(esp_hf_client_disconnect(g_reconnect_target_mac), "hfp connect cancel");
+        clear_reconnect_schedule(false);
+        g_hfp_slc_connected = false;
+        set_state(State::Idle);
+    }
+    else
+    {
+        clear_reconnect_schedule(false);
+        g_hfp_slc_connected    = false;
+        g_disconnect_requested = false;
+        set_state(State::Idle);
+    }
+
+    return Result::Ok;
 }
 
 bool close_pairing_window()
@@ -1421,9 +1446,13 @@ void hfp_event(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t* param)
             CallManager::onBluetoothDisconnected();
             if (g_disconnect_requested || g_state == State::Pairing)
             {
+                const bool hold_non_connectable = g_hold_non_connectable_after_disconnect;
                 g_disconnect_requested = false;
                 clear_reconnect_schedule(false);
-                close_pairing_window();
+                if (!hold_non_connectable)
+                {
+                    close_pairing_window();
+                }
                 set_state(State::Idle);
             }
             else if (was_connected || was_reconnecting || had_slc_connected)
