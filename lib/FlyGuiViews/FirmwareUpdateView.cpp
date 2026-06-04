@@ -240,6 +240,13 @@ void FirmwareUpdateView::startUpdate()
 
     const MicroSdCard::FirmwareUpdateResult result = MicroSdCard::update_firmware(onProgress);
     finishUpdate(result);
+    /*
+    IMPORTANT:
+    the whole update process happens in this same thread, blocking the GUI thread completely
+    this means there are no draw calls that can interrupt the file access
+    (the LCD screen use SPI and so does the microSD card)
+    the only way draw calls can happen is through the progress update
+    */
 }
 
 void FirmwareUpdateView::updateProgress(uint64_t bytesWritten, uint64_t bytesTotal)
