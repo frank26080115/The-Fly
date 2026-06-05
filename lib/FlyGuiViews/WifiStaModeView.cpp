@@ -57,10 +57,10 @@ WifiStaModeView::WifiStaModeView()
     wifiIcon_.setSprite(sprite_wifi_50, SPRITE_WIFI_50_WIDTH, SPRITE_WIFI_50_HEIGHT, SPRITE_WIFI_50_BYTES);
     addItem(wifiIcon_);
 
-    dismissItem_.setSprite(sprite_canceldoor_50,
-                           SPRITE_CANCELDOOR_50_WIDTH,
-                           SPRITE_CANCELDOOR_50_HEIGHT,
-                           SPRITE_CANCELDOOR_50_BYTES);
+    dismissItem_.setSprite(sprite_doorreturn_50,
+                           SPRITE_DOORRETURN_50_WIDTH,
+                           SPRITE_DOORRETURN_50_HEIGHT,
+                           SPRITE_DOORRETURN_50_BYTES);
     dismissItem_.setCallback(onDismissTriggered);
     addItem(dismissItem_);
 }
