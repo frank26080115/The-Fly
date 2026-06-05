@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "timestamp": "2026-05-01T07:24:55.842Z",
     "type": "codex_task",
@@ -6068,5 +6068,11 @@
       "src/version.c",
       "managed_components/espressif__esp-serial-flasher/examples/binaries/ESP32_AT_Firmware/Firmware.bin"
     ]
+  },
+  {
+    "timestamp": "2026-06-04T19:53:12Z",
+    "type": "git_commit",
+    "commit_message": "more upload reliability",
+    "commit_hash": "25d83af066a6038020b1cfc7c15b9c1fbf4eebf7"
   }
 ]
