@@ -17,6 +17,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 #define TEST_MOCK_PIN_CODE
 #define TEST_MOCK_PASSWORD
 #define TEST_MOCK_NVS_FW_SECURED
+//#define TEST_MOCK_SCRAMBLE_TIME
 
 //#define BUILD_SILENCE_GAP_REMOVAL
 #define BUILD_USE_MP3_COMPRESSION
@@ -89,7 +90,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 
 #if defined(TEST_SIM_BATTERY) || defined(TEST_BOOT_ERROR_NONFATAL) || defined(TEST_BOOT_ERROR_FATAL) || \
     defined(TEST_MOCK_FW_UPDATE) || defined(TEST_MOCK_MASTER_KEY) || defined(TEST_MOCK_PIN_CODE) ||     \
-    defined(TEST_MOCK_PASSWORD) || defined(TEST_MOCK_NVS_FW_SECURED)
+    defined(TEST_MOCK_PASSWORD) || defined(TEST_MOCK_NVS_FW_SECURED) || defined(TEST_MOCK_SCRAMBLE_TIME)
 #ifndef BUILD_IS_DEBUG
 #define BUILD_IS_DEBUG
 #endif

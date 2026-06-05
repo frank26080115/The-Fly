@@ -701,6 +701,18 @@ function fill_in_timezone_options()
         timezone.appendChild(optgroup);
     }
 
+    set_timezone_select_value(selected);
+}
+
+function set_timezone_select_value(value)
+{
+    const timezone = document.getElementById("timezone");
+    const selected = String(value || "");
+    if (!timezone || !selected)
+    {
+        return;
+    }
+
     timezone.value = selected;
     if (timezone.value !== selected)
     {
@@ -1217,15 +1229,7 @@ function fill_time_config(network)
     const timezone = document.getElementById("timezone");
     if (timezone && network.timezone)
     {
-        timezone.value = network.timezone;
-        if (timezone.value !== network.timezone)
-        {
-            const option = document.createElement("option");
-            option.value = network.timezone;
-            option.textContent = "Configured custom - " + network.timezone;
-            timezone.insertBefore(option, timezone.firstChild);
-            timezone.value = network.timezone;
-        }
+        set_timezone_select_value(network.timezone);
     }
 
     const ntp_servers = Array.isArray(network.ntp_servers) ? network.ntp_servers : [];
@@ -1851,7 +1855,14 @@ function time_sync_onsubmit()
     }
 
     const request = new XMLHttpRequest();
-    request.open("POST", "/time_sync?time=" + encodeURIComponent(String(unix_time)), true);
+    let query = "time=" + encodeURIComponent(String(unix_time));
+    const browser_timezone = typeof get_current_browser_posix_tz_string === "function" ? get_current_browser_posix_tz_string() : "";
+    if (browser_timezone)
+    {
+        query += "&timezone=" + encodeURIComponent(browser_timezone);
+    }
+
+    request.open("POST", "/time_sync?" + query, true);
     request.responseType = "json";
     request.timeout = 10000;
     request.onload = function() {
@@ -1861,8 +1872,10 @@ function time_sync_onsubmit()
             {
                 const response = request.response || (request.responseText ? JSON.parse(request.responseText) : {});
                 const reported_time = Number(response["current-time"]);
+                const reported_timezone = typeof response.timezone === "string" ? response.timezone : browser_timezone;
                 latest_info = latest_info || {};
                 latest_info["current-time"] = Number.isFinite(reported_time) ? reported_time : unix_time;
+                set_timezone_select_value(reported_timezone);
                 render_info(latest_info);
             }
             catch (error)

@@ -122,8 +122,11 @@ bool decrypt_pin_code_post_body(const uint8_t session_key[WebServer::kSessionKey
 bool config_runtime_available(String& error);
 bool process_set_cfg_blob(
     AsyncWebServerRequest* request, const uint8_t* encrypted, size_t encrypted_size, int& status_code, String& error);
+bool read_posix_timezone_param(
+    AsyncWebServerRequest* request, char* out, size_t out_size, bool& found, String& error);
 bool read_unix_time_param(AsyncWebServerRequest* request, time_t& out, String& error);
 void reset_set_cfg_upload(AsyncWebServerRequest* request);
+bool save_time_sync_timezone(const char* timezone, String& error);
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 void reset_pin_code_post_upload(AsyncWebServerRequest* request);
 #endif
@@ -411,6 +414,21 @@ void timeSync(AsyncWebServerRequest* request)
         return;
     }
 
+    char timezone[kNetworkConfigTimezoneMaxLength] = {};
+    bool has_timezone                              = false;
+    if (!read_posix_timezone_param(request, timezone, sizeof(timezone), has_timezone, error))
+    {
+        note_web_error();
+        request->send(400, "text/plain", error);
+        return;
+    }
+    if (has_timezone && !save_time_sync_timezone(timezone, error))
+    {
+        note_web_error();
+        request->send(500, "text/plain", error);
+        return;
+    }
+
     if (!Clock.setUnixTime(unix_time))
     {
         note_web_error();
@@ -428,9 +446,11 @@ void timeSync(AsyncWebServerRequest* request)
 
     note_web_save();
     String json;
-    json.reserve(48);
+    json.reserve(96);
     json += "{\"status\":\"ok\",\"current-time\":";
     append_json_i64(json, static_cast<long long>(verified_time));
+    json += ",\"timezone\":";
+    json += WebServer::jsonString(has_timezone ? timezone : WifiManager::timezone());
     json += "}";
     request->send(200, "application/json", json);
 }
@@ -571,6 +591,84 @@ bool read_unix_time_param(AsyncWebServerRequest* request, time_t& out, String& e
     if (!parse_unix_time_text(param->value(), out))
     {
         error = "Unix time is invalid";
+        return false;
+    }
+    return true;
+}
+
+bool read_posix_timezone_param(AsyncWebServerRequest* request, char* out, size_t out_size, bool& found, String& error)
+{
+    if (!out || out_size == 0)
+    {
+        error = "Internal timezone storage is invalid";
+        return false;
+    }
+
+    out[0] = '\0';
+    found  = false;
+
+    const char* keys[] = {"timezone", "tz", "posix_tz", "posix-tz"};
+    const AsyncWebParameter* param = nullptr;
+    for (const char* key : keys)
+    {
+        param = WebServer::findRequestParam(request, key);
+        if (param)
+        {
+            break;
+        }
+    }
+    if (!param)
+    {
+        return true;
+    }
+
+    String value = param->value();
+    value.trim();
+    if (value.isEmpty())
+    {
+        return true;
+    }
+    if (strlcpy(out, value.c_str(), out_size) >= out_size)
+    {
+        error = "timezone is too long";
+        return false;
+    }
+
+    found = true;
+    return true;
+}
+
+bool save_time_sync_timezone(const char* timezone, String& error)
+{
+    if (!timezone || timezone[0] == '\0')
+    {
+        return true;
+    }
+    if (!g_nvs_ready)
+    {
+        error = "NVS is unavailable";
+        return false;
+    }
+    if (WifiManager::lastLoadResult() != WifiManager::LoadResult::Ok)
+    {
+        error = "Wi-Fi config is unavailable";
+        return false;
+    }
+
+    network_cfg_t config = {};
+    if (!WifiManager::copyConfig(config))
+    {
+        error = "Wi-Fi config is unavailable";
+        return false;
+    }
+    if (strlcpy(config.timezone, timezone, sizeof(config.timezone)) >= sizeof(config.timezone))
+    {
+        error = "timezone is too long";
+        return false;
+    }
+    if (!WifiManager::replaceConfig(config))
+    {
+        error = "Timezone save failed";
         return false;
     }
     return true;

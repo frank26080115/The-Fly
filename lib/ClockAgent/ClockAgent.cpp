@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/time.h>
 
+#include "esp_random.h"
 #include "thefly_version.h"
 #include "utilfuncs.h"
 
@@ -18,6 +19,9 @@ static bool               valid_date(const m5::rtc_date_t& date);
 static bool               valid_time(const m5::rtc_time_t& time);
 static int64_t            datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime);
 static m5::rtc_datetime_t epoch_seconds_to_datetime(int64_t epoch_seconds);
+#ifdef TEST_MOCK_SCRAMBLE_TIME
+static int64_t            mock_scrambled_epoch_seconds(int64_t epoch_seconds);
+#endif
 static m5::rtc_datetime_t tm_to_datetime(const tm& value);
 static bool               parse_compiler_time(const char* text, m5::rtc_datetime_t& datetime);
 static m5::rtc_datetime_t
@@ -25,6 +29,10 @@ merge_datetime(const m5::rtc_datetime_t& base, const m5::rtc_date_t* date, const
 static bool   datetime_to_local_epoch_seconds(const m5::rtc_datetime_t& datetime, time_t& epoch_seconds);
 static bool   apply_system_time(time_t epoch_seconds);
 static int8_t month_from_name(const char* month);
+
+#ifdef TEST_MOCK_SCRAMBLE_TIME
+static bool g_mock_time_scrambled_this_boot = false;
+#endif
 
 } // namespace
 
@@ -48,7 +56,11 @@ bool ClockAgent::syncFromRtc()
         return false;
     }
 
+#ifdef TEST_MOCK_SCRAMBLE_TIME
+    baseEpochSeconds_ = mock_scrambled_epoch_seconds(datetime_to_epoch_seconds(utc_datetime));
+#else
     baseEpochSeconds_ = datetime_to_epoch_seconds(utc_datetime);
+#endif
     baseMillis_       = millis();
     synced_           = true;
     apply_system_time(static_cast<time_t>(baseEpochSeconds_));
@@ -360,6 +372,43 @@ m5::rtc_datetime_t epoch_seconds_to_datetime(int64_t epoch_seconds)
     datetime.time.seconds = static_cast<int8_t>(seconds_of_day % 60LL);
     return datetime;
 }
+
+#ifdef TEST_MOCK_SCRAMBLE_TIME
+int64_t mock_scrambled_epoch_seconds(int64_t epoch_seconds)
+{
+    if (g_mock_time_scrambled_this_boot)
+    {
+        return epoch_seconds;
+    }
+    g_mock_time_scrambled_this_boot = true;
+
+    static constexpr int64_t kMinValidEpochSeconds = -2208988800LL; // 1900-01-01
+    static constexpr int64_t kMaxValidEpochSeconds = 4102444799LL; // 2099-12-31 23:59:59
+    static constexpr int64_t kMinOffsetSeconds     = 6LL * 60LL * 60LL;
+    static constexpr int64_t kOffsetRangeSeconds   = 14LL * 24LL * 60LL * 60LL;
+
+    const uint32_t random_value = esp_random();
+    const int64_t  magnitude    = kMinOffsetSeconds + static_cast<int64_t>(random_value % kOffsetRangeSeconds);
+    int64_t        offset       = (random_value & 0x80000000U) ? magnitude : -magnitude;
+
+    if (epoch_seconds + offset < kMinValidEpochSeconds || epoch_seconds + offset > kMaxValidEpochSeconds)
+    {
+        offset = -offset;
+    }
+    if (epoch_seconds + offset < kMinValidEpochSeconds || epoch_seconds + offset > kMaxValidEpochSeconds)
+    {
+        offset = kMinOffsetSeconds;
+    }
+
+    const int64_t scrambled = epoch_seconds + offset;
+    DBG_LOGW("ClockAgent",
+             "TEST_MOCK_SCRAMBLE_TIME: RTC epoch=%lld scrambled=%lld offset=%lld seconds",
+             static_cast<long long>(epoch_seconds),
+             static_cast<long long>(scrambled),
+             static_cast<long long>(offset));
+    return scrambled;
+}
+#endif
 
 m5::rtc_datetime_t tm_to_datetime(const tm& value)
 {
