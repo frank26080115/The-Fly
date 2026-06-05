@@ -1019,5 +1019,63 @@
       "lib/AudioManager/AudioManager.h",
       "lib/ESP-FTP-Server-Lib/platformio.ini"
     ]
+  },
+  {
+    "timestamp": "2026-06-03T22:14:16.888Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "AudioFifo g_fifo_bt2spk  (1024 * 12, 1024 * 2);",
+      "AudioFifo g_fifo_mic2bt  (1024 * 12, 1024 * 2);",
+      "AudioFifo g_fifo_bt2file (1024 * 12, 512);",
+      "AudioFifo g_fifo_mic2file(1024 * 12, 512);",
+      "",
+      "## My request for Codex:",
+      "see the highlighted code, convert the current numbers in there to use AUDIOFIFO_MS_TO_SAMPLES_16K"
+    ],
+    "agent_reply": [
+      "Converted the highlighted FIFO sizes in [AudioManager.cpp](/c:/GitHubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:65) to use `AUDIOFIFO_MS_TO_SAMPLES_16K(...)`.",
+      "",
+      "The equivalents are preserved:",
+      "",
+      "```cpp",
+      "1024 * 12 -> AUDIOFIFO_MS_TO_SAMPLES_16K(768)",
+      "1024 * 2  -> AUDIOFIFO_MS_TO_SAMPLES_16K(128)",
+      "512       -> AUDIOFIFO_MS_TO_SAMPLES_16K(32)",
+      "```",
+      "",
+      "I also converted `kHfpOutgoingNotifyMinSamples = 1024` to `AUDIOFIFO_MS_TO_SAMPLES_16K(64)` for the same reason.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes.",
+      "",
+      "Converted the highlighted FIFO sizes in [AudioManager.cpp](/c:/GitHubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:65) to use `AUDIOFIFO_MS_TO_SAMPLES_16K(...)`.",
+      "",
+      "The equivalents are preserved:",
+      "",
+      "```cpp",
+      "1024 * 12 -> AUDIOFIFO_MS_TO_SAMPLES_16K(768)",
+      "1024 * 2  -> AUDIOFIFO_MS_TO_SAMPLES_16K(128)",
+      "512       -> AUDIOFIFO_MS_TO_SAMPLES_16K(32)",
+      "```",
+      "",
+      "I also converted `kHfpOutgoingNotifyMinSamples = 1024` to `AUDIOFIFO_MS_TO_SAMPLES_16K(64)` for the same reason.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes."
+    ],
+    "files": [
+      "lib/AudioManager/AudioManager.cpp",
+      "lib/AudioManager/AudioManager.h",
+      "lib/AudioFifo/AudioFifo.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-04T08:10:39Z",
+    "type": "git_commit",
+    "commit_message": "mp3 playback attempt to support other formats",
+    "commit_hash": "820953b2bc80f581ef869762010c448fd12b66c6"
   }
 ]

@@ -515,5 +515,50 @@
     "type": "git_commit",
     "commit_message": "more code neatening",
     "commit_hash": "41a16a83dde0bcbb0faacc0e153b905a9aac33e4"
+  },
+  {
+    "timestamp": "2026-06-05T18:48:12.787Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ClockAgent/ClockAgent.cpp",
+      "",
+      "## Active selection of the file:",
+      "bool ClockAgent::begin()",
+      "",
+      "## My request for Codex:",
+      "if `TEST_MOCK_SCRAMBLE_TIME` is true, have `bool ClockAgent::syncFromRtc()` use a randomized time in such a way that it forces the browser to see a big offset and show the button, the time sync action itself should work, and the randomization is only allowed to happen once per boot"
+    ],
+    "agent_reply": [
+      "Done. [ClockAgent.cpp](c:/GitHubRepos/The-Fly/lib/ClockAgent/ClockAgent.cpp:56) now scrambles the clock only when `TEST_MOCK_SCRAMBLE_TIME` is defined.",
+      "",
+      "Behavior:",
+      "",
+      "- The first successful `ClockAgent::syncFromRtc()` per boot applies a random offset of at least 6 hours and up to about 14 days.",
+      "- It only changes the in-memory/system clock base, not the RTC chip itself.",
+      "- The one-shot guard prevents any second scramble during the same boot.",
+      "- `/time_sync` still works normally because `Clock.setUnixTime(...)` writes the real browser time into RTC and refreshes the clock base.",
+      "",
+      "I also added a warning log with the original epoch, scrambled epoch, and offset so it’s easy to see when the test hook fired.",
+      "",
+      "Verified:",
+      "",
+      "```text",
+      "pio run -e thefly_sec0",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Both passed."
+    ],
+    "files": [
+      "lib/ClockAgent/ClockAgent.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-05T18:57:17Z",
+    "type": "git_commit",
+    "commit_message": "way better time sync from browser, with timezones",
+    "commit_hash": "3157aa61f945df7cbd0342463ba1cfd56c3a3e67"
   }
 ]

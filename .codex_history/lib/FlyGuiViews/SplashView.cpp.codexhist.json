@@ -27,7 +27,9 @@
       "splash.png",
       "lib/FlyGuiViews/SplashView.h",
       "lib/FlyGuiViews/SplashView.cpp",
-      "lib/FlyGui/FlyGui.h"
+      "lib/FlyGui/FlyGui.h",
+      "src/main.cpp",
+      "gfx-assets/sprites/splash.png"
     ]
   },
   {
@@ -696,5 +698,137 @@
     "type": "git_commit",
     "commit_message": "another splash screen",
     "commit_hash": "83135e1888229b49c87664d8aaa2e97a3503ae33"
+  },
+  {
+    "timestamp": "2026-06-03T18:29:20.443Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/SplashView.cpp",
+      "",
+      "## Active selection of the file:",
+      "void draw_splash_boot_info()",
+      "",
+      "## My request for Codex:",
+      "it looks like `void draw_splash_boot_info()` is called twice, which is fine",
+      "",
+      "on the second call, there's more information available. such as free disk space and the configured time zone, add these, but only if the info is valid"
+    ],
+    "agent_reply": [
+      "Updated [SplashView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:192) so the second splash boot-info draw can add:",
+      "",
+      "```text",
+      "Free: <free> / <total>",
+      "TZ: <configured timezone>",
+      "```",
+      "",
+      "The extra block only appears when `DiskStats::diskSpace(...)` is valid. The timezone line also requires `WifiManager::lastLoadResult() == Ok` and a non-empty timezone string. Long lines are truncated to fit the available splash text width.",
+      "",
+      "Verification passed:",
+      "",
+      "```text",
+      "pio run -e thefly_sec0",
+      "SUCCESS",
+      "```",
+      "",
+      "`git diff --check` is clean except for the repo’s usual CRLF warning.",
+      "",
+      "Updated [SplashView.cpp](C:/GitHubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:192) so the second splash boot-info draw can add:",
+      "",
+      "```text",
+      "Free: <free> / <total>",
+      "TZ: <configured timezone>",
+      "```",
+      "",
+      "The extra block only appears when `DiskStats::diskSpace(...)` is valid. The timezone line also requires `WifiManager::lastLoadResult() == Ok` and a non-empty timezone string. Long lines are truncated to fit the available splash text width.",
+      "",
+      "Verification passed:",
+      "",
+      "```text",
+      "pio run -e thefly_sec0",
+      "SUCCESS",
+      "```",
+      "",
+      "`git diff --check` is clean except for the repo’s usual CRLF warning."
+    ],
+    "files": [
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-03T18:38:11Z",
+    "type": "git_commit",
+    "commit_message": "boot splash disk info and timezone",
+    "commit_hash": "f1886bf526bb4ee8b1f81bc602ccea00ecf9b49d"
+  },
+  {
+    "timestamp": "2026-06-04T05:05:33Z",
+    "type": "git_commit",
+    "commit_message": "haptics implemented across the board",
+    "commit_hash": "b0281be08ff90256d2e231f0ba9c25e7422784c1"
+  },
+  {
+    "timestamp": "2026-06-04T18:49:23.361Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/SplashView.cpp",
+      "",
+      "## Active selection of the file:",
+      "    #ifdef SPLASH_SHOW_SPECIAL_ICON",
+      "    #if SPLASH_SHOW_SPECIAL_ICON == 1",
+      "    if (g_splash_mode == 2)",
+      "    {",
+      "        // draw `sprite_overlay_cat_50` bottom left corner of screen",
+      "    }",
+      "    else",
+      "    {",
+      "        // draw `sprite_overlay_cat_50` bottom right corner of screen",
+      "    }",
+      "    #elif SPLASH_SHOW_SPECIAL_ICON == 2",
+      "    if (g_splash_mode == 2)",
+      "    {",
+      "        // draw `sprite_overlay_dog_50` bottom left corner of screen",
+      "    }",
+      "    else",
+      "    {",
+      "        // draw `sprite_overlay_dog_50` bottom right corner of screen",
+      "    }",
+      "    #endif",
+      "    #endif",
+      "",
+      "## My request for Codex:",
+      "see highlighted code, implement the comments please"
+    ],
+    "agent_reply": [
+      "Implemented the splash overlay comments in [SplashView.cpp](/c:/GitHubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp).",
+      "",
+      "`SPLASH_SHOW_SPECIAL_ICON == 1` now draws `sprite_overlay_cat_50`; `== 2` draws `sprite_overlay_dog_50`. Mode 2 places it bottom-left, otherwise bottom-right.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes.",
+      "",
+      "Implemented the splash overlay comments in [SplashView.cpp](/c:/GitHubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp).",
+      "",
+      "`SPLASH_SHOW_SPECIAL_ICON == 1` now draws `sprite_overlay_cat_50`; `== 2` draws `sprite_overlay_dog_50`. Mode 2 places it bottom-left, otherwise bottom-right.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes."
+    ],
+    "files": [
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-04T18:55:30Z",
+    "type": "git_commit",
+    "commit_message": "special icon to mark special builds",
+    "commit_hash": "4db065d07114a8fedc766378980847e27904347f"
+  },
+  {
+    "timestamp": "2026-06-05T04:50:16Z",
+    "type": "git_commit",
+    "commit_message": "splashview timezone str shorter",
+    "commit_hash": "f5beb3e5996d5b327a2b68489aef9240af8d2848"
   }
 ]

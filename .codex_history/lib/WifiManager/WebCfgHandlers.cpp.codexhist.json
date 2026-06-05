@@ -1459,5 +1459,68 @@
     "type": "git_commit",
     "commit_message": "clang format",
     "commit_hash": "050209b43354fe0248f6252b8efadfbee8143265"
+  },
+  {
+    "timestamp": "2026-06-05T18:29:15.689Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.h",
+      "",
+      "## Active selection of the file:",
+      "timezone",
+      "",
+      "## My request for Codex:",
+      "have the function `function time_sync_onsubmit()` include the result from `get_current_browser_posix_tz_string()`, extend `void timeSync(AsyncWebServerRequest* request)` to accept the `POSIX TZ` string, and set it in `network_cfg_t->timezone` and then save it"
+    ],
+    "agent_reply": [
+      "Done. `time_sync_onsubmit()` now sends the browser POSIX TZ string as `timezone=...` when `get_current_browser_posix_tz_string()` can provide one, and updates the timezone select from the server response.",
+      "",
+      "On the firmware side, [WebCfgHandlers.cpp](c:/GitHubRepos/The-Fly/lib/WifiManager/WebCfgHandlers.cpp:419) now accepts that POSIX TZ parameter, copies it into `network_cfg_t.timezone`, saves via `WifiManager::replaceConfig()`, and returns the effective timezone in the JSON response.",
+      "",
+      "Also regenerated [inc/web_assets.h](c:/GitHubRepos/The-Fly/inc/web_assets.h) through the build.",
+      "",
+      "Verified:",
+      "",
+      "```text",
+      "node --check html\\script.js",
+      "node --check html\\timezone.js",
+      "pio run -e thefly_sec0",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Both PlatformIO builds passed. `src/version.c` was touched by the builds as usual.",
+      "",
+      "Done. `time_sync_onsubmit()` now sends the browser POSIX TZ string as `timezone=...` when `get_current_browser_posix_tz_string()` can provide one, and updates the timezone select from the server response.",
+      "",
+      "On the firmware side, [WebCfgHandlers.cpp](c:/GitHubRepos/The-Fly/lib/WifiManager/WebCfgHandlers.cpp:419) now accepts that POSIX TZ parameter, copies it into `network_cfg_t.timezone`, saves via `WifiManager::replaceConfig()`, and returns the effective timezone in the JSON response.",
+      "",
+      "Also regenerated [inc/web_assets.h](c:/GitHubRepos/The-Fly/inc/web_assets.h) through the build.",
+      "",
+      "Verified:",
+      "",
+      "```text",
+      "node --check html\\script.js",
+      "node --check html\\timezone.js",
+      "pio run -e thefly_sec0",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Both PlatformIO builds passed. `src/version.c` was touched by the builds as usual."
+    ],
+    "files": [
+      "html/script.js",
+      "lib/WifiManager/WebCfgHandlers.cpp",
+      "inc/web_assets.h",
+      "html/timezone.js",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-05T18:57:17Z",
+    "type": "git_commit",
+    "commit_message": "way better time sync from browser, with timezones",
+    "commit_hash": "3157aa61f945df7cbd0342463ba1cfd56c3a3e67"
   }
 ]

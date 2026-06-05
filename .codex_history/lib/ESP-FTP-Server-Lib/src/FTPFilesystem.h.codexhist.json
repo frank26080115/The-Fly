@@ -60,5 +60,64 @@
       "lib/ESP-FTP-Server-Lib/src/Commands/NLST.h",
       "lib/ESP-FTP-Server-Lib/src/Commands/LIST.h"
     ]
+  },
+  {
+    "timestamp": "2026-06-04T18:27:59.223Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ESP-FTP-Server-Lib/src/FTPConnection.cpp",
+      "",
+      "## My request for Codex:",
+      "I think there's way more places where the connection should be marked busy, anything that risks having a SPI transfer happen, so listing directories and such.",
+      "",
+      "I would have thought `lib\\ESP-FTP-Server-Lib\\src\\FTPFilesystem.cpp` would have been massively changed with something around every function"
+    ],
+    "agent_reply": [
+      "Yep, you were right. I broadened it.",
+      "",
+      "`FTPFilesystem` now owns a nested RAII `BusyScope`, an `isBusy()` flag, and wraps the filesystem methods that can touch the SD card: `open`, `exists`, `remove`, `rename`, `mkdir`, and `rmdir`.",
+      "",
+      "I also wrapped authenticated FTP command execution in `FTPConnection::handle()` with `FTPFilesystem::BusyScope`, which covers command-local `FsFile` work like:",
+      "",
+      "- `LIST` / `NLST` / `MLSD` directory iteration",
+      "- `STAT` directory scanning",
+      "- `CWD` directory checks",
+      "- `RETR` / `STOR` setup work",
+      "- `DELE`, `MKD`, `RMD`, `RNFR` / `RNTO`",
+      "",
+      "`FTPServer::isBusy()` now reports true if either the filesystem busy scope is active or any connection has pending command input / active transfer.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes. Still has the existing deprecated `NetworkServer::available()` warning.",
+      "",
+      "Yep, you were right. I broadened it.",
+      "",
+      "`FTPFilesystem` now owns a nested RAII `BusyScope`, an `isBusy()` flag, and wraps the filesystem methods that can touch the SD card: `open`, `exists`, `remove`, `rename`, `mkdir`, and `rmdir`.",
+      "",
+      "I also wrapped authenticated FTP command execution in `FTPConnection::handle()` with `FTPFilesystem::BusyScope`, which covers command-local `FsFile` work like:",
+      "",
+      "- `LIST` / `NLST` / `MLSD` directory iteration",
+      "- `STAT` directory scanning",
+      "- `CWD` directory checks",
+      "- `RETR` / `STOR` setup work",
+      "- `DELE`, `MKD`, `RMD`, `RNFR` / `RNTO`",
+      "",
+      "`FTPServer::isBusy()` now reports true if either the filesystem busy scope is active or any connection has pending command input / active transfer.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes. Still has the existing deprecated `NetworkServer::available()` warning."
+    ],
+    "files": [
+      "lib/ESP-FTP-Server-Lib/src/FTPFilesystem.h",
+      "lib/ESP-FTP-Server-Lib/src/FTPFilesystem.cpp",
+      "lib/ESP-FTP-Server-Lib/src/FTPConnection.cpp",
+      "lib/ESP-FTP-Server-Lib/src/ESP-FTP-Server-Lib.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-04T18:34:13Z",
+    "type": "git_commit",
+    "commit_message": "made ftp server thread safe",
+    "commit_hash": "b031f8fd852eaea966d5b6554b414320bb9e696b"
   }
 ]

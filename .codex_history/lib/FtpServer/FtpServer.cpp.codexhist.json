@@ -55,5 +55,55 @@
     "type": "git_commit",
     "commit_message": "ftp server works",
     "commit_hash": "999c2544883494dd08561819dc74e913ba45cd35"
+  },
+  {
+    "timestamp": "2026-06-04T18:17:33.079Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FtpServer/FtpServer.cpp",
+      "",
+      "## My request for Codex:",
+      "to `lib\\ESP-FTP-Server-Lib\\src` add a public function called `isBusy`. Then add a wrapper around `lib\\FtpServer\\FtpServer.cpp` to get the `isBusy` of the only single instance of the server, if it has started, otherwise `isBusy` returns false.",
+      "",
+      "`isBusy` is much like `lib\\WifiManager\\AsyncFsManager.cpp` where it has `AsyncFsManager::guiShouldYield()`, anything that accesses the microSD card will block the update of the GUI, using a lock and other mechanisms",
+      "",
+      "`FlyGui::guiShouldYield()` will start to check `FtpServer::isBusy()` as well"
+    ],
+    "agent_reply": [
+      "Done.",
+      "",
+      "Added FTP busy plumbing through the local library and wrapper:",
+      "",
+      "- `FTPConnection::isBusy()` in [FTPConnection.h](/c:/GitHubRepos/The-Fly/lib/ESP-FTP-Server-Lib/src/FTPConnection.h) / [FTPConnection.cpp](/c:/GitHubRepos/The-Fly/lib/ESP-FTP-Server-Lib/src/FTPConnection.cpp)",
+      "- `FTPServer::isBusy()` in [ESP-FTP-Server-Lib.h](/c:/GitHubRepos/The-Fly/lib/ESP-FTP-Server-Lib/src/ESP-FTP-Server-Lib.h) / [ESP-FTP-Server-Lib.cpp](/c:/GitHubRepos/The-Fly/lib/ESP-FTP-Server-Lib/src/ESP-FTP-Server-Lib.cpp)",
+      "- `FtpServer::isBusy()` wrapper in [FtpServer.h](/c:/GitHubRepos/The-Fly/lib/FtpServer/FtpServer.h) / [FtpServer.cpp](/c:/GitHubRepos/The-Fly/lib/FtpServer/FtpServer.cpp)",
+      "",
+      "`FtpServer::isBusy()` returns false until the singleton server has started. Once started, it reports busy if a connection has pending control input or an active `RETR`/`STOR` transfer.",
+      "",
+      "`FlyGui::guiShouldYield()` now checks both:",
+      "",
+      "```cpp",
+      "AsyncFsManager::guiShouldYield() || FtpServer::isBusy()",
+      "```",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes. There’s still the existing deprecated `NetworkServer::available()` warning inside the FTP library."
+    ],
+    "files": [
+      "lib/ESP-FTP-Server-Lib/src/FTPConnection.h",
+      "lib/ESP-FTP-Server-Lib/src/ESP-FTP-Server-Lib.h",
+      "lib/ESP-FTP-Server-Lib/src/FTPConnection.cpp",
+      "lib/ESP-FTP-Server-Lib/src/ESP-FTP-Server-Lib.cpp",
+      "lib/FtpServer/FtpServer.h",
+      "lib/FtpServer/FtpServer.cpp",
+      "lib/FlyGui/FlyGui.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-04T18:34:13Z",
+    "type": "git_commit",
+    "commit_message": "made ftp server thread safe",
+    "commit_hash": "b031f8fd852eaea966d5b6554b414320bb9e696b"
   }
 ]

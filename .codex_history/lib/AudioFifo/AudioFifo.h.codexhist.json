@@ -783,7 +783,8 @@
     "files": [
       "lib/AudioFifo/AudioFifo.h",
       "src/tests/test_micrec.cpp",
-      "AudioFileRecorder.cpp"
+      "AudioFileRecorder.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp"
     ]
   },
   {
@@ -1250,5 +1251,105 @@
     "type": "git_commit",
     "commit_message": "more clang format stuff",
     "commit_hash": "fa8a1e27b6b4982ce7a05c70f69ab0eb2ff14f79"
+  },
+  {
+    "timestamp": "2026-06-03T22:10:32.021Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFifo/AudioFifo.h",
+      "",
+      "## My request for Codex:",
+      "Inside `AudioFifo.h`, create a macro that computes the number of samples from an integer specified number of milliseconds, output rounded up to an integer multiple of 8, call it something like MS_TO_SAMPLES_16K or something like that"
+    ],
+    "agent_reply": [
+      "Added this macro near the top of [AudioFifo.h](/c:/GitHubRepos/The-Fly/lib/AudioFifo/AudioFifo.h:12):",
+      "",
+      "```cpp",
+      "#define AUDIOFIFO_MS_TO_SAMPLES_16K(ms) ((((static_cast<size_t>(ms) * 16000u + 999u) / 1000u) + 7u) & ~static_cast<size_t>(7u))",
+      "```",
+      "",
+      "It converts integer milliseconds to 16 kHz samples, rounds up for fractional milliseconds-to-samples math, then rounds up again to an 8-sample boundary.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes.",
+      "",
+      "Added this macro near the top of [AudioFifo.h](/c:/GitHubRepos/The-Fly/lib/AudioFifo/AudioFifo.h:12):",
+      "",
+      "```cpp",
+      "#define AUDIOFIFO_MS_TO_SAMPLES_16K(ms) ((((static_cast<size_t>(ms) * 16000u + 999u) / 1000u) + 7u) & ~static_cast<size_t>(7u))",
+      "```",
+      "",
+      "It converts integer milliseconds to 16 kHz samples, rounds up for fractional milliseconds-to-samples math, then rounds up again to an 8-sample boundary.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes."
+    ],
+    "files": [
+      "lib/AudioFifo/AudioFifo.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-03T22:14:16.888Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "AudioFifo g_fifo_bt2spk  (1024 * 12, 1024 * 2);",
+      "AudioFifo g_fifo_mic2bt  (1024 * 12, 1024 * 2);",
+      "AudioFifo g_fifo_bt2file (1024 * 12, 512);",
+      "AudioFifo g_fifo_mic2file(1024 * 12, 512);",
+      "",
+      "## My request for Codex:",
+      "see the highlighted code, convert the current numbers in there to use AUDIOFIFO_MS_TO_SAMPLES_16K"
+    ],
+    "agent_reply": [
+      "Converted the highlighted FIFO sizes in [AudioManager.cpp](/c:/GitHubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:65) to use `AUDIOFIFO_MS_TO_SAMPLES_16K(...)`.",
+      "",
+      "The equivalents are preserved:",
+      "",
+      "```cpp",
+      "1024 * 12 -> AUDIOFIFO_MS_TO_SAMPLES_16K(768)",
+      "1024 * 2  -> AUDIOFIFO_MS_TO_SAMPLES_16K(128)",
+      "512       -> AUDIOFIFO_MS_TO_SAMPLES_16K(32)",
+      "```",
+      "",
+      "I also converted `kHfpOutgoingNotifyMinSamples = 1024` to `AUDIOFIFO_MS_TO_SAMPLES_16K(64)` for the same reason.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes.",
+      "",
+      "Converted the highlighted FIFO sizes in [AudioManager.cpp](/c:/GitHubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:65) to use `AUDIOFIFO_MS_TO_SAMPLES_16K(...)`.",
+      "",
+      "The equivalents are preserved:",
+      "",
+      "```cpp",
+      "1024 * 12 -> AUDIOFIFO_MS_TO_SAMPLES_16K(768)",
+      "1024 * 2  -> AUDIOFIFO_MS_TO_SAMPLES_16K(128)",
+      "512       -> AUDIOFIFO_MS_TO_SAMPLES_16K(32)",
+      "```",
+      "",
+      "I also converted `kHfpOutgoingNotifyMinSamples = 1024` to `AUDIOFIFO_MS_TO_SAMPLES_16K(64)` for the same reason.",
+      "",
+      "Verified with `pio run -e thefly_sec0`; build passes."
+    ],
+    "files": [
+      "lib/AudioManager/AudioManager.cpp",
+      "lib/AudioManager/AudioManager.h",
+      "lib/AudioFifo/AudioFifo.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-03T22:45:19Z",
+    "type": "git_commit",
+    "commit_message": "pins.h, tweaked FIFOs, added a test result",
+    "commit_hash": "6fb57af7f759b4803b0e9978a01525d0a1fe1265"
+  },
+  {
+    "timestamp": "2026-06-05T02:54:19Z",
+    "type": "git_commit",
+    "commit_message": "small documentation corrections",
+    "commit_hash": "871d8adf7eabb92f3c3d2b3967e30dc53a4502cb"
   }
 ]

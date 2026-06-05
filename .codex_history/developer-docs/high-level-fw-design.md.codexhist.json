@@ -126,7 +126,8 @@
       "platformio.ini",
       "developer-docs/high-level-fw-design.md",
       "lib/AudioManager/AudioManager.cpp",
-      "AudioManager.h"
+      "AudioManager.h",
+      "lib/AudioManager/AudioManager.h"
     ]
   },
   {
@@ -421,5 +422,11 @@
     "type": "git_commit",
     "commit_message": "preping docs for mp3 build",
     "commit_hash": "ca8a274ef70f1c6e966b0aa37d97726cc50bc72b"
+  },
+  {
+    "timestamp": "2026-06-04T01:04:32Z",
+    "type": "git_commit",
+    "commit_message": "shorter file name",
+    "commit_hash": "c4f97b72c01fbbd6f64502ea008b486dd32e3385"
   }
 ]
