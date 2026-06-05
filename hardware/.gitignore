@@ -1,0 +1,12 @@
+# Autodesk EAGLE 7.6.0 transient files
+*.lck
+*.b#*
+*.s#*
+*.l#*
+*.b$*
+*.s$*
+*.l$*
+*.bak
+*.tmp
+eagle.epf
+eagleapp.xml
