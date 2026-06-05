@@ -130,6 +130,43 @@ def urlopen_bytes(url: str, timeout: float) -> bytes:
         raise DesktopError(f"could not reach {url}: {exc.reason}") from exc
 
 
+def fetch_device_info(base_url: str, timeout: float) -> dict[str, object]:
+    payload = urlopen_bytes(endpoint_url(base_url, "/get_info"), timeout)
+    try:
+        parsed = json.loads(payload.decode("utf-8"))
+    except json.JSONDecodeError as exc:
+        raise DesktopError("device /get_info response was not valid JSON") from exc
+
+    if not isinstance(parsed, dict):
+        raise DesktopError("device /get_info response was not a JSON object")
+
+    return parsed
+
+
+def ping_the_fly(args: argparse.Namespace) -> None:
+    base_url = normalize_device_base(args.device) if args.device else discover_the_fly(args.mdns_timeout)
+    print(f"device: {base_url}")
+
+    info = fetch_device_info(base_url, args.device_timeout)
+    device_name = info.get("device_name")
+    firmware = info.get("firmware")
+    self_ip = info.get("self_ip")
+
+    if not any(isinstance(value, str) and value for value in (device_name, firmware, self_ip)):
+        raise DesktopError("device /get_info response did not look like a The-Fly device")
+
+    details: list[str] = []
+    if isinstance(device_name, str) and device_name:
+        details.append(f"name={device_name}")
+    if isinstance(firmware, str) and firmware:
+        details.append(f"firmware={firmware}")
+    if isinstance(self_ip, str) and self_ip:
+        details.append(f"ip={self_ip}")
+
+    suffix = f" ({', '.join(details)})" if details else ""
+    print(f"ping ok: The-Fly responded at {base_url}{suffix}")
+
+
 def parse_remote_file_item(item: object) -> RemoteFile:
     if isinstance(item, str):
         if not item:
@@ -619,6 +656,7 @@ def discover_the_fly(timeout: float) -> str:
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Sync and process The-Fly recordings on this desktop")
     parser.add_argument("--device", "--url", dest="device", help="The-Fly device IP, hostname, or base URL; otherwise mDNS is used")
+    parser.add_argument("--ping", action="store_true", help="discover and ping The-Fly, then exit without file operations")
     parser.add_argument("--key", type=Path, help="filecrypt key file for encrypted .rec and .fly files")
     parser.add_argument("--password", help="derive the filecrypt key from this password for this session")
     parser.add_argument("--db-dir", type=Path, default=DEFAULT_DB_DIR, help=f"database directory; default: {DEFAULT_DB_DIR}")
@@ -663,6 +701,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.mdns_timeout <= 0:
         print("error: --mdns-timeout must be positive", file=sys.stderr)
         return 2
+
+    if args.ping:
+        try:
+            ping_the_fly(args)
+        except (DesktopError, OSError, ValueError) as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        return 0
+
     if args.api_timeout <= 0:
         print("error: --api-timeout must be positive", file=sys.stderr)
         return 2
