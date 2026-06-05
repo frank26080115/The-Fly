@@ -23,9 +23,40 @@ static uint16_t meter_color(uint8_t level);
 AudioDeviceButton::AudioDeviceButton(Device device, int16_t x, int16_t y)
     : FlyGuiItem(x, y, kButtonSize, kButtonSize), device_(device)
 {
-    if (device_ == Device::Mic)
+    syncBaseSprite();
+}
+
+void AudioDeviceButton::setEarVariant(bool earVariant)
+{
+    if (earVariant_ == earVariant)
+    {
+        return;
+    }
+
+    earVariant_ = earVariant;
+    syncBaseSprite();
+    if (owner())
+    {
+        owner()->setDirty();
+    }
+}
+
+void AudioDeviceButton::syncBaseSprite()
+{
+    if (device_ == Device::Mic && earVariant_)
+    {
+        setSprite(sprite_micear_100, SPRITE_MICEAR_100_WIDTH, SPRITE_MICEAR_100_HEIGHT, SPRITE_MICEAR_100_BYTES);
+    }
+    else if (device_ == Device::Mic)
     {
         setSprite(sprite_mic_100, SPRITE_MIC_100_WIDTH, SPRITE_MIC_100_HEIGHT, SPRITE_MIC_100_BYTES);
+    }
+    else if (earVariant_)
+    {
+        setSprite(sprite_speakerear_100,
+                  SPRITE_SPEAKEREAR_100_WIDTH,
+                  SPRITE_SPEAKEREAR_100_HEIGHT,
+                  SPRITE_SPEAKEREAR_100_BYTES);
     }
     else
     {

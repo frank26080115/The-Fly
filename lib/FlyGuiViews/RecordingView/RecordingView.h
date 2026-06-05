@@ -48,6 +48,7 @@ private:
 
     void syncModeVisibility();
     void syncBluetoothIcon();
+    void syncExtCodecAudioIcons();
     void syncAudioButtons();
     void syncAnswerCallButton();
     void syncText();
@@ -71,6 +72,7 @@ private:
     uint32_t          lastDurationSecond_     = UINT32_MAX;
     uint32_t          nextCallerInfoCycleMs_  = 0;
     size_t            callerInfoIndex_        = 0;
+    uint32_t          extCodecStateGeneration_ = UINT32_MAX;
     bool              bluetoothIconConnected_ = true;
     bool              frameDirty_             = true;
 };

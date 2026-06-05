@@ -306,6 +306,11 @@ extern const uint8_t sprite_memotype_todo[];
 #define SPRITE_MIC_100_BYTES 10530u
 extern const uint8_t sprite_mic_100[];
 
+#define SPRITE_MICEAR_100_WIDTH 100u
+#define SPRITE_MICEAR_100_HEIGHT 100u
+#define SPRITE_MICEAR_100_BYTES 11789u
+extern const uint8_t sprite_micear_100[];
+
 #define SPRITE_MICROSDCARD_100_WIDTH 100u
 #define SPRITE_MICROSDCARD_100_HEIGHT 100u
 #define SPRITE_MICROSDCARD_100_BYTES 8897u
@@ -470,6 +475,11 @@ extern const uint8_t sprite_speaker_50[];
 #define SPRITE_SPEAKER_66_50_HEIGHT 50u
 #define SPRITE_SPEAKER_66_50_BYTES 3228u
 extern const uint8_t sprite_speaker_66_50[];
+
+#define SPRITE_SPEAKEREAR_100_WIDTH 100u
+#define SPRITE_SPEAKEREAR_100_HEIGHT 100u
+#define SPRITE_SPEAKEREAR_100_BYTES 12884u
+extern const uint8_t sprite_speakerear_100[];
 
 #define SPRITE_SPLASH_WIDTH 320u
 #define SPRITE_SPLASH_HEIGHT 240u

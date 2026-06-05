@@ -8,6 +8,7 @@
 #include "AudioManager.h"
 #include "BluetoothManager.h"
 #include "CallManager.h"
+#include "ExtCodec.h"
 #include "ModalDialog.h"
 #include "RecordingViewCallbacks.h"
 #include "sprites.h"
@@ -157,6 +158,7 @@ void RecordingView::onLoad()
     refreshRecordingFileName();
     syncModeVisibility();
     syncBluetoothIcon();
+    syncExtCodecAudioIcons();
     syncAudioButtons();
     syncAnswerCallButton();
     if (gui())
@@ -201,6 +203,7 @@ bool RecordingView::handleTouch(const FlyGuiTouchEvent& event)
 bool RecordingView::redraw(bool forced)
 {
     syncBluetoothIcon();
+    syncExtCodecAudioIcons();
     syncAudioButtons();
     syncAnswerCallButton();
     syncText();
@@ -445,6 +448,21 @@ void RecordingView::syncBluetoothIcon()
                                  SPRITE_BLUETOOTH_X_50_HEIGHT,
                                  SPRITE_BLUETOOTH_X_50_BYTES);
     }
+}
+
+void RecordingView::syncExtCodecAudioIcons()
+{
+    const uint32_t generation = ExtCodec::stateGeneration();
+    if (extCodecStateGeneration_ == generation)
+    {
+        return;
+    }
+
+    extCodecStateGeneration_ = generation;
+    speakerButton_.setEarVariant(ExtCodec::earbudPresent());
+    micButton_.setEarVariant(ExtCodec::inlineMicPresent());
+    frameDirty_ = true;
+    setDirty();
 }
 
 void RecordingView::syncAudioButtons()
