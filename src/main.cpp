@@ -15,6 +15,7 @@
 #include "Hotel.h"
 #include "FlyGui.h"
 #include "Display.h"
+#include "ExtCodec.h"
 #include "FirmwareUpdateView.h"
 #include "HapticsWrapper.h"
 #include "MainScreenView.h"
@@ -121,6 +122,8 @@ void setup()
         show_splash();
         draw_splash_boot_info();
     }
+
+    ExtCodec::init();
 
     if (!MicroSdCard::begin())
     {
