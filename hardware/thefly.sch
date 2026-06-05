@@ -2372,6 +2372,7 @@ Basic schematic elements and footprints for 0603, 1206, and PTH resistors.</desc
 <wire x1="160.02" y1="-38.1" x2="160.02" y2="-40.64" width="0.1524" layer="91"/>
 <pinref part="JP1" gate="A" pin="2"/>
 <wire x1="160.02" y1="-40.64" x2="144.78" y2="-40.64" width="0.1524" layer="91"/>
+<junction x="160.02" y="-40.64"/>
 </segment>
 </net>
 <net name="HP-SENSE-R" class="0">
