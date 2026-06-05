@@ -5,7 +5,7 @@
 #include "ExtCodec.h"
 
 #include <Arduino.h>
-#include <Wire.h>
+#include <M5Unified.h>
 
 #include <atomic>
 #include <mutex>
@@ -25,6 +25,7 @@ namespace
 constexpr const char* TAG = "ExtCodec";
 
 constexpr uint8_t kSGTL5000I2cAddress = 0x0A;
+constexpr uint32_t kSGTL5000I2cFreq    = 400000;
 
 constexpr uint16_t kEarbudConnectedThreshold    = 1800;
 constexpr uint16_t kInlineMicPresentThreshold   = 800;
@@ -254,15 +255,18 @@ namespace
 
 bool begin_i2c()
 {
-    Wire.begin(kInternalI2cSda, kInternalI2cScl);
-    delay(2);
-    return true;
+    if (M5.In_I2C.isEnabled())
+    {
+        return true;
+    }
+
+    DBG_LOGW(TAG, "internal I2C bus is not enabled");
+    return false;
 }
 
 bool sgtl5000_address_responds()
 {
-    Wire.beginTransmission(kSGTL5000I2cAddress);
-    return Wire.endTransmission() == 0;
+    return M5.In_I2C.scanID(kSGTL5000I2cAddress, kSGTL5000I2cFreq);
 }
 
 bool begin_sgtl5000_control()

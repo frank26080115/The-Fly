@@ -25,8 +25,8 @@
  */
 
 #include <Arduino.h>
+#include <M5Unified.h>
 #include "control_sgtl5000.h"
-#include "Wire.h"
 
 #define CHIP_ID				0x0000
 // 15:8 PARTID		0xA0 - 8 bit identifier for SGTL5000
@@ -499,6 +499,8 @@
 #define SGTL5000_I2C_ADDR_CS_LOW	0x0A  // CTRL_ADR0_CS pin low (normal configuration)
 #define SGTL5000_I2C_ADDR_CS_HIGH	0x2A // CTRL_ADR0_CS  pin high
 
+static constexpr uint32_t SGTL5000_I2C_FREQ = 400000;
+
 
 void AudioControlSGTL5000::setAddress(uint8_t level)
 {
@@ -520,7 +522,6 @@ bool AudioControlSGTL5000::enable(void) {
 bool AudioControlSGTL5000::enable(const unsigned extMCLK, const uint32_t pllFreq)
 {
 
-	Wire.begin();
 	delay(5);
 	
 	//Check if we are in Master Mode and if the Teensy had a reset:
@@ -594,27 +595,35 @@ bool AudioControlSGTL5000::enable(const unsigned extMCLK, const uint32_t pllFreq
 
 unsigned int AudioControlSGTL5000::read(unsigned int reg)
 {
-	unsigned int val;
-	Wire.beginTransmission(i2c_addr);
-	Wire.write(reg >> 8);
-	Wire.write(reg);
-	if (Wire.endTransmission(false) != 0) return 0;
-	if (Wire.requestFrom((int)i2c_addr, 2) < 2) return 0;
-	val = Wire.read() << 8;
-	val |= Wire.read();
-	return val;
+	uint8_t reg_buf[2] = { static_cast<uint8_t>(reg >> 8), static_cast<uint8_t>(reg) };
+	uint8_t val_buf[2] = {};
+
+	const bool started = M5.In_I2C.start(i2c_addr, false, SGTL5000_I2C_FREQ);
+	bool ok = started;
+	if (ok) ok = M5.In_I2C.write(reg_buf, sizeof(reg_buf));
+	if (ok) ok = M5.In_I2C.restart(i2c_addr, true, SGTL5000_I2C_FREQ);
+	if (ok) ok = M5.In_I2C.read(val_buf, sizeof(val_buf), true);
+	if (started) ok = M5.In_I2C.stop() && ok;
+	if (!ok) return 0;
+
+	return (static_cast<unsigned int>(val_buf[0]) << 8) | val_buf[1];
 }
 
 bool AudioControlSGTL5000::write(unsigned int reg, unsigned int val)
 {
 	if (reg == CHIP_ANA_CTRL) ana_ctrl = val;
-	Wire.beginTransmission(i2c_addr);
-	Wire.write(reg >> 8);
-	Wire.write(reg);
-	Wire.write(val >> 8);
-	Wire.write(val);
-	if (Wire.endTransmission() == 0) return true;
-	return false;
+	const uint8_t data[4] = {
+		static_cast<uint8_t>(reg >> 8),
+		static_cast<uint8_t>(reg),
+		static_cast<uint8_t>(val >> 8),
+		static_cast<uint8_t>(val),
+	};
+
+	const bool started = M5.In_I2C.start(i2c_addr, false, SGTL5000_I2C_FREQ);
+	bool ok = started;
+	if (ok) ok = M5.In_I2C.write(data, sizeof(data));
+	if (started) ok = M5.In_I2C.stop() && ok;
+	return ok;
 }
 
 unsigned int AudioControlSGTL5000::modify(unsigned int reg, unsigned int val, unsigned int iMask)
@@ -1071,4 +1080,3 @@ void calcBiquad(uint8_t filtertype, float fC, float dB_Gain, float Q, uint32_t q
   a2/=a0;
   *coef++=(int)(a2+0.499);
 }
-
