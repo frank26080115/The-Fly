@@ -14,7 +14,7 @@ Equivalent to a plain consumer voice recorder.
 
 Files are not encrypted.
 
-Audio is recorded directly to `*.wav`.
+Audio is recorded directly to `*.mp3`.
 
 FTP server is allowed
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "thefly_common.h"
+
 #include <Arduino.h>
 
 #include <cstddef>
