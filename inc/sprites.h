@@ -541,6 +541,11 @@ extern const uint8_t sprite_wifi_100[];
 #define SPRITE_WIFI_50_BYTES 3185u
 extern const uint8_t sprite_wifi_50[];
 
+#define SPRITE_WIFIINFO_100_WIDTH 100u
+#define SPRITE_WIFIINFO_100_HEIGHT 100u
+#define SPRITE_WIFIINFO_100_BYTES 13011u
+extern const uint8_t sprite_wifiinfo_100[];
+
 #define SPRITE_WIFISEARCH_100_WIDTH 100u
 #define SPRITE_WIFISEARCH_100_HEIGHT 100u
 #define SPRITE_WIFISEARCH_100_BYTES 12084u

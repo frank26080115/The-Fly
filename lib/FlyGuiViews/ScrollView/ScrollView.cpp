@@ -211,7 +211,7 @@ bool ScrollView::populateCloud()
         SCROLL_ITEM_WIFI_SHOW_SELF_INFO,
         SCROLL_TASK_WIFI_SHOW_SELF_INFO,
         "Wi-Fi Info",
-        make_sprite(sprite_wifi_100, SPRITE_WIFI_100_WIDTH, SPRITE_WIFI_100_HEIGHT, SPRITE_WIFI_100_BYTES));
+        make_sprite(sprite_wifiinfo_100, SPRITE_WIFIINFO_100_WIDTH, SPRITE_WIFIINFO_100_HEIGHT, SPRITE_WIFIINFO_100_BYTES));
 
 #ifdef BUILD_CLOUD_FEATURES
     for (size_t i = 0; i < WifiManager::cloudEndpointCount(); ++i)
