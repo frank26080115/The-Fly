@@ -61,14 +61,21 @@ constexpr uint32_t    kNetworkConfigVersion = 3;
 constexpr const char* kNetworkNvsNamespace  = "wifi_cfg";
 constexpr const char* kNetworkNvsBlobName   = "network";
 
+// -----------------------------------------------------------------------------
+// Globals
+// -----------------------------------------------------------------------------
+
 network_cfg_t                     g_network_cfg          = {};
 size_t                            g_station_count        = 0;
 size_t                            g_access_point_count   = 0;
 size_t                            g_cloud_endpoint_count = 0;
 WifiManager::LoadResult           g_last_load_result     = WifiManager::LoadResult::Ok;
 WifiManager::Status               g_status               = WifiManager::Status::Idle;
-const wifi_item_t*                g_active_wifi          = nullptr;
-const wifi_item_t*                g_connected_wifi       = nullptr;
+wifi_item_t                       g_active_wifi          = {};
+wifi_item_t                       g_connected_wifi       = {};
+bool                              g_has_active_wifi      = false;
+bool                              g_has_connected_wifi   = false;
+bool                              g_active_generated_ap  = false;
 bool                              g_wifi_has_started     = false;
 bool                              g_reported_connected   = false;
 WifiManager::ConnectionCallback   g_on_connect           = nullptr;
@@ -111,6 +118,12 @@ void      format_generated_soft_ap_password(char* password, size_t password_size
 void      configure_soft_ap_security(wifi_config_t& config, const char* ssid, const char* password);
 bool      start_secure_soft_ap(const char* ssid, const char* password);
 IPAddress current_soft_ap_ip();
+const wifi_item_t* active_wifi_ptr();
+const wifi_item_t* connected_wifi_ptr();
+void               set_active_wifi(const wifi_item_t* item, bool generated_soft_ap);
+void               clear_active_wifi();
+void               set_connected_wifi(const wifi_item_t* item);
+void               clear_connected_wifi();
 
 } // namespace
 
@@ -374,9 +387,6 @@ bool WifiManager::replaceConfig(const network_cfg_t& config)
 #else
     g_cloud_endpoint_count = 0;
 #endif
-    g_active_wifi        = nullptr;
-    g_connected_wifi     = nullptr;
-    g_reported_connected = false;
 
     return saveToNvs();
 }
@@ -387,8 +397,8 @@ void WifiManager::clear()
     g_station_count        = 0;
     g_access_point_count   = 0;
     g_cloud_endpoint_count = 0;
-    g_active_wifi          = nullptr;
-    g_connected_wifi       = nullptr;
+    clear_active_wifi();
+    clear_connected_wifi();
     g_reported_connected   = false;
     g_last_load_result     = LoadResult::Ok;
     cache_network_config_hash(g_network_cfg);
@@ -439,7 +449,7 @@ bool WifiManager::connectToHotspot(const wifi_item_t* hotspot, bool shutdown_fir
     if (!hotspot || !hotspot->ssid || hotspot->ssid[0] == '\0')
     {
         g_status      = Status::ConnectFailed;
-        g_active_wifi = nullptr;
+        clear_active_wifi();
         DBG_LOGW(TAG, "cannot connect to missing Wi-Fi hotspot");
         return false;
     }
@@ -452,14 +462,14 @@ bool WifiManager::connectToHotspot(const wifi_item_t* hotspot, bool shutdown_fir
 
     if (g_reported_connected)
     {
-        notifyDisconnected(g_connected_wifi);
+        notifyDisconnected(connected_wifi_ptr());
     }
 
     WiFi.softAPdisconnect(true);
     if (!WiFi.mode(WIFI_STA))
     {
         g_status      = Status::ConnectFailed;
-        g_active_wifi = nullptr;
+        clear_active_wifi();
         DBG_LOGW(TAG, "could not switch Wi-Fi to station mode");
         return false;
     }
@@ -468,7 +478,7 @@ bool WifiManager::connectToHotspot(const wifi_item_t* hotspot, bool shutdown_fir
     const char* password = hotspot->password && hotspot->password[0] != '\0' ? hotspot->password : nullptr;
     WiFi.begin(hotspot->ssid, password);
 
-    g_active_wifi = hotspot;
+    set_active_wifi(hotspot, false);
     g_status      = Status::StationConnecting;
     DBG_LOGI(TAG, "started Wi-Fi station connection to \"%s\"", hotspot->ssid);
     return true;
@@ -480,7 +490,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     {
         resetSoftApClientTracking();
         g_status      = Status::AccessPointFailed;
-        g_active_wifi = nullptr;
+        clear_active_wifi();
         DBG_LOGW(TAG, "cannot start missing Wi-Fi access point");
         return false;
     }
@@ -490,7 +500,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
 
     if (g_reported_connected)
     {
-        notifyDisconnected(g_connected_wifi);
+        notifyDisconnected(connected_wifi_ptr());
     }
 
     WiFi.disconnect(true, false);
@@ -501,7 +511,7 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
     {
         resetSoftApClientTracking();
         g_status      = Status::AccessPointFailed;
-        g_active_wifi = nullptr;
+        clear_active_wifi();
         DBG_LOGW(TAG,
                  "cannot start WPA3-only Wi-Fi access point \"%s\" without an 8+ character password",
                  access_point->ssid);
@@ -513,16 +523,16 @@ bool WifiManager::startSoftAp(const wifi_item_t* access_point)
         WiFi.softAPdisconnect(true);
         resetSoftApClientTracking();
         g_status      = Status::AccessPointFailed;
-        g_active_wifi = nullptr;
+        clear_active_wifi();
         DBG_LOGW(TAG, "could not start WPA3-only Wi-Fi access point \"%s\"", access_point->ssid);
         return false;
     }
 
-    g_active_wifi      = access_point;
+    set_active_wifi(access_point, access_point == &g_generated_soft_ap);
     g_status           = Status::AccessPoint;
     g_wifi_has_started = true;
     resetWebCounters();
-    notifyConnected(access_point);
+    notifyConnected(active_wifi_ptr());
     DBG_LOGI(TAG,
              "started Wi-Fi access point \"%s\" at %s",
              access_point->ssid,
@@ -551,14 +561,14 @@ bool WifiManager::scanAndConnect()
 
     if (g_reported_connected)
     {
-        notifyDisconnected(g_connected_wifi);
+        notifyDisconnected(connected_wifi_ptr());
     }
     resetSoftApClientTracking();
 
     if (g_station_count == 0)
     {
         g_status      = Status::NoKnownNetwork;
-        g_active_wifi = nullptr;
+        clear_active_wifi();
         DBG_LOGW(TAG, "cannot scan/connect: no configured Wi-Fi stations");
         return false;
     }
@@ -569,7 +579,7 @@ bool WifiManager::scanAndConnect()
     if (!WiFi.mode(WIFI_STA))
     {
         g_status      = Status::ScanFailed;
-        g_active_wifi = nullptr;
+        clear_active_wifi();
         DBG_LOGW(TAG, "could not switch Wi-Fi to station mode for scan");
         return false;
     }
@@ -579,13 +589,13 @@ bool WifiManager::scanAndConnect()
     if (scan_result != WIFI_SCAN_RUNNING)
     {
         g_status      = Status::ScanFailed;
-        g_active_wifi = nullptr;
+        clear_active_wifi();
         DBG_LOGW(TAG, "could not start async Wi-Fi scan: %d", scan_result);
         WiFi.scanDelete();
         return false;
     }
 
-    g_active_wifi = nullptr;
+    clear_active_wifi();
     g_status      = Status::StationScanning;
     DBG_LOGI(TAG, "started async Wi-Fi scan");
     return true;
@@ -593,7 +603,8 @@ bool WifiManager::scanAndConnect()
 
 bool WifiManager::disconnect()
 {
-    const wifi_item_t* disconnected_wifi    = g_connected_wifi ? g_connected_wifi : g_active_wifi;
+    const wifi_item_t* disconnected_wifi =
+        connected_wifi_ptr() ? connected_wifi_ptr() : active_wifi_ptr();
     const bool         station_disconnected = WiFi.disconnect(true, false);
     const bool         ap_disconnected      = WiFi.softAPdisconnect(true);
     WiFi.mode(WIFI_OFF);
@@ -603,8 +614,8 @@ bool WifiManager::disconnect()
         notifyDisconnected(disconnected_wifi);
     }
 
-    g_active_wifi    = nullptr;
-    g_connected_wifi = nullptr;
+    clear_active_wifi();
+    clear_connected_wifi();
     g_status         = Status::Idle;
     resetSoftApClientTracking();
     return station_disconnected || ap_disconnected;
@@ -632,7 +643,7 @@ void WifiManager::poll()
         if (network_count < 0)
         {
             g_status      = Status::ScanFailed;
-            g_active_wifi = nullptr;
+            clear_active_wifi();
             DBG_LOGW(TAG, "Wi-Fi scan failed: %d", network_count);
             WiFi.scanDelete();
             return;
@@ -651,7 +662,7 @@ void WifiManager::poll()
         }
 
         WiFi.scanDelete();
-        g_active_wifi = nullptr;
+        clear_active_wifi();
         if (found_item)
         {
             g_status = Status::Idle;
@@ -675,16 +686,16 @@ void WifiManager::poll()
         {
             updateSoftApClientTracking();
         }
-        if (!g_reported_connected && g_active_wifi)
+        if (!g_reported_connected && active_wifi_ptr())
         {
-            notifyConnected(g_active_wifi);
+            notifyConnected(active_wifi_ptr());
         }
         return;
     }
 
     if (g_reported_connected)
     {
-        notifyDisconnected(g_connected_wifi);
+        notifyDisconnected(connected_wifi_ptr());
     }
 
     if (g_status == Status::StationConnecting)
@@ -741,17 +752,17 @@ void WifiManager::setOnScanFinished(ScanFinishedCallback callback)
 
 const wifi_item_t* WifiManager::activeWifi()
 {
-    return g_active_wifi;
+    return active_wifi_ptr();
 }
 
 const wifi_item_t* WifiManager::connectedWifi()
 {
-    return g_connected_wifi;
+    return connected_wifi_ptr();
 }
 
 bool WifiManager::isGeneratedSoftApActive()
 {
-    return status() == Status::AccessPoint && g_active_wifi == &g_generated_soft_ap;
+    return status() == Status::AccessPoint && g_has_active_wifi && g_active_generated_ap;
 }
 
 const char* WifiManager::generatedSoftApSsid()
@@ -761,13 +772,13 @@ const char* WifiManager::generatedSoftApSsid()
 
 const char* WifiManager::softApPassword()
 {
-    if (status() != Status::AccessPoint || !g_active_wifi || !g_active_wifi->password ||
-        g_active_wifi->password[0] == '\0')
+    const wifi_item_t* active = active_wifi_ptr();
+    if (status() != Status::AccessPoint || !active || active->password[0] == '\0')
     {
         return nullptr;
     }
 
-    return g_active_wifi->password;
+    return active->password;
 }
 
 IPAddress WifiManager::softApIp()
@@ -894,23 +905,30 @@ void WifiManager::updateSoftApClientTracking()
 
 void WifiManager::notifyConnected(const wifi_item_t* item)
 {
-    g_connected_wifi     = item;
-    g_reported_connected = true;
+    set_connected_wifi(item);
+    g_reported_connected = g_has_connected_wifi;
 
     if (g_on_connect)
     {
-        g_on_connect(item);
+        g_on_connect(connected_wifi_ptr());
     }
 }
 
 void WifiManager::notifyDisconnected(const wifi_item_t* item)
 {
-    g_connected_wifi     = nullptr;
+    wifi_item_t disconnected = {};
+    const bool  has_item     = item != nullptr;
+    if (has_item)
+    {
+        disconnected = *item;
+    }
+
+    clear_connected_wifi();
     g_reported_connected = false;
 
     if (g_on_disconnect)
     {
-        g_on_disconnect(item);
+        g_on_disconnect(has_item ? &disconnected : nullptr);
     }
 }
 
@@ -953,7 +971,6 @@ const char* WifiManager::lastLoadResultName()
 namespace
 {
 
-// -----------------------------------------------------------------------------
 // Supporting Functions
 // -----------------------------------------------------------------------------
 
@@ -1312,6 +1329,54 @@ bool scan_has_ssid(int network_count, const char* ssid)
 bool is_connected_status(WifiManager::Status status)
 {
     return status == WifiManager::Status::StationConnected || status == WifiManager::Status::AccessPoint;
+}
+
+const wifi_item_t* active_wifi_ptr()
+{
+    return g_has_active_wifi ? &g_active_wifi : nullptr;
+}
+
+const wifi_item_t* connected_wifi_ptr()
+{
+    return g_has_connected_wifi ? &g_connected_wifi : nullptr;
+}
+
+void set_active_wifi(const wifi_item_t* item, bool generated_soft_ap)
+{
+    if (!item)
+    {
+        clear_active_wifi();
+        return;
+    }
+
+    g_active_wifi         = *item;
+    g_has_active_wifi     = true;
+    g_active_generated_ap = generated_soft_ap;
+}
+
+void clear_active_wifi()
+{
+    memset(&g_active_wifi, 0, sizeof(g_active_wifi));
+    g_has_active_wifi     = false;
+    g_active_generated_ap = false;
+}
+
+void set_connected_wifi(const wifi_item_t* item)
+{
+    if (!item)
+    {
+        clear_connected_wifi();
+        return;
+    }
+
+    g_connected_wifi     = *item;
+    g_has_connected_wifi = true;
+}
+
+void clear_connected_wifi()
+{
+    memset(&g_connected_wifi, 0, sizeof(g_connected_wifi));
+    g_has_connected_wifi = false;
 }
 
 void shutdown_for_wifi_activation()
