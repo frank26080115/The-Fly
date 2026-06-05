@@ -260,7 +260,15 @@ static void draw_splash_optional_boot_info(int16_t textX)
     const char* timezone = WifiManager::timezone();
     if (WifiManager::lastLoadResult() == WifiManager::LoadResult::Ok && timezone && timezone[0] != '\0')
     {
-        snprintf(line, sizeof(line), "TZ: %s", timezone);
+        char timezoneText[sizeof(line)] = {};
+        strlcpy(timezoneText, timezone, sizeof(timezoneText));
+        char* comma = strchr(timezoneText, ',');
+        if (comma)
+        {
+            *comma = '\0';
+        }
+
+        snprintf(line, sizeof(line), "TZ: %s", timezoneText);
         draw_splash_text_line(line, textX, y);
     }
 }
