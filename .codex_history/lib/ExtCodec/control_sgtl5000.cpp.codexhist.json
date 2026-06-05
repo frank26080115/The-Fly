@@ -1,0 +1,78 @@
+[
+  {
+    "timestamp": "2026-06-05T20:16:54Z",
+    "type": "git_commit",
+    "commit_message": "adding teensy library for SGTL5000",
+    "commit_hash": "97599d61001edb8bc6be3cef95976cd1763365a7"
+  },
+  {
+    "timestamp": "2026-06-05T21:34:53.185Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "```",
+      "NVS initialized",
+      "",
+      "assert failed: xTaskPriorityDisinherit IDF\\components\\freertos\\FreeRTOS-Kernel\\tasks.c:5153 (pxTCB == pxCurrentTCBs[ xPortGetCoreID() ])",
+      "",
+      "",
+      "Backtrace: 0x400838b6:0x3ffd93d0 0x40096af5:0x3ffd93f0 0x4009d006:0x3ffd9410 0x40099afa:0x3ffd9530 0x40096b1a:0x3ffd9550 0x40096efe:0x3ffd9570 0x400dd975:0x3ffd95b0 0x400de51b:0x3ffd9600 0x400de8b7:0x3ffd9630 0x400e3119:0x3ffd9680 0x400e4d19:0x3ffd96c0 0x400e58a5:0x3ffd96e0 0x400e58e4:0x3ffd9710 0x400e4237:0x3ffd9730 0x40108bfc:0x3ffd9760 0x40108c33:0x3ffd9780 0x40108d72:0x3ffd97b0 0x400d3db0:0x3ffd97d0 0x40115da0:0x3ffd98b0 0x400977ca:0x3ffd98d0",
+      "  #0  0x400838b6 in panic_abort at C:\\Users\\frank\\.platformio\\packages\\framework-espidf\\components\\esp_system/panic.c:463",
+      "  #1  0x40096af5 in esp_system_abort at C:\\Users\\frank\\.platformio\\packages\\framework-espidf\\components\\esp_system\\port/esp_system_chip.c:92",
+      "  #2  0x4009d006 in __assert_func at C:\\Users\\frank\\.platformio\\packages\\framework-espidf\\components\\newlib/assert.c:80",
+      "  #3  0x40099afa in xTaskPriorityDisinherit at C:\\Users\\frank\\.platformio\\packages\\framework-espidf\\components\\freertos\\FreeRTOS-Kernel/tasks.c:5154 (discriminator 1)",
+      "  #4  0x40096b1a in prvCopyDataToQueue at C:\\Users\\frank\\.platformio\\packages\\framework-espidf\\components\\freertos\\FreeRTOS-Kernel/queue.c:2469",
+      "  #5  0x40096efe in xQueueGenericSend at C:\\Users\\frank\\.platformio\\packages\\framework-espidf\\components\\freertos\\FreeRTOS-Kernel/queue.c:964",
+      "  #6  0x400dd975 in lgfx::v1::i2c::i2c_context_t::unlock() at .pio/libdeps/thefly_sec0/M5GFX@0.2.20/src/lgfx/v1/platforms/esp32/common.cpp:1037",
+      "      (inlined by) i2c_wait at .pio/libdeps/thefly_sec0/M5GFX@0.2.20/src/lgfx/v1/platforms/esp32/common.cpp:1311",
+      "  #7  0x400de51b in lgfx::v1::i2c::endTransaction(int) at .pio/libdeps/thefly_sec0/M5GFX@0.2.20/src/lgfx/v1/platforms/esp32/common.cpp:1689",
+      "      (inlined by) lgfx::v1::i2c::endTransaction(int) at .pio/libdeps/thefly_sec0/M5GFX@0.2.20/src/lgfx/v1/platforms/esp32/common.cpp:1686",
+      "  #8  0x400de8b7 in lgfx::v1::i2c::transactionWriteRead(int, int, unsigned char const*, unsigned char, unsigned char*, unsigned int, unsigned long) at .pio/libdeps/thefly_sec0/M5GFX@0.2.20/src/lgfx/v1/platforms/esp32/common.cpp:1840",
+      "  #9  0x400e3119 in lgfx::v1::i2c::readRegister(int, int, unsigned char, unsigned char*, unsigned int, unsigned long) at .pio/libdeps/thefly_sec0/M5GFX@0.2.20/src/lgfx/v1/platforms/esp32/../common.hpp:193",
+      "      (inlined by) m5::I2C_Class::readRegister(unsigned char, unsigned char, unsigned char*, unsigned int, unsigned long) const at .pio/libdeps/thefly_sec0/M5Unified/src/utility/I2C_Class.cpp:77",
+      "  #10 0x400e4d19 in m5::I2C_Device::readRegister(unsigned char, unsigned char*, unsigned int) const at .pio/libdeps/thefly_sec0/M5Unified/src/utility/imu/../I2C_Class.hpp:187",
+      "  #11 0x400e58a5 in m5::AXP192_Class::readRegister12(unsigned char) at .pio/libdeps/thefly_sec0/M5Unified/src/utility/power/AXP192_Class.cpp:336",
+      "  #12 0x400e58e4 in m5::AXP192_Class::getBatteryVoltage() at .pio/libdeps/thefly_sec0/M5Unified/src/utility/power/AXP192_Class.cpp:314",
+      "  #13 0x400e4237 in m5::Power_Class::getBatteryVoltage() at .pio/libdeps/thefly_sec0/M5Unified/src/utility/Power_Class.cpp:1439",
+      "  #14 0x40108bfc in BattTracker::halReadBatteryVoltage() at lib/BattTracker/BattTracker.cpp:229",
+      "  #15 0x40108c33 in BattTracker::(anonymous namespace)::updateNow() at lib/BattTracker/BattTracker.cpp:137",
+      "  #16 0x40108d72 in BattTracker::poll() at lib/BattTracker/BattTracker.cpp:68",
+      "  #17 0x400d3db0 in loop() at src/main.cpp:247",
+      "  #18 0x40115da0 in loopTask(void*) at C:/Users/frank/.platformio/packages/framework-arduinoespressif32/cores/esp32/main.cpp:74",
+      "  #19 0x400977ca in vPortTaskWrapper at C:\\Users\\frank\\.platformio\\packages\\framework-espidf\\components\\freertos\\FreeRTOS-Kernel\\portable\\xtensa/port.c:139",
+      "```",
+      "",
+      "that's new, probably the codec checking and the battery tracker conflicting?"
+    ],
+    "agent_reply": [
+      "Yep, I think that was it. Not really codec ADC vs battery tracker, but the new codec code was using raw Arduino `Wire` on the same internal I2C bus that `M5.Power.getBatteryVoltage()` uses through M5Unified. The bare `Wire.begin()` in the SGTL5000 enable path was especially suspicious.",
+      "",
+      "I patched it so the codec now shares M5Unified’s I2C path:",
+      "",
+      "- [ExtCodec.cpp](C:/GitHubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:258) probes with `M5.In_I2C.scanID()` and no longer calls `Wire.begin()`.",
+      "- [control_sgtl5000.cpp](C:/GitHubRepos/The-Fly/lib/ExtCodec/control_sgtl5000.cpp:601) does SGTL5000 16-bit register reads/writes through `M5.In_I2C.start/write/restart/read/stop`.",
+      "- Removed raw `Wire` use from the ExtCodec path.",
+      "",
+      "Verified:",
+      "- `pio run -e thefly_sec0` passes",
+      "- `pio run -e thefly_sec1` passes",
+      "",
+      "One note: the builds regenerated `src/version.c`; `tools/test_builds/` is still untracked from before."
+    ],
+    "files": [
+      "lib/ExtCodec/ExtCodec.cpp",
+      "lib/ExtCodec/control_sgtl5000.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-05T21:42:09Z",
+    "type": "git_commit",
+    "commit_message": "fixed new i2c code from codec crashing",
+    "commit_hash": "b267c0bae76f8066902a3ac296e1931f40d87725"
+  }
+]

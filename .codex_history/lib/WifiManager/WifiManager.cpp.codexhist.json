@@ -2935,5 +2935,84 @@
     "type": "git_commit",
     "commit_message": "haptics implemented across the board",
     "commit_hash": "b0281be08ff90256d2e231f0ba9c25e7422784c1"
+  },
+  {
+    "timestamp": "2026-06-05T21:14:25.090Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.cpp",
+      "",
+      "## My request for Codex:",
+      "hmmm I don't know what I did, I have left this unit on for a while in the soft AP mode, now the SSID is empty, hiding still shows the asterisks but showing it shows nothing. my desktop PC does detect a AP with \"Fly-\" ",
+      "",
+      "what could possibly be writing into that string memory?!"
+    ],
+    "agent_reply": [
+      "I found it: probably nothing was writing into the SSID string memory.",
+      "",
+      "The SoftAP radio has its own copied SSID, so your PC can still see `Fly-...`. But the GUI reads `WifiManager::activeWifi()`. Our newer time-sync timezone save path calls `WifiManager::replaceConfig()`, and `replaceConfig()` was clearing `g_active_wifi` while leaving the AP running. Result: AP still broadcasts, but the AP screen has no active Wi-Fi pointer, so shown SSID renders blank and hidden SSID renders the fixed asterisks. Very rude little bookkeeping bug.",
+      "",
+      "I patched [WifiManager.cpp](c:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:389) so `replaceConfig()` preserves active/connected Wi-Fi references across config saves, including the generated SoftAP pointer.",
+      "",
+      "Verified:",
+      "`pio run -e thefly_sec0` passed  ",
+      "`pio run -e thefly_sec1` passed",
+      "",
+      "I found it: probably nothing was writing into the SSID string memory.",
+      "",
+      "The SoftAP radio has its own copied SSID, so your PC can still see `Fly-...`. But the GUI reads `WifiManager::activeWifi()`. Our newer time-sync timezone save path calls `WifiManager::replaceConfig()`, and `replaceConfig()` was clearing `g_active_wifi` while leaving the AP running. Result: AP still broadcasts, but the AP screen has no active Wi-Fi pointer, so shown SSID renders blank and hidden SSID renders the fixed asterisks. Very rude little bookkeeping bug.",
+      "",
+      "I patched [WifiManager.cpp](c:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:389) so `replaceConfig()` preserves active/connected Wi-Fi references across config saves, including the generated SoftAP pointer.",
+      "",
+      "Verified:",
+      "`pio run -e thefly_sec0` passed  ",
+      "`pio run -e thefly_sec1` passed"
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-05T21:25:44.151Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.cpp",
+      "",
+      "## My request for Codex:",
+      "please implement my approach",
+      "",
+      "the policy is that entering wifi will result in a reboot if the user wants to exit in any way, so don't bother applying changes to configuration in real time, there's no repopulation of menu items required, a reboot will cause such things"
+    ],
+    "agent_reply": [
+      "Implemented your approach in [WifiManager.cpp](c:/GitHubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:72).",
+      "",
+      "`WifiManager` now keeps runtime-owned copies for active/connected Wi-Fi state instead of pointers into `g_network_cfg`:",
+      "",
+      "- `g_active_wifi` / `g_connected_wifi` are `wifi_item_t` copies.",
+      "- Validity is tracked with `g_has_active_wifi` / `g_has_connected_wifi`.",
+      "- Generated soft AP identity is tracked with `g_active_generated_ap`, not pointer equality.",
+      "- `replaceConfig()` now only updates persisted config and does not disturb the running AP/station state.",
+      "- `activeWifi()` / `connectedWifi()` still return `const wifi_item_t*`, but now those point to stable runtime copies.",
+      "",
+      "Verified:",
+      "`pio run -e thefly_sec0` passed  ",
+      "`pio run -e thefly_sec1` passed",
+      "",
+      "`src/version.c` changed from the build, and `tools/test_builds/` is still untracked/pre-existing."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-05T21:32:17Z",
+    "type": "git_commit",
+    "commit_message": "fixed the case when writing cfg from web will wipe out the SSID being displayed",
+    "commit_hash": "f2f438bf1d447d16a1dfc7e37bbb829d8bdb2dbd"
   }
 ]
