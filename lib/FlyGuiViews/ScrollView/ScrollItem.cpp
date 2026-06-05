@@ -1,5 +1,6 @@
 #include "ScrollItem.h"
 
+#include "HapticsWrapper.h"
 #include "IconLookup.h"
 #include "sprites.h"
 #include <string.h>
@@ -74,6 +75,7 @@ bool ScrollItem::trigger(uint32_t pressDurationMs)
 
     if (scrollCallback_)
     {
+        haptic_play_click();
         scrollCallback_(*this, callbackContext_, pressDurationMs);
     }
 

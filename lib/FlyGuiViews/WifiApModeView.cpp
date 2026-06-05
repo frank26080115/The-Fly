@@ -176,6 +176,7 @@ void WifiApModeView::onPressRight()
 
 void WifiApModeView::toggleSensitive()
 {
+    haptic_play_click();
     showSensitive_ = !showSensitive_;
     syncEyeSprite();
     setDirty();
