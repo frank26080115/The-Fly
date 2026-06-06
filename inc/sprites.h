@@ -21,6 +21,11 @@ extern const uint8_t sprite_batt_full[];
 #define SPRITE_BATT_FULL_CHARGING_BYTES 138u
 extern const uint8_t sprite_batt_full_charging[];
 
+#define SPRITE_BATT_FULL_NOTCHARGING_WIDTH 20u
+#define SPRITE_BATT_FULL_NOTCHARGING_HEIGHT 10u
+#define SPRITE_BATT_FULL_NOTCHARGING_BYTES 141u
+extern const uint8_t sprite_batt_full_notcharging[];
+
 #define SPRITE_BATT_LOW_WIDTH 20u
 #define SPRITE_BATT_LOW_HEIGHT 10u
 #define SPRITE_BATT_LOW_BYTES 161u

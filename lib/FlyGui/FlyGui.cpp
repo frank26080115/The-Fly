@@ -29,6 +29,7 @@ static constexpr int16_t     kTopBarDateTimeY      = 1;
 static constexpr int16_t     kTopBarDateTimeWidth  = 150;
 static constexpr int16_t     kTopBarDateTimeHeight = 8;
 static constexpr int16_t     kTopBarBatteryWidth   = 22;
+static constexpr int32_t     kBatteryFullPluggedNotChargingStatus = 0x08;
 
 // -----------------------------------------------------------------------------
 // Types
@@ -814,6 +815,11 @@ static int32_t batteryStatusCode()
         return -1;
     }
 
+    if (!BattTracker::isCharging() && BattTracker::isUsbAvailable() && level == 2)
+    {
+        return kBatteryFullPluggedNotChargingStatus;
+    }
+
     return level | (BattTracker::isCharging() ? 0x04 : 0x00);
 }
 
@@ -842,6 +848,11 @@ static BatterySprite batterySpriteForStatus(int32_t status)
                 SPRITE_BATT_FULL_CHARGING_WIDTH,
                 SPRITE_BATT_FULL_CHARGING_HEIGHT,
                 SPRITE_BATT_FULL_CHARGING_BYTES};
+    case kBatteryFullPluggedNotChargingStatus:
+        return {sprite_batt_full_notcharging,
+                SPRITE_BATT_FULL_NOTCHARGING_WIDTH,
+                SPRITE_BATT_FULL_NOTCHARGING_HEIGHT,
+                SPRITE_BATT_FULL_NOTCHARGING_BYTES};
     default:
         return {};
     }

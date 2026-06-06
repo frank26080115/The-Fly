@@ -20,6 +20,7 @@ constexpr float    kUnknownVoltage             = -1.0f;
 uint32_t    last_poll_ms    = 0;
 float       tracked_voltage = kUnknownVoltage;
 bool        charging        = false;
+bool        usb_available   = false;
 ChargeLevel tracked_level   = ChargeLevel::unknown;
 bool        initialized     = false;
 uint32_t    start_time      = 0;
@@ -29,6 +30,7 @@ uint32_t    start_time      = 0;
 // -----------------------------------------------------------------------------
 
 static void        updateNow();
+static bool        halReadBatteryCharging();
 static ChargeLevel levelFromVoltage(float volts);
 static ChargeLevel levelFromChargingVoltage(float volts, ChargeLevel current);
 
@@ -44,6 +46,7 @@ void init()
     last_poll_ms    = millis();
     tracked_voltage = kUnknownVoltage;
     charging        = false;
+    usb_available   = false;
     tracked_level   = ChargeLevel::unknown;
     start_time      = last_poll_ms;
     updateNow();
@@ -120,6 +123,11 @@ bool isCharging()
     return charging;
 }
 
+bool isUsbAvailable()
+{
+    return usb_available;
+}
+
 float voltage()
 {
     return tracked_voltage;
@@ -135,9 +143,10 @@ namespace
 void updateNow()
 {
     const float measured_voltage  = halReadBatteryVoltage();
-    const bool  measured_charging = halReadUsbAvailable();
+    const bool  measured_charging = halReadBatteryCharging();
 
-    charging = measured_charging;
+    charging      = measured_charging;
+    usb_available = halReadUsbAvailable();
 
     if (!isfinite(measured_voltage) || measured_voltage <= 0.0f)
     {
@@ -216,6 +225,15 @@ ChargeLevel levelFromChargingVoltage(float volts, ChargeLevel current)
     }
 }
 
+bool halReadBatteryCharging()
+{
+#ifndef TEST_SIM_BATTERY
+    return M5.Power.isCharging() == m5::Power_Class::is_charging;
+#else
+    return false;
+#endif
+}
+
 } // namespace
 
 // -----------------------------------------------------------------------------
@@ -248,7 +266,24 @@ float halReadBatteryVoltage()
 bool halReadUsbAvailable()
 {
 #ifndef TEST_SIM_BATTERY
-    return M5.Power.isCharging() == m5::Power_Class::is_charging;
+    switch (M5.Power.getType())
+    {
+#if !defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(CONFIG_IDF_TARGET_ESP32C3) &&                                      \
+    !defined(CONFIG_IDF_TARGET_ESP32C6) && !defined(CONFIG_IDF_TARGET_ESP32P4)
+    case m5::Power_Class::pmic_axp192:
+        return M5.Power.Axp192.isACIN();
+#endif
+
+#if defined(CONFIG_IDF_TARGET_ESP32S3) ||                                                                                 \
+    (!defined(CONFIG_IDF_TARGET_ESP32C3) && !defined(CONFIG_IDF_TARGET_ESP32C6) &&                                       \
+     !defined(CONFIG_IDF_TARGET_ESP32P4))
+    case m5::Power_Class::pmic_axp2101:
+        return M5.Power.Axp2101.isVBUS();
+#endif
+
+    default:
+        return M5.Power.getVBUSVoltage() > 4000;
+    }
 #else
     return false;
 #endif

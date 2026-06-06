@@ -35,6 +35,7 @@ void shutdownIfNeeded();
 Status      status();
 ChargeLevel level();
 bool        isCharging();
+bool        isUsbAvailable();
 float       voltage();
 
 float halReadBatteryVoltage();
