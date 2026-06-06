@@ -1379,6 +1379,45 @@ Commonly used for 1/4W through-hole resistors. 0.3" pitch between holes.&lt;br&g
 <vertex x="-9" y="-2"/>
 </polygon>
 </package>
+<package name="TENSILITY_54-00298_HOLES">
+<text x="-3.4" y="9.5" size="1.27" layer="25">&gt;NAME</text>
+<text x="-3.4" y="8" size="1.27" layer="27">&gt;VALUE</text>
+<wire x1="-3.15" y1="-5" x2="-3.15" y2="7" width="0.127" layer="51"/>
+<wire x1="-3.15" y1="7" x2="3.15" y2="7" width="0.127" layer="51"/>
+<wire x1="3.15" y1="7" x2="3.15" y2="-5" width="0.127" layer="51"/>
+<wire x1="3.15" y1="-5" x2="2.5" y2="-5" width="0.127" layer="51"/>
+<wire x1="2.5" y1="-5" x2="-2.5" y2="-5" width="0.127" layer="51"/>
+<wire x1="-2.5" y1="-5" x2="-3.15" y2="-5" width="0.127" layer="51"/>
+<wire x1="-3.4" y1="-7.25" x2="3.705" y2="-7.25" width="0.05" layer="39"/>
+<wire x1="3.705" y1="-7.25" x2="3.705" y2="7.75" width="0.05" layer="39"/>
+<wire x1="3.705" y1="7.75" x2="-3.4" y2="7.75" width="0.05" layer="39"/>
+<wire x1="-3.4" y1="7.75" x2="-3.4" y2="-7.25" width="0.05" layer="39"/>
+<circle x="4.1" y="-2.19" radius="0.1" width="0.2" layer="21"/>
+<circle x="4.1" y="-2.19" radius="0.1" width="0.2" layer="51"/>
+<wire x1="-2.5" y1="-5" x2="-2.5" y2="-7" width="0.127" layer="51"/>
+<wire x1="-2.5" y1="-7" x2="2.5" y2="-7" width="0.127" layer="51"/>
+<wire x1="2.5" y1="-7" x2="2.5" y2="-5" width="0.127" layer="51"/>
+<wire x1="-0.9" y1="7" x2="3.15" y2="7" width="0.127" layer="21"/>
+<wire x1="3.15" y1="7" x2="3.15" y2="6.85" width="0.127" layer="21"/>
+<wire x1="-2.7" y1="7" x2="-3.15" y2="7" width="0.127" layer="21"/>
+<wire x1="-3.15" y1="7" x2="-3.15" y2="5.65" width="0.127" layer="21"/>
+<wire x1="-3.15" y1="2.95" x2="-3.15" y2="-5" width="0.127" layer="21"/>
+<wire x1="-3.15" y1="-5" x2="-1.7" y2="-5" width="0.127" layer="21"/>
+<wire x1="1.7" y1="-5" x2="3.15" y2="-5" width="0.127" layer="21"/>
+<wire x1="3.15" y1="-5" x2="3.15" y2="-3.45" width="0.127" layer="21"/>
+<wire x1="3.15" y1="4.15" x2="3.15" y2="1.85" width="0.127" layer="21"/>
+<wire x1="-1.65" y1="-3.8" x2="1.65" y2="-3.8" width="0" layer="20"/>
+<wire x1="1.65" y1="-3.8" x2="1.65" y2="-5" width="0" layer="20"/>
+<wire x1="1.65" y1="-5" x2="-1.65" y2="-5" width="0" layer="20"/>
+<wire x1="-1.65" y1="-5" x2="-1.65" y2="-3.8" width="0" layer="20"/>
+<hole x="0" y="5.5" drill="1.4"/>
+<pad name="1" x="2.9" y="-2.1" drill="1"/>
+<pad name="5" x="-1.8" y="6.5" drill="1"/>
+<pad name="4" x="-2.55" y="4.3" drill="1"/>
+<pad name="6" x="2.6" y="5.5" drill="1"/>
+<pad name="3" x="2.6" y="0.5" drill="1"/>
+<pad name="2" x="-2.2" y="-2.1" drill="1"/>
+</package>
 </packages>
 <symbols>
 <symbol name="M5STACK-CORE2-DAUGHTER">
@@ -1855,6 +1894,19 @@ Commonly used for 1/4W through-hole resistors. 0.3" pitch between holes.&lt;br&g
 <attribute name="PACKAGE" value="None"/>
 <attribute name="SNAPEDA_LINK" value="https://www.snapeda.com/parts/54-00298/Tensility/view-part/?ref=snap"/>
 </technology>
+</technologies>
+</device>
+<device name="-HOLES" package="TENSILITY_54-00298_HOLES">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+<connect gate="G$1" pin="3" pad="3"/>
+<connect gate="G$1" pin="4" pad="4"/>
+<connect gate="G$1" pin="5" pad="5"/>
+<connect gate="G$1" pin="6" pad="6"/>
+</connects>
+<technologies>
+<technology name=""/>
 </technologies>
 </device>
 </devices>
@@ -2353,7 +2405,7 @@ Basic schematic elements and footprints for 0603, 1206, and PTH resistors.</desc
 <part name="U$1" library="thefly" deviceset="M5STACK-CORE2-DAUGHTER" device=""/>
 <part name="JP1" library="thefly" deviceset="PINHD-2X15" device="-SMD-R"/>
 <part name="U1" library="thefly" deviceset="SGTL5000XNLA3" device=""/>
-<part name="J1" library="thefly" deviceset="54-00298" device=""/>
+<part name="J1" library="thefly" deviceset="54-00298" device="-HOLES" value="54-00298-HOLES"/>
 <part name="U2" library="thefly" deviceset="MAX4466EXK" device=""/>
 <part name="MIC1" library="thefly" deviceset="POM-3535P-3-R" device=""/>
 <part name="U$2" library="thefly" deviceset="M5STACK-BATT-OUTLINE" device=""/>
