@@ -601,16 +601,16 @@
 <wire x1="2.6" y1="-2.85" x2="2.6" y2="-1.35" width="0" layer="46"/>
 <polygon width="0.01" layer="1">
 <vertex x="2.35" y="-3.1"/>
-<vertex x="2.35" y="-1.3"/>
-<vertex x="3.45" y="-1.3"/>
+<vertex x="2.35" y="-1.1"/>
+<vertex x="3.45" y="-1.1"/>
 <vertex x="3.45" y="-3.1"/>
 </polygon>
 <rectangle x1="2.25" y1="-3.2" x2="3.55" y2="-1" layer="29"/>
 <rectangle x1="2.25" y1="-3.2" x2="3.55" y2="-1" layer="30"/>
 <polygon width="0.01" layer="16">
 <vertex x="2.35" y="-3.1"/>
-<vertex x="2.35" y="-1.3"/>
-<vertex x="3.45" y="-1.3"/>
+<vertex x="2.35" y="-1.1"/>
+<vertex x="3.45" y="-1.1"/>
 <vertex x="3.45" y="-3.1"/>
 </polygon>
 <wire x1="-2.1" y1="7.25" x2="-1.5" y2="7.25" width="0" layer="46"/>
@@ -618,18 +618,18 @@
 <wire x1="-1.5" y1="5.75" x2="-2.1" y2="5.75" width="0" layer="46"/>
 <wire x1="-2.1" y1="5.75" x2="-2.1" y2="7.25" width="0" layer="46"/>
 <polygon width="0.01" layer="1">
-<vertex x="-2.35" y="5.7"/>
+<vertex x="-2.35" y="5.6"/>
 <vertex x="-2.35" y="7.5"/>
 <vertex x="-1.25" y="7.5"/>
-<vertex x="-1.25" y="5.7"/>
+<vertex x="-1.25" y="5.6"/>
 </polygon>
 <rectangle x1="-2.45" y1="5.4" x2="-1.15" y2="7.6" layer="29"/>
 <rectangle x1="-2.45" y1="5.4" x2="-1.15" y2="7.6" layer="30"/>
 <polygon width="0.01" layer="16">
-<vertex x="-2.35" y="5.7"/>
+<vertex x="-2.35" y="5.6"/>
 <vertex x="-2.35" y="7.5"/>
 <vertex x="-1.25" y="7.5"/>
-<vertex x="-1.25" y="5.7"/>
+<vertex x="-1.25" y="5.6"/>
 </polygon>
 <wire x1="-2.85" y1="5.05" x2="-2.25" y2="5.05" width="0" layer="46"/>
 <wire x1="-2.25" y1="5.05" x2="-2.25" y2="3.55" width="0" layer="46"/>
@@ -637,16 +637,16 @@
 <wire x1="-2.85" y1="3.55" x2="-2.85" y2="5.05" width="0" layer="46"/>
 <polygon width="0.01" layer="1">
 <vertex x="-3.1" y="3.3"/>
-<vertex x="-3.1" y="5.1"/>
-<vertex x="-2" y="5.1"/>
+<vertex x="-3.1" y="5.2"/>
+<vertex x="-2" y="5.2"/>
 <vertex x="-2" y="3.3"/>
 </polygon>
 <rectangle x1="-3.2" y1="3.2" x2="-1.9" y2="5.4" layer="29"/>
 <rectangle x1="-3.2" y1="3.2" x2="-1.9" y2="5.4" layer="30"/>
 <polygon width="0.01" layer="16">
 <vertex x="-3.1" y="3.3"/>
-<vertex x="-3.1" y="5.1"/>
-<vertex x="-2" y="5.1"/>
+<vertex x="-3.1" y="5.2"/>
+<vertex x="-2" y="5.2"/>
 <vertex x="-2" y="3.3"/>
 </polygon>
 <wire x1="2.3" y1="6.25" x2="2.9" y2="6.25" width="0" layer="46"/>
@@ -672,18 +672,18 @@
 <wire x1="2.9" y1="-0.25" x2="2.3" y2="-0.25" width="0" layer="46"/>
 <wire x1="2.3" y1="-0.25" x2="2.3" y2="1.25" width="0" layer="46"/>
 <polygon width="0.01" layer="1">
-<vertex x="2.05" y="-0.35"/>
+<vertex x="2.05" y="-0.45"/>
 <vertex x="2.05" y="1.5"/>
 <vertex x="3.15" y="1.5"/>
-<vertex x="3.15" y="-0.35"/>
+<vertex x="3.15" y="-0.45"/>
 </polygon>
 <rectangle x1="1.95" y1="-0.6" x2="3.25" y2="1.6" layer="29"/>
 <rectangle x1="1.95" y1="-0.6" x2="3.25" y2="1.6" layer="30"/>
 <polygon width="0.01" layer="16">
-<vertex x="2.05" y="-0.35"/>
+<vertex x="2.05" y="-0.45"/>
 <vertex x="2.05" y="1.5"/>
 <vertex x="3.15" y="1.5"/>
-<vertex x="3.15" y="-0.35"/>
+<vertex x="3.15" y="-0.45"/>
 </polygon>
 <wire x1="-2.5" y1="-1.35" x2="-1.9" y2="-1.35" width="0" layer="46"/>
 <wire x1="-1.9" y1="-1.35" x2="-1.9" y2="-2.85" width="0" layer="46"/>
@@ -712,10 +712,10 @@
 <wire x1="1.7" y1="-5" x2="3.15" y2="-5" width="0.127" layer="21"/>
 <wire x1="3.15" y1="-5" x2="3.15" y2="-3.45" width="0.127" layer="21"/>
 <wire x1="3.15" y1="4.15" x2="3.15" y2="1.85" width="0.127" layer="21"/>
-<wire x1="-1.65" y1="-3.8" x2="1.65" y2="-3.8" width="0" layer="46"/>
-<wire x1="1.65" y1="-3.8" x2="1.65" y2="-5" width="0" layer="46"/>
-<wire x1="1.65" y1="-5" x2="-1.65" y2="-5" width="0" layer="46"/>
-<wire x1="-1.65" y1="-5" x2="-1.65" y2="-3.8" width="0" layer="46"/>
+<wire x1="-1.65" y1="-3.8" x2="1.65" y2="-3.8" width="0" layer="20"/>
+<wire x1="1.65" y1="-3.8" x2="1.65" y2="-5" width="0" layer="20"/>
+<wire x1="1.65" y1="-5" x2="-1.65" y2="-5" width="0" layer="20"/>
+<wire x1="-1.65" y1="-5" x2="-1.65" y2="-3.8" width="0" layer="20"/>
 <hole x="0" y="5.5" drill="1.4"/>
 <pad name="1" x="2.9" y="-2.1" drill="0.6" stop="no"/>
 <pad name="5" x="-1.8" y="6.5" drill="0.6" stop="no"/>
