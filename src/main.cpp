@@ -69,6 +69,7 @@ bool         bluetooth_in_recording_state(BtManager::State state);
 static void  handle_pending_bluetooth_recording();
 static void  handle_pending_bluetooth_pairing();
 static void  handle_pending_bluetooth_connect_failed();
+static void  handle_bluetooth_recording_failure(const char* message);
 #ifdef BUILD_CLOUD_FEATURES
 static void handle_pending_cloud_upload_complete();
 #endif
@@ -178,7 +179,9 @@ void setup()
         draw_splash_boot_info();
     }
 
-    if (!AudioManager::init())
+    const AudioManager::Hardware audioHardware =
+        ExtCodec::available() ? AudioManager::Hardware::ExternalI2SCodec : AudioManager::Hardware::M5StackInternal;
+    if (!AudioManager::init(audioHardware))
     {
         show_boot_error_f(true, "AudioManager init failed");
     }
@@ -587,16 +590,26 @@ static void handle_pending_bluetooth_recording()
     if (!RecordingViewCallbacks::beginBluetoothRecording(AudioFileRecorder::RecordingType::Meeting))
     {
         DBG_LOGE(MAINTAG, "failed to start Bluetooth recording");
-        show_fatal_error_f(false, "Bluetooth recording start failed");
+        handle_bluetooth_recording_failure("Bluetooth recording start failed");
         return;
     }
 
     if (!show_recording_view_bluetooth())
     {
         DBG_LOGE(MAINTAG, "failed to show Bluetooth recording view");
-        RecordingViewCallbacks::stopRecording();
-        show_fatal_error_f(false, "Bluetooth recording view failed");
+        handle_bluetooth_recording_failure("Bluetooth recording view failed");
     }
+}
+
+static void handle_bluetooth_recording_failure(const char* message)
+{
+    g_bluetooth_connect_waiting         = false;
+    g_pending_bluetooth_connect_failed  = false;
+    g_pending_bluetooth_recording       = false;
+    g_suppress_bluetooth_auto_recording = false;
+
+    RecordingViewCallbacks::stopRecording(true);
+    error_unexpected_f(FLYGUI_VIEW_MAIN, MAINTAG, "%s", message ? message : "Bluetooth recording failed");
 }
 
 static void handle_pending_bluetooth_connect_failed()

@@ -3,6 +3,7 @@
 #include "AudioFileRecorder.h"
 #include "AudioManager.h"
 #include "BluetoothManager.h"
+#include "ExtCodec.h"
 #include "HapticsWrapper.h"
 
 namespace RecordingViewCallbacks
@@ -34,12 +35,15 @@ bool beginBluetoothRecording(AudioFileRecorder::RecordingType type)
     clear_speaker_mute_before_mic();
     restore_memo_bt_fifo();
     setSpeakerMuted(false);
+    AudioManager::setMicMuted(false);
     if (!AudioFileRecorder::startRecording(type))
     {
         return false;
     }
 
-    if (!AudioManager::enableSpeakerMode())
+    const bool audioEnabled =
+        ExtCodec::fullDuplexAvailable() ? enableFullDuplexMode() : AudioManager::enableSpeakerMode();
+    if (!audioEnabled)
     {
         AudioFileRecorder::stopRecording(true);
         return false;
@@ -53,6 +57,7 @@ bool beginMemoRecording(char typeCode)
 {
     clear_speaker_mute_before_mic();
     setSpeakerMuted(false);
+    AudioManager::setMicMuted(false);
     AudioManager::micToBluetoothFifo().setChoked(true);
     g_memo_bt_fifo_choked = true;
 
@@ -77,7 +82,10 @@ bool promoteMemoRecordingToBluetooth()
     restore_memo_bt_fifo();
     clear_speaker_mute_before_mic();
     setSpeakerMuted(false);
-    const bool promoted = AudioManager::mode() == AudioManager::P2TMode::Mic || AudioManager::enableMicMode();
+    AudioManager::setMicMuted(false);
+    const bool promoted = ExtCodec::fullDuplexAvailable()
+                              ? enableFullDuplexMode()
+                              : (AudioManager::mode() == AudioManager::P2TMode::Mic || AudioManager::enableMicMode());
     if (promoted)
     {
         AudioFileRecorder::setRecordingType(AudioFileRecorder::RecordingType::Meeting);
@@ -94,6 +102,7 @@ bool stopRecording(bool disconnectBluetooth)
     }
     clear_speaker_mute_before_mic();
     setSpeakerMuted(false);
+    AudioManager::setMicMuted(false);
     restore_memo_bt_fifo();
     AudioManager::stop();
     return AudioFileRecorder::stopRecording();
@@ -111,6 +120,8 @@ bool enableMicMode()
     {
         remember_speaker_mute_before_mic();
     }
+
+    AudioManager::setMicMuted(false);
 
     const bool enabled = AudioManager::enableMicMode();
     if (!enabled && enteringMic)
@@ -130,6 +141,39 @@ bool enableSpeakerMode()
         restore_speaker_mute_after_mic();
     }
     return enabled;
+}
+
+bool enableFullDuplexMode()
+{
+    clear_speaker_mute_before_mic();
+    AudioManager::bluetoothToSpeakerFifo().setChoked(false);
+    return AudioManager::enableFullDuplexMode();
+}
+
+bool syncExtCodecAudioRouting()
+{
+    if (!ExtCodec::available())
+    {
+        return true;
+    }
+
+    if (ExtCodec::fullDuplexAvailable())
+    {
+        clear_speaker_mute_before_mic();
+    }
+
+    return AudioManager::syncExternalCodecRouting();
+}
+
+bool toggleMicMuted()
+{
+    AudioManager::setMicMuted(!AudioManager::micMuted());
+    return true;
+}
+
+bool micMuted()
+{
+    return AudioManager::micMuted();
 }
 
 bool setSpeakerMuted(bool muted)

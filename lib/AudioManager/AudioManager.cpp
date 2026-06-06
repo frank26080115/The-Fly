@@ -18,8 +18,10 @@
 #include "esp_heap_caps.h"
 #include "dbg_log.h"
 #include "BluetoothManager.h"
+#include "ExtCodec.h"
 #include "diagnostics.h"
 #include "pins.h"
+#include "control_sgtl5000.h"
 #include "utilfuncs.h"
 
 namespace AudioManager
@@ -74,6 +76,7 @@ P2TMode           g_mode                   = P2TMode::Stopped;
 SpeakerPath       g_speaker_path           = SpeakerPath::None;
 i2s_chan_handle_t g_i2s_tx                 = nullptr;
 i2s_chan_handle_t g_i2s_rx                 = nullptr;
+uint32_t          g_i2s_sample_rate_hz     = 0;
 uint8_t           g_volume                 = kMaxVolume;
 bool              g_speaker_muted          = false;
 uint8_t           g_speaker_restore_volume = kMaxVolume;
@@ -123,8 +126,9 @@ bool   begin_fifos();
 void   stop_i2s();
 bool   enable_ns4168_speaker(uint32_t sampleRateHz = kSampleRateHz);
 bool   enable_spm1423_mic();
-bool   enable_exti2scodec_speaker(uint32_t sampleRateHz = kSampleRateHz);
-bool   enable_exti2scodec_mic();
+bool   enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz = kSampleRateHz);
+bool   ensure_exti2scodec_i2s(uint32_t sampleRateHz);
+bool   sync_external_codec_routing();
 void   queue_hfp_pcm(const uint8_t* buf, uint32_t len);
 bool   should_notify_hfp_outgoing_ready(size_t queued_bt, bool allow_existing_fifo);
 void   notify_hfp_outgoing_ready(bool ready);
@@ -134,6 +138,8 @@ void   queue_silence_to_reduce_lag(AudioFifo& lagging_fifo, AudioFifo& leading_f
 void   set_ns4168_speaker_enabled(bool enabled);
 void   update_hardware_volume();
 bool   using_ns4168_speaker();
+bool   speaker_output_active();
+bool   mic_input_active();
 uint32_t speaker_sample_rate_or_default(uint32_t sampleRateHz);
 size_t speaker_bytes_per_frame();
 void   apply_ns4168_software_volume(int16_t* samples, size_t sampleCount);
@@ -197,7 +203,7 @@ bool enableSpeakerMode(uint32_t sampleRateHz)
 
     sampleRateHz = speaker_sample_rate_or_default(sampleRateHz);
     return g_hardware == Hardware::M5StackInternal ? enable_ns4168_speaker(sampleRateHz)
-                                                   : enable_exti2scodec_speaker(sampleRateHz);
+                                                   : enable_exti2scodec(P2TMode::Speaker, sampleRateHz);
 }
 
 bool enableMicMode()
@@ -207,7 +213,36 @@ bool enableMicMode()
         init(g_hardware);
     }
 
-    return g_hardware == Hardware::M5StackInternal ? enable_spm1423_mic() : enable_exti2scodec_mic();
+    return g_hardware == Hardware::M5StackInternal ? enable_spm1423_mic() : enable_exti2scodec(P2TMode::Mic);
+}
+
+bool enableFullDuplexMode(uint32_t sampleRateHz)
+{
+    if (!g_initialized)
+    {
+        init(g_hardware);
+    }
+
+    sampleRateHz = speaker_sample_rate_or_default(sampleRateHz);
+    if (g_hardware != Hardware::ExternalI2SCodec)
+    {
+        DBG_LOGE(TAG, "Full duplex audio requires the external I2S codec");
+        return false;
+    }
+
+    return enable_exti2scodec(P2TMode::FullDuplex, sampleRateHz);
+}
+
+bool syncExternalCodecRouting()
+{
+    if (g_hardware != Hardware::ExternalI2SCodec || !ExtCodec::available())
+    {
+        return true;
+    }
+
+    const bool routed = sync_external_codec_routing();
+    update_hardware_volume();
+    return routed;
 }
 
 P2TMode mode()
@@ -229,7 +264,7 @@ void pump_bt2spk()
         return;
     }
 
-    if (g_mode != P2TMode::Speaker || !g_i2s_tx)
+    if (!speaker_output_active() || !g_i2s_tx)
     {
         return;
     }
@@ -341,7 +376,7 @@ void pump_mic2bt()
 
     HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) { ++diag.micPumpCalls; });
 
-    if (g_mode != P2TMode::Mic)
+    if (!mic_input_active())
     {
         HFP_AUDIO_DIAG([](HfpAudioDiagnostics& diag) { ++diag.micSkipNotMicMode; });
         MicGainManager::process(nullptr, 0);
@@ -790,7 +825,18 @@ void stop_i2s()
         g_i2s_rx = nullptr;
     }
 
+    if (g_speaker_path == SpeakerPath::ExternalI2SCodec)
+    {
+        #ifndef TEST_MOCK_EXT_CODEC
+        if (AudioControlSGTL5000* codec = ExtCodec::control())
+        {
+            codec->muteHeadphone();
+        }
+        #endif
+    }
+
     g_speaker_path = SpeakerPath::None;
+    g_i2s_sample_rate_hz = 0;
     if (g_hardware == Hardware::M5StackInternal)
     {
         set_ns4168_speaker_enabled(false);
@@ -872,17 +918,123 @@ bool enable_spm1423_mic()
     return true;
 }
 
-bool enable_exti2scodec_speaker(uint32_t sampleRateHz)
+bool enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz)
 {
-    (void)sampleRateHz;
-    DBG_LOGE(TAG, "ExternalI2SCodec I2S pin/codec setup is not implemented yet");
-    return false;
+    if (nextMode != P2TMode::Speaker && nextMode != P2TMode::Mic && nextMode != P2TMode::FullDuplex)
+    {
+        DBG_LOGE(TAG, "invalid ExternalI2SCodec mode request");
+        return false;
+    }
+
+    sampleRateHz = speaker_sample_rate_or_default(sampleRateHz);
+    if (!ensure_exti2scodec_i2s(sampleRateHz) || !sync_external_codec_routing())
+    {
+        return false;
+    }
+
+    if (nextMode == P2TMode::Speaker)
+    {
+        g_fifo_bt2spk.clear();
+        g_fifo_bt2spk.setChoked(false);
+    }
+    else if (nextMode == P2TMode::Mic)
+    {
+        g_fifo_bt2spk.clear();
+        g_fifo_bt2spk.setChoked(true);
+        MicGainManager::ignoreSamplesFor();
+    }
+    else
+    {
+        g_fifo_bt2spk.setChoked(false);
+        MicGainManager::ignoreSamplesFor();
+    }
+
+    g_mode = nextMode;
+    update_hardware_volume();
+    DBG_LOGI(TAG,
+             "ExternalI2SCodec mode=%u sampleRate=%lu state=%s micInput=%s",
+             static_cast<unsigned>(nextMode),
+             static_cast<unsigned long>(sampleRateHz),
+             ExtCodec::stateName(ExtCodec::state()),
+             ExtCodec::micInputName(ExtCodec::micInputForState(ExtCodec::state())));
+    return true;
 }
 
-bool enable_exti2scodec_mic()
+bool ensure_exti2scodec_i2s(uint32_t sampleRateHz)
 {
-    DBG_LOGE(TAG, "ExternalI2SCodec I2S pin/codec setup is not implemented yet");
-    return false;
+    if (!ExtCodec::available())
+    {
+        DBG_LOGE(TAG, "ExternalI2SCodec requested, but SGTL5000 is unavailable");
+        return false;
+    }
+
+    sampleRateHz = speaker_sample_rate_or_default(sampleRateHz);
+
+    #ifdef TEST_MOCK_EXT_CODEC
+    if (g_speaker_path != SpeakerPath::ExternalI2SCodec || g_i2s_sample_rate_hz != sampleRateHz)
+    {
+        stop_i2s();
+        g_speaker_path       = SpeakerPath::ExternalI2SCodec;
+        g_i2s_sample_rate_hz = sampleRateHz;
+    }
+    return true;
+    #endif
+
+    if (g_speaker_path == SpeakerPath::ExternalI2SCodec && g_i2s_tx && g_i2s_rx &&
+        g_i2s_sample_rate_hz == sampleRateHz)
+    {
+        return true;
+    }
+
+    stop_i2s();
+    set_ns4168_speaker_enabled(false);
+
+    i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
+    chan_config.dma_desc_num      = kDmaBufferCount;
+    chan_config.dma_frame_num     = kPumpSamples;
+    chan_config.auto_clear        = true;
+
+    i2s_std_config_t config   = {};
+    config.clk_cfg            = I2S_STD_CLK_DEFAULT_CONFIG(sampleRateHz);
+    config.slot_cfg           = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO);
+    config.slot_cfg.slot_mask = I2S_STD_SLOT_BOTH;
+    config.slot_cfg.ws_width  = 16;
+    config.gpio_cfg.mclk      = static_cast<gpio_num_t>(kSGTL5000I2sMclk);
+    config.gpio_cfg.bclk      = static_cast<gpio_num_t>(kSGTL5000I2sBclk);
+    config.gpio_cfg.ws        = static_cast<gpio_num_t>(kSGTL5000I2sLrck);
+    config.gpio_cfg.dout      = static_cast<gpio_num_t>(kSGTL5000I2sDout);
+    config.gpio_cfg.din       = static_cast<gpio_num_t>(kSGTL5000I2sDin);
+
+    if (!ok(i2s_new_channel(&chan_config, &g_i2s_tx, &g_i2s_rx), "SGTL5000 full-duplex i2s channel") ||
+        !ok(i2s_channel_init_std_mode(g_i2s_tx, &config), "SGTL5000 tx i2s std init") ||
+        !ok(i2s_channel_init_std_mode(g_i2s_rx, &config), "SGTL5000 rx i2s std init") ||
+        !register_i2s_callbacks(g_i2s_tx, false) || !register_i2s_callbacks(g_i2s_rx, true) ||
+        !preload_silence(g_i2s_tx) || !enable_channel(g_i2s_rx, "SGTL5000 rx i2s enable") ||
+        !enable_channel(g_i2s_tx, "SGTL5000 tx i2s enable"))
+    {
+        stop_i2s();
+        return false;
+    }
+
+    g_speaker_path       = SpeakerPath::ExternalI2SCodec;
+    g_i2s_sample_rate_hz = sampleRateHz;
+    return true;
+}
+
+bool sync_external_codec_routing()
+{
+    if (!ExtCodec::available())
+    {
+        return false;
+    }
+
+    const ExtCodec::State current = ExtCodec::state();
+    if (!ExtCodec::configureAnalogPathForState(current))
+    {
+        DBG_LOGW(TAG, "failed to configure SGTL5000 analog path for %s", ExtCodec::stateName(current));
+        return false;
+    }
+    return true;
 }
 
 void queue_hfp_pcm(const uint8_t* buf, uint32_t len)
@@ -970,7 +1122,7 @@ void notify_hfp_outgoing_ready(bool ready)
 
 bool mic_file_source_active()
 {
-    return g_mode == P2TMode::Mic && g_i2s_rx != nullptr;
+    return mic_input_active() && g_i2s_rx != nullptr;
 }
 
 void queue_silence_to_match(AudioFifo& lagging_fifo, AudioFifo& leading_fifo)
@@ -1036,13 +1188,41 @@ void update_hardware_volume()
         return;
     }
 
-    // TODO: Apply g_volume to external I2S codec once its codec control path is wired up.
-    DBG_LOGD(TAG, "volume set to %u/%u", g_volume, kMaxVolume);
+    #ifdef TEST_MOCK_EXT_CODEC
+    return;
+    #else
+    AudioControlSGTL5000* codec = ExtCodec::control();
+    if (!codec)
+    {
+        return;
+    }
+
+    static constexpr float kExternalCodecMaxHeadphoneVolume = 0.45f;
+    const bool             audible = speaker_output_active() && g_volume > kMinVolume && !g_speaker_muted;
+    const float            scaled =
+        audible ? (kExternalCodecMaxHeadphoneVolume * static_cast<float>(g_volume) / static_cast<float>(kMaxVolume))
+                : 0.0f;
+
+    if (!codec->volume(scaled) || !(audible ? codec->unmuteHeadphone() : codec->muteHeadphone()))
+    {
+        DBG_LOGW(TAG, "failed to apply SGTL5000 headphone volume");
+    }
+    #endif
 }
 
 bool using_ns4168_speaker()
 {
     return g_speaker_path == SpeakerPath::NS4168;
+}
+
+bool speaker_output_active()
+{
+    return g_mode == P2TMode::Speaker || g_mode == P2TMode::FullDuplex;
+}
+
+bool mic_input_active()
+{
+    return g_mode == P2TMode::Mic || g_mode == P2TMode::FullDuplex;
 }
 
 uint32_t speaker_sample_rate_or_default(uint32_t sampleRateHz)

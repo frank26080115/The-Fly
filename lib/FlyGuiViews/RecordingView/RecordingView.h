@@ -55,6 +55,7 @@ private:
     void refreshRecordingFileName();
     void drawFrame(bool forced);
     bool drawAudioMeters();
+    bool fullDuplexAudio() const;
 
     static RecordingView* activeInstance_;
 

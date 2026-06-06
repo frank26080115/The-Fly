@@ -82,6 +82,8 @@ bool init()
     }
 
     g_events = xEventGroupCreate();
+
+    #ifndef TEST_MOCK_EXT_CODEC
     pinMode(kExtCodecEarbudSenseAdc, INPUT);
     pinMode(kExtCodecInlineMicSenseAdc, INPUT);
 
@@ -113,6 +115,20 @@ bool init()
 
     DBG_LOGI(TAG, "SGTL5000 detected: state=%s", stateName(state()));
     return true;
+    #else
+    g_available.store(true);
+    poll_adc_state();
+    if (!start_adc_task())
+    {
+        g_available.store(false);
+        set_state(EXTCODEC_UNAVAIL);
+        DBG_LOGE(TAG, "mock SGTL5000 enabled, but state task could not start");
+        return false;
+    }
+
+    DBG_LOGI(TAG, "mock SGTL5000 enabled: state=%s", stateName(state()));
+    return true;
+    #endif
 }
 
 bool initialized()
@@ -198,6 +214,7 @@ const char* micInputName(MicInput value)
 
 bool configureAnalogPathForState(State value)
 {
+    #ifndef TEST_MOCK_EXT_CODEC
     if (!available())
     {
         return false;
@@ -211,16 +228,27 @@ bool configureAnalogPathForState(State value)
     }
 
     return g_codec.inputSelect(AUDIO_INPUT_LINEIN) && g_codec.lineInLevel(kDefaultLineInLevel, kDefaultLineInLevel);
+    #else
+    return true;
+    #endif
 }
 
 uint16_t earbudSenseRaw()
 {
+    #ifndef TEST_MOCK_EXT_CODEC
     return g_earbud_sense_raw.load();
+    #else
+    return earbudPresent() ? 2500 : 0;
+    #endif
 }
 
 uint16_t inlineMicSenseRaw()
 {
+    #ifndef TEST_MOCK_EXT_CODEC
     return g_inline_mic_sense_raw.load();
+    #else
+    return inlineMicPresent() ? 1200 : 0;
+    #endif
 }
 
 EventBits_t waitForEvents(EventBits_t bits, TickType_t ticksToWait)
@@ -266,11 +294,16 @@ bool begin_i2c()
 
 bool sgtl5000_address_responds()
 {
+    #ifndef TEST_MOCK_EXT_CODEC
     return M5.In_I2C.scanID(kSGTL5000I2cAddress, kSGTL5000I2cFreq);
+    #else
+    return true;
+    #endif
 }
 
 bool begin_sgtl5000_control()
 {
+    #ifndef TEST_MOCK_EXT_CODEC
     std::lock_guard<std::mutex> lock(g_codec_mutex);
     g_codec.setAddress(LOW);
     if (!g_codec.enable())
@@ -281,6 +314,9 @@ bool begin_sgtl5000_control()
     return g_codec.inputSelect(AUDIO_INPUT_LINEIN) && g_codec.lineInLevel(kDefaultLineInLevel, kDefaultLineInLevel) &&
            g_codec.micGain(kDefaultDedicatedMicGainDb) && g_codec.volume(kDefaultHeadphoneVolume) &&
            g_codec.muteHeadphone();
+    #else
+    return true;
+    #endif
 }
 
 bool start_adc_task()
@@ -304,16 +340,21 @@ void adc_task(void*)
 
 void poll_adc_state()
 {
+    #ifdef TEST_MOCK_EXT_CODEC
+    set_state(state_from_adc(0, 0));
+    #else
     const uint16_t earbud_sense    = read_adc_average(kExtCodecEarbudSenseAdc);
     const uint16_t inline_mic_sense = read_adc_average(kExtCodecInlineMicSenseAdc);
 
     g_earbud_sense_raw.store(earbud_sense);
     g_inline_mic_sense_raw.store(inline_mic_sense);
     set_state(state_from_adc(earbud_sense, inline_mic_sense));
+    #endif
 }
 
 State state_from_adc(uint16_t earbud_sense, uint16_t inline_mic_sense)
 {
+    #ifndef TEST_MOCK_EXT_CODEC
     if (!available())
     {
         return EXTCODEC_UNAVAIL;
@@ -327,6 +368,21 @@ State state_from_adc(uint16_t earbud_sense, uint16_t inline_mic_sense)
         return EXTCODEC_YES_EARBUD_WITH_MIC;
     }
     return EXTCODEC_YES_EARBUD;
+    #else
+    uint32_t t = millis() / 10000;
+    t %= 3;
+    switch (t)
+    {
+    case 0:
+        return EXTCODEC_NO_EARBUD;
+    case 1:
+        return EXTCODEC_YES_EARBUD_WITH_MIC;
+    case 2:
+        return EXTCODEC_YES_EARBUD;
+    default:
+        return EXTCODEC_NO_EARBUD;
+    }
+    #endif
 }
 
 void set_state(State next)

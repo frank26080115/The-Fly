@@ -237,6 +237,13 @@ void RecordingView::onPressRight()
 
 void RecordingView::handleMicButton()
 {
+    if (fullDuplexAudio())
+    {
+        RecordingViewCallbacks::toggleMicMuted();
+        syncAudioButtons();
+        return;
+    }
+
     if (AudioManager::mode() == AudioManager::P2TMode::Mic)
     {
         RecordingViewCallbacks::enableSpeakerMode();
@@ -250,7 +257,12 @@ void RecordingView::handleMicButton()
 
 void RecordingView::handleSpeakerButton()
 {
-    if (mode_ != Mode::Bluetooth || AudioManager::mode() != AudioManager::P2TMode::Speaker)
+    if (mode_ != Mode::Bluetooth)
+    {
+        return;
+    }
+
+    if (!fullDuplexAudio() && AudioManager::mode() != AudioManager::P2TMode::Speaker)
     {
         return;
     }
@@ -459,6 +471,25 @@ void RecordingView::syncExtCodecAudioIcons()
     }
 
     extCodecStateGeneration_ = generation;
+    if (mode_ == Mode::Bluetooth)
+    {
+        if (ExtCodec::fullDuplexAvailable())
+        {
+            RecordingViewCallbacks::enableFullDuplexMode();
+        }
+        else if (AudioManager::mode() == AudioManager::P2TMode::FullDuplex)
+        {
+            RecordingViewCallbacks::enableSpeakerMode();
+        }
+        else
+        {
+            RecordingViewCallbacks::syncExtCodecAudioRouting();
+        }
+    }
+    else
+    {
+        RecordingViewCallbacks::syncExtCodecAudioRouting();
+    }
     speakerButton_.setEarVariant(ExtCodec::earbudPresent());
     micButton_.setEarVariant(ExtCodec::inlineMicPresent());
     frameDirty_ = true;
@@ -467,6 +498,15 @@ void RecordingView::syncExtCodecAudioIcons()
 
 void RecordingView::syncAudioButtons()
 {
+    if (fullDuplexAudio())
+    {
+        micButton_.setFaded(false);
+        speakerButton_.setFaded(false);
+        micButton_.setMutedOverlay(RecordingViewCallbacks::micMuted());
+        speakerButton_.setMutedOverlay(RecordingViewCallbacks::speakerMuted());
+        return;
+    }
+
     const bool micMode = AudioManager::mode() == AudioManager::P2TMode::Mic;
     micButton_.setMicMode(micMode);
     speakerButton_.setMicMode(micMode);
@@ -550,4 +590,10 @@ bool RecordingView::drawAudioMeters()
         drawn |= speakerButton_.drawAudioMeter();
     }
     return drawn;
+}
+
+bool RecordingView::fullDuplexAudio() const
+{
+    return mode_ == Mode::Bluetooth && ExtCodec::fullDuplexAvailable() &&
+           AudioManager::mode() == AudioManager::P2TMode::FullDuplex;
 }

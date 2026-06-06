@@ -18,6 +18,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 #define TEST_MOCK_PASSWORD
 #define TEST_MOCK_NVS_FW_SECURED
 //#define TEST_MOCK_SCRAMBLE_TIME
+//#define TEST_MOCK_EXT_CODEC
 
 //#define BUILD_SILENCE_GAP_REMOVAL
 #define BUILD_USE_MP3_COMPRESSION

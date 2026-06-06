@@ -18,7 +18,11 @@ bool restoreBluetoothConnectable();
 
 bool enableMicMode();
 bool enableSpeakerMode();
+bool enableFullDuplexMode();
+bool syncExtCodecAudioRouting();
 
+bool toggleMicMuted();
+bool micMuted();
 bool setSpeakerMuted(bool muted);
 bool toggleSpeakerMuted();
 bool speakerMuted();

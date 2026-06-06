@@ -22,6 +22,7 @@ enum class P2TMode
     Stopped,
     Speaker,
     Mic,
+    FullDuplex,
 };
 
 enum class HfpCodec
@@ -89,6 +90,8 @@ void stop();
 
 bool    enableSpeakerMode(uint32_t sampleRateHz = kSampleRateHz);
 bool    enableMicMode();
+bool    enableFullDuplexMode(uint32_t sampleRateHz = kSampleRateHz);
+bool    syncExternalCodecRouting();
 P2TMode mode();
 
 void pump_bt2spk();
