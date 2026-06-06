@@ -15,12 +15,15 @@
 #include "SpeakerPeakActivity.h"
 #include "driver/i2s_pdm.h"
 #include "driver/i2s_std.h"
+#include "driver/gpio.h"
 #include "esp_heap_caps.h"
+#include "esp_rom_gpio.h"
 #include "dbg_log.h"
 #include "BluetoothManager.h"
 #include "ExtCodec.h"
 #include "diagnostics.h"
 #include "pins.h"
+#include "soc/gpio_sig_map.h"
 #include "control_sgtl5000.h"
 #include "utilfuncs.h"
 
@@ -129,6 +132,7 @@ bool   enable_spm1423_mic();
 bool   enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz = kSampleRateHz);
 bool   ensure_exti2scodec_i2s(uint32_t sampleRateHz);
 bool   sync_external_codec_routing();
+void   duplicate_i2s0_bclk_to_gpio13();
 void   queue_hfp_pcm(const uint8_t* buf, uint32_t len);
 bool   should_notify_hfp_outgoing_ready(size_t queued_bt, bool allow_existing_fifo);
 void   notify_hfp_outgoing_ready(bool ready);
@@ -138,6 +142,7 @@ void   queue_silence_to_reduce_lag(AudioFifo& lagging_fifo, AudioFifo& leading_f
 void   set_ns4168_speaker_enabled(bool enabled);
 void   update_hardware_volume();
 bool   using_ns4168_speaker();
+bool   speaker_output_stereo();
 bool   speaker_output_active();
 bool   mic_input_active();
 uint32_t speaker_sample_rate_or_default(uint32_t sampleRateHz);
@@ -317,7 +322,7 @@ void pump_bt2spk()
         return;
     }
 
-    const bool   use_mono_output = using_ns4168_speaker();
+    const bool   use_mono_output = !speaker_output_stereo();
     const size_t frames          = use_mono_output ? g_fifo_bt2spk.dequeueMono(g_mono_buffer, frames_to_write)
                                                    : g_fifo_bt2spk.dequeueStereo(g_stereo_buffer, frames_to_write);
     if (frames == 0)
@@ -337,6 +342,10 @@ void pump_bt2spk()
     }
     else
     {
+        if (using_ns4168_speaker())
+        {
+            apply_ns4168_software_volume(g_stereo_buffer, frames * 2);
+        }
         samples_to_write = g_stereo_buffer;
         bytes_to_write   = frames * 2 * sizeof(int16_t);
     }
@@ -846,6 +855,8 @@ void stop_i2s()
     g_i2s_tx_available_bytes = 0;
     portEXIT_CRITICAL(&g_i2s_tx_credit_mux);
     g_pending_speaker_bytes = 0;
+
+    duplicate_i2s0_bclk_to_gpio13();
 }
 
 bool enable_ns4168_speaker(uint32_t sampleRateHz)
@@ -863,7 +874,13 @@ bool enable_ns4168_speaker(uint32_t sampleRateHz)
 
     i2s_std_config_t config   = {};
     config.clk_cfg            = I2S_STD_CLK_DEFAULT_CONFIG(sampleRateHz);
-    config.slot_cfg           = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
+    config.slot_cfg           = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT,
+        #ifndef NS4168_USE_STEREO
+        I2S_SLOT_MODE_MONO
+        #else
+        I2S_SLOT_MODE_STEREO
+        #endif
+    );
     config.slot_cfg.slot_mask = I2S_STD_SLOT_BOTH;
     config.slot_cfg.ws_width  = 16;
     config.gpio_cfg.mclk      = static_cast<gpio_num_t>(kNS4168SpeakerMclk);
@@ -881,6 +898,7 @@ bool enable_ns4168_speaker(uint32_t sampleRateHz)
         return false;
     }
 
+    duplicate_i2s0_bclk_to_gpio13();
     g_mode         = P2TMode::Speaker;
     g_speaker_path = SpeakerPath::NS4168;
     return true;
@@ -994,16 +1012,17 @@ bool ensure_exti2scodec_i2s(uint32_t sampleRateHz)
     chan_config.dma_frame_num     = kPumpSamples;
     chan_config.auto_clear        = true;
 
-    i2s_std_config_t config   = {};
-    config.clk_cfg            = I2S_STD_CLK_DEFAULT_CONFIG(sampleRateHz);
-    config.slot_cfg           = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO);
-    config.slot_cfg.slot_mask = I2S_STD_SLOT_BOTH;
-    config.slot_cfg.ws_width  = 16;
-    config.gpio_cfg.mclk      = static_cast<gpio_num_t>(kSGTL5000I2sMclk);
-    config.gpio_cfg.bclk      = static_cast<gpio_num_t>(kSGTL5000I2sBclk);
-    config.gpio_cfg.ws        = static_cast<gpio_num_t>(kSGTL5000I2sLrck);
-    config.gpio_cfg.dout      = static_cast<gpio_num_t>(kSGTL5000I2sDout);
-    config.gpio_cfg.din       = static_cast<gpio_num_t>(kSGTL5000I2sDin);
+    i2s_std_config_t config      = {};
+    config.clk_cfg               = I2S_STD_CLK_DEFAULT_CONFIG(sampleRateHz);
+    config.clk_cfg.mclk_multiple = I2S_MCLK_MULTIPLE_512;
+    config.slot_cfg              = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO);
+    config.slot_cfg.slot_mask    = I2S_STD_SLOT_BOTH;
+    config.slot_cfg.ws_width     = 16;
+    config.gpio_cfg.mclk         = static_cast<gpio_num_t>(kSGTL5000I2sMclk);
+    config.gpio_cfg.bclk         = static_cast<gpio_num_t>(kSGTL5000I2sBclk);
+    config.gpio_cfg.ws           = static_cast<gpio_num_t>(kSGTL5000I2sLrck);
+    config.gpio_cfg.dout         = static_cast<gpio_num_t>(kSGTL5000I2sDout);
+    config.gpio_cfg.din          = static_cast<gpio_num_t>(kSGTL5000I2sDin);
 
     if (!ok(i2s_new_channel(&chan_config, &g_i2s_tx, &g_i2s_rx), "SGTL5000 full-duplex i2s channel") ||
         !ok(i2s_channel_init_std_mode(g_i2s_tx, &config), "SGTL5000 tx i2s std init") ||
@@ -1016,6 +1035,7 @@ bool ensure_exti2scodec_i2s(uint32_t sampleRateHz)
         return false;
     }
 
+    duplicate_i2s0_bclk_to_gpio13();
     g_speaker_path       = SpeakerPath::ExternalI2SCodec;
     g_i2s_sample_rate_hz = sampleRateHz;
     return true;
@@ -1035,6 +1055,19 @@ bool sync_external_codec_routing()
         return false;
     }
     return true;
+}
+
+void duplicate_i2s0_bclk_to_gpio13()
+{
+    if (kSGTL5000I2sBclk < 0)
+    {
+        return;
+    }
+
+    const gpio_num_t gpio = static_cast<gpio_num_t>(kSGTL5000I2sBclk);
+    gpio_set_direction(gpio, GPIO_MODE_OUTPUT);
+    esp_rom_gpio_pad_select_gpio(gpio);
+    esp_rom_gpio_connect_out_signal(gpio, I2S0O_BCK_OUT_IDX, false, false);
 }
 
 void queue_hfp_pcm(const uint8_t* buf, uint32_t len)
@@ -1215,6 +1248,20 @@ bool using_ns4168_speaker()
     return g_speaker_path == SpeakerPath::NS4168;
 }
 
+bool speaker_output_stereo()
+{
+    if (!using_ns4168_speaker())
+    {
+        return true;
+    }
+
+    #ifdef NS4168_USE_STEREO
+    return true;
+    #else
+    return false;
+    #endif
+}
+
 bool speaker_output_active()
 {
     return g_mode == P2TMode::Speaker || g_mode == P2TMode::FullDuplex;
@@ -1232,7 +1279,7 @@ uint32_t speaker_sample_rate_or_default(uint32_t sampleRateHz)
 
 size_t speaker_bytes_per_frame()
 {
-    return using_ns4168_speaker() ? sizeof(int16_t) : 2 * sizeof(int16_t);
+    return speaker_output_stereo() ? 2 * sizeof(int16_t) : sizeof(int16_t);
 }
 
 void apply_ns4168_software_volume(int16_t* samples, size_t sampleCount)

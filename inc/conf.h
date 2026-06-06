@@ -22,6 +22,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 
 //#define BUILD_SILENCE_GAP_REMOVAL
 #define BUILD_USE_MP3_COMPRESSION
+#define NS4168_USE_STEREO
 
 #if !defined(BUILD_WITH_SECURITY_LEVEL)
 #error BUILD_WITH_SECURITY_LEVEL must be defined!

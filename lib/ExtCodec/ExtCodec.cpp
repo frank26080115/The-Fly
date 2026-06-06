@@ -310,8 +310,14 @@ bool begin_sgtl5000_control()
     {
         return false;
     }
+    if (kSGTL5000I2sMclk < 0)
+    {
+        DBG_LOGE(TAG, "SGTL5000 SYS_MCLK is not configured; this codec cannot derive SYS_MCLK from I2S BCLK");
+        return false;
+    }
 
-    return g_codec.inputSelect(AUDIO_INPUT_LINEIN) && g_codec.lineInLevel(kDefaultLineInLevel, kDefaultLineInLevel) &&
+    return g_codec.configureFor16k16BitStereo() && g_codec.inputSelect(AUDIO_INPUT_LINEIN) &&
+           g_codec.lineInLevel(kDefaultLineInLevel, kDefaultLineInLevel) &&
            g_codec.micGain(kDefaultDedicatedMicGainDb) && g_codec.volume(kDefaultHeadphoneVolume) &&
            g_codec.muteHeadphone();
     #else

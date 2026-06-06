@@ -592,6 +592,17 @@ bool AudioControlSGTL5000::enable(const unsigned extMCLK, const uint32_t pllFreq
 	return true;
 }
 
+bool AudioControlSGTL5000::configureFor16k16BitStereo(void)
+{
+	constexpr uint16_t kClkCtrl16kFrom32kSysFs = 0x0010; // SYS_FS=32 kHz, RATE_MODE=1/2, MCLK=256*SYS_FS.
+	constexpr uint16_t kI2sCtrl16BitStereo32Fs = 0x0130; // Slave, SCLK=32*Fs, 16-bit, I2S format.
+
+	return write(CHIP_CLK_CTRL, kClkCtrl16kFrom32kSysFs)
+	    && write(CHIP_I2S_CTRL, kI2sCtrl16BitStereo32Fs)
+	    && write(CHIP_SSS_CTRL, 0x0010)    // ADC->I2S, I2S->DAC.
+	    && write(CHIP_ADCDAC_CTRL, 0x0000); // Unmute DAC.
+}
+
 
 unsigned int AudioControlSGTL5000::read(unsigned int reg)
 {
