@@ -601,16 +601,16 @@
 <wire x1="2.6" y1="-2.85" x2="2.6" y2="-1.35" width="0" layer="46"/>
 <polygon width="0.01" layer="1">
 <vertex x="2.35" y="-3.1"/>
-<vertex x="2.35" y="-1.1"/>
-<vertex x="3.45" y="-1.1"/>
+<vertex x="2.35" y="-1.3"/>
+<vertex x="3.45" y="-1.3"/>
 <vertex x="3.45" y="-3.1"/>
 </polygon>
 <rectangle x1="2.25" y1="-3.2" x2="3.55" y2="-1" layer="29"/>
 <rectangle x1="2.25" y1="-3.2" x2="3.55" y2="-1" layer="30"/>
 <polygon width="0.01" layer="16">
 <vertex x="2.35" y="-3.1"/>
-<vertex x="2.35" y="-1.1"/>
-<vertex x="3.45" y="-1.1"/>
+<vertex x="2.35" y="-1.3"/>
+<vertex x="3.45" y="-1.3"/>
 <vertex x="3.45" y="-3.1"/>
 </polygon>
 <wire x1="-2.1" y1="7.25" x2="-1.5" y2="7.25" width="0" layer="46"/>
@@ -672,18 +672,18 @@
 <wire x1="2.9" y1="-0.25" x2="2.3" y2="-0.25" width="0" layer="46"/>
 <wire x1="2.3" y1="-0.25" x2="2.3" y2="1.25" width="0" layer="46"/>
 <polygon width="0.01" layer="1">
-<vertex x="2.05" y="-0.5"/>
+<vertex x="2.05" y="-0.35"/>
 <vertex x="2.05" y="1.5"/>
 <vertex x="3.15" y="1.5"/>
-<vertex x="3.15" y="-0.5"/>
+<vertex x="3.15" y="-0.35"/>
 </polygon>
 <rectangle x1="1.95" y1="-0.6" x2="3.25" y2="1.6" layer="29"/>
 <rectangle x1="1.95" y1="-0.6" x2="3.25" y2="1.6" layer="30"/>
 <polygon width="0.01" layer="16">
-<vertex x="2.05" y="-0.5"/>
+<vertex x="2.05" y="-0.35"/>
 <vertex x="2.05" y="1.5"/>
 <vertex x="3.15" y="1.5"/>
-<vertex x="3.15" y="-0.5"/>
+<vertex x="3.15" y="-0.35"/>
 </polygon>
 <wire x1="-2.5" y1="-1.35" x2="-1.9" y2="-1.35" width="0" layer="46"/>
 <wire x1="-1.9" y1="-1.35" x2="-1.9" y2="-2.85" width="0" layer="46"/>
@@ -1369,6 +1369,16 @@ Commonly used for 1/4W through-hole resistors. 0.3" pitch between holes.&lt;br&g
 <smd name="3_2" x="0.5" y="-0.6" dx="0.2" dy="0.2" layer="1" stop="no" thermals="no" cream="no"/>
 <circle x="0.5" y="0" radius="0.70710625" width="0.127" layer="41"/>
 </package>
+<package name="THE-FLY-LOGO">
+<text x="0" y="0" size="2.5" layer="1" ratio="16" align="center">THE-FLY</text>
+<text x="0" y="0" size="2.5" layer="29" ratio="16" align="center">THE-FLY</text>
+<polygon width="0.01" layer="41">
+<vertex x="-9" y="2"/>
+<vertex x="8.5" y="2"/>
+<vertex x="8.5" y="-2"/>
+<vertex x="-9" y="-2"/>
+</polygon>
+</package>
 </packages>
 <symbols>
 <symbol name="M5STACK-CORE2-DAUGHTER">
@@ -1598,6 +1608,12 @@ Commonly used for 1/4W through-hole resistors. 0.3" pitch between holes.&lt;br&g
 <pin name="VDD" x="12.7" y="5.08" length="middle" direction="pwr" rot="R180"/>
 <pin name="OUTPUT" x="12.7" y="0" length="middle" direction="out" rot="R180"/>
 <pin name="GND" x="12.7" y="-5.08" length="middle" direction="pwr" rot="R180"/>
+</symbol>
+<symbol name="THE-FLY-LOGO">
+<wire x1="0" y1="0" x2="0" y2="5.08" width="0.254" layer="94"/>
+<wire x1="0" y1="5.08" x2="10.16" y2="5.08" width="0.254" layer="94"/>
+<wire x1="10.16" y1="5.08" x2="10.16" y2="0" width="0.254" layer="94"/>
+<wire x1="10.16" y1="0" x2="0" y2="0" width="0.254" layer="94"/>
 </symbol>
 </symbols>
 <devicesets>
@@ -2310,6 +2326,18 @@ Basic schematic elements and footprints for 0603, 1206, and PTH resistors.</desc
 </device>
 </devices>
 </deviceset>
+<deviceset name="THE-FLY-LOGO">
+<gates>
+<gate name="G$1" symbol="THE-FLY-LOGO" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="THE-FLY-LOGO">
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
 </devicesets>
 </library>
 </libraries>
@@ -2382,6 +2410,10 @@ Basic schematic elements and footprints for 0603, 1206, and PTH resistors.</desc
 <part name="AGND7" library="thefly" deviceset="AGND" device=""/>
 <part name="C13" library="thefly" deviceset="CAP" device="0603-CAP" value="100n"/>
 <part name="AGND8" library="thefly" deviceset="AGND" device=""/>
+<part name="L4" library="thefly" deviceset="FB" device="" value="600"/>
+<part name="C14" library="thefly" deviceset="CAP" device="0603-CAP" value="100n"/>
+<part name="GND11" library="thefly" deviceset="GND" device=""/>
+<part name="U$5" library="thefly" deviceset="THE-FLY-LOGO" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -2420,8 +2452,8 @@ Basic schematic elements and footprints for 0603, 1206, and PTH resistors.</desc
 <instance part="GND9" gate="1" x="109.22" y="-10.16"/>
 <instance part="R1" gate="G$1" x="129.54" y="5.08"/>
 <instance part="C7" gate="G$1" x="129.54" y="12.7" rot="R90"/>
-<instance part="R2" gate="G$1" x="121.92" y="-5.08" rot="R90"/>
-<instance part="P+3" gate="G$1" x="129.54" y="-10.16"/>
+<instance part="R2" gate="G$1" x="129.54" y="-2.54" rot="R180"/>
+<instance part="P+3" gate="G$1" x="170.18" y="0"/>
 <instance part="L2" gate="G$1" x="256.54" y="81.28"/>
 <instance part="L3" gate="G$1" x="241.3" y="66.04"/>
 <instance part="P+4" gate="G$1" x="264.16" y="83.82"/>
@@ -2454,6 +2486,10 @@ Basic schematic elements and footprints for 0603, 1206, and PTH resistors.</desc
 <instance part="AGND7" gate="VR1" x="236.22" y="-2.54"/>
 <instance part="C13" gate="G$1" x="236.22" y="25.4"/>
 <instance part="AGND8" gate="VR1" x="228.6" y="27.94"/>
+<instance part="L4" gate="G$1" x="162.56" y="-2.54"/>
+<instance part="C14" gate="G$1" x="149.86" y="-10.16"/>
+<instance part="GND11" gate="1" x="149.86" y="-17.78"/>
+<instance part="U$5" gate="G$1" x="-2.54" y="20.32"/>
 </instances>
 <busses>
 </busses>
@@ -2603,6 +2639,11 @@ Basic schematic elements and footprints for 0603, 1206, and PTH resistors.</desc
 <junction x="129.54" y="-40.64"/>
 <junction x="129.54" y="-43.18"/>
 </segment>
+<segment>
+<pinref part="C14" gate="G$1" pin="2"/>
+<pinref part="GND11" gate="1" pin="GND"/>
+<wire x1="149.86" y1="-12.7" x2="149.86" y2="-15.24" width="0.1524" layer="91"/>
+</segment>
 </net>
 <net name="1.8V" class="0">
 <segment>
@@ -2665,13 +2706,6 @@ Basic schematic elements and footprints for 0603, 1206, and PTH resistors.</desc
 <junction x="104.14" y="48.26"/>
 </segment>
 <segment>
-<pinref part="P+3" gate="G$1" pin="3.3V"/>
-<wire x1="129.54" y1="-10.16" x2="129.54" y2="-12.7" width="0.1524" layer="91"/>
-<wire x1="129.54" y1="-12.7" x2="121.92" y2="-12.7" width="0.1524" layer="91"/>
-<pinref part="R2" gate="G$1" pin="1"/>
-<wire x1="121.92" y1="-12.7" x2="121.92" y2="-10.16" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="L2" gate="G$1" pin="P$1"/>
 <pinref part="P+4" gate="G$1" pin="3.3V"/>
 <wire x1="261.62" y1="81.28" x2="264.16" y2="81.28" width="0.1524" layer="91"/>
@@ -2687,6 +2721,12 @@ Basic schematic elements and footprints for 0603, 1206, and PTH resistors.</desc
 <pinref part="P+6" gate="G$1" pin="3.3V"/>
 <pinref part="R9" gate="G$1" pin="2"/>
 <wire x1="160.02" y1="-25.4" x2="160.02" y2="-27.94" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="P+3" gate="G$1" pin="3.3V"/>
+<wire x1="170.18" y1="0" x2="170.18" y2="-2.54" width="0.1524" layer="91"/>
+<pinref part="L4" gate="G$1" pin="P$1"/>
+<wire x1="170.18" y1="-2.54" x2="167.64" y2="-2.54" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="SDA" class="0">
@@ -2732,7 +2772,8 @@ Basic schematic elements and footprints for 0603, 1206, and PTH resistors.</desc
 <wire x1="121.92" y1="5.08" x2="124.46" y2="5.08" width="0.1524" layer="91"/>
 <wire x1="109.22" y1="2.54" x2="109.22" y2="5.08" width="0.1524" layer="91"/>
 <pinref part="R2" gate="G$1" pin="2"/>
-<wire x1="121.92" y1="0" x2="121.92" y2="5.08" width="0.1524" layer="91"/>
+<wire x1="124.46" y1="-2.54" x2="121.92" y2="-2.54" width="0.1524" layer="91"/>
+<wire x1="121.92" y1="-2.54" x2="121.92" y2="5.08" width="0.1524" layer="91"/>
 <junction x="121.92" y="5.08"/>
 <junction x="109.22" y="5.08"/>
 </segment>
@@ -2977,6 +3018,17 @@ Basic schematic elements and footprints for 0603, 1206, and PTH resistors.</desc
 <wire x1="152.4" y1="76.2" x2="149.86" y2="76.2" width="0.1524" layer="91"/>
 <label x="149.86" y="76.2" size="1.27" layer="95" rot="R180" xref="yes"/>
 <junction x="152.4" y="76.2"/>
+</segment>
+</net>
+<net name="N$1" class="0">
+<segment>
+<pinref part="R2" gate="G$1" pin="1"/>
+<pinref part="L4" gate="G$1" pin="P$2"/>
+<wire x1="157.48" y1="-2.54" x2="149.86" y2="-2.54" width="0.1524" layer="91"/>
+<pinref part="C14" gate="G$1" pin="1"/>
+<wire x1="149.86" y1="-2.54" x2="134.62" y2="-2.54" width="0.1524" layer="91"/>
+<wire x1="149.86" y1="-5.08" x2="149.86" y2="-2.54" width="0.1524" layer="91"/>
+<junction x="149.86" y="-2.54"/>
 </segment>
 </net>
 </nets>
