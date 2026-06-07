@@ -257,7 +257,7 @@ void draw_pmic_screen(const PmicSnapshot& snapshot)
 
 void test_pmic()
 {
-    Serial.begin(115200);
+    Serial.begin(115200, SERIAL_8N1, -1, 1);
     delay(1000);
 
     auto cfg         = M5.config();

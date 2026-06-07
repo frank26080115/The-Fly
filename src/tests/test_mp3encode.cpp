@@ -248,7 +248,7 @@ uint64_t print_duration_estimate(uint64_t file_size)
 
 void test_mp3encode()
 {
-    Serial.begin(115200);
+    Serial.begin(115200, SERIAL_8N1, -1, 1);
     delay(250);
 
     Serial.println();

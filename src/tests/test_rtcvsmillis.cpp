@@ -34,7 +34,7 @@ void print_rtc_vs_millis()
 
 void test_rtcvsmillis()
 {
-    Serial.begin(115200);
+    Serial.begin(115200, SERIAL_8N1, -1, 1);
     delay(250);
 
     if (!M5.Rtc.isEnabled())

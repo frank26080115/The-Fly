@@ -59,7 +59,7 @@ void        init_gui();
 
 void all_init()
 {
-    Serial.begin(115200);
+    Serial.begin(115200, SERIAL_8N1, -1, 1); // TXD0 pin remains default, RXD0 pin GPIO3 is not used, will be used for MCLK
     g_nvs_ready = init_nvs();
     check_reset_flag();
     init_m5();

@@ -81,7 +81,7 @@ void report_fps(uint32_t frames, uint32_t elapsed_ms)
 
 void test_screen()
 {
-    Serial.begin(115200);
+    Serial.begin(115200, SERIAL_8N1, -1, 1);
     delay(1000);
 
     auto cfg = M5.config();

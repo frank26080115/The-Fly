@@ -35,7 +35,7 @@ void report_result(const char* name, bool started)
 
 void test_hapticfeedback()
 {
-    Serial.begin(115200);
+    Serial.begin(115200, SERIAL_8N1, -1, 1);
     delay(1000);
 
     auto cfg = M5.config();

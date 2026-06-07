@@ -65,7 +65,7 @@ void spin_forever(bool poll_wifi = false)
 
 void test_btramusage()
 {
-    Serial.begin(115200);
+    Serial.begin(115200, SERIAL_8N1, -1, 1);
     delay(3000);
 
     Serial.println();

@@ -127,7 +127,7 @@ void run_benchmark_phase(bool service_watchdog, uint32_t stop_after_total_ms)
 
 void test_pbkdfbenchmark()
 {
-    Serial.begin(115200);
+    Serial.begin(115200, SERIAL_8N1, -1, 1);
     delay(3000);
 
     Serial.println();

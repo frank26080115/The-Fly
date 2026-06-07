@@ -94,7 +94,7 @@ bool queue_all(AudioFifo& fifo, const int16_t* samples, size_t sampleCount, cons
 
 void test_micfilterresult()
 {
-    Serial.begin(115200);
+    Serial.begin(115200, SERIAL_8N1, -1, 1);
     delay(1000);
 
     Serial.println();

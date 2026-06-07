@@ -20,6 +20,53 @@ The external codec firmware module has these states:
  * EXTCODEC_YES_EARBUD,
  * EXTCODEC_YES_EARBUD_WITH_MIC,
 
+### Earbud Detection
+
+There is a switch on the "tip" of the TRRS jack. That signal is pulled-up to 3.3V. The ADC capable pin GPIO35 is connected to it. When the earbud is connected, then the switch is open, and the signal will go to a voltage very close to 3.3V
+
+To sense the presence of an inline mic on the earbud, there is a pull-up resistor on the mic-bias signal. If there is no inline microphone on the earbud, then the ground and mic signal are both one continuous sleeve on the connector, a reading on the mic signal would result in a voltage very close to 0V. If an inline mic is available, then the voltage on that signal will be some mid-ranged voltage depending on the mic impedance and the mic-bias. This is sensed by an ADC capable GPIO pin GPIO36.
+
+### Requirements for I2S Bus Sharing
+
+In the ideal case, the NS4168 and SGTL5000 can share the same I2S bus
+
+The first challenge is whether or not the BCLK signal can be duplicated to two pins instead of just one, because the extension port does not expose the NS4168's BCLK pin on GPIO12, so the SGTL5000 needs another BCLK pin, which our PCB layout uses GPIO13 for. BCLK must be driven on both GPIO12 and GPIO13 in the same active I2S configuration.
+
+The second challenge is simply making sure the I2S bus configurations can match
+
+NS4168 I2S configuration code (this is known to be working):
+
+```
+    i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
+    chan_config.dma_desc_num      = kDmaBufferCount;
+    chan_config.dma_frame_num     = kPumpSamples;
+    chan_config.auto_clear        = true;
+
+    i2s_std_config_t config   = {};
+    config.clk_cfg            = I2S_STD_CLK_DEFAULT_CONFIG(sampleRateHz);
+    config.slot_cfg           = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO);
+    config.slot_cfg.slot_mask = I2S_STD_SLOT_BOTH;
+    config.slot_cfg.ws_width  = 16;
+```
+
+SGTL5000 I2S configuration code
+
+```
+    i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
+    chan_config.dma_desc_num      = kDmaBufferCount;
+    chan_config.dma_frame_num     = kPumpSamples;
+    chan_config.auto_clear        = true;
+
+    i2s_std_config_t config      = {};
+    config.clk_cfg               = I2S_STD_CLK_DEFAULT_CONFIG(sampleRateHz);
+    config.clk_cfg.mclk_multiple = I2S_MCLK_MULTIPLE_512;
+    config.slot_cfg              = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO);
+    config.slot_cfg.slot_mask    = I2S_STD_SLOT_BOTH;
+    config.slot_cfg.ws_width     = 16;
+```
+
+The conclusion is that bus sharing is likely possible
+
 ### Push-To-Talk
 
 Without the external codec, the SGTL5000, we have the NS4168 which drives the speaker, and the SPM1423 microphone. These two share the same I2S signal pins but the NS4168 uses standard signalling and the SPM1423 uses PDM signalling, so they cannot work simultaneously. Thus, a push-to-talk scheme is used, when the mic is activated, the I2S is configured for PDM, and when the mic is off, the I2S configuration switches to standard.

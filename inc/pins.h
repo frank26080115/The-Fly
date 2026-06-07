@@ -14,7 +14,7 @@ constexpr int kSPM1423MicClk     = 0;
 constexpr int kSPM1423MicDin     = 34;
 
 constexpr int kSGTL5000I2sBclk = 13;
-constexpr int kSGTL5000I2sMclk = 14;
+constexpr int kSGTL5000I2sMclk = 3;
 constexpr int kSGTL5000I2sDin  = 34;
 constexpr int kSGTL5000I2sDout = 2;
 constexpr int kSGTL5000I2sLrck = 0;

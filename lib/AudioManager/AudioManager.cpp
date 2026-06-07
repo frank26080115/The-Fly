@@ -127,6 +127,7 @@ template <typename Updater> void update_hfp_diag(Updater updater)
 
 bool   begin_fifos();
 void   stop_i2s();
+bool   configure_i2s_shared();
 bool   enable_ns4168_speaker(uint32_t sampleRateHz = kSampleRateHz);
 bool   enable_spm1423_mic();
 bool   enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz = kSampleRateHz);
@@ -859,6 +860,40 @@ void stop_i2s()
     duplicate_i2s0_bclk_to_gpio13();
 }
 
+bool configure_i2s_shared()
+{
+    i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
+    chan_config.dma_desc_num      = kDmaBufferCount;
+    chan_config.dma_frame_num     = kPumpSamples;
+    chan_config.auto_clear        = true;
+
+    i2s_std_config_t config      = {};
+    config.clk_cfg               = I2S_STD_CLK_DEFAULT_CONFIG(kSampleRateHz);
+    config.clk_cfg.mclk_multiple = I2S_MCLK_MULTIPLE_512; // only connected to SGTL5000
+    config.slot_cfg              = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO);
+    config.slot_cfg.slot_mask    = I2S_STD_SLOT_BOTH;
+    config.slot_cfg.ws_width     = 16;
+    config.gpio_cfg.mclk         = static_cast<gpio_num_t>(3);   // only connected to SGTL5000
+    config.gpio_cfg.bclk         = static_cast<gpio_num_t>(kNS4168SpeakerBclk); // shared with duplicate_i2s0_bclk_to_gpio13
+    config.gpio_cfg.ws           = static_cast<gpio_num_t>(kNS4168SpeakerLrck); // shared with kSGTL5000I2sLrck
+    config.gpio_cfg.dout         = static_cast<gpio_num_t>(kNS4168SpeakerDout); // shared with kSGTL5000I2sDout
+    config.gpio_cfg.din          = static_cast<gpio_num_t>(kSGTL5000I2sDin);    // only connected to SGTL5000
+
+    if (!ok(i2s_new_channel(&chan_config, &g_i2s_tx, &g_i2s_rx), "shared-i2s full-duplex i2s channel") ||
+        !ok(i2s_channel_init_std_mode(g_i2s_tx, &config), "shared-i2s tx i2s std init") ||
+        !ok(i2s_channel_init_std_mode(g_i2s_rx, &config), "shared-i2s rx i2s std init") ||
+        !register_i2s_callbacks(g_i2s_tx, false) || !register_i2s_callbacks(g_i2s_rx, true) ||
+        !preload_silence(g_i2s_tx) || !enable_channel(g_i2s_rx, "shared-i2s rx i2s enable") ||
+        !enable_channel(g_i2s_tx, "shared-i2s tx i2s enable"))
+    {
+        stop_i2s();
+        return false;
+    }
+
+    duplicate_i2s0_bclk_to_gpio13();
+    return true;
+}
+
 bool enable_ns4168_speaker(uint32_t sampleRateHz)
 {
     sampleRateHz = speaker_sample_rate_or_default(sampleRateHz);
@@ -866,6 +901,8 @@ bool enable_ns4168_speaker(uint32_t sampleRateHz)
     g_fifo_bt2spk.clear();
     g_fifo_bt2spk.setChoked(false);
     set_ns4168_speaker_enabled(true);
+
+    #if 0
 
     i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
     chan_config.dma_desc_num      = kDmaBufferCount;
@@ -899,9 +936,18 @@ bool enable_ns4168_speaker(uint32_t sampleRateHz)
     }
 
     duplicate_i2s0_bclk_to_gpio13();
-    g_mode         = P2TMode::Speaker;
-    g_speaker_path = SpeakerPath::NS4168;
-    return true;
+
+    #endif
+
+    bool success = configure_i2s_shared();
+    if (success) {
+        g_mode         = P2TMode::Speaker;
+        g_speaker_path = SpeakerPath::NS4168;
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 bool enable_spm1423_mic()

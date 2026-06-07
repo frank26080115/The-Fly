@@ -235,7 +235,7 @@ void fill_max_bt_host_list(BtHostList& hosts)
 
 void test_nvsloadsave()
 {
-    Serial.begin(115200);
+    Serial.begin(115200, SERIAL_8N1, -1, 1);
     delay(1000);
 
     Serial.println();

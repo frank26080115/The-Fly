@@ -497,7 +497,7 @@ bool start_test_web_ap()
 
 void test_btspeakerphone()
 {
-    Serial.begin(115200);
+    Serial.begin(115200, SERIAL_8N1, -1, 1);
     delay(1000);
 
     Serial.println();

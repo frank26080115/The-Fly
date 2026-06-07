@@ -289,7 +289,7 @@ void run_recording_throughput_test()
 
 void test_sdcard()
 {
-    Serial.begin(115200);
+    Serial.begin(115200, SERIAL_8N1, -1, 1);
     delay(1000);
 
     Serial.println();

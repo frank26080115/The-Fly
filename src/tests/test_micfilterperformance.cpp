@@ -31,7 +31,7 @@ void fill_random(int16_t* buffer, size_t sampleCount)
 
 void test_micfilterperformance()
 {
-    Serial.begin(115200);
+    Serial.begin(115200, SERIAL_8N1, -1, 1);
     delay(1000);
 
     Serial.println();

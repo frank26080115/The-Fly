@@ -36,7 +36,7 @@ void report_draw_result(const SpriteDraw::DrawResult& result)
 
 void test_pngdecode()
 {
-    Serial.begin(115200);
+    Serial.begin(115200, SERIAL_8N1, -1, 1);
     delay(1000);
 
     auto cfg = M5.config();

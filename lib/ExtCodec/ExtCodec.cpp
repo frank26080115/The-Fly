@@ -29,7 +29,8 @@ constexpr uint32_t kSGTL5000I2cFreq    = 400000;
 
 constexpr uint16_t kEarbudConnectedThreshold    = 1800;
 constexpr uint16_t kInlineMicPresentThreshold   = 800;
-constexpr uint32_t kAdcPollIntervalMs           = 100;
+constexpr uint32_t kAdcPollIntervalMs           = 80;
+constexpr uint32_t kAdcPollFastIntervalMs       = 5;
 constexpr uint16_t kAdcSamplesPerPoll           = 4;
 constexpr uint32_t kAdcTaskStackBytes           = 2048;
 constexpr UBaseType_t kAdcTaskPriority          = 1;
@@ -63,9 +64,10 @@ bool     begin_sgtl5000_control();
 bool     start_adc_task();
 void     adc_task(void*);
 void     poll_adc_state();
-State    state_from_adc(uint16_t earbud_sense, uint16_t inline_mic_sense);
+State    read_adc_state_sample();
+void     apply_adc_state_sample(State sample);
+void     reset_adc_state_samples();
 void     set_state(State next);
-uint16_t read_adc_average(int pin);
 void     set_event_bits(EventBits_t bits);
 
 } // namespace
@@ -347,24 +349,50 @@ void adc_task(void*)
 void poll_adc_state()
 {
     #ifdef TEST_MOCK_EXT_CODEC
-    set_state(state_from_adc(0, 0));
+    uint32_t t = millis() / 10000;
+    t %= 3;
+    switch (t)
+    {
+    case 0:
+        set_state(EXTCODEC_NO_EARBUD);
+        break;
+    case 1:
+        set_state(EXTCODEC_YES_EARBUD_WITH_MIC);
+        break;
+    case 2:
+        set_state(EXTCODEC_YES_EARBUD);
+        break;
+    default:
+        set_state(EXTCODEC_NO_EARBUD);
+        break;
+    }
     #else
-    const uint16_t earbud_sense    = read_adc_average(kExtCodecEarbudSenseAdc);
-    const uint16_t inline_mic_sense = read_adc_average(kExtCodecInlineMicSenseAdc);
-
-    g_earbud_sense_raw.store(earbud_sense);
-    g_inline_mic_sense_raw.store(inline_mic_sense);
-    set_state(state_from_adc(earbud_sense, inline_mic_sense));
+    if (!available())
+    {
+        reset_adc_state_samples();
+        set_state(EXTCODEC_UNAVAIL);
+    }
+    else
+    {
+        for (uint16_t i = 0; i < kAdcSamplesPerPoll; ++i)
+        {
+            apply_adc_state_sample(read_adc_state_sample());
+            if (i + 1 < kAdcSamplesPerPoll)
+            {
+                vTaskDelay(pdMS_TO_TICKS(kAdcPollFastIntervalMs));
+            }
+        }
+    }
     #endif
 }
 
-State state_from_adc(uint16_t earbud_sense, uint16_t inline_mic_sense)
+State read_adc_state_sample()
 {
-    #ifndef TEST_MOCK_EXT_CODEC
-    if (!available())
-    {
-        return EXTCODEC_UNAVAIL;
-    }
+    const uint16_t earbud_sense     = analogRead(kExtCodecEarbudSenseAdc);
+    const uint16_t inline_mic_sense = analogRead(kExtCodecInlineMicSenseAdc);
+    g_earbud_sense_raw.store(earbud_sense);
+    g_inline_mic_sense_raw.store(inline_mic_sense);
+
     if (earbud_sense < kEarbudConnectedThreshold)
     {
         return EXTCODEC_NO_EARBUD;
@@ -374,21 +402,39 @@ State state_from_adc(uint16_t earbud_sense, uint16_t inline_mic_sense)
         return EXTCODEC_YES_EARBUD_WITH_MIC;
     }
     return EXTCODEC_YES_EARBUD;
-    #else
-    uint32_t t = millis() / 10000;
-    t %= 3;
-    switch (t)
+}
+
+void apply_adc_state_sample(State sample)
+{
+    static State    pending_state = EXTCODEC_UNAVAIL;
+    static uint16_t pending_count = 0;
+
+    if (sample == state())
     {
-    case 0:
-        return EXTCODEC_NO_EARBUD;
-    case 1:
-        return EXTCODEC_YES_EARBUD_WITH_MIC;
-    case 2:
-        return EXTCODEC_YES_EARBUD;
-    default:
-        return EXTCODEC_NO_EARBUD;
+        pending_state = EXTCODEC_UNAVAIL;
+        pending_count = 0;
+        return;
     }
-    #endif
+
+    if (sample != pending_state)
+    {
+        pending_state = sample;
+        pending_count = 1;
+        return;
+    }
+
+    ++pending_count;
+    if (pending_count >= kAdcSamplesPerPoll)
+    {
+        set_state(sample);
+        pending_state = EXTCODEC_UNAVAIL;
+        pending_count = 0;
+    }
+}
+
+void reset_adc_state_samples()
+{
+    apply_adc_state_sample(state());
 }
 
 void set_state(State next)
@@ -402,16 +448,6 @@ void set_state(State next)
     ++g_state_generation;
     set_event_bits(kStateChangedEvent);
     DBG_LOGI(TAG, "state changed: %s -> %s", stateName(previous), stateName(next));
-}
-
-uint16_t read_adc_average(int pin)
-{
-    uint32_t total = 0;
-    for (uint16_t i = 0; i < kAdcSamplesPerPoll; ++i)
-    {
-        total += static_cast<uint32_t>(analogRead(pin));
-    }
-    return static_cast<uint16_t>(total / kAdcSamplesPerPoll);
 }
 
 void set_event_bits(EventBits_t bits)
