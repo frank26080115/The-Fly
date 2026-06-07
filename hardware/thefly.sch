@@ -2892,9 +2892,9 @@ Basic schematic elements and footprints for 0603, 1206, and PTH resistors.</desc
 <label x="35.56" y="22.86" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 <segment>
-<pinref part="JP1" gate="A" pin="13"/>
-<wire x1="137.16" y1="-55.88" x2="129.54" y2="-55.88" width="0.1524" layer="91"/>
-<label x="129.54" y="-55.88" size="1.27" layer="95" rot="R180" xref="yes"/>
+<pinref part="JP1" gate="A" pin="14"/>
+<wire x1="144.78" y1="-55.88" x2="152.4" y2="-55.88" width="0.1524" layer="91"/>
+<label x="152.4" y="-55.88" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="VCCA2" class="0">

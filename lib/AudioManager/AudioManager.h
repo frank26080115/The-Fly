@@ -87,6 +87,8 @@ static constexpr uint8_t kMaxVolume = 30;
 
 bool init(Hardware hardware = Hardware::M5StackInternal);
 void stop();
+void disconnect_uart0_tx_from_mclk_pin();
+void reconnect_uart0_tx();
 
 bool    enableSpeakerMode(uint32_t sampleRateHz = kSampleRateHz);
 bool    enableMicMode();

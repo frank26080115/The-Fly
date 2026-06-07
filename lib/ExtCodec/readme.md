@@ -67,6 +67,8 @@ SGTL5000 I2S configuration code
 
 The conclusion is that bus sharing is likely possible
 
+Testing showed BCLK signal is successfully output through GPIO13
+
 ### Push-To-Talk
 
 Without the external codec, the SGTL5000, we have the NS4168 which drives the speaker, and the SPM1423 microphone. These two share the same I2S signal pins but the NS4168 uses standard signalling and the SPM1423 uses PDM signalling, so they cannot work simultaneously. Thus, a push-to-talk scheme is used, when the mic is activated, the I2S is configured for PDM, and when the mic is off, the I2S configuration switches to standard.
@@ -90,3 +92,7 @@ Under `EXTCODEC_YES_EARBUD`: power off the NS4168 via the PMIC, mic source is Li
 Under `EXTCODEC_YES_EARBUD_WITH_MIC`: power off the NS4168 via the PMIC, mic source is Mic-In
 
 Volume is done via software
+
+### Initialization Sequence
+
+In the ideal case, when the I2S bus can be shared by both the NS4168 and SGTL5000, then the I2S needs to be initialized at boot and never reconfigured again. Then the I2C setup for the SGTL5000 can happen. This is because the only pins usable for the MCLK are the UART pins so we need to disable UART completely before the SGTL5000 is initialized.
