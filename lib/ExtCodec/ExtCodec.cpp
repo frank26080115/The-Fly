@@ -11,6 +11,8 @@
 #include <mutex>
 
 #include "control_sgtl5000.h"
+#include "driver/ledc.h"
+#include "esp_err.h"
 #include "pins.h"
 
 namespace ExtCodec
@@ -37,6 +39,7 @@ constexpr UBaseType_t kAdcTaskPriority          = 1;
 constexpr float    kDefaultHeadphoneVolume      = 0.45f;
 constexpr uint8_t  kDefaultLineInLevel          = 5;
 constexpr uint8_t  kDefaultDedicatedMicGainDb   = 30;
+constexpr uint32_t kLedcMclkFrequencyHz         = 8192000;
 
 // -----------------------------------------------------------------------------
 // Globals
@@ -69,6 +72,7 @@ void     apply_adc_state_sample(State sample);
 void     reset_adc_state_samples();
 void     set_state(State next);
 void     set_event_bits(EventBits_t bits);
+bool     report_ledc_result(const char* step, esp_err_t err);
 
 } // namespace
 
@@ -194,6 +198,43 @@ bool pushToTalkRequired()
 {
     const State current = state();
     return current == EXTCODEC_UNAVAIL || current == EXTCODEC_NO_EARBUD;
+}
+
+bool start_ledc_mclk()
+{
+    ledc_timer_config_t timer = {};
+    timer.speed_mode          = LEDC_HIGH_SPEED_MODE;
+    timer.duty_resolution     = LEDC_TIMER_1_BIT;
+    timer.timer_num           = LEDC_TIMER_0;
+    timer.freq_hz             = kLedcMclkFrequencyHz;
+    timer.clk_cfg             = LEDC_USE_APB_CLK;
+
+    esp_err_t err = ledc_timer_config(&timer);
+    if (!report_ledc_result("timer", err))
+    {
+        return false;
+    }
+
+    ledc_channel_config_t channel = {};
+    channel.gpio_num              = kLedcMclkGpio;
+    channel.speed_mode            = LEDC_HIGH_SPEED_MODE;
+    channel.channel               = LEDC_CHANNEL_0;
+    channel.intr_type             = LEDC_INTR_DISABLE;
+    channel.timer_sel             = LEDC_TIMER_0;
+    channel.duty                  = 1;
+    channel.hpoint                = 0;
+
+    err = ledc_channel_config(&channel);
+    if (!report_ledc_result("channel", err))
+    {
+        return false;
+    }
+
+    DBG_LOGI(TAG,
+             "LEDC MCLK started: GPIO%d target=%lu Hz duty=50%% resolution=1-bit",
+             kLedcMclkGpio,
+             static_cast<unsigned long>(kLedcMclkFrequencyHz));
+    return true;
 }
 
 MicInput micInputForState(State value)
@@ -456,6 +497,12 @@ void set_event_bits(EventBits_t bits)
     {
         xEventGroupSetBits(g_events, bits);
     }
+}
+
+bool report_ledc_result(const char* step, esp_err_t err)
+{
+    DBG_LOGI(TAG, "LEDC MCLK %s: %s", step, esp_err_to_name(err));
+    return err == ESP_OK;
 }
 
 } // namespace

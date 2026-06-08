@@ -39,6 +39,7 @@ bool earbudPresent();
 bool inlineMicPresent();
 bool fullDuplexAvailable();
 bool pushToTalkRequired();
+bool start_ledc_mclk();
 
 MicInput    micInputForState(State value);
 const char* micInputName(MicInput value);

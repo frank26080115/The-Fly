@@ -129,7 +129,7 @@ template <typename Updater> void update_hfp_diag(Updater updater)
 
 bool   begin_fifos();
 void   stop_i2s();
-bool   configure_i2s_shared();
+bool   configure_i2s_shared_impl();
 bool   enable_ns4168_speaker(uint32_t sampleRateHz = kSampleRateHz);
 bool   enable_spm1423_mic();
 bool   enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz = kSampleRateHz);
@@ -804,6 +804,11 @@ void reconnect_uart0_tx()
     Serial.begin(115200, SERIAL_8N1, -1, 1);
 }
 
+bool configure_i2s_shared()
+{
+    return configure_i2s_shared_impl();
+}
+
 namespace
 {
 
@@ -881,7 +886,7 @@ void stop_i2s()
     duplicate_i2s0_bclk_to_gpio13();
 }
 
-bool configure_i2s_shared()
+bool configure_i2s_shared_impl()
 {
     i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
     chan_config.dma_desc_num      = kDmaBufferCount;
@@ -962,7 +967,7 @@ bool enable_ns4168_speaker(uint32_t sampleRateHz)
 
     #endif
 
-    bool success = configure_i2s_shared();
+    bool success = configure_i2s_shared_impl();
     if (success) {
         g_mode         = P2TMode::Speaker;
         g_speaker_path = SpeakerPath::NS4168;

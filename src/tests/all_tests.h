@@ -27,3 +27,5 @@ extern void test_pbkdfbenchmark();
 extern void test_mp3encode();
 extern void test_rtcvsmillis();
 extern void test_hapticfeedback();
+extern void test_ledcpwm();
+extern void test_mcpwm();

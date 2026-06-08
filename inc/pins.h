@@ -19,6 +19,8 @@ constexpr int kSGTL5000I2sDin  = 34;
 constexpr int kSGTL5000I2sDout = 2;
 constexpr int kSGTL5000I2sLrck = 0;
 
+constexpr int kLedcMclkGpio = 14;
+
 constexpr int kExtCodecEarbudSenseAdc    = 35;
 constexpr int kExtCodecInlineMicSenseAdc = 36;
 

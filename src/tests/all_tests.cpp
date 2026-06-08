@@ -23,4 +23,6 @@ void run_test()
     // test_mp3encode();
     // test_rtcvsmillis();
     // test_hapticfeedback();
+    // test_ledcpwm();
+    // test_mcpwm();
 }

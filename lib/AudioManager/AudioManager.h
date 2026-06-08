@@ -89,6 +89,7 @@ bool init(Hardware hardware = Hardware::M5StackInternal);
 void stop();
 void disconnect_uart0_tx_from_mclk_pin();
 void reconnect_uart0_tx();
+bool configure_i2s_shared();
 
 bool    enableSpeakerMode(uint32_t sampleRateHz = kSampleRateHz);
 bool    enableMicMode();
