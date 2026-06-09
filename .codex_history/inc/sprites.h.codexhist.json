@@ -619,5 +619,11 @@
     "type": "git_commit",
     "commit_message": "new button graphics to indicate earbud",
     "commit_hash": "82482e83565b8109bfc890f07011e5299937b293"
+  },
+  {
+    "timestamp": "2026-06-06T01:28:29Z",
+    "type": "git_commit",
+    "commit_message": "better batt status display when full but usb in",
+    "commit_hash": "ad32940c8599a2f9ac059d155c54a9d3600328d8"
   }
 ]

@@ -2409,5 +2409,11 @@
     "type": "git_commit",
     "commit_message": "WiFi now makes GUI updates slower",
     "commit_hash": "0bb6c204ac7ee2ee7229fe4e8069d66d8b2ee48e"
+  },
+  {
+    "timestamp": "2026-06-06T01:28:29Z",
+    "type": "git_commit",
+    "commit_message": "better batt status display when full but usb in",
+    "commit_hash": "ad32940c8599a2f9ac059d155c54a9d3600328d8"
   }
 ]

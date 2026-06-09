@@ -328,5 +328,11 @@
     "type": "git_commit",
     "commit_message": "another pass for neatening the code",
     "commit_hash": "69565ef8070e29a4eed56c25eb5f522168c02750"
+  },
+  {
+    "timestamp": "2026-06-06T01:28:29Z",
+    "type": "git_commit",
+    "commit_message": "better batt status display when full but usb in",
+    "commit_hash": "ad32940c8599a2f9ac059d155c54a9d3600328d8"
   }
 ]

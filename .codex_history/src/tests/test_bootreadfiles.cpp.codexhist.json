@@ -29,7 +29,9 @@
     "files": [
       "src/tests/test_bootreadfiles.cpp",
       "wifi.json",
-      "bluetooth.json"
+      "bluetooth.json",
+      "json_templates/wifi.json",
+      "json_templates/bluetooth.json"
     ]
   },
   {
@@ -567,5 +569,11 @@
     "type": "git_commit",
     "commit_message": "refactor wifi manager",
     "commit_hash": "e854858ac4af04460f4ee1e885c7c0056edd16ac"
+  },
+  {
+    "timestamp": "2026-06-07T04:36:19Z",
+    "type": "git_commit",
+    "commit_message": "progress on ext codec",
+    "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"
   }
 ]

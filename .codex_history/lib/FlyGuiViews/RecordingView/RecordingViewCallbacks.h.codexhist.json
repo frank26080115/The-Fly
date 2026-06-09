@@ -323,5 +323,11 @@
     "type": "git_commit",
     "commit_message": "prevent rare race condition that restarts a recording from phone",
     "commit_hash": "ec0b41e94db41f542a220a0d668ecc30f0bfcf5b"
+  },
+  {
+    "timestamp": "2026-06-06T04:45:57Z",
+    "type": "git_commit",
+    "commit_message": "mock ext codec test",
+    "commit_hash": "29e35603230f57c37d088b5def57ae546565ca33"
   }
 ]
