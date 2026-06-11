@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include "nvs_flash.h"
 #include "M5Unified.h"
+#include "AudioManager.h"
 #include "FlyGui.h"
 #include "ConnWaitingView.h"
 #include "ErrorView.h"
@@ -64,6 +65,7 @@ void all_init()
     check_reset_flag();
     init_m5();
     init_gui();
+    AudioManager::configure_i2s_shared();
 }
 
 bool init_nvs()

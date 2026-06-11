@@ -11,6 +11,7 @@
 #include <mutex>
 
 #include "control_sgtl5000.h"
+#include "conf.h"
 #include "driver/ledc.h"
 #include "esp_err.h"
 #include "pins.h"
@@ -28,6 +29,8 @@ constexpr const char* TAG = "ExtCodec";
 
 constexpr uint8_t kSGTL5000I2cAddress = 0x0A;
 constexpr uint32_t kSGTL5000I2cFreq    = 400000;
+constexpr uint16_t kSGTL5000ChipAnaStatusRegister = 0x0036;
+constexpr uint16_t kSGTL5000PllLockedMask         = 1U << 4;
 
 constexpr uint16_t kEarbudConnectedThreshold    = 1800;
 constexpr uint16_t kInlineMicPresentThreshold   = 800;
@@ -36,9 +39,6 @@ constexpr uint32_t kAdcPollFastIntervalMs       = 5;
 constexpr uint16_t kAdcSamplesPerPoll           = 4;
 constexpr uint32_t kAdcTaskStackBytes           = 2048;
 constexpr UBaseType_t kAdcTaskPriority          = 1;
-constexpr float    kDefaultHeadphoneVolume      = 0.45f;
-constexpr uint8_t  kDefaultLineInLevel          = 5;
-constexpr uint8_t  kDefaultDedicatedMicGainDb   = 30;
 constexpr uint32_t kLedcMclkFrequencyHz         = 8192000;
 
 // -----------------------------------------------------------------------------
@@ -64,6 +64,7 @@ std::atomic<uint16_t> g_inline_mic_sense_raw{0};
 bool     begin_i2c();
 bool     sgtl5000_address_responds();
 bool     begin_sgtl5000_control();
+bool     read_sgtl5000_register(uint16_t reg, uint16_t& value);
 bool     start_adc_task();
 void     adc_task(void*);
 void     poll_adc_state();
@@ -200,6 +201,26 @@ bool pushToTalkRequired()
     return current == EXTCODEC_UNAVAIL || current == EXTCODEC_NO_EARBUD;
 }
 
+bool pllLocked()
+{
+    #ifdef TEST_MOCK_EXT_CODEC
+    return true;
+    #else
+    uint16_t status = 0;
+    return readChipAnaStatus(status) && ((status & kSGTL5000PllLockedMask) != 0);
+    #endif
+}
+
+bool readChipAnaStatus(uint16_t& status)
+{
+    #ifdef TEST_MOCK_EXT_CODEC
+    status = kSGTL5000PllLockedMask;
+    return true;
+    #else
+    return read_sgtl5000_register(kSGTL5000ChipAnaStatusRegister, status);
+    #endif
+}
+
 bool start_ledc_mclk()
 {
     ledc_timer_config_t timer = {};
@@ -267,10 +288,11 @@ bool configureAnalogPathForState(State value)
     std::lock_guard<std::mutex> lock(g_codec_mutex);
     if (input == MicInput::DedicatedMic)
     {
-        return g_codec.inputSelect(AUDIO_INPUT_MIC) && g_codec.micGain(kDefaultDedicatedMicGainDb);
+        return g_codec.inputSelect(AUDIO_INPUT_MIC) && g_codec.micGain(kSGTL5000DefaultDedicatedMicGainDb);
     }
 
-    return g_codec.inputSelect(AUDIO_INPUT_LINEIN) && g_codec.lineInLevel(kDefaultLineInLevel, kDefaultLineInLevel);
+    return g_codec.inputSelect(AUDIO_INPUT_LINEIN) &&
+           g_codec.lineInLevel(kSGTL5000DefaultLineInLevel, kSGTL5000DefaultLineInLevel);
     #else
     return true;
     #endif
@@ -360,12 +382,40 @@ bool begin_sgtl5000_control()
     }
 
     return g_codec.configureFor16k16BitStereo() && g_codec.inputSelect(AUDIO_INPUT_LINEIN) &&
-           g_codec.lineInLevel(kDefaultLineInLevel, kDefaultLineInLevel) &&
-           g_codec.micGain(kDefaultDedicatedMicGainDb) && g_codec.volume(kDefaultHeadphoneVolume) &&
+           g_codec.lineInLevel(kSGTL5000DefaultLineInLevel, kSGTL5000DefaultLineInLevel) &&
+           g_codec.micGain(kSGTL5000DefaultDedicatedMicGainDb) &&
+           g_codec.volume(kSGTL5000DefaultHeadphoneVolume) &&
            g_codec.muteHeadphone();
     #else
     return true;
     #endif
+}
+
+bool read_sgtl5000_register(uint16_t reg, uint16_t& value)
+{
+    if (!begin_i2c())
+    {
+        return false;
+    }
+
+    std::lock_guard<std::mutex> lock(g_codec_mutex);
+
+    const uint8_t reg_buf[2] = {static_cast<uint8_t>(reg >> 8), static_cast<uint8_t>(reg)};
+    uint8_t       val_buf[2] = {};
+
+    const bool started = M5.In_I2C.start(kSGTL5000I2cAddress, false, kSGTL5000I2cFreq);
+    bool       ok      = started;
+    if (ok) ok = M5.In_I2C.write(reg_buf, sizeof(reg_buf));
+    if (ok) ok = M5.In_I2C.restart(kSGTL5000I2cAddress, true, kSGTL5000I2cFreq);
+    if (ok) ok = M5.In_I2C.read(val_buf, sizeof(val_buf), true);
+    if (started) ok = M5.In_I2C.stop() && ok;
+    if (!ok)
+    {
+        return false;
+    }
+
+    value = (static_cast<uint16_t>(val_buf[0]) << 8) | val_buf[1];
+    return true;
 }
 
 bool start_adc_task()
@@ -407,6 +457,8 @@ void poll_adc_state()
         set_state(EXTCODEC_NO_EARBUD);
         break;
     }
+    #elif defined(TEST_TEENSY_AUDIO_BRD)
+    set_state(EXTCODEC_YES_EARBUD_WITH_MIC);
     #else
     if (!available())
     {

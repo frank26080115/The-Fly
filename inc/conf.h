@@ -19,10 +19,12 @@ use this file for preprocessor definitions that are used to configure parts of t
 #define TEST_MOCK_NVS_FW_SECURED
 //#define TEST_MOCK_SCRAMBLE_TIME
 //#define TEST_MOCK_EXT_CODEC
+#define TEST_TEENSY_AUDIO_BRD
 
 //#define BUILD_SILENCE_GAP_REMOVAL
 #define BUILD_USE_MP3_COMPRESSION
 #define NS4168_USE_STEREO
+#define USE_LEDC_PWM_AS_MCLK
 
 #if !defined(BUILD_WITH_SECURITY_LEVEL)
 #error BUILD_WITH_SECURITY_LEVEL must be defined!
@@ -83,6 +85,12 @@ use this file for preprocessor definitions that are used to configure parts of t
 #define MP3_PCM_FRAMES_PER_MP3_FRAME         576
 #define MP3_ENCODER_MAX_SAMPLES_PER_PASS     1152
 #define MP3_FRAMES_PER_CHUNK                 4
+
+// SGTL5000 external codec defaults. Headphone volume is a hardware upper limit;
+// runtime speaker volume is applied in software.
+constexpr float   kSGTL5000DefaultHeadphoneVolume     = 0.5f; // 1.0f is way too loud
+constexpr uint8_t kSGTL5000DefaultLineInLevel         = 5;
+constexpr uint8_t kSGTL5000DefaultDedicatedMicGainDb  = 63;
 
 #if defined(DBG_LOG_LOCAL_LEVEL) && DBG_LOG_LOCAL_LEVEL > DBG_LOG_ERROR
 #ifndef BUILD_IS_DEBUG

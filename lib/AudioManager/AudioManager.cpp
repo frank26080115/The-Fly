@@ -55,6 +55,7 @@ constexpr uint16_t kVolumeGainByLevel[kMaxVolume] = {
 
 constexpr size_t kFileFifoCatchupStartSamples  = 1024;
 constexpr size_t kFileFifoCatchupTargetSamples = 512;
+constexpr size_t kI2sTxCreditLimitBytes        = kPumpSamples * kDmaBufferCount * 2 * sizeof(int16_t);
 
 // -----------------------------------------------------------------------------
 // Types
@@ -65,6 +66,13 @@ enum class SpeakerPath
     None,
     NS4168,
     ExternalI2SCodec,
+};
+
+enum class I2sConfig
+{
+    None,
+    SharedStd,
+    InternalPdm,
 };
 
 // -----------------------------------------------------------------------------
@@ -81,6 +89,7 @@ P2TMode           g_mode                   = P2TMode::Stopped;
 SpeakerPath       g_speaker_path           = SpeakerPath::None;
 i2s_chan_handle_t g_i2s_tx                 = nullptr;
 i2s_chan_handle_t g_i2s_rx                 = nullptr;
+I2sConfig         g_i2s_config             = I2sConfig::None;
 uint32_t          g_i2s_sample_rate_hz     = 0;
 uint8_t           g_volume                 = kMaxVolume;
 bool              g_speaker_muted          = false;
@@ -128,8 +137,9 @@ template <typename Updater> void update_hfp_diag(Updater updater)
 // -----------------------------------------------------------------------------
 
 bool   begin_fifos();
+void   stop_audio_mode();
 void   stop_i2s();
-bool   configure_i2s_shared_impl();
+bool   configure_i2s_shared_impl(uint32_t sampleRateHz = kSampleRateHz);
 bool   enable_ns4168_speaker(uint32_t sampleRateHz = kSampleRateHz);
 bool   enable_spm1423_mic();
 bool   enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz = kSampleRateHz);
@@ -143,14 +153,14 @@ bool   mic_file_source_active();
 void   queue_silence_to_match(AudioFifo& lagging_fifo, AudioFifo& leading_fifo);
 void   queue_silence_to_reduce_lag(AudioFifo& lagging_fifo, AudioFifo& leading_fifo);
 void   set_ns4168_speaker_enabled(bool enabled);
-void   update_hardware_volume();
+void   set_external_codec_headphone_enabled(bool enabled);
 bool   using_ns4168_speaker();
 bool   speaker_output_stereo();
 bool   speaker_output_active();
 bool   mic_input_active();
 uint32_t speaker_sample_rate_or_default(uint32_t sampleRateHz);
 size_t speaker_bytes_per_frame();
-void   apply_ns4168_software_volume(int16_t* samples, size_t sampleCount);
+void   apply_speaker_software_volume(int16_t* samples, size_t sampleCount);
 size_t take_i2s_tx_frames(size_t maxFrames);
 void   return_i2s_tx_bytes(size_t bytes);
 bool   i2s_transfer_ready(i2s_chan_handle_t, i2s_event_data_t* event, void*);
@@ -158,6 +168,8 @@ bool   i2s_rx_transfer_ready(i2s_chan_handle_t, i2s_event_data_t*, void*);
 bool   register_i2s_callbacks(i2s_chan_handle_t handle, bool rx);
 bool   preload_silence(i2s_chan_handle_t handle);
 bool   enable_channel(i2s_chan_handle_t handle, const char* label);
+void   add_i2s_tx_credit(size_t bytes);
+void   clear_i2s_tx_credit();
 void   log_heap_after_fifo_begin(const char* fifo_name, bool result);
 
 void note_speaker_i2s_write(size_t requested, size_t written, size_t bytes_per_frame, esp_err_t err);
@@ -199,7 +211,14 @@ bool init(Hardware hardware)
 
 void stop()
 {
-    stop_i2s();
+    if (g_i2s_config == I2sConfig::InternalPdm)
+    {
+        stop_i2s();
+        configure_i2s_shared_impl(kSampleRateHz);
+        return;
+    }
+
+    stop_audio_mode();
 }
 
 bool enableSpeakerMode(uint32_t sampleRateHz)
@@ -249,7 +268,6 @@ bool syncExternalCodecRouting()
     }
 
     const bool routed = sync_external_codec_routing();
-    update_hardware_volume();
     return routed;
 }
 
@@ -339,16 +357,13 @@ void pump_bt2spk()
     size_t      bytes_to_write   = 0;
     if (use_mono_output)
     {
-        apply_ns4168_software_volume(g_mono_buffer, frames);
+        apply_speaker_software_volume(g_mono_buffer, frames);
         samples_to_write = g_mono_buffer;
         bytes_to_write   = frames * sizeof(int16_t);
     }
     else
     {
-        if (using_ns4168_speaker())
-        {
-            apply_ns4168_software_volume(g_stereo_buffer, frames * 2);
-        }
+        apply_speaker_software_volume(g_stereo_buffer, frames * 2);
         samples_to_write = g_stereo_buffer;
         bytes_to_write   = frames * 2 * sizeof(int16_t);
     }
@@ -688,7 +703,6 @@ void setVolume(uint8_t volume)
     {
         g_volume = clamped;
     }
-    update_hardware_volume();
 }
 
 void volumeUp()
@@ -725,7 +739,6 @@ bool setSpeakerMuted(bool muted)
         g_volume        = g_speaker_restore_volume;
     }
 
-    update_hardware_volume();
     return true;
 }
 
@@ -806,7 +819,7 @@ void reconnect_uart0_tx()
 
 bool configure_i2s_shared()
 {
-    return configure_i2s_shared_impl();
+    return configure_i2s_shared_impl(kSampleRateHz);
 }
 
 namespace
@@ -841,6 +854,31 @@ bool begin_fifos()
     return true;
 }
 
+void stop_audio_mode()
+{
+    std::lock_guard<std::mutex> lock(g_pump_mutex);
+
+    g_mode = P2TMode::Stopped;
+
+    if (g_speaker_path == SpeakerPath::ExternalI2SCodec)
+    {
+        #ifndef TEST_MOCK_EXT_CODEC
+        if (AudioControlSGTL5000* codec = ExtCodec::control())
+        {
+            codec->muteHeadphone();
+        }
+        #endif
+    }
+
+    if (g_speaker_path == SpeakerPath::NS4168 || g_hardware == Hardware::M5StackInternal)
+    {
+        set_ns4168_speaker_enabled(false);
+    }
+
+    g_speaker_path          = SpeakerPath::None;
+    g_pending_speaker_bytes = 0;
+}
+
 void stop_i2s()
 {
     std::lock_guard<std::mutex> lock(g_pump_mutex);
@@ -871,41 +909,57 @@ void stop_i2s()
         #endif
     }
 
-    g_speaker_path = SpeakerPath::None;
+    g_speaker_path       = SpeakerPath::None;
+    g_i2s_config         = I2sConfig::None;
     g_i2s_sample_rate_hz = 0;
     if (g_hardware == Hardware::M5StackInternal)
     {
         set_ns4168_speaker_enabled(false);
     }
 
-    portENTER_CRITICAL(&g_i2s_tx_credit_mux);
-    g_i2s_tx_available_bytes = 0;
-    portEXIT_CRITICAL(&g_i2s_tx_credit_mux);
+    clear_i2s_tx_credit();
     g_pending_speaker_bytes = 0;
 
     duplicate_i2s0_bclk_to_gpio13();
 }
 
-bool configure_i2s_shared_impl()
+bool configure_i2s_shared_impl(uint32_t sampleRateHz)
 {
+    sampleRateHz = speaker_sample_rate_or_default(sampleRateHz);
+    if (g_i2s_config == I2sConfig::SharedStd && g_i2s_tx && g_i2s_rx && g_i2s_sample_rate_hz == sampleRateHz)
+    {
+        duplicate_i2s0_bclk_to_gpio13();
+        return true;
+    }
+
+    stop_i2s();
+
     i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
     chan_config.dma_desc_num      = kDmaBufferCount;
     chan_config.dma_frame_num     = kPumpSamples;
     chan_config.auto_clear        = true;
 
     i2s_std_config_t config      = {};
-    config.clk_cfg               = I2S_STD_CLK_DEFAULT_CONFIG(kSampleRateHz);
+    config.clk_cfg               = I2S_STD_CLK_DEFAULT_CONFIG(sampleRateHz);
     config.clk_cfg.mclk_multiple = I2S_MCLK_MULTIPLE_512; // only connected to SGTL5000
     config.slot_cfg              = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO);
     config.slot_cfg.slot_mask    = I2S_STD_SLOT_BOTH;
     config.slot_cfg.ws_width     = 16;
+    #ifndef USE_LEDC_PWM_AS_MCLK
     config.gpio_cfg.mclk         = static_cast<gpio_num_t>(kSGTL5000I2sMclk);   // only connected to SGTL5000
+    #else
+    config.gpio_cfg.mclk         = static_cast<gpio_num_t>(-1);
+    #endif
     config.gpio_cfg.bclk         = static_cast<gpio_num_t>(kNS4168SpeakerBclk); // shared with duplicate_i2s0_bclk_to_gpio13
     config.gpio_cfg.ws           = static_cast<gpio_num_t>(kNS4168SpeakerLrck); // shared with kSGTL5000I2sLrck
     config.gpio_cfg.dout         = static_cast<gpio_num_t>(kNS4168SpeakerDout); // shared with kSGTL5000I2sDout
     config.gpio_cfg.din          = static_cast<gpio_num_t>(kSGTL5000I2sDin);    // only connected to SGTL5000
 
+    #ifdef USE_LEDC_PWM_AS_MCLK
+    ExtCodec::start_ledc_mclk();
+    #else
     disconnect_uart0_tx_from_mclk_pin();
+    #endif
 
     if (!ok(i2s_new_channel(&chan_config, &g_i2s_tx, &g_i2s_rx), "shared-i2s full-duplex i2s channel") ||
         !ok(i2s_channel_init_std_mode(g_i2s_tx, &config), "shared-i2s tx i2s std init") ||
@@ -919,63 +973,27 @@ bool configure_i2s_shared_impl()
     }
 
     duplicate_i2s0_bclk_to_gpio13();
+    g_i2s_config         = I2sConfig::SharedStd;
+    g_i2s_sample_rate_hz = sampleRateHz;
     return true;
 }
 
 bool enable_ns4168_speaker(uint32_t sampleRateHz)
 {
     sampleRateHz = speaker_sample_rate_or_default(sampleRateHz);
-    stop_i2s();
+    if (!configure_i2s_shared_impl(sampleRateHz))
+    {
+        set_ns4168_speaker_enabled(false);
+        return false;
+    }
+
     g_fifo_bt2spk.clear();
     g_fifo_bt2spk.setChoked(false);
     set_ns4168_speaker_enabled(true);
 
-    #if 0
-
-    i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
-    chan_config.dma_desc_num      = kDmaBufferCount;
-    chan_config.dma_frame_num     = kPumpSamples;
-    chan_config.auto_clear        = true;
-
-    i2s_std_config_t config   = {};
-    config.clk_cfg            = I2S_STD_CLK_DEFAULT_CONFIG(sampleRateHz);
-    config.slot_cfg           = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT,
-        #ifndef NS4168_USE_STEREO
-        I2S_SLOT_MODE_MONO
-        #else
-        I2S_SLOT_MODE_STEREO
-        #endif
-    );
-    config.slot_cfg.slot_mask = I2S_STD_SLOT_BOTH;
-    config.slot_cfg.ws_width  = 16;
-    config.gpio_cfg.mclk      = static_cast<gpio_num_t>(kNS4168SpeakerMclk);
-    config.gpio_cfg.bclk      = static_cast<gpio_num_t>(kNS4168SpeakerBclk);
-    config.gpio_cfg.ws        = static_cast<gpio_num_t>(kNS4168SpeakerLrck);
-    config.gpio_cfg.dout      = static_cast<gpio_num_t>(kNS4168SpeakerDout);
-    config.gpio_cfg.din       = I2S_GPIO_UNUSED;
-
-    if (!ok(i2s_new_channel(&chan_config, &g_i2s_tx, nullptr), "NS4168 speaker i2s channel") ||
-        !ok(i2s_channel_init_std_mode(g_i2s_tx, &config), "NS4168 speaker i2s std init") ||
-        !register_i2s_callbacks(g_i2s_tx, false) || !preload_silence(g_i2s_tx) ||
-        !enable_channel(g_i2s_tx, "NS4168 speaker i2s enable"))
-    {
-        stop_i2s();
-        return false;
-    }
-
-    duplicate_i2s0_bclk_to_gpio13();
-
-    #endif
-
-    bool success = configure_i2s_shared_impl();
-    if (success) {
-        g_mode         = P2TMode::Speaker;
-        g_speaker_path = SpeakerPath::NS4168;
-        return true;
-    }
-    else {
-        return false;
-    }
+    g_mode         = P2TMode::Speaker;
+    g_speaker_path = SpeakerPath::NS4168;
+    return true;
 }
 
 bool enable_spm1423_mic()
@@ -1006,7 +1024,9 @@ bool enable_spm1423_mic()
     }
 
     MicGainManager::ignoreSamplesFor();
-    g_mode = P2TMode::Mic;
+    g_i2s_config         = I2sConfig::InternalPdm;
+    g_i2s_sample_rate_hz = kSampleRateHz;
+    g_mode               = P2TMode::Mic;
     return true;
 }
 
@@ -1042,7 +1062,7 @@ bool enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz)
     }
 
     g_mode = nextMode;
-    update_hardware_volume();
+    set_external_codec_headphone_enabled(nextMode == P2TMode::Speaker || nextMode == P2TMode::FullDuplex);
     DBG_LOGI(TAG,
              "ExternalI2SCodec mode=%u sampleRate=%lu state=%s micInput=%s",
              static_cast<unsigned>(nextMode),
@@ -1072,48 +1092,13 @@ bool ensure_exti2scodec_i2s(uint32_t sampleRateHz)
     return true;
     #endif
 
-    if (g_speaker_path == SpeakerPath::ExternalI2SCodec && g_i2s_tx && g_i2s_rx &&
-        g_i2s_sample_rate_hz == sampleRateHz)
+    if (!configure_i2s_shared_impl(sampleRateHz))
     {
-        return true;
-    }
-
-    stop_i2s();
-    set_ns4168_speaker_enabled(false);
-
-    i2s_chan_config_t chan_config = I2S_CHANNEL_DEFAULT_CONFIG(kI2sPort, I2S_ROLE_MASTER);
-    chan_config.dma_desc_num      = kDmaBufferCount;
-    chan_config.dma_frame_num     = kPumpSamples;
-    chan_config.auto_clear        = true;
-
-    i2s_std_config_t config      = {};
-    config.clk_cfg               = I2S_STD_CLK_DEFAULT_CONFIG(sampleRateHz);
-    config.clk_cfg.mclk_multiple = I2S_MCLK_MULTIPLE_512;
-    config.slot_cfg              = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO);
-    config.slot_cfg.slot_mask    = I2S_STD_SLOT_BOTH;
-    config.slot_cfg.ws_width     = 16;
-    config.gpio_cfg.mclk         = static_cast<gpio_num_t>(kSGTL5000I2sMclk);
-    config.gpio_cfg.bclk         = static_cast<gpio_num_t>(kSGTL5000I2sBclk);
-    config.gpio_cfg.ws           = static_cast<gpio_num_t>(kSGTL5000I2sLrck);
-    config.gpio_cfg.dout         = static_cast<gpio_num_t>(kSGTL5000I2sDout);
-    config.gpio_cfg.din          = static_cast<gpio_num_t>(kSGTL5000I2sDin);
-
-    disconnect_uart0_tx_from_mclk_pin();
-
-    if (!ok(i2s_new_channel(&chan_config, &g_i2s_tx, &g_i2s_rx), "SGTL5000 full-duplex i2s channel") ||
-        !ok(i2s_channel_init_std_mode(g_i2s_tx, &config), "SGTL5000 tx i2s std init") ||
-        !ok(i2s_channel_init_std_mode(g_i2s_rx, &config), "SGTL5000 rx i2s std init") ||
-        !register_i2s_callbacks(g_i2s_tx, false) || !register_i2s_callbacks(g_i2s_rx, true) ||
-        !preload_silence(g_i2s_tx) || !enable_channel(g_i2s_rx, "SGTL5000 rx i2s enable") ||
-        !enable_channel(g_i2s_tx, "SGTL5000 tx i2s enable"))
-    {
-        stop_i2s();
         return false;
     }
 
-    duplicate_i2s0_bclk_to_gpio13();
-    g_speaker_path       = SpeakerPath::ExternalI2SCodec;
-    g_i2s_sample_rate_hz = sampleRateHz;
+    set_ns4168_speaker_enabled(false);
+    g_speaker_path = SpeakerPath::ExternalI2SCodec;
     return true;
 }
 
@@ -1290,7 +1275,7 @@ void set_ns4168_speaker_enabled(bool enabled)
     }
 }
 
-void update_hardware_volume()
+void set_external_codec_headphone_enabled(bool enabled)
 {
     if (g_speaker_path != SpeakerPath::ExternalI2SCodec)
     {
@@ -1306,15 +1291,9 @@ void update_hardware_volume()
         return;
     }
 
-    static constexpr float kExternalCodecMaxHeadphoneVolume = 0.45f;
-    const bool             audible = speaker_output_active() && g_volume > kMinVolume && !g_speaker_muted;
-    const float            scaled =
-        audible ? (kExternalCodecMaxHeadphoneVolume * static_cast<float>(g_volume) / static_cast<float>(kMaxVolume))
-                : 0.0f;
-
-    if (!codec->volume(scaled) || !(audible ? codec->unmuteHeadphone() : codec->muteHeadphone()))
+    if (!(enabled ? codec->unmuteHeadphone() : codec->muteHeadphone()))
     {
-        DBG_LOGW(TAG, "failed to apply SGTL5000 headphone volume");
+        DBG_LOGW(TAG, "failed to %s SGTL5000 headphone output", enabled ? "unmute" : "mute");
     }
     #endif
 }
@@ -1358,9 +1337,9 @@ size_t speaker_bytes_per_frame()
     return speaker_output_stereo() ? 2 * sizeof(int16_t) : sizeof(int16_t);
 }
 
-void apply_ns4168_software_volume(int16_t* samples, size_t sampleCount)
+void apply_speaker_software_volume(int16_t* samples, size_t sampleCount)
 {
-    if (!using_ns4168_speaker() || g_volume == kMaxVolume)
+    if (g_volume == kMaxVolume)
     {
         return;
     }
@@ -1390,8 +1369,21 @@ size_t take_i2s_tx_frames(size_t maxFrames)
 
 void return_i2s_tx_bytes(size_t bytes)
 {
+    add_i2s_tx_credit(bytes);
+}
+
+void add_i2s_tx_credit(size_t bytes)
+{
     portENTER_CRITICAL(&g_i2s_tx_credit_mux);
-    g_i2s_tx_available_bytes += bytes;
+    const size_t available = g_i2s_tx_available_bytes + bytes;
+    g_i2s_tx_available_bytes = available > kI2sTxCreditLimitBytes ? kI2sTxCreditLimitBytes : available;
+    portEXIT_CRITICAL(&g_i2s_tx_credit_mux);
+}
+
+void clear_i2s_tx_credit()
+{
+    portENTER_CRITICAL(&g_i2s_tx_credit_mux);
+    g_i2s_tx_available_bytes = 0;
     portEXIT_CRITICAL(&g_i2s_tx_credit_mux);
 }
 
@@ -1400,12 +1392,8 @@ bool IRAM_ATTR i2s_transfer_ready(i2s_chan_handle_t, i2s_event_data_t* event, vo
     if (event)
     {
         portENTER_CRITICAL_ISR(&g_i2s_tx_credit_mux);
-        /*
-        we don't know how many samples we are allowed to send to i2s_channel_write
-        but we know that when a transfer is complete, we have some room
-        so we track how much room we have based on how much room is freed by a completed transfer
-        */
-        g_i2s_tx_available_bytes += event->size;
+        const size_t available = g_i2s_tx_available_bytes + event->size;
+        g_i2s_tx_available_bytes = available > kI2sTxCreditLimitBytes ? kI2sTxCreditLimitBytes : available;
         portEXIT_CRITICAL_ISR(&g_i2s_tx_credit_mux);
     }
     return false;

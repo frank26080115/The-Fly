@@ -29,3 +29,6 @@ extern void test_rtcvsmillis();
 extern void test_hapticfeedback();
 extern void test_ledcpwm();
 extern void test_mcpwm();
+extern void test_i2cscan();
+extern void test_sgtl5000_pll_lock();
+extern void test_continuous_sine();

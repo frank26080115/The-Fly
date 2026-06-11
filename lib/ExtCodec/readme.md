@@ -95,4 +95,6 @@ Volume is done via software
 
 ### Initialization Sequence
 
-In the ideal case, when the I2S bus can be shared by both the NS4168 and SGTL5000, then the I2S needs to be initialized at boot and never reconfigured again. Then the I2C setup for the SGTL5000 can happen. This is because the only pins usable for the MCLK are the UART pins so we need to disable UART completely before the SGTL5000 is initialized.
+In the ideal case, when the I2S bus can be shared by both the NS4168 and SGTL5000, then the I2S needs to be initialized at boot and never reconfigured again. Then the I2C setup for the SGTL5000 can happen. The MCLK must be started before the SGTL5000 will respond over I2C.
+
+It has been tested and proven that using the LEDC PWM generator is sufficient to generate MCLK. This is advantageous as it is better for the PCB design and leaves the UART0 pins unoccupied.

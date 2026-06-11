@@ -53,13 +53,17 @@ constexpr const char* kDefaultNtpServers[] = {
     "time.nist.gov",
     "time.google.com",
 };
-constexpr int         kSoftApChannel        = 1;
 constexpr int         kSoftApSsidHidden     = 0;
 constexpr int         kSoftApMaxConnection  = 1;
+constexpr uint8_t     kSoftApChannels[]     = {1, 6, 11};
+constexpr size_t      kSoftApChannelCount   = sizeof(kSoftApChannels) / sizeof(kSoftApChannels[0]);
+constexpr uint8_t     kSoftApFallbackChannel = kSoftApChannels[0];
 constexpr uint32_t    kNetworkConfigMagic   = 0x54465749; // "TFWI"
 constexpr uint32_t    kNetworkConfigVersion = 3;
 constexpr const char* kNetworkNvsNamespace  = "wifi_cfg";
 constexpr const char* kNetworkNvsBlobName   = "network";
+
+static_assert(kSoftApChannelCount > 0, "SoftAP channel list must not be empty");
 
 // -----------------------------------------------------------------------------
 // Globals
@@ -115,7 +119,7 @@ bool      is_connected_status(WifiManager::Status status);
 void      shutdown_for_wifi_activation();
 void      format_generated_soft_ap_ssid(char* ssid, size_t ssid_size);
 void      format_generated_soft_ap_password(char* password, size_t password_size);
-void      configure_soft_ap_security(wifi_config_t& config, const char* ssid, const char* password);
+void      configure_soft_ap_security(wifi_config_t& config, const char* ssid, const char* password, uint8_t channel);
 bool      start_secure_soft_ap(const char* ssid, const char* password);
 IPAddress current_soft_ap_ip();
 const wifi_item_t* active_wifi_ptr();
@@ -124,6 +128,7 @@ void               set_active_wifi(const wifi_item_t* item, bool generated_soft_
 void               clear_active_wifi();
 void               set_connected_wifi(const wifi_item_t* item);
 void               clear_connected_wifi();
+uint8_t            get_random_wifi_channel();
 
 } // namespace
 
@@ -1415,7 +1420,7 @@ void format_generated_soft_ap_password(char* password, size_t password_size)
     snprintf(password, password_size, "%08lu", static_cast<unsigned long>(generate_8_digit_nonce()));
 }
 
-void configure_soft_ap_security(wifi_config_t& config, const char* ssid, const char* password)
+void configure_soft_ap_security(wifi_config_t& config, const char* ssid, const char* password, uint8_t channel)
 {
     memset(&config, 0, sizeof(config));
 
@@ -1423,7 +1428,7 @@ void configure_soft_ap_security(wifi_config_t& config, const char* ssid, const c
     strlcpy(reinterpret_cast<char*>(config.ap.password), password, sizeof(config.ap.password));
 
     config.ap.ssid_len         = strlen(ssid);
-    config.ap.channel          = kSoftApChannel;
+    config.ap.channel          = channel;
     config.ap.ssid_hidden      = kSoftApSsidHidden;
     config.ap.authmode         = WIFI_AUTH_WPA3_PSK;
     config.ap.max_connection   = kSoftApMaxConnection;
@@ -1441,8 +1446,9 @@ void configure_soft_ap_security(wifi_config_t& config, const char* ssid, const c
 
 bool start_secure_soft_ap(const char* ssid, const char* password)
 {
+    const uint8_t channel = get_random_wifi_channel();
     wifi_config_t config = {};
-    configure_soft_ap_security(config, ssid, password);
+    configure_soft_ap_security(config, ssid, password, channel);
 
     WiFi.mode(WIFI_OFF);
     if (!wifiLowLevelInit(false))
@@ -1480,6 +1486,7 @@ bool start_secure_soft_ap(const char* ssid, const char* password)
         return false;
     }
 
+    DBG_LOGI(TAG, "started WPA3-only SoftAP on channel %u", static_cast<unsigned>(channel));
     return true;
 }
 
@@ -1499,4 +1506,20 @@ IPAddress current_soft_ap_ip()
 
     return IPAddress(ip_info.ip.addr);
 }
+
+uint8_t get_random_wifi_channel()
+{
+    if (kSoftApChannelCount == 0)
+    {
+        return kSoftApFallbackChannel;
+    }
+
+    uint32_t random_value = esp_random();
+    random_value ^= static_cast<uint32_t>(millis());
+    random_value ^= static_cast<uint32_t>(micros()) * 2654435761UL;
+
+    const size_t index = static_cast<size_t>(random_value % kSoftApChannelCount);
+    return index < kSoftApChannelCount ? kSoftApChannels[index] : kSoftApFallbackChannel;
+}
+
 } // namespace
