@@ -25,5 +25,5 @@ void run_test()
     // test_hapticfeedback();
     // test_ledcpwm();
     // test_mcpwm();
-    test_i2cscan();
+    // test_i2cscan();
 }
