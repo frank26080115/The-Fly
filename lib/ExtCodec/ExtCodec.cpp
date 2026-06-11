@@ -407,6 +407,8 @@ void poll_adc_state()
         set_state(EXTCODEC_NO_EARBUD);
         break;
     }
+    #elif defined(TEST_TEENSY_AUDIO_BRD)
+    set_state(EXTCODEC_YES_EARBUD_WITH_MIC);
     #else
     if (!available())
     {
