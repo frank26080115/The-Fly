@@ -153,14 +153,14 @@ bool   mic_file_source_active();
 void   queue_silence_to_match(AudioFifo& lagging_fifo, AudioFifo& leading_fifo);
 void   queue_silence_to_reduce_lag(AudioFifo& lagging_fifo, AudioFifo& leading_fifo);
 void   set_ns4168_speaker_enabled(bool enabled);
-void   update_hardware_volume();
+void   set_external_codec_headphone_enabled(bool enabled);
 bool   using_ns4168_speaker();
 bool   speaker_output_stereo();
 bool   speaker_output_active();
 bool   mic_input_active();
 uint32_t speaker_sample_rate_or_default(uint32_t sampleRateHz);
 size_t speaker_bytes_per_frame();
-void   apply_ns4168_software_volume(int16_t* samples, size_t sampleCount);
+void   apply_speaker_software_volume(int16_t* samples, size_t sampleCount);
 size_t take_i2s_tx_frames(size_t maxFrames);
 void   return_i2s_tx_bytes(size_t bytes);
 bool   i2s_transfer_ready(i2s_chan_handle_t, i2s_event_data_t* event, void*);
@@ -268,7 +268,6 @@ bool syncExternalCodecRouting()
     }
 
     const bool routed = sync_external_codec_routing();
-    update_hardware_volume();
     return routed;
 }
 
@@ -358,16 +357,13 @@ void pump_bt2spk()
     size_t      bytes_to_write   = 0;
     if (use_mono_output)
     {
-        apply_ns4168_software_volume(g_mono_buffer, frames);
+        apply_speaker_software_volume(g_mono_buffer, frames);
         samples_to_write = g_mono_buffer;
         bytes_to_write   = frames * sizeof(int16_t);
     }
     else
     {
-        if (using_ns4168_speaker())
-        {
-            apply_ns4168_software_volume(g_stereo_buffer, frames * 2);
-        }
+        apply_speaker_software_volume(g_stereo_buffer, frames * 2);
         samples_to_write = g_stereo_buffer;
         bytes_to_write   = frames * 2 * sizeof(int16_t);
     }
@@ -707,7 +703,6 @@ void setVolume(uint8_t volume)
     {
         g_volume = clamped;
     }
-    update_hardware_volume();
 }
 
 void volumeUp()
@@ -744,7 +739,6 @@ bool setSpeakerMuted(bool muted)
         g_volume        = g_speaker_restore_volume;
     }
 
-    update_hardware_volume();
     return true;
 }
 
@@ -1068,7 +1062,7 @@ bool enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz)
     }
 
     g_mode = nextMode;
-    update_hardware_volume();
+    set_external_codec_headphone_enabled(nextMode == P2TMode::Speaker || nextMode == P2TMode::FullDuplex);
     DBG_LOGI(TAG,
              "ExternalI2SCodec mode=%u sampleRate=%lu state=%s micInput=%s",
              static_cast<unsigned>(nextMode),
@@ -1281,7 +1275,7 @@ void set_ns4168_speaker_enabled(bool enabled)
     }
 }
 
-void update_hardware_volume()
+void set_external_codec_headphone_enabled(bool enabled)
 {
     if (g_speaker_path != SpeakerPath::ExternalI2SCodec)
     {
@@ -1297,15 +1291,9 @@ void update_hardware_volume()
         return;
     }
 
-    static constexpr float kExternalCodecMaxHeadphoneVolume = 0.45f;
-    const bool             audible = speaker_output_active() && g_volume > kMinVolume && !g_speaker_muted;
-    const float            scaled =
-        audible ? (kExternalCodecMaxHeadphoneVolume * static_cast<float>(g_volume) / static_cast<float>(kMaxVolume))
-                : 0.0f;
-
-    if (!codec->volume(scaled) || !(audible ? codec->unmuteHeadphone() : codec->muteHeadphone()))
+    if (!(enabled ? codec->unmuteHeadphone() : codec->muteHeadphone()))
     {
-        DBG_LOGW(TAG, "failed to apply SGTL5000 headphone volume");
+        DBG_LOGW(TAG, "failed to %s SGTL5000 headphone output", enabled ? "unmute" : "mute");
     }
     #endif
 }
@@ -1349,9 +1337,9 @@ size_t speaker_bytes_per_frame()
     return speaker_output_stereo() ? 2 * sizeof(int16_t) : sizeof(int16_t);
 }
 
-void apply_ns4168_software_volume(int16_t* samples, size_t sampleCount)
+void apply_speaker_software_volume(int16_t* samples, size_t sampleCount)
 {
-    if (!using_ns4168_speaker() || g_volume == kMaxVolume)
+    if (g_volume == kMaxVolume)
     {
         return;
     }

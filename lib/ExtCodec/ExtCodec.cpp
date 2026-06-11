@@ -11,6 +11,7 @@
 #include <mutex>
 
 #include "control_sgtl5000.h"
+#include "conf.h"
 #include "driver/ledc.h"
 #include "esp_err.h"
 #include "pins.h"
@@ -38,9 +39,6 @@ constexpr uint32_t kAdcPollFastIntervalMs       = 5;
 constexpr uint16_t kAdcSamplesPerPoll           = 4;
 constexpr uint32_t kAdcTaskStackBytes           = 2048;
 constexpr UBaseType_t kAdcTaskPriority          = 1;
-constexpr float    kDefaultHeadphoneVolume      = 0.45f;
-constexpr uint8_t  kDefaultLineInLevel          = 5;
-constexpr uint8_t  kDefaultDedicatedMicGainDb   = 30;
 constexpr uint32_t kLedcMclkFrequencyHz         = 8192000;
 
 // -----------------------------------------------------------------------------
@@ -290,10 +288,11 @@ bool configureAnalogPathForState(State value)
     std::lock_guard<std::mutex> lock(g_codec_mutex);
     if (input == MicInput::DedicatedMic)
     {
-        return g_codec.inputSelect(AUDIO_INPUT_MIC) && g_codec.micGain(kDefaultDedicatedMicGainDb);
+        return g_codec.inputSelect(AUDIO_INPUT_MIC) && g_codec.micGain(kSGTL5000DefaultDedicatedMicGainDb);
     }
 
-    return g_codec.inputSelect(AUDIO_INPUT_LINEIN) && g_codec.lineInLevel(kDefaultLineInLevel, kDefaultLineInLevel);
+    return g_codec.inputSelect(AUDIO_INPUT_LINEIN) &&
+           g_codec.lineInLevel(kSGTL5000DefaultLineInLevel, kSGTL5000DefaultLineInLevel);
     #else
     return true;
     #endif
@@ -383,8 +382,9 @@ bool begin_sgtl5000_control()
     }
 
     return g_codec.configureFor16k16BitStereo() && g_codec.inputSelect(AUDIO_INPUT_LINEIN) &&
-           g_codec.lineInLevel(kDefaultLineInLevel, kDefaultLineInLevel) &&
-           g_codec.micGain(kDefaultDedicatedMicGainDb) && g_codec.volume(kDefaultHeadphoneVolume) &&
+           g_codec.lineInLevel(kSGTL5000DefaultLineInLevel, kSGTL5000DefaultLineInLevel) &&
+           g_codec.micGain(kSGTL5000DefaultDedicatedMicGainDb) &&
+           g_codec.volume(kSGTL5000DefaultHeadphoneVolume) &&
            g_codec.muteHeadphone();
     #else
     return true;
