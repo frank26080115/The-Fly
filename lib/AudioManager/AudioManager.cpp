@@ -951,13 +951,21 @@ bool configure_i2s_shared_impl(uint32_t sampleRateHz)
     config.slot_cfg              = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO);
     config.slot_cfg.slot_mask    = I2S_STD_SLOT_BOTH;
     config.slot_cfg.ws_width     = 16;
+    #ifndef USE_LEDC_PWM_AS_MCLK
     config.gpio_cfg.mclk         = static_cast<gpio_num_t>(kSGTL5000I2sMclk);   // only connected to SGTL5000
+    #else
+    config.gpio_cfg.mclk         = static_cast<gpio_num_t>(-1);
+    #endif
     config.gpio_cfg.bclk         = static_cast<gpio_num_t>(kNS4168SpeakerBclk); // shared with duplicate_i2s0_bclk_to_gpio13
     config.gpio_cfg.ws           = static_cast<gpio_num_t>(kNS4168SpeakerLrck); // shared with kSGTL5000I2sLrck
     config.gpio_cfg.dout         = static_cast<gpio_num_t>(kNS4168SpeakerDout); // shared with kSGTL5000I2sDout
     config.gpio_cfg.din          = static_cast<gpio_num_t>(kSGTL5000I2sDin);    // only connected to SGTL5000
 
+    #ifdef USE_LEDC_PWM_AS_MCLK
+    ExtCodec::start_ledc_mclk();
+    #else
     disconnect_uart0_tx_from_mclk_pin();
+    #endif
 
     if (!ok(i2s_new_channel(&chan_config, &g_i2s_tx, &g_i2s_rx), "shared-i2s full-duplex i2s channel") ||
         !ok(i2s_channel_init_std_mode(g_i2s_tx, &config), "shared-i2s tx i2s std init") ||

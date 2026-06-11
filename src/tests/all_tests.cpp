@@ -26,4 +26,6 @@ void run_test()
     // test_ledcpwm();
     // test_mcpwm();
     // test_i2cscan();
+    // test_sgtl5000_pll_lock();
+    // test_continuous_sine();
 }

@@ -39,6 +39,8 @@ bool earbudPresent();
 bool inlineMicPresent();
 bool fullDuplexAvailable();
 bool pushToTalkRequired();
+bool pllLocked();
+bool readChipAnaStatus(uint16_t& status);
 bool start_ledc_mclk();
 
 MicInput    micInputForState(State value);

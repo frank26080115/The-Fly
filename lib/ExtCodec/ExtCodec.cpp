@@ -28,6 +28,8 @@ constexpr const char* TAG = "ExtCodec";
 
 constexpr uint8_t kSGTL5000I2cAddress = 0x0A;
 constexpr uint32_t kSGTL5000I2cFreq    = 400000;
+constexpr uint16_t kSGTL5000ChipAnaStatusRegister = 0x0036;
+constexpr uint16_t kSGTL5000PllLockedMask         = 1U << 4;
 
 constexpr uint16_t kEarbudConnectedThreshold    = 1800;
 constexpr uint16_t kInlineMicPresentThreshold   = 800;
@@ -64,6 +66,7 @@ std::atomic<uint16_t> g_inline_mic_sense_raw{0};
 bool     begin_i2c();
 bool     sgtl5000_address_responds();
 bool     begin_sgtl5000_control();
+bool     read_sgtl5000_register(uint16_t reg, uint16_t& value);
 bool     start_adc_task();
 void     adc_task(void*);
 void     poll_adc_state();
@@ -198,6 +201,26 @@ bool pushToTalkRequired()
 {
     const State current = state();
     return current == EXTCODEC_UNAVAIL || current == EXTCODEC_NO_EARBUD;
+}
+
+bool pllLocked()
+{
+    #ifdef TEST_MOCK_EXT_CODEC
+    return true;
+    #else
+    uint16_t status = 0;
+    return readChipAnaStatus(status) && ((status & kSGTL5000PllLockedMask) != 0);
+    #endif
+}
+
+bool readChipAnaStatus(uint16_t& status)
+{
+    #ifdef TEST_MOCK_EXT_CODEC
+    status = kSGTL5000PllLockedMask;
+    return true;
+    #else
+    return read_sgtl5000_register(kSGTL5000ChipAnaStatusRegister, status);
+    #endif
 }
 
 bool start_ledc_mclk()
@@ -366,6 +389,33 @@ bool begin_sgtl5000_control()
     #else
     return true;
     #endif
+}
+
+bool read_sgtl5000_register(uint16_t reg, uint16_t& value)
+{
+    if (!begin_i2c())
+    {
+        return false;
+    }
+
+    std::lock_guard<std::mutex> lock(g_codec_mutex);
+
+    const uint8_t reg_buf[2] = {static_cast<uint8_t>(reg >> 8), static_cast<uint8_t>(reg)};
+    uint8_t       val_buf[2] = {};
+
+    const bool started = M5.In_I2C.start(kSGTL5000I2cAddress, false, kSGTL5000I2cFreq);
+    bool       ok      = started;
+    if (ok) ok = M5.In_I2C.write(reg_buf, sizeof(reg_buf));
+    if (ok) ok = M5.In_I2C.restart(kSGTL5000I2cAddress, true, kSGTL5000I2cFreq);
+    if (ok) ok = M5.In_I2C.read(val_buf, sizeof(val_buf), true);
+    if (started) ok = M5.In_I2C.stop() && ok;
+    if (!ok)
+    {
+        return false;
+    }
+
+    value = (static_cast<uint16_t>(val_buf[0]) << 8) | val_buf[1];
+    return true;
 }
 
 bool start_adc_task()
