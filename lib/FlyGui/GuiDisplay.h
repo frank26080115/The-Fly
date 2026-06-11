@@ -381,12 +381,20 @@ public:
 private:
     bool ensureCanvas();
     bool recreateCanvas();
+    bool ensureScreenshotCanvas();
+    bool recreateScreenshotCanvas();
+    bool captureScreenshotBuffer();
+    bool saveScreenshotBuffer();
 
     M5GFX&   display_;
     M5Canvas canvas_;
-    bool     canvasReady_          = false;
-    bool     canvasAllocationError_ = false;
-    bool     screenshotRequested_  = false;
+    M5Canvas screenshotCanvas_;
+    bool     canvasReady_                     = false;
+    bool     canvasAllocationError_           = false;
+    bool     screenshotCanvasReady_           = false;
+    bool     screenshotCanvasAllocationError_ = false;
+    bool     screenshotRequested_             = false;
+    bool     screenshotSavePending_           = false;
 };
 
 #ifdef __GNUC__

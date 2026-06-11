@@ -2,6 +2,7 @@
 
 #ifdef TEST_BUILD_SCREENSHOT
 
+#include "AudioFileRecorder.h"
 #include "ClockAgent.h"
 #include "MicroSdCard.h"
 #include "dbg_log.h"
@@ -31,7 +32,7 @@ static uint8_t expand6(uint16_t value);
 
 } // namespace
 
-GuiDisplay::GuiDisplay(M5GFX& display) : display_(display), canvas_(&display) {}
+GuiDisplay::GuiDisplay(M5GFX& display) : display_(display), canvas_(&display), screenshotCanvas_(&display) {}
 
 bool GuiDisplay::beginMirror()
 {
@@ -59,111 +60,51 @@ void GuiDisplay::requestScreenshot()
 
 bool GuiDisplay::saveScreenshotIfRequested()
 {
-    if (!screenshotRequested_)
+    if (screenshotRequested_)
     {
-        return false;
-    }
-
-    screenshotRequested_ = false;
-
-    if (!ensureCanvas())
-    {
-        DBG_LOGE(TAG, "screenshot skipped: framebuffer unavailable");
-        return false;
-    }
-
-    if (!MicroSdCard::isReady())
-    {
-        DBG_LOGE(TAG, "screenshot skipped: microSD is not ready");
-        return false;
-    }
-
-    MicroSdCard::fs().mkdir(kScreenshotDir);
-
-    char path[96] = {};
-    if (!makeScreenshotPath(path, sizeof(path)))
-    {
-        DBG_LOGE(TAG, "screenshot skipped: failed to make filename");
-        return false;
-    }
-
-    FsFile file;
-    if (!file.open(path, O_WRONLY | O_CREAT | O_TRUNC))
-    {
-        DBG_LOGE(TAG, "screenshot open failed: %s", path);
-        return false;
-    }
-
-    const int32_t  w          = canvas_.width();
-    const int32_t  h          = canvas_.height();
-    const uint32_t rowStride  = static_cast<uint32_t>((w * 3 + 3) & ~3);
-    const uint32_t imageBytes = rowStride * static_cast<uint32_t>(h);
-    const uint32_t fileBytes  = kBmpHeaderBytes + imageBytes;
-
-    uint8_t header[kBmpHeaderBytes] = {};
-    header[0]                       = 'B';
-    header[1]                       = 'M';
-    writeLe32(header + 2, fileBytes);
-    writeLe32(header + 10, kBmpHeaderBytes);
-    writeLe32(header + 14, kBmpInfoHeaderBytes);
-    writeLe32(header + 18, static_cast<uint32_t>(w));
-    writeLe32(header + 22, static_cast<uint32_t>(h));
-    writeLe16(header + 26, kBmpPlanes);
-    writeLe16(header + 28, kBmpBitsPerPixel);
-    writeLe32(header + 34, imageBytes);
-    writeLe32(header + 38, kBmpPelsPerMeter);
-    writeLe32(header + 42, kBmpPelsPerMeter);
-
-    uint16_t* pixels = new (std::nothrow) uint16_t[static_cast<size_t>(w)];
-    uint8_t*  row    = new (std::nothrow) uint8_t[rowStride];
-
-    bool ok = pixels != nullptr && row != nullptr && writeAll(file, header, sizeof(header));
-
-    for (int32_t y = h - 1; ok && y >= 0; --y)
-    {
-        memset(row, 0, rowStride);
-        canvas_.readRect(0, y, w, 1, pixels);
-
-        for (int32_t x = 0; x < w; ++x)
+        screenshotRequested_ = false;
+        if (captureScreenshotBuffer())
         {
-            const uint16_t color = pixels[x];
-            uint8_t*       dst   = row + x * 3;
-            dst[0]              = expand5(color & 0x1F);
-            dst[1]              = expand6((color >> 5) & 0x3F);
-            dst[2]              = expand5((color >> 11) & 0x1F);
+            screenshotSavePending_ = true;
+            if (AudioFileRecorder::isRecording())
+            {
+                DBG_LOGI(TAG, "screenshot captured; save deferred until recording stops");
+            }
         }
-
-        ok = writeAll(file, row, rowStride);
     }
 
-    delete[] row;
-    delete[] pixels;
-
-    file.close();
-
-    if (!ok)
+    if (!screenshotSavePending_)
     {
-        DBG_LOGE(TAG, "screenshot write failed: %s", path);
         return false;
     }
 
-    DBG_LOGI(TAG, "screenshot saved: %s", path);
-    return true;
+    if (AudioFileRecorder::isRecording())
+    {
+        return false;
+    }
+
+    return saveScreenshotBuffer();
 }
 
 void GuiDisplay::setColorDepth(int bits)
 {
     display_.setColorDepth(bits);
-    canvasReady_           = false;
-    canvasAllocationError_ = false;
+    canvasReady_                     = false;
+    canvasAllocationError_           = false;
+    screenshotCanvasReady_           = false;
+    screenshotCanvasAllocationError_ = false;
+    screenshotSavePending_           = false;
     recreateCanvas();
 }
 
 void GuiDisplay::setColorDepth(lgfx::color_depth_t depth)
 {
     display_.setColorDepth(depth);
-    canvasReady_           = false;
-    canvasAllocationError_ = false;
+    canvasReady_                     = false;
+    canvasAllocationError_           = false;
+    screenshotCanvasReady_           = false;
+    screenshotCanvasAllocationError_ = false;
+    screenshotSavePending_           = false;
     recreateCanvas();
 }
 
@@ -185,7 +126,11 @@ bool GuiDisplay::ensureCanvas()
 bool GuiDisplay::recreateCanvas()
 {
     canvas_.deleteSprite();
-    canvasReady_ = false;
+    screenshotCanvas_.deleteSprite();
+    canvasReady_                     = false;
+    screenshotCanvasReady_           = false;
+    screenshotCanvasAllocationError_ = false;
+    screenshotSavePending_           = false;
 
     const int32_t w = display_.width();
     const int32_t h = display_.height();
@@ -208,6 +153,163 @@ bool GuiDisplay::recreateCanvas()
 
     canvas_.fillScreen(TFT_BLACK);
     canvasReady_ = true;
+    return true;
+}
+
+bool GuiDisplay::ensureScreenshotCanvas()
+{
+    if (screenshotCanvasReady_ && screenshotCanvas_.width() == canvas_.width() &&
+        screenshotCanvas_.height() == canvas_.height() &&
+        screenshotCanvas_.getColorDepth() == canvas_.getColorDepth())
+    {
+        return true;
+    }
+
+    if (screenshotCanvasAllocationError_)
+    {
+        return false;
+    }
+
+    return recreateScreenshotCanvas();
+}
+
+bool GuiDisplay::recreateScreenshotCanvas()
+{
+    if (!ensureCanvas())
+    {
+        return false;
+    }
+
+    screenshotCanvas_.deleteSprite();
+    screenshotCanvasReady_ = false;
+
+    screenshotCanvas_.setPsram(true);
+    screenshotCanvas_.setColorDepth(canvas_.getColorDepth());
+    screenshotCanvas_.setRotation(canvas_.getRotation());
+
+    void* buffer = screenshotCanvas_.createSprite(canvas_.width(), canvas_.height());
+    if (buffer == nullptr)
+    {
+        screenshotCanvasAllocationError_ = true;
+        DBG_LOGE(TAG,
+                 "screenshot buffer allocation failed: %ldx%ld",
+                 static_cast<long>(canvas_.width()),
+                 static_cast<long>(canvas_.height()));
+        return false;
+    }
+
+    screenshotCanvasReady_ = true;
+    return true;
+}
+
+bool GuiDisplay::captureScreenshotBuffer()
+{
+    if (!ensureCanvas() || !ensureScreenshotCanvas())
+    {
+        DBG_LOGE(TAG, "screenshot capture skipped: framebuffer unavailable");
+        return false;
+    }
+
+    const uint32_t canvasBytes     = canvas_.bufferLength();
+    const uint32_t screenshotBytes = screenshotCanvas_.bufferLength();
+    void*          canvasBuffer    = canvas_.getBuffer();
+    void*          screenshotBuffer = screenshotCanvas_.getBuffer();
+
+    if (canvasBytes == 0 || canvasBytes != screenshotBytes || canvasBuffer == nullptr || screenshotBuffer == nullptr)
+    {
+        DBG_LOGE(TAG, "screenshot capture skipped: framebuffer mismatch");
+        return false;
+    }
+
+    memcpy(screenshotBuffer, canvasBuffer, canvasBytes);
+    return true;
+}
+
+bool GuiDisplay::saveScreenshotBuffer()
+{
+    if (!MicroSdCard::isReady())
+    {
+        return false;
+    }
+
+    MicroSdCard::fs().mkdir(kScreenshotDir);
+
+    char path[96] = {};
+    if (!makeScreenshotPath(path, sizeof(path)))
+    {
+        DBG_LOGE(TAG, "screenshot skipped: failed to make filename");
+        screenshotSavePending_ = false;
+        return false;
+    }
+
+    FsFile file;
+    if (!file.open(path, O_WRONLY | O_CREAT | O_TRUNC))
+    {
+        DBG_LOGE(TAG, "screenshot open failed: %s", path);
+        screenshotSavePending_ = false;
+        return false;
+    }
+
+    const int32_t  w          = screenshotCanvas_.width();
+    const int32_t  h          = screenshotCanvas_.height();
+    const uint32_t rowStride  = static_cast<uint32_t>((w * 3 + 3) & ~3);
+    const uint32_t imageBytes = rowStride * static_cast<uint32_t>(h);
+    const uint32_t fileBytes  = kBmpHeaderBytes + imageBytes;
+
+    uint8_t header[kBmpHeaderBytes] = {};
+    header[0]                       = 'B';
+    header[1]                       = 'M';
+    writeLe32(header + 2, fileBytes);
+    writeLe32(header + 10, kBmpHeaderBytes);
+    writeLe32(header + 14, kBmpInfoHeaderBytes);
+    writeLe32(header + 18, static_cast<uint32_t>(w));
+    writeLe32(header + 22, static_cast<uint32_t>(h));
+    writeLe16(header + 26, kBmpPlanes);
+    writeLe16(header + 28, kBmpBitsPerPixel);
+    writeLe32(header + 34, imageBytes);
+    writeLe32(header + 38, kBmpPelsPerMeter);
+    writeLe32(header + 42, kBmpPelsPerMeter);
+
+    uint16_t* pixels = new (std::nothrow) uint16_t[static_cast<size_t>(w)];
+    uint8_t*  row    = new (std::nothrow) uint8_t[rowStride];
+
+    bool ok = pixels != nullptr && row != nullptr && writeAll(file, header, sizeof(header));
+    if (pixels == nullptr || row == nullptr)
+    {
+        DBG_LOGE(TAG, "screenshot write failed: row buffer allocation failed");
+    }
+
+    for (int32_t y = h - 1; ok && y >= 0; --y)
+    {
+        memset(row, 0, rowStride);
+        screenshotCanvas_.readRect(0, y, w, 1, pixels);
+
+        for (int32_t x = 0; x < w; ++x)
+        {
+            const uint16_t color = pixels[x];
+            uint8_t*       dst   = row + x * 3;
+            dst[0]              = expand5(color & 0x1F);
+            dst[1]              = expand6((color >> 5) & 0x3F);
+            dst[2]              = expand5((color >> 11) & 0x1F);
+        }
+
+        ok = writeAll(file, row, rowStride);
+    }
+
+    delete[] row;
+    delete[] pixels;
+
+    file.close();
+
+    if (!ok)
+    {
+        DBG_LOGE(TAG, "screenshot write failed: %s", path);
+        screenshotSavePending_ = false;
+        return false;
+    }
+
+    screenshotSavePending_ = false;
+    DBG_LOGI(TAG, "screenshot saved: %s", path);
     return true;
 }
 

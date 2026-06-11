@@ -181,10 +181,10 @@ void FlyGui::poll()
     if (drawn)
     {
         Diagnostics::gui_drew();
-#ifdef TEST_BUILD_SCREENSHOT
-        thefly_display.saveScreenshotIfRequested();
-#endif
     }
+#ifdef TEST_BUILD_SCREENSHOT
+    thefly_display.saveScreenshotIfRequested();
+#endif
 }
 
 bool FlyGui::redraw(bool forced)
