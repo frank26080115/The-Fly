@@ -131,6 +131,10 @@ void FlyGui::setWifiActive(bool active)
 
 void FlyGui::poll()
 {
+#ifdef TEST_BUILD_SCREENSHOT
+    thefly_display.pollScreenshotRequest();
+#endif
+
     Diagnostics::memory_check_in();
 
     if (FlyGui::guiShouldYield())
@@ -177,6 +181,9 @@ void FlyGui::poll()
     if (drawn)
     {
         Diagnostics::gui_drew();
+#ifdef TEST_BUILD_SCREENSHOT
+        thefly_display.saveScreenshotIfRequested();
+#endif
     }
 }
 

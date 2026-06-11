@@ -97,7 +97,7 @@ public:
         return modal_;
     }
 
-    M5GFX& display()
+    GuiDisplay& display()
     {
         return thefly_display;
     }

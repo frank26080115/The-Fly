@@ -60,7 +60,7 @@ void        init_gui();
 
 void all_init()
 {
-    Serial.begin(115200, SERIAL_8N1, -1, 1); // RXD0/GPIO3 unused; TXD0/GPIO1 may be reclaimed for SGTL5000 MCLK.
+    Serial.begin(115200, SERIAL_8N1); // TXD0/GPIO1 may be reclaimed for SGTL5000 MCLK
     g_nvs_ready = init_nvs();
     check_reset_flag();
     init_m5();

@@ -1,5 +1,5 @@
 #pragma once
 
-#include <M5GFX.h>
+#include "../lib/FlyGui/GuiDisplay.h"
 
-extern M5GFX& thefly_display;
+extern GuiDisplay& thefly_display;

@@ -85,7 +85,12 @@ bool               show_playback_view(const char* path);
 static const char* ntp_error_name(NtpSync::Error error);
 
 FlyGui*                 gui;
-M5GFX&                  thefly_display = M5.Display;
+#ifdef TEST_BUILD_SCREENSHOT
+static GuiDisplay       g_thefly_display(M5.Display);
+GuiDisplay&             thefly_display = g_thefly_display;
+#else
+GuiDisplay&             thefly_display = M5.Display;
+#endif
 BtHostList*             bt_host_list;
 volatile bool           g_pending_bluetooth_recording       = false;
 volatile bool           g_pending_bluetooth_disconnect      = false;
