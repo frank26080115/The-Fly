@@ -71,11 +71,22 @@ inline void serialWrite(char level, const char* tag, const char* format, ...)
         } \
     } while (0)
 
+#define DBG_LOG_SERIAL_FORCE(letter, tag, format, ...) \
+    do { \
+        dbg_log_detail::serialWrite(letter, tag, format, ##__VA_ARGS__); \
+    } while (0)
+
 #define DBG_LOGE(tag, format, ...) DBG_LOG_SERIAL(DBG_LOG_ERROR,   'E', tag, format, ##__VA_ARGS__)
 #define DBG_LOGW(tag, format, ...) DBG_LOG_SERIAL(DBG_LOG_WARN,    'W', tag, format, ##__VA_ARGS__)
 #define DBG_LOGI(tag, format, ...) DBG_LOG_SERIAL(DBG_LOG_INFO,    'I', tag, format, ##__VA_ARGS__)
 #define DBG_LOGD(tag, format, ...) DBG_LOG_SERIAL(DBG_LOG_DEBUG,   'D', tag, format, ##__VA_ARGS__)
 #define DBG_LOGV(tag, format, ...) DBG_LOG_SERIAL(DBG_LOG_VERBOSE, 'V', tag, format, ##__VA_ARGS__)
+
+#define DBG_LOG_FORCEE(tag, format, ...) DBG_LOG_SERIAL_FORCE('E', tag, format, ##__VA_ARGS__)
+#define DBG_LOG_FORCEW(tag, format, ...) DBG_LOG_SERIAL_FORCE('W', tag, format, ##__VA_ARGS__)
+#define DBG_LOG_FORCEI(tag, format, ...) DBG_LOG_SERIAL_FORCE('I', tag, format, ##__VA_ARGS__)
+#define DBG_LOG_FORCED(tag, format, ...) DBG_LOG_SERIAL_FORCE('D', tag, format, ##__VA_ARGS__)
+#define DBG_LOG_FORCEV(tag, format, ...) DBG_LOG_SERIAL_FORCE('V', tag, format, ##__VA_ARGS__)
 
 #define DBG_EARLY_LOGE(tag, format, ...) DBG_LOGE(tag, format, ##__VA_ARGS__)
 #define DBG_EARLY_LOGW(tag, format, ...) DBG_LOGW(tag, format, ##__VA_ARGS__)
@@ -105,6 +116,12 @@ inline void serialWrite(char level, const char* tag, const char* format, ...)
 #define DBG_LOGD(tag, format, ...) ESP_LOGD(tag, format, ##__VA_ARGS__)
 #define DBG_LOGV(tag, format, ...) ESP_LOGV(tag, format, ##__VA_ARGS__)
 
+#define DBG_LOG_FORCEE(tag, format, ...) ESP_LOG_LEVEL(ESP_LOG_ERROR,   tag, format, ##__VA_ARGS__)
+#define DBG_LOG_FORCEW(tag, format, ...) ESP_LOG_LEVEL(ESP_LOG_WARN,    tag, format, ##__VA_ARGS__)
+#define DBG_LOG_FORCEI(tag, format, ...) ESP_LOG_LEVEL(ESP_LOG_INFO,    tag, format, ##__VA_ARGS__)
+#define DBG_LOG_FORCED(tag, format, ...) ESP_LOG_LEVEL(ESP_LOG_DEBUG,   tag, format, ##__VA_ARGS__)
+#define DBG_LOG_FORCEV(tag, format, ...) ESP_LOG_LEVEL(ESP_LOG_VERBOSE, tag, format, ##__VA_ARGS__)
+
 #define DBG_EARLY_LOGE(tag, format, ...) ESP_EARLY_LOGE(tag, format, ##__VA_ARGS__)
 #define DBG_EARLY_LOGW(tag, format, ...) ESP_EARLY_LOGW(tag, format, ##__VA_ARGS__)
 #define DBG_EARLY_LOGI(tag, format, ...) ESP_EARLY_LOGI(tag, format, ##__VA_ARGS__)
@@ -130,6 +147,12 @@ inline void serialWrite(char level, const char* tag, const char* format, ...)
 #define DBG_LOGI(tag, format, ...) ((void)0)
 #define DBG_LOGD(tag, format, ...) ((void)0)
 #define DBG_LOGV(tag, format, ...) ((void)0)
+
+#define DBG_LOG_FORCEE(tag, format, ...) ((void)0)
+#define DBG_LOG_FORCEW(tag, format, ...) ((void)0)
+#define DBG_LOG_FORCEI(tag, format, ...) ((void)0)
+#define DBG_LOG_FORCED(tag, format, ...) ((void)0)
+#define DBG_LOG_FORCEV(tag, format, ...) ((void)0)
 
 #define DBG_EARLY_LOGE(tag, format, ...) ((void)0)
 #define DBG_EARLY_LOGW(tag, format, ...) ((void)0)

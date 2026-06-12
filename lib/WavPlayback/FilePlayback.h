@@ -20,6 +20,7 @@ class FilePlayback
 {
 public:
     static std::unique_ptr<FilePlayback> createForPath(const char* path);
+    static bool filePlaybackPlaying();
 
     virtual ~FilePlayback();
 
@@ -83,6 +84,8 @@ protected:
 #endif
 
 private:
+    static void setFilePlaybackPlaying(bool playing);
+
     void     finish();
     void     clearFifoAndMaybeRewind(bool rewindQueuedAudio);
     bool     setupSpeaker();

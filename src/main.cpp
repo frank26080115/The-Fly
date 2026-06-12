@@ -48,6 +48,7 @@ constexpr const char* MAINTAG = "main.cpp";
 extern void                all_init();
 extern void                show_splash();
 extern void                draw_splash_boot_info();
+extern void                draw_splash_idle_prompt();
 extern ScrollView*         get_view_scroll();
 extern ModalDialog*        get_view_modal_dialog();
 extern RecordingView*      get_view_recording();
@@ -225,6 +226,11 @@ void setup()
 #ifdef TEST_BOOT_ERROR_FATAL
     show_boot_error_f(true, "test fatal error");
 #endif
+
+    if (gui->currentView() && gui->currentView()->id() == FLYGUI_VIEW_SPLASH)
+    {
+        draw_splash_idle_prompt();
+    }
 
     if (!gui->currentView())
     {

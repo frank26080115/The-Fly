@@ -24,7 +24,6 @@ void pollCore1();
 
 void noteUserActivity();
 void noteUserActivityFromIsr();
-void setFilePlaybackPlaying(bool playing);
 
 State       state();
 const char* stateName(State value);

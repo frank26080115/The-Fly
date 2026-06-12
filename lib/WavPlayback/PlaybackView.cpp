@@ -11,7 +11,6 @@
 #include "AudioManager.h"
 #include "MicroSdCard.h"
 #include "DiskStats.h"
-#include "../Hotel/Hotel.h"
 #include "../FlyGui/FlyGuiText.h"
 #include "../FlyGuiViews/ModalDialog.h"
 #include "../FlyGuiViews/ScrollView/ScrollView.h"
@@ -195,7 +194,6 @@ void PlaybackView::pumpPlayback()
     if (playback_)
     {
         playback_->pump();
-        publishPlaybackPowerState();
     }
 }
 
@@ -211,7 +209,6 @@ void PlaybackView::stopPlayback()
         playback_->stop();
         playback_.reset();
     }
-    publishPlaybackPowerState();
 }
 
 void PlaybackView::onLoad()
@@ -363,7 +360,6 @@ void PlaybackView::handlePlayPause()
     {
         playback_->togglePlaying();
     }
-    publishPlaybackPowerState();
     syncControls();
 }
 
@@ -467,7 +463,6 @@ void PlaybackView::handleScrub(uint32_t positionMs)
         return;
     }
     playback_->setPositionMs(positionMs);
-    publishPlaybackPowerState();
     const uint32_t current = playback_->positionMs();
     scrubBar_.setPositionMs(current);
     precisionScrubBar_.setPositionMs(current);
@@ -483,7 +478,6 @@ void PlaybackView::handlePrecisionScrub(uint32_t positionMs)
         return;
     }
     playback_->setPositionMs(positionMs);
-    publishPlaybackPowerState();
     const uint32_t current = playback_->positionMs();
     scrubBar_.setPositionMs(current);
     precisionScrubBar_.setPositionMs(current);
@@ -526,14 +520,8 @@ void PlaybackView::startPlayback()
 
     scrubBar_.setTotalMs(playback_ ? playback_->durationMs() : 0);
     scrubBar_.setPositionMs(playback_ ? playback_->positionMs() : 0);
-    publishPlaybackPowerState();
     syncControls();
     frameDirty_ = true;
-}
-
-void PlaybackView::publishPlaybackPowerState() const
-{
-    Hotel::setFilePlaybackPlaying(playback_ && playback_->playing());
 }
 
 void PlaybackView::layoutItems()

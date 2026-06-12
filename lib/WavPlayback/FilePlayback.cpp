@@ -5,6 +5,7 @@
 #include "FilePlayback.h"
 
 #include <algorithm>
+#include <atomic>
 #include <new>
 #include <string.h>
 
@@ -21,6 +22,13 @@
 #include "WavPlayback.h"
 #include "dbg_log.h"
 #include "utilfuncs.h"
+
+namespace
+{
+
+std::atomic<bool> g_file_playback_playing{false};
+
+} // namespace
 
 // -----------------------------------------------------------------------------
 // Main Flow
@@ -50,6 +58,7 @@ std::unique_ptr<FilePlayback> FilePlayback::createForPath(const char* path)
 
 FilePlayback::~FilePlayback()
 {
+    setFilePlaybackPlaying(false);
     if (file_)
     {
         file_.close();
@@ -100,12 +109,14 @@ bool FilePlayback::start(const char* playbackPath)
     eof_      = sourceDurationMs() == 0;
     finished_ = eof_;
     playing_  = !eof_;
+    setFilePlaybackPlaying(playing_);
 
     if (!setupSpeaker() || !seekToTimeMs(0))
     {
         closeFileAndSource();
         active_  = false;
         playing_ = false;
+        setFilePlaybackPlaying(false);
         path_[0] = '\0';
         return false;
     }
@@ -134,6 +145,7 @@ void FilePlayback::stop()
     finished_ = false;
     eof_      = false;
     path_[0]  = '\0';
+    setFilePlaybackPlaying(false);
 }
 
 void FilePlayback::pump()
@@ -207,6 +219,7 @@ void FilePlayback::setPlaying(bool shouldPlay)
             clearFifoAndMaybeRewind(true);
         }
         playing_ = false;
+        setFilePlaybackPlaying(false);
         return;
     }
 
@@ -220,6 +233,7 @@ void FilePlayback::setPlaying(bool shouldPlay)
     eof_      = sourceAtEnd();
     playing_  = !eof_;
     AudioManager::bluetoothToSpeakerFifo().setWatermark(kSpeakerWatermarkSamples);
+    setFilePlaybackPlaying(playing_);
 }
 
 void FilePlayback::togglePlaying()
@@ -251,6 +265,7 @@ void FilePlayback::setPositionMs(uint32_t positionMs)
     {
         playing_  = false;
         finished_ = true;
+        setFilePlaybackPlaying(false);
     }
 }
 
@@ -292,6 +307,11 @@ const char* FilePlayback::lastError() const
 const char* FilePlayback::lastWarning() const
 {
     return warning_;
+}
+
+bool FilePlayback::filePlaybackPlaying()
+{
+    return g_file_playback_playing.load(std::memory_order_acquire);
 }
 
 // -----------------------------------------------------------------------------
@@ -498,12 +518,18 @@ int16_t FilePlayback::mixStereoFrameToMono(const int16_t* frame)
 // Small Helpers
 // -----------------------------------------------------------------------------
 
+void FilePlayback::setFilePlaybackPlaying(bool playing)
+{
+    g_file_playback_playing.store(playing, std::memory_order_release);
+}
+
 void FilePlayback::finish()
 {
     playing_  = false;
     finished_ = true;
     eof_      = true;
     AudioManager::bluetoothToSpeakerFifo().setWatermark(kSpeakerWatermarkSamples);
+    setFilePlaybackPlaying(false);
 }
 
 void FilePlayback::clearFifoAndMaybeRewind(bool rewindQueuedAudio)

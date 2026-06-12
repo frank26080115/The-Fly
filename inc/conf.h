@@ -8,15 +8,17 @@
 use this file for preprocessor definitions that are used to configure parts of the code at compile-time
 */
 
+#define BUILD_FTP_SERVER
 //#define BUILD_CLOUD_FEATURES
+
 //#define TEST_SIM_BATTERY
 //#define TEST_BOOT_ERROR_NONFATAL
 //#define TEST_BOOT_ERROR_FATAL
 //#define TEST_MOCK_FW_UPDATE 1
 //#define TEST_MOCK_MASTER_KEY
-#define TEST_MOCK_PIN_CODE
-#define TEST_MOCK_PASSWORD
-#define TEST_MOCK_NVS_FW_SECURED
+//#define TEST_MOCK_PIN_CODE
+//#define TEST_MOCK_PASSWORD
+//#define TEST_MOCK_NVS_FW_SECURED
 //#define TEST_MOCK_SCRAMBLE_TIME
 //#define TEST_MOCK_EXT_CODEC
 #define TEST_TEENSY_AUDIO_BRD

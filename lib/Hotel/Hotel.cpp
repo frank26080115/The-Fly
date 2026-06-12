@@ -12,6 +12,7 @@
 #include "../AudioManager/AudioManager.h"
 #include "../BluetoothManager/BluetoothManager.h"
 #include "../FlyGuiViews/ShutdownView.h"
+#include "../WavPlayback/FilePlayback.h"
 
 namespace Hotel
 {
@@ -54,7 +55,6 @@ uint32_t g_last_core_poll_ms[2]  = {};
 bool     g_core_ready[2]         = {};
 bool     g_initialized           = false;
 bool     g_shutdown_requested    = false;
-bool     g_file_playback_playing = false;
 
 // -----------------------------------------------------------------------------
 // Function Prototypes
@@ -70,7 +70,6 @@ static bool     full_power_saving_blocked();
 static bool     audio_blocks_full_power_saving();
 static bool     bluetooth_active();
 static bool     wifi_active();
-static bool     file_playback_playing();
 static bool     state_allows_light_sleep(State value);
 static bool     state_uses_full_brightness(State value);
 static bool     state_uses_max_cpu(State value);
@@ -135,13 +134,6 @@ void noteUserActivityFromIsr()
     portEXIT_CRITICAL_ISR(&g_lock);
 }
 
-void setFilePlaybackPlaying(bool playing)
-{
-    portENTER_CRITICAL(&g_lock);
-    g_file_playback_playing = playing;
-    portEXIT_CRITICAL(&g_lock);
-}
-
 State state()
 {
     portENTER_CRITICAL(&g_lock);
@@ -182,7 +174,7 @@ void poll_core(uint8_t core)
 {
     const uint64_t now_ms           = monotonic_ms();
     const bool     full_blocked     = full_power_saving_blocked();
-    const bool     playback_playing = file_playback_playing();
+    const bool     playback_playing = FilePlayback::filePlaybackPlaying();
     const bool     sleep_blocked    = full_blocked || playback_playing;
     const bool     shutdown_blocked = sleep_blocked;
     bool           sleep            = false;
@@ -367,14 +359,6 @@ bool bluetooth_active()
 bool wifi_active()
 {
     return WiFi.getMode() != WIFI_MODE_NULL;
-}
-
-bool file_playback_playing()
-{
-    portENTER_CRITICAL(&g_lock);
-    const bool playing = g_file_playback_playing;
-    portEXIT_CRITICAL(&g_lock);
-    return playing;
 }
 
 // -----------------------------------------------------------------------------

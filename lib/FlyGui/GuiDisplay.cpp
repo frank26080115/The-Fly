@@ -6,6 +6,7 @@
 #include "ClockAgent.h"
 #include "MicroSdCard.h"
 #include "dbg_log.h"
+#include "../WavPlayback/FilePlayback.h"
 
 #include <SdFat.h>
 #include <new>
@@ -66,9 +67,9 @@ bool GuiDisplay::saveScreenshotIfRequested()
         if (captureScreenshotBuffer())
         {
             screenshotSavePending_ = true;
-            if (AudioFileRecorder::isRecording())
+            if (AudioFileRecorder::isRecording() || FilePlayback::filePlaybackPlaying())
             {
-                DBG_LOGI(TAG, "screenshot captured; save deferred until recording stops");
+                DBG_LOG_FORCEI(TAG, "screenshot captured; save deferred until audio activity stops");
             }
         }
     }
@@ -78,7 +79,7 @@ bool GuiDisplay::saveScreenshotIfRequested()
         return false;
     }
 
-    if (AudioFileRecorder::isRecording())
+    if (AudioFileRecorder::isRecording() || FilePlayback::filePlaybackPlaying())
     {
         return false;
     }
@@ -147,7 +148,7 @@ bool GuiDisplay::recreateCanvas()
     if (buffer == nullptr)
     {
         canvasAllocationError_ = true;
-        DBG_LOGE(TAG, "framebuffer allocation failed: %ldx%ld", static_cast<long>(w), static_cast<long>(h));
+        DBG_LOG_FORCEE(TAG, "framebuffer allocation failed: %ldx%ld", static_cast<long>(w), static_cast<long>(h));
         return false;
     }
 
@@ -193,10 +194,10 @@ bool GuiDisplay::recreateScreenshotCanvas()
     if (buffer == nullptr)
     {
         screenshotCanvasAllocationError_ = true;
-        DBG_LOGE(TAG,
-                 "screenshot buffer allocation failed: %ldx%ld",
-                 static_cast<long>(canvas_.width()),
-                 static_cast<long>(canvas_.height()));
+        DBG_LOG_FORCEE(TAG,
+                       "screenshot buffer allocation failed: %ldx%ld",
+                       static_cast<long>(canvas_.width()),
+                       static_cast<long>(canvas_.height()));
         return false;
     }
 
@@ -208,7 +209,7 @@ bool GuiDisplay::captureScreenshotBuffer()
 {
     if (!ensureCanvas() || !ensureScreenshotCanvas())
     {
-        DBG_LOGE(TAG, "screenshot capture skipped: framebuffer unavailable");
+        DBG_LOG_FORCEE(TAG, "screenshot capture skipped: framebuffer unavailable");
         return false;
     }
 
@@ -216,14 +217,14 @@ bool GuiDisplay::captureScreenshotBuffer()
     const int32_t h = canvas_.height();
     if (w <= 0 || h <= 0)
     {
-        DBG_LOGE(TAG, "screenshot capture skipped: invalid framebuffer size");
+        DBG_LOG_FORCEE(TAG, "screenshot capture skipped: invalid framebuffer size");
         return false;
     }
 
     uint8_t* screenshotBuffer = static_cast<uint8_t*>(screenshotCanvas_.getBuffer());
     if (screenshotBuffer == nullptr)
     {
-        DBG_LOGE(TAG, "screenshot capture skipped: screenshot buffer unavailable");
+        DBG_LOG_FORCEE(TAG, "screenshot capture skipped: screenshot buffer unavailable");
         return false;
     }
 
@@ -250,7 +251,7 @@ bool GuiDisplay::saveScreenshotBuffer()
     char path[96] = {};
     if (!makeScreenshotPath(path, sizeof(path)))
     {
-        DBG_LOGE(TAG, "screenshot skipped: failed to make filename");
+        DBG_LOG_FORCEE(TAG, "screenshot skipped: failed to make filename");
         screenshotSavePending_ = false;
         return false;
     }
@@ -258,7 +259,7 @@ bool GuiDisplay::saveScreenshotBuffer()
     FsFile file;
     if (!file.open(path, O_WRONLY | O_CREAT | O_TRUNC))
     {
-        DBG_LOGE(TAG, "screenshot open failed: %s", path);
+        DBG_LOG_FORCEE(TAG, "screenshot open failed: %s", path);
         screenshotSavePending_ = false;
         return false;
     }
@@ -290,11 +291,11 @@ bool GuiDisplay::saveScreenshotBuffer()
     bool ok = screenshotBuffer != nullptr && (rowStride == rowBytes || row != nullptr) && writeAll(file, header, sizeof(header));
     if (screenshotBuffer == nullptr)
     {
-        DBG_LOGE(TAG, "screenshot write failed: screenshot buffer unavailable");
+        DBG_LOG_FORCEE(TAG, "screenshot write failed: screenshot buffer unavailable");
     }
     else if (rowStride != rowBytes && row == nullptr)
     {
-        DBG_LOGE(TAG, "screenshot write failed: row buffer allocation failed");
+        DBG_LOG_FORCEE(TAG, "screenshot write failed: row buffer allocation failed");
     }
 
     for (int32_t y = h - 1; ok && y >= 0; --y)
@@ -318,13 +319,13 @@ bool GuiDisplay::saveScreenshotBuffer()
 
     if (!ok)
     {
-        DBG_LOGE(TAG, "screenshot write failed: %s", path);
+        DBG_LOG_FORCEE(TAG, "screenshot write failed: %s", path);
         screenshotSavePending_ = false;
         return false;
     }
 
     screenshotSavePending_ = false;
-    DBG_LOGI(TAG, "screenshot saved: %s", path);
+    DBG_LOG_FORCEI(TAG, "screenshot saved: %s", path);
     return true;
 }
 
