@@ -312,17 +312,17 @@ def summary_path_for_transcript(transcript_path: Path, summarized_dir: Path) -> 
     return summary_path_for_stem(stem, summarized_dir)
 
 
-def transcribe_audio_to_json(audio_path: Path, output_path: Path, timeout: float) -> Path:
+def transcribe_audio_to_json(audio_path: Path, output_path: Path, timeout: float, transcription_model: str) -> Path:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     result = thefly_transcription.transcribe_audio_file(
         input_path=audio_path,
-        model=thefly_transcription.DEFAULT_MODEL,
-        response_format="diarized_json",
+        model=transcription_model,
+        response_format=None,
         language=None,
         prompt=None,
-        api_url=thefly_transcription.DEFAULT_API_URL,
+        api_url=None,
         timeout=timeout,
-        chunking_strategy="auto",
+        chunking_strategy=None,
     )
     thefly_transcription.add_recording_metadata(result, audio_path)
     output_path.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -330,14 +330,20 @@ def transcribe_audio_to_json(audio_path: Path, output_path: Path, timeout: float
     return output_path
 
 
-def summarize_transcript_to_markdown(transcript_path: Path, output_path: Path, timeout: float, max_output_tokens: int) -> Path:
+def summarize_transcript_to_markdown(
+    transcript_path: Path,
+    output_path: Path,
+    timeout: float,
+    max_output_tokens: int,
+    summary_model: str,
+) -> Path:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     transcript = thefly_summarize.read_transcript_json(transcript_path)
     summary = thefly_summarize.summarize_transcript(
         transcript=transcript,
         source_name=transcript_path.name,
-        model=thefly_summarize.DEFAULT_MODEL,
-        api_url=thefly_summarize.DEFAULT_API_URL,
+        model=summary_model,
+        api_url=None,
         timeout=timeout,
         max_output_tokens=max_output_tokens,
     )
@@ -351,17 +357,19 @@ def transcribe_and_summarize_audio(
     paths: DbPaths,
     timeout: float,
     max_output_tokens: int,
+    transcription_model: str,
+    summary_model: str,
     force: bool = False,
 ) -> None:
     transcript_path = transcript_path_for_audio(audio_path, paths.transcribed)
     if force or not transcript_path.exists():
-        transcribe_audio_to_json(audio_path, transcript_path, timeout)
+        transcribe_audio_to_json(audio_path, transcript_path, timeout, transcription_model)
     else:
         print(f"transcription exists: {transcript_path}")
 
     summary_path = summary_path_for_stem(audio_path.stem, paths.summarized)
     if force or not summary_path.exists():
-        summarize_transcript_to_markdown(transcript_path, summary_path, timeout, max_output_tokens)
+        summarize_transcript_to_markdown(transcript_path, summary_path, timeout, max_output_tokens, summary_model)
     else:
         print(f"summary exists: {summary_path}")
 
@@ -375,14 +383,36 @@ def handle_transcribe_file(input_path: Path, paths: DbPaths, key: Optional[bytes
     if suffix in thefly_audio_decryptor.ENCRYPTED_AUDIO_SUFFIXES:
         audio_path = output_audio_path_for(source, paths.audio)
         decode_audio_file(source, audio_path, key, args.gap_threshold_ms)
-        transcribe_and_summarize_audio(audio_path, paths, args.api_timeout, args.max_output_tokens, force=args.force_transcribe)
+        transcribe_and_summarize_audio(
+            audio_path,
+            paths,
+            args.api_timeout,
+            args.max_output_tokens,
+            args.transcription_model,
+            args.summary_model,
+            force=args.force_transcribe,
+        )
     elif suffix in thefly_audio_decryptor.PLAIN_AUDIO_SUFFIXES:
         audio_path = save_audio_directly(source, paths.audio / source.name)
-        transcribe_and_summarize_audio(audio_path, paths, args.api_timeout, args.max_output_tokens, force=args.force_transcribe)
+        transcribe_and_summarize_audio(
+            audio_path,
+            paths,
+            args.api_timeout,
+            args.max_output_tokens,
+            args.transcription_model,
+            args.summary_model,
+            force=args.force_transcribe,
+        )
     elif suffix == ".json":
         summary_path = summary_path_for_transcript(source, paths.summarized)
         if args.force_transcribe or not summary_path.exists():
-            summarize_transcript_to_markdown(source, summary_path, args.api_timeout, args.max_output_tokens)
+            summarize_transcript_to_markdown(
+                source,
+                summary_path,
+                args.api_timeout,
+                args.max_output_tokens,
+                args.summary_model,
+            )
         else:
             print(f"summary exists: {summary_path}")
     else:
@@ -404,7 +434,15 @@ def transcribe_all_missing(paths: DbPaths, args: argparse.Namespace) -> None:
         summary_path = summary_path_for_stem(audio_path.stem, paths.summarized)
         if not args.force_transcribe and transcript_path.exists() and summary_path.exists():
             continue
-        transcribe_and_summarize_audio(audio_path, paths, args.api_timeout, args.max_output_tokens, force=args.force_transcribe)
+        transcribe_and_summarize_audio(
+            audio_path,
+            paths,
+            args.api_timeout,
+            args.max_output_tokens,
+            args.transcription_model,
+            args.summary_model,
+            force=args.force_transcribe,
+        )
 
 
 def sync_device_files(base_url: str, paths: DbPaths, key: Optional[bytes], args: argparse.Namespace) -> list[Path]:
@@ -673,6 +711,16 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         action="store_true",
         help="process missing transcriptions/summaries for local audio/*.wav and audio/*.mp3 files",
     )
+    parser.add_argument(
+        "--transcription-model",
+        default="",
+        help=f"transcription model; blank uses {thefly_transcription.DEFAULT_MODEL}",
+    )
+    parser.add_argument(
+        "--summary-model",
+        default="",
+        help=f"summarization model; blank uses {thefly_summarize.DEFAULT_MODEL}",
+    )
     parser.add_argument("--force-transcribe", action="store_true", help="overwrite existing transcription and summary outputs")
     parser.add_argument("--device-timeout", type=float, default=DEFAULT_DEVICE_TIMEOUT_SECONDS, help="device HTTP timeout in seconds")
     parser.add_argument("--mdns-timeout", type=float, default=DEFAULT_MDNS_TIMEOUT_SECONDS, help="mDNS discovery timeout in seconds")
@@ -742,7 +790,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             if not downloaded_audio:
                 print("no newly downloaded audio files to transcribe")
             for audio_path in downloaded_audio:
-                transcribe_and_summarize_audio(audio_path, paths, args.api_timeout, args.max_output_tokens, force=args.force_transcribe)
+                transcribe_and_summarize_audio(
+                    audio_path,
+                    paths,
+                    args.api_timeout,
+                    args.max_output_tokens,
+                    args.transcription_model,
+                    args.summary_model,
+                    force=args.force_transcribe,
+                )
 
         if args.transcribe_file:
             for input_path in args.transcribe_file:

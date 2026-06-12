@@ -16,6 +16,8 @@ from typing import Any, Mapping, Optional, Sequence
 
 
 DEFAULT_OPENAI_BASE_URL = "https://api.openai.com/v1"
+DEFAULT_OPENAI_TRANSCRIPTION_URL = DEFAULT_OPENAI_BASE_URL + "/audio/transcriptions"
+DEFAULT_OPENAI_RESPONSES_URL = DEFAULT_OPENAI_BASE_URL + "/responses"
 DEFAULT_LOCAL_OPENAI_BASE_URL = "http://127.0.0.1:11434/v1"
 DEFAULT_TRANSCRIPTION_MODEL = "faster-whisper;small;cpu;int8" #"gpt-4o-transcribe-diarize"
 DEFAULT_SUMMARY_MODEL = "qwen3:14b" #"gpt-4o-mini"
@@ -482,7 +484,7 @@ class AIModel:
     model_name = ""
     display_name = ""
     api_model = ""
-    default_base_url = DEFAULT_OPENAI_BASE_URL
+    default_base_url = ""
     requires_api_key = True
     env_api_key = "OPENAI_API_KEY"
 
@@ -616,6 +618,7 @@ class AIModel:
 
 
 class OpenAICompatibleTranscriptionModel(AIModel):
+    default_base_url = DEFAULT_OPENAI_TRANSCRIPTION_URL
     default_response_format = "json"
     default_chunking_strategy: Optional[str] = None
     supports_prompt = True
@@ -834,6 +837,8 @@ class ParakeetModel(OpenAICompatibleTranscriptionModel):
 
 
 class OpenAIResponsesSummaryModel(AIModel):
+    default_base_url = DEFAULT_OPENAI_RESPONSES_URL
+
     def _summarize_transcript(self, transcript: Any, source_name: str, max_output_tokens: int) -> str:
         text = transcript_text(transcript)
         if not text:

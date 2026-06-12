@@ -19,11 +19,14 @@ from models import (
 
 
 DEFAULT_MODEL = DEFAULT_TRANSCRIPTION_MODEL
-DEFAULT_API_URL = "https://api.openai.com/v1/audio/transcriptions"
 
 
 class TranscriptionError(ModelError):
     pass
+
+
+def resolve_model(model: Optional[str]) -> str:
+    return (model or "").strip() or DEFAULT_MODEL
 
 
 def default_output_path(input_path: Path) -> Path:
@@ -32,7 +35,7 @@ def default_output_path(input_path: Path) -> Path:
 
 def transcribe_audio_file(
     input_path: Path,
-    model: str,
+    model: Optional[str],
     response_format: Optional[str],
     language: Optional[str],
     prompt: Optional[str],
@@ -43,7 +46,7 @@ def transcribe_audio_file(
     try:
         shortened = shorten_audio_file(input_path)
         audio_paths = shortened if isinstance(shortened, list) else [shortened]
-        transcriber = create_model(model, base_url=api_url, timeout=timeout)
+        transcriber = create_model(resolve_model(model), base_url=api_url, timeout=timeout)
         results = [
             transcriber._transcribe_audio(path, response_format, language, prompt, chunking_strategy)
             for path in audio_paths

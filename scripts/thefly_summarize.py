@@ -22,12 +22,15 @@ import thefly_transcription
 
 
 DEFAULT_MODEL = DEFAULT_SUMMARY_MODEL
-DEFAULT_API_URL = "https://api.openai.com/v1/responses"
 DEFAULT_MAX_OUTPUT_TOKENS = MODEL_DEFAULT_MAX_OUTPUT_TOKENS
 
 
 class SummaryError(ModelError):
     pass
+
+
+def resolve_model(model: Optional[str]) -> str:
+    return (model or "").strip() or DEFAULT_MODEL
 
 
 def default_output_path(input_path: Path) -> Path:
@@ -44,13 +47,13 @@ def read_transcript_json(input_path: Path) -> Any:
 def summarize_transcript(
     transcript: Any,
     source_name: str,
-    model: str,
-    api_url: str,
+    model: Optional[str],
+    api_url: Optional[str],
     timeout: float,
     max_output_tokens: int,
 ) -> str:
     try:
-        summarizer = create_model(model, base_url=api_url, timeout=timeout)
+        summarizer = create_model(resolve_model(model), base_url=api_url, timeout=timeout)
         return summarizer._summarize_transcript(transcript, source_name, max_output_tokens)
     except ModelError as exc:
         raise SummaryError(str(exc)) from exc
@@ -120,7 +123,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             transcript_path.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
             print(f"transcription output: {transcript_path}")
 
-        summary_model = create_model(args.model, base_url=args.base_url, timeout=args.timeout)
+        summary_model = create_model(resolve_model(args.model), base_url=args.base_url, timeout=args.timeout)
         summary_model.summarize_transcription_file(
             input_path=transcript_path,
             output_path=output_path,
