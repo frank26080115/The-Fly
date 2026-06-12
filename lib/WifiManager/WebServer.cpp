@@ -61,7 +61,7 @@ constexpr uint16_t    kWebServerPort                   = 80;
 // This is only a login gate for plain FTP. Replace these credentials before
 // exposing FTP; this library is not SFTP and does not encrypt its traffic.
 constexpr const char* kFtpUser     = "thefly";
-constexpr const char* kFtpPassword = "replace-me";
+constexpr const char* kFtpPassword = "thefly";
 #endif
 
 // -----------------------------------------------------------------------------
