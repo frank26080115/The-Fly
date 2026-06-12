@@ -1,0 +1,8 @@
+Pillow
+numpy
+htmlmin
+csscompressor
+jsmin
+
+# Used by PlatformIO pre-build scripts that run inside SCons.
+SCons

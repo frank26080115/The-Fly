@@ -6,7 +6,7 @@
 
 To turn on The Fly, press the power button. To turn it off, hold the power button until it powers off.
 
-The USB-C port only works for recharging the battery, it does not offer USB storage or file access.
+The USB-C port only works for recharging the battery, it does not offer USB storage or file access or audio.
 
 The microSD card should be large (64GB recommended) and formatted to the FAT32 filesystem.
 

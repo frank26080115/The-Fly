@@ -1,9 +1,27 @@
 # The-Fly
 
-This device is meant to be a Bluetooth meeting audio recording device.
+This device is a Bluetooth meeting audio recording device. It can record meetings, phone calls, or voice memos. During the recording, the user can also use this device to participate in the meeting, as it features a speaker, a earphone jack, and internal microphone.
 
-It will connect to a smartphone or computer via Bluetooth Classic HFP. On the device side, either the built-in audio devices of the M5Stack (M5Stack Core 2) or an attached I2S audio codec is used to get the local audio input and provide local audio output. Meanwhile, all the audio is being recorded to a microSD card.
+The audio recordings are stored on a microSD card.
 
-Wi-Fi is used to implement a server for administrative tasks and so that the recordings can be extracted from the microSD card by a computer. There is also the ability to upload the files up to a http server.
+It features Wi-Fi connectivity so that AI can be used to transcribe and summarize the audio recordings. A local network PC can run scripts that run local AI models that performs the transcription and summarization.
 
-There are hotkeys on the device to do recordings, such as for a memo, to-do item, or a journal entry.
+## User Manuals
+
+ * [Main Device](user-docs/user-manual-main-device.md)
+ * [Wi-Fi Operations](user-docs/user-manual-wifi-operations.md)
+ * [Local Server](user-docs/user-manual-local-server.md)
+
+## Technical Breakdown
+
+The device is a [M5Stack Core2](https://docs.m5stack.com/en/core/core2). It features a ESP32-D0WDQ6-V3 as the main microcontroller. This microcontroller features Bluetooth Classic and Wi-Fi connectivity.
+
+There is a colour LCD screen with a capacitive touch panel, used to implement the GUI.
+
+The Fly connects to any Bluetooth host, such as a smartphone or a laptop, using the "hands free profile", meaning it pretends to be a early 2010s era earphone and microphone, which gives it nearly universal compatibility with all host devices and all host software.
+
+Wi-Fi operation is implemented so the user can download and transcribe the recorded audio files.
+
+To improve audio quality, I've also created a daughterboard for the M5Stack Core2 that uses a SGTL5000 codec and provides a earphone jack along with a better internal mic, plus it supports inline mics on the earbuds.
+
+(note: the original internal speaker and internal mic of the M5Stack Core2 have terrible audio quality)

@@ -1,0 +1,5 @@
+cryptography
+faster-whisper
+
+# Optional local transcription backend supported by scripts/models.py.
+openai-whisper
