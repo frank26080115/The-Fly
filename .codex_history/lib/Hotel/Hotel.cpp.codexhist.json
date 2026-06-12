@@ -752,5 +752,76 @@
     "type": "git_commit",
     "commit_message": "more code neatening",
     "commit_hash": "41a16a83dde0bcbb0faacc0e153b905a9aac33e4"
+  },
+  {
+    "timestamp": "2026-06-12T03:01:32.095Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGui/GuiDisplay.cpp",
+      "",
+      "## My request for Codex:",
+      "you know how we can't save screenshots during recording? we should also not save immedately during playback, defer it until after playback ends"
+    ],
+    "agent_reply": [
+      "Implemented. Screenshots now defer saving while either recording or file playback is active.",
+      "",
+      "I added `Hotel::filePlaybackPlaying()` and updated [GuiDisplay.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/GuiDisplay.cpp:67) so captured screenshots stay pending until:",
+      "",
+      "```cpp",
+      "!AudioFileRecorder::isRecording() && !Hotel::filePlaybackPlaying()",
+      "```",
+      "",
+      "Verified with `pio run -e thefly_sec1`: build passed. Only warning was the existing unrelated FTP `NetworkServer::available()` deprecation."
+    ],
+    "files": [
+      "lib/FlyGui/GuiDisplay.cpp",
+      "lib/Hotel/Hotel.cpp",
+      "lib/Hotel/Hotel.h",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-12T07:12:00.371Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGui/GuiDisplay.cpp",
+      "",
+      "## Active selection of the file:",
+      "filePlaybackPlaying",
+      "",
+      "## My request for Codex:",
+      "`filePlaybackPlaying` is not supposed to be `Hotel`'s job, put it in `FilePlayback`"
+    ],
+    "agent_reply": [
+      "Done. `filePlaybackPlaying()` now lives on `FilePlayback`, not `Hotel`.",
+      "",
+      "Changed:",
+      "- [FilePlayback.h](D:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.h:23) / [FilePlayback.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.cpp:312): added `FilePlayback::filePlaybackPlaying()` backed by atomic playback state.",
+      "- [Hotel.cpp](D:/GithubRepos/The-Fly/lib/Hotel/Hotel.cpp:177): hotel now reads `FilePlayback::filePlaybackPlaying()` for sleep/shutdown blocking.",
+      "- [GuiDisplay.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/GuiDisplay.cpp:70): screenshot deferral now checks `FilePlayback::filePlaybackPlaying()`.",
+      "- [PlaybackView.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.cpp:194): removed the old `Hotel::setFilePlaybackPlaying(...)` publishing path.",
+      "",
+      "Verification: focused PlatformIO object builds passed for `Hotel.cpp`, `GuiDisplay.cpp`, `FilePlayback.cpp`, and `PlaybackView.cpp`. Full `pio run -e thefly_sec1` is currently blocked by an unrelated `WebServer.cpp` FTP gate mismatch: `FtpServer`, `kFtpUser`, and `kFtpPassword` are undeclared."
+    ],
+    "files": [
+      "lib/WavPlayback/FilePlayback.h",
+      "lib/WavPlayback/FilePlayback.cpp",
+      "lib/FlyGui/GuiDisplay.cpp",
+      "lib/Hotel/Hotel.h",
+      "lib/Hotel/Hotel.cpp",
+      "lib/WavPlayback/PlaybackView.h",
+      "lib/WavPlayback/PlaybackView.cpp",
+      "lib/WifiManager/WebServer.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-12T07:17:51Z",
+    "type": "git_commit",
+    "commit_message": "more screenshot stuff",
+    "commit_hash": "f28c5490101268c4e2dcd3c955c64e070d5b05b2"
   }
 ]

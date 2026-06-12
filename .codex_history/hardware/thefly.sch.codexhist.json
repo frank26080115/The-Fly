@@ -1,0 +1,142 @@
+[
+  {
+    "timestamp": "2026-06-05T04:56:35.927Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/ScrollView/ScrollItem.cpp",
+      "",
+      "## My request for Codex:",
+      "add a `.gitignore` in `hardware` for a EAGLE 7.6.0 project"
+    ],
+    "agent_reply": [
+      "Added [hardware/.gitignore](</d:/GithubRepos/The-Fly/hardware/.gitignore>) for EAGLE 7.6.0 transient files.",
+      "",
+      "It ignores lock files, backup/temp files like `*.b#*`, `*.s#*`, `*.l#*`, and local EAGLE preference files, while leaving the actual project files visible:",
+      "",
+      "```text",
+      "hardware/thefly.brd",
+      "hardware/thefly.lbr",
+      "hardware/thefly.sch",
+      "```"
+    ],
+    "files": [
+      "hardware/.gitignore",
+      "hardware/thefly.brd",
+      "hardware/thefly.lbr",
+      "hardware/thefly.sch"
+    ]
+  },
+  {
+    "timestamp": "2026-06-05T07:06:00Z",
+    "type": "git_commit",
+    "commit_message": "electrical started",
+    "commit_hash": "f2f96cbee4273f842bd44f1b07767a9c0f516ef6"
+  },
+  {
+    "timestamp": "2026-06-05T09:29:52Z",
+    "type": "git_commit",
+    "commit_message": "elec layout progress",
+    "commit_hash": "1a52e4614d5867ad63c615e7b21f79a95b36fead"
+  },
+  {
+    "timestamp": "2026-06-05T09:38:55.699Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/ScrollView/ScrollItem.cpp",
+      "",
+      "## My request for Codex:",
+      "For the M5Stack Core2 as we have, what are all the I2C addresses being used? "
+    ],
+    "agent_reply": [
+      "Using 7-bit I2C addresses, the Core2 internal bus is SDA `21` / SCL `22` per [inc/pins.h](</d:/GithubRepos/The-Fly/inc/pins.h:16>).",
+      "",
+      "Expected/active Core2 addresses:",
+      "",
+      "| Address | Device | Notes |",
+      "|---|---|---|",
+      "| `0x34` | AXP192 PMIC | Used by M5Unified and directly by our speaker GPIO2 fallback in [AudioManager.cpp](</d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1018>). Core2 v1.1 AXP2101 is also `0x34`. |",
+      "| `0x38` | FT5x06 / FT6336 touch | M5GFX Core2 touch config uses this. |",
+      "| `0x51` | BM8563 / PCF8563 RTC | M5Unified RTC default. |",
+      "| `0x68` | MPU6886 IMU | Conditional: our code notes the IMU is on a daughterboard and may disappear with another codec board; it probes internal then external I2C in [ImuOrientation.cpp](</d:/GithubRepos/The-Fly/lib/ImuOrientation/ImuOrientation.cpp:1>). |",
+      "",
+      "Also on our schematic, but not currently implemented in firmware:",
+      "",
+      "| Address | Device | Notes |",
+      "|---|---|---|",
+      "| `0x0A` | SGTL5000XNLA3 external audio codec | Schematic connects `CTRL_DATA`/`CTRL_CLK` to the I2C control bus in [hardware/thefly.sch](</d:/GithubRepos/The-Fly/hardware/thefly.sch:2571>). The address comes from the NXP SGTL5000 datasheet: the 20-QFN part uses `0001010(R/W)`, i.e. 7-bit `0x0A`. Our `AudioManager` still says external I2S codec setup is not implemented. |",
+      "",
+      "So if you run an I2C scanner on this exact setup, I’d expect `0x34`, `0x38`, `0x51`, `0x68`, and possibly `0x0A` if the SGTL5000 board is installed and powered. Source for SGTL5000 address: [NXP SGTL5000 datasheet](https://cache.nxp.com/docs/en/data-sheet/SGTL5000.pdf).",
+      "",
+      "Using 7-bit I2C addresses, the Core2 internal bus is SDA `21` / SCL `22` per [inc/pins.h](</d:/GithubRepos/The-Fly/inc/pins.h:16>).",
+      "",
+      "Expected/active Core2 addresses:",
+      "",
+      "| Address | Device | Notes |",
+      "|---|---|---|",
+      "| `0x34` | AXP192 PMIC | Used by M5Unified and directly by our speaker GPIO2 fallback in [AudioManager.cpp](</d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1018>). Core2 v1.1 AXP2101 is also `0x34`. |",
+      "| `0x38` | FT5x06 / FT6336 touch | M5GFX Core2 touch config uses this. |",
+      "| `0x51` | BM8563 / PCF8563 RTC | M5Unified RTC default. |",
+      "| `0x68` | MPU6886 IMU | Conditional: our code notes the IMU is on a daughterboard and may disappear with another codec board; it probes internal then external I2C in [ImuOrientation.cpp](</d:/GithubRepos/The-Fly/lib/ImuOrientation/ImuOrientation.cpp:1>). |",
+      "",
+      "Also on our schematic, but not currently implemented in firmware:",
+      "",
+      "| Address | Device | Notes |",
+      "|---|---|---|",
+      "| `0x0A` | SGTL5000XNLA3 external audio codec | Schematic connects `CTRL_DATA`/`CTRL_CLK` to the I2C control bus in [hardware/thefly.sch](</d:/GithubRepos/The-Fly/hardware/thefly.sch:2571>). The address comes from the NXP SGTL5000 datasheet: the 20-QFN part uses `0001010(R/W)`, i.e. 7-bit `0x0A`. Our `AudioManager` still says external I2S codec setup is not implemented. |",
+      "",
+      "So if you run an I2C scanner on this exact setup, I’d expect `0x34`, `0x38`, `0x51`, `0x68`, and possibly `0x0A` if the SGTL5000 board is installed and powered. Source for SGTL5000 address: [NXP SGTL5000 datasheet](https://cache.nxp.com/docs/en/data-sheet/SGTL5000.pdf)."
+    ],
+    "files": [
+      "inc/pins.h",
+      "lib/AudioManager/AudioManager.cpp",
+      "lib/ImuOrientation/ImuOrientation.cpp",
+      "hardware/thefly.sch"
+    ]
+  },
+  {
+    "timestamp": "2026-06-05T09:40:22Z",
+    "type": "git_commit",
+    "commit_message": "elec layout wip",
+    "commit_hash": "464ef0d369c1cdde7e8429305e2a0f735975559d"
+  },
+  {
+    "timestamp": "2026-06-06T01:28:39Z",
+    "type": "git_commit",
+    "commit_message": "more pcb work",
+    "commit_hash": "d8a47251f5dedccbf7b46ebb4c985ec2cb2ccda1"
+  },
+  {
+    "timestamp": "2026-06-06T03:30:47Z",
+    "type": "git_commit",
+    "commit_message": "pcb layout wip",
+    "commit_hash": "112a8c1b0e4e892e27e1e75756fdff715b5de6ed"
+  },
+  {
+    "timestamp": "2026-06-06T04:29:13Z",
+    "type": "git_commit",
+    "commit_message": "pcb wip",
+    "commit_hash": "8d2d090cf4a262b84453dc61b06c7aaf338da1f2"
+  },
+  {
+    "timestamp": "2026-06-06T04:45:34Z",
+    "type": "git_commit",
+    "commit_message": "pcb wip",
+    "commit_hash": "39e12d5e6d10e21ab8b0829842fde3bab0222864"
+  },
+  {
+    "timestamp": "2026-06-07T18:58:24Z",
+    "type": "git_commit",
+    "commit_message": "pcb layout changes, removed L4, added comments",
+    "commit_hash": "9fbcbf46c1325671cdfce3de677a206b8b59f4fb"
+  },
+  {
+    "timestamp": "2026-06-11T08:16:00Z",
+    "type": "git_commit",
+    "commit_message": "pcb layout use ledc pwm mclk",
+    "commit_hash": "04015710a5033a9d56018ba571170e8a0b3dd174"
+  }
+]

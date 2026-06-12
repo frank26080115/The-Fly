@@ -418,5 +418,37 @@
     "type": "git_commit",
     "commit_message": "diagnostics, fixed a bug with speaker peak decay",
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
+  },
+  {
+    "timestamp": "2026-06-04T06:04:55.461Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "add haptic feedback to the pin pad actions, clicks for any presses, and a done signal for both success and failure"
+    ],
+    "agent_reply": [
+      "Done. Added pin pad haptics in [PinPadView.cpp](d:/GithubRepos/The-Fly/lib/PinCode/PinPadView.cpp):",
+      "",
+      "- Number button press: `haptic_play_click()`",
+      "- CLEAR: `haptic_play_click()`",
+      "- EXIT: `haptic_play_click()`",
+      "- PIN success: `haptic_play_done()`",
+      "- PIN failure/cooldown start: `haptic_play_done()`",
+      "",
+      "Verified with `pio run -e thefly_sec1`: success."
+    ],
+    "files": [
+      "lib/PinCode/PinPadView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-04T08:10:46Z",
+    "type": "git_commit",
+    "commit_message": "more haptics",
+    "commit_hash": "9107b983b5490c0c82564450a07b49bd438d944a"
   }
 ]

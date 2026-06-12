@@ -1202,9 +1202,76 @@
     "commit_hash": "0d8363f535680e4532d2964847c2f4086d34575c"
   },
   {
+    "timestamp": "2026-06-04T05:42:28.235Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## My request for Codex:",
+      "add a warning text \"unsupported format\" for all unexpected valid-but-unexpected headers, but don't stop it from actually playing back, it might work"
+    ],
+    "agent_reply": [
+      "Done. I added an `\"unsupported format\"` warning path that does not block playback.",
+      "",
+      "The MP3 parser now flags valid-but-unexpected cases like unsupported MPEG audio headers, non-device sample rates, or non-device bitrates, while still continuing if it finds a playable Layer III frame. `PlaybackView` displays that warning after `start()` succeeds instead of treating it as a hard failure.",
+      "",
+      "Touched:",
+      "- [Mp3Playback.cpp](d:/GithubRepos/The-Fly/lib/WavPlayback/Mp3Playback.cpp)",
+      "- [FilePlayback.h](d:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.h)",
+      "- [FilePlayback.cpp](d:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.cpp)",
+      "- [PlaybackView.cpp](d:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.cpp)",
+      "",
+      "Verified with `pio run -e thefly_sec1`: success."
+    ],
+    "files": [
+      "lib/WavPlayback/FilePlayback.cpp",
+      "lib/WavPlayback/PlaybackView.cpp",
+      "lib/WavPlayback/FilePlayback.h",
+      "lib/WavPlayback/Mp3Playback.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-06-04T08:10:39Z",
     "type": "git_commit",
     "commit_message": "mp3 playback attempt to support other formats",
     "commit_hash": "820953b2bc80f581ef869762010c448fd12b66c6"
+  },
+  {
+    "timestamp": "2026-06-12T07:12:00.371Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGui/GuiDisplay.cpp",
+      "",
+      "## Active selection of the file:",
+      "filePlaybackPlaying",
+      "",
+      "## My request for Codex:",
+      "`filePlaybackPlaying` is not supposed to be `Hotel`'s job, put it in `FilePlayback`"
+    ],
+    "agent_reply": [
+      "Done. `filePlaybackPlaying()` now lives on `FilePlayback`, not `Hotel`.",
+      "",
+      "Changed:",
+      "- [FilePlayback.h](D:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.h:23) / [FilePlayback.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.cpp:312): added `FilePlayback::filePlaybackPlaying()` backed by atomic playback state.",
+      "- [Hotel.cpp](D:/GithubRepos/The-Fly/lib/Hotel/Hotel.cpp:177): hotel now reads `FilePlayback::filePlaybackPlaying()` for sleep/shutdown blocking.",
+      "- [GuiDisplay.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/GuiDisplay.cpp:70): screenshot deferral now checks `FilePlayback::filePlaybackPlaying()`.",
+      "- [PlaybackView.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.cpp:194): removed the old `Hotel::setFilePlaybackPlaying(...)` publishing path.",
+      "",
+      "Verification: focused PlatformIO object builds passed for `Hotel.cpp`, `GuiDisplay.cpp`, `FilePlayback.cpp`, and `PlaybackView.cpp`. Full `pio run -e thefly_sec1` is currently blocked by an unrelated `WebServer.cpp` FTP gate mismatch: `FtpServer`, `kFtpUser`, and `kFtpPassword` are undeclared."
+    ],
+    "files": [
+      "lib/WavPlayback/FilePlayback.h",
+      "lib/WavPlayback/FilePlayback.cpp",
+      "lib/FlyGui/GuiDisplay.cpp",
+      "lib/Hotel/Hotel.h",
+      "lib/Hotel/Hotel.cpp",
+      "lib/WavPlayback/PlaybackView.h",
+      "lib/WavPlayback/PlaybackView.cpp",
+      "lib/WifiManager/WebServer.cpp"
+    ]
   }
 ]

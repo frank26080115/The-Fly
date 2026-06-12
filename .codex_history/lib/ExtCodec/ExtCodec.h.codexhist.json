@@ -76,9 +76,142 @@
     "commit_hash": "bb1a1fe14284387ce02c9a2c958393745f4c1598"
   },
   {
+    "timestamp": "2026-06-08T01:45:21.883Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_ledcpwm.cpp",
+      "",
+      "## Active selection of the file:",
+      "kOutputGpio",
+      "",
+      "## My request for Codex:",
+      "implement public `ExtCodec::start_ledc_mclk`, basically a copy of `test_ledcpwm`, move `kOutputGpio` to `pins.h` as `kLedcMclkGpio`"
+    ],
+    "agent_reply": [
+      "Implemented `ExtCodec::start_ledc_mclk()`.",
+      "",
+      "It’s public in [ExtCodec.h](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.h:39), implemented in [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:200), and uses LEDC high-speed mode at `8192000 Hz`, `LEDC_TIMER_1_BIT`, duty `1`, on the new [kLedcMclkGpio](D:/GithubRepos/The-Fly/inc/pins.h:22).",
+      "",
+      "I also updated `test_ledcpwm.cpp` to use `kLedcMclkGpio` instead of its local `kOutputGpio`.",
+      "",
+      "Validation: `pio run -e thefly_sec0` passes. I left `src/version.c` as it was before this task since it was already dirty from generated-version churn.",
+      "",
+      "Implemented `ExtCodec::start_ledc_mclk()`.",
+      "",
+      "It’s public in [ExtCodec.h](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.h:39), implemented in [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:200), and uses LEDC high-speed mode at `8192000 Hz`, `LEDC_TIMER_1_BIT`, duty `1`, on the new [kLedcMclkGpio](D:/GithubRepos/The-Fly/inc/pins.h:22).",
+      "",
+      "I also updated `test_ledcpwm.cpp` to use `kLedcMclkGpio` instead of its local `kOutputGpio`.",
+      "",
+      "Validation: `pio run -e thefly_sec0` passes. I left `src/version.c` as it was before this task since it was already dirty from generated-version churn."
+    ],
+    "files": [
+      "src/tests/test_ledcpwm.cpp",
+      "lib/ExtCodec/ExtCodec.h",
+      "inc/pins.h",
+      "lib/ExtCodec/ExtCodec.cpp",
+      "src/version.c"
+    ]
+  },
+  {
     "timestamp": "2026-06-08T03:05:24Z",
     "type": "git_commit",
     "commit_message": "ledc as mclk shenanigans",
     "commit_hash": "3899800fdc93cf7a914ee480463eca1ff28cc754"
+  },
+  {
+    "timestamp": "2026-06-11T03:32:25.218Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## My request for Codex:",
+      "add a function to ExtCodec that checks if the SGTL5000's PLL is locked"
+    ],
+    "agent_reply": [
+      "Added `ExtCodec::pllLocked()` in [ExtCodec.h](<d:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.h:42>) and implemented it in [ExtCodec.cpp](<d:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:206>).",
+      "",
+      "It reads SGTL5000 `CHIP_ANA_STATUS` register `0x0036` and checks bit 4, `PLL_IS_LOCKED`. It uses the same `M5.In_I2C` transaction style as the SGTL5000 control code and returns `false` if the register read fails. For `TEST_MOCK_EXT_CODEC`, it returns `true`.",
+      "",
+      "Verified with:",
+      "",
+      "```text",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passes, and `src/version.c` was restored after PlatformIO regenerated it."
+    ],
+    "files": [
+      "lib/ExtCodec/ExtCodec.h",
+      "lib/ExtCodec/ExtCodec.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-11T03:58:40.512Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_ledcpwm.cpp",
+      "",
+      "## Active selection of the file:",
+      "configure_i2s_shared",
+      "",
+      "## My request for Codex:",
+      "ok make those changes"
+    ],
+    "agent_reply": [
+      "Done. I updated [test_sgtl5000_pll_lock.cpp](D:/GithubRepos/The-Fly/src/tests/test_sgtl5000_pll_lock.cpp:148) so it now prints useful live telemetry instead of only printing on a PLL-loss event.",
+      "",
+      "It now shows:",
+      "",
+      "- `i2s=... codec=... avail=...`",
+      "- `LEDC MCLK GPIO14`",
+      "- initial raw `CHIP_ANA_STATUS`",
+      "- 1 Hz heartbeat: `ok`, `er`, `l`, `a`, `loss`",
+      "  - `ok` = successful ANA_STATUS reads",
+      "  - `er` = failed ANA_STATUS reads",
+      "  - `l` = PLL lock bit",
+      "  - `a` = raw ANA_STATUS hex",
+      "  - `loss` = locked-to-unlocked transitions",
+      "",
+      "I also added `ExtCodec::readChipAnaStatus()` in [ExtCodec.h](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.h:43), using the same internal I2C register-read path as `pllLocked()`.",
+      "",
+      "Verified with `pio run -e thefly_sec1`: build passed. `src/version.c` is clean again.",
+      "",
+      "Done. I updated [test_sgtl5000_pll_lock.cpp](D:/GithubRepos/The-Fly/src/tests/test_sgtl5000_pll_lock.cpp:148) so it now prints useful live telemetry instead of only printing on a PLL-loss event.",
+      "",
+      "It now shows:",
+      "",
+      "- `i2s=... codec=... avail=...`",
+      "- `LEDC MCLK GPIO14`",
+      "- initial raw `CHIP_ANA_STATUS`",
+      "- 1 Hz heartbeat: `ok`, `er`, `l`, `a`, `loss`",
+      "  - `ok` = successful ANA_STATUS reads",
+      "  - `er` = failed ANA_STATUS reads",
+      "  - `l` = PLL lock bit",
+      "  - `a` = raw ANA_STATUS hex",
+      "  - `loss` = locked-to-unlocked transitions",
+      "",
+      "I also added `ExtCodec::readChipAnaStatus()` in [ExtCodec.h](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.h:43), using the same internal I2C register-read path as `pllLocked()`.",
+      "",
+      "Verified with `pio run -e thefly_sec1`: build passed. `src/version.c` is clean again."
+    ],
+    "files": [
+      "lib/ExtCodec/ExtCodec.h",
+      "lib/ExtCodec/ExtCodec.cpp",
+      "src/tests/test_sgtl5000_pll_lock.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-11T05:36:14Z",
+    "type": "git_commit",
+    "commit_message": "ext codec playback with ledc pwm as mclk",
+    "commit_hash": "698aca1726c9ac99bc4d92d25616c861ed2821eb"
   }
 ]

@@ -1194,5 +1194,54 @@
     "type": "git_commit",
     "commit_message": "progress on ext codec",
     "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"
+  },
+  {
+    "timestamp": "2026-06-11T01:50:26.674Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "get_random_wifi_channel",
+      "",
+      "## My request for Codex:",
+      "bulletproof `get_random_wifi_channel` for me then make all the soft AP initialization use it"
+    ],
+    "agent_reply": [
+      "Implemented in [WifiManager.cpp](<d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:58>).",
+      "",
+      "`get_random_wifi_channel()` now only selects from `{1, 6, 11}`, has a fallback, mixes `esp_random()`, `millis()`, and `micros()`, and can’t return an invalid AP channel. The WPA3 SoftAP path now chooses a channel once via that helper and passes it into `configure_soft_ap_security()` instead of hardcoding channel 1.",
+      "",
+      "I also added a log line showing the chosen AP channel.",
+      "",
+      "Verified with:",
+      "",
+      "```text",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passes. The only remaining `WiFi.softAP(...)` grep hit is inside a disabled `#if 0` test helper.",
+      "",
+      "Implemented in [WifiManager.cpp](<d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:58>).",
+      "",
+      "`get_random_wifi_channel()` now only selects from `{1, 6, 11}`, has a fallback, mixes `esp_random()`, `millis()`, and `micros()`, and can’t return an invalid AP channel. The WPA3 SoftAP path now chooses a channel once via that helper and passes it into `configure_soft_ap_security()` instead of hardcoding channel 1.",
+      "",
+      "I also added a log line showing the chosen AP channel.",
+      "",
+      "Verified with:",
+      "",
+      "```text",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passes. The only remaining `WiFi.softAP(...)` grep hit is inside a disabled `#if 0` test helper."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.cpp",
+      "src/version.c",
+      "src/tests/test_btspeakerphone.cpp"
+    ]
   }
 ]

@@ -60,5 +60,11 @@
       "lib/ESP-FTP-Server-Lib/src/Commands/NLST.h",
       "lib/ESP-FTP-Server-Lib/src/Commands/LIST.h"
     ]
+  },
+  {
+    "timestamp": "2026-06-04T18:34:13Z",
+    "type": "git_commit",
+    "commit_message": "made ftp server thread safe",
+    "commit_hash": "b031f8fd852eaea966d5b6554b414320bb9e696b"
   }
 ]

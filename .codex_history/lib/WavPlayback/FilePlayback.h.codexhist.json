@@ -80,9 +80,137 @@
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
+    "timestamp": "2026-06-04T05:24:15.293Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "enableSpeakerMode",
+      "",
+      "## My request for Codex:",
+      "These functions",
+      "",
+      " * enableSpeakerMode",
+      " * enable_ns4168_speaker",
+      " * enable_exti2scodec_speaker",
+      "",
+      "add a calling argument for sample rate",
+      "",
+      "if the argument is 0, use the default of 16000, or make the argument optional and default it to 16000",
+      "",
+      "when starting MP3 playback, use the appropriate sample rate from the file header",
+      ""
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "`AudioManager::enableSpeakerMode()` now takes an optional sample rate:",
+      "",
+      "```cpp",
+      "bool enableSpeakerMode(uint32_t sampleRateHz = kSampleRateHz);",
+      "```",
+      "",
+      "Internally, `enable_ns4168_speaker()` and `enable_exti2scodec_speaker()` also accept the sample rate. Passing `0` falls back to `16000`.",
+      "",
+      "For playback, I added a `FilePlayback::speakerSampleRateHz()` hook. Default playback still returns `16000`, while `Mp3Playback` overrides it to return the parsed MP3 header sample rate. `FilePlayback::setupSpeaker()` now calls:",
+      "",
+      "```cpp",
+      "AudioManager::enableSpeakerMode(speakerSampleRateHz())",
+      "```",
+      "",
+      "So MP3 playback starts the I2S speaker at the MP3 file’s actual sample rate.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, build passes."
+    ],
+    "files": [
+      "lib/WavPlayback/Mp3Playback.h",
+      "lib/AudioManager/AudioManager.cpp",
+      "lib/WavPlayback/FilePlayback.h",
+      "lib/WavPlayback/Mp3Playback.cpp",
+      "lib/WavPlayback/FilePlayback.cpp",
+      "lib/AudioManager/AudioManager.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-04T05:42:28.235Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## My request for Codex:",
+      "add a warning text \"unsupported format\" for all unexpected valid-but-unexpected headers, but don't stop it from actually playing back, it might work"
+    ],
+    "agent_reply": [
+      "Done. I added an `\"unsupported format\"` warning path that does not block playback.",
+      "",
+      "The MP3 parser now flags valid-but-unexpected cases like unsupported MPEG audio headers, non-device sample rates, or non-device bitrates, while still continuing if it finds a playable Layer III frame. `PlaybackView` displays that warning after `start()` succeeds instead of treating it as a hard failure.",
+      "",
+      "Touched:",
+      "- [Mp3Playback.cpp](d:/GithubRepos/The-Fly/lib/WavPlayback/Mp3Playback.cpp)",
+      "- [FilePlayback.h](d:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.h)",
+      "- [FilePlayback.cpp](d:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.cpp)",
+      "- [PlaybackView.cpp](d:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.cpp)",
+      "",
+      "Verified with `pio run -e thefly_sec1`: success."
+    ],
+    "files": [
+      "lib/WavPlayback/FilePlayback.cpp",
+      "lib/WavPlayback/PlaybackView.cpp",
+      "lib/WavPlayback/FilePlayback.h",
+      "lib/WavPlayback/Mp3Playback.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-06-04T08:10:39Z",
     "type": "git_commit",
     "commit_message": "mp3 playback attempt to support other formats",
     "commit_hash": "820953b2bc80f581ef869762010c448fd12b66c6"
+  },
+  {
+    "timestamp": "2026-06-12T07:12:00.371Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGui/GuiDisplay.cpp",
+      "",
+      "## Active selection of the file:",
+      "filePlaybackPlaying",
+      "",
+      "## My request for Codex:",
+      "`filePlaybackPlaying` is not supposed to be `Hotel`'s job, put it in `FilePlayback`"
+    ],
+    "agent_reply": [
+      "Done. `filePlaybackPlaying()` now lives on `FilePlayback`, not `Hotel`.",
+      "",
+      "Changed:",
+      "- [FilePlayback.h](D:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.h:23) / [FilePlayback.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.cpp:312): added `FilePlayback::filePlaybackPlaying()` backed by atomic playback state.",
+      "- [Hotel.cpp](D:/GithubRepos/The-Fly/lib/Hotel/Hotel.cpp:177): hotel now reads `FilePlayback::filePlaybackPlaying()` for sleep/shutdown blocking.",
+      "- [GuiDisplay.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/GuiDisplay.cpp:70): screenshot deferral now checks `FilePlayback::filePlaybackPlaying()`.",
+      "- [PlaybackView.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.cpp:194): removed the old `Hotel::setFilePlaybackPlaying(...)` publishing path.",
+      "",
+      "Verification: focused PlatformIO object builds passed for `Hotel.cpp`, `GuiDisplay.cpp`, `FilePlayback.cpp`, and `PlaybackView.cpp`. Full `pio run -e thefly_sec1` is currently blocked by an unrelated `WebServer.cpp` FTP gate mismatch: `FtpServer`, `kFtpUser`, and `kFtpPassword` are undeclared."
+    ],
+    "files": [
+      "lib/WavPlayback/FilePlayback.h",
+      "lib/WavPlayback/FilePlayback.cpp",
+      "lib/FlyGui/GuiDisplay.cpp",
+      "lib/Hotel/Hotel.h",
+      "lib/Hotel/Hotel.cpp",
+      "lib/WavPlayback/PlaybackView.h",
+      "lib/WavPlayback/PlaybackView.cpp",
+      "lib/WifiManager/WebServer.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-12T07:17:51Z",
+    "type": "git_commit",
+    "commit_message": "more screenshot stuff",
+    "commit_hash": "f28c5490101268c4e2dcd3c955c64e070d5b05b2"
   }
 ]

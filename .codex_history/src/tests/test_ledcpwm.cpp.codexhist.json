@@ -1,0 +1,104 @@
+[
+  {
+    "timestamp": "2026-06-08T00:02:22.095Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/readme.md",
+      "",
+      "## My request for Codex:",
+      "implement `void test_ledcpwm()`",
+      "",
+      "simply start LEDC with ESP-IDF calls, on GPIO14, use the lowest possible resolution to achieve 50% duty cycle, frequency should be 8192000"
+    ],
+    "agent_reply": [
+      "Implemented `test_ledcpwm()` in `src/tests/test_ledcpwm.cpp`.",
+      "",
+      "It now starts ESP-IDF LEDC on GPIO14 at `8192000` Hz using `LEDC_TIMER_1_BIT`, with duty `1`, which gives the requested 50% duty cycle at the lowest useful resolution. It prints the LEDC timer/channel setup result and then idles so the waveform stays active.",
+      "",
+      "Validation: `pio run -e thefly_sec0` passes. I restored `src/version.c` afterward so the build-generated version change is not left in the diff."
+    ],
+    "files": [
+      "src/tests/test_ledcpwm.cpp",
+      "src/version.c",
+      "src/main.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-08T00:27:53.797Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_ledcpwm.cpp",
+      "",
+      "## My request for Codex:",
+      "do a build, fix the linker error"
+    ],
+    "agent_reply": [
+      "Build reproduced the linker error and it’s fixed now.",
+      "",
+      "The issue was that `AudioManager.h` declared public `AudioManager::configure_i2s_shared()`, but `AudioManager.cpp` only defined a same-named function inside an anonymous namespace, so the public symbol was never emitted. I renamed the hidden implementation to `configure_i2s_shared_impl()` and added the public wrapper in [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:804).",
+      "",
+      "Validation: `pio run -e thefly_sec0` now succeeds. I restored `src/version.c` to its pre-build state; it was already dirty when I started, so I left that existing change alone."
+    ],
+    "files": [
+      "lib/AudioManager/AudioManager.cpp",
+      "src/version.c",
+      "lib/AudioManager/AudioManager.h",
+      "src/tests/test_ledcpwm.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-08T01:45:21.883Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_ledcpwm.cpp",
+      "",
+      "## Active selection of the file:",
+      "kOutputGpio",
+      "",
+      "## My request for Codex:",
+      "implement public `ExtCodec::start_ledc_mclk`, basically a copy of `test_ledcpwm`, move `kOutputGpio` to `pins.h` as `kLedcMclkGpio`"
+    ],
+    "agent_reply": [
+      "Implemented `ExtCodec::start_ledc_mclk()`.",
+      "",
+      "It’s public in [ExtCodec.h](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.h:39), implemented in [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:200), and uses LEDC high-speed mode at `8192000 Hz`, `LEDC_TIMER_1_BIT`, duty `1`, on the new [kLedcMclkGpio](D:/GithubRepos/The-Fly/inc/pins.h:22).",
+      "",
+      "I also updated `test_ledcpwm.cpp` to use `kLedcMclkGpio` instead of its local `kOutputGpio`.",
+      "",
+      "Validation: `pio run -e thefly_sec0` passes. I left `src/version.c` as it was before this task since it was already dirty from generated-version churn.",
+      "",
+      "Implemented `ExtCodec::start_ledc_mclk()`.",
+      "",
+      "It’s public in [ExtCodec.h](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.h:39), implemented in [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:200), and uses LEDC high-speed mode at `8192000 Hz`, `LEDC_TIMER_1_BIT`, duty `1`, on the new [kLedcMclkGpio](D:/GithubRepos/The-Fly/inc/pins.h:22).",
+      "",
+      "I also updated `test_ledcpwm.cpp` to use `kLedcMclkGpio` instead of its local `kOutputGpio`.",
+      "",
+      "Validation: `pio run -e thefly_sec0` passes. I left `src/version.c` as it was before this task since it was already dirty from generated-version churn."
+    ],
+    "files": [
+      "src/tests/test_ledcpwm.cpp",
+      "lib/ExtCodec/ExtCodec.h",
+      "inc/pins.h",
+      "lib/ExtCodec/ExtCodec.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-08T03:05:24Z",
+    "type": "git_commit",
+    "commit_message": "ledc as mclk shenanigans",
+    "commit_hash": "3899800fdc93cf7a914ee480463eca1ff28cc754"
+  },
+  {
+    "timestamp": "2026-06-08T05:03:06Z",
+    "type": "git_commit",
+    "commit_message": "more test notes",
+    "commit_hash": "216f00576c4175989cc5e88eaca06113e11cc20e"
+  }
+]

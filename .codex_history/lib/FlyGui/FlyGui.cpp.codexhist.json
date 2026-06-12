@@ -2292,6 +2292,44 @@
     ]
   },
   {
+    "timestamp": "2026-06-04T04:26:00.417Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "",
+      "## My request for Codex:",
+      "correct mistakes I've made in my placement of `haptic_play_click();`, also, fix any missing included headers"
+    ],
+    "agent_reply": [
+      "Fixed the haptic placement/include issues.",
+      "",
+      "I added missing `HapticsWrapper.h` includes to the GUI files that call `haptic_play_click()` directly, including [FlyGui.cpp](/d:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:4), [FirmwareUpdateView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/FirmwareUpdateView.cpp:7), [ModalDialog.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ModalDialog.cpp:4), [SplashView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:4), [WifiApModeView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:6), and [ScrollView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:5).",
+      "",
+      "I also removed the extra `haptic_play_click()` from `ScrollView::onDeleteButtonTriggered()`, because that path already comes through `deleteItem_.trigger()`, and `FlyGuiItem::trigger()` now clicks when a callback exists. Leaving it there would double-click.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, and it builds successfully.",
+      "",
+      "Fixed the haptic placement/include issues.",
+      "",
+      "I added missing `HapticsWrapper.h` includes to the GUI files that call `haptic_play_click()` directly, including [FlyGui.cpp](/d:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:4), [FirmwareUpdateView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/FirmwareUpdateView.cpp:7), [ModalDialog.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ModalDialog.cpp:4), [SplashView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:4), [WifiApModeView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:6), and [ScrollView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:5).",
+      "",
+      "I also removed the extra `haptic_play_click()` from `ScrollView::onDeleteButtonTriggered()`, because that path already comes through `deleteItem_.trigger()`, and `FlyGuiItem::trigger()` now clicks when a callback exists. Leaving it there would double-click.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, and it builds successfully."
+    ],
+    "files": [
+      "lib/FlyGuiViews/WifiApModeView.cpp",
+      "lib/FlyGui/FlyGui.cpp",
+      "lib/FlyGuiViews/FirmwareUpdateView.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "lib/FlyGuiViews/SplashView.cpp",
+      "lib/FlyGuiViews/ModalDialog.cpp",
+      "lib/HapticsWrapper/HapticsWrapper.h"
+    ]
+  },
+  {
     "timestamp": "2026-06-04T05:05:33Z",
     "type": "git_commit",
     "commit_message": "haptics implemented across the board",
@@ -2405,15 +2443,150 @@
     "commit_hash": "25d83af066a6038020b1cfc7c15b9c1fbf4eebf7"
   },
   {
+    "timestamp": "2026-06-04T23:00:24.630Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/AsyncFsManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "kFileActivityGuiQuietMs",
+      "",
+      "## My request for Codex:",
+      "When Wi-Fi either establishes a connection or starts a soft AP, lower the GUI's polling rate to the lowest setting"
+    ],
+    "agent_reply": [
+      "Implemented it.",
+      "",
+      "Wi-Fi connection state now drives GUI polling through callbacks:",
+      "- `on_wifi_connected()` sets `gui->setWifiActive(true)`.",
+      "- `on_wifi_disconnected()` clears it.",
+      "- `setup()` registers both callbacks with `WifiManager`.",
+      "",
+      "I also updated `FlyGui` so Wi-Fi activity forces `FLYGUI_POLL_SLOW`, and audio can no longer accidentally restore `FAST` while Wi-Fi is active. When Wi-Fi is inactive, audio still maps to `MEDIUM`, otherwise it returns to `FAST`.",
+      "",
+      "Verified with `pio run -e thefly_sec0` successfully.",
+      "",
+      "Note: `inc/web_assets.h` is still modified from PlatformIO’s asset packaging step, and `src/version.c` plus the untracked files were already in the worktree."
+    ],
+    "files": [
+      "src/main.cpp",
+      "lib/FlyGui/FlyGui.h",
+      "lib/FlyGui/FlyGui.cpp",
+      "inc/main_callbacks.h",
+      "src/main_callbacks.cpp",
+      "inc/web_assets.h",
+      "src/version.c"
+    ]
+  },
+  {
     "timestamp": "2026-06-04T23:14:49Z",
     "type": "git_commit",
     "commit_message": "WiFi now makes GUI updates slower",
     "commit_hash": "0bb6c204ac7ee2ee7229fe4e8069d66d8b2ee48e"
   },
   {
+    "timestamp": "2026-06-05T23:23:53.711Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "we've added a external codec, it uses I2C, I've noticed now that the battery charging icon never shows up when USB is plugged in, diagnose what happened"
+    ],
+    "agent_reply": [
+      "Looks like the external codec did **not** collide with the PMIC on I2C. The codec is at `0x0A`, while the Core2 PMIC/AXP192 is at `0x34`; the codec ADC polling task is also analog-only, so it is not continuously hammering I2C.",
+      "",
+      "The real issue is a naming/semantics mismatch in the battery code:",
+      "",
+      "- The top bar uses `BattTracker::isCharging()` to choose the charging battery sprites in [FlyGui.cpp](</d:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:798>).",
+      "- `BattTracker::updateNow()` sets that from `halReadUsbAvailable()` in [BattTracker.cpp](</d:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:137>).",
+      "- But `halReadUsbAvailable()` currently returns `M5.Power.isCharging()` in [BattTracker.cpp](</d:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:248>).",
+      "",
+      "On the Core2 AXP192 path, `M5.Power.isCharging()` means “the PMIC says the battery is actively charging,” not “USB/VBUS is plugged in.” M5Unified exposes separate AXP192 checks for that: `isCharging()` reads one bit, while `isVBUS()` checks VBUS presence in [AXP192_Class.cpp](</d:/GithubRepos/The-Fly/.pio/libdeps/thefly_sec3/M5Unified/src/utility/power/AXP192_Class.cpp:207>).",
+      "",
+      "So the likely failure mode is: USB is present and powering the unit, but the battery is full, tapering, inhibited, or otherwise not in active charge state. With the new codec drawing extra power, that distinction probably became obvious. The UI is effectively showing “battery charge current active,” while the function name/readme imply it should show “USB available.”",
+      "",
+      "I’d verify by running the existing PMIC test with USB plugged in. If it reports VBUS present, around 5V, but `charging` is false/discharging, then the fix is to change `BattTracker::halReadUsbAvailable()` to use VBUS presence or VBUS voltage instead of `M5.Power.isCharging()`.",
+      "",
+      "Looks like the external codec did **not** collide with the PMIC on I2C. The codec is at `0x0A`, while the Core2 PMIC/AXP192 is at `0x34`; the codec ADC polling task is also analog-only, so it is not continuously hammering I2C.",
+      "",
+      "The real issue is a naming/semantics mismatch in the battery code:",
+      "",
+      "- The top bar uses `BattTracker::isCharging()` to choose the charging battery sprites in [FlyGui.cpp](</d:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:798>).",
+      "- `BattTracker::updateNow()` sets that from `halReadUsbAvailable()` in [BattTracker.cpp](</d:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:137>).",
+      "- But `halReadUsbAvailable()` currently returns `M5.Power.isCharging()` in [BattTracker.cpp](</d:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:248>).",
+      "",
+      "On the Core2 AXP192 path, `M5.Power.isCharging()` means “the PMIC says the battery is actively charging,” not “USB/VBUS is plugged in.” M5Unified exposes separate AXP192 checks for that: `isCharging()` reads one bit, while `isVBUS()` checks VBUS presence in [AXP192_Class.cpp](</d:/GithubRepos/The-Fly/.pio/libdeps/thefly_sec3/M5Unified/src/utility/power/AXP192_Class.cpp:207>).",
+      "",
+      "So the likely failure mode is: USB is present and powering the unit, but the battery is full, tapering, inhibited, or otherwise not in active charge state. With the new codec drawing extra power, that distinction probably became obvious. The UI is effectively showing “battery charge current active,” while the function name/readme imply it should show “USB available.”",
+      "",
+      "I’d verify by running the existing PMIC test with USB plugged in. If it reports VBUS present, around 5V, but `charging` is false/discharging, then the fix is to change `BattTracker::halReadUsbAvailable()` to use VBUS presence or VBUS voltage instead of `M5.Power.isCharging()`."
+    ],
+    "files": [
+      "lib/FlyGui/FlyGui.cpp",
+      "lib/BattTracker/BattTracker.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-05T23:41:05.245Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: .codex_history/src/tests/test_pmic.cpp.codexhist.json",
+      "",
+      "## My request for Codex:",
+      "this is weird, even according to the history, we've lost a chunk of progress",
+      "",
+      "I know for a fact that after we implemented `test_pmic.cpp`, the test result showed that the \"AC input\" reading from the PMIC is the most reliable way of knowing if USB cable is plugged in. That was the whole point of the test, it's weird that nothing was changed because of the test results...",
+      "",
+      "I want a tiny behavior change",
+      "",
+      "If it is not charging but USB is plugged in and the battery is full, use `sprite_batt_full_notcharging`"
+    ],
+    "agent_reply": [
+      "Implemented the tiny behavior change.",
+      "",
+      "`BattTracker` now keeps two separate states: active battery charging and USB/AC input present. On Core2/AXP192, `halReadUsbAvailable()` now uses the PMIC’s `Axp192.isACIN()` path, matching what `test_pmic.cpp` was built to prove. See [BattTracker.cpp](</d:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:146>) and [BattTracker.cpp](</d:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:266>).",
+      "",
+      "The top bar now uses `sprite_batt_full_notcharging` only for the exact state you asked for: not actively charging, USB plugged in, and battery level full/high. See [FlyGui.cpp](</d:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:818>).",
+      "",
+      "Validation passed with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "git diff --check",
+      "```",
+      "",
+      "`git diff --check` only reported the repo’s usual CRLF warnings. I left the existing unrelated dirty/generated files alone."
+    ],
+    "files": [
+      "lib/FlyGui/FlyGui.cpp",
+      "lib/BattTracker/BattTracker.cpp",
+      "lib/BattTracker/BattTracker.h",
+      "src/tests/test_pmic.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-06-06T01:28:29Z",
     "type": "git_commit",
     "commit_message": "better batt status display when full but usb in",
     "commit_hash": "ad32940c8599a2f9ac059d155c54a9d3600328d8"
+  },
+  {
+    "timestamp": "2026-06-11T19:14:03Z",
+    "type": "git_commit",
+    "commit_message": "screenshotting build",
+    "commit_hash": "f3c8446e475c3299a5cf7775fcc012328a46bf2c"
+  },
+  {
+    "timestamp": "2026-06-11T21:27:51Z",
+    "type": "git_commit",
+    "commit_message": "screenshot now works without disturbing recording",
+    "commit_hash": "5f4fb886e36e9854e411acca74dedaec901bacd0"
   }
 ]

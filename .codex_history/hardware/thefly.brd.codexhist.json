@@ -1,0 +1,119 @@
+[
+  {
+    "timestamp": "2026-06-05T04:56:35.927Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/ScrollView/ScrollItem.cpp",
+      "",
+      "## My request for Codex:",
+      "add a `.gitignore` in `hardware` for a EAGLE 7.6.0 project"
+    ],
+    "agent_reply": [
+      "Added [hardware/.gitignore](</d:/GithubRepos/The-Fly/hardware/.gitignore>) for EAGLE 7.6.0 transient files.",
+      "",
+      "It ignores lock files, backup/temp files like `*.b#*`, `*.s#*`, `*.l#*`, and local EAGLE preference files, while leaving the actual project files visible:",
+      "",
+      "```text",
+      "hardware/thefly.brd",
+      "hardware/thefly.lbr",
+      "hardware/thefly.sch",
+      "```"
+    ],
+    "files": [
+      "hardware/.gitignore",
+      "hardware/thefly.brd",
+      "hardware/thefly.lbr",
+      "hardware/thefly.sch"
+    ]
+  },
+  {
+    "timestamp": "2026-06-05T07:06:00Z",
+    "type": "git_commit",
+    "commit_message": "electrical started",
+    "commit_hash": "f2f96cbee4273f842bd44f1b07767a9c0f516ef6"
+  },
+  {
+    "timestamp": "2026-06-05T07:07:44.221Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/ScrollView/ScrollItem.cpp",
+      "",
+      "## My request for Codex:",
+      "edit `hardware\\thefly.brd`, simply place all components in a sensible location, use top side of the board only, do not touch the placement of the big header, the board outline, the microphone, or the audio jack"
+    ],
+    "agent_reply": [
+      "Done in [hardware/thefly.brd](</d:/GithubRepos/The-Fly/hardware/thefly.brd:711>).",
+      "",
+      "I moved the loose staged components from the negative-coordinate column onto the top side of the board, clustered around the codec, regulator, mic preamp, and jack area. I left the protected placements untouched: `U$1` board outline, `JP1` big header, `MIC1`, and `J1`.",
+      "",
+      "Validation: the EAGLE XML parses, all 31 element origins are inside the 54 mm outline, and no element uses a mirrored/bottom-side rotation. This is placement-only; I did not route the board."
+    ],
+    "files": [
+      "hardware/thefly.brd"
+    ]
+  },
+  {
+    "timestamp": "2026-06-05T09:29:52Z",
+    "type": "git_commit",
+    "commit_message": "elec layout progress",
+    "commit_hash": "1a52e4614d5867ad63c615e7b21f79a95b36fead"
+  },
+  {
+    "timestamp": "2026-06-05T09:40:22Z",
+    "type": "git_commit",
+    "commit_message": "elec layout wip",
+    "commit_hash": "464ef0d369c1cdde7e8429305e2a0f735975559d"
+  },
+  {
+    "timestamp": "2026-06-06T01:28:39Z",
+    "type": "git_commit",
+    "commit_message": "more pcb work",
+    "commit_hash": "d8a47251f5dedccbf7b46ebb4c985ec2cb2ccda1"
+  },
+  {
+    "timestamp": "2026-06-06T03:30:47Z",
+    "type": "git_commit",
+    "commit_message": "pcb layout wip",
+    "commit_hash": "112a8c1b0e4e892e27e1e75756fdff715b5de6ed"
+  },
+  {
+    "timestamp": "2026-06-06T04:29:13Z",
+    "type": "git_commit",
+    "commit_message": "pcb wip",
+    "commit_hash": "8d2d090cf4a262b84453dc61b06c7aaf338da1f2"
+  },
+  {
+    "timestamp": "2026-06-06T04:45:34Z",
+    "type": "git_commit",
+    "commit_message": "pcb wip",
+    "commit_hash": "39e12d5e6d10e21ab8b0829842fde3bab0222864"
+  },
+  {
+    "timestamp": "2026-06-07T04:36:19Z",
+    "type": "git_commit",
+    "commit_message": "progress on ext codec",
+    "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"
+  },
+  {
+    "timestamp": "2026-06-07T06:41:57Z",
+    "type": "git_commit",
+    "commit_message": "more mclk pin shenanigans",
+    "commit_hash": "037f76286b9ef3fefb0ee812d32eca185e46548e"
+  },
+  {
+    "timestamp": "2026-06-07T18:58:24Z",
+    "type": "git_commit",
+    "commit_message": "pcb layout changes, removed L4, added comments",
+    "commit_hash": "9fbcbf46c1325671cdfce3de677a206b8b59f4fb"
+  },
+  {
+    "timestamp": "2026-06-11T08:16:00Z",
+    "type": "git_commit",
+    "commit_message": "pcb layout use ledc pwm mclk",
+    "commit_hash": "04015710a5033a9d56018ba571170e8a0b3dd174"
+  }
+]

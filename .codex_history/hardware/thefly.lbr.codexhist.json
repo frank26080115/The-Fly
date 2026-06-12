@@ -1,0 +1,61 @@
+[
+  {
+    "timestamp": "2026-06-05T04:56:35.927Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/ScrollView/ScrollItem.cpp",
+      "",
+      "## My request for Codex:",
+      "add a `.gitignore` in `hardware` for a EAGLE 7.6.0 project"
+    ],
+    "agent_reply": [
+      "Added [hardware/.gitignore](</d:/GithubRepos/The-Fly/hardware/.gitignore>) for EAGLE 7.6.0 transient files.",
+      "",
+      "It ignores lock files, backup/temp files like `*.b#*`, `*.s#*`, `*.l#*`, and local EAGLE preference files, while leaving the actual project files visible:",
+      "",
+      "```text",
+      "hardware/thefly.brd",
+      "hardware/thefly.lbr",
+      "hardware/thefly.sch",
+      "```"
+    ],
+    "files": [
+      "hardware/.gitignore",
+      "hardware/thefly.brd",
+      "hardware/thefly.lbr",
+      "hardware/thefly.sch"
+    ]
+  },
+  {
+    "timestamp": "2026-06-05T07:06:00Z",
+    "type": "git_commit",
+    "commit_message": "electrical started",
+    "commit_hash": "f2f96cbee4273f842bd44f1b07767a9c0f516ef6"
+  },
+  {
+    "timestamp": "2026-06-06T01:28:39Z",
+    "type": "git_commit",
+    "commit_message": "more pcb work",
+    "commit_hash": "d8a47251f5dedccbf7b46ebb4c985ec2cb2ccda1"
+  },
+  {
+    "timestamp": "2026-06-06T03:30:47Z",
+    "type": "git_commit",
+    "commit_message": "pcb layout wip",
+    "commit_hash": "112a8c1b0e4e892e27e1e75756fdff715b5de6ed"
+  },
+  {
+    "timestamp": "2026-06-06T04:29:13Z",
+    "type": "git_commit",
+    "commit_message": "pcb wip",
+    "commit_hash": "8d2d090cf4a262b84453dc61b06c7aaf338da1f2"
+  },
+  {
+    "timestamp": "2026-06-06T04:45:34Z",
+    "type": "git_commit",
+    "commit_message": "pcb wip",
+    "commit_hash": "39e12d5e6d10e21ab8b0829842fde3bab0222864"
+  }
+]

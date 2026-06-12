@@ -92,5 +92,51 @@
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
+  },
+  {
+    "timestamp": "2026-06-05T23:41:05.245Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: .codex_history/src/tests/test_pmic.cpp.codexhist.json",
+      "",
+      "## My request for Codex:",
+      "this is weird, even according to the history, we've lost a chunk of progress",
+      "",
+      "I know for a fact that after we implemented `test_pmic.cpp`, the test result showed that the \"AC input\" reading from the PMIC is the most reliable way of knowing if USB cable is plugged in. That was the whole point of the test, it's weird that nothing was changed because of the test results...",
+      "",
+      "I want a tiny behavior change",
+      "",
+      "If it is not charging but USB is plugged in and the battery is full, use `sprite_batt_full_notcharging`"
+    ],
+    "agent_reply": [
+      "Implemented the tiny behavior change.",
+      "",
+      "`BattTracker` now keeps two separate states: active battery charging and USB/AC input present. On Core2/AXP192, `halReadUsbAvailable()` now uses the PMIC’s `Axp192.isACIN()` path, matching what `test_pmic.cpp` was built to prove. See [BattTracker.cpp](</d:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:146>) and [BattTracker.cpp](</d:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:266>).",
+      "",
+      "The top bar now uses `sprite_batt_full_notcharging` only for the exact state you asked for: not actively charging, USB plugged in, and battery level full/high. See [FlyGui.cpp](</d:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:818>).",
+      "",
+      "Validation passed with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "git diff --check",
+      "```",
+      "",
+      "`git diff --check` only reported the repo’s usual CRLF warnings. I left the existing unrelated dirty/generated files alone."
+    ],
+    "files": [
+      "lib/FlyGui/FlyGui.cpp",
+      "lib/BattTracker/BattTracker.cpp",
+      "lib/BattTracker/BattTracker.h",
+      "src/tests/test_pmic.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-07T04:36:19Z",
+    "type": "git_commit",
+    "commit_message": "progress on ext codec",
+    "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"
   }
 ]

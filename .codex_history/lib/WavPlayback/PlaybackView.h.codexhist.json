@@ -497,5 +497,41 @@
     "type": "git_commit",
     "commit_message": "diagnostics, fixed a bug with speaker peak decay",
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
+  },
+  {
+    "timestamp": "2026-06-12T07:12:00.371Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGui/GuiDisplay.cpp",
+      "",
+      "## Active selection of the file:",
+      "filePlaybackPlaying",
+      "",
+      "## My request for Codex:",
+      "`filePlaybackPlaying` is not supposed to be `Hotel`'s job, put it in `FilePlayback`"
+    ],
+    "agent_reply": [
+      "Done. `filePlaybackPlaying()` now lives on `FilePlayback`, not `Hotel`.",
+      "",
+      "Changed:",
+      "- [FilePlayback.h](D:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.h:23) / [FilePlayback.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.cpp:312): added `FilePlayback::filePlaybackPlaying()` backed by atomic playback state.",
+      "- [Hotel.cpp](D:/GithubRepos/The-Fly/lib/Hotel/Hotel.cpp:177): hotel now reads `FilePlayback::filePlaybackPlaying()` for sleep/shutdown blocking.",
+      "- [GuiDisplay.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/GuiDisplay.cpp:70): screenshot deferral now checks `FilePlayback::filePlaybackPlaying()`.",
+      "- [PlaybackView.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.cpp:194): removed the old `Hotel::setFilePlaybackPlaying(...)` publishing path.",
+      "",
+      "Verification: focused PlatformIO object builds passed for `Hotel.cpp`, `GuiDisplay.cpp`, `FilePlayback.cpp`, and `PlaybackView.cpp`. Full `pio run -e thefly_sec1` is currently blocked by an unrelated `WebServer.cpp` FTP gate mismatch: `FtpServer`, `kFtpUser`, and `kFtpPassword` are undeclared."
+    ],
+    "files": [
+      "lib/WavPlayback/FilePlayback.h",
+      "lib/WavPlayback/FilePlayback.cpp",
+      "lib/FlyGui/GuiDisplay.cpp",
+      "lib/Hotel/Hotel.h",
+      "lib/Hotel/Hotel.cpp",
+      "lib/WavPlayback/PlaybackView.h",
+      "lib/WavPlayback/PlaybackView.cpp",
+      "lib/WifiManager/WebServer.cpp"
+    ]
   }
 ]

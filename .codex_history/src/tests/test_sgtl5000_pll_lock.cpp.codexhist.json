@@ -1,0 +1,109 @@
+[
+  {
+    "timestamp": "2026-06-11T03:47:17.470Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_i2cscan.cpp",
+      "",
+      "## Active selection of the file:",
+      "AudioManager::configure_i2s_shared();",
+      "",
+      "## My request for Codex:",
+      "add to `src\\tests` a test called `test_sgtl5000_pll_lock`",
+      "",
+      "first thing is call `AudioManager::configure_i2s_shared();`",
+      "",
+      "second thing is to initialize `ExtCodec`",
+      "",
+      "the serial port won't work, so initialize the screen, use the smallest font",
+      "",
+      "write the first line to indicate the test has started",
+      "",
+      "simply run in a loop, constantly checking `ExtCodec::pllLocked()`",
+      "",
+      "every time PLL loses lock, a counter goes up, write a new line with the new count, do not reset the count",
+      "",
+      "when it goes over the end of the screen, start from the top again",
+      ""
+    ],
+    "agent_reply": [
+      "Implemented `test_sgtl5000_pll_lock` in [src/tests/test_sgtl5000_pll_lock.cpp](D:/GithubRepos/The-Fly/src/tests/test_sgtl5000_pll_lock.cpp:62).",
+      "",
+      "It starts with `AudioManager::configure_i2s_shared();`, then `ExtCodec::init();`, initializes the display with font 1 / size 1, writes the start line, then loops on `ExtCodec::pllLocked()`. Each locked-to-unlocked transition increments the persistent counter and writes a new line, wrapping back to the top when it reaches the bottom of the screen.",
+      "",
+      "I also registered it in [all_tests.h](D:/GithubRepos/The-Fly/src/tests/all_tests.h:33) and added the usual commented-out call in [all_tests.cpp](D:/GithubRepos/The-Fly/src/tests/all_tests.cpp:29). `pio run -e thefly_sec1` passed, and `git diff --check` is clean."
+    ],
+    "files": [
+      "src/tests/test_sgtl5000_pll_lock.cpp",
+      "src/tests/all_tests.h",
+      "src/tests/all_tests.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-11T03:58:40.512Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_ledcpwm.cpp",
+      "",
+      "## Active selection of the file:",
+      "configure_i2s_shared",
+      "",
+      "## My request for Codex:",
+      "ok make those changes"
+    ],
+    "agent_reply": [
+      "Done. I updated [test_sgtl5000_pll_lock.cpp](D:/GithubRepos/The-Fly/src/tests/test_sgtl5000_pll_lock.cpp:148) so it now prints useful live telemetry instead of only printing on a PLL-loss event.",
+      "",
+      "It now shows:",
+      "",
+      "- `i2s=... codec=... avail=...`",
+      "- `LEDC MCLK GPIO14`",
+      "- initial raw `CHIP_ANA_STATUS`",
+      "- 1 Hz heartbeat: `ok`, `er`, `l`, `a`, `loss`",
+      "  - `ok` = successful ANA_STATUS reads",
+      "  - `er` = failed ANA_STATUS reads",
+      "  - `l` = PLL lock bit",
+      "  - `a` = raw ANA_STATUS hex",
+      "  - `loss` = locked-to-unlocked transitions",
+      "",
+      "I also added `ExtCodec::readChipAnaStatus()` in [ExtCodec.h](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.h:43), using the same internal I2C register-read path as `pllLocked()`.",
+      "",
+      "Verified with `pio run -e thefly_sec1`: build passed. `src/version.c` is clean again.",
+      "",
+      "Done. I updated [test_sgtl5000_pll_lock.cpp](D:/GithubRepos/The-Fly/src/tests/test_sgtl5000_pll_lock.cpp:148) so it now prints useful live telemetry instead of only printing on a PLL-loss event.",
+      "",
+      "It now shows:",
+      "",
+      "- `i2s=... codec=... avail=...`",
+      "- `LEDC MCLK GPIO14`",
+      "- initial raw `CHIP_ANA_STATUS`",
+      "- 1 Hz heartbeat: `ok`, `er`, `l`, `a`, `loss`",
+      "  - `ok` = successful ANA_STATUS reads",
+      "  - `er` = failed ANA_STATUS reads",
+      "  - `l` = PLL lock bit",
+      "  - `a` = raw ANA_STATUS hex",
+      "  - `loss` = locked-to-unlocked transitions",
+      "",
+      "I also added `ExtCodec::readChipAnaStatus()` in [ExtCodec.h](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.h:43), using the same internal I2C register-read path as `pllLocked()`.",
+      "",
+      "Verified with `pio run -e thefly_sec1`: build passed. `src/version.c` is clean again."
+    ],
+    "files": [
+      "lib/ExtCodec/ExtCodec.h",
+      "lib/ExtCodec/ExtCodec.cpp",
+      "src/tests/test_sgtl5000_pll_lock.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-11T05:36:14Z",
+    "type": "git_commit",
+    "commit_message": "ext codec playback with ledc pwm as mclk",
+    "commit_hash": "698aca1726c9ac99bc4d92d25616c861ed2821eb"
+  }
+]

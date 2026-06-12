@@ -763,6 +763,89 @@
     "commit_hash": "f1886bf526bb4ee8b1f81bc602ccea00ecf9b49d"
   },
   {
+    "timestamp": "2026-06-04T02:21:38.125Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGui/FlyGui.cpp",
+      "",
+      "## Active selection of the file:",
+      "FlyGuiItem::trigger",
+      "",
+      "## My request for Codex:",
+      "how many places in this code uses a parent view to capture a click event instead of letting the item handle it?"
+    ],
+    "agent_reply": [
+      "I’d count **5 parent-view touch handlers** that meaningfully capture a click/touch action instead of letting a normal `FlyGuiItem` own it:",
+      "",
+      "1. [SplashView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:87)  ",
+      "   Any press/release advances to main view. No item involved.",
+      "",
+      "2. [QrCodeView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/QrCodeView.cpp:29)  ",
+      "   Any press/release dismisses the QR view. No item involved.",
+      "",
+      "3. [ModalDialog.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ModalDialog.cpp:65)  ",
+      "   Any press/release dismisses the modal. No item involved.",
+      "",
+      "4. [WifiApModeView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:102)  ",
+      "   Parent captures the eye area for reveal/hide and long-hold QR behavior. It uses `eyeItem_` for geometry/sprite, but does not call `eyeItem_.handleTouch()` or `trigger()`.",
+      "",
+      "5. [ScrollView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:463)  ",
+      "   Parent captures left/right slot taps for scrolling. Center/exit/delete still go through items.",
+      "",
+      "There is also a conditional parent capture in [FirmwareUpdateView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/FirmwareUpdateView.cpp:108): once state is `Complete`, any touch restarts the device. In normal prompt state, it delegates to `goItem_` / `cancelItem_`.",
+      "",
+      "So for haptics: putting click feedback only in `FlyGuiItem::trigger()` will miss those parent-captured actions. It will still cover the normal item button path."
+    ],
+    "files": [
+      "lib/FlyGuiViews/SplashView.cpp",
+      "lib/FlyGuiViews/QrCodeView.cpp",
+      "lib/FlyGuiViews/ModalDialog.cpp",
+      "lib/FlyGuiViews/WifiApModeView.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "lib/FlyGuiViews/FirmwareUpdateView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-04T04:26:00.417Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "",
+      "## My request for Codex:",
+      "correct mistakes I've made in my placement of `haptic_play_click();`, also, fix any missing included headers"
+    ],
+    "agent_reply": [
+      "Fixed the haptic placement/include issues.",
+      "",
+      "I added missing `HapticsWrapper.h` includes to the GUI files that call `haptic_play_click()` directly, including [FlyGui.cpp](/d:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:4), [FirmwareUpdateView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/FirmwareUpdateView.cpp:7), [ModalDialog.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ModalDialog.cpp:4), [SplashView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:4), [WifiApModeView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:6), and [ScrollView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:5).",
+      "",
+      "I also removed the extra `haptic_play_click()` from `ScrollView::onDeleteButtonTriggered()`, because that path already comes through `deleteItem_.trigger()`, and `FlyGuiItem::trigger()` now clicks when a callback exists. Leaving it there would double-click.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, and it builds successfully.",
+      "",
+      "Fixed the haptic placement/include issues.",
+      "",
+      "I added missing `HapticsWrapper.h` includes to the GUI files that call `haptic_play_click()` directly, including [FlyGui.cpp](/d:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:4), [FirmwareUpdateView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/FirmwareUpdateView.cpp:7), [ModalDialog.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ModalDialog.cpp:4), [SplashView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:4), [WifiApModeView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:6), and [ScrollView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:5).",
+      "",
+      "I also removed the extra `haptic_play_click()` from `ScrollView::onDeleteButtonTriggered()`, because that path already comes through `deleteItem_.trigger()`, and `FlyGuiItem::trigger()` now clicks when a callback exists. Leaving it there would double-click.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, and it builds successfully."
+    ],
+    "files": [
+      "lib/FlyGuiViews/WifiApModeView.cpp",
+      "lib/FlyGui/FlyGui.cpp",
+      "lib/FlyGuiViews/FirmwareUpdateView.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "lib/FlyGuiViews/SplashView.cpp",
+      "lib/FlyGuiViews/ModalDialog.cpp",
+      "lib/HapticsWrapper/HapticsWrapper.h"
+    ]
+  },
+  {
     "timestamp": "2026-06-04T05:05:33Z",
     "type": "git_commit",
     "commit_message": "haptics implemented across the board",
@@ -826,9 +909,113 @@
     "commit_hash": "4db065d07114a8fedc766378980847e27904347f"
   },
   {
+    "timestamp": "2026-06-05T02:48:31.577Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: scripts/thefly_desktop.py",
+      "",
+      "## My request for Codex:",
+      "where the SplashView displays the timezone, make the display shorter, if there's a comma in the timezone string, then stop at the comma (exclusive)"
+    ],
+    "agent_reply": [
+      "Done in [SplashView.cpp](</d:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:260>). The splash timezone display now copies the configured timezone into a display buffer and truncates it at the first comma before drawing `TZ: ...`.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed. Other dirty files in the worktree were already present; I only changed `lib/FlyGuiViews/SplashView.cpp` for this request."
+    ],
+    "files": [
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-06-05T04:50:16Z",
     "type": "git_commit",
     "commit_message": "splashview timezone str shorter",
     "commit_hash": "f5beb3e5996d5b327a2b68489aef9240af8d2848"
+  },
+  {
+    "timestamp": "2026-06-12T03:30:30.588Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGui/GuiDisplay.cpp",
+      "",
+      "## My request for Codex:",
+      "make the splash screen say \"touch to continue\", but this text needs to appear after the splash screen becomes completely idle"
+    ],
+    "agent_reply": [
+      "Done. I added `draw_splash_idle_prompt()` in [SplashView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:216), drawing `touch to continue` bottom-center with a small black backing for readability.",
+      "",
+      "In [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:232), it only gets called after the boot setup path has finished Bluetooth/audio/host-list init and boot-error checks, and only if the splash is still the active view.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passed.",
+      "",
+      "Done. I added `draw_splash_idle_prompt()` in [SplashView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:216), drawing `touch to continue` bottom-center with a small black backing for readability.",
+      "",
+      "In [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:232), it only gets called after the boot setup path has finished Bluetooth/audio/host-list init and boot-error checks, and only if the splash is still the active view.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "lib/FlyGuiViews/SplashView.cpp",
+      "src/main.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-12T03:44:22.930Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/SplashView.cpp",
+      "",
+      "## Active selection of the file:",
+      "draw_splash_idle_prompt",
+      "",
+      "## My request for Codex:",
+      "the idle text needs to be X aligned with all the other text"
+    ],
+    "agent_reply": [
+      "Done. `touch to continue` is now left-aligned to the same `splash.textX` as the other splash text, instead of centered.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "lib/FlyGuiViews/SplashView.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-12T07:17:12Z",
+    "type": "git_commit",
+    "commit_message": "splash screen says a click message",
+    "commit_hash": "6a3e8c91f913b7c9bd65471b51b6ff671cac7d07"
   }
 ]

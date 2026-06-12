@@ -274,5 +274,99 @@
     "type": "git_commit",
     "commit_message": "more clang format stuff",
     "commit_hash": "fa8a1e27b6b4982ce7a05c70f69ab0eb2ff14f79"
+  },
+  {
+    "timestamp": "2026-06-04T00:52:34.677Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/SpeakerPeakActivity.cpp",
+      "",
+      "## Active selection of the file:",
+      "decay",
+      "",
+      "## My request for Codex:",
+      "how do I tune `lib\\AudioManager\\SpeakerPeakActivity.cpp` do decay 4x faster?"
+    ],
+    "agent_reply": [
+      "In [SpeakerPeakActivity.cpp](/d:/GithubRepos/The-Fly/lib/AudioManager/SpeakerPeakActivity.cpp:116), the decay amount is set here:",
+      "",
+      "```cpp",
+      "decay = std::max<uint32_t>(decay,",
+      "                           (static_cast<uint32_t>(kMaxSampleMagnitude) * static_cast<uint32_t>(frames) * 2U) /",
+      "                               (kNominalSampleRateHz * 3U));",
+      "```",
+      "",
+      "That `* 2U / 3U` factor means it decays by about two-thirds of full scale per second. To make it decay **4x faster**, multiply the numerator by 4:",
+      "",
+      "```cpp",
+      "decay = std::max<uint32_t>(decay,",
+      "                           (static_cast<uint32_t>(kMaxSampleMagnitude) * static_cast<uint32_t>(frames) * 8U) /",
+      "                               (kNominalSampleRateHz * 3U));",
+      "```",
+      "",
+      "So: change `* 2U` to `* 8U`.",
+      "",
+      "That will make both normal audio-driven decay via `process()` and idle decay via `decay_peak()` fall 4x faster, because both paths call `decay_peak_internal()`.",
+      "",
+      "In [SpeakerPeakActivity.cpp](/d:/GithubRepos/The-Fly/lib/AudioManager/SpeakerPeakActivity.cpp:116), the decay amount is set here:",
+      "",
+      "```cpp",
+      "decay = std::max<uint32_t>(decay,",
+      "                           (static_cast<uint32_t>(kMaxSampleMagnitude) * static_cast<uint32_t>(frames) * 2U) /",
+      "                               (kNominalSampleRateHz * 3U));",
+      "```",
+      "",
+      "That `* 2U / 3U` factor means it decays by about two-thirds of full scale per second. To make it decay **4x faster**, multiply the numerator by 4:",
+      "",
+      "```cpp",
+      "decay = std::max<uint32_t>(decay,",
+      "                           (static_cast<uint32_t>(kMaxSampleMagnitude) * static_cast<uint32_t>(frames) * 8U) /",
+      "                               (kNominalSampleRateHz * 3U));",
+      "```",
+      "",
+      "So: change `* 2U` to `* 8U`.",
+      "",
+      "That will make both normal audio-driven decay via `process()` and idle decay via `decay_peak()` fall 4x faster, because both paths call `decay_peak_internal()`."
+    ],
+    "files": [
+      "lib/AudioManager/SpeakerPeakActivity.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-04T00:53:17.317Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/SpeakerPeakActivity.cpp",
+      "",
+      "## Active selection of the file:",
+      "decay",
+      "",
+      "## My request for Codex:",
+      "place that 2U on top of the file as a rate multiplier"
+    ],
+    "agent_reply": [
+      "Done. I moved the decay `2` into a top-level constant:",
+      "",
+      "[SpeakerPeakActivity.cpp](/d:/GithubRepos/The-Fly/lib/AudioManager/SpeakerPeakActivity.cpp:15)",
+      "",
+      "```cpp",
+      "constexpr uint32_t kDecayRateMultiplier = 2;",
+      "```",
+      "",
+      "The decay formula now uses `kDecayRateMultiplier`, so making decay 4x faster from the current behavior is just changing that value from `2` to `8`."
+    ],
+    "files": [
+      "lib/AudioManager/SpeakerPeakActivity.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-04T00:53:48Z",
+    "type": "git_commit",
+    "commit_message": "speaker peak decay rate increased",
+    "commit_hash": "6e697099060bcd50fb5be6cd6db43626738e7669"
   }
 ]

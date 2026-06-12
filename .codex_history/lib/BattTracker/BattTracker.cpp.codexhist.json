@@ -330,6 +330,91 @@
     "commit_hash": "69565ef8070e29a4eed56c25eb5f522168c02750"
   },
   {
+    "timestamp": "2026-06-05T23:23:53.711Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "we've added a external codec, it uses I2C, I've noticed now that the battery charging icon never shows up when USB is plugged in, diagnose what happened"
+    ],
+    "agent_reply": [
+      "Looks like the external codec did **not** collide with the PMIC on I2C. The codec is at `0x0A`, while the Core2 PMIC/AXP192 is at `0x34`; the codec ADC polling task is also analog-only, so it is not continuously hammering I2C.",
+      "",
+      "The real issue is a naming/semantics mismatch in the battery code:",
+      "",
+      "- The top bar uses `BattTracker::isCharging()` to choose the charging battery sprites in [FlyGui.cpp](</d:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:798>).",
+      "- `BattTracker::updateNow()` sets that from `halReadUsbAvailable()` in [BattTracker.cpp](</d:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:137>).",
+      "- But `halReadUsbAvailable()` currently returns `M5.Power.isCharging()` in [BattTracker.cpp](</d:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:248>).",
+      "",
+      "On the Core2 AXP192 path, `M5.Power.isCharging()` means “the PMIC says the battery is actively charging,” not “USB/VBUS is plugged in.” M5Unified exposes separate AXP192 checks for that: `isCharging()` reads one bit, while `isVBUS()` checks VBUS presence in [AXP192_Class.cpp](</d:/GithubRepos/The-Fly/.pio/libdeps/thefly_sec3/M5Unified/src/utility/power/AXP192_Class.cpp:207>).",
+      "",
+      "So the likely failure mode is: USB is present and powering the unit, but the battery is full, tapering, inhibited, or otherwise not in active charge state. With the new codec drawing extra power, that distinction probably became obvious. The UI is effectively showing “battery charge current active,” while the function name/readme imply it should show “USB available.”",
+      "",
+      "I’d verify by running the existing PMIC test with USB plugged in. If it reports VBUS present, around 5V, but `charging` is false/discharging, then the fix is to change `BattTracker::halReadUsbAvailable()` to use VBUS presence or VBUS voltage instead of `M5.Power.isCharging()`.",
+      "",
+      "Looks like the external codec did **not** collide with the PMIC on I2C. The codec is at `0x0A`, while the Core2 PMIC/AXP192 is at `0x34`; the codec ADC polling task is also analog-only, so it is not continuously hammering I2C.",
+      "",
+      "The real issue is a naming/semantics mismatch in the battery code:",
+      "",
+      "- The top bar uses `BattTracker::isCharging()` to choose the charging battery sprites in [FlyGui.cpp](</d:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:798>).",
+      "- `BattTracker::updateNow()` sets that from `halReadUsbAvailable()` in [BattTracker.cpp](</d:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:137>).",
+      "- But `halReadUsbAvailable()` currently returns `M5.Power.isCharging()` in [BattTracker.cpp](</d:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:248>).",
+      "",
+      "On the Core2 AXP192 path, `M5.Power.isCharging()` means “the PMIC says the battery is actively charging,” not “USB/VBUS is plugged in.” M5Unified exposes separate AXP192 checks for that: `isCharging()` reads one bit, while `isVBUS()` checks VBUS presence in [AXP192_Class.cpp](</d:/GithubRepos/The-Fly/.pio/libdeps/thefly_sec3/M5Unified/src/utility/power/AXP192_Class.cpp:207>).",
+      "",
+      "So the likely failure mode is: USB is present and powering the unit, but the battery is full, tapering, inhibited, or otherwise not in active charge state. With the new codec drawing extra power, that distinction probably became obvious. The UI is effectively showing “battery charge current active,” while the function name/readme imply it should show “USB available.”",
+      "",
+      "I’d verify by running the existing PMIC test with USB plugged in. If it reports VBUS present, around 5V, but `charging` is false/discharging, then the fix is to change `BattTracker::halReadUsbAvailable()` to use VBUS presence or VBUS voltage instead of `M5.Power.isCharging()`."
+    ],
+    "files": [
+      "lib/FlyGui/FlyGui.cpp",
+      "lib/BattTracker/BattTracker.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-05T23:41:05.245Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: .codex_history/src/tests/test_pmic.cpp.codexhist.json",
+      "",
+      "## My request for Codex:",
+      "this is weird, even according to the history, we've lost a chunk of progress",
+      "",
+      "I know for a fact that after we implemented `test_pmic.cpp`, the test result showed that the \"AC input\" reading from the PMIC is the most reliable way of knowing if USB cable is plugged in. That was the whole point of the test, it's weird that nothing was changed because of the test results...",
+      "",
+      "I want a tiny behavior change",
+      "",
+      "If it is not charging but USB is plugged in and the battery is full, use `sprite_batt_full_notcharging`"
+    ],
+    "agent_reply": [
+      "Implemented the tiny behavior change.",
+      "",
+      "`BattTracker` now keeps two separate states: active battery charging and USB/AC input present. On Core2/AXP192, `halReadUsbAvailable()` now uses the PMIC’s `Axp192.isACIN()` path, matching what `test_pmic.cpp` was built to prove. See [BattTracker.cpp](</d:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:146>) and [BattTracker.cpp](</d:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:266>).",
+      "",
+      "The top bar now uses `sprite_batt_full_notcharging` only for the exact state you asked for: not actively charging, USB plugged in, and battery level full/high. See [FlyGui.cpp](</d:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:818>).",
+      "",
+      "Validation passed with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "git diff --check",
+      "```",
+      "",
+      "`git diff --check` only reported the repo’s usual CRLF warnings. I left the existing unrelated dirty/generated files alone."
+    ],
+    "files": [
+      "lib/FlyGui/FlyGui.cpp",
+      "lib/BattTracker/BattTracker.cpp",
+      "lib/BattTracker/BattTracker.h",
+      "src/tests/test_pmic.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-06-06T01:28:29Z",
     "type": "git_commit",
     "commit_message": "better batt status display when full but usb in",

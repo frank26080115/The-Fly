@@ -452,6 +452,55 @@
     "commit_hash": "3dbd6b2cd2fdecdb22e7dcef84a89989f2e63669"
   },
   {
+    "timestamp": "2026-06-05T02:53:06.133Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: scripts/thefly_desktop.py",
+      "",
+      "## My request for Codex:",
+      "clicking the eye that shows and hide sensitive Wi-Fi information doesn't trigger a haptic click",
+      "",
+      "clicking of the button that starts the default secure soft AP doesn't seem to trigger a haptic click",
+      "",
+      "add that click to these places, or fix what is wrong with the haptics"
+    ],
+    "agent_reply": [
+      "Fixed the haptics in the two relevant paths.",
+      "",
+      "In [WifiApModeView.cpp](</d:/GithubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:176>), `toggleSensitive()` now plays `haptic_play_click()`, so tapping the eye and pressing the right button both get feedback.",
+      "",
+      "In [ScrollItem.cpp](</d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollItem.cpp:75>), `ScrollItem::trigger()` now plays a haptic click before invoking its scroll callback. That fixes “Default Secure AP” and the other scroll-menu actions that were bypassing the base `FlyGuiItem` callback haptic path.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed.",
+      "",
+      "Fixed the haptics in the two relevant paths.",
+      "",
+      "In [WifiApModeView.cpp](</d:/GithubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:176>), `toggleSensitive()` now plays `haptic_play_click()`, so tapping the eye and pressing the right button both get feedback.",
+      "",
+      "In [ScrollItem.cpp](</d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollItem.cpp:75>), `ScrollItem::trigger()` now plays a haptic click before invoking its scroll callback. That fixes “Default Secure AP” and the other scroll-menu actions that were bypassing the base `FlyGuiItem` callback haptic path.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "lib/FlyGuiViews/WifiApModeView.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollItem.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-06-05T04:51:14Z",
     "type": "git_commit",
     "commit_message": "add missing haptic",

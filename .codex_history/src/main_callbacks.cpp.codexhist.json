@@ -1959,6 +1959,85 @@
     "commit_hash": "0d8363f535680e4532d2964847c2f4086d34575c"
   },
   {
+    "timestamp": "2026-06-04T23:00:24.630Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/AsyncFsManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "kFileActivityGuiQuietMs",
+      "",
+      "## My request for Codex:",
+      "When Wi-Fi either establishes a connection or starts a soft AP, lower the GUI's polling rate to the lowest setting"
+    ],
+    "agent_reply": [
+      "Implemented it.",
+      "",
+      "Wi-Fi connection state now drives GUI polling through callbacks:",
+      "- `on_wifi_connected()` sets `gui->setWifiActive(true)`.",
+      "- `on_wifi_disconnected()` clears it.",
+      "- `setup()` registers both callbacks with `WifiManager`.",
+      "",
+      "I also updated `FlyGui` so Wi-Fi activity forces `FLYGUI_POLL_SLOW`, and audio can no longer accidentally restore `FAST` while Wi-Fi is active. When Wi-Fi is inactive, audio still maps to `MEDIUM`, otherwise it returns to `FAST`.",
+      "",
+      "Verified with `pio run -e thefly_sec0` successfully.",
+      "",
+      "Note: `inc/web_assets.h` is still modified from PlatformIO’s asset packaging step, and `src/version.c` plus the untracked files were already in the worktree."
+    ],
+    "files": [
+      "src/main.cpp",
+      "lib/FlyGui/FlyGui.h",
+      "lib/FlyGui/FlyGui.cpp",
+      "inc/main_callbacks.h",
+      "src/main_callbacks.cpp",
+      "inc/web_assets.h",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-04T23:09:53.416Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/AsyncFsManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "kFileActivityGuiQuietMs",
+      "",
+      "## My request for Codex:",
+      "that's weird, we have existing event handling for these, I need this change redone, I don't want too many event handlers for the same event"
+    ],
+    "agent_reply": [
+      "Redone. I removed the extra Wi-Fi connect/disconnect callbacks and registrations.",
+      "",
+      "Now the slow GUI polling is triggered from the existing flow points:",
+      "- Station connection: `handle_wifi_station_connected()` in [src/main.cpp](d:/GithubRepos/The-Fly/src/main.cpp:769)",
+      "- Soft AP start success: `onclick_wifi_ap()` in [src/main_callbacks.cpp](d:/GithubRepos/The-Fly/src/main_callbacks.cpp:488)",
+      "",
+      "I kept the `FlyGui::setWifiActive()` state so Wi-Fi still wins over audio polling changes and forces `FLYGUI_POLL_SLOW`.",
+      "",
+      "Verified: `pio run -e thefly_sec0` passes.",
+      "",
+      "Redone. I removed the extra Wi-Fi connect/disconnect callbacks and registrations.",
+      "",
+      "Now the slow GUI polling is triggered from the existing flow points:",
+      "- Station connection: `handle_wifi_station_connected()` in [src/main.cpp](d:/GithubRepos/The-Fly/src/main.cpp:769)",
+      "- Soft AP start success: `onclick_wifi_ap()` in [src/main_callbacks.cpp](d:/GithubRepos/The-Fly/src/main_callbacks.cpp:488)",
+      "",
+      "I kept the `FlyGui::setWifiActive()` state so Wi-Fi still wins over audio polling changes and forces `FLYGUI_POLL_SLOW`.",
+      "",
+      "Verified: `pio run -e thefly_sec0` passes."
+    ],
+    "files": [
+      "inc/main_callbacks.h",
+      "src/main.cpp",
+      "src/main_callbacks.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-06-04T23:14:49Z",
     "type": "git_commit",
     "commit_message": "WiFi now makes GUI updates slower",

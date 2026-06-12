@@ -721,10 +721,142 @@
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
   },
   {
+    "timestamp": "2026-06-04T02:21:38.125Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGui/FlyGui.cpp",
+      "",
+      "## Active selection of the file:",
+      "FlyGuiItem::trigger",
+      "",
+      "## My request for Codex:",
+      "how many places in this code uses a parent view to capture a click event instead of letting the item handle it?"
+    ],
+    "agent_reply": [
+      "I’d count **5 parent-view touch handlers** that meaningfully capture a click/touch action instead of letting a normal `FlyGuiItem` own it:",
+      "",
+      "1. [SplashView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:87)  ",
+      "   Any press/release advances to main view. No item involved.",
+      "",
+      "2. [QrCodeView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/QrCodeView.cpp:29)  ",
+      "   Any press/release dismisses the QR view. No item involved.",
+      "",
+      "3. [ModalDialog.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ModalDialog.cpp:65)  ",
+      "   Any press/release dismisses the modal. No item involved.",
+      "",
+      "4. [WifiApModeView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:102)  ",
+      "   Parent captures the eye area for reveal/hide and long-hold QR behavior. It uses `eyeItem_` for geometry/sprite, but does not call `eyeItem_.handleTouch()` or `trigger()`.",
+      "",
+      "5. [ScrollView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:463)  ",
+      "   Parent captures left/right slot taps for scrolling. Center/exit/delete still go through items.",
+      "",
+      "There is also a conditional parent capture in [FirmwareUpdateView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/FirmwareUpdateView.cpp:108): once state is `Complete`, any touch restarts the device. In normal prompt state, it delegates to `goItem_` / `cancelItem_`.",
+      "",
+      "So for haptics: putting click feedback only in `FlyGuiItem::trigger()` will miss those parent-captured actions. It will still cover the normal item button path."
+    ],
+    "files": [
+      "lib/FlyGuiViews/SplashView.cpp",
+      "lib/FlyGuiViews/QrCodeView.cpp",
+      "lib/FlyGuiViews/ModalDialog.cpp",
+      "lib/FlyGuiViews/WifiApModeView.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "lib/FlyGuiViews/FirmwareUpdateView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-04T04:26:00.417Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "",
+      "## My request for Codex:",
+      "correct mistakes I've made in my placement of `haptic_play_click();`, also, fix any missing included headers"
+    ],
+    "agent_reply": [
+      "Fixed the haptic placement/include issues.",
+      "",
+      "I added missing `HapticsWrapper.h` includes to the GUI files that call `haptic_play_click()` directly, including [FlyGui.cpp](/d:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:4), [FirmwareUpdateView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/FirmwareUpdateView.cpp:7), [ModalDialog.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ModalDialog.cpp:4), [SplashView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:4), [WifiApModeView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:6), and [ScrollView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:5).",
+      "",
+      "I also removed the extra `haptic_play_click()` from `ScrollView::onDeleteButtonTriggered()`, because that path already comes through `deleteItem_.trigger()`, and `FlyGuiItem::trigger()` now clicks when a callback exists. Leaving it there would double-click.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, and it builds successfully.",
+      "",
+      "Fixed the haptic placement/include issues.",
+      "",
+      "I added missing `HapticsWrapper.h` includes to the GUI files that call `haptic_play_click()` directly, including [FlyGui.cpp](/d:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:4), [FirmwareUpdateView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/FirmwareUpdateView.cpp:7), [ModalDialog.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ModalDialog.cpp:4), [SplashView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:4), [WifiApModeView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:6), and [ScrollView.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:5).",
+      "",
+      "I also removed the extra `haptic_play_click()` from `ScrollView::onDeleteButtonTriggered()`, because that path already comes through `deleteItem_.trigger()`, and `FlyGuiItem::trigger()` now clicks when a callback exists. Leaving it there would double-click.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, and it builds successfully."
+    ],
+    "files": [
+      "lib/FlyGuiViews/WifiApModeView.cpp",
+      "lib/FlyGui/FlyGui.cpp",
+      "lib/FlyGuiViews/FirmwareUpdateView.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "lib/FlyGuiViews/SplashView.cpp",
+      "lib/FlyGuiViews/ModalDialog.cpp",
+      "lib/HapticsWrapper/HapticsWrapper.h"
+    ]
+  },
+  {
     "timestamp": "2026-06-04T05:05:33Z",
     "type": "git_commit",
     "commit_message": "haptics implemented across the board",
     "commit_hash": "b0281be08ff90256d2e231f0ba9c25e7422784c1"
+  },
+  {
+    "timestamp": "2026-06-05T02:53:06.133Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: scripts/thefly_desktop.py",
+      "",
+      "## My request for Codex:",
+      "clicking the eye that shows and hide sensitive Wi-Fi information doesn't trigger a haptic click",
+      "",
+      "clicking of the button that starts the default secure soft AP doesn't seem to trigger a haptic click",
+      "",
+      "add that click to these places, or fix what is wrong with the haptics"
+    ],
+    "agent_reply": [
+      "Fixed the haptics in the two relevant paths.",
+      "",
+      "In [WifiApModeView.cpp](</d:/GithubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:176>), `toggleSensitive()` now plays `haptic_play_click()`, so tapping the eye and pressing the right button both get feedback.",
+      "",
+      "In [ScrollItem.cpp](</d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollItem.cpp:75>), `ScrollItem::trigger()` now plays a haptic click before invoking its scroll callback. That fixes “Default Secure AP” and the other scroll-menu actions that were bypassing the base `FlyGuiItem` callback haptic path.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed.",
+      "",
+      "Fixed the haptics in the two relevant paths.",
+      "",
+      "In [WifiApModeView.cpp](</d:/GithubRepos/The-Fly/lib/FlyGuiViews/WifiApModeView.cpp:176>), `toggleSensitive()` now plays `haptic_play_click()`, so tapping the eye and pressing the right button both get feedback.",
+      "",
+      "In [ScrollItem.cpp](</d:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollItem.cpp:75>), `ScrollItem::trigger()` now plays a haptic click before invoking its scroll callback. That fixes “Default Secure AP” and the other scroll-menu actions that were bypassing the base `FlyGuiItem` callback haptic path.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "lib/FlyGuiViews/WifiApModeView.cpp",
+      "lib/FlyGuiViews/ScrollView/ScrollItem.cpp"
+    ]
   },
   {
     "timestamp": "2026-06-05T04:51:14Z",

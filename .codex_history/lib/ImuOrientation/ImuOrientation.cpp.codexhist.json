@@ -142,5 +142,62 @@
     "type": "git_commit",
     "commit_message": "comments labeling modules",
     "commit_hash": "31550c50383ebe32a1fdcc074460e52d8390cbc9"
+  },
+  {
+    "timestamp": "2026-06-05T09:38:55.699Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/ScrollView/ScrollItem.cpp",
+      "",
+      "## My request for Codex:",
+      "For the M5Stack Core2 as we have, what are all the I2C addresses being used? "
+    ],
+    "agent_reply": [
+      "Using 7-bit I2C addresses, the Core2 internal bus is SDA `21` / SCL `22` per [inc/pins.h](</d:/GithubRepos/The-Fly/inc/pins.h:16>).",
+      "",
+      "Expected/active Core2 addresses:",
+      "",
+      "| Address | Device | Notes |",
+      "|---|---|---|",
+      "| `0x34` | AXP192 PMIC | Used by M5Unified and directly by our speaker GPIO2 fallback in [AudioManager.cpp](</d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1018>). Core2 v1.1 AXP2101 is also `0x34`. |",
+      "| `0x38` | FT5x06 / FT6336 touch | M5GFX Core2 touch config uses this. |",
+      "| `0x51` | BM8563 / PCF8563 RTC | M5Unified RTC default. |",
+      "| `0x68` | MPU6886 IMU | Conditional: our code notes the IMU is on a daughterboard and may disappear with another codec board; it probes internal then external I2C in [ImuOrientation.cpp](</d:/GithubRepos/The-Fly/lib/ImuOrientation/ImuOrientation.cpp:1>). |",
+      "",
+      "Also on our schematic, but not currently implemented in firmware:",
+      "",
+      "| Address | Device | Notes |",
+      "|---|---|---|",
+      "| `0x0A` | SGTL5000XNLA3 external audio codec | Schematic connects `CTRL_DATA`/`CTRL_CLK` to the I2C control bus in [hardware/thefly.sch](</d:/GithubRepos/The-Fly/hardware/thefly.sch:2571>). The address comes from the NXP SGTL5000 datasheet: the 20-QFN part uses `0001010(R/W)`, i.e. 7-bit `0x0A`. Our `AudioManager` still says external I2S codec setup is not implemented. |",
+      "",
+      "So if you run an I2C scanner on this exact setup, I’d expect `0x34`, `0x38`, `0x51`, `0x68`, and possibly `0x0A` if the SGTL5000 board is installed and powered. Source for SGTL5000 address: [NXP SGTL5000 datasheet](https://cache.nxp.com/docs/en/data-sheet/SGTL5000.pdf).",
+      "",
+      "Using 7-bit I2C addresses, the Core2 internal bus is SDA `21` / SCL `22` per [inc/pins.h](</d:/GithubRepos/The-Fly/inc/pins.h:16>).",
+      "",
+      "Expected/active Core2 addresses:",
+      "",
+      "| Address | Device | Notes |",
+      "|---|---|---|",
+      "| `0x34` | AXP192 PMIC | Used by M5Unified and directly by our speaker GPIO2 fallback in [AudioManager.cpp](</d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1018>). Core2 v1.1 AXP2101 is also `0x34`. |",
+      "| `0x38` | FT5x06 / FT6336 touch | M5GFX Core2 touch config uses this. |",
+      "| `0x51` | BM8563 / PCF8563 RTC | M5Unified RTC default. |",
+      "| `0x68` | MPU6886 IMU | Conditional: our code notes the IMU is on a daughterboard and may disappear with another codec board; it probes internal then external I2C in [ImuOrientation.cpp](</d:/GithubRepos/The-Fly/lib/ImuOrientation/ImuOrientation.cpp:1>). |",
+      "",
+      "Also on our schematic, but not currently implemented in firmware:",
+      "",
+      "| Address | Device | Notes |",
+      "|---|---|---|",
+      "| `0x0A` | SGTL5000XNLA3 external audio codec | Schematic connects `CTRL_DATA`/`CTRL_CLK` to the I2C control bus in [hardware/thefly.sch](</d:/GithubRepos/The-Fly/hardware/thefly.sch:2571>). The address comes from the NXP SGTL5000 datasheet: the 20-QFN part uses `0001010(R/W)`, i.e. 7-bit `0x0A`. Our `AudioManager` still says external I2S codec setup is not implemented. |",
+      "",
+      "So if you run an I2C scanner on this exact setup, I’d expect `0x34`, `0x38`, `0x51`, `0x68`, and possibly `0x0A` if the SGTL5000 board is installed and powered. Source for SGTL5000 address: [NXP SGTL5000 datasheet](https://cache.nxp.com/docs/en/data-sheet/SGTL5000.pdf)."
+    ],
+    "files": [
+      "inc/pins.h",
+      "lib/AudioManager/AudioManager.cpp",
+      "lib/ImuOrientation/ImuOrientation.cpp",
+      "hardware/thefly.sch"
+    ]
   }
 ]

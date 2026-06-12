@@ -146,10 +146,135 @@
     "commit_hash": "b267c0bae76f8066902a3ac296e1931f40d87725"
   },
   {
+    "timestamp": "2026-06-06T01:45:42.651Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.cpp",
+      "",
+      "## Active selection of the file:",
+      "TEST_MOCK_EXT_CODEC",
+      "",
+      "## My request for Codex:",
+      "hmmm I wanted to use `TEST_MOCK_EXT_CODEC` to preview the icons and GUI behavior, I've made it to not touch I2C and just make everything believe the external codec is there, and then switch states every 5 seconds. But the GUI isn't reflecting that mock test. I don't see the new sprites I made with the ears"
+    ],
+    "agent_reply": [
+      "Fixed it. The mock branch was only setting `available=true`; it never started the state polling task or called `set_state()`, so `stateGeneration()` stayed unchanged and the recording view never swapped to the ear sprites.",
+      "",
+      "Now `TEST_MOCK_EXT_CODEC`:",
+      "",
+      "- creates the same event/state machinery as the real codec path",
+      "- starts the periodic task",
+      "- cycles states every 5 seconds without I2C or ADC reads",
+      "- bumps `stateGeneration()` so `RecordingView::syncExtCodecAudioIcons()` updates the sprites",
+      "",
+      "Key spots: [ExtCodec.cpp](</d:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:120>) and [ExtCodec.cpp](</d:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:341>).",
+      "",
+      "Validated with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "git diff --check",
+      "```",
+      "",
+      "The mock cycle is: no earbud, earbud with mic, earbud without mic. The mic ear sprite only appears in the “with mic” slot; the speaker ear sprite appears in both earbud slots, but only when the speaker button is visible."
+    ],
+    "files": [
+      "inc/conf.h",
+      "lib/ExtCodec/ExtCodec.cpp",
+      "src/version.c"
+    ]
+  },
+  {
     "timestamp": "2026-06-06T04:45:57Z",
     "type": "git_commit",
     "commit_message": "mock ext codec test",
     "commit_hash": "29e35603230f57c37d088b5def57ae546565ca33"
+  },
+  {
+    "timestamp": "2026-06-06T05:58:21.643Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## My request for Codex:",
+      "the SPM1423 is actually on a daughterboard that comes pre-installed in a M5Stack Core2, so if I am adding an external codec, I must remove the SPM1423",
+      "",
+      "right now, please always make sure BCLK is duplicated to GPIO13, GPIO13 never has to be deconfigured",
+      "",
+      "also write out the code to configure the SGTL5000 for 16 KHZ 16 bit stereo"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "The important bits:",
+      "- [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1062) now reasserts GPIO13 as an ESP32 GPIO-matrix mirror of `I2S0O_BCK_OUT_IDX`.",
+      "- That mirror is applied after `stop_i2s()`, after NS4168 speaker setup, and after SGTL5000 full-duplex I2S setup, so GPIO13 is not intentionally deconfigured by our code.",
+      "- [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1019) now drives the SGTL5000 path with `I2S_MCLK_MULTIPLE_512`, giving 8.192 MHz MCLK for 16 kHz audio.",
+      "- [control_sgtl5000.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/control_sgtl5000.cpp:595) now has `configureFor16k16BitStereo()`, which sets SGTL5000 to 16 kHz, 16-bit stereo, slave I2S, 32 Fs BCLK, with ADC->I2S and I2S->DAC routing.",
+      "- [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:314) calls that configuration during real SGTL5000 startup.",
+      "",
+      "Validated with `pio run -e thefly_sec0`, which passed. `git diff --check` also passed, aside from the repo’s usual CRLF warnings. I also restored the generated `src/version.c` churn after the build.",
+      "",
+      "Implemented.",
+      "",
+      "The important bits:",
+      "- [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1062) now reasserts GPIO13 as an ESP32 GPIO-matrix mirror of `I2S0O_BCK_OUT_IDX`.",
+      "- That mirror is applied after `stop_i2s()`, after NS4168 speaker setup, and after SGTL5000 full-duplex I2S setup, so GPIO13 is not intentionally deconfigured by our code.",
+      "- [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1019) now drives the SGTL5000 path with `I2S_MCLK_MULTIPLE_512`, giving 8.192 MHz MCLK for 16 kHz audio.",
+      "- [control_sgtl5000.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/control_sgtl5000.cpp:595) now has `configureFor16k16BitStereo()`, which sets SGTL5000 to 16 kHz, 16-bit stereo, slave I2S, 32 Fs BCLK, with ADC->I2S and I2S->DAC routing.",
+      "- [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:314) calls that configuration during real SGTL5000 startup.",
+      "",
+      "Validated with `pio run -e thefly_sec0`, which passed. `git diff --check` also passed, aside from the repo’s usual CRLF warnings. I also restored the generated `src/version.c` churn after the build.",
+      "",
+      "<oai-mem-citation>",
+      "<citation_entries>",
+      "MEMORY.md:25-33|note=[AudioManager test context]",
+      "MEMORY.md:58-66|note=[scope and validation target]",
+      "</citation_entries>",
+      "<rollout_ids>",
+      "</rollout_ids>",
+      "</oai-mem-citation>"
+    ],
+    "files": [
+      "lib/AudioManager/AudioManager.cpp",
+      "lib/ExtCodec/control_sgtl5000.h",
+      "lib/ExtCodec/control_sgtl5000.cpp",
+      "lib/ExtCodec/ExtCodec.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-06T06:08:12.376Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## My request for Codex:",
+      "have a if statement that, if MCLK is not configured, then make the SGTL5000 use the mode where it derives a MCLK from BCLK, I think that is possible"
+    ],
+    "agent_reply": [
+      "I added the `if` guard, but I did not fake a BCLK-derived MCLK mode because the SGTL5000 does not appear to have one.",
+      "",
+      "In [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:315), if `kSGTL5000I2sMclk < 0`, bring-up now fails with:",
+      "",
+      "```cpp",
+      "SGTL5000 SYS_MCLK is not configured; this codec cannot derive SYS_MCLK from I2S BCLK",
+      "```",
+      "",
+      "Reason: the SGTL5000 datasheet describes PLL input as an 8-27 MHz system clock on `SYS_MCLK`, and says that in I2S slave mode LRCLK/SCLK must be synchronous to `SYS_MCLK`. That is not the same as an ES8311-style “MCLK=BCLK” register mode. Source: NXP SGTL5000 datasheet, especially the PLL/system-clock feature and I2S slave clocking notes: https://www.nxp.com/docs/en/data-sheet/SGTL5000.pdf?pspll=1",
+      "",
+      "Validated with `pio run -e thefly_sec0`. `git diff --check` is clean except the repo’s usual CRLF warnings, and I restored `src/version.c` after the build."
+    ],
+    "files": [
+      "lib/ExtCodec/ExtCodec.cpp",
+      "src/version.c"
+    ]
   },
   {
     "timestamp": "2026-06-06T06:28:15Z",
@@ -158,15 +283,441 @@
     "commit_hash": "11c247e36a0c6f947687aa3d9179d6c4c97f6d0c"
   },
   {
+    "timestamp": "2026-06-07T00:15:01.695Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.cpp",
+      "",
+      "## Active selection of the file:",
+      "analogRead",
+      "",
+      "## My request for Codex:",
+      "is `analogRead` yielding internally when it waits for the reading?"
+    ],
+    "agent_reply": [
+      "No, not in the usual useful sense.",
+      "",
+      "In the Arduino ESP32 core this project is building against, `analogRead()` goes through `__analogReadRaw()` and then calls either `adc1_get_raw()` or `adc2_get_raw()`. There is no `yield()`, `vTaskDelay()`, or `taskYIELD()` in the Arduino `analogRead()` path itself.",
+      "",
+      "For your current `ExtCodec.cpp` case, the sense pins are GPIO35 and GPIO36, which are ADC1 pins. So the path is basically:",
+      "",
+      "```cpp",
+      "analogRead(pin)",
+      "  -> __analogReadRaw(pin)",
+      "  -> adc1_get_raw(channel)",
+      "```",
+      "",
+      "A small nuance: ADC1 may block if another ADC1 user holds the ADC lock, and that lock wait is FreeRTOS-backed, so it can yield while waiting for the lock. But the actual conversion read is synchronous; it is not politely yielding between samples.",
+      "",
+      "ADC2 is different: if Wi-Fi owns ADC2, `adc2_get_raw()` tends to fail/timeout instead of patiently waiting. That does not apply to GPIO35/GPIO36.",
+      "",
+      "So for your polling code: the explicit `vTaskDelay()` between polls is the real cooperative yield. The 4-sample `analogRead()` loop itself is effectively a short blocking burst. Given it is only a handful of ADC1 reads every 100 ms, that should be fine unless you see measurable scheduler jitter.",
+      "",
+      "No, not in the usual useful sense.",
+      "",
+      "In the Arduino ESP32 core this project is building against, `analogRead()` goes through `__analogReadRaw()` and then calls either `adc1_get_raw()` or `adc2_get_raw()`. There is no `yield()`, `vTaskDelay()`, or `taskYIELD()` in the Arduino `analogRead()` path itself.",
+      "",
+      "For your current `ExtCodec.cpp` case, the sense pins are GPIO35 and GPIO36, which are ADC1 pins. So the path is basically:",
+      "",
+      "```cpp",
+      "analogRead(pin)",
+      "  -> __analogReadRaw(pin)",
+      "  -> adc1_get_raw(channel)",
+      "```",
+      "",
+      "A small nuance: ADC1 may block if another ADC1 user holds the ADC lock, and that lock wait is FreeRTOS-backed, so it can yield while waiting for the lock. But the actual conversion read is synchronous; it is not politely yielding between samples.",
+      "",
+      "ADC2 is different: if Wi-Fi owns ADC2, `adc2_get_raw()` tends to fail/timeout instead of patiently waiting. That does not apply to GPIO35/GPIO36.",
+      "",
+      "So for your polling code: the explicit `vTaskDelay()` between polls is the real cooperative yield. The 4-sample `analogRead()` loop itself is effectively a short blocking burst. Given it is only a handful of ADC1 reads every 100 ms, that should be fine unless you see measurable scheduler jitter."
+    ],
+    "files": [
+      "lib/ExtCodec/ExtCodec.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-07T01:05:28.080Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.cpp",
+      "",
+      "## My request for Codex:",
+      "I modified `lib\\ExtCodec\\ExtCodec.cpp` to express what I really want, instead of an averaging filter, I want just agreement across samples, review my change"
+    ],
+    "agent_reply": [
+      "**Findings**",
+      "",
+      "High: [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:382) reads `kExtCodecEarbudSenseAdc` in the inline-mic loop. That means once an earbud is detected, the second loop is still reading the earbud sense pin, and because connected earbud values are above `1800`, they will also be above the inline mic threshold `800`. Result: real hardware will likely classify every connected earbud as `EXTCODEC_YES_EARBUD_WITH_MIC`.",
+      "",
+      "High: [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:353) through [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:360) has no `break` or `return` in the mock `switch`. If `TEST_MOCK_EXT_CODEC` is enabled, every case falls through to `default`, so the final state is always `EXTCODEC_NO_EARBUD`.",
+      "",
+      "Medium: [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:373) and [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:384) do not really implement “agreement across samples.” The earbud path treats one low sample as no earbud, and the inline-mic path treats one high sample as mic present. That is closer to “any disagreeing earbud sample disconnects, any agreeing mic sample wins” than sample agreement. For true agreement, I’d expect all samples to vote the same before changing state, with mixed samples probably leaving the previous state alone.",
+      "",
+      "I didn’t edit anything. The shape I’d patch toward is: sample each ADC pin into boolean votes, require unanimous earbud-present before considering mic state, require unanimous mic-present or mic-absent before choosing the two earbud states, and keep the previous state when samples disagree.",
+      "",
+      "**Findings**",
+      "",
+      "High: [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:382) reads `kExtCodecEarbudSenseAdc` in the inline-mic loop. That means once an earbud is detected, the second loop is still reading the earbud sense pin, and because connected earbud values are above `1800`, they will also be above the inline mic threshold `800`. Result: real hardware will likely classify every connected earbud as `EXTCODEC_YES_EARBUD_WITH_MIC`.",
+      "",
+      "High: [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:353) through [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:360) has no `break` or `return` in the mock `switch`. If `TEST_MOCK_EXT_CODEC` is enabled, every case falls through to `default`, so the final state is always `EXTCODEC_NO_EARBUD`.",
+      "",
+      "Medium: [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:373) and [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:384) do not really implement “agreement across samples.” The earbud path treats one low sample as no earbud, and the inline-mic path treats one high sample as mic present. That is closer to “any disagreeing earbud sample disconnects, any agreeing mic sample wins” than sample agreement. For true agreement, I’d expect all samples to vote the same before changing state, with mixed samples probably leaving the previous state alone.",
+      "",
+      "I didn’t edit anything. The shape I’d patch toward is: sample each ADC pin into boolean votes, require unanimous earbud-present before considering mic state, require unanimous mic-present or mic-absent before choosing the two earbud states, and keep the previous state when samples disagree."
+    ],
+    "files": [
+      "lib/ExtCodec/ExtCodec.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-07T01:32:56.140Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.cpp",
+      "",
+      "## My request for Codex:",
+      "I made a mistake and didn't paste in the right pin, review again"
+    ],
+    "agent_reply": [
+      "**Findings**",
+      "",
+      "Medium: [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:388) still does not require agreement for inline mic present. One high sample immediately sets `EXTCODEC_YES_EARBUD_WITH_MIC`; the other three samples do not have to agree. A single ADC spike above `800` can flip the state to “with mic.”",
+      "",
+      "Medium: [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:377) is also asymmetric for earbud detection. One low sample immediately sets `EXTCODEC_NO_EARBUD`; the other samples do not get a chance to agree. If “agreement across samples” means unanimous samples before changing state, mixed earbud samples should probably leave the previous state unchanged rather than forcing no-earbud.",
+      "",
+      "The two previous concrete bugs are fixed: the inline-mic loop now reads `kExtCodecInlineMicSenseAdc`, and the mock `switch` now has `break`s.",
+      "",
+      "I’d shape this as “read N threshold votes, then only change state if the votes are unanimous.” Mixed votes become “no confident new state,” so `poll_adc_state()` just preserves the current state for that poll.",
+      "",
+      "**Findings**",
+      "",
+      "Medium: [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:388) still does not require agreement for inline mic present. One high sample immediately sets `EXTCODEC_YES_EARBUD_WITH_MIC`; the other three samples do not have to agree. A single ADC spike above `800` can flip the state to “with mic.”",
+      "",
+      "Medium: [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:377) is also asymmetric for earbud detection. One low sample immediately sets `EXTCODEC_NO_EARBUD`; the other samples do not get a chance to agree. If “agreement across samples” means unanimous samples before changing state, mixed earbud samples should probably leave the previous state unchanged rather than forcing no-earbud.",
+      "",
+      "The two previous concrete bugs are fixed: the inline-mic loop now reads `kExtCodecInlineMicSenseAdc`, and the mock `switch` now has `break`s.",
+      "",
+      "I’d shape this as “read N threshold votes, then only change state if the votes are unanimous.” Mixed votes become “no confident new state,” so `poll_adc_state()` just preserves the current state for that poll."
+    ],
+    "files": [
+      "lib/ExtCodec/ExtCodec.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-07T02:20:54.114Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.cpp",
+      "",
+      "## My request for Codex:",
+      "I hear your concerns but those are exactly what I intend, but you said the word asymmetric so it got me thinking...",
+      "",
+      "can you change the code so that 4 consecutive readings that are \"the same bracket\" is needed to change out of whatever state it is currently in?"
+    ],
+    "agent_reply": [
+      "Implemented in [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:349).",
+      "",
+      "The ADC polling now treats each paired earbud/inline-mic ADC read as one “bracket” sample, then only changes state after 4 consecutive samples in the same bracket that differs from the current state. If samples bounce between brackets, the pending change resets. If samples match the current state, the pending change is cleared.",
+      "",
+      "I also kept your mock-state switch fix intact and removed the averaging helper. Validation: `pio run -e thefly_sec0` passed, and `git diff --check` is clean except for the usual CRLF warning on `ExtCodec.cpp`.",
+      "",
+      "Implemented in [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:349).",
+      "",
+      "The ADC polling now treats each paired earbud/inline-mic ADC read as one “bracket” sample, then only changes state after 4 consecutive samples in the same bracket that differs from the current state. If samples bounce between brackets, the pending change resets. If samples match the current state, the pending change is cleared.",
+      "",
+      "I also kept your mock-state switch fix intact and removed the averaging helper. Validation: `pio run -e thefly_sec0` passed, and `git diff --check` is clean except for the usual CRLF warning on `ExtCodec.cpp`.",
+      "",
+      "<oai-mem-citation>",
+      "<citation_entries>",
+      "MEMORY.md:66-66|note=[used repo-specific PlatformIO validation target guidance]",
+      "</citation_entries>",
+      "<rollout_ids>",
+      "</rollout_ids>",
+      "</oai-mem-citation>"
+    ],
+    "files": [
+      "lib/ExtCodec/ExtCodec.cpp",
+      "src/version.c"
+    ]
+  },
+  {
     "timestamp": "2026-06-07T04:36:19Z",
     "type": "git_commit",
     "commit_message": "progress on ext codec",
     "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"
   },
   {
+    "timestamp": "2026-06-08T01:45:21.883Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_ledcpwm.cpp",
+      "",
+      "## Active selection of the file:",
+      "kOutputGpio",
+      "",
+      "## My request for Codex:",
+      "implement public `ExtCodec::start_ledc_mclk`, basically a copy of `test_ledcpwm`, move `kOutputGpio` to `pins.h` as `kLedcMclkGpio`"
+    ],
+    "agent_reply": [
+      "Implemented `ExtCodec::start_ledc_mclk()`.",
+      "",
+      "It’s public in [ExtCodec.h](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.h:39), implemented in [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:200), and uses LEDC high-speed mode at `8192000 Hz`, `LEDC_TIMER_1_BIT`, duty `1`, on the new [kLedcMclkGpio](D:/GithubRepos/The-Fly/inc/pins.h:22).",
+      "",
+      "I also updated `test_ledcpwm.cpp` to use `kLedcMclkGpio` instead of its local `kOutputGpio`.",
+      "",
+      "Validation: `pio run -e thefly_sec0` passes. I left `src/version.c` as it was before this task since it was already dirty from generated-version churn.",
+      "",
+      "Implemented `ExtCodec::start_ledc_mclk()`.",
+      "",
+      "It’s public in [ExtCodec.h](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.h:39), implemented in [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:200), and uses LEDC high-speed mode at `8192000 Hz`, `LEDC_TIMER_1_BIT`, duty `1`, on the new [kLedcMclkGpio](D:/GithubRepos/The-Fly/inc/pins.h:22).",
+      "",
+      "I also updated `test_ledcpwm.cpp` to use `kLedcMclkGpio` instead of its local `kOutputGpio`.",
+      "",
+      "Validation: `pio run -e thefly_sec0` passes. I left `src/version.c` as it was before this task since it was already dirty from generated-version churn."
+    ],
+    "files": [
+      "src/tests/test_ledcpwm.cpp",
+      "lib/ExtCodec/ExtCodec.h",
+      "inc/pins.h",
+      "lib/ExtCodec/ExtCodec.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-08T03:01:18.446Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.cpp",
+      "",
+      "## My request for Codex:",
+      "interesting... you say it's on line 200 but it's actually on line 203, being 3 lines off is ok for a human, but for you, I'd like an explanation"
+    ],
+    "agent_reply": [
+      "You’re right: it’s line 203.",
+      "",
+      "The explanation is boring but real: the file link I gave was based on my internal view of the patch/diff at the moment I composed the final answer, not a fresh `rg -n` after all final file normalization/checks. A few lines above the function shifted during the edit sequence, and I didn’t re-query the exact line before writing the final clickable reference.",
+      "",
+      "For exact file links, I should do what I just did:",
+      "",
+      "```powershell",
+      "rg -n \"bool start_ledc_mclk\\(\" lib\\ExtCodec\\ExtCodec.cpp",
+      "```",
+      "",
+      "That reports `203`.",
+      "",
+      "You’re right: it’s line 203.",
+      "",
+      "The explanation is boring but real: the file link I gave was based on my internal view of the patch/diff at the moment I composed the final answer, not a fresh `rg -n` after all final file normalization/checks. A few lines above the function shifted during the edit sequence, and I didn’t re-query the exact line before writing the final clickable reference.",
+      "",
+      "For exact file links, I should do what I just did:",
+      "",
+      "```powershell",
+      "rg -n \"bool start_ledc_mclk\\(\" lib\\ExtCodec\\ExtCodec.cpp",
+      "```",
+      "",
+      "That reports `203`."
+    ],
+    "files": [
+      "lib/ExtCodec/ExtCodec.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-06-08T03:05:24Z",
     "type": "git_commit",
     "commit_message": "ledc as mclk shenanigans",
     "commit_hash": "3899800fdc93cf7a914ee480463eca1ff28cc754"
+  },
+  {
+    "timestamp": "2026-06-11T01:25:30Z",
+    "type": "git_commit",
+    "commit_message": "testing to see if SGTL5000 shows up on I2C",
+    "commit_hash": "a25d05b46812956a0837ba1885dfa4933919aca2"
+  },
+  {
+    "timestamp": "2026-06-11T03:32:25.218Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## My request for Codex:",
+      "add a function to ExtCodec that checks if the SGTL5000's PLL is locked"
+    ],
+    "agent_reply": [
+      "Added `ExtCodec::pllLocked()` in [ExtCodec.h](<d:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.h:42>) and implemented it in [ExtCodec.cpp](<d:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:206>).",
+      "",
+      "It reads SGTL5000 `CHIP_ANA_STATUS` register `0x0036` and checks bit 4, `PLL_IS_LOCKED`. It uses the same `M5.In_I2C` transaction style as the SGTL5000 control code and returns `false` if the register read fails. For `TEST_MOCK_EXT_CODEC`, it returns `true`.",
+      "",
+      "Verified with:",
+      "",
+      "```text",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passes, and `src/version.c` was restored after PlatformIO regenerated it."
+    ],
+    "files": [
+      "lib/ExtCodec/ExtCodec.h",
+      "lib/ExtCodec/ExtCodec.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-11T03:58:40.512Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_ledcpwm.cpp",
+      "",
+      "## Active selection of the file:",
+      "configure_i2s_shared",
+      "",
+      "## My request for Codex:",
+      "ok make those changes"
+    ],
+    "agent_reply": [
+      "Done. I updated [test_sgtl5000_pll_lock.cpp](D:/GithubRepos/The-Fly/src/tests/test_sgtl5000_pll_lock.cpp:148) so it now prints useful live telemetry instead of only printing on a PLL-loss event.",
+      "",
+      "It now shows:",
+      "",
+      "- `i2s=... codec=... avail=...`",
+      "- `LEDC MCLK GPIO14`",
+      "- initial raw `CHIP_ANA_STATUS`",
+      "- 1 Hz heartbeat: `ok`, `er`, `l`, `a`, `loss`",
+      "  - `ok` = successful ANA_STATUS reads",
+      "  - `er` = failed ANA_STATUS reads",
+      "  - `l` = PLL lock bit",
+      "  - `a` = raw ANA_STATUS hex",
+      "  - `loss` = locked-to-unlocked transitions",
+      "",
+      "I also added `ExtCodec::readChipAnaStatus()` in [ExtCodec.h](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.h:43), using the same internal I2C register-read path as `pllLocked()`.",
+      "",
+      "Verified with `pio run -e thefly_sec1`: build passed. `src/version.c` is clean again.",
+      "",
+      "Done. I updated [test_sgtl5000_pll_lock.cpp](D:/GithubRepos/The-Fly/src/tests/test_sgtl5000_pll_lock.cpp:148) so it now prints useful live telemetry instead of only printing on a PLL-loss event.",
+      "",
+      "It now shows:",
+      "",
+      "- `i2s=... codec=... avail=...`",
+      "- `LEDC MCLK GPIO14`",
+      "- initial raw `CHIP_ANA_STATUS`",
+      "- 1 Hz heartbeat: `ok`, `er`, `l`, `a`, `loss`",
+      "  - `ok` = successful ANA_STATUS reads",
+      "  - `er` = failed ANA_STATUS reads",
+      "  - `l` = PLL lock bit",
+      "  - `a` = raw ANA_STATUS hex",
+      "  - `loss` = locked-to-unlocked transitions",
+      "",
+      "I also added `ExtCodec::readChipAnaStatus()` in [ExtCodec.h](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.h:43), using the same internal I2C register-read path as `pllLocked()`.",
+      "",
+      "Verified with `pio run -e thefly_sec1`: build passed. `src/version.c` is clean again."
+    ],
+    "files": [
+      "lib/ExtCodec/ExtCodec.h",
+      "lib/ExtCodec/ExtCodec.cpp",
+      "src/tests/test_sgtl5000_pll_lock.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-11T05:36:14Z",
+    "type": "git_commit",
+    "commit_message": "ext codec playback with ledc pwm as mclk",
+    "commit_hash": "698aca1726c9ac99bc4d92d25616c861ed2821eb"
+  },
+  {
+    "timestamp": "2026-06-11T07:39:39.057Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.cpp",
+      "",
+      "## Active selection of the file:",
+      "kDefaultHeadphoneVolume",
+      "",
+      "## My request for Codex:",
+      "both `kDefaultDedicatedMicGainDb` and `kDefaultHeadphoneVolume` should be the maximum allowed. We have AGC and software volume control already implemented. And I need to test just how loud this thing gets"
+    ],
+    "agent_reply": [
+      "Done. I maxed the SGTL5000 defaults in [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:41):",
+      "",
+      "- `kDefaultHeadphoneVolume = 1.0f`",
+      "- `kDefaultDedicatedMicGainDb = 63`",
+      "",
+      "I also raised AudioManager’s external codec software-volume ceiling in [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1297) from `0.45f` to `1.0f`, otherwise `AudioManager::kMaxVolume` would still cap the headphone output.",
+      "",
+      "Verified with `pio run -e thefly_sec1`: build passed. `src/version.c` is clean again. I left the existing dirty `lib/ExtCodec/readme.md` alone.",
+      "",
+      "Done. I maxed the SGTL5000 defaults in [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:41):",
+      "",
+      "- `kDefaultHeadphoneVolume = 1.0f`",
+      "- `kDefaultDedicatedMicGainDb = 63`",
+      "",
+      "I also raised AudioManager’s external codec software-volume ceiling in [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1297) from `0.45f` to `1.0f`, otherwise `AudioManager::kMaxVolume` would still cap the headphone output.",
+      "",
+      "Verified with `pio run -e thefly_sec1`: build passed. `src/version.c` is clean again. I left the existing dirty `lib/ExtCodec/readme.md` alone."
+    ],
+    "files": [
+      "lib/ExtCodec/ExtCodec.cpp",
+      "lib/AudioManager/AudioManager.cpp",
+      "src/version.c",
+      "lib/ExtCodec/readme.md"
+    ]
+  },
+  {
+    "timestamp": "2026-06-11T08:03:43.803Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.cpp",
+      "",
+      "## Active selection of the file:",
+      "constexpr float    kDefaultHeadphoneVolume      = 0.5f; // 1.0f is way too loud",
+      "constexpr uint8_t  kDefaultLineInLevel          = 5;",
+      "constexpr uint8_t  kDefaultDedicatedMicGainDb   = 63;",
+      "",
+      "## My request for Codex:",
+      "see the highlighted code containing constants, promote these to `inc\\conf.h`"
+    ],
+    "agent_reply": [
+      "Promoted those SGTL5000 defaults into [conf.h](d:/GithubRepos/The-Fly/inc/conf.h:91):",
+      "",
+      "```cpp",
+      "kSGTL5000DefaultHeadphoneVolume",
+      "kSGTL5000DefaultLineInLevel",
+      "kSGTL5000DefaultDedicatedMicGainDb",
+      "```",
+      "",
+      "[ExtCodec.cpp](d:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:291) now includes `conf.h` and uses those shared config constants instead of local `kDefault...` values.",
+      "",
+      "Verified with `pio run -e thefly_sec1` and `git diff --check`; both passed. `src/version.c` was restored after the build regenerated it."
+    ],
+    "files": [
+      "inc/conf.h",
+      "lib/ExtCodec/ExtCodec.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-11T08:06:35Z",
+    "type": "git_commit",
+    "commit_message": "volume ceiling, and went back to using software vol control",
+    "commit_hash": "18185835bb99fd4f52bbe9f81038a13d75f23842"
   }
 ]

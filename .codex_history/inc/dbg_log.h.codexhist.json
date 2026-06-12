@@ -191,5 +191,32 @@
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
+  },
+  {
+    "timestamp": "2026-06-12T05:55:10.831Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "for the debugging logging outputs from the whole \"save screenshot\" feature, make it not depend on which debug level. If I enabled the screenshot feature, the messages should all always go through regardless of debug message level"
+    ],
+    "agent_reply": [
+      "Done. I added forced logging macros in [inc/dbg_log.h](D:/GithubRepos/The-Fly/inc/dbg_log.h:74) that bypass `DBG_LOG_LOCAL_LEVEL` for the serial logger, then switched all screenshot-save diagnostics in [GuiDisplay.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/GuiDisplay.cpp:72) to `DBG_LOG_FORCEI/E`.",
+      "",
+      "Verified with `pio run -e thefly_sec1`: build passed. `git diff --check` only reported the repo’s normal CRLF warnings."
+    ],
+    "files": [
+      "lib/FlyGui/GuiDisplay.cpp",
+      "inc/dbg_log.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-12T07:17:51Z",
+    "type": "git_commit",
+    "commit_message": "more screenshot stuff",
+    "commit_hash": "f28c5490101268c4e2dcd3c955c64e070d5b05b2"
   }
 ]

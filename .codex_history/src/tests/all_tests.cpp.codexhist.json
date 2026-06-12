@@ -871,5 +871,176 @@
     "type": "git_commit",
     "commit_message": "ledc as mclk shenanigans",
     "commit_hash": "3899800fdc93cf7a914ee480463eca1ff28cc754"
+  },
+  {
+    "timestamp": "2026-06-11T00:00:50.258Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/all_tests.cpp",
+      "",
+      "## My request for Codex:",
+      "inside `src\\tests` implement me a new file with a I2C scan test, report all addresses that respond, follow the style of all the other tests, use the same mechanism for I2C that the ExtCodec module uses"
+    ],
+    "agent_reply": [
+      "Implemented the I2C scan test in [test_i2cscan.cpp](D:/GithubRepos/The-Fly/src/tests/test_i2cscan.cpp:1).",
+      "",
+      "It scans `0x01..0x7E` using `M5.In_I2C.scanID(..., 400000)`, matching ExtCodec’s internal I2C mechanism, and reports all responding addresses over Serial plus a small display summary. I also registered it in [all_tests.h](D:/GithubRepos/The-Fly/src/tests/all_tests.h:32) and added the usual commented call in [all_tests.cpp](D:/GithubRepos/The-Fly/src/tests/all_tests.cpp:28).",
+      "",
+      "Verification: `pio run -e thefly_sec1` passes. Plain `pio run -e thefly` still fails because that env does not define `BUILD_WITH_SECURITY_LEVEL`."
+    ],
+    "files": [
+      "src/tests/all_tests.h",
+      "src/tests/test_i2cscan.cpp",
+      "src/tests/all_tests.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-11T00:11:46.029Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_i2cscan.cpp",
+      "",
+      "## Active selection of the file:",
+      "internal_i2c_enabled",
+      "",
+      "## My request for Codex:",
+      "make the test a single run, do not use the screen, just one scan and print to serial port",
+      "",
+      "right now it's just hung with no results, which is not possible as we know it's off the shelf hardware"
+    ],
+    "agent_reply": [
+      "Done. [test_i2cscan.cpp](D:/GithubRepos/The-Fly/src/tests/test_i2cscan.cpp:1) is now a one-shot serial-only scan:",
+      "",
+      "- no screen/display calls",
+      "- no `while (true)` loop",
+      "- no internal `M5.begin()`",
+      "- uses `M5.In_I2C.scanID(address, 400000)` like ExtCodec",
+      "- prints start status, `internal_i2c_enabled`, each found address as it appears, then the final address list and `scan complete`",
+      "",
+      "I also kept `test_i2cscan()` active in [all_tests.cpp](D:/GithubRepos/The-Fly/src/tests/all_tests.cpp:28) since that’s how your tree currently had it selected.",
+      "",
+      "Verification: `pio run -e thefly_sec1` passes.",
+      "",
+      "Done. [test_i2cscan.cpp](D:/GithubRepos/The-Fly/src/tests/test_i2cscan.cpp:1) is now a one-shot serial-only scan:",
+      "",
+      "- no screen/display calls",
+      "- no `while (true)` loop",
+      "- no internal `M5.begin()`",
+      "- uses `M5.In_I2C.scanID(address, 400000)` like ExtCodec",
+      "- prints start status, `internal_i2c_enabled`, each found address as it appears, then the final address list and `scan complete`",
+      "",
+      "I also kept `test_i2cscan()` active in [all_tests.cpp](D:/GithubRepos/The-Fly/src/tests/all_tests.cpp:28) since that’s how your tree currently had it selected.",
+      "",
+      "Verification: `pio run -e thefly_sec1` passes."
+    ],
+    "files": [
+      "src/tests/test_i2cscan.cpp",
+      "src/version.c",
+      "src/tests/all_tests.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-11T01:43:32Z",
+    "type": "git_commit",
+    "commit_message": "got sound out of SGTL5000 earbuds",
+    "commit_hash": "ee09e2dddae323537b6a3feb4bca7927234ba995"
+  },
+  {
+    "timestamp": "2026-06-11T03:47:17.470Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_i2cscan.cpp",
+      "",
+      "## Active selection of the file:",
+      "AudioManager::configure_i2s_shared();",
+      "",
+      "## My request for Codex:",
+      "add to `src\\tests` a test called `test_sgtl5000_pll_lock`",
+      "",
+      "first thing is call `AudioManager::configure_i2s_shared();`",
+      "",
+      "second thing is to initialize `ExtCodec`",
+      "",
+      "the serial port won't work, so initialize the screen, use the smallest font",
+      "",
+      "write the first line to indicate the test has started",
+      "",
+      "simply run in a loop, constantly checking `ExtCodec::pllLocked()`",
+      "",
+      "every time PLL loses lock, a counter goes up, write a new line with the new count, do not reset the count",
+      "",
+      "when it goes over the end of the screen, start from the top again",
+      ""
+    ],
+    "agent_reply": [
+      "Implemented `test_sgtl5000_pll_lock` in [src/tests/test_sgtl5000_pll_lock.cpp](D:/GithubRepos/The-Fly/src/tests/test_sgtl5000_pll_lock.cpp:62).",
+      "",
+      "It starts with `AudioManager::configure_i2s_shared();`, then `ExtCodec::init();`, initializes the display with font 1 / size 1, writes the start line, then loops on `ExtCodec::pllLocked()`. Each locked-to-unlocked transition increments the persistent counter and writes a new line, wrapping back to the top when it reaches the bottom of the screen.",
+      "",
+      "I also registered it in [all_tests.h](D:/GithubRepos/The-Fly/src/tests/all_tests.h:33) and added the usual commented-out call in [all_tests.cpp](D:/GithubRepos/The-Fly/src/tests/all_tests.cpp:29). `pio run -e thefly_sec1` passed, and `git diff --check` is clean."
+    ],
+    "files": [
+      "src/tests/test_sgtl5000_pll_lock.cpp",
+      "src/tests/all_tests.h",
+      "src/tests/all_tests.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-11T04:49:51.831Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## My request for Codex:",
+      "make a new test called `test_continuous_sine`",
+      "",
+      "this one uses the newer ExtCodec, and it starts up with the correct sequence, I2S setup before I2C setup",
+      "",
+      "use a lookup table for the sine wave",
+      "",
+      "keep the NS4168 off",
+      "",
+      "feed the I2S using the existing pump mechanisms, like the `test_speaker` test",
+      "",
+      "I'm going to try wiring the headphone jack on the SGTL5000 into a cheap USB mic adapter with a 3.5mm mic input, see what the signal looks like. So only make the sine wave like 1/4 total allowed amplitude"
+    ],
+    "agent_reply": [
+      "Implemented `test_continuous_sine` in [src/tests/test_continuous_sine.cpp](D:/GithubRepos/The-Fly/src/tests/test_continuous_sine.cpp:99).",
+      "",
+      "It does the SGTL5000-safe startup order:",
+      "",
+      "1. `AudioManager::configure_i2s_shared()`",
+      "2. `ExtCodec::init()`",
+      "3. `AudioManager::init(AudioManager::Hardware::ExternalI2SCodec)`",
+      "4. `AudioManager::enableSpeakerMode()`",
+      "",
+      "The sine is a 440 Hz lookup-table oscillator, queued into `bluetoothToSpeakerFifo()` and fed out with `AudioManager::pump_bt2spk()`, matching the existing `test_speaker` mechanism. PCM amplitude is `+/-8191`, about 1/4 full-scale int16. The external codec speaker path disables the NS4168 path.",
+      "",
+      "I also registered it in [all_tests.h](D:/GithubRepos/The-Fly/src/tests/all_tests.h:34) and made it the active test in [all_tests.cpp](D:/GithubRepos/The-Fly/src/tests/all_tests.cpp:30).",
+      "",
+      "Verified with `pio run -e thefly_sec1`: build passed. Only the existing FTP deprecated `available()` warning showed up."
+    ],
+    "files": [
+      "src/tests/test_continuous_sine.cpp",
+      "src/tests/all_tests.h",
+      "src/tests/all_tests.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-11T05:36:14Z",
+    "type": "git_commit",
+    "commit_message": "ext codec playback with ledc pwm as mclk",
+    "commit_hash": "698aca1726c9ac99bc4d92d25616c861ed2821eb"
   }
 ]

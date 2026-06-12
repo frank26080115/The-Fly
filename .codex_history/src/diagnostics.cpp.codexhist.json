@@ -245,5 +245,37 @@
     "type": "git_commit",
     "commit_message": "more clang format stuff",
     "commit_hash": "fa8a1e27b6b4982ce7a05c70f69ab0eb2ff14f79"
+  },
+  {
+    "timestamp": "2026-06-04T07:38:57.564Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "quickly review the changes to platformio.ini I made to enable the display of warnings"
+    ],
+    "agent_reply": [
+      "**Findings**",
+      "- Medium: [platformio.ini](d:/GithubRepos/The-Fly/platformio.ini:77) changing `DBG_LOG_LOCAL_LEVEL` from `DBG_LOG_ERROR` to `DBG_LOG_WARN` also makes [conf.h](d:/GithubRepos/The-Fly/inc/conf.h:84) define `BUILD_IS_DEBUG`. That enables the periodic diagnostics `Serial.printf` block in [diagnostics.cpp](d:/GithubRepos/The-Fly/src/diagnostics.cpp:99). If you only wanted warnings during this upload debugging session, that side effect is worth knowing.",
+      "",
+      "- Low: [platformio.ini](d:/GithubRepos/The-Fly/platformio.ini:75) also bumps `CORE_DEBUG_LEVEL` and `LOG_LOCAL_LEVEL` to `ESP_LOG_WARN`. That can surface Arduino/ESP-IDF/library warnings in addition to your `DBG_LOGW` calls, so serial output may get noisier than just the filesystem diagnostics.",
+      "",
+      "No mechanical issue with the change itself: it should display your `DBG_LOGW()` warnings because `DBG_LOG_USE_SERIAL=1` and the local level is now `WARN`."
+    ],
+    "files": [
+      "platformio.ini",
+      "inc/conf.h",
+      "src/diagnostics.cpp",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
+    ]
+  },
+  {
+    "timestamp": "2026-06-12T02:55:23Z",
+    "type": "git_commit",
+    "commit_message": "screenshot fixed",
+    "commit_hash": "e00743f2267394193706bdaf6443cc4292489116"
   }
 ]

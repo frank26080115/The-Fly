@@ -1,0 +1,43 @@
+[
+  {
+    "timestamp": "2026-06-08T00:17:18.151Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_ledcpwm.cpp",
+      "",
+      "## My request for Codex:",
+      "implement `void test_mcpwm()`",
+      "",
+      "the exact same thing as the previous instruction but using the motor control pwm"
+    ],
+    "agent_reply": [
+      "Implemented `test_mcpwm()` in [src/tests/test_mcpwm.cpp](D:/GithubRepos/The-Fly/src/tests/test_mcpwm.cpp:1).",
+      "",
+      "It uses ESP-IDF MCPWM on GPIO14, requesting `8192000 Hz` with a two-tick period and compare at one tick, so 50% duty in the lowest useful PWM resolution shape. It prints each setup step, starts the timer, then idles forever like the other hardware probes.",
+      "",
+      "Validation: `pio run -e thefly_sec0` passes, and I cleaned up the generated `src/version.c` churn afterward.",
+      "",
+      "Small hardware note: ESP32 MCPWM is fed from `PLL160M` through integer prescalers, so watch serial for an MCPWM “adjust timer resolution” warning and trust the scope for the actual output frequency.",
+      "",
+      "Implemented `test_mcpwm()` in [src/tests/test_mcpwm.cpp](D:/GithubRepos/The-Fly/src/tests/test_mcpwm.cpp:1).",
+      "",
+      "It uses ESP-IDF MCPWM on GPIO14, requesting `8192000 Hz` with a two-tick period and compare at one tick, so 50% duty in the lowest useful PWM resolution shape. It prints each setup step, starts the timer, then idles forever like the other hardware probes.",
+      "",
+      "Validation: `pio run -e thefly_sec0` passes, and I cleaned up the generated `src/version.c` churn afterward.",
+      "",
+      "Small hardware note: ESP32 MCPWM is fed from `PLL160M` through integer prescalers, so watch serial for an MCPWM “adjust timer resolution” warning and trust the scope for the actual output frequency."
+    ],
+    "files": [
+      "src/tests/test_mcpwm.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-08T03:05:24Z",
+    "type": "git_commit",
+    "commit_message": "ledc as mclk shenanigans",
+    "commit_hash": "3899800fdc93cf7a914ee480463eca1ff28cc754"
+  }
+]

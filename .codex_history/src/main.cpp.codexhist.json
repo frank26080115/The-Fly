@@ -7449,10 +7449,181 @@
     ]
   },
   {
+    "timestamp": "2026-06-04T04:35:17.016Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "",
+      "## My request for Codex:",
+      "I want to trigger the buzz haptic on any start of bluetooth recording, whether it is local initiated or remote initiated, do not remove the existing on-touch click, as there's a few seconds between the touch and actual connection"
+    ],
+    "agent_reply": [
+      "Done. I added `haptic_play_buzz()` in [RecordingViewCallbacks.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp:5), after the Bluetooth recording path actually succeeds:",
+      "",
+      "- `beginBluetoothRecording()` buzzes after `AudioFileRecorder::startRecording()` and `AudioManager::enableSpeakerMode()` both succeed.",
+      "- `promoteMemoRecordingToBluetooth()` buzzes when an existing memo recording is successfully promoted to Bluetooth/meeting mode.",
+      "",
+      "That keeps the existing on-touch click intact, and the buzz now marks the later “Bluetooth recording really started” moment for both local and remote starts.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, build passes.",
+      "",
+      "Done. I added `haptic_play_buzz()` in [RecordingViewCallbacks.cpp](/d:/GithubRepos/The-Fly/lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp:5), after the Bluetooth recording path actually succeeds:",
+      "",
+      "- `beginBluetoothRecording()` buzzes after `AudioFileRecorder::startRecording()` and `AudioManager::enableSpeakerMode()` both succeed.",
+      "- `promoteMemoRecordingToBluetooth()` buzzes when an existing memo recording is successfully promoted to Bluetooth/meeting mode.",
+      "",
+      "That keeps the existing on-touch click intact, and the buzz now marks the later “Bluetooth recording really started” moment for both local and remote starts.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, build passes."
+    ],
+    "files": [
+      "src/main.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-04T04:40:01.304Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/HapticsWrapper/HapticsWrapper.h",
+      "",
+      "## Active selection of the file:",
+      "haptic_play_done",
+      "",
+      "## My request for Codex:",
+      "add `haptic_play_done` to the end of establishing a Wi-Fi connection to a station",
+      "",
+      "add `haptic_play_done` when we are in a softAP mode and a client connects"
+    ],
+    "agent_reply": [
+      "Done.",
+      "",
+      "I added `haptic_play_done()` after successful station setup in [main.cpp](/d:/GithubRepos/The-Fly/src/main.cpp:789), after the web server starts, cloud/action list populates, and the scroll view is shown.",
+      "",
+      "I also added `haptic_play_done()` for SoftAP client joins in [WifiManager.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:889), only when a new client MAC is observed, so it should not fire repeatedly on every poll.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, build passes."
+    ],
+    "files": [
+      "src/main.cpp",
+      "lib/WifiManager/WifiManager.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-04T04:41:35.584Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/HapticsWrapper/HapticsWrapper.h",
+      "",
+      "## Active selection of the file:",
+      "haptic_play_done",
+      "",
+      "## My request for Codex:",
+      "add `haptic_play_done` on completion of pairing",
+      "",
+      "add `haptic_play_done` on completion of NTP time sync"
+    ],
+    "agent_reply": [
+      "Done. I added `haptic_play_done()` in [main.cpp](/d:/GithubRepos/The-Fly/src/main.cpp:533) for successful Bluetooth pairing once the pairing success dialog is shown.",
+      "",
+      "I also added `haptic_play_done()` in the successful NTP sync branch of [main.cpp](/d:/GithubRepos/The-Fly/src/main.cpp:709), so cancelled/failed syncs do not play the done pattern.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, build passes."
+    ],
+    "files": [
+      "src/main.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-06-04T05:05:33Z",
     "type": "git_commit",
     "commit_message": "haptics implemented across the board",
     "commit_hash": "b0281be08ff90256d2e231f0ba9c25e7422784c1"
+  },
+  {
+    "timestamp": "2026-06-04T23:00:24.630Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/AsyncFsManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "kFileActivityGuiQuietMs",
+      "",
+      "## My request for Codex:",
+      "When Wi-Fi either establishes a connection or starts a soft AP, lower the GUI's polling rate to the lowest setting"
+    ],
+    "agent_reply": [
+      "Implemented it.",
+      "",
+      "Wi-Fi connection state now drives GUI polling through callbacks:",
+      "- `on_wifi_connected()` sets `gui->setWifiActive(true)`.",
+      "- `on_wifi_disconnected()` clears it.",
+      "- `setup()` registers both callbacks with `WifiManager`.",
+      "",
+      "I also updated `FlyGui` so Wi-Fi activity forces `FLYGUI_POLL_SLOW`, and audio can no longer accidentally restore `FAST` while Wi-Fi is active. When Wi-Fi is inactive, audio still maps to `MEDIUM`, otherwise it returns to `FAST`.",
+      "",
+      "Verified with `pio run -e thefly_sec0` successfully.",
+      "",
+      "Note: `inc/web_assets.h` is still modified from PlatformIO’s asset packaging step, and `src/version.c` plus the untracked files were already in the worktree."
+    ],
+    "files": [
+      "src/main.cpp",
+      "lib/FlyGui/FlyGui.h",
+      "lib/FlyGui/FlyGui.cpp",
+      "inc/main_callbacks.h",
+      "src/main_callbacks.cpp",
+      "inc/web_assets.h",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-04T23:09:53.416Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/AsyncFsManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "kFileActivityGuiQuietMs",
+      "",
+      "## My request for Codex:",
+      "that's weird, we have existing event handling for these, I need this change redone, I don't want too many event handlers for the same event"
+    ],
+    "agent_reply": [
+      "Redone. I removed the extra Wi-Fi connect/disconnect callbacks and registrations.",
+      "",
+      "Now the slow GUI polling is triggered from the existing flow points:",
+      "- Station connection: `handle_wifi_station_connected()` in [src/main.cpp](d:/GithubRepos/The-Fly/src/main.cpp:769)",
+      "- Soft AP start success: `onclick_wifi_ap()` in [src/main_callbacks.cpp](d:/GithubRepos/The-Fly/src/main_callbacks.cpp:488)",
+      "",
+      "I kept the `FlyGui::setWifiActive()` state so Wi-Fi still wins over audio polling changes and forces `FLYGUI_POLL_SLOW`.",
+      "",
+      "Verified: `pio run -e thefly_sec0` passes.",
+      "",
+      "Redone. I removed the extra Wi-Fi connect/disconnect callbacks and registrations.",
+      "",
+      "Now the slow GUI polling is triggered from the existing flow points:",
+      "- Station connection: `handle_wifi_station_connected()` in [src/main.cpp](d:/GithubRepos/The-Fly/src/main.cpp:769)",
+      "- Soft AP start success: `onclick_wifi_ap()` in [src/main_callbacks.cpp](d:/GithubRepos/The-Fly/src/main_callbacks.cpp:488)",
+      "",
+      "I kept the `FlyGui::setWifiActive()` state so Wi-Fi still wins over audio polling changes and forces `FLYGUI_POLL_SLOW`.",
+      "",
+      "Verified: `pio run -e thefly_sec0` passes."
+    ],
+    "files": [
+      "inc/main_callbacks.h",
+      "src/main.cpp",
+      "src/main_callbacks.cpp"
+    ]
   },
   {
     "timestamp": "2026-06-04T23:14:49Z",
@@ -7537,15 +7708,276 @@
     "commit_hash": "bb1a1fe14284387ce02c9a2c958393745f4c1598"
   },
   {
+    "timestamp": "2026-06-06T01:53:19.596Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: .codex_history/lib/ExtCodec/ExtCodec.cpp.codexhist.json",
+      "",
+      "## Active selection of the file:",
+      "\"Under state `EXTCODEC_NO_EARBUD` we still have push-to-talk behavior, but instead of switching to the `SPM1423` when we push-to-talk, we switch to the `SGTL5000` using line-in-right as the sound source.\",",
+      "      \"\",",
+      "      \"Under `EXTCODEC_YES_EARBUD` we have bidirectional audio, the mic is using line-in-right, do not use push-to-talk behavior, we can mute the mic, we can mute the sound output, but now changing mic state doesn’t change sound output state, and changing sound output state doesn’t change mic state\",",
+      "      \"\",",
+      "      \"Under `EXTCODEC_YES_EARBUD_WITH_MIC` we have bidirectional audio, the mic is using the `SGTL5000`'s dedicated mic input, do not use push-to-talk behavior, we can mute the mic, we can mute the sound output, but now changing mic state doesn’t change sound output state, and changing sound output state doesn’t change mic state\",",
+      "",
+      "## My request for Codex:",
+      "the behavior isn't correct",
+      "",
+      "the instructions are inside `.codex_history\\lib\\ExtCodec\\ExtCodec.cpp.codexhist.json` and I said",
+      "",
+      "```",
+      "\"Under state `EXTCODEC_NO_EARBUD` we still have push-to-talk behavior, but instead of switching to the `SPM1423` when we push-to-talk, we switch to the `SGTL5000` using line-in-right as the sound source.\",",
+      "\"\",",
+      "\"Under `EXTCODEC_YES_EARBUD` we have bidirectional audio, the mic is using line-in-right, do not use push-to-talk behavior, we can mute the mic, we can mute the sound output, but now changing mic state doesn’t change sound output state, and changing sound output state doesn’t change mic state\",",
+      "\"\",",
+      "\"Under `EXTCODEC_YES_EARBUD_WITH_MIC` we have bidirectional audio, the mic is using the `SGTL5000`'s dedicated mic input, do not use push-to-talk behavior, we can mute the mic, we can mute the sound output, but now changing mic state doesn’t change sound output state, and changing sound output state doesn’t change mic state\",",
+      "```",
+      "",
+      "Right now all the states still show a push-to-talk behavior, where activating the mic will make the speaker go faded, muting the mic restores speaker state, which is not correct. I don't know if the actual I2S is being reconfigured as this is a mock test."
+    ],
+    "agent_reply": [
+      "Fixed the recording-view behavior split.",
+      "",
+      "In the two earbud states, the mic and speaker buttons are now independent:",
+      "",
+      "- mic button toggles mic mute only",
+      "- speaker button toggles speaker mute only",
+      "- neither button fades/restores the other",
+      "- the ear sprites still track `ExtCodec::stateGeneration()`",
+      "",
+      "`EXTCODEC_NO_EARBUD` still uses the old push-to-talk visual behavior.",
+      "",
+      "I also wired codec state changes through `ExtCodec::configureAnalogPathForState()`, so the SGTL5000 input-selection hook now runs when the mock/real codec state changes and when entering mic mode.",
+      "",
+      "Important caveat: the actual external I2S driver path is still not implemented in `AudioManager`; `enable_exti2scodec_speaker()` / `enable_exti2scodec_mic()` are still stubs. So this fixes the GUI/mock behavior and analog-path hook, but not full real SGTL5000 I2S audio yet.",
+      "",
+      "Validated with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "git diff --check",
+      "```"
+    ],
+    "files": [
+      "lib/FlyGuiViews/RecordingView/RecordingView.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingView.h",
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.h",
+      "src/version.c",
+      "src/main.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-06T02:02:00.891Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: .codex_history/lib/ExtCodec/ExtCodec.cpp.codexhist.json",
+      "",
+      "## Active selection of the file:",
+      "\"Under state `EXTCODEC_NO_EARBUD` we still have push-to-talk behavior, but instead of switching to the `SPM1423` when we push-to-talk, we switch to the `SGTL5000` using line-in-right as the sound source.\",",
+      "      \"\",",
+      "      \"Under `EXTCODEC_YES_EARBUD` we have bidirectional audio, the mic is using line-in-right, do not use push-to-talk behavior, we can mute the mic, we can mute the sound output, but now changing mic state doesn’t change sound output state, and changing sound output state doesn’t change mic state\",",
+      "      \"\",",
+      "      \"Under `EXTCODEC_YES_EARBUD_WITH_MIC` we have bidirectional audio, the mic is using the `SGTL5000`'s dedicated mic input, do not use push-to-talk behavior, we can mute the mic, we can mute the sound output, but now changing mic state doesn’t change sound output state, and changing sound output state doesn’t change mic state\",",
+      "",
+      "## My request for Codex:",
+      "enable_exti2scodec_speaker and enable_exti2scodec_mic should probably become the same thing now? and they don't duplicate configureAnalogPathForState?",
+      "",
+      "Implement what we actually need"
+    ],
+    "agent_reply": [
+      "Implemented the shared external codec path.",
+      "",
+      "The key change is in [AudioManager.cpp](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:921): `enable_exti2scodec_speaker` and `enable_exti2scodec_mic` are gone in favor of one `enable_exti2scodec(...)` path, with a new `P2TMode::FullDuplex`. The SGTL5000 I2S setup now opens TX/RX together once, and speaker-only, mic-only, and full-duplex are just mode choices on top of that.",
+      "",
+      "Recording behavior now switches correctly:",
+      "- no earbud: stays push-to-talk, but mic mode uses the external codec path",
+      "- earbud / earbud+mic: enters full duplex, mic mute and speaker mute stay independent",
+      "- mock state changes re-sync routing through `AudioManager::syncExternalCodecRouting()` instead of duplicating `configureAnalogPathForState()`",
+      "",
+      "Startup now selects `AudioManager::Hardware::ExternalI2SCodec` when `ExtCodec::available()` is true in [main.cpp](d:/GithubRepos/The-Fly/src/main.cpp:181), so the mock can actually drive the external-codec behavior.",
+      "",
+      "Verified with `pio run -e thefly_sec0` successfully. `git diff --check` also exits cleanly, with only the existing CRLF warnings.",
+      "",
+      "Implemented the shared external codec path.",
+      "",
+      "The key change is in [AudioManager.cpp](d:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:921): `enable_exti2scodec_speaker` and `enable_exti2scodec_mic` are gone in favor of one `enable_exti2scodec(...)` path, with a new `P2TMode::FullDuplex`. The SGTL5000 I2S setup now opens TX/RX together once, and speaker-only, mic-only, and full-duplex are just mode choices on top of that.",
+      "",
+      "Recording behavior now switches correctly:",
+      "- no earbud: stays push-to-talk, but mic mode uses the external codec path",
+      "- earbud / earbud+mic: enters full duplex, mic mute and speaker mute stay independent",
+      "- mock state changes re-sync routing through `AudioManager::syncExternalCodecRouting()` instead of duplicating `configureAnalogPathForState()`",
+      "",
+      "Startup now selects `AudioManager::Hardware::ExternalI2SCodec` when `ExtCodec::available()` is true in [main.cpp](d:/GithubRepos/The-Fly/src/main.cpp:181), so the mock can actually drive the external-codec behavior.",
+      "",
+      "Verified with `pio run -e thefly_sec0` successfully. `git diff --check` also exits cleanly, with only the existing CRLF warnings."
+    ],
+    "files": [
+      "lib/AudioManager/AudioManager.h",
+      "lib/AudioManager/AudioManager.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.h",
+      "lib/FlyGuiViews/RecordingView/RecordingViewCallbacks.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingView.cpp",
+      "src/main.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-06T02:31:53.759Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.cpp",
+      "",
+      "## My request for Codex:",
+      "hmmm I tried connecting to my phone, then during the connection dialog, I get an error saying \"Bluetooth recording start failed\" or something like that, and then it went back to the connection waiting dialog forever",
+      "",
+      "this isn't correct, either it goes into the mainscreenview or reboots, but not back into the waiting dialog",
+      "",
+      "also, this is a mock test, why is it failing?"
+    ],
+    "agent_reply": [
+      "Fixed both pieces.",
+      "",
+      "The mock failure was because `TEST_MOCK_EXT_CODEC` made `ExtCodec::available()` true, so startup selected `ExternalI2SCodec`, but `AudioManager` still tried to allocate real SGTL5000 I2S channels. In mock mode, `ensure_exti2scodec_i2s()` now skips real I2S setup and only updates the simulated external-codec path/mode.",
+      "",
+      "I also fixed the bad failure destination: Bluetooth recording start/view failures now clear the pending Bluetooth flags, stop/disconnect the recording flow, and show an error that dismisses to `FLYGUI_VIEW_MAIN` instead of auto-returning to the transient connection waiting view.",
+      "",
+      "Verified with `pio run -e thefly_sec0`. `git diff --check` is clean aside from the repo’s usual CRLF warnings."
+    ],
+    "files": [
+      "lib/AudioManager/AudioManager.cpp",
+      "src/main.cpp",
+      "src/version.c"
+    ]
+  },
+  {
     "timestamp": "2026-06-06T04:45:57Z",
     "type": "git_commit",
     "commit_message": "mock ext codec test",
     "commit_hash": "29e35603230f57c37d088b5def57ae546565ca33"
   },
   {
+    "timestamp": "2026-06-08T00:02:22.095Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/readme.md",
+      "",
+      "## My request for Codex:",
+      "implement `void test_ledcpwm()`",
+      "",
+      "simply start LEDC with ESP-IDF calls, on GPIO14, use the lowest possible resolution to achieve 50% duty cycle, frequency should be 8192000"
+    ],
+    "agent_reply": [
+      "Implemented `test_ledcpwm()` in `src/tests/test_ledcpwm.cpp`.",
+      "",
+      "It now starts ESP-IDF LEDC on GPIO14 at `8192000` Hz using `LEDC_TIMER_1_BIT`, with duty `1`, which gives the requested 50% duty cycle at the lowest useful resolution. It prints the LEDC timer/channel setup result and then idles so the waveform stays active.",
+      "",
+      "Validation: `pio run -e thefly_sec0` passes. I restored `src/version.c` afterward so the build-generated version change is not left in the diff."
+    ],
+    "files": [
+      "src/tests/test_ledcpwm.cpp",
+      "src/version.c",
+      "src/main.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-06-08T03:05:24Z",
     "type": "git_commit",
     "commit_message": "ledc as mclk shenanigans",
     "commit_hash": "3899800fdc93cf7a914ee480463eca1ff28cc754"
+  },
+  {
+    "timestamp": "2026-06-11T01:13:21.530Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_i2cscan.cpp",
+      "",
+      "## My request for Codex:",
+      "I just confirmed that the codec needs MCLK before it responds over I2C, see my modifications to your test"
+    ],
+    "agent_reply": [
+      "Good catch. I updated [src/tests/test_i2cscan.cpp](<d:/GithubRepos/The-Fly/src/tests/test_i2cscan.cpp:135>) around that finding: it now enables shared I2S MCLK first, performs the single I2C scan while UART TX is borrowed by GPIO1/MCLK, then stops I2S, reconnects UART0 TX, and prints the stored scan results to serial.",
+      "",
+      "I also removed the per-address serial prints during the scan, since those were happening while serial TX was physically disconnected.",
+      "",
+      "Verified with:",
+      "",
+      "```text",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "and it passes.",
+      "",
+      "Important follow-on: `ExtCodec::init()` still probes SGTL5000 before any production MCLK is guaranteed, so the scanner now proves the production init order needs the same treatment next."
+    ],
+    "files": [
+      "src/tests/test_i2cscan.cpp",
+      "src/version.c",
+      "src/main.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-11T19:14:03Z",
+    "type": "git_commit",
+    "commit_message": "screenshotting build",
+    "commit_hash": "f3c8446e475c3299a5cf7775fcc012328a46bf2c"
+  },
+  {
+    "timestamp": "2026-06-12T03:30:30.588Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGui/GuiDisplay.cpp",
+      "",
+      "## My request for Codex:",
+      "make the splash screen say \"touch to continue\", but this text needs to appear after the splash screen becomes completely idle"
+    ],
+    "agent_reply": [
+      "Done. I added `draw_splash_idle_prompt()` in [SplashView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:216), drawing `touch to continue` bottom-center with a small black backing for readability.",
+      "",
+      "In [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:232), it only gets called after the boot setup path has finished Bluetooth/audio/host-list init and boot-error checks, and only if the splash is still the active view.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passed.",
+      "",
+      "Done. I added `draw_splash_idle_prompt()` in [SplashView.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:216), drawing `touch to continue` bottom-center with a small black backing for readability.",
+      "",
+      "In [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:232), it only gets called after the boot setup path has finished Bluetooth/audio/host-list init and boot-error checks, and only if the splash is still the active view.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passed."
+    ],
+    "files": [
+      "lib/FlyGuiViews/SplashView.cpp",
+      "src/main.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-12T07:17:51Z",
+    "type": "git_commit",
+    "commit_message": "more screenshot stuff",
+    "commit_hash": "f28c5490101268c4e2dcd3c955c64e070d5b05b2"
   }
 ]

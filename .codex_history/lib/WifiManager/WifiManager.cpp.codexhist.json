@@ -2931,6 +2931,36 @@
     "commit_hash": "050209b43354fe0248f6252b8efadfbee8143265"
   },
   {
+    "timestamp": "2026-06-04T04:40:01.304Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/HapticsWrapper/HapticsWrapper.h",
+      "",
+      "## Active selection of the file:",
+      "haptic_play_done",
+      "",
+      "## My request for Codex:",
+      "add `haptic_play_done` to the end of establishing a Wi-Fi connection to a station",
+      "",
+      "add `haptic_play_done` when we are in a softAP mode and a client connects"
+    ],
+    "agent_reply": [
+      "Done.",
+      "",
+      "I added `haptic_play_done()` after successful station setup in [main.cpp](/d:/GithubRepos/The-Fly/src/main.cpp:789), after the web server starts, cloud/action list populates, and the scroll view is shown.",
+      "",
+      "I also added `haptic_play_done()` for SoftAP client joins in [WifiManager.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:889), only when a new client MAC is observed, so it should not fire repeatedly on every poll.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, build passes."
+    ],
+    "files": [
+      "src/main.cpp",
+      "lib/WifiManager/WifiManager.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-06-04T05:05:33Z",
     "type": "git_commit",
     "commit_message": "haptics implemented across the board",
@@ -3014,5 +3044,60 @@
     "type": "git_commit",
     "commit_message": "fixed the case when writing cfg from web will wipe out the SSID being displayed",
     "commit_hash": "f2f438bf1d447d16a1dfc7e37bbb829d8bdb2dbd"
+  },
+  {
+    "timestamp": "2026-06-11T01:50:26.674Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## Active selection of the file:",
+      "get_random_wifi_channel",
+      "",
+      "## My request for Codex:",
+      "bulletproof `get_random_wifi_channel` for me then make all the soft AP initialization use it"
+    ],
+    "agent_reply": [
+      "Implemented in [WifiManager.cpp](<d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:58>).",
+      "",
+      "`get_random_wifi_channel()` now only selects from `{1, 6, 11}`, has a fallback, mixes `esp_random()`, `millis()`, and `micros()`, and can’t return an invalid AP channel. The WPA3 SoftAP path now chooses a channel once via that helper and passes it into `configure_soft_ap_security()` instead of hardcoding channel 1.",
+      "",
+      "I also added a log line showing the chosen AP channel.",
+      "",
+      "Verified with:",
+      "",
+      "```text",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passes. The only remaining `WiFi.softAP(...)` grep hit is inside a disabled `#if 0` test helper.",
+      "",
+      "Implemented in [WifiManager.cpp](<d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:58>).",
+      "",
+      "`get_random_wifi_channel()` now only selects from `{1, 6, 11}`, has a fallback, mixes `esp_random()`, `millis()`, and `micros()`, and can’t return an invalid AP channel. The WPA3 SoftAP path now chooses a channel once via that helper and passes it into `configure_soft_ap_security()` instead of hardcoding channel 1.",
+      "",
+      "I also added a log line showing the chosen AP channel.",
+      "",
+      "Verified with:",
+      "",
+      "```text",
+      "pio run -e thefly_sec1",
+      "```",
+      "",
+      "Build passes. The only remaining `WiFi.softAP(...)` grep hit is inside a disabled `#if 0` test helper."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.cpp",
+      "src/version.c",
+      "src/tests/test_btspeakerphone.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-11T03:25:15Z",
+    "type": "git_commit",
+    "commit_message": "wifi soft ap now randomizes channel",
+    "commit_hash": "cf4c87c19c4ec95b3045649f603c983553313167"
   }
 ]

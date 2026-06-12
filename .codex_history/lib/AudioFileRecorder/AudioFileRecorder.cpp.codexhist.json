@@ -4177,6 +4177,82 @@
     ]
   },
   {
+    "timestamp": "2026-06-04T01:00:53.931Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "",
+      "## My request for Codex:",
+      "see file `lib\\AudioFileRecorder\\AudioFileRecorder.cpp`, where `make_recording_path(typeCode, 0);` is called, after it, check if the file already exists, if it does exist, then call `make_recording_path(typeCode, 1);` and check the file already exists, if it does, then call `make_recording_path(typeCode, 3);` and don't bother checking for file existence"
+    ],
+    "agent_reply": [
+      "Done in [AudioFileRecorder.cpp](/d:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:298).",
+      "",
+      "After `make_recording_path(typeCode, 0);`, it now checks `MicroSdCard::fs().exists(g_sd_path)`, retries with attempt `1` if needed, and then falls back to attempt `3` without checking:",
+      "",
+      "```cpp",
+      "make_recording_path(typeCode, 0);",
+      "SdFs& fs = MicroSdCard::fs();",
+      "if (fs.exists(g_sd_path))",
+      "{",
+      "    make_recording_path(typeCode, 1);",
+      "    if (fs.exists(g_sd_path))",
+      "    {",
+      "        make_recording_path(typeCode, 3);",
+      "    }",
+      "}",
+      "```",
+      "",
+      "`git diff --check` only reported the existing CRLF normalization warning, no whitespace errors.",
+      "",
+      "Done in [AudioFileRecorder.cpp](/d:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:298).",
+      "",
+      "After `make_recording_path(typeCode, 0);`, it now checks `MicroSdCard::fs().exists(g_sd_path)`, retries with attempt `1` if needed, and then falls back to attempt `3` without checking:",
+      "",
+      "```cpp",
+      "make_recording_path(typeCode, 0);",
+      "SdFs& fs = MicroSdCard::fs();",
+      "if (fs.exists(g_sd_path))",
+      "{",
+      "    make_recording_path(typeCode, 1);",
+      "    if (fs.exists(g_sd_path))",
+      "    {",
+      "        make_recording_path(typeCode, 3);",
+      "    }",
+      "}",
+      "```",
+      "",
+      "`git diff --check` only reported the existing CRLF normalization warning, no whitespace errors."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-04T01:02:36.570Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "",
+      "## My request for Codex:",
+      "can you fix my change so we don't end up with minute being 60 or 61?"
+    ],
+    "agent_reply": [
+      "Fixed. In [AudioFileRecorder.cpp](/d:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:798), attempt `1` now normalizes `now + 1 minute` through `mktime/localtime_r`, so `23:59` rolls to the next day instead of producing minute `60`.",
+      "",
+      "I also added a simple fallback carry path so even if normalization fails, minutes wrap with `% 60` and hours carry with `% 24`.",
+      "",
+      "`git diff --check` only reports the existing CRLF warning, no whitespace errors."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-06-04T01:04:32Z",
     "type": "git_commit",
     "commit_message": "shorter file name",
@@ -4187,5 +4263,70 @@
     "type": "git_commit",
     "commit_message": "haptics implemented across the board",
     "commit_hash": "b0281be08ff90256d2e231f0ba9c25e7422784c1"
+  },
+  {
+    "timestamp": "2026-06-05T00:37:50.372Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/readme.md",
+      "",
+      "## My request for Codex:",
+      "ignoring the cloud functionality",
+      "",
+      "the current code is considered the truth, find places where documentation is no longer correct"
+    ],
+    "agent_reply": [
+      "Ignoring cloud-specific docs, I found these stale/non-truthy documentation spots:",
+      "",
+      "**Incorrect Or Stale**",
+      "- [lib/Security/security-levels.md](d:/GithubRepos/The-Fly/lib/Security/security-levels.md:17) says level 0 records directly to `*.wav`. Current config has `BUILD_USE_MP3_COMPRESSION` enabled in [inc/conf.h](d:/GithubRepos/The-Fly/inc/conf.h:22), so level 0 records to `*.mp3`.",
+      "",
+      "- [lib/Security/security-policies-specifications.md](d:/GithubRepos/The-Fly/lib/Security/security-policies-specifications.md:89) says security-level-0 recordings are `.wav` and all encrypted recordings are `*.rec`. Current code uses `.mp3` for unencrypted MP3 builds and `.fly` for encrypted MP3 builds in [AudioFileRecorder.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:768).",
+      "",
+      "- [lib/Security/security-policies-specifications.md](d:/GithubRepos/The-Fly/lib/Security/security-policies-specifications.md:239) repeats the same stale `.rec`/`.wav` assumption. Current encrypted MP3 recordings are `.fly`, not `.rec`.",
+      "",
+      "- [lib/AudioFifo/readme.md](d:/GithubRepos/The-Fly/lib/AudioFifo/readme.md:9) says muted means dequeueing returns zeros. Current code also writes zeros while muted during enqueue paths, so mute is not only a dequeue behavior.",
+      "",
+      "**Probably Misleading**",
+      "- [lib/AudioFileRecorder/readme.md](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/readme.md:7) says FIFO data is “mixed together into a stereo stream.” Current code does not mix the two sources together; it interleaves mic as left and host/Bluetooth as right in [AudioFileRecorder.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:1821). “Combined into a stereo stream” would be more accurate.",
+      "",
+      "- [developer-docs/high-level-fw-design.md](d:/GithubRepos/The-Fly/developer-docs/high-level-fw-design.md:56) says current scratch buffers are 512 bytes. Current recorder/audio paths use larger configured buffers for MP3/WAV chunks, so this reads stale, though it is in a sizing discussion rather than an API contract.",
+      "",
+      "**Looks Mostly Still Correct**",
+      "- [lib/AudioFileRecorder/readme.md](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/readme.md:3) is broad but still true: MP3 compression and encryption are supported.",
+      "- [developer-docs/recording-file-format.md](d:/GithubRepos/The-Fly/developer-docs/recording-file-format.md:1) describes both WAV and MP3 modes, so I would not call it wrong, though it could be clearer that MP3 is currently enabled by default in this repo.",
+      "",
+      "Ignoring cloud-specific docs, I found these stale/non-truthy documentation spots:",
+      "",
+      "**Incorrect Or Stale**",
+      "- [lib/Security/security-levels.md](d:/GithubRepos/The-Fly/lib/Security/security-levels.md:17) says level 0 records directly to `*.wav`. Current config has `BUILD_USE_MP3_COMPRESSION` enabled in [inc/conf.h](d:/GithubRepos/The-Fly/inc/conf.h:22), so level 0 records to `*.mp3`.",
+      "",
+      "- [lib/Security/security-policies-specifications.md](d:/GithubRepos/The-Fly/lib/Security/security-policies-specifications.md:89) says security-level-0 recordings are `.wav` and all encrypted recordings are `*.rec`. Current code uses `.mp3` for unencrypted MP3 builds and `.fly` for encrypted MP3 builds in [AudioFileRecorder.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:768).",
+      "",
+      "- [lib/Security/security-policies-specifications.md](d:/GithubRepos/The-Fly/lib/Security/security-policies-specifications.md:239) repeats the same stale `.rec`/`.wav` assumption. Current encrypted MP3 recordings are `.fly`, not `.rec`.",
+      "",
+      "- [lib/AudioFifo/readme.md](d:/GithubRepos/The-Fly/lib/AudioFifo/readme.md:9) says muted means dequeueing returns zeros. Current code also writes zeros while muted during enqueue paths, so mute is not only a dequeue behavior.",
+      "",
+      "**Probably Misleading**",
+      "- [lib/AudioFileRecorder/readme.md](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/readme.md:7) says FIFO data is “mixed together into a stereo stream.” Current code does not mix the two sources together; it interleaves mic as left and host/Bluetooth as right in [AudioFileRecorder.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:1821). “Combined into a stereo stream” would be more accurate.",
+      "",
+      "- [developer-docs/high-level-fw-design.md](d:/GithubRepos/The-Fly/developer-docs/high-level-fw-design.md:56) says current scratch buffers are 512 bytes. Current recorder/audio paths use larger configured buffers for MP3/WAV chunks, so this reads stale, though it is in a sizing discussion rather than an API contract.",
+      "",
+      "**Looks Mostly Still Correct**",
+      "- [lib/AudioFileRecorder/readme.md](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/readme.md:3) is broad but still true: MP3 compression and encryption are supported.",
+      "- [developer-docs/recording-file-format.md](d:/GithubRepos/The-Fly/developer-docs/recording-file-format.md:1) describes both WAV and MP3 modes, so I would not call it wrong, though it could be clearer that MP3 is currently enabled by default in this repo."
+    ],
+    "files": [
+      "lib/Security/security-levels.md",
+      "inc/conf.h",
+      "lib/Security/security-policies-specifications.md",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/AudioFifo/readme.md",
+      "lib/AudioFileRecorder/readme.md",
+      "developer-docs/high-level-fw-design.md",
+      "developer-docs/recording-file-format.md"
+    ]
   }
 ]

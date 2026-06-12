@@ -1083,5 +1083,60 @@
     "type": "git_commit",
     "commit_message": "pins.h, tweaked FIFOs, added a test result",
     "commit_hash": "6fb57af7f759b4803b0e9978a01525d0a1fe1265"
+  },
+  {
+    "timestamp": "2026-06-04T07:45:48.046Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "hmm now it's `W (82663) AsyncFsManager: open upload failed: could not open path=/splash.af sd_error=0x0C sd_data=0x04`",
+      "",
+      "this is a bit too random",
+      "",
+      "are you sure it's not because of the GUI draws and SPI sharing?"
+    ],
+    "agent_reply": [
+      "Nope, I’m not sure. In fact this new error makes GUI/SPI sharing look **more** suspicious, not less.",
+      "",
+      "`sd_error=0x0C` is SdFat `CMD18`: **read multiple blocks**. That happened during `g_upload_file.open(path, O_WRONLY | O_CREAT | O_TRUNC)`, before the upload is actually writing. So the card failed while SdFat was reading FAT/directory metadata. `sd_data=0x04` is also weird for CMD18, since CMD18 is a valid SD command; that can happen when the command stream gets corrupted or the card is in a confused state.",
+      "",
+      "The current protection is incomplete: [AsyncFsManager.cpp](<D:/GithubRepos/The-Fly/lib/WifiManager/AsyncFsManager.cpp:101>) makes `guiShouldYield()` true only when `g_upload_file.isOpen()`. But your failure is in [openFileForUpload](<D:/GithubRepos/The-Fly/lib/WifiManager/AsyncFsManager.cpp:337>), before `g_upload_file.open()` succeeds. So GUI drawing can still be happening during the exact vulnerable `open()` call.",
+      "",
+      "Also, SD is initialized as shared SPI at 20 MHz first in [MicroSdCard.cpp](<D:/GithubRepos/The-Fly/lib/MicroSdCard/MicroSdCard.cpp:19>) / [MicroSdCard.cpp](<D:/GithubRepos/The-Fly/lib/MicroSdCard/MicroSdCard.cpp:163>). `SHARED_SPI` helps SdFat use transactions correctly, but it is not necessarily a full cross-task display-vs-SD mutex.",
+      "",
+      "My read: likely suspects are, in order:",
+      "",
+      "1. GUI/display SPI activity during SD open/write/sync/close.",
+      "2. 20 MHz SD SPI being marginal under display/Wi-Fi load.",
+      "3. SD card/power/card-state sensitivity.",
+      "4. Some other direct SD access bypassing `AsyncFsManager`.",
+      "",
+      "Best next diagnostic: force SD to `4 MHz` or `10 MHz` and repeat uploads. If the randomness goes away, this is almost certainly bus timing/contention. Then I’d patch `AsyncFsManager` so “upload active” is true before `file.open()` and stays true through close/cancel, causing GUI poll to yield for the whole upload lifecycle.",
+      "",
+      "Nope, I’m not sure. In fact this new error makes GUI/SPI sharing look **more** suspicious, not less.",
+      "",
+      "`sd_error=0x0C` is SdFat `CMD18`: **read multiple blocks**. That happened during `g_upload_file.open(path, O_WRONLY | O_CREAT | O_TRUNC)`, before the upload is actually writing. So the card failed while SdFat was reading FAT/directory metadata. `sd_data=0x04` is also weird for CMD18, since CMD18 is a valid SD command; that can happen when the command stream gets corrupted or the card is in a confused state.",
+      "",
+      "The current protection is incomplete: [AsyncFsManager.cpp](<D:/GithubRepos/The-Fly/lib/WifiManager/AsyncFsManager.cpp:101>) makes `guiShouldYield()` true only when `g_upload_file.isOpen()`. But your failure is in [openFileForUpload](<D:/GithubRepos/The-Fly/lib/WifiManager/AsyncFsManager.cpp:337>), before `g_upload_file.open()` succeeds. So GUI drawing can still be happening during the exact vulnerable `open()` call.",
+      "",
+      "Also, SD is initialized as shared SPI at 20 MHz first in [MicroSdCard.cpp](<D:/GithubRepos/The-Fly/lib/MicroSdCard/MicroSdCard.cpp:19>) / [MicroSdCard.cpp](<D:/GithubRepos/The-Fly/lib/MicroSdCard/MicroSdCard.cpp:163>). `SHARED_SPI` helps SdFat use transactions correctly, but it is not necessarily a full cross-task display-vs-SD mutex.",
+      "",
+      "My read: likely suspects are, in order:",
+      "",
+      "1. GUI/display SPI activity during SD open/write/sync/close.",
+      "2. 20 MHz SD SPI being marginal under display/Wi-Fi load.",
+      "3. SD card/power/card-state sensitivity.",
+      "4. Some other direct SD access bypassing `AsyncFsManager`.",
+      "",
+      "Best next diagnostic: force SD to `4 MHz` or `10 MHz` and repeat uploads. If the randomness goes away, this is almost certainly bus timing/contention. Then I’d patch `AsyncFsManager` so “upload active” is true before `file.open()` and stays true through close/cancel, causing GUI poll to yield for the whole upload lifecycle."
+    ],
+    "files": [
+      "lib/WifiManager/AsyncFsManager.cpp",
+      "lib/MicroSdCard/MicroSdCard.cpp"
+    ]
   }
 ]
