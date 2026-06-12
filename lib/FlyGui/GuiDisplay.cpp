@@ -19,6 +19,7 @@ constexpr const char* TAG                 = "GuiDisplay";
 constexpr const char* kScreenshotDir      = "/screenshots";
 constexpr int32_t     kBmpHeaderBytes     = 54;
 constexpr uint16_t    kBmpBitsPerPixel    = 24;
+constexpr uint32_t    kBmpBytesPerPixel   = kBmpBitsPerPixel / 8;
 constexpr uint32_t    kBmpInfoHeaderBytes = 40;
 constexpr uint16_t    kBmpPlanes          = 1;
 constexpr uint32_t    kBmpPelsPerMeter    = 2835;
@@ -27,8 +28,7 @@ static void writeLe16(uint8_t* dst, uint16_t value);
 static void writeLe32(uint8_t* dst, uint32_t value);
 static bool writeAll(FsFile& file, const void* data, size_t size);
 static bool makeScreenshotPath(char* path, size_t pathSize);
-static uint8_t expand5(uint16_t value);
-static uint8_t expand6(uint16_t value);
+static void swapRgbToBgr(uint8_t* row, int32_t pixelCount);
 
 } // namespace
 
@@ -141,7 +141,7 @@ bool GuiDisplay::recreateCanvas()
 
     canvas_.setPsram(true);
     canvas_.setColorDepth(display_.getColorDepth());
-    canvas_.setRotation(display_.getRotation());
+    canvas_.setRotation(0);
 
     void* buffer = canvas_.createSprite(w, h);
     if (buffer == nullptr)
@@ -158,9 +158,11 @@ bool GuiDisplay::recreateCanvas()
 
 bool GuiDisplay::ensureScreenshotCanvas()
 {
+    const bool hasBmpDepth =
+        (screenshotCanvas_.getColorDepth() & lgfx::color_depth_t::bit_mask) == kBmpBitsPerPixel;
+
     if (screenshotCanvasReady_ && screenshotCanvas_.width() == canvas_.width() &&
-        screenshotCanvas_.height() == canvas_.height() &&
-        screenshotCanvas_.getColorDepth() == canvas_.getColorDepth())
+        screenshotCanvas_.height() == canvas_.height() && hasBmpDepth)
     {
         return true;
     }
@@ -184,8 +186,8 @@ bool GuiDisplay::recreateScreenshotCanvas()
     screenshotCanvasReady_ = false;
 
     screenshotCanvas_.setPsram(true);
-    screenshotCanvas_.setColorDepth(canvas_.getColorDepth());
-    screenshotCanvas_.setRotation(canvas_.getRotation());
+    screenshotCanvas_.setColorDepth(kBmpBitsPerPixel);
+    screenshotCanvas_.setRotation(0);
 
     void* buffer = screenshotCanvas_.createSprite(canvas_.width(), canvas_.height());
     if (buffer == nullptr)
@@ -210,18 +212,29 @@ bool GuiDisplay::captureScreenshotBuffer()
         return false;
     }
 
-    const uint32_t canvasBytes     = canvas_.bufferLength();
-    const uint32_t screenshotBytes = screenshotCanvas_.bufferLength();
-    void*          canvasBuffer    = canvas_.getBuffer();
-    void*          screenshotBuffer = screenshotCanvas_.getBuffer();
-
-    if (canvasBytes == 0 || canvasBytes != screenshotBytes || canvasBuffer == nullptr || screenshotBuffer == nullptr)
+    const int32_t w = canvas_.width();
+    const int32_t h = canvas_.height();
+    if (w <= 0 || h <= 0)
     {
-        DBG_LOGE(TAG, "screenshot capture skipped: framebuffer mismatch");
+        DBG_LOGE(TAG, "screenshot capture skipped: invalid framebuffer size");
         return false;
     }
 
-    memcpy(screenshotBuffer, canvasBuffer, canvasBytes);
+    uint8_t* screenshotBuffer = static_cast<uint8_t*>(screenshotCanvas_.getBuffer());
+    if (screenshotBuffer == nullptr)
+    {
+        DBG_LOGE(TAG, "screenshot capture skipped: screenshot buffer unavailable");
+        return false;
+    }
+
+    const uint32_t rowBytes = static_cast<uint32_t>(w) * kBmpBytesPerPixel;
+    for (int32_t y = 0; y < h; ++y)
+    {
+        uint8_t* row = screenshotBuffer + static_cast<size_t>(y) * rowBytes;
+        canvas_.readRectRGB(0, y, w, 1, row);
+        swapRgbToBgr(row, w);
+    }
+
     return true;
 }
 
@@ -252,7 +265,8 @@ bool GuiDisplay::saveScreenshotBuffer()
 
     const int32_t  w          = screenshotCanvas_.width();
     const int32_t  h          = screenshotCanvas_.height();
-    const uint32_t rowStride  = static_cast<uint32_t>((w * 3 + 3) & ~3);
+    const uint32_t rowBytes   = static_cast<uint32_t>(w) * kBmpBytesPerPixel;
+    const uint32_t rowStride  = static_cast<uint32_t>((w * kBmpBytesPerPixel + 3) & ~3);
     const uint32_t imageBytes = rowStride * static_cast<uint32_t>(h);
     const uint32_t fileBytes  = kBmpHeaderBytes + imageBytes;
 
@@ -270,34 +284,35 @@ bool GuiDisplay::saveScreenshotBuffer()
     writeLe32(header + 38, kBmpPelsPerMeter);
     writeLe32(header + 42, kBmpPelsPerMeter);
 
-    uint16_t* pixels = new (std::nothrow) uint16_t[static_cast<size_t>(w)];
-    uint8_t*  row    = new (std::nothrow) uint8_t[rowStride];
+    const uint8_t* screenshotBuffer = static_cast<const uint8_t*>(screenshotCanvas_.getBuffer());
+    uint8_t*       row              = rowStride == rowBytes ? nullptr : new (std::nothrow) uint8_t[rowStride];
 
-    bool ok = pixels != nullptr && row != nullptr && writeAll(file, header, sizeof(header));
-    if (pixels == nullptr || row == nullptr)
+    bool ok = screenshotBuffer != nullptr && (rowStride == rowBytes || row != nullptr) && writeAll(file, header, sizeof(header));
+    if (screenshotBuffer == nullptr)
+    {
+        DBG_LOGE(TAG, "screenshot write failed: screenshot buffer unavailable");
+    }
+    else if (rowStride != rowBytes && row == nullptr)
     {
         DBG_LOGE(TAG, "screenshot write failed: row buffer allocation failed");
     }
 
     for (int32_t y = h - 1; ok && y >= 0; --y)
     {
-        memset(row, 0, rowStride);
-        screenshotCanvas_.readRect(0, y, w, 1, pixels);
-
-        for (int32_t x = 0; x < w; ++x)
+        const uint8_t* src = screenshotBuffer + static_cast<size_t>(y) * rowBytes;
+        if (rowStride == rowBytes)
         {
-            const uint16_t color = pixels[x];
-            uint8_t*       dst   = row + x * 3;
-            dst[0]              = expand5(color & 0x1F);
-            dst[1]              = expand6((color >> 5) & 0x3F);
-            dst[2]              = expand5((color >> 11) & 0x1F);
+            ok = writeAll(file, src, rowBytes);
         }
-
-        ok = writeAll(file, row, rowStride);
+        else
+        {
+            memset(row, 0, rowStride);
+            memcpy(row, src, rowBytes);
+            ok = writeAll(file, row, rowStride);
+        }
     }
 
     delete[] row;
-    delete[] pixels;
 
     file.close();
 
@@ -367,14 +382,15 @@ bool makeScreenshotPath(char* path, size_t pathSize)
     return written > 0 && static_cast<size_t>(written) < pathSize;
 }
 
-uint8_t expand5(uint16_t value)
+void swapRgbToBgr(uint8_t* row, int32_t pixelCount)
 {
-    return static_cast<uint8_t>((value * 255U + 15U) / 31U);
-}
-
-uint8_t expand6(uint16_t value)
-{
-    return static_cast<uint8_t>((value * 255U + 31U) / 63U);
+    for (int32_t x = 0; x < pixelCount; ++x)
+    {
+        uint8_t* pixel = row + static_cast<size_t>(x) * kBmpBytesPerPixel;
+        const uint8_t red = pixel[0];
+        pixel[0] = pixel[2];
+        pixel[2] = red;
+    }
 }
 
 } // namespace

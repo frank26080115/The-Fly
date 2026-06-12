@@ -21,6 +21,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 //#define TEST_MOCK_EXT_CODEC
 #define TEST_TEENSY_AUDIO_BRD
 
+//#define BUILD_PERIODIC_DIAGNOSTICS
 #define TEST_BUILD_SCREENSHOT // this is only used to generate screenshots for documentation purposes
 
 //#define BUILD_SILENCE_GAP_REMOVAL

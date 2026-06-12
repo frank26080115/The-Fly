@@ -96,7 +96,7 @@ void poll()
 
     format_report_time(time_text, sizeof(time_text));
 
-#ifdef BUILD_IS_DEBUG
+#if defined(BUILD_IS_DEBUG) && defined(BUILD_PERIODIC_DIAGNOSTICS)
     Serial.printf("diag time=%s stack_free_min=%lu heap_free_min=%lu core0_hz=%.1f core1_hz=%.1f fps=%.1f "
                   "long_write_hz=%.1f i2s_in_sps=%.1f i2s_out_sps=%.1f fifo_over_hz=%.1f fifo_under_hz=%.1f\n",
                   time_text,
