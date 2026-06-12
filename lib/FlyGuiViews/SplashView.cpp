@@ -30,6 +30,10 @@ static constexpr int16_t kBdaddrY         = 94;
 static constexpr int16_t kWifiLabelY      = 116;
 static constexpr int16_t kWifiMacY        = 133;
 static constexpr int16_t kExtraInfoY      = 154;
+static constexpr const char* kIdlePromptText          = "touch to continue";
+static constexpr int16_t     kIdlePromptBottomPadding = 10;
+static constexpr int16_t     kIdlePromptPadX          = 6;
+static constexpr int16_t     kIdlePromptPadY          = 3;
 
 // -----------------------------------------------------------------------------
 // Types
@@ -57,6 +61,7 @@ static uint8_t g_splash_mode = 1;
 // -----------------------------------------------------------------------------
 
 void draw_splash_boot_info();
+void draw_splash_idle_prompt();
 
 static void         choose_splash_mode();
 static SplashSprite current_splash_sprite();
@@ -206,6 +211,32 @@ void draw_splash_boot_info()
         gui->requestTopBarFullRedraw();
         gui->redraw(false);
     }
+}
+
+void draw_splash_idle_prompt()
+{
+    if (!gui || !gui->currentView() || gui->currentView()->id() != FLYGUI_VIEW_SPLASH)
+    {
+        return;
+    }
+
+    thefly_display.setTextFont(kTextFont);
+    thefly_display.setTextSize(kTextSize);
+    thefly_display.setTextDatum(bottom_left);
+    thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
+
+    const SplashSprite splash = current_splash_sprite();
+    const int16_t textX      = splash.textX;
+    const int16_t bottomY    = static_cast<int16_t>(thefly_display.height() - kIdlePromptBottomPadding);
+    const int16_t textWidth  = static_cast<int16_t>(thefly_display.textWidth(kIdlePromptText));
+    const int16_t textHeight = static_cast<int16_t>(thefly_display.fontHeight(kTextFont));
+    const int16_t rectX      = static_cast<int16_t>(textX - kIdlePromptPadX);
+    const int16_t rectY      = static_cast<int16_t>(bottomY - textHeight - kIdlePromptPadY);
+    const int16_t rectW      = static_cast<int16_t>(textWidth + (kIdlePromptPadX * 2));
+    const int16_t rectH      = static_cast<int16_t>(textHeight + (kIdlePromptPadY * 2));
+
+    thefly_display.fillRect(rectX, rectY, rectW, rectH, TFT_BLACK);
+    thefly_display.drawString(kIdlePromptText, textX, bottomY);
 }
 
 static void draw_splash_mac_info(int16_t textX)
