@@ -19,7 +19,7 @@
 #include "ClockAgent.h"
 #include "DecryptedDownload.h"
 #include "DiskStats.h"
-#if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
+#if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 1
 #include "FtpServer.h"
 #endif
 #include "MicroSdCard.h"
@@ -57,7 +57,7 @@ constexpr const char* kBtHostListNvsNamespace          = "bt_hosts";
 constexpr const char* kNetworkNvsNamespace             = "wifi_cfg";
 constexpr uint16_t    kWebServerPort                   = 80;
 
-#if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
+#if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 1
 // This is only a login gate for plain FTP. Replace these credentials before
 // exposing FTP; this library is not SFTP and does not encrypt its traffic.
 constexpr const char* kFtpUser     = "thefly";
@@ -746,9 +746,11 @@ void send_asset(AsyncWebServerRequest* request)
         return;
     }
 
-    const web_asset_desc_t* asset = find_asset_for_url(request->url());
+    const String            url   = request->url();
+    const web_asset_desc_t* asset = find_asset_for_url(url);
     if (!asset || !asset->ptr_payload || asset->compressed_size == 0)
     {
+        note_web_error();
         request->send(404);
         return;
     }
@@ -757,8 +759,14 @@ void send_asset(AsyncWebServerRequest* request)
         request->beginResponse(200, asset->mime_type, asset->ptr_payload, asset->compressed_size);
     if (!response)
     {
+        note_web_error();
         request->send(500);
         return;
+    }
+
+    if (url == "/" || strcmp(asset->file_name, "index.html") == 0)
+    {
+        note_web_page_load();
     }
 
     response->addHeader("Content-Encoding", "gzip");

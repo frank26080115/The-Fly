@@ -18,7 +18,7 @@
 #include "BluetoothManager.h"
 #include "Aegis.h"
 #include "HapticsWrapper.h"
-#if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
+#if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 1
 #include "FtpServer.h"
 #endif
 #include "IconLookup.h"
@@ -633,7 +633,7 @@ bool WifiManager::wifiHasStarted()
 
 void WifiManager::poll()
 {
-#if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 0
+#if defined(BUILD_FTP_SERVER) && BUILD_WITH_SECURITY_LEVEL <= 1
     FtpServer::poll();
 #endif
 
@@ -1447,6 +1447,10 @@ void configure_soft_ap_security(wifi_config_t& config, const char* ssid, const c
 bool start_secure_soft_ap(const char* ssid, const char* password)
 {
     const uint8_t channel = get_random_wifi_channel();
+
+    // we are using low level calls to start the Wi-Fi AP so that the security settings are applied before it starts
+    // do not use Arduino's built-in Wi-Fi library start-up, for this reason
+
     wifi_config_t config = {};
     configure_soft_ap_security(config, ssid, password, channel);
 
