@@ -54,8 +54,11 @@ uint32_t    fifoOverflowEvents();
 
 bool grow_file(FsFile& file, uint64_t size); // unused, too slow
 
+bool ensureAudioBuffers();
+void releaseAudioBuffers();
+
 #ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
-// there are other pieces of code that borrow these static buffers
+// there are other pieces of code that borrow these shared buffers
 uint8_t* wavPlaintextAudioBuffer();
 uint8_t* wavEncryptedAudioBuffer();
 size_t   wavPlaintextAudioBufferSize();

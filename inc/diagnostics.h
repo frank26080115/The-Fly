@@ -7,9 +7,10 @@ namespace Diagnostics
 
 struct MemoryStats
 {
-    bool     valid          = false;
-    uint32_t worstFreeStack = 0;
-    uint32_t worstFreeHeap  = 0;
+    bool     valid                 = false;
+    uint32_t worstFreeStack        = 0;
+    uint32_t worstFreeInternalHeap = 0;
+    uint32_t worstFreePsramHeap    = 0;
 };
 
 void        memory_check_in();

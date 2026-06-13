@@ -26,16 +26,17 @@ constexpr uint32_t kReportIntervalMs = 1000;
 // Globals
 // -----------------------------------------------------------------------------
 
-std::atomic<uint32_t> g_worst_free_stack   = {UINT32_MAX};
-std::atomic<uint32_t> g_worst_free_heap    = {UINT32_MAX};
-std::atomic<bool>     g_memory_valid       = {false};
-std::atomic<uint32_t> g_core0_ticks        = {0};
-std::atomic<uint32_t> g_core1_ticks        = {0};
-std::atomic<uint32_t> g_gui_draws          = {0};
-std::atomic<uint32_t> g_long_writes        = {0};
-std::atomic<uint32_t> g_i2s_input_samples  = {0};
-std::atomic<uint32_t> g_i2s_output_samples = {0};
-std::atomic<uint32_t> g_last_report_ms     = {0};
+std::atomic<uint32_t> g_worst_free_stack        = {UINT32_MAX};
+std::atomic<uint32_t> g_worst_free_internal_heap = {UINT32_MAX};
+std::atomic<uint32_t> g_worst_free_psram_heap    = {UINT32_MAX};
+std::atomic<bool>     g_memory_valid            = {false};
+std::atomic<uint32_t> g_core0_ticks             = {0};
+std::atomic<uint32_t> g_core1_ticks             = {0};
+std::atomic<uint32_t> g_gui_draws               = {0};
+std::atomic<uint32_t> g_long_writes             = {0};
+std::atomic<uint32_t> g_i2s_input_samples       = {0};
+std::atomic<uint32_t> g_i2s_output_samples      = {0};
+std::atomic<uint32_t> g_last_report_ms          = {0};
 
 // -----------------------------------------------------------------------------
 // Function Prototypes
@@ -97,11 +98,12 @@ void poll()
     format_report_time(time_text, sizeof(time_text));
 
 #if defined(BUILD_IS_DEBUG) && defined(BUILD_PERIODIC_DIAGNOSTICS)
-    Serial.printf("diag time=%s stack_free_min=%lu heap_free_min=%lu core0_hz=%.1f core1_hz=%.1f fps=%.1f "
-                  "long_write_hz=%.1f i2s_in_sps=%.1f i2s_out_sps=%.1f fifo_over_hz=%.1f fifo_under_hz=%.1f\n",
+    Serial.printf("diag t=%s stk_min=%lu ih_min=%lu ps_min=%lu c0=%.1f c1=%.1f fps=%.1f "
+                  "lw=%.1f i2si=%.1f i2so=%.1f fo=%.1f fu=%.1f\n",
                   time_text,
                   static_cast<unsigned long>(memory.worstFreeStack),
-                  static_cast<unsigned long>(memory.worstFreeHeap),
+                  static_cast<unsigned long>(memory.worstFreeInternalHeap),
+                  static_cast<unsigned long>(memory.worstFreePsramHeap),
                   core0_rate,
                   core1_rate,
                   frame_rate,
@@ -131,20 +133,25 @@ void core1Tick()
 
 void memory_check_in()
 {
-    const uint32_t free_stack = static_cast<uint32_t>(uxTaskGetStackHighWaterMark(nullptr));
-    const uint32_t free_heap  = static_cast<uint32_t>(heap_caps_get_free_size(MALLOC_CAP_8BIT));
+    const uint32_t free_stack         = static_cast<uint32_t>(uxTaskGetStackHighWaterMark(nullptr));
+    const uint32_t free_internal_heap =
+        static_cast<uint32_t>(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
+    const uint32_t free_psram_heap =
+        static_cast<uint32_t>(heap_caps_get_free_size(MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
 
     update_min(g_worst_free_stack, free_stack);
-    update_min(g_worst_free_heap, free_heap);
+    update_min(g_worst_free_internal_heap, free_internal_heap);
+    update_min(g_worst_free_psram_heap, free_psram_heap);
     g_memory_valid.store(true, std::memory_order_release);
 }
 
 MemoryStats memory_stats()
 {
     MemoryStats stats;
-    stats.valid          = g_memory_valid.load(std::memory_order_acquire);
-    stats.worstFreeStack = stats.valid ? g_worst_free_stack.load(std::memory_order_relaxed) : 0;
-    stats.worstFreeHeap  = stats.valid ? g_worst_free_heap.load(std::memory_order_relaxed) : 0;
+    stats.valid                 = g_memory_valid.load(std::memory_order_acquire);
+    stats.worstFreeStack        = stats.valid ? g_worst_free_stack.load(std::memory_order_relaxed) : 0;
+    stats.worstFreeInternalHeap = stats.valid ? g_worst_free_internal_heap.load(std::memory_order_relaxed) : 0;
+    stats.worstFreePsramHeap    = stats.valid ? g_worst_free_psram_heap.load(std::memory_order_relaxed) : 0;
     return stats;
 }
 

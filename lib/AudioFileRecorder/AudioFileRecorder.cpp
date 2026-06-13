@@ -25,6 +25,7 @@
 #include "HapticsWrapper.h"
 #include "dbg_log.h"
 #include "defs.h"
+#include "esp_heap_caps.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "utilfuncs.h"
@@ -103,6 +104,10 @@ static_assert(kEncryptedAudioChunkBytes <= WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH,
 constexpr size_t kGcmNonceSize = WAV_ENCRYPTED_CHUNK_NONCE_LENGTH;
 constexpr size_t kGcmTagSize   = WAV_ENCRYPTED_CHUNK_TAG_LENGTH;
 #endif
+constexpr size_t kWavPlaintextAudioBufferBytes = WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH;
+#if BUILD_WITH_SECURITY_LEVEL >= 1 || defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
+constexpr size_t kWavEncryptedAudioBufferBytes = WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH;
+#endif
 
 // -----------------------------------------------------------------------------
 // Types
@@ -151,14 +156,17 @@ size_t              g_plaintext_audio_chunk_used = 0;
 #endif
 std::mutex g_recorder_mutex;
 std::mutex g_pump_mutex;
+std::mutex g_audio_buffer_mutex;
 int16_t    g_wav_mic_samples[kRecordingPumpFrames];
 int16_t    g_wav_host_samples[kRecordingPumpFrames];
 #if defined(BUILD_USE_MP3_COMPRESSION)
 int16_t g_mp3_stereo_samples[kMp3PumpFrameCapacity * kWavChannels];
 #endif
-alignas(int16_t) uint8_t g_wav_plaintext_audio[WAV_ENCRYPTED_AUDIO_PLAINTEXT_LENGTH];
-#if BUILD_WITH_SECURITY_LEVEL >= 1
-uint8_t g_wav_encrypted_audio[WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH];
+uint8_t* g_wav_plaintext_audio      = nullptr;
+size_t   g_wav_plaintext_audio_size = 0;
+#if BUILD_WITH_SECURITY_LEVEL >= 1 || defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
+uint8_t* g_wav_encrypted_audio      = nullptr;
+size_t   g_wav_encrypted_audio_size = 0;
 #endif
 
 // -----------------------------------------------------------------------------
@@ -174,6 +182,8 @@ bool     make_path_with_type_code(const char* source_path, char type_code, char*
 bool     rename_stopped_recording(char* stopped_path, size_t stopped_path_size, char type_code);
 bool     recording_active();
 void     set_recording_active(bool active);
+bool     ensure_audio_buffers_locked();
+void     release_audio_buffers_locked();
 
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 void store_u32_be(uint8_t* dst, uint32_t value);
@@ -255,6 +265,24 @@ bool init(AudioFifo& hostFifo, AudioFifo& micFifo)
     return true;
 }
 
+bool ensureAudioBuffers()
+{
+    std::lock_guard<std::mutex> lock(g_audio_buffer_mutex);
+    return ensure_audio_buffers_locked();
+}
+
+void releaseAudioBuffers()
+{
+    std::lock_guard<std::mutex> lock(g_audio_buffer_mutex);
+    if (recording_active())
+    {
+        DBG_LOGW(TAG, "audio buffers still in use; release skipped");
+        return;
+    }
+
+    release_audio_buffers_locked();
+}
+
 bool startRecording(RecordingType type)
 {
     return startRecording(static_cast<char>(type));
@@ -280,6 +308,15 @@ bool startRecording(char typeCode)
         show_fatal_error_f(true, "microSD card is missing or unreadable");
         return false;
     }
+
+#if !defined(BUILD_USE_MP3_COMPRESSION) || BUILD_WITH_SECURITY_LEVEL >= 1
+    if (!ensureAudioBuffers())
+    {
+        DBG_LOGE(TAG, "audio buffer allocation failed");
+        show_fatal_error_f(true, "recording audio buffer allocation failed");
+        return false;
+    }
+#endif
 
     g_host_fifo->setQueueEnabled(false);
     g_mic_fifo->setQueueEnabled(false);
@@ -725,22 +762,32 @@ bool grow_file(FsFile& file, uint64_t size)
 #ifdef BUILD_WITH_ENCRYPTED_PLAYBACK
 uint8_t* wavPlaintextAudioBuffer()
 {
+    if (!ensureAudioBuffers())
+    {
+        return nullptr;
+    }
     return g_wav_plaintext_audio;
 }
 
 uint8_t* wavEncryptedAudioBuffer()
 {
+    if (!ensureAudioBuffers())
+    {
+        return nullptr;
+    }
     return g_wav_encrypted_audio;
 }
 
 size_t wavPlaintextAudioBufferSize()
 {
-    return sizeof(g_wav_plaintext_audio);
+    std::lock_guard<std::mutex> lock(g_audio_buffer_mutex);
+    return g_wav_plaintext_audio ? g_wav_plaintext_audio_size : 0;
 }
 
 size_t wavEncryptedAudioBufferSize()
 {
-    return sizeof(g_wav_encrypted_audio);
+    std::lock_guard<std::mutex> lock(g_audio_buffer_mutex);
+    return g_wav_encrypted_audio ? g_wav_encrypted_audio_size : 0;
 }
 #endif
 
@@ -750,6 +797,79 @@ namespace // private
 // -----------------------------------------------------------------------------
 // Supporting Functions
 // -----------------------------------------------------------------------------
+
+bool allocate_audio_buffer_locked(uint8_t*& buffer, size_t& size, size_t required_size, const char* name)
+{
+    if (buffer && size >= required_size)
+    {
+        return true;
+    }
+
+    if (buffer)
+    {
+        heap_caps_free(buffer);
+        buffer = nullptr;
+        size   = 0;
+    }
+
+    buffer = reinterpret_cast<uint8_t*>(heap_caps_malloc(required_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
+    if (!buffer)
+    {
+        DBG_LOGE(TAG, "PSRAM allocation failed for %s buffer: %u bytes", name, static_cast<unsigned>(required_size));
+        return false;
+    }
+
+    size = required_size;
+    DBG_LOGI(TAG, "allocated %s audio buffer in PSRAM: %u bytes", name, static_cast<unsigned>(size));
+    return true;
+}
+
+void release_audio_buffer_locked(uint8_t*& buffer, size_t& size, const char* name)
+{
+    if (!buffer)
+    {
+        size = 0;
+        return;
+    }
+
+    memset(buffer, 0, size);
+    heap_caps_free(buffer);
+    DBG_LOGI(TAG, "released %s audio buffer: %u bytes", name, static_cast<unsigned>(size));
+    buffer = nullptr;
+    size   = 0;
+}
+
+bool ensure_audio_buffers_locked()
+{
+    if (!allocate_audio_buffer_locked(g_wav_plaintext_audio,
+                                      g_wav_plaintext_audio_size,
+                                      kWavPlaintextAudioBufferBytes,
+                                      "plaintext"))
+    {
+        return false;
+    }
+
+#if BUILD_WITH_SECURITY_LEVEL >= 1 || defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
+    if (!allocate_audio_buffer_locked(g_wav_encrypted_audio,
+                                      g_wav_encrypted_audio_size,
+                                      kWavEncryptedAudioBufferBytes,
+                                      "encrypted"))
+    {
+        release_audio_buffer_locked(g_wav_plaintext_audio, g_wav_plaintext_audio_size, "plaintext");
+        return false;
+    }
+#endif
+
+    return true;
+}
+
+void release_audio_buffers_locked()
+{
+    release_audio_buffer_locked(g_wav_plaintext_audio, g_wav_plaintext_audio_size, "plaintext");
+#if BUILD_WITH_SECURITY_LEVEL >= 1 || defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
+    release_audio_buffer_locked(g_wav_encrypted_audio, g_wav_encrypted_audio_size, "encrypted");
+#endif
+}
 
 uint64_t max_prealloc_size()
 {
@@ -1153,6 +1273,11 @@ bool finish_wav_header_locked()
 #if BUILD_WITH_SECURITY_LEVEL >= 1
 bool write_encrypted_placeholder_wav_header_locked()
 {
+    if (!g_wav_encrypted_audio || g_wav_encrypted_audio_size < WAV_ENCRYPTED_RIFF_HEADER_LENGTH)
+    {
+        return false;
+    }
+
     uint8_t header[kWavHeaderSize] = {};
     build_wav_header(header, kWavPlaceholderDataBytes);
 
@@ -1160,7 +1285,7 @@ bool write_encrypted_placeholder_wav_header_locked()
     if (!encrypt_chunk_locked(header,
                               sizeof(header),
                               g_wav_encrypted_audio,
-                              sizeof(g_wav_encrypted_audio),
+                              g_wav_encrypted_audio_size,
                               encrypted_size))
     {
         return false;
@@ -1359,6 +1484,13 @@ bool write_full_encrypted_audio_chunk_locked(bool& encryption_failed, bool& stor
     encryption_failed = false;
     storage_failed    = false;
 
+    if (!g_wav_plaintext_audio || !g_wav_encrypted_audio || g_wav_plaintext_audio_size < kEncryptedAudioPlaintextBytes ||
+        g_wav_encrypted_audio_size < kEncryptedAudioChunkBytes)
+    {
+        encryption_failed = true;
+        return false;
+    }
+
     if (g_plaintext_audio_chunk_used != kEncryptedAudioPlaintextBytes)
     {
         encryption_failed = true;
@@ -1369,7 +1501,7 @@ bool write_full_encrypted_audio_chunk_locked(bool& encryption_failed, bool& stor
     if (!encrypt_chunk_locked(g_wav_plaintext_audio,
                               kEncryptedAudioPlaintextBytes,
                               g_wav_encrypted_audio,
-                              sizeof(g_wav_encrypted_audio),
+                              g_wav_encrypted_audio_size,
                               encrypted_size) ||
         encrypted_size != kEncryptedAudioChunkBytes)
     {
@@ -1401,6 +1533,12 @@ bool append_encrypted_audio_locked(const uint8_t* data,
 
     while (byte_count > 0)
     {
+        if (!g_wav_plaintext_audio || g_wav_plaintext_audio_size < kEncryptedAudioPlaintextBytes)
+        {
+            encryption_failed = true;
+            return false;
+        }
+
         const size_t space = kEncryptedAudioPlaintextBytes - g_plaintext_audio_chunk_used;
         if (space == 0)
         {
@@ -1437,6 +1575,11 @@ bool finish_encrypted_audio_locked()
     if (g_plaintext_audio_chunk_used == 0)
     {
         return true;
+    }
+
+    if (!g_wav_plaintext_audio || g_wav_plaintext_audio_size < kEncryptedAudioPlaintextBytes)
+    {
+        return false;
     }
 
     memset(g_wav_plaintext_audio + g_plaintext_audio_chunk_used,
@@ -1774,8 +1917,16 @@ bool pump_audio_chunk_locked(bool force)
     }
     const size_t frames = wanted_frames < mp3_pump_frames ? wanted_frames : mp3_pump_frames;
 #else
+    if (!g_wav_plaintext_audio || g_wav_plaintext_audio_size == 0)
+    {
+        return false;
+    }
     const size_t buffer_offset = plaintext_audio_write_offset();
-    const size_t buffer_frames = (sizeof(g_wav_plaintext_audio) - buffer_offset) / kWavFrameBytes;
+    if (buffer_offset >= g_wav_plaintext_audio_size)
+    {
+        return false;
+    }
+    const size_t buffer_frames = (g_wav_plaintext_audio_size - buffer_offset) / kWavFrameBytes;
     const size_t max_frames    = buffer_frames < kWavPumpFrames ? buffer_frames : kWavPumpFrames;
     const size_t frames        = wanted_frames < max_frames ? wanted_frames : max_frames;
 #endif

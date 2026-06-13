@@ -1399,6 +1399,7 @@ void shutdown_for_wifi_activation()
     {
         DBG_LOGW(TAG, "audio file recorder did not stop cleanly before Wi-Fi activation");
     }
+    AudioFileRecorder::releaseAudioBuffers();
 }
 
 void format_generated_soft_ap_ssid(char* ssid, size_t ssid_size)
