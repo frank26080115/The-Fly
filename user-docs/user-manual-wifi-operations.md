@@ -38,3 +38,42 @@ Another way is to use a FTP client. You can use plain FTP (not SFTP) to connect 
 
 ## Administration
 
+You can change a lot of settings and configuration. When you are done, make sure you click on the "save" button. The changes will take effect when you reboot The Fly.
+
+![](gfx/web_save_button.jpg)
+
+### Administration: Wi-Fi Routers
+
+You may set up some Wi-Fi routers to connect to.
+
+![](gfx/web_set_wifi_sta.jpg)
+
+These will show up in the Wi-Fi submenu. These can also be scanned for and automatically connected to.
+
+### Administration: Wi-Fi Access Point
+
+You can set The Fly to become a Wi-Fi access point that your computer connects to.
+
+![](gfx/web_set_wifi_ap.jpg)
+
+This can be useful if you need an automated workflow that requires The Fly to be isolated from your own networks.
+
+NOTE: in addition to your custom AP, there is always a dedicated default access point configuration that you can use, but it is randomly generated.
+
+### Administration: Bluetooth Host Devices
+
+You may rename Bluetooth host devices and assign icons to them.
+
+![](gfx/web_set_bt.jpg)
+
+### Administration: Sync Time
+
+If the clock is wrong, click on the "Sync Time" button.
+
+![](gfx/web_sync_time.jpg)
+
+Also, there is an explicit setting for the timezone under the NTP time sync section
+
+![](gfx/web_timezone.jpg)
+
+You can specify custom NTP servers but this is optional. They are not used unless you explicitly trigger a NTP time sync through the Wi-Fi submenu.
