@@ -63,3 +63,13 @@ Bluetooth just doesn't work when our `Hotel` power manager tries to lower clock 
 ## Key Derivation Watchdog Risk
 
 Key derivation on the ESP32 is extremely slow, and can cause the WDT to trip. There's only one place where it is absolutely needed. The fix is to limit the number of iterations, and also to pause once in a while to feed the WDT.
+
+## MDNS Dynamic Memory Allocation Crash
+
+There was a mysterious `abort()` happening that was stack-traced to a log message fired by MDNS.
+
+It turns out that MDNS memory allocation was set to happen in internal RAM only, but the internal RAM was extremely low.
+
+The solution was to add `CONFIG_MDNS_MEMORY_ALLOC_SPIRAM=y` to the `custom_sdkconfig`
+
+Also, the low internal RAM was causing other failures, so an effort was made to make sure all large buffers are dynamically allocated in PSRAM during runtime.
