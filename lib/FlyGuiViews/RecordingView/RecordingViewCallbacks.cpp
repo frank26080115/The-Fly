@@ -36,6 +36,11 @@ bool beginBluetoothRecording(AudioFileRecorder::RecordingType type)
     restore_memo_bt_fifo();
     setSpeakerMuted(false);
     AudioManager::setMicMuted(false);
+    if (!syncExtCodecAudioRouting())
+    {
+        return false;
+    }
+
     if (!AudioFileRecorder::startRecording(type))
     {
         return false;
@@ -61,6 +66,12 @@ bool beginMemoRecording(char typeCode)
     AudioManager::micToBluetoothFifo().setChoked(true);
     g_memo_bt_fifo_choked = true;
 
+    if (!syncExtCodecAudioRouting())
+    {
+        restore_memo_bt_fifo();
+        return false;
+    }
+
     if (!AudioFileRecorder::startRecording(typeCode))
     {
         restore_memo_bt_fifo();
@@ -83,6 +94,11 @@ bool promoteMemoRecordingToBluetooth()
     clear_speaker_mute_before_mic();
     setSpeakerMuted(false);
     AudioManager::setMicMuted(false);
+    if (!syncExtCodecAudioRouting())
+    {
+        return false;
+    }
+
     const bool promoted = ExtCodec::fullDuplexAvailable()
                               ? enableFullDuplexMode()
                               : (AudioManager::mode() == AudioManager::P2TMode::Mic || AudioManager::enableMicMode());

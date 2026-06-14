@@ -227,6 +227,11 @@ void setup()
     show_boot_error_f(true, "test fatal error");
 #endif
 
+    if (!AudioManager::syncExternalCodecRouting())
+    {
+        show_boot_error_f(false, "SGTL5000 audio routing failed");
+    }
+
     if (gui->currentView() && gui->currentView()->id() == FLYGUI_VIEW_SPLASH)
     {
         draw_splash_idle_prompt();

@@ -24,6 +24,9 @@ void ignoreSamplesFor(uint32_t durationMs = kStartupTransientIgnoreMs);
 void setBypass(bool enabled);
 bool bypass();
 
+void setHighPassFilterEnabled(bool enabled);
+bool highPassFilterEnabled();
+
 void setFixedGainMode(bool enabled);
 bool fixedGainMode();
 

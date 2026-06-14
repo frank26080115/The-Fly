@@ -87,6 +87,8 @@ AudioFifo g_fifo_mic2file(AUDIOFIFO_MS_TO_SAMPLES_16K(500), AUDIOFIFO_MS_TO_SAMP
 Hardware          g_hardware               = Hardware::M5StackInternal;
 P2TMode           g_mode                   = P2TMode::Stopped;
 SpeakerPath       g_speaker_path           = SpeakerPath::None;
+ExtCodec::State   g_synced_ext_codec_state = ExtCodec::EXTCODEC_UNAVAIL;
+bool              g_ext_codec_route_synced = false;
 i2s_chan_handle_t g_i2s_tx                 = nullptr;
 i2s_chan_handle_t g_i2s_rx                 = nullptr;
 I2sConfig         g_i2s_config             = I2sConfig::None;
@@ -183,6 +185,8 @@ void note_speaker_i2s_write(size_t requested, size_t written, size_t bytes_per_f
 bool init(Hardware hardware)
 {
     g_hardware = hardware;
+    g_synced_ext_codec_state = ExtCodec::EXTCODEC_UNAVAIL;
+    g_ext_codec_route_synced = false;
 
     if (!begin_fifos())
     {
@@ -197,6 +201,7 @@ bool init(Hardware hardware)
     g_fifo_mic2bt.setMuted(false);
     g_fifo_mic2file.setMuted(false);
     MicGainManager::init();
+    MicGainManager::setHighPassFilterEnabled(hardware == Hardware::M5StackInternal);
     SpeakerPeakActivity::init();
 
     if (!AudioFileRecorder::init(g_fifo_bt2file, g_fifo_mic2file))
@@ -1023,6 +1028,7 @@ bool enable_spm1423_mic()
         return false;
     }
 
+    MicGainManager::setHighPassFilterEnabled(true);
     MicGainManager::ignoreSamplesFor();
     g_i2s_config         = I2sConfig::InternalPdm;
     g_i2s_sample_rate_hz = kSampleRateHz;
@@ -1043,6 +1049,8 @@ bool enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz)
     {
         return false;
     }
+
+    MicGainManager::setHighPassFilterEnabled(false);
 
     if (nextMode == P2TMode::Speaker)
     {
@@ -1106,15 +1114,25 @@ bool sync_external_codec_routing()
 {
     if (!ExtCodec::available())
     {
+        g_synced_ext_codec_state = ExtCodec::EXTCODEC_UNAVAIL;
+        g_ext_codec_route_synced = false;
         return false;
     }
 
     const ExtCodec::State current = ExtCodec::state();
+    if (g_ext_codec_route_synced && g_synced_ext_codec_state == current)
+    {
+        return true;
+    }
+
     if (!ExtCodec::configureAnalogPathForState(current))
     {
         DBG_LOGW(TAG, "failed to configure SGTL5000 analog path for %s", ExtCodec::stateName(current));
         return false;
     }
+
+    g_synced_ext_codec_state = current;
+    g_ext_codec_route_synced = true;
     return true;
 }
 

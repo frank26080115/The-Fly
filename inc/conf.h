@@ -22,12 +22,13 @@ use this file for preprocessor definitions that are used to configure parts of t
 //#define TEST_MOCK_SCRAMBLE_TIME
 //#define TEST_MOCK_EXT_CODEC
 #define TEST_TEENSY_AUDIO_BRD
+#define TEST_NO_MIC_AGC
 
 #define BUILD_PERIODIC_DIAGNOSTICS
 //#define TEST_BUILD_SCREENSHOT // this is only used to generate screenshots for documentation purposes
 
 //#define BUILD_SILENCE_GAP_REMOVAL
-#define BUILD_USE_MP3_COMPRESSION
+//#define BUILD_USE_MP3_COMPRESSION
 #define NS4168_USE_STEREO
 #define USE_LEDC_PWM_AS_MCLK
 

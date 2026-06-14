@@ -34,16 +34,28 @@ constexpr uint32_t kNominalSampleRateHz = 16000;
 constexpr uint16_t kMaxSampleMagnitude  = 32767;
 constexpr uint16_t kTargetPeak          = (kMaxSampleMagnitude * 3U) / 4U;
 constexpr uint16_t kMinGainUnits        = kGainDivisor;
-constexpr uint16_t kMaxGainUnits        = kGainDivisor * 5U;
+constexpr uint16_t kMaxGainUnits        = 
+                                            #ifndef TEST_NO_MIC_AGC
+                                            kGainDivisor * 5U
+                                            #else
+                                            kGainDivisor * 1U
+                                            #endif
+                                            ;
 constexpr uint16_t kInitialGainUnits    = (kGainDivisor * 3U) / 2U;
 constexpr uint16_t kGainStepScale       = kGainDivisor / 128U;
 constexpr uint16_t kGainStepUpUnits     = kGainStepScale * 3U;
 constexpr uint16_t kGainStepDownUnits   = kGainStepScale * 8U;
 constexpr uint16_t kHighPassFilterR     = 8151;
+constexpr uint8_t  kSilenceGateThresholdPercent = 10;
+constexpr uint16_t kSilenceGateThreshold =
+    (kMaxSampleMagnitude * static_cast<uint16_t>(kSilenceGateThresholdPercent)) / 100U;
+constexpr uint32_t kSilenceGateDurationMs    = 500;
+constexpr uint32_t kSilenceGateSampleLimit   = (kNominalSampleRateHz * kSilenceGateDurationMs) / 1000U;
 
 std::mutex g_mutex;
 
 bool     g_bypass          = false;
+bool     g_high_pass_filter_enabled = true;
 bool     g_fixed_gain_mode = false;
 uint16_t g_fixed_gain      = kInitialGainUnits;
 uint16_t g_target_gain     = kInitialGainUnits;
@@ -57,6 +69,8 @@ int16_t  g_last_hpf_sample = 0;
 bool     g_have_hpf_state  = false;
 bool     g_have_last_hpf   = false;
 uint32_t g_ignore_until_ms = 0;
+uint32_t g_silence_gate_sample_count = 0;
+bool     g_silence_gate_active       = false;
 
 // -----------------------------------------------------------------------------
 // Function Prototypes
@@ -66,7 +80,12 @@ static void     init_unlocked();
 static bool     ignoring_samples(uint32_t nowMs);
 static void     decay_peak(uint16_t& peak, size_t frames);
 static int16_t  high_pass_filter(int16_t sample);
+static void     reset_high_pass_filter_state();
+static void     reset_silence_gate_state();
+static void     update_silence_gate(int16_t sample);
 static bool     zero_crossed(int16_t sample);
+static uint16_t target_peak_for_state();
+static uint16_t minimum_gain_for_state();
 static void     update_target_gain();
 static void     update_current_gain();
 static uint16_t gain_to_units(float gain);
@@ -101,6 +120,11 @@ void process(int16_t* samples, size_t sampleCount)
 
     decay_peak(g_raw_peak, sampleCount);
     decay_peak(g_scaled_peak, sampleCount);
+    if (g_silence_gate_active)
+    {
+        g_raw_peak    = 0;
+        g_scaled_peak = 0;
+    }
 
     if (!samples || sampleCount == 0)
     {
@@ -118,6 +142,7 @@ void process(int16_t* samples, size_t sampleCount)
     {
         const int16_t raw_sample = samples[i];
         const int16_t hpf_sample = high_pass_filter(raw_sample);
+        update_silence_gate(hpf_sample);
         if (ignoring)
         {
             samples[i] = 0;
@@ -158,16 +183,20 @@ void process(int16_t* samples, size_t sampleCount)
     g_scaled_peak = std::max<uint16_t>(g_scaled_peak, scaled_chunk_peak);
     update_target_gain();
     update_current_gain();
+
+    if (g_silence_gate_active)
+    {
+        g_raw_peak    = 0;
+        g_scaled_peak = 0;
+    }
 }
 
 void ignoreSamplesFor(uint32_t durationMs)
 {
     std::lock_guard<std::mutex> lock(g_mutex);
     g_ignore_until_ms = millis() + durationMs;
-    g_previous_hpf_x  = 0;
-    g_previous_hpf_y  = 0;
-    g_have_hpf_state  = false;
-    g_have_last_hpf   = false;
+    reset_high_pass_filter_state();
+    reset_silence_gate_state();
 }
 
 void setBypass(bool enabled)
@@ -175,10 +204,8 @@ void setBypass(bool enabled)
     std::lock_guard<std::mutex> lock(g_mutex);
     if (g_bypass != enabled)
     {
-        g_previous_hpf_x = 0;
-        g_previous_hpf_y = 0;
-        g_have_hpf_state = false;
-        g_have_last_hpf  = false;
+        reset_high_pass_filter_state();
+        reset_silence_gate_state();
     }
     g_bypass = enabled;
 }
@@ -187,6 +214,23 @@ bool bypass()
 {
     std::lock_guard<std::mutex> lock(g_mutex);
     return g_bypass;
+}
+
+void setHighPassFilterEnabled(bool enabled)
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (g_high_pass_filter_enabled != enabled)
+    {
+        reset_high_pass_filter_state();
+        reset_silence_gate_state();
+    }
+    g_high_pass_filter_enabled = enabled;
+}
+
+bool highPassFilterEnabled()
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+    return g_high_pass_filter_enabled;
 }
 
 void setFixedGainMode(bool enabled)
@@ -272,12 +316,20 @@ uint16_t fixedGainUnits()
 uint16_t rawPeak()
 {
     std::lock_guard<std::mutex> lock(g_mutex);
+    if (g_silence_gate_active)
+    {
+        return 0;
+    }
     return g_raw_peak;
 }
 
 uint16_t scaledPeak()
 {
     std::lock_guard<std::mutex> lock(g_mutex);
+    if (g_silence_gate_active)
+    {
+        return 0;
+    }
     return g_bypass ? g_raw_peak
                     : std::max<uint16_t>(
                           g_scaled_peak,
@@ -288,12 +340,20 @@ uint16_t scaledPeak()
 uint8_t rawPeakLevel()
 {
     std::lock_guard<std::mutex> lock(g_mutex);
+    if (g_silence_gate_active)
+    {
+        return 0;
+    }
     return peak_to_level(g_raw_peak);
 }
 
 uint8_t scaledPeakLevel()
 {
     std::lock_guard<std::mutex> lock(g_mutex);
+    if (g_silence_gate_active)
+    {
+        return 0;
+    }
     const uint16_t              peak =
         g_bypass ? g_raw_peak
                  : std::max<uint16_t>(
@@ -313,6 +373,7 @@ namespace
 void init_unlocked()
 {
     g_bypass          = false;
+    g_high_pass_filter_enabled = true;
     g_fixed_gain_mode = false;
     g_fixed_gain      = kInitialGainUnits;
     g_target_gain     = kInitialGainUnits;
@@ -326,6 +387,7 @@ void init_unlocked()
     g_have_hpf_state  = false;
     g_have_last_hpf   = false;
     g_ignore_until_ms = 0;
+    reset_silence_gate_state();
 }
 
 bool ignoring_samples(uint32_t nowMs)
@@ -348,6 +410,11 @@ void decay_peak(uint16_t& peak, size_t frames)
 
 int16_t high_pass_filter(int16_t sample)
 {
+    if (!g_high_pass_filter_enabled)
+    {
+        return sample;
+    }
+
     const int32_t x = sample;
     if (!g_have_hpf_state)
     {
@@ -362,6 +429,35 @@ int16_t high_pass_filter(int16_t sample)
     g_previous_hpf_x       = x;
     g_previous_hpf_y       = saturate_int32(filtered);
     return saturate_int16(g_previous_hpf_y);
+}
+
+void reset_high_pass_filter_state()
+{
+    g_previous_hpf_x = 0;
+    g_previous_hpf_y = 0;
+    g_have_hpf_state = false;
+    g_have_last_hpf  = false;
+}
+
+void reset_silence_gate_state()
+{
+    g_silence_gate_sample_count = 0;
+    g_silence_gate_active       = false;
+}
+
+void update_silence_gate(int16_t sample)
+{
+    if (sample_abs_peak(sample) > kSilenceGateThreshold)
+    {
+        reset_silence_gate_state();
+        return;
+    }
+
+    if (g_silence_gate_sample_count <= kSilenceGateSampleLimit)
+    {
+        ++g_silence_gate_sample_count;
+    }
+    g_silence_gate_active = g_silence_gate_sample_count > kSilenceGateSampleLimit;
 }
 
 bool zero_crossed(int16_t sample)
@@ -380,6 +476,13 @@ bool zero_crossed(int16_t sample)
 
 void update_target_gain()
 {
+    const uint16_t target_peak = target_peak_for_state();
+    if (target_peak == 0)
+    {
+        g_target_gain = 0;
+        return;
+    }
+
     if (g_fixed_gain_mode)
     {
         g_target_gain = g_fixed_gain;
@@ -393,7 +496,7 @@ void update_target_gain()
     }
 
     const uint32_t gain =
-        (static_cast<uint32_t>(kTargetPeak) * static_cast<uint32_t>(kGainDivisor) + (g_raw_peak / 2U)) / g_raw_peak;
+        (static_cast<uint32_t>(target_peak) * static_cast<uint32_t>(kGainDivisor) + (g_raw_peak / 2U)) / g_raw_peak;
     g_target_gain = clamp_gain_units(static_cast<uint16_t>(std::min<uint32_t>(gain, kMaxGainUnits)));
 }
 
@@ -407,11 +510,22 @@ void update_current_gain()
 
     if (g_current_gain > g_target_gain)
     {
+        const uint16_t min_gain = minimum_gain_for_state();
         const uint16_t next_gain = g_current_gain > kGainStepDownUnits
                                        ? static_cast<uint16_t>(g_current_gain - kGainStepDownUnits)
-                                       : kMinGainUnits;
+                                       : min_gain;
         g_current_gain           = std::max<uint16_t>(g_target_gain, next_gain);
     }
+}
+
+uint16_t target_peak_for_state()
+{
+    return g_silence_gate_active ? 0 : kTargetPeak;
+}
+
+uint16_t minimum_gain_for_state()
+{
+    return g_silence_gate_active ? 0 : kMinGainUnits;
 }
 
 // -----------------------------------------------------------------------------
