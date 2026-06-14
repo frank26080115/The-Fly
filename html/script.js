@@ -10,6 +10,7 @@ const pin_code_max_length = 31;
 let file_row_template = null;
 let current_default_soft_ap = true;
 let latest_info = null;
+let config_load_succeeded = false;
 let unlock_buttons_authenticated = false;
 
 function body_onload()
@@ -539,6 +540,10 @@ function append_time_offset_info(parent, info)
     if (!Number.isFinite(device_time) || device_time <= 0)
     {
         append_info_row(parent, "Time Offset", "Unknown");
+        if (config_load_succeeded)
+        {
+            append_time_sync_button(parent);
+        }
         return;
     }
 
@@ -548,10 +553,10 @@ function append_time_offset_info(parent, info)
     if (Math.abs(offset_seconds) > time_sync_offset_threshold_seconds)
     {
         row.classList.add("info-row-error");
-        if (time_sync_allowed())
-        {
-            append_time_sync_button(parent);
-        }
+    }
+    if (config_load_succeeded)
+    {
+        append_time_sync_button(parent);
     }
 }
 
@@ -1383,6 +1388,8 @@ function fetch_cfg()
                     ? (request.response || JSON.parse(request.responseText))
                     : await decrypt_cfg_blob(request.response);
                 fill_config_page(config);
+                config_load_succeeded = true;
+                render_info(latest_info || {});
                 unlock_buttons_authenticated = true;
                 show_all_unlock_buttons();
                 resolve(config);
