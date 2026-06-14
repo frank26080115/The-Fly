@@ -21,7 +21,6 @@
 #include "PinCode.h"
 #include "WebServer.h"
 #include "WifiManager.h"
-#include "esp_heap_caps.h"
 #include "dbg_log.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/platform_util.h"
@@ -475,21 +474,6 @@ void note_web_save()
 void note_web_error()
 {
     WifiManager::noteWebError();
-}
-
-uint8_t* allocate_large_buffer(size_t size)
-{
-    if (size == 0)
-    {
-        size = 1;
-    }
-
-    void* buffer = heap_caps_malloc(size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-    if (!buffer)
-    {
-        buffer = malloc(size);
-    }
-    return static_cast<uint8_t*>(buffer);
 }
 
 void set_cfg_error(AsyncWebServerRequest* request, int status_code, const char* message)

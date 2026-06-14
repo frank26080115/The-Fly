@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "dbg_log.h"
+#include "esp_heap_caps.h"
 #include "esp_random.h"
 
 namespace
@@ -233,6 +234,21 @@ char* clone_trimmed_string(const char* text)
     memcpy(clone, text, len);
     clone[len] = '\0';
     return clone;
+}
+
+uint8_t* allocate_large_buffer(size_t size)
+{
+    if (size == 0)
+    {
+        size = 1;
+    }
+
+    void* buffer = heap_caps_malloc(size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (!buffer)
+    {
+        buffer = malloc(size);
+    }
+    return static_cast<uint8_t*>(buffer);
 }
 
 void copy_bda(uint8_t dst[ESP_BD_ADDR_LEN], const uint8_t src[ESP_BD_ADDR_LEN])

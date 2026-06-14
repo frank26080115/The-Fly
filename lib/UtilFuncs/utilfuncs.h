@@ -45,6 +45,8 @@ void        basename_for_path_no_ext(const char* path, char* out, size_t out_siz
 char* clone_string(const char* text);
 // WARNING: the returned cloned string is allocated with malloc and must be free'ed by the caller.
 char* clone_trimmed_string(const char* text);
+// WARNING: the returned buffer is allocated with malloc-compatible storage and must be free'ed by the caller.
+uint8_t* allocate_large_buffer(size_t size);
 
 struct Upsample2xLinearState
 {

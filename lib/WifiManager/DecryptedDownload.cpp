@@ -19,7 +19,6 @@
 #include "WebServer.h"
 #include "WifiManager.h"
 #include "dbg_log.h"
-#include "esp_heap_caps.h"
 #include "mbedtls/base64.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/platform_util.h"
@@ -334,21 +333,6 @@ void send_error(AsyncWebServerRequest* request)
 }
 
 #if BUILD_WITH_SECURITY_LEVEL >= 1 && defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
-uint8_t* allocate_buffer(size_t size)
-{
-    if (size == 0)
-    {
-        size = 1;
-    }
-
-    void* buffer = heap_caps_malloc(size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-    if (!buffer)
-    {
-        buffer = malloc(size);
-    }
-    return static_cast<uint8_t*>(buffer);
-}
-
 bool path_has_parent_or_current_segment(const char* path)
 {
     const char* cursor = path;
@@ -553,7 +537,7 @@ bool begin_upload(AsyncWebServerRequest* request, size_t total)
     }
 
     reset_upload(request);
-    g_upload.encrypted = allocate_buffer(expected_size);
+    g_upload.encrypted = allocate_large_buffer(expected_size);
     if (!g_upload.encrypted)
     {
         set_error(request, 500, "Could not allocate encrypted download request buffer");
@@ -637,7 +621,7 @@ bool decrypt_request_body(const uint8_t  session_key[WebServer::kSessionKeySize]
     const uint8_t* tag        = encrypted + encrypted_size - kGcmTagSize;
     plaintext_size            = encrypted_size - kEncryptedRequestHeaderSize - kGcmTagSize;
 
-    plaintext = allocate_buffer(plaintext_size + 1);
+    plaintext = allocate_large_buffer(plaintext_size + 1);
     if (!plaintext)
     {
         status_code = 500;
@@ -723,7 +707,7 @@ bool decrypt_filename_blob(const uint8_t  session_key[WebServer::kSessionKeySize
         return false;
     }
 
-    plaintext = allocate_buffer(plaintext_size + 1);
+    plaintext = allocate_large_buffer(plaintext_size + 1);
     if (!plaintext)
     {
         status_code    = 500;
@@ -827,7 +811,7 @@ bool decode_base64url(const String& text, uint8_t*& out, size_t& out_size)
     }
     padded[padded_size] = '\0';
 
-    out = allocate_buffer(kMaxEncryptedRequestSize);
+    out = allocate_large_buffer(kMaxEncryptedRequestSize);
     if (!out)
     {
         free(padded);
