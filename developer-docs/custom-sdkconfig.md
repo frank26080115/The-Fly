@@ -64,6 +64,8 @@ custom_sdkconfig =
     CONFIG_ESP_SYSTEM_MEMPROT_FEATURE_LOCK=y
     CONFIG_HEAP_POISONING_LIGHT=y
     CONFIG_HEAP_TRACING_OFF=y
+    '# CONFIG_MDNS_MEMORY_ALLOC_INTERNAL is not set'
+    CONFIG_MDNS_MEMORY_ALLOC_SPIRAM=y
 ```
 
 To explain what this does:
@@ -73,3 +75,4 @@ To explain what this does:
  * removes unused features from Bluetooth
  * removes or optimizes IRAM0 usage, otherwise it overflows
  * memory protection to prevent unsafe code execution
+ * moves MDNS dynamic memory allocation to PSRAM
