@@ -108,6 +108,10 @@ constexpr size_t kWavPlaintextAudioBufferBytes = WAV_ENCRYPTED_AUDIO_PLAINTEXT_L
 #if BUILD_WITH_SECURITY_LEVEL >= 1 || defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
 constexpr size_t kWavEncryptedAudioBufferBytes = WAV_ENCRYPTED_AUDIO_CHUNK_LENGTH;
 #endif
+constexpr size_t kWavRecordingSampleBufferCount = kRecordingPumpFrames;
+#if defined(BUILD_USE_MP3_COMPRESSION)
+constexpr size_t kMp3StereoSampleBufferCount = kMp3PumpFrameCapacity * kWavChannels;
+#endif
 
 // -----------------------------------------------------------------------------
 // Types
@@ -157,10 +161,13 @@ size_t              g_plaintext_audio_chunk_used = 0;
 std::mutex g_recorder_mutex;
 std::mutex g_pump_mutex;
 std::mutex g_audio_buffer_mutex;
-int16_t    g_wav_mic_samples[kRecordingPumpFrames];
-int16_t    g_wav_host_samples[kRecordingPumpFrames];
+int16_t*   g_wav_mic_samples       = nullptr;
+size_t     g_wav_mic_sample_count  = 0;
+int16_t*   g_wav_host_samples      = nullptr;
+size_t     g_wav_host_sample_count = 0;
 #if defined(BUILD_USE_MP3_COMPRESSION)
-int16_t g_mp3_stereo_samples[kMp3PumpFrameCapacity * kWavChannels];
+int16_t* g_mp3_stereo_samples      = nullptr;
+size_t   g_mp3_stereo_sample_count = 0;
 #endif
 uint8_t* g_wav_plaintext_audio      = nullptr;
 size_t   g_wav_plaintext_audio_size = 0;
@@ -183,6 +190,7 @@ bool     rename_stopped_recording(char* stopped_path, size_t stopped_path_size, 
 bool     recording_active();
 void     set_recording_active(bool active);
 bool     ensure_audio_buffers_locked();
+bool     ensure_recorder_staging_buffers_locked();
 void     release_audio_buffers_locked();
 
 #if BUILD_WITH_SECURITY_LEVEL >= 1
@@ -258,6 +266,15 @@ void set_queue_enabled(bool enabled);
 bool init(AudioFifo& hostFifo, AudioFifo& micFifo)
 {
     {
+        std::lock_guard<std::mutex> lock(g_audio_buffer_mutex);
+        if (!ensure_recorder_staging_buffers_locked())
+        {
+            DBG_LOGE(TAG, "recorder staging buffer allocation failed during init");
+            return false;
+        }
+    }
+
+    {
         std::lock_guard<std::mutex> lock(g_recorder_mutex);
         g_host_fifo = &hostFifo;
         g_mic_fifo  = &micFifo;
@@ -317,6 +334,16 @@ bool startRecording(char typeCode)
         return false;
     }
 #endif
+
+    {
+        std::lock_guard<std::mutex> lock(g_audio_buffer_mutex);
+        if (!ensure_recorder_staging_buffers_locked())
+        {
+            DBG_LOGE(TAG, "recorder staging buffer allocation failed");
+            show_fatal_error_f(true, "recording staging buffer allocation failed");
+            return false;
+        }
+    }
 
     g_host_fifo->setQueueEnabled(false);
     g_mic_fifo->setQueueEnabled(false);
@@ -824,6 +851,33 @@ bool allocate_audio_buffer_locked(uint8_t*& buffer, size_t& size, size_t require
     return true;
 }
 
+bool allocate_sample_buffer_locked(int16_t*& buffer, size_t& count, size_t required_count, const char* name)
+{
+    if (buffer && count >= required_count)
+    {
+        return true;
+    }
+
+    if (buffer)
+    {
+        heap_caps_free(buffer);
+        buffer = nullptr;
+        count  = 0;
+    }
+
+    const size_t required_size = required_count * sizeof(int16_t);
+    buffer = reinterpret_cast<int16_t*>(heap_caps_malloc(required_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
+    if (!buffer)
+    {
+        DBG_LOGE(TAG, "PSRAM allocation failed for %s sample buffer: %u bytes", name, static_cast<unsigned>(required_size));
+        return false;
+    }
+
+    count = required_count;
+    DBG_LOGI(TAG, "allocated %s sample buffer in PSRAM: %u bytes", name, static_cast<unsigned>(required_size));
+    return true;
+}
+
 void release_audio_buffer_locked(uint8_t*& buffer, size_t& size, const char* name)
 {
     if (!buffer)
@@ -837,6 +891,22 @@ void release_audio_buffer_locked(uint8_t*& buffer, size_t& size, const char* nam
     DBG_LOGI(TAG, "released %s audio buffer: %u bytes", name, static_cast<unsigned>(size));
     buffer = nullptr;
     size   = 0;
+}
+
+void release_sample_buffer_locked(int16_t*& buffer, size_t& count, const char* name)
+{
+    if (!buffer)
+    {
+        count = 0;
+        return;
+    }
+
+    const size_t size = count * sizeof(int16_t);
+    memset(buffer, 0, size);
+    heap_caps_free(buffer);
+    DBG_LOGI(TAG, "released %s sample buffer: %u bytes", name, static_cast<unsigned>(size));
+    buffer = nullptr;
+    count  = 0;
 }
 
 bool ensure_audio_buffers_locked()
@@ -863,12 +933,49 @@ bool ensure_audio_buffers_locked()
     return true;
 }
 
+bool ensure_recorder_staging_buffers_locked()
+{
+    if (!allocate_sample_buffer_locked(g_wav_mic_samples,
+                                       g_wav_mic_sample_count,
+                                       kWavRecordingSampleBufferCount,
+                                       "mic"))
+    {
+        return false;
+    }
+    if (!allocate_sample_buffer_locked(g_wav_host_samples,
+                                       g_wav_host_sample_count,
+                                       kWavRecordingSampleBufferCount,
+                                       "host"))
+    {
+        release_sample_buffer_locked(g_wav_mic_samples, g_wav_mic_sample_count, "mic");
+        return false;
+    }
+#if defined(BUILD_USE_MP3_COMPRESSION)
+    if (!allocate_sample_buffer_locked(g_mp3_stereo_samples,
+                                       g_mp3_stereo_sample_count,
+                                       kMp3StereoSampleBufferCount,
+                                       "MP3 stereo"))
+    {
+        release_sample_buffer_locked(g_wav_host_samples, g_wav_host_sample_count, "host");
+        release_sample_buffer_locked(g_wav_mic_samples, g_wav_mic_sample_count, "mic");
+        return false;
+    }
+#endif
+
+    return true;
+}
+
 void release_audio_buffers_locked()
 {
     release_audio_buffer_locked(g_wav_plaintext_audio, g_wav_plaintext_audio_size, "plaintext");
 #if BUILD_WITH_SECURITY_LEVEL >= 1 || defined(BUILD_WITH_ENCRYPTED_PLAYBACK)
     release_audio_buffer_locked(g_wav_encrypted_audio, g_wav_encrypted_audio_size, "encrypted");
 #endif
+#if defined(BUILD_USE_MP3_COMPRESSION)
+    release_sample_buffer_locked(g_mp3_stereo_samples, g_mp3_stereo_sample_count, "MP3 stereo");
+#endif
+    release_sample_buffer_locked(g_wav_host_samples, g_wav_host_sample_count, "host");
+    release_sample_buffer_locked(g_wav_mic_samples, g_wav_mic_sample_count, "mic");
 }
 
 uint64_t max_prealloc_size()
@@ -1934,6 +2041,17 @@ bool pump_audio_chunk_locked(bool force)
     {
         return false;
     }
+    if (!g_wav_mic_samples || !g_wav_host_samples || g_wav_mic_sample_count < frames ||
+        g_wav_host_sample_count < frames)
+    {
+        return false;
+    }
+#if defined(BUILD_USE_MP3_COMPRESSION)
+    if (!g_mp3_stereo_samples || g_mp3_stereo_sample_count < frames * kWavChannels)
+    {
+        return false;
+    }
+#endif
 
     size_t mic_read = 0;
     if (mic_available > 0)
