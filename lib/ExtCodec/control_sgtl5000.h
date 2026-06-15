@@ -51,11 +51,11 @@ public:
 	bool unmuteLineout(void) { return write(0x0024, ana_ctrl & ~(1<<8)); }
 	bool inputSelect(int n) {
 		if (n == AUDIO_INPUT_LINEIN) {
-			return write(0x0020, 0x055) // +7.5dB gain (1.3Vp-p full scale)
+			return write(0x0020, 0x011) // ADC gain +1.5dB
 			 && write(0x0024, ana_ctrl | (1<<2)); // enable linein
 		} else if (n == AUDIO_INPUT_MIC) {
-			return write(0x002A, 0x0173) // mic preamp gain = +40dB
-			 && write(0x0020, 0x088)     // input gain +12dB (is this enough?)
+			return write(0x002A, 0x0170) // mic preamp gain = 0dB
+			 && write(0x0020, 0x011)     // ADC gain +1.5dB
 			 && write(0x0024, ana_ctrl & ~(1<<2)); // enable mic
 		} else {
 			return false;
