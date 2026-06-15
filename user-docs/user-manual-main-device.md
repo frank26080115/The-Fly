@@ -46,11 +46,17 @@ Or, from your Bluetooth host, initiate a connection to The Fly, the recording wi
 
 During a recording, there are 3 buttons on the bottom of the screen. The two with mic and speaker icons allows you to mute the mic or speaker/earbud. The stop button on the right ends the recording and disconnects the Bluetooth connection.
 
+![](gfx/bt_recording_muted.jpg)
+
 The volume level of the speaker/earbud is controlled through the volume controls of your Bluetooth host, so the volume button on your smartphone or on your laptop.
+
+![](gfx/phone_volume.jpg)
 
 The recording file is capturing all sound whether or not the speaker/earbud is muted. You may leave the speaker/earbud muted forever if you are taking the meeting from a meeting room, as an example situation.
 
 There is a display for detected actual sound level so you can have the device muted completely and still know if somebody is talking.
+
+![](gfx/bt_recording_peaklvl.jpg)
 
 There is another button to "pick up call" but that only does anything if there's an incoming call that is currently ringing.
 
