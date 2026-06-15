@@ -147,6 +147,7 @@ bool   enable_spm1423_mic();
 bool   enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz = kSampleRateHz);
 bool   ensure_exti2scodec_i2s(uint32_t sampleRateHz);
 bool   sync_external_codec_routing();
+void   sync_mic_filter_for_external_codec_state(ExtCodec::State state);
 void   duplicate_i2s0_bclk_to_gpio13();
 void   queue_hfp_pcm(const uint8_t* buf, uint32_t len);
 bool   should_notify_hfp_outgoing_ready(size_t queued_bt, bool allow_existing_fifo);
@@ -201,7 +202,7 @@ bool init(Hardware hardware)
     g_fifo_mic2bt.setMuted(false);
     g_fifo_mic2file.setMuted(false);
     MicGainManager::init();
-    MicGainManager::setHighPassFilterEnabled(hardware == Hardware::M5StackInternal);
+    MicGainManager::setHighPassFilterEnabled(hardware == Hardware::ExternalI2SCodec);
     SpeakerPeakActivity::init();
 
     if (!AudioFileRecorder::init(g_fifo_bt2file, g_fifo_mic2file))
@@ -1028,7 +1029,7 @@ bool enable_spm1423_mic()
         return false;
     }
 
-    MicGainManager::setHighPassFilterEnabled(true);
+    MicGainManager::setHighPassFilterEnabled(false);
     MicGainManager::ignoreSamplesFor();
     g_i2s_config         = I2sConfig::InternalPdm;
     g_i2s_sample_rate_hz = kSampleRateHz;
@@ -1049,8 +1050,6 @@ bool enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz)
     {
         return false;
     }
-
-    MicGainManager::setHighPassFilterEnabled(false);
 
     if (nextMode == P2TMode::Speaker)
     {
@@ -1120,6 +1119,7 @@ bool sync_external_codec_routing()
     }
 
     const ExtCodec::State current = ExtCodec::state();
+    sync_mic_filter_for_external_codec_state(current);
     if (g_ext_codec_route_synced && g_synced_ext_codec_state == current)
     {
         return true;
@@ -1134,6 +1134,14 @@ bool sync_external_codec_routing()
     g_synced_ext_codec_state = current;
     g_ext_codec_route_synced = true;
     return true;
+}
+
+void sync_mic_filter_for_external_codec_state(ExtCodec::State state)
+{
+    const ExtCodec::MicInput input = ExtCodec::micInputForState(state);
+    const bool enable_high_pass_filter = input == ExtCodec::MicInput::LineInRight ||
+                                         input == ExtCodec::MicInput::DedicatedMic;
+    MicGainManager::setHighPassFilterEnabled(enable_high_pass_filter);
 }
 
 void duplicate_i2s0_bclk_to_gpio13()
