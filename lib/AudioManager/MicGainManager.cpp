@@ -34,21 +34,26 @@ constexpr uint32_t kNominalSampleRateHz = 16000;
 constexpr uint16_t kMaxSampleMagnitude  = 32767;
 constexpr uint16_t kTargetPeak          = (kMaxSampleMagnitude * 3U) / 4U;
 constexpr uint16_t kMinGainUnits        = kGainDivisor;
-constexpr uint16_t kMaxGainUnits        = 
+constexpr uint16_t kMaxGainUnits        = kGainDivisor *
                                             #ifndef TEST_NO_MIC_AGC
-                                            kGainDivisor * 5U
+                                            5U;
                                             #else
-                                            kGainDivisor * 1U
+                                            1U;
                                             #endif
-                                            ;
 constexpr uint16_t kInitialGainUnits    = (kGainDivisor * 3U) / 2U;
 constexpr uint16_t kGainStepScale       = kGainDivisor / 128U;
 constexpr uint16_t kGainStepUpUnits     = kGainStepScale * 3U;
 constexpr uint16_t kGainStepDownUnits   = kGainStepScale * 8U;
 constexpr uint16_t kHighPassFilterR     = 8151;
-constexpr uint8_t  kSilenceGateThresholdPercent = 10;
+constexpr uint8_t  kSilenceGateThresholdPercentX10 = 
+                                            #ifndef TEST_NO_MIC_AGC
+                                            2; // 0.2%
+                                            // note: use 10% if using 63 dB mic gain
+                                            #else
+                                            0;
+                                            #endif
 constexpr uint16_t kSilenceGateThreshold =
-    (kMaxSampleMagnitude * static_cast<uint16_t>(kSilenceGateThresholdPercent)) / 100U;
+    (kMaxSampleMagnitude * static_cast<uint16_t>(kSilenceGateThresholdPercentX10)) / 1000U;
 constexpr uint32_t kSilenceGateDurationMs    = 500;
 constexpr uint32_t kSilenceGateSampleLimit   = (kNominalSampleRateHz * kSilenceGateDurationMs) / 1000U;
 
