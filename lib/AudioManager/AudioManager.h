@@ -95,6 +95,7 @@ bool    enableSpeakerMode(uint32_t sampleRateHz = kSampleRateHz);
 bool    enableMicMode();
 bool    enableFullDuplexMode(uint32_t sampleRateHz = kSampleRateHz);
 bool    syncExternalCodecRouting();
+void    forceExternalCodecLineInRightMic(bool force);
 P2TMode mode();
 
 void pump_bt2spk();

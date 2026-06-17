@@ -91,6 +91,7 @@ P2TMode           g_mode                   = P2TMode::Stopped;
 SpeakerPath       g_speaker_path           = SpeakerPath::None;
 ExtCodec::State   g_synced_ext_codec_state = ExtCodec::EXTCODEC_UNAVAIL;
 bool              g_ext_codec_route_synced = false;
+bool              g_force_ext_codec_line_in_right_mic = false;
 i2s_chan_handle_t g_i2s_tx                 = nullptr;
 i2s_chan_handle_t g_i2s_rx                 = nullptr;
 I2sConfig         g_i2s_config             = I2sConfig::None;
@@ -288,6 +289,12 @@ bool syncExternalCodecRouting()
 
     const bool routed = sync_external_codec_routing();
     return routed;
+}
+
+void forceExternalCodecLineInRightMic(bool force)
+{
+    g_force_ext_codec_line_in_right_mic = force;
+    g_ext_codec_route_synced            = false;
 }
 
 P2TMode mode()
@@ -1166,20 +1173,21 @@ bool sync_external_codec_routing()
         return false;
     }
 
-    const ExtCodec::State current = ExtCodec::state();
-    sync_mic_filter_for_external_codec_state(current);
-    if (g_ext_codec_route_synced && g_synced_ext_codec_state == current)
+    const ExtCodec::State current     = ExtCodec::state();
+    const ExtCodec::State route_state = g_force_ext_codec_line_in_right_mic ? ExtCodec::EXTCODEC_NO_EARBUD : current;
+    sync_mic_filter_for_external_codec_state(route_state);
+    if (g_ext_codec_route_synced && g_synced_ext_codec_state == route_state)
     {
         return true;
     }
 
-    if (!ExtCodec::configureAnalogPathForState(current))
+    if (!ExtCodec::configureAnalogPathForState(route_state))
     {
-        DBG_LOGW(TAG, "failed to configure SGTL5000 analog path for %s", ExtCodec::stateName(current));
+        DBG_LOGW(TAG, "failed to configure SGTL5000 analog path for %s", ExtCodec::stateName(route_state));
         return false;
     }
 
-    g_synced_ext_codec_state = current;
+    g_synced_ext_codec_state = route_state;
     g_ext_codec_route_synced = true;
     return true;
 }
@@ -1435,7 +1443,8 @@ bool mic_input_active()
 bool external_codec_mic_uses_line_in_right()
 {
     return g_hardware == Hardware::ExternalI2SCodec &&
-           ExtCodec::micInputForState(ExtCodec::state()) == ExtCodec::MicInput::LineInRight;
+           (g_force_ext_codec_line_in_right_mic ||
+            ExtCodec::micInputForState(ExtCodec::state()) == ExtCodec::MicInput::LineInRight);
 }
 
 void copy_right_channel_to_mono(const int16_t* interleavedSamples, int16_t* monoSamples, size_t frameCount)

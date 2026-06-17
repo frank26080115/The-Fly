@@ -119,7 +119,7 @@ void setup()
 {
     all_init();
 
-    // run_test();
+    run_test();
 
     BattTracker::init();
     BattTracker::shutdownIfNeeded();
