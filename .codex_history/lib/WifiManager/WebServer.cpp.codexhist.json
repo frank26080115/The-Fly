@@ -3929,5 +3929,17 @@
       "lib/WavPlayback/PlaybackView.cpp",
       "lib/WifiManager/WebServer.cpp"
     ]
+  },
+  {
+    "timestamp": "2026-06-12T18:59:01Z",
+    "type": "git_commit",
+    "commit_message": "ftp password change",
+    "commit_hash": "71c1dd2632b6d71e4241767108b4982df3b0ce7b"
+  },
+  {
+    "timestamp": "2026-06-13T18:25:45Z",
+    "type": "git_commit",
+    "commit_message": "fix small build errors around ftp",
+    "commit_hash": "0294068094a17c9099af5f343af0390e9ff1fd25"
   }
 ]

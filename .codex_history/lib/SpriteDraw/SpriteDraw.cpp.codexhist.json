@@ -615,5 +615,30 @@
     "type": "git_commit",
     "commit_message": "ran clang format",
     "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"
+  },
+  {
+    "timestamp": "2026-06-11T21:22:20.111Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "are there places in the code where we are bypassing `thefly_display` as the thing to be drawn to? exluding the tests"
+    ],
+    "agent_reply": [
+      "Short answer: I don’t see any non-test drawing code bypassing `thefly_display`.",
+      "",
+      "I searched `src`, `lib`, and `inc`, excluding `src/tests/**`. The only non-test `M5.Display` references are the expected global binding in [main.cpp](C:/GitHubRepos/The-Fly/src/main.cpp:89). I didn’t find direct `M5.Display.fillRect(...)`, `M5.Lcd...`, local `M5Canvas`, `LGFX_Sprite`, or other alternate display targets outside `GuiDisplay` itself.",
+      "",
+      "`SpriteDraw::drawPng(...)` is also fine: it looks like an abstraction, but internally it draws through `thefly_display` in [SpriteDraw.cpp](C:/GitHubRepos/The-Fly/lib/SpriteDraw/SpriteDraw.cpp:204) and the `setAddrWindow/writePixels` path in [SpriteDraw.cpp](C:/GitHubRepos/The-Fly/lib/SpriteDraw/SpriteDraw.cpp:273).",
+      "",
+      "One caveat: `GuiDisplay` exposes escape hatches via `display()` and `operator M5GFX&()`. I didn’t find current code using them to draw directly, but future code could accidentally bypass the screenshot mirror by grabbing the raw `M5GFX&`."
+    ],
+    "files": [
+      "src/main.cpp",
+      "lib/SpriteDraw/SpriteDraw.cpp"
+    ]
   }
 ]

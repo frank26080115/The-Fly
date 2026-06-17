@@ -1,0 +1,85 @@
+[
+  {
+    "timestamp": "2026-06-12T17:55:15.015Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: user-docs/user-manual-local-server.md",
+      "",
+      "## My request for Codex:",
+      "write a `setup.py` script that compiles `scripts\\thefly_desktop.py` into a windows executable, preferably all packed into one EXE without DLLs or any other files"
+    ],
+    "agent_reply": [
+      "Added [setup.py](C:/GitHubRepos/The-Fly/setup.py). It builds `scripts\\thefly_desktop.py` with PyInstaller in default one-file mode:",
+      "",
+      "```powershell",
+      "python -m pip install pyinstaller -r scripts\\requirements.txt",
+      "python setup.py",
+      "```",
+      "",
+      "Output will be:",
+      "",
+      "```text",
+      "dist\\thefly-desktop.exe",
+      "```",
+      "",
+      "It bundles the local sibling modules, encryption support, and installed `faster-whisper` runtime pieces. There’s also:",
+      "",
+      "```powershell",
+      "python setup.py --onedir",
+      "python setup.py --include-openai-whisper",
+      "python setup.py --dry-run",
+      "```",
+      "",
+      "Verified: `python -m py_compile setup.py` and `python setup.py --help` pass. I did not run the actual build because PyInstaller is not installed in this environment. One caveat: PyInstaller’s one-file exe is a single distributable file, but it still extracts bundled native DLLs to a temporary folder while running."
+    ],
+    "files": [
+      "dist/thefly-desktop.exe",
+      "setup.py",
+      "scripts/thefly_desktop.py",
+      "scripts/requirements.txt",
+      "scripts/setup.py"
+    ]
+  },
+  {
+    "timestamp": "2026-06-12T18:07:24.878Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: user-docs/user-manual-local-server.md",
+      "",
+      "## My request for Codex:",
+      "move `setup.py` to `scripts`, make sure all relative paths are corrected"
+    ],
+    "agent_reply": [
+      "Moved `setup.py` to [scripts/setup.py](C:/GitHubRepos/The-Fly/scripts/setup.py).",
+      "",
+      "I corrected the paths so it still builds from repo root context:",
+      "- `ROOT_DIR` is now `scripts\\..`",
+      "- `SCRIPTS_DIR` is now the directory containing `setup.py`",
+      "- entry script resolves to `scripts\\thefly_desktop.py`",
+      "- output still goes to root-level `dist\\`",
+      "- PyInstaller work/spec files still go to root-level `build\\pyinstaller\\`",
+      "",
+      "Verified:",
+      "```powershell",
+      "python -m py_compile scripts\\setup.py",
+      "python scripts\\setup.py --help",
+      "python scripts\\setup.py --dry-run",
+      "```",
+      "",
+      "The dry run now works even without PyInstaller installed, so you can inspect the command on a fresh machine. Build command is now:",
+      "",
+      "```powershell",
+      "python scripts\\setup.py",
+      "```"
+    ],
+    "files": [
+      "scripts/setup.py",
+      "setup.py",
+      "scripts/thefly_desktop.py"
+    ]
+  }
+]

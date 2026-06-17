@@ -1,0 +1,41 @@
+[
+  {
+    "timestamp": "2026-06-12T18:18:51.348Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: user-docs/user-manual-local-server.md",
+      "",
+      "## My request for Codex:",
+      "add a table to the end of `user-docs\\user-manual-local-server.md` that is basically the arguments help text from `thefly_desktop.py`"
+    ],
+    "agent_reply": "Added the command-line arguments table to the end of [user-manual-local-server.md](C:/GitHubRepos/The-Fly/user-docs/user-manual-local-server.md). It mirrors `python scripts\\thefly_desktop.py --help`, with a generic home-directory description for `--db-dir` instead of the machine-specific path from the live help output.",
+    "files": [
+      "user-docs/user-manual-local-server.md",
+      "scripts/thefly_desktop.py"
+    ]
+  },
+  {
+    "timestamp": "2026-06-12T18:19:42.634Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: user-docs/user-manual-local-server.md",
+      "",
+      "## My request for Codex:",
+      "get rid of the middle column for `Value`"
+    ],
+    "agent_reply": "Done. The `Value` column is gone, and the argument values are now folded into the `Argument` column in [user-manual-local-server.md](C:/GitHubRepos/The-Fly/user-docs/user-manual-local-server.md).",
+    "files": [
+      "user-docs/user-manual-local-server.md"
+    ]
+  },
+  {
+    "timestamp": "2026-06-12T18:59:29Z",
+    "type": "git_commit",
+    "commit_message": "user manual documentation, python install instructions",
+    "commit_hash": "54cf9eedc747acab8c1d2d7b135b289a7fca485f"
+  }
+]

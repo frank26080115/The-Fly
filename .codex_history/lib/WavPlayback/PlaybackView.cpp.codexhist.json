@@ -1273,5 +1273,11 @@
       "lib/WavPlayback/PlaybackView.cpp",
       "lib/WifiManager/WebServer.cpp"
     ]
+  },
+  {
+    "timestamp": "2026-06-17T08:10:59Z",
+    "type": "git_commit",
+    "commit_message": "mic tweaks, db scale peak display",
+    "commit_hash": "0b3e546dac086b9f57a21181e78f16ceaddc7d8a"
   }
 ]

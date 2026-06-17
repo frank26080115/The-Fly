@@ -138,5 +138,40 @@
     "type": "git_commit",
     "commit_message": "minor documentation realignment",
     "commit_hash": "f2c709ecce52380184bf7572afec748da37a5039"
+  },
+  {
+    "timestamp": "2026-06-12T18:43:25.862Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: README.md",
+      "",
+      "## My request for Codex:",
+      "add links to the user manual files to the bottom of `README.md`"
+    ],
+    "agent_reply": [
+      "Added a `User Manuals` section to [README.md](C:/GitHubRepos/The-Fly/README.md) with links to:",
+      "",
+      "- Main Device",
+      "- Wi-Fi Operations",
+      "- Local Server"
+    ],
+    "files": [
+      "README.md",
+      "lib/Hotel/readme.md"
+    ]
+  },
+  {
+    "timestamp": "2026-06-12T18:59:29Z",
+    "type": "git_commit",
+    "commit_message": "user manual documentation, python install instructions",
+    "commit_hash": "54cf9eedc747acab8c1d2d7b135b289a7fca485f"
+  },
+  {
+    "timestamp": "2026-06-12T19:08:44Z",
+    "type": "git_commit",
+    "commit_message": "Update README.md",
+    "commit_hash": "8c42bd882aa5c8934b015bd6abfc264f79218730"
   }
 ]

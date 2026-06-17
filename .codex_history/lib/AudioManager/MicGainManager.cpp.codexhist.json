@@ -386,5 +386,23 @@
     "type": "git_commit",
     "commit_message": "another pass for neatening the code",
     "commit_hash": "69565ef8070e29a4eed56c25eb5f522168c02750"
+  },
+  {
+    "timestamp": "2026-06-14T06:50:30Z",
+    "type": "git_commit",
+    "commit_message": "tweaks of how mic input works to manage silence and switching noise",
+    "commit_hash": "9ac5b984e359f45bde029dd0f64f5d09f8463e67"
+  },
+  {
+    "timestamp": "2026-06-15T06:25:23Z",
+    "type": "git_commit",
+    "commit_message": "more adjustments for mic gain",
+    "commit_hash": "f13174493f24225ed7c02a8c526f8d3b7065d886"
+  },
+  {
+    "timestamp": "2026-06-17T08:10:59Z",
+    "type": "git_commit",
+    "commit_message": "mic tweaks, db scale peak display",
+    "commit_hash": "0b3e546dac086b9f57a21181e78f16ceaddc7d8a"
   }
 ]

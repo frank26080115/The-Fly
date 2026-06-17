@@ -1,0 +1,142 @@
+[
+  {
+    "timestamp": "2026-06-12T17:33:05.014Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "write a `requirements.txt` for the `scripts` directory and for the `tools` directory"
+    ],
+    "agent_reply": [
+      "Added:",
+      "",
+      "- [scripts/requirements.txt](C:/GitHubRepos/The-Fly/scripts/requirements.txt:1)",
+      "- [tools/requirements.txt](C:/GitHubRepos/The-Fly/tools/requirements.txt:1)",
+      "",
+      "`scripts` covers `cryptography`, `faster-whisper`, and optional `openai-whisper`. `tools` covers image/minifier dependencies plus `SCons` for the PlatformIO pre-build hook.",
+      "",
+      "I left the existing unrelated `src/version.c` and `tools/test_builds/` changes alone.",
+      "",
+      "Added:",
+      "",
+      "- [scripts/requirements.txt](C:/GitHubRepos/The-Fly/scripts/requirements.txt:1)",
+      "- [tools/requirements.txt](C:/GitHubRepos/The-Fly/tools/requirements.txt:1)",
+      "",
+      "`scripts` covers `cryptography`, `faster-whisper`, and optional `openai-whisper`. `tools` covers image/minifier dependencies plus `SCons` for the PlatformIO pre-build hook.",
+      "",
+      "I left the existing unrelated `src/version.c` and `tools/test_builds/` changes alone."
+    ],
+    "files": [
+      "scripts/requirements.txt",
+      "tools/requirements.txt",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-12T17:41:52.524Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: user-docs/user-manual-local-server-install.md",
+      "",
+      "## My request for Codex:",
+      "how do you automaticalyl install everything inside a requirements.txt?"
+    ],
+    "agent_reply": [
+      "Use `pip install -r requirements.txt`.",
+      "",
+      "From this repo, for example:",
+      "",
+      "```powershell",
+      "python -m pip install -r scripts\\requirements.txt",
+      "python -m pip install -r tools\\requirements.txt",
+      "```",
+      "",
+      "If you use a virtual environment, activate it first, then run those commands. On Windows:",
+      "",
+      "```powershell",
+      "python -m venv .venv",
+      ".\\.venv\\Scripts\\Activate.ps1",
+      "python -m pip install --upgrade pip",
+      "python -m pip install -r scripts\\requirements.txt",
+      "python -m pip install -r tools\\requirements.txt",
+      "```",
+      "",
+      "Use `pip install -r requirements.txt`.",
+      "",
+      "From this repo, for example:",
+      "",
+      "```powershell",
+      "python -m pip install -r scripts\\requirements.txt",
+      "python -m pip install -r tools\\requirements.txt",
+      "```",
+      "",
+      "If you use a virtual environment, activate it first, then run those commands. On Windows:",
+      "",
+      "```powershell",
+      "python -m venv .venv",
+      ".\\.venv\\Scripts\\Activate.ps1",
+      "python -m pip install --upgrade pip",
+      "python -m pip install -r scripts\\requirements.txt",
+      "python -m pip install -r tools\\requirements.txt",
+      "```"
+    ],
+    "files": [
+      "scripts/requirements.txt",
+      "tools/requirements.txt"
+    ]
+  },
+  {
+    "timestamp": "2026-06-12T17:55:15.015Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: user-docs/user-manual-local-server.md",
+      "",
+      "## My request for Codex:",
+      "write a `setup.py` script that compiles `scripts\\thefly_desktop.py` into a windows executable, preferably all packed into one EXE without DLLs or any other files"
+    ],
+    "agent_reply": [
+      "Added [setup.py](C:/GitHubRepos/The-Fly/setup.py). It builds `scripts\\thefly_desktop.py` with PyInstaller in default one-file mode:",
+      "",
+      "```powershell",
+      "python -m pip install pyinstaller -r scripts\\requirements.txt",
+      "python setup.py",
+      "```",
+      "",
+      "Output will be:",
+      "",
+      "```text",
+      "dist\\thefly-desktop.exe",
+      "```",
+      "",
+      "It bundles the local sibling modules, encryption support, and installed `faster-whisper` runtime pieces. There’s also:",
+      "",
+      "```powershell",
+      "python setup.py --onedir",
+      "python setup.py --include-openai-whisper",
+      "python setup.py --dry-run",
+      "```",
+      "",
+      "Verified: `python -m py_compile setup.py` and `python setup.py --help` pass. I did not run the actual build because PyInstaller is not installed in this environment. One caveat: PyInstaller’s one-file exe is a single distributable file, but it still extracts bundled native DLLs to a temporary folder while running."
+    ],
+    "files": [
+      "dist/thefly-desktop.exe",
+      "setup.py",
+      "scripts/thefly_desktop.py",
+      "scripts/requirements.txt",
+      "scripts/setup.py"
+    ]
+  },
+  {
+    "timestamp": "2026-06-12T18:59:29Z",
+    "type": "git_commit",
+    "commit_message": "user manual documentation, python install instructions",
+    "commit_hash": "54cf9eedc747acab8c1d2d7b135b289a7fca485f"
+  }
+]

@@ -180,5 +180,63 @@
     "type": "git_commit",
     "commit_message": "resolved some build and IRAM memory issues",
     "commit_hash": "5d25c9ab413bb6c8fe6e12ccf3ef2ffa96ea449e"
+  },
+  {
+    "timestamp": "2026-06-12T19:09:52.812Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: README.md",
+      "",
+      "## My request for Codex:",
+      "are the files `boards\\thefly-core2-nopsram.json` and `boards\\thefly-core2.json` still used anywhere?"
+    ],
+    "agent_reply": [
+      "`boards\\thefly-core2.json` is still used.",
+      "",
+      "It is referenced by [platformio.ini](C:/GitHubRepos/The-Fly/platformio.ini:73):",
+      "",
+      "```ini",
+      "[env:thefly]",
+      "extends = env:m5stack-core2",
+      "board = thefly-core2",
+      "```",
+      "",
+      "PlatformIO resolves that to `boards\\thefly-core2.json`.",
+      "",
+      "`boards\\thefly-core2-nopsram.json` does **not** appear to be used anywhere in the repo right now. The only search hits are inside the file itself. It would only be used if someone explicitly changed an env to:",
+      "",
+      "```ini",
+      "board = thefly-core2-nopsram",
+      "```",
+      "",
+      "or invoked a custom config outside the current repo files.",
+      "",
+      "`boards\\thefly-core2.json` is still used.",
+      "",
+      "It is referenced by [platformio.ini](C:/GitHubRepos/The-Fly/platformio.ini:73):",
+      "",
+      "```ini",
+      "[env:thefly]",
+      "extends = env:m5stack-core2",
+      "board = thefly-core2",
+      "```",
+      "",
+      "PlatformIO resolves that to `boards\\thefly-core2.json`.",
+      "",
+      "`boards\\thefly-core2-nopsram.json` does **not** appear to be used anywhere in the repo right now. The only search hits are inside the file itself. It would only be used if someone explicitly changed an env to:",
+      "",
+      "```ini",
+      "board = thefly-core2-nopsram",
+      "```",
+      "",
+      "or invoked a custom config outside the current repo files."
+    ],
+    "files": [
+      "platformio.ini",
+      "boards/thefly-core2.json",
+      "boards/thefly-core2-nopsram.json"
+    ]
   }
 ]

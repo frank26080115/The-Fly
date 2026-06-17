@@ -18,7 +18,9 @@
     "files": [
       "lib/Hotel/readme.md",
       "Hotel.h",
-      "Hotel.cpp"
+      "Hotel.cpp",
+      "lib/Hotel/Hotel.h",
+      "lib/Hotel/Hotel.cpp"
     ]
   },
   {
@@ -126,5 +128,28 @@
     "type": "git_commit",
     "commit_message": "comments labeling modules",
     "commit_hash": "31550c50383ebe32a1fdcc074460e52d8390cbc9"
+  },
+  {
+    "timestamp": "2026-06-12T18:43:25.862Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: README.md",
+      "",
+      "## My request for Codex:",
+      "add links to the user manual files to the bottom of `README.md`"
+    ],
+    "agent_reply": [
+      "Added a `User Manuals` section to [README.md](C:/GitHubRepos/The-Fly/README.md) with links to:",
+      "",
+      "- Main Device",
+      "- Wi-Fi Operations",
+      "- Local Server"
+    ],
+    "files": [
+      "README.md",
+      "lib/Hotel/readme.md"
+    ]
   }
 ]

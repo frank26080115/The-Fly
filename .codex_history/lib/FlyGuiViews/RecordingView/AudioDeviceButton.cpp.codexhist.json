@@ -442,5 +442,11 @@
     "type": "git_commit",
     "commit_message": "new button graphics to indicate earbud",
     "commit_hash": "82482e83565b8109bfc890f07011e5299937b293"
+  },
+  {
+    "timestamp": "2026-06-17T08:10:59Z",
+    "type": "git_commit",
+    "commit_message": "mic tweaks, db scale peak display",
+    "commit_hash": "0b3e546dac086b9f57a21181e78f16ceaddc7d8a"
   }
 ]

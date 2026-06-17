@@ -2477,6 +2477,61 @@
     "commit_hash": "18185835bb99fd4f52bbe9f81038a13d75f23842"
   },
   {
+    "timestamp": "2026-06-11T18:29:39.262Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## Active selection of the file:",
+      "TEST_BUILD_SCREENSHOT",
+      "",
+      "## My request for Codex:",
+      "I want to write a `lib\\FlyGui\\GuiDisplay.cpp` and `lib\\FlyGui\\GuiDisplay.h`, implement a class `GuiDisplay`",
+      "",
+      "Right now, we have a ton of places where `thefly_display` is used, but it is declared as a `M5GFX&` right now.",
+      "",
+      "I need it to become a `GuiDisplay&` instead. Change none of the code that, hopefully just swap the class type and the rest of the code will just adapt, that's the goal.",
+      "",
+      "Do this by implementing `GuiDisplay` such that it owns its own instance of `M5.Display` and then implementing a wrapper for all of the calls that `M5GFX` implements. `GuiDisplay` also owns a `M5Canvas` that is initialized to the same instance of `M5.Display`. The wrapper writes to both the `M5.Display` directly and to the `M5Canvas` simultaneously.",
+      "",
+      "There will be a public `requestScreenshot` function that sets a flag. Then there will be a function, that when called, and if the flag is true, it saves the contents of the `M5Canvas` to a bitmap file on the microSD card, using the current date and time as the file name, and it clears that flag.",
+      "",
+      "At the top of `void FlyGui::poll()`, if the `Serial.available()` indicates a character is available to be read, and then the character is a `s` keystroke, then call `requestScreenshot` to set the flag.",
+      "",
+      "Near the end of `void FlyGui::poll()` where `drawn` is true, that's where the screenshot is saved.",
+      "",
+      "Inside `inc\\conf.h` I have added `TEST_BUILD_SCREENSHOT`. The screenshot keystroke check, the actual screenshot taking, and the actual existence of a real `GuiDisplay` class depends on this compile option. If the option is not defined, then `GuiDisplay` is an alias to `M5GFX`"
+    ],
+    "agent_reply": [
+      "Implemented the `GuiDisplay` wrapper.",
+      "",
+      "It now conditionally becomes a real mirrored display under `TEST_BUILD_SCREENSHOT`, otherwise it aliases straight to `M5GFX`: [GuiDisplay.h](C:/GitHubRepos/The-Fly/lib/FlyGui/GuiDisplay.h:16), [GuiDisplay.h](C:/GitHubRepos/The-Fly/lib/FlyGui/GuiDisplay.h:397). The wrapper mirrors the current `thefly_display` calls to both `M5.Display` and an internal `M5Canvas`, including the `SpriteDraw` low-level `setAddrWindow/writePixels` path.",
+      "",
+      "Wired `thefly_display` to `GuiDisplay&` in [Display.h](C:/GitHubRepos/The-Fly/inc/Display.h:5) and [main.cpp](C:/GitHubRepos/The-Fly/src/main.cpp:89), and changed `FlyGui::display()` accordingly. `FlyGui::poll()` now watches serial for `s`/`S`, requests a screenshot, and saves it after the next successful draw: [FlyGui.cpp](C:/GitHubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:140), [FlyGui.cpp](C:/GitHubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:192). Screenshots are written as BMPs under `/screenshots` on the microSD using RTC date/time plus milliseconds: [GuiDisplay.cpp](C:/GitHubRepos/The-Fly/lib/FlyGui/GuiDisplay.cpp:46).",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec2 -j 2",
+      "```",
+      "",
+      "Result: `SUCCESS`. Note: I left the existing unrelated working-tree changes alone (`inc/conf.h`, `src/all_init.cpp`, `src/version.c`, plus existing untracked dirs)."
+    ],
+    "files": [
+      "lib/FlyGui/GuiDisplay.h",
+      "lib/FlyGui/GuiDisplay.cpp",
+      "lib/FlyGui/FlyGui.cpp",
+      "src/main.cpp",
+      "inc/Display.h",
+      "lib/FlyGui/FlyGui.h",
+      "inc/conf.h",
+      "src/all_init.cpp",
+      "src/version.c"
+    ]
+  },
+  {
     "timestamp": "2026-06-11T19:14:03Z",
     "type": "git_commit",
     "commit_message": "screenshotting build",
@@ -2499,5 +2554,29 @@
     "type": "git_commit",
     "commit_message": "more screenshot stuff",
     "commit_hash": "f28c5490101268c4e2dcd3c955c64e070d5b05b2"
+  },
+  {
+    "timestamp": "2026-06-13T18:25:45Z",
+    "type": "git_commit",
+    "commit_message": "fix small build errors around ftp",
+    "commit_hash": "0294068094a17c9099af5f343af0390e9ff1fd25"
+  },
+  {
+    "timestamp": "2026-06-14T06:50:30Z",
+    "type": "git_commit",
+    "commit_message": "tweaks of how mic input works to manage silence and switching noise",
+    "commit_hash": "9ac5b984e359f45bde029dd0f64f5d09f8463e67"
+  },
+  {
+    "timestamp": "2026-06-15T04:48:36Z",
+    "type": "git_commit",
+    "commit_message": "lower default gains for codec",
+    "commit_hash": "b25eafeae1f5732edb44fbf496f8fa3c9caa9d35"
+  },
+  {
+    "timestamp": "2026-06-17T08:10:59Z",
+    "type": "git_commit",
+    "commit_message": "mic tweaks, db scale peak display",
+    "commit_hash": "0b3e546dac086b9f57a21181e78f16ceaddc7d8a"
   }
 ]

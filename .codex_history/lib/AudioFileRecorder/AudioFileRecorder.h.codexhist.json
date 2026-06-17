@@ -1428,5 +1428,11 @@
       "lib/FlyGuiViews/ScrollView/ScrollView.h",
       "lib/AudioFileRecorder/AudioFileRecorder.h"
     ]
+  },
+  {
+    "timestamp": "2026-06-13T20:25:41Z",
+    "type": "git_commit",
+    "commit_message": "free'ed some RAM, sec1 build crashing maybe fixed",
+    "commit_hash": "9ae30e0240b8fe1396746d6f316af2686d52fbe3"
   }
 ]

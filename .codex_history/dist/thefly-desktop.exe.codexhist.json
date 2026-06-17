@@ -1,0 +1,45 @@
+[
+  {
+    "timestamp": "2026-06-12T17:55:15.015Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: user-docs/user-manual-local-server.md",
+      "",
+      "## My request for Codex:",
+      "write a `setup.py` script that compiles `scripts\\thefly_desktop.py` into a windows executable, preferably all packed into one EXE without DLLs or any other files"
+    ],
+    "agent_reply": [
+      "Added [setup.py](C:/GitHubRepos/The-Fly/setup.py). It builds `scripts\\thefly_desktop.py` with PyInstaller in default one-file mode:",
+      "",
+      "```powershell",
+      "python -m pip install pyinstaller -r scripts\\requirements.txt",
+      "python setup.py",
+      "```",
+      "",
+      "Output will be:",
+      "",
+      "```text",
+      "dist\\thefly-desktop.exe",
+      "```",
+      "",
+      "It bundles the local sibling modules, encryption support, and installed `faster-whisper` runtime pieces. There’s also:",
+      "",
+      "```powershell",
+      "python setup.py --onedir",
+      "python setup.py --include-openai-whisper",
+      "python setup.py --dry-run",
+      "```",
+      "",
+      "Verified: `python -m py_compile setup.py` and `python setup.py --help` pass. I did not run the actual build because PyInstaller is not installed in this environment. One caveat: PyInstaller’s one-file exe is a single distributable file, but it still extracts bundled native DLLs to a temporary folder while running."
+    ],
+    "files": [
+      "dist/thefly-desktop.exe",
+      "setup.py",
+      "scripts/thefly_desktop.py",
+      "scripts/requirements.txt",
+      "scripts/setup.py"
+    ]
+  }
+]
