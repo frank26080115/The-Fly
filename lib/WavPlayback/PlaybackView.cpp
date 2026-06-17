@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "AudioManager.h"
+#include "ExtCodec.h"
 #include "MicroSdCard.h"
 #include "DiskStats.h"
 #include "../FlyGui/FlyGuiText.h"
@@ -216,6 +217,7 @@ void PlaybackView::onLoad()
     activeInstance_ = this;
     layoutItems();
     startPlayback();
+    syncExtCodecAudioRouting();
     if (gui())
     {
         gui()->setAudioActive(true);
@@ -272,6 +274,7 @@ bool PlaybackView::handleTouch(const FlyGuiTouchEvent& event)
 bool PlaybackView::redraw(bool forced)
 {
     layoutItems();
+    syncExtCodecAudioRouting();
     syncControls();
 
     const bool repaintFrame = forced || frameDirty_;
@@ -533,6 +536,24 @@ void PlaybackView::layoutItems()
     exitButton_.relocate(button_x(2), kButtonY, kButtonSize, kButtonSize);
     scrubBar_.relocate(scrub_x(), kScrubY, kScrubWidth, kScrubHeight);
     precisionScrubBar_.relocate(scrub_x(), kPrecisionScrubY, kScrubWidth, kScrubHeight);
+}
+
+void PlaybackView::syncExtCodecAudioRouting()
+{
+    const uint32_t generation = ExtCodec::stateGeneration();
+    if (extCodecStateGeneration_ == generation)
+    {
+        return;
+    }
+
+    extCodecStateGeneration_ = generation;
+    if (!AudioManager::syncExternalCodecRouting())
+    {
+        snprintf(statusText_, sizeof(statusText_), "Speaker routing failed");
+        DBG_LOGW(TAG, "speaker routing sync failed for %s", ExtCodec::stateName(ExtCodec::state()));
+        frameDirty_ = true;
+        setDirty();
+    }
 }
 
 void PlaybackView::syncControls()

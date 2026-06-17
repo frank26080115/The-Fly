@@ -168,12 +168,7 @@ bool enableFullDuplexMode()
 
 bool syncExtCodecAudioRouting()
 {
-    if (!ExtCodec::available())
-    {
-        return true;
-    }
-
-    if (ExtCodec::fullDuplexAvailable())
+    if (ExtCodec::available() && ExtCodec::fullDuplexAvailable())
     {
         clear_speaker_mute_before_mic();
     }

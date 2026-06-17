@@ -27,6 +27,10 @@ bool bypass();
 void setHighPassFilterEnabled(bool enabled);
 bool highPassFilterEnabled();
 
+void     setSilenceGateThresholdPercentX10(uint16_t thresholdPercentX10);
+uint16_t silenceGateThresholdPercentX10();
+uint16_t silenceGateThreshold();
+
 void setFixedGainMode(bool enabled);
 bool fixedGainMode();
 

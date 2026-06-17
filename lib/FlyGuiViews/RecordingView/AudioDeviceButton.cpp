@@ -1,5 +1,7 @@
 #include "AudioDeviceButton.h"
 
+#include <pgmspace.h>
+
 #include "AudioManager.h"
 #include "SpriteDraw.h"
 #include "sprites.h"
@@ -8,11 +10,22 @@ namespace
 {
 constexpr int16_t kButtonSize = 100;
 
+static const uint8_t kDbMeterLevelByLinearPercent[101] PROGMEM = {
+    0,  0,  2,  6,  9,  12, 15, 18, 20, 23, 25, 27, 29, 31, 33, 35,
+    36, 38, 39, 41, 42, 44, 45, 46, 48, 49, 50, 51, 52, 53, 55, 56,
+    57, 58, 59, 60, 61, 61, 62, 63, 64, 65, 66, 67, 68, 68, 69, 70,
+    71, 71, 72, 73, 74, 74, 75, 76, 76, 77, 78, 78, 79, 80, 80, 81,
+    82, 82, 83, 83, 84, 85, 85, 86, 86, 87, 87, 88, 88, 89, 90, 90,
+    91, 91, 92, 92, 93, 93, 94, 94, 95, 95, 95, 96, 96, 97, 97, 98,
+    98, 99, 99, 100, 100,
+};
+
 // -----------------------------------------------------------------------------
 // Function Prototypes
 // -----------------------------------------------------------------------------
 
 static void     draw_muted_overlay(const FlyGuiItem& item);
+static uint8_t  db_meter_level(uint8_t linearLevel);
 static uint16_t meter_color(uint8_t level);
 } // namespace
 
@@ -100,8 +113,9 @@ bool AudioDeviceButton::drawAudioMeter()
         return false;
     }
 
-    const uint8_t level =
+    const uint8_t linearLevel =
         device_ == Device::Mic ? AudioManager::micScaledPeakLevel() : AudioManager::speakerPeakLevel();
+    const uint8_t level = db_meter_level(linearLevel);
     const int16_t center = x() + width() / 2;
     const int16_t half   = static_cast<int16_t>((static_cast<uint32_t>(width() / 2) * level) / 100U);
 
@@ -143,6 +157,12 @@ void draw_muted_overlay(const FlyGuiItem& item)
     const int16_t x = item.x() + (item.width() - static_cast<int16_t>(SPRITE_MUTED_X_WIDTH)) / 2;
     const int16_t y = item.y() + (item.height() - static_cast<int16_t>(SPRITE_MUTED_X_HEIGHT)) / 2;
     SpriteDraw::drawPng(sprite_muted_x, SPRITE_MUTED_X_BYTES, x, y, SPRITE_MUTED_X_WIDTH, SPRITE_MUTED_X_HEIGHT, true);
+}
+
+uint8_t db_meter_level(uint8_t linearLevel)
+{
+    const uint8_t clamped = linearLevel > 100 ? 100 : linearLevel;
+    return pgm_read_byte(&kDbMeterLevelByLinearPercent[clamped]);
 }
 
 uint16_t meter_color(uint8_t level)

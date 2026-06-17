@@ -47,6 +47,8 @@ constexpr size_t   kDmaBufferCount                = 8;
 constexpr uint8_t  kVolumeStep                    = 3;
 constexpr uint8_t  kVolumeGainShift               = 10;
 constexpr size_t   kHfpOutgoingNotifyMinSamples   = AUDIOFIFO_MS_TO_SAMPLES_16K(50);
+constexpr uint16_t kInlineMicSilenceGateThresholdPercentX10 = 30;
+constexpr uint16_t kLineInRightSilenceGateThresholdPercentX10 = 25;
 constexpr uint16_t kVolumeGainByLevel[kMaxVolume] = {
     // gain = 10^(dB / 20) ; -50 dB was used to generate this table
     3,  4,  5,  6,   7,   9,   11,  13,  16,  19,  24,  29,  35,  43,  52,
@@ -148,6 +150,9 @@ bool   enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz = kSampleRateH
 bool   ensure_exti2scodec_i2s(uint32_t sampleRateHz);
 bool   sync_external_codec_routing();
 void   sync_mic_filter_for_external_codec_state(ExtCodec::State state);
+bool   ns4168_required_for_speaker();
+bool   sync_speaker_output_for_external_codec_state();
+uint32_t current_i2s_sample_rate_or_default();
 void   duplicate_i2s0_bclk_to_gpio13();
 void   queue_hfp_pcm(const uint8_t* buf, uint32_t len);
 bool   should_notify_hfp_outgoing_ready(size_t queued_bt, bool allow_existing_fifo);
@@ -161,6 +166,8 @@ bool   using_ns4168_speaker();
 bool   speaker_output_stereo();
 bool   speaker_output_active();
 bool   mic_input_active();
+bool   external_codec_mic_uses_line_in_right();
+void   copy_right_channel_to_mono(const int16_t* interleavedSamples, int16_t* monoSamples, size_t frameCount);
 uint32_t speaker_sample_rate_or_default(uint32_t sampleRateHz);
 size_t speaker_bytes_per_frame();
 void   apply_speaker_software_volume(int16_t* samples, size_t sampleCount);
@@ -235,8 +242,9 @@ bool enableSpeakerMode(uint32_t sampleRateHz)
     }
 
     sampleRateHz = speaker_sample_rate_or_default(sampleRateHz);
-    return g_hardware == Hardware::M5StackInternal ? enable_ns4168_speaker(sampleRateHz)
-                                                   : enable_exti2scodec(P2TMode::Speaker, sampleRateHz);
+    return g_hardware == Hardware::M5StackInternal || ns4168_required_for_speaker()
+               ? enable_ns4168_speaker(sampleRateHz)
+               : enable_exti2scodec(P2TMode::Speaker, sampleRateHz);
 }
 
 bool enableMicMode()
@@ -268,6 +276,11 @@ bool enableFullDuplexMode(uint32_t sampleRateHz)
 
 bool syncExternalCodecRouting()
 {
+    if (g_hardware == Hardware::ExternalI2SCodec && !sync_speaker_output_for_external_codec_state())
+    {
+        return false;
+    }
+
     if (g_hardware != Hardware::ExternalI2SCodec || !ExtCodec::available())
     {
         return true;
@@ -486,28 +499,57 @@ void pump_mic2bt()
             return;
         }
 
-        MicGainManager::process(g_stereo_buffer, frames * 2);
-        size_t queued_bt = 0;
-        if (bt_ready && g_fifo_mic2bt.availableToWrite() > 0)
+        if (external_codec_mic_uses_line_in_right())
         {
-            queued_bt = g_fifo_mic2bt.queueStereo(g_stereo_buffer, frames, kSampleRateHz);
-        }
-        const size_t queued_file = g_fifo_mic2file.queueStereo(g_stereo_buffer, frames, kSampleRateHz);
-        HFP_AUDIO_DIAG(
-            [queued_bt, queued_file, frames, bt_ready](HfpAudioDiagnostics& diag)
+            copy_right_channel_to_mono(g_stereo_buffer, g_mono_buffer, frames);
+            MicGainManager::process(g_mono_buffer, frames);
+            size_t queued_bt = 0;
+            if (bt_ready && g_fifo_mic2bt.availableToWrite() > 0)
             {
-                diag.micQueuedBtSamples += queued_bt;
-                diag.micQueuedFileSamples += queued_file;
-                if (!bt_ready)
+                queued_bt = g_fifo_mic2bt.queue(g_mono_buffer, frames, kSampleRateHz);
+            }
+            const size_t queued_file = g_fifo_mic2file.queue(g_mono_buffer, frames, kSampleRateHz);
+            HFP_AUDIO_DIAG(
+                [queued_bt, queued_file, frames, bt_ready](HfpAudioDiagnostics& diag)
                 {
-                    diag.micBtNotReadySamples += frames;
-                }
-                else if (queued_bt < frames)
+                    diag.micQueuedBtSamples += queued_bt;
+                    diag.micQueuedFileSamples += queued_file;
+                    if (!bt_ready)
+                    {
+                        diag.micBtNotReadySamples += frames;
+                    }
+                    else if (queued_bt < frames)
+                    {
+                        diag.micBtFifoFullSamples += frames - queued_bt;
+                    }
+                });
+            notify_ready = notify_ready || should_notify_hfp_outgoing_ready(queued_bt, true);
+        }
+        else
+        {
+            MicGainManager::process(g_stereo_buffer, frames * 2);
+            size_t queued_bt = 0;
+            if (bt_ready && g_fifo_mic2bt.availableToWrite() > 0)
+            {
+                queued_bt = g_fifo_mic2bt.queueStereo(g_stereo_buffer, frames, kSampleRateHz);
+            }
+            const size_t queued_file = g_fifo_mic2file.queueStereo(g_stereo_buffer, frames, kSampleRateHz);
+            HFP_AUDIO_DIAG(
+                [queued_bt, queued_file, frames, bt_ready](HfpAudioDiagnostics& diag)
                 {
-                    diag.micBtFifoFullSamples += frames - queued_bt;
-                }
-            });
-        notify_ready = notify_ready || should_notify_hfp_outgoing_ready(queued_bt, true);
+                    diag.micQueuedBtSamples += queued_bt;
+                    diag.micQueuedFileSamples += queued_file;
+                    if (!bt_ready)
+                    {
+                        diag.micBtNotReadySamples += frames;
+                    }
+                    else if (queued_bt < frames)
+                    {
+                        diag.micBtFifoFullSamples += frames - queued_bt;
+                    }
+                });
+            notify_ready = notify_ready || should_notify_hfp_outgoing_ready(queued_bt, true);
+        }
     }
     else
     {
@@ -915,10 +957,11 @@ void stop_i2s()
         #endif
     }
 
-    g_speaker_path       = SpeakerPath::None;
-    g_i2s_config         = I2sConfig::None;
-    g_i2s_sample_rate_hz = 0;
-    if (g_hardware == Hardware::M5StackInternal)
+    const bool ns4168_was_enabled = g_speaker_path == SpeakerPath::NS4168 || g_hardware == Hardware::M5StackInternal;
+    g_speaker_path                = SpeakerPath::None;
+    g_i2s_config                  = I2sConfig::None;
+    g_i2s_sample_rate_hz          = 0;
+    if (ns4168_was_enabled)
     {
         set_ns4168_speaker_enabled(false);
     }
@@ -987,6 +1030,11 @@ bool configure_i2s_shared_impl(uint32_t sampleRateHz)
 bool enable_ns4168_speaker(uint32_t sampleRateHz)
 {
     sampleRateHz = speaker_sample_rate_or_default(sampleRateHz);
+    if (g_speaker_path == SpeakerPath::ExternalI2SCodec)
+    {
+        set_external_codec_headphone_enabled(false);
+    }
+
     if (!configure_i2s_shared_impl(sampleRateHz))
     {
         set_ns4168_speaker_enabled(false);
@@ -1141,7 +1189,38 @@ void sync_mic_filter_for_external_codec_state(ExtCodec::State state)
     const ExtCodec::MicInput input = ExtCodec::micInputForState(state);
     const bool enable_high_pass_filter = input == ExtCodec::MicInput::LineInRight ||
                                          input == ExtCodec::MicInput::DedicatedMic;
+    const uint16_t silence_gate_threshold_percent_x10 =
+        input == ExtCodec::MicInput::DedicatedMic ? kInlineMicSilenceGateThresholdPercentX10
+                                                  : kLineInRightSilenceGateThresholdPercentX10;
     MicGainManager::setHighPassFilterEnabled(enable_high_pass_filter);
+    MicGainManager::setSilenceGateThresholdPercentX10(silence_gate_threshold_percent_x10);
+}
+
+bool ns4168_required_for_speaker()
+{
+    return g_hardware != Hardware::ExternalI2SCodec || ExtCodec::pushToTalkRequired();
+}
+
+bool sync_speaker_output_for_external_codec_state()
+{
+    if (g_mode != P2TMode::Speaker)
+    {
+        return true;
+    }
+
+    const uint32_t sample_rate_hz = current_i2s_sample_rate_or_default();
+    if (ns4168_required_for_speaker())
+    {
+        return g_speaker_path == SpeakerPath::NS4168 || enable_ns4168_speaker(sample_rate_hz);
+    }
+
+    return g_speaker_path == SpeakerPath::ExternalI2SCodec ||
+           enable_exti2scodec(P2TMode::Speaker, sample_rate_hz);
+}
+
+uint32_t current_i2s_sample_rate_or_default()
+{
+    return g_i2s_sample_rate_hz > 0 ? g_i2s_sample_rate_hz : kSampleRateHz;
 }
 
 void duplicate_i2s0_bclk_to_gpio13()
@@ -1351,6 +1430,21 @@ bool speaker_output_active()
 bool mic_input_active()
 {
     return g_mode == P2TMode::Mic || g_mode == P2TMode::FullDuplex;
+}
+
+bool external_codec_mic_uses_line_in_right()
+{
+    return g_hardware == Hardware::ExternalI2SCodec &&
+           ExtCodec::micInputForState(ExtCodec::state()) == ExtCodec::MicInput::LineInRight;
+}
+
+void copy_right_channel_to_mono(const int16_t* interleavedSamples, int16_t* monoSamples, size_t frameCount)
+{
+    // The SGTL5000 line-in mic is wired to the right ADC; the left input may float.
+    for (size_t i = 0; i < frameCount; ++i)
+    {
+        monoSamples[i] = interleavedSamples[(i * 2) + 1];
+    }
 }
 
 uint32_t speaker_sample_rate_or_default(uint32_t sampleRateHz)

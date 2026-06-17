@@ -45,15 +45,12 @@ constexpr uint16_t kGainStepScale       = kGainDivisor / 128U;
 constexpr uint16_t kGainStepUpUnits     = kGainStepScale * 3U;
 constexpr uint16_t kGainStepDownUnits   = kGainStepScale * 8U;
 constexpr uint16_t kHighPassFilterR     = 8151;
-constexpr uint8_t  kSilenceGateThresholdPercentX10 = 
+constexpr uint16_t kDefaultSilenceGateThresholdPercentX10 =
                                             #ifndef TEST_NO_MIC_AGC
-                                            2; // 0.2%
-                                            // note: use 10% if using 63 dB mic gain
+                                            30; // 3.0% of full scale.
                                             #else
                                             0;
                                             #endif
-constexpr uint16_t kSilenceGateThreshold =
-    (kMaxSampleMagnitude * static_cast<uint16_t>(kSilenceGateThresholdPercentX10)) / 1000U;
 constexpr uint32_t kSilenceGateDurationMs    = 500;
 constexpr uint32_t kSilenceGateSampleLimit   = (kNominalSampleRateHz * kSilenceGateDurationMs) / 1000U;
 
@@ -76,6 +73,9 @@ bool     g_have_last_hpf   = false;
 uint32_t g_ignore_until_ms = 0;
 uint32_t g_silence_gate_sample_count = 0;
 bool     g_silence_gate_active       = false;
+uint16_t g_silence_gate_threshold_percent_x10 = kDefaultSilenceGateThresholdPercentX10;
+uint16_t g_silence_gate_threshold =
+    (kMaxSampleMagnitude * static_cast<uint32_t>(kDefaultSilenceGateThresholdPercentX10)) / 1000U;
 
 // -----------------------------------------------------------------------------
 // Function Prototypes
@@ -88,6 +88,7 @@ static int16_t  high_pass_filter(int16_t sample);
 static void     reset_high_pass_filter_state();
 static void     reset_silence_gate_state();
 static void     update_silence_gate(int16_t sample);
+static uint16_t threshold_from_percent_x10(uint16_t thresholdPercentX10);
 static bool     zero_crossed(int16_t sample);
 static uint16_t target_peak_for_state();
 static uint16_t minimum_gain_for_state();
@@ -236,6 +237,33 @@ bool highPassFilterEnabled()
 {
     std::lock_guard<std::mutex> lock(g_mutex);
     return g_high_pass_filter_enabled;
+}
+
+void setSilenceGateThresholdPercentX10(uint16_t thresholdPercentX10)
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+
+    thresholdPercentX10 = std::min<uint16_t>(thresholdPercentX10, 1000U);
+    if (g_silence_gate_threshold_percent_x10 == thresholdPercentX10)
+    {
+        return;
+    }
+
+    g_silence_gate_threshold_percent_x10 = thresholdPercentX10;
+    g_silence_gate_threshold             = threshold_from_percent_x10(thresholdPercentX10);
+    reset_silence_gate_state();
+}
+
+uint16_t silenceGateThresholdPercentX10()
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+    return g_silence_gate_threshold_percent_x10;
+}
+
+uint16_t silenceGateThreshold()
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+    return g_silence_gate_threshold;
 }
 
 void setFixedGainMode(bool enabled)
@@ -392,6 +420,8 @@ void init_unlocked()
     g_have_hpf_state  = false;
     g_have_last_hpf   = false;
     g_ignore_until_ms = 0;
+    g_silence_gate_threshold_percent_x10 = kDefaultSilenceGateThresholdPercentX10;
+    g_silence_gate_threshold             = threshold_from_percent_x10(kDefaultSilenceGateThresholdPercentX10);
     reset_silence_gate_state();
 }
 
@@ -452,7 +482,7 @@ void reset_silence_gate_state()
 
 void update_silence_gate(int16_t sample)
 {
-    if (sample_abs_peak(sample) > kSilenceGateThreshold)
+    if (sample_abs_peak(sample) > g_silence_gate_threshold)
     {
         reset_silence_gate_state();
         return;
@@ -463,6 +493,12 @@ void update_silence_gate(int16_t sample)
         ++g_silence_gate_sample_count;
     }
     g_silence_gate_active = g_silence_gate_sample_count > kSilenceGateSampleLimit;
+}
+
+uint16_t threshold_from_percent_x10(uint16_t thresholdPercentX10)
+{
+    thresholdPercentX10 = std::min<uint16_t>(thresholdPercentX10, 1000U);
+    return static_cast<uint16_t>((static_cast<uint32_t>(kMaxSampleMagnitude) * thresholdPercentX10) / 1000U);
 }
 
 bool zero_crossed(int16_t sample)

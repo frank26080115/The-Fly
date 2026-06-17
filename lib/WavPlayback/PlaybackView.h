@@ -46,6 +46,7 @@ private:
 
     void startPlayback();
     void layoutItems();
+    void syncExtCodecAudioRouting();
     void syncControls();
     void syncPrecisionScrubBar(uint32_t currentMs, uint32_t totalMs, bool playing);
     void syncDeleteButton(bool playing);
@@ -75,6 +76,7 @@ private:
     bool                          deleteArmed_                = false;
     bool                          frameDirty_                 = true;
     bool                          precisionWindowInitialized_ = false;
+    uint32_t                      extCodecStateGeneration_    = UINT32_MAX;
     uint32_t                      deleteArmedAtMs_            = 0;
     std::unique_ptr<FilePlayback> playback_;
 };
