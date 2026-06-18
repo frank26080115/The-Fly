@@ -71,3 +71,54 @@ flowchart LR
     pump_spk --> speaker_gain
     speaker_gain --> speaker_out
 ```
+
+## Electrical
+
+```mermaid
+flowchart LR
+    mic["Electret Mic"]
+    hp["Headphones"]
+    hp_mic["Headphone Inline Mic"]
+    max4466["MAX4466 Preamp"]
+
+    subgraph sgtl5000["SGTL5000 Codec"]
+        direction LR
+        line_in["Line Input"]
+        mic_amp["Mic Amp"]
+        adc_amp["ADC Amp"]
+        adc["ADC"]
+        dap["Digital Audio Processor"]
+        mux_in["Input Mux"]
+        headphone_out["Headphone Out<br/>DAC & Amp"]
+        switch_out["Output Mux"]
+
+        switch_out --> headphone_out
+        mic_amp --> mux_in
+        mux_in --> adc_amp
+        adc_amp --> adc
+        adc --> dap
+    end
+
+    subgraph m5stack["M5Stack"]
+        direction LR
+        i2s["I2S (audio data)"]
+        i2c["I2C (control)"]
+        gpio["GPIO"]
+        ns4168["NS4168 internal speaker"]
+        pmic["PMIC"]
+
+        i2c --> pmic
+        pmic --power--> ns4168
+        i2s --> ns4168
+    end
+
+    dap --> i2s
+    i2s --> switch_out
+    mic --> max4466
+    max4466 --line-in--> mux_in
+    headphone_out --> hp
+    hp_mic --mic--> mic_amp
+    i2c --> sgtl5000
+    hp_mic --detect--> gpio
+    hp --detect--> gpio
+```
