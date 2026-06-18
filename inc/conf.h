@@ -22,7 +22,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 //#define TEST_MOCK_SCRAMBLE_TIME
 //#define TEST_MOCK_EXT_CODEC
 //#define TEST_TEENSY_AUDIO_BRD
-#define TEST_NO_MIC_AGC
+//#define TEST_NO_MIC_AGC
 
 //#define BUILD_PERIODIC_DIAGNOSTICS
 //#define TEST_BUILD_SCREENSHOT // this is only used to generate screenshots for documentation purposes
@@ -95,8 +95,10 @@ use this file for preprocessor definitions that are used to configure parts of t
 // SGTL5000 external codec defaults. Headphone volume is a hardware upper limit;
 // runtime speaker volume is applied in software.
 constexpr float   kSGTL5000DefaultHeadphoneVolume     = 105.0f / 129.0f; // HP_VOL 0x17, +0.5 dB.
-constexpr uint8_t kSGTL5000DefaultLineInLevel         = 1;               // ADC_VOL +1.5 dB.
+constexpr uint8_t kSGTL5000DefaultLineInLevel         = 6;               // ADC_VOL in +1.5 dB step units
 constexpr uint8_t kSGTL5000DefaultDedicatedMicGainDb  = 40;              // micGain() -> ADC_VOL +1.5 dB.
+constexpr uint16_t kInlineMicSilenceGateThresholdPercentX10    = 30;     // 3.0% of full scale.
+constexpr uint16_t kLineInRightSilenceGateThresholdPercentX10  = 12;     // 1.2% of full scale.
 
 #if defined(DBG_LOG_LOCAL_LEVEL) && DBG_LOG_LOCAL_LEVEL > DBG_LOG_ERROR
 #ifndef BUILD_IS_DEBUG

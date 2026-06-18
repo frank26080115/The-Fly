@@ -47,8 +47,6 @@ constexpr size_t   kDmaBufferCount                = 8;
 constexpr uint8_t  kVolumeStep                    = 3;
 constexpr uint8_t  kVolumeGainShift               = 10;
 constexpr size_t   kHfpOutgoingNotifyMinSamples   = AUDIOFIFO_MS_TO_SAMPLES_16K(50);
-constexpr uint16_t kInlineMicSilenceGateThresholdPercentX10 = 30;
-constexpr uint16_t kLineInRightSilenceGateThresholdPercentX10 = 25;
 constexpr uint16_t kVolumeGainByLevel[kMaxVolume] = {
     // gain = 10^(dB / 20) ; -50 dB was used to generate this table
     3,  4,  5,  6,   7,   9,   11,  13,  16,  19,  24,  29,  35,  43,  52,
@@ -1201,7 +1199,13 @@ void sync_mic_filter_for_external_codec_state(ExtCodec::State state)
         input == ExtCodec::MicInput::DedicatedMic ? kInlineMicSilenceGateThresholdPercentX10
                                                   : kLineInRightSilenceGateThresholdPercentX10;
     MicGainManager::setHighPassFilterEnabled(enable_high_pass_filter);
-    MicGainManager::setSilenceGateThresholdPercentX10(silence_gate_threshold_percent_x10);
+    MicGainManager::setSilenceGateThresholdPercentX10(
+        #ifndef TEST_NO_MIC_AGC
+        silence_gate_threshold_percent_x10
+        #else
+        0
+        #endif
+    );
 }
 
 bool ns4168_required_for_speaker()
