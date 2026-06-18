@@ -73,3 +73,17 @@ It turns out that MDNS memory allocation was set to happen in internal RAM only,
 The solution was to add `CONFIG_MDNS_MEMORY_ALLOC_SPIRAM=y` to the `custom_sdkconfig`
 
 Also, the low internal RAM was causing other failures, so an effort was made to make sure all large buffers are dynamically allocated in PSRAM during runtime.
+
+## Microphone Noise
+
+After installing the first revision of the external codec PCB, there was some noise in the microphone audio.
+
+For the earbud-inline mic, the noise isn't outrageous, so a simple noise gate was implemented into the firmware AGC.
+
+For the internal electret mic connected to line-in-right, several steps were taken:
+
+ * a ton of capacitors were added to the circuit, this lowered the noise amplitude below that of the earbud-inline mic, but the frequency was still high so it was still annoying to hear
+ * noise gate is also applied
+ * experiment with targeting the 1000 Hz peak with a firmware notch filter worked
+ * randomizing the 1000Hz loop rate did not meaningfully lower the noise
+ * the notch filter was moved into the SGTL5000's internal DSP (called the DAP)

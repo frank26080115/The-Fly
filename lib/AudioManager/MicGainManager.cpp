@@ -5,6 +5,9 @@
 #include <limits>
 #include <mutex>
 
+#include "AudioFilter.h"
+#include "NotchFilter.h"
+
 /*
 This module does efficient processing of microphone data
 
@@ -45,6 +48,8 @@ constexpr uint16_t kGainStepScale       = kGainDivisor / 128U;
 constexpr uint16_t kGainStepUpUnits     = kGainStepScale * 3U;
 constexpr uint16_t kGainStepDownUnits   = kGainStepScale * 8U;
 constexpr uint16_t kHighPassFilterR     = 8151;
+constexpr float    kOutputNotchFilterFrequencyHz = 1000.0f;
+constexpr float    kOutputNotchFilterQuality     = 0.8f;
 constexpr uint16_t kDefaultSilenceGateThresholdPercentX10 =
                                             #ifndef TEST_NO_MIC_AGC
                                             30; // 3.0% of full scale.
@@ -56,8 +61,14 @@ constexpr uint32_t kSilenceGateSampleLimit   = (kNominalSampleRateHz * kSilenceG
 
 std::mutex g_mutex;
 
+#if defined(ENABLE_SOFTWARE_NOTCH_FILTER)
+NotchFilter  g_output_notch_filter(kOutputNotchFilterFrequencyHz, kOutputNotchFilterQuality, kNominalSampleRateHz);
+AudioFilter* g_output_filter = &g_output_notch_filter;
+#endif
+
 bool     g_bypass          = false;
 bool     g_high_pass_filter_enabled = true;
+bool     g_output_notch_filter_enabled = false;
 bool     g_fixed_gain_mode = false;
 uint16_t g_fixed_gain      = kInitialGainUnits;
 uint16_t g_target_gain     = kInitialGainUnits;
@@ -85,6 +96,8 @@ static void     init_unlocked();
 static bool     ignoring_samples(uint32_t nowMs);
 static void     decay_peak(uint16_t& peak, size_t frames);
 static int16_t  high_pass_filter(int16_t sample);
+static void     apply_output_filter(int16_t* samples, size_t sampleCount);
+static void     reset_output_filter_state();
 static void     reset_high_pass_filter_state();
 static void     reset_silence_gate_state();
 static void     update_silence_gate(int16_t sample);
@@ -99,6 +112,7 @@ static float    units_to_gain(uint16_t gain);
 static uint16_t scaled_abs_peak(int16_t sample, uint16_t gain);
 static uint8_t  peak_to_level(uint16_t peak);
 static uint16_t clamp_gain_units(uint16_t gain);
+static uint16_t buffer_peak(const int16_t* samples, size_t sampleCount);
 static uint16_t sample_abs_peak(int16_t sample);
 static int16_t  saturate_int16(int32_t sample);
 static int32_t  saturate_int32(int64_t sample);
@@ -139,7 +153,6 @@ void process(int16_t* samples, size_t sampleCount)
 
     const bool     ignoring          = ignoring_samples(millis());
     uint16_t       raw_chunk_peak    = 0;
-    uint16_t       scaled_chunk_peak = 0;
     uint16_t       active_gain       = g_previous_gain;
     const uint16_t next_gain         = g_current_gain;
     bool           gain_switched     = active_gain == next_gain;
@@ -169,7 +182,6 @@ void process(int16_t* samples, size_t sampleCount)
         const int16_t scaled_sample = saturate_int16(scaled);
         samples[i]                  = scaled_sample;
 
-        scaled_chunk_peak = std::max<uint16_t>(scaled_chunk_peak, sample_abs_peak(scaled_sample));
         g_last_hpf_sample = hpf_sample;
         g_have_last_hpf   = true;
     }
@@ -185,8 +197,10 @@ void process(int16_t* samples, size_t sampleCount)
         g_previous_gain = next_gain;
     }
 
+    apply_output_filter(samples, sampleCount);
+
     g_raw_peak    = std::max<uint16_t>(g_raw_peak, raw_chunk_peak);
-    g_scaled_peak = std::max<uint16_t>(g_scaled_peak, scaled_chunk_peak);
+    g_scaled_peak = std::max<uint16_t>(g_scaled_peak, buffer_peak(samples, sampleCount));
     update_target_gain();
     update_current_gain();
 
@@ -201,6 +215,7 @@ void ignoreSamplesFor(uint32_t durationMs)
 {
     std::lock_guard<std::mutex> lock(g_mutex);
     g_ignore_until_ms = millis() + durationMs;
+    reset_output_filter_state();
     reset_high_pass_filter_state();
     reset_silence_gate_state();
 }
@@ -210,6 +225,7 @@ void setBypass(bool enabled)
     std::lock_guard<std::mutex> lock(g_mutex);
     if (g_bypass != enabled)
     {
+        reset_output_filter_state();
         reset_high_pass_filter_state();
         reset_silence_gate_state();
     }
@@ -227,6 +243,7 @@ void setHighPassFilterEnabled(bool enabled)
     std::lock_guard<std::mutex> lock(g_mutex);
     if (g_high_pass_filter_enabled != enabled)
     {
+        reset_output_filter_state();
         reset_high_pass_filter_state();
         reset_silence_gate_state();
     }
@@ -237,6 +254,28 @@ bool highPassFilterEnabled()
 {
     std::lock_guard<std::mutex> lock(g_mutex);
     return g_high_pass_filter_enabled;
+}
+
+void setOutputNotchFilterEnabled(bool enabled)
+{
+    #if defined(ENABLE_SOFTWARE_NOTCH_FILTER)
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (g_output_notch_filter_enabled != enabled)
+    {
+        reset_output_filter_state();
+    }
+    g_output_notch_filter_enabled = enabled;
+    #endif
+}
+
+bool outputNotchFilterEnabled()
+{
+    #if defined(ENABLE_SOFTWARE_NOTCH_FILTER)
+    std::lock_guard<std::mutex> lock(g_mutex);
+    return g_output_notch_filter_enabled;
+    #else
+    return false;
+    #endif
 }
 
 void setSilenceGateThresholdPercentX10(uint16_t thresholdPercentX10)
@@ -407,6 +446,7 @@ void init_unlocked()
 {
     g_bypass          = false;
     g_high_pass_filter_enabled = true;
+    g_output_notch_filter_enabled = false;
     g_fixed_gain_mode = false;
     g_fixed_gain      = kInitialGainUnits;
     g_target_gain     = kInitialGainUnits;
@@ -420,6 +460,7 @@ void init_unlocked()
     g_have_hpf_state  = false;
     g_have_last_hpf   = false;
     g_ignore_until_ms = 0;
+    reset_output_filter_state();
     g_silence_gate_threshold_percent_x10 = kDefaultSilenceGateThresholdPercentX10;
     g_silence_gate_threshold             = threshold_from_percent_x10(kDefaultSilenceGateThresholdPercentX10);
     reset_silence_gate_state();
@@ -464,6 +505,23 @@ int16_t high_pass_filter(int16_t sample)
     g_previous_hpf_x       = x;
     g_previous_hpf_y       = saturate_int32(filtered);
     return saturate_int16(g_previous_hpf_y);
+}
+
+void apply_output_filter(int16_t* samples, size_t sampleCount)
+{
+    #if !defined(TEST_NO_MIC_AGC) && defined(ENABLE_SOFTWARE_NOTCH_FILTER)
+    if (g_output_notch_filter_enabled && g_output_filter)
+    {
+        g_output_filter->process(samples, sampleCount);
+    }
+    #endif
+}
+
+void reset_output_filter_state()
+{
+    #if defined(ENABLE_SOFTWARE_NOTCH_FILTER)
+    g_output_notch_filter.reset();
+    #endif
 }
 
 void reset_high_pass_filter_state()
@@ -607,6 +665,21 @@ uint8_t peak_to_level(uint16_t peak)
 uint16_t clamp_gain_units(uint16_t gain)
 {
     return std::min<uint16_t>(kMaxGainUnits, std::max<uint16_t>(kMinGainUnits, gain));
+}
+
+uint16_t buffer_peak(const int16_t* samples, size_t sampleCount)
+{
+    uint16_t peak = 0;
+    if (!samples)
+    {
+        return peak;
+    }
+
+    for (size_t i = 0; i < sampleCount; ++i)
+    {
+        peak = std::max<uint16_t>(peak, sample_abs_peak(samples[i]));
+    }
+    return peak;
 }
 
 uint16_t sample_abs_peak(int16_t sample)

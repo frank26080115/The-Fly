@@ -46,6 +46,7 @@ bool start_ledc_mclk();
 MicInput    micInputForState(State value);
 const char* micInputName(MicInput value);
 bool        configureAnalogPathForState(State value);
+bool        setAdcNotchFilterEnabled(bool enabled);
 
 uint16_t earbudSenseRaw();
 uint16_t inlineMicSenseRaw();

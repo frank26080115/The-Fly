@@ -12,7 +12,9 @@ Wired to SGTL5000 line-in input, right channel.
 
 SGTL5000 ADC gain set to 9 dB (setting is 6, in 1.5 dB steps)
 
-Noise gate level set to 1.2% of full scale
+Noise gate level set to 0.8% of full scale
+
+Notch filter implemented in the SGTL5000's DAP, at 1000 Hz
 
 # Earbud Inline Mic
 

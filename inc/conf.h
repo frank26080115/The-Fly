@@ -29,6 +29,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 
 //#define BUILD_SILENCE_GAP_REMOVAL
 //#define BUILD_USE_MP3_COMPRESSION
+//#define ENABLE_SOFTWARE_NOTCH_FILTER
 #define NS4168_USE_STEREO
 #define USE_LEDC_PWM_AS_MCLK
 
@@ -98,7 +99,7 @@ constexpr float   kSGTL5000DefaultHeadphoneVolume     = 105.0f / 129.0f; // HP_V
 constexpr uint8_t kSGTL5000DefaultLineInLevel         = 6;               // ADC_VOL in +1.5 dB step units
 constexpr uint8_t kSGTL5000DefaultDedicatedMicGainDb  = 40;              // micGain() -> ADC_VOL +1.5 dB.
 constexpr uint16_t kInlineMicSilenceGateThresholdPercentX10    = 30;     // 3.0% of full scale.
-constexpr uint16_t kLineInRightSilenceGateThresholdPercentX10  = 12;     // 1.2% of full scale.
+constexpr uint16_t kLineInRightSilenceGateThresholdPercentX10  = 8;      // 0.8% of full scale.
 
 #if defined(DBG_LOG_LOCAL_LEVEL) && DBG_LOG_LOCAL_LEVEL > DBG_LOG_ERROR
 #ifndef BUILD_IS_DEBUG

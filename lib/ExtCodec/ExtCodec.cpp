@@ -40,6 +40,10 @@ constexpr uint16_t kAdcSamplesPerPoll           = 4;
 constexpr uint32_t kAdcTaskStackBytes           = 2048;
 constexpr UBaseType_t kAdcTaskPriority          = 1;
 constexpr uint32_t kLedcMclkFrequencyHz         = 8192000;
+constexpr float    kAdcNotchFilterFrequencyHz   = 1000.0f;
+constexpr float    kAdcNotchFilterQuality       = 0.8f;
+constexpr uint32_t kSgtl5000PeqQuantizationUnit = 524288;
+constexpr uint8_t  kAdcNotchFilterSlot          = 0;
 
 // -----------------------------------------------------------------------------
 // Globals
@@ -56,6 +60,9 @@ std::atomic<State>    g_state{EXTCODEC_UNAVAIL};
 std::atomic<uint32_t> g_state_generation{0};
 std::atomic<uint16_t> g_earbud_sense_raw{0};
 std::atomic<uint16_t> g_inline_mic_sense_raw{0};
+bool                  g_adc_notch_filter_loaded  = false;
+bool                  g_adc_notch_filter_enabled = false;
+bool                  g_adc_notch_filter_route_known = false;
 
 // -----------------------------------------------------------------------------
 // Function Prototypes
@@ -73,6 +80,8 @@ void     apply_adc_state_sample(State sample);
 void     reset_adc_state_samples();
 void     set_state(State next);
 void     set_event_bits(EventBits_t bits);
+bool     load_adc_notch_filter_locked();
+bool     set_adc_notch_filter_enabled_locked(bool enabled);
 bool     report_ledc_result(const char* step, esp_err_t err);
 
 } // namespace
@@ -288,13 +297,33 @@ bool configureAnalogPathForState(State value)
     std::lock_guard<std::mutex> lock(g_codec_mutex);
     if (input == MicInput::DedicatedMic)
     {
-        return g_codec.inputSelect(AUDIO_INPUT_MIC) && g_codec.micGain(kSGTL5000DefaultDedicatedMicGainDb);
+        return g_codec.inputSelect(AUDIO_INPUT_MIC) &&
+               g_codec.micGain(kSGTL5000DefaultDedicatedMicGainDb) &&
+               set_adc_notch_filter_enabled_locked(false);
     }
 
     return g_codec.inputSelect(AUDIO_INPUT_LINEIN) &&
-           g_codec.lineInLevel(kSGTL5000DefaultLineInLevel, kSGTL5000DefaultLineInLevel);
+           g_codec.lineInLevel(kSGTL5000DefaultLineInLevel, kSGTL5000DefaultLineInLevel) &&
+           set_adc_notch_filter_enabled_locked(true);
     #else
     return true;
+    #endif
+}
+
+bool setAdcNotchFilterEnabled(bool enabled)
+{
+    std::lock_guard<std::mutex> lock(g_codec_mutex);
+    #ifdef TEST_MOCK_EXT_CODEC
+    g_adc_notch_filter_loaded  = g_adc_notch_filter_loaded || enabled;
+    g_adc_notch_filter_enabled = enabled;
+    g_adc_notch_filter_route_known = true;
+    return true;
+    #else
+    if (!available())
+    {
+        return false;
+    }
+    return set_adc_notch_filter_enabled_locked(enabled);
     #endif
 }
 
@@ -549,6 +578,52 @@ void set_event_bits(EventBits_t bits)
     {
         xEventGroupSetBits(g_events, bits);
     }
+}
+
+bool load_adc_notch_filter_locked()
+{
+    if (g_adc_notch_filter_loaded)
+    {
+        return true;
+    }
+
+    int coefficients[5] = {};
+    calcBiquad(FILTER_NOTCH,
+               kAdcNotchFilterFrequencyHz,
+               0.0f,
+               kAdcNotchFilterQuality,
+               kSgtl5000PeqQuantizationUnit,
+               AUDIO_RECORDER_SAMPLE_RATE_HZ,
+               coefficients);
+    g_codec.eqFilter(kAdcNotchFilterSlot, coefficients);
+
+    if (!g_codec.eqSelect(PARAMETRIC_EQUALIZER) || !g_codec.eqFilterCount(kAdcNotchFilterSlot + 1))
+    {
+        return false;
+    }
+
+    g_adc_notch_filter_loaded = true;
+    return true;
+}
+
+bool set_adc_notch_filter_enabled_locked(bool enabled)
+{
+    if (g_adc_notch_filter_route_known && g_adc_notch_filter_enabled == enabled)
+    {
+        return true;
+    }
+
+    const bool ok = enabled ? (load_adc_notch_filter_locked() && g_codec.audioPreProcessorEnable())
+                            : g_codec.audioProcessorDisable();
+    if (!ok)
+    {
+        return false;
+    }
+
+    g_adc_notch_filter_enabled = enabled;
+    g_adc_notch_filter_route_known = true;
+    DBG_LOGI(TAG, "SGTL5000 ADC notch filter %s", enabled ? "enabled" : "disabled");
+    return true;
 }
 
 bool report_ledc_result(const char* step, esp_err_t err)

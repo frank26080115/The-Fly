@@ -209,6 +209,7 @@ bool init(Hardware hardware)
     g_fifo_mic2file.setMuted(false);
     MicGainManager::init();
     MicGainManager::setHighPassFilterEnabled(hardware == Hardware::ExternalI2SCodec);
+    MicGainManager::setOutputNotchFilterEnabled(false);
     SpeakerPeakActivity::init();
 
     if (!AudioFileRecorder::init(g_fifo_bt2file, g_fifo_mic2file))
@@ -282,6 +283,7 @@ bool syncExternalCodecRouting()
 
     if (g_hardware != Hardware::ExternalI2SCodec || !ExtCodec::available())
     {
+        MicGainManager::setOutputNotchFilterEnabled(false);
         return true;
     }
 
@@ -1083,6 +1085,7 @@ bool enable_spm1423_mic()
     }
 
     MicGainManager::setHighPassFilterEnabled(false);
+    MicGainManager::setOutputNotchFilterEnabled(false);
     MicGainManager::ignoreSamplesFor();
     g_i2s_config         = I2sConfig::InternalPdm;
     g_i2s_sample_rate_hz = kSampleRateHz;
@@ -1199,6 +1202,7 @@ void sync_mic_filter_for_external_codec_state(ExtCodec::State state)
         input == ExtCodec::MicInput::DedicatedMic ? kInlineMicSilenceGateThresholdPercentX10
                                                   : kLineInRightSilenceGateThresholdPercentX10;
     MicGainManager::setHighPassFilterEnabled(enable_high_pass_filter);
+    MicGainManager::setOutputNotchFilterEnabled(false);
     MicGainManager::setSilenceGateThresholdPercentX10(
         #ifndef TEST_NO_MIC_AGC
         silence_gate_threshold_percent_x10
