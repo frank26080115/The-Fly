@@ -83,7 +83,6 @@ flowchart LR
 
     subgraph sgtl5000["SGTL5000 Codec"]
         direction LR
-        line_in["Line Input"]
         mic_amp["Mic Amp"]
         adc_amp["ADC Amp"]
         adc["ADC"]
