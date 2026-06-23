@@ -10,6 +10,8 @@ It features Wi-Fi connectivity so that AI can be used to transcribe and summariz
 
 ## User Manuals
 
+![](user-docs/gfx/qr_code_user_manuals.png)
+
  * [Main Device](user-docs/user-manual-main-device.md)
  * [Wi-Fi Operations](user-docs/user-manual-wifi-operations.md)
  * [Local Server](user-docs/user-manual-local-server.md)

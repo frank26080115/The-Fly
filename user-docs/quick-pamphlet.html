@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Fly Quick Links</title>
+  <style>
+    @page {
+      size: 8.5in 5.5in;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: #fff;
+      color: #111;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pamphlet {
+      width: 8.5in;
+      height: 5.5in;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 0.3in;
+      padding: 0.45in;
+    }
+
+    .intro {
+      text-align: center;
+    }
+
+    .intro h1 {
+      margin: 0 0 0.08in;
+      font-size: 28pt;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .intro p {
+      max-width: 6in;
+      margin: 0 auto;
+      font-size: 12pt;
+      line-height: 1.35;
+    }
+
+    .qr-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.35in;
+      align-items: center;
+      justify-items: center;
+    }
+
+    .qr-link {
+      display: grid;
+      grid-template-rows: auto auto;
+      justify-items: center;
+      gap: 0.18in;
+      text-align: center;
+    }
+
+    .qr-link h1 {
+      margin: 0;
+      font-size: 24pt;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .qr-link img {
+      width: 2in;
+      height: 2in;
+      display: block;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    @media screen {
+      body {
+        min-height: 100vh;
+        background: #eee;
+      }
+
+      .pamphlet {
+        background: #fff;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="pamphlet" aria-label="The Fly quick links">
+    <header class="intro">
+      <h1>The Fly</h1>
+      <p>A pocket audio recorder for Bluetooth calls and voice memos, with local private AI assisted transcription and summarization. Scan below for setup help, manuals, and source files.</p>
+    </header>
+
+    <div class="qr-grid">
+      <section class="qr-link" aria-labelledby="github-title">
+        <h1 id="github-title">GitHub</h1>
+        <img src="gfx/qr_code_github.png" alt="QR code for The Fly GitHub repository">
+      </section>
+
+      <section class="qr-link" aria-labelledby="manuals-title">
+        <h1 id="manuals-title">User Manuals</h1>
+        <img src="gfx/qr_code_user_manuals.png" alt="QR code for The Fly user manuals">
+      </section>
+    </div>
+  </main>
+</body>
+</html>

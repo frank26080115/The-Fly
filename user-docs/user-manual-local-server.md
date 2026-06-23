@@ -1,3 +1,5 @@
+To transcribe and summarize audio recordings without using a cloud service, you can run a local server on your own network using your own computer.
+
 For a local network workflow, you need:
 
  * The Fly, connected via Wi-Fi to your local network
