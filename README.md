@@ -2,6 +2,8 @@
 
 This device is a Bluetooth meeting audio recording device. It can record meetings, phone calls, or voice memos. During the recording, the user can also use this device to participate in the meeting, as it features a speaker, a earphone jack, and internal microphone.
 
+![](user-docs/gfx/device_img.jpg)
+
 The audio recordings are stored on a microSD card.
 
 It features Wi-Fi connectivity so that AI can be used to transcribe and summarize the audio recordings. A local network PC can run scripts that run local AI models that performs the transcription and summarization.
@@ -23,5 +25,9 @@ The Fly connects to any Bluetooth host, such as a smartphone or a laptop, using 
 Wi-Fi operation is implemented so the user can download and transcribe the recorded audio files. The process can be automated to any level the user desires. All the software can be completely local and private.
 
 To improve audio quality, I've also created a daughterboard for the M5Stack Core2 that uses a SGTL5000 codec and provides a earphone jack along with a better internal mic, plus it supports inline mics on the earbuds.
+
+![](user-docs/gfx/pcb_design.jpg)
+
+![](user-docs/gfx/pcb_photo.jpg)
 
 (note: the original internal speaker and internal mic of the M5Stack Core2 have terrible audio quality)
