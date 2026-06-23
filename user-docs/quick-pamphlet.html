@@ -67,9 +67,9 @@
 
     .qr-link {
       display: grid;
-      grid-template-rows: auto auto;
+      grid-template-rows: auto auto auto;
       justify-items: center;
-      gap: 0.18in;
+      gap: 0.12in;
       text-align: center;
     }
 
@@ -89,6 +89,16 @@
       image-rendering: pixelated;
     }
 
+    .qr-link a {
+      max-width: 3.2in;
+      color: #111;
+      font-family: monospace;
+      font-size: 8.5pt;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+      text-decoration-thickness: 0.5pt;
+    }
+
     @media screen {
       body {
         min-height: 100vh;
@@ -106,18 +116,20 @@
   <main class="pamphlet" aria-label="The Fly quick links">
     <header class="intro">
       <h1>The Fly</h1>
-      <p>A pocket audio recorder for Bluetooth calls and voice memos, with local private AI assisted transcription and summarization. Scan below for setup help, manuals, and source files.</p>
+      <p>A pocket Bluetooth-enabled audio recorder for calls, meetings, and memos. Plus local private AI assisted transcription and summarization. Scan below for user manuals and setup help.</p>
     </header>
 
     <div class="qr-grid">
-      <section class="qr-link" aria-labelledby="github-title">
-        <h1 id="github-title">GitHub</h1>
-        <img src="gfx/qr_code_github.png" alt="QR code for The Fly GitHub repository">
-      </section>
-
       <section class="qr-link" aria-labelledby="manuals-title">
         <h1 id="manuals-title">User Manuals</h1>
         <img src="gfx/qr_code_user_manuals.png" alt="QR code for The Fly user manuals">
+        <a href="https://github.com/frank26080115/The-Fly/tree/master/user-docs">🌐github.com/frank26080115<br/>/The-Fly/tree/master/user-docs</a>
+      </section>
+
+      <section class="qr-link" aria-labelledby="github-title">
+        <h1 id="github-title">GitHub</h1>
+        <img src="gfx/qr_code_github.png" alt="QR code for The Fly GitHub repository">
+        <a href="https://github.com/frank26080115/The-Fly">🌐github.com/frank26080115/The-Fly</a>
       </section>
     </div>
   </main>
