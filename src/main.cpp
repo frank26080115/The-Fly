@@ -846,7 +846,7 @@ bool connect_to_bluetooth_host(const bt_host_item_t* host, const char* click_sou
 {
     if (!host)
     {
-        show_fatal_error_f(false, "No Bluetooth host configured");
+        error_usercaused_f(FLYGUI_VIEW_MAIN, MAINTAG, "No Bluetooth host configured");
         return false;
     }
 

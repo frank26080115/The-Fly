@@ -21,6 +21,7 @@ public:
     void onUnload() override;
     bool handleTouch(const FlyGuiTouchEvent& event) override;
     bool redraw(bool forced) override;
+    void onPressMid() override;
     void onPressRight() override;
 
 private:

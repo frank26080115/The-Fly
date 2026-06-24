@@ -76,6 +76,14 @@ bool ErrorView::handleTouch(const FlyGuiTouchEvent& event)
     return true;
 }
 
+void ErrorView::onPressMid()
+{
+    if (actionItem_.visible())
+    {
+        actionItem_.trigger();
+    }
+}
+
 void ErrorView::onPressRight()
 {
     if (actionItem_.visible())
