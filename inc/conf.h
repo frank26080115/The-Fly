@@ -28,7 +28,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 //#define TEST_BUILD_SCREENSHOT // this is only used to generate screenshots for documentation purposes
 
 //#define BUILD_SILENCE_GAP_REMOVAL
-//#define BUILD_USE_MP3_COMPRESSION
+#define BUILD_USE_MP3_COMPRESSION
 //#define ENABLE_SOFTWARE_NOTCH_FILTER
 #define NS4168_USE_STEREO
 #define USE_LEDC_PWM_AS_MCLK
