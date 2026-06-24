@@ -65,9 +65,9 @@ The script has many optional user specified arguments that can be used, calling 
 
 `python thefly_desktop.py --transcription-model gpt-4o-transcribe-diarize --summary-model gpt-4o-mini`
 
-... will tell it to use `gpt-4o-transcribe-diarize` for the transcription and `gpt-4o-mini` for the summarization
+... will tell it to use `gpt-4o-transcribe-diarize` for the transcription and `gpt-4o-mini` for the summarization. These are online AI models provided by OpenAI's servers.
 
-To use OpenAI API models, you must have your own OpenAI API key, and place it into your system environment variables as `OPENAI_API_KEY`
+To use OpenAI API models, you must have your own OpenAI API key, and place it into your system environment variables as `OPENAI_API_KEY`. Please see this [OpenAI API Quckstart Guide](https://developers.openai.com/api/docs/quickstart).
 
 ## Advanced Usage
 
