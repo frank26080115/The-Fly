@@ -24,6 +24,8 @@ The `scripts\requirements.txt` already contains the libraries needed to use `fas
 
 For other models, Ollama is used. Please install [Ollama from https://ollama.com/](https://ollama.com/) first. Make sure it is accessible from the system path.
 
+> Ollama is a tool that lets you run modern AI language models locally on your own computer instead of sending your prompts to a cloud service. It handles downloading, managing, and serving models through a simple command-line interface and API.
+
 After installation, run the commands similar to
 
 ```
@@ -59,11 +61,11 @@ Currently, the script defaults to using a minimal `faster-whisper` executed on t
 
 ## Online AI Models
 
-The script has many optional user specified arguments that can be used, calling the script like
+The script has many optional user specified arguments that can be used, calling the script like...
 
 `python thefly_desktop.py --transcription-model gpt-4o-transcribe-diarize --summary-model gpt-4o-mini`
 
-Will tell it to use `gpt-4o-transcribe-diarize` for the transcription and `gpt-4o-mini` for the summarization
+... will tell it to use `gpt-4o-transcribe-diarize` for the transcription and `gpt-4o-mini` for the summarization
 
 To use OpenAI API models, you must have your own OpenAI API key, and place it into your system environment variables as `OPENAI_API_KEY`
 
