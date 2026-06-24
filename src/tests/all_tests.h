@@ -33,3 +33,4 @@ extern void test_i2cscan();
 extern void test_sgtl5000_pll_lock();
 extern void test_continuous_sine();
 extern void test_noisespectrumanalyzer();
+extern void test_extcodec_adc();
