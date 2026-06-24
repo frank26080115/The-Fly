@@ -8,7 +8,7 @@
 use this file for preprocessor definitions that are used to configure parts of the code at compile-time
 */
 
-//#define BUILD_FTP_SERVER
+#define BUILD_FTP_SERVER
 //#define BUILD_CLOUD_FEATURES
 
 //#define TEST_SIM_BATTERY
