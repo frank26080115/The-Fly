@@ -122,7 +122,6 @@
 <package name="M5STACK-CORE2-DAUGHTER">
 <wire x1="0" y1="49" x2="0" y2="5" width="0.01" layer="20"/>
 <wire x1="0" y1="5" x2="5" y2="0" width="0.01" layer="20" curve="90"/>
-<wire x1="5" y1="0" x2="49" y2="0" width="0.01" layer="20"/>
 <wire x1="49" y1="0" x2="54" y2="5" width="0.01" layer="20" curve="90"/>
 <wire x1="54" y1="5" x2="54" y2="49" width="0.01" layer="20"/>
 <wire x1="54" y1="49" x2="49" y2="54" width="0.01" layer="20" curve="90"/>
@@ -1332,7 +1331,6 @@ Commonly used for 1/4W through-hole resistors. 0.3" pitch between holes.&lt;br&g
 <wire x1="3.15" y1="4.15" x2="3.15" y2="1.85" width="0.127" layer="21"/>
 <wire x1="-1.65" y1="-3.8" x2="1.65" y2="-3.8" width="0" layer="20"/>
 <wire x1="1.65" y1="-3.8" x2="1.65" y2="-5" width="0" layer="20"/>
-<wire x1="1.65" y1="-5" x2="-1.65" y2="-5" width="0" layer="20"/>
 <wire x1="-1.65" y1="-5" x2="-1.65" y2="-3.8" width="0" layer="20"/>
 <hole x="0" y="5.5" drill="1.4"/>
 <pad name="1" x="2.9" y="-2.1" drill="1"/>
@@ -2345,6 +2343,9 @@ between the connection here and the MCU</text>
 <text x="162.56" y="109.22" size="1.27" layer="97">NOTE: DNP R3 and R4 if using the MEMS mic</text>
 <text x="139.7" y="5.08" size="1.27" layer="97">NOTE: R1 value need testing
 SGTL5000 does have internal resistance settings</text>
+<text x="287.02" y="73.66" size="1.27" layer="97">NOTE: testing has shown that the DC blocking diode here is not really needed</text>
+<text x="160.02" y="66.04" size="1.27" layer="97" align="bottom-right">NOTE: the mic itself might
+include a built-in capacitor</text>
 </plain>
 <instances>
 <instance part="U$1" gate="G$1" x="0" y="0"/>
@@ -2876,7 +2877,12 @@ SGTL5000 does have internal resistance settings</text>
 <segment>
 <pinref part="U1" gate="G$1" pin="LINEIN_R"/>
 <label x="20.32" y="40.64" size="1.27" layer="95" rot="R180" xref="yes"/>
-<wire x1="48.26" y1="40.64" x2="20.32" y2="40.64" width="0.1524" layer="91"/>
+<wire x1="48.26" y1="40.64" x2="45.72" y2="40.64" width="0.1524" layer="91"/>
+<pinref part="U1" gate="G$1" pin="LINEIN_L"/>
+<wire x1="45.72" y1="40.64" x2="20.32" y2="40.64" width="0.1524" layer="91"/>
+<wire x1="48.26" y1="38.1" x2="45.72" y2="38.1" width="0.1524" layer="91"/>
+<wire x1="45.72" y1="38.1" x2="45.72" y2="40.64" width="0.1524" layer="91"/>
+<junction x="45.72" y="40.64"/>
 </segment>
 <segment>
 <wire x1="302.26" y1="81.28" x2="304.8" y2="81.28" width="0.1524" layer="91"/>
