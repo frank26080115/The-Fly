@@ -178,11 +178,10 @@ void draw_splash_boot_info()
     const SplashSprite splash = current_splash_sprite();
 
     char text[80];
-    snprintf(text,
-             sizeof(text),
-             "FW: %s\nSecurity: %d",
-             version_str ? version_str : "unknown",
-             BUILD_WITH_SECURITY_LEVEL);
+    snprintf(text, sizeof(text), "FW: %s", version_str ? version_str : "unknown");
+    #if BUILD_WITH_SECURITY_LEVEL > 0
+    snprintf(text + strlen(text), sizeof(text) - strlen(text), "\nSecurity: %d", BUILD_WITH_SECURITY_LEVEL);
+    #endif
 
     thefly_display.setTextFont(kTextFont);
     thefly_display.setTextSize(kTextSize);
