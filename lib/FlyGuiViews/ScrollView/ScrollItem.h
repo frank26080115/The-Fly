@@ -22,6 +22,7 @@ enum ScrollItemKind : uint8_t
     SCROLL_ITEM_FILE_FIRMWARE,
     SCROLL_ITEM_FILE_UNKNOWN,
     SCROLL_ITEM_FILE_SHOW_INFO,
+    SCROLL_ITEM_CLOUD_UNIMPLEMENTED,
 };
 
 enum ScrollItemTask : int32_t
@@ -34,6 +35,7 @@ enum ScrollItemTask : int32_t
     SCROLL_TASK_WIFI_GENERATED_AP        = -6,
     SCROLL_TASK_FILE_SHOW_INFO           = -7,
     SCROLL_TASK_FILE_FIRMWARE_UPDATE     = -8,
+    SCROLL_TASK_CLOUD_UNIMPLEMENTED      = -9,
 };
 
 class ScrollItem;

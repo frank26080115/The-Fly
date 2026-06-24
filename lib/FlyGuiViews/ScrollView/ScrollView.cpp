@@ -229,6 +229,15 @@ bool ScrollView::populateCloud()
                                   IconLookup::ICON_CONTEXT_CLOUD) &&
              ok;
     }
+#else
+    ok = appendSpriteScrollItem(SCROLL_ITEM_CLOUD_UNIMPLEMENTED,
+                                SCROLL_TASK_CLOUD_UNIMPLEMENTED,
+                                "Cloud Upload",
+                                make_sprite(sprite_cloudupload_100,
+                                            SPRITE_CLOUDUPLOAD_100_WIDTH,
+                                            SPRITE_CLOUDUPLOAD_100_HEIGHT,
+                                            SPRITE_CLOUDUPLOAD_100_BYTES)) &&
+         ok;
 #endif
 
     ok = appendSpriteScrollItem(SCROLL_ITEM_NTP_SYNC,
@@ -1025,6 +1034,24 @@ void ScrollView::handleScrollItem(ScrollItem& item, uint32_t pressDurationMs)
         {
             onCloudUpload_(value, pressDurationMs);
         }
+        break;
+    case SCROLL_ITEM_CLOUD_UNIMPLEMENTED:
+#ifndef BUILD_CLOUD_FEATURES
+    {
+        ModalDialog* dialog = get_view_modal_dialog();
+        FlyGui*      owner  = gui();
+        if (dialog && owner)
+        {
+            dialog->configure(sprite_cloudupload_100,
+                              SPRITE_CLOUDUPLOAD_100_BYTES,
+                              SPRITE_CLOUDUPLOAD_100_WIDTH,
+                              SPRITE_CLOUDUPLOAD_100_HEIGHT,
+                              "Cloud upload is an unimplemented future feature.",
+                              FLYGUI_VIEW_SCROLL);
+            owner->showView(FLYGUI_VIEW_MODAL_DIALOG);
+        }
+    }
+#endif
         break;
     case SCROLL_ITEM_NTP_SYNC:
         if (onNtpSync_)
