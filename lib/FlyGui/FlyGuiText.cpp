@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../BattTracker/BattTracker.h"
 #include "ClockAgent.h"
 #include "dbg_log.h"
 
@@ -284,7 +285,7 @@ int32_t FlyGuiText::textHeight() const
 }
 
 FlyGuiDateTime::FlyGuiDateTime(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle)
-    : FlyGuiText(x, y, width, height, fontSize, fontStyle, 20)
+    : FlyGuiText(x, y, width, height, fontSize, fontStyle, 31)
 {
 }
 
@@ -292,29 +293,36 @@ bool FlyGuiDateTime::redraw(bool forced)
 {
     // Design: FlyGuiDateTime always shows current date/time and keeps frequent draws quick.
     const m5::rtc_datetime_t now = Clock.getDateTime();
-    char                     text[21];
+    const char*              suffix =
+                                    #ifdef ENABLE_POWER_KEY_INDICATOR
+                                    BattTracker::powerKeyIndicatorActive() ? " ZZZ?" :
+                                    #endif
+                                    "";
+    char                     text[32];
     if (kFlyGuiDebugClock)
     {
         snprintf(text,
                  sizeof(text),
-                 "DEBUG-%02d-%02d %02d:%02d:%02d",
+                 "DEBUG-%02d-%02d %02d:%02d:%02d%s",
                  static_cast<int>(now.date.month),
                  static_cast<int>(now.date.date),
                  static_cast<int>(now.time.hours),
                  static_cast<int>(now.time.minutes),
-                 static_cast<int>(now.time.seconds));
+                 static_cast<int>(now.time.seconds),
+                 suffix);
     }
     else
     {
         snprintf(text,
                  sizeof(text),
-                 "%04d-%02d-%02d %02d:%02d:%02d",
+                 "%04d-%02d-%02d %02d:%02d:%02d%s",
                  static_cast<int>(now.date.year),
                  static_cast<int>(now.date.month),
                  static_cast<int>(now.date.date),
                  static_cast<int>(now.time.hours),
                  static_cast<int>(now.time.minutes),
-                 static_cast<int>(now.time.seconds));
+                 static_cast<int>(now.time.seconds),
+                 suffix);
     }
     setText(text);
     return FlyGuiText::redraw(forced);

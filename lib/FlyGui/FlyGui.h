@@ -124,6 +124,7 @@ private:
     uint32_t        lastScheduledPollMs_   = 0;
     uint32_t        lastTopBarDrawMs_      = 0;
     int32_t         topBarLastBattery_     = -2;
+    bool            topBarLastPowerKeyIndicator_ = false;
     FlyGuiDateTime* topBarDateTime_        = nullptr;
 };
 

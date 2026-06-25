@@ -153,6 +153,10 @@ void FlyGui::poll()
 
     AsyncFsManager::beginGuiUpdate();
     M5.update();
+    if (M5.BtnPWR.wasClicked() || M5.BtnPWR.wasHold())
+    {
+        BattTracker::notePowerKeyPressed(now);
+    }
     dispatchButtons();
 
     const auto       touch = M5.Touch.getDetail();
@@ -174,6 +178,11 @@ void FlyGui::poll()
         {
             currentView_->handleTouch(event);
         }
+    }
+
+    if (BattTracker::consumePowerKeyTopBarFullRedraw())
+    {
+        requestTopBarFullRedraw();
     }
 
     bool drawn = redraw(false);
@@ -351,9 +360,11 @@ void FlyGui::updatePollMode()
 
 bool FlyGui::drawTopBar(bool forced)
 {
-    const int32_t  battery    = batteryStatusCode();
-    const uint32_t currentMs  = millis();
-    const bool     fullRedraw = forced || topBarNeedsFullRedraw_;
+    const int32_t  battery            = batteryStatusCode();
+    const bool     powerKeyIndicator  = BattTracker::powerKeyIndicatorActive();
+    const bool     indicatorChanged   = powerKeyIndicator != topBarLastPowerKeyIndicator_;
+    const uint32_t currentMs          = millis();
+    const bool     fullRedraw         = forced || topBarNeedsFullRedraw_ || indicatorChanged;
 
     if (!fullRedraw && battery == topBarLastBattery_ && currentMs - lastTopBarDrawMs_ < 1000)
     {
@@ -388,9 +399,10 @@ bool FlyGui::drawTopBar(bool forced)
 
     DiskStats::drawDiskSpaceWarning();
 
-    topBarLastBattery_     = battery;
-    lastTopBarDrawMs_      = currentMs;
-    topBarNeedsFullRedraw_ = false;
+    topBarLastBattery_            = battery;
+    topBarLastPowerKeyIndicator_  = powerKeyIndicator;
+    lastTopBarDrawMs_             = currentMs;
+    topBarNeedsFullRedraw_        = false;
     return true;
 }
 

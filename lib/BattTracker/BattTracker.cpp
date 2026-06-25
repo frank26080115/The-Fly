@@ -4,18 +4,27 @@
 #include <M5Unified.h>
 #include <math.h>
 
+#include "../Hotel/Hotel.h"
 #include "../FlyGuiViews/ShutdownView.h"
 
 namespace BattTracker
 {
 namespace
 {
-constexpr uint32_t kPollIntervalMs             = 1000;
+constexpr uint32_t kPollIntervalMs             = 100;
+constexpr uint32_t kPowerKeyIndicatorMs        = 2800;
 constexpr float    kLowThreshold               = 3.40f;
 constexpr float    kEmergencyShutdownThreshold = 3.00f;
 constexpr float    kHighThreshold              = 3.95f;
 constexpr float    kChargeHysteresis           = 0.10f;
 constexpr float    kUnknownVoltage             = -1.0f;
+
+#if !defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(CONFIG_IDF_TARGET_ESP32C3) &&                                      \
+    !defined(CONFIG_IDF_TARGET_ESP32C6) && !defined(CONFIG_IDF_TARGET_ESP32P4)
+constexpr uint8_t kAxp192PowerKeyControlReg  = 0x36;
+constexpr uint8_t kAxp192PowerOffTimeMask    = 0x0C;
+constexpr uint8_t kAxp192PowerOffTime2Second = 0x08;
+#endif
 
 uint32_t    last_poll_ms    = 0;
 float       tracked_voltage = kUnknownVoltage;
@@ -24,13 +33,20 @@ bool        usb_available   = false;
 ChargeLevel tracked_level   = ChargeLevel::unknown;
 bool        initialized     = false;
 uint32_t    start_time      = 0;
+bool        power_key_indicator_active           = false;
+bool        power_key_topbar_full_redraw_pending = false;
+uint32_t    power_key_indicator_started_ms       = 0;
 
 // -----------------------------------------------------------------------------
 // Function Prototypes
 // -----------------------------------------------------------------------------
 
 static void        updateNow();
+static void        configureAxp192PowerKey();
+static void        activatePowerKeyIndicator(uint32_t now);
+static void        pollPowerKey(uint32_t now);
 static bool        halReadBatteryCharging();
+static uint8_t     halReadPowerKey();
 static ChargeLevel levelFromVoltage(float volts);
 static ChargeLevel levelFromChargingVoltage(float volts, ChargeLevel current);
 
@@ -49,6 +65,10 @@ void init()
     usb_available   = false;
     tracked_level   = ChargeLevel::unknown;
     start_time      = last_poll_ms;
+    power_key_indicator_active           = false;
+    power_key_topbar_full_redraw_pending = false;
+    power_key_indicator_started_ms       = 0;
+    configureAxp192PowerKey();
     updateNow();
 }
 
@@ -133,6 +153,23 @@ float voltage()
     return tracked_voltage;
 }
 
+void notePowerKeyPressed(uint32_t now)
+{
+    activatePowerKeyIndicator(now);
+}
+
+bool powerKeyIndicatorActive()
+{
+    return power_key_indicator_active;
+}
+
+bool consumePowerKeyTopBarFullRedraw()
+{
+    const bool pending                   = power_key_topbar_full_redraw_pending;
+    power_key_topbar_full_redraw_pending = false;
+    return pending;
+}
+
 namespace
 {
 
@@ -142,6 +179,9 @@ namespace
 
 void updateNow()
 {
+    const uint32_t now = millis();
+    pollPowerKey(now);
+
     const float measured_voltage  = halReadBatteryVoltage();
     const bool  measured_charging = halReadBatteryCharging();
 
@@ -175,6 +215,49 @@ void updateNow()
 // -----------------------------------------------------------------------------
 // Small Helpers
 // -----------------------------------------------------------------------------
+
+void configureAxp192PowerKey()
+{
+#ifndef TEST_SIM_BATTERY
+#if !defined(CONFIG_IDF_TARGET_ESP32S3) && !defined(CONFIG_IDF_TARGET_ESP32C3) &&                                      \
+    !defined(CONFIG_IDF_TARGET_ESP32C6) && !defined(CONFIG_IDF_TARGET_ESP32P4)
+    if (M5.Power.getType() == m5::Power_Class::pmic_axp192)
+    {
+        const uint8_t value =
+            (M5.Power.Axp192.readRegister8(kAxp192PowerKeyControlReg) & ~kAxp192PowerOffTimeMask) |
+            kAxp192PowerOffTime2Second;
+        M5.Power.Axp192.writeRegister8(kAxp192PowerKeyControlReg, value);
+    }
+#endif
+#endif
+}
+
+void pollPowerKey(uint32_t now)
+{
+    if (halReadPowerKey() != 0)
+    {
+        activatePowerKeyIndicator(now);
+        return;
+    }
+
+    if (power_key_indicator_active && now - power_key_indicator_started_ms >= kPowerKeyIndicatorMs)
+    {
+        power_key_indicator_active = false;
+        power_key_topbar_full_redraw_pending = true;
+    }
+}
+
+void activatePowerKeyIndicator(uint32_t now)
+{
+    Hotel::noteUserActivity();
+
+    if (!power_key_indicator_active)
+    {
+        power_key_topbar_full_redraw_pending = true;
+    }
+    power_key_indicator_active     = true;
+    power_key_indicator_started_ms = now;
+}
 
 ChargeLevel levelFromVoltage(float volts)
 {
@@ -231,6 +314,15 @@ bool halReadBatteryCharging()
     return M5.Power.isCharging() == m5::Power_Class::is_charging;
 #else
     return false;
+#endif
+}
+
+uint8_t halReadPowerKey()
+{
+#ifndef TEST_SIM_BATTERY
+    return M5.Power.getKeyState();
+#else
+    return 0;
 #endif
 }
 

@@ -37,6 +37,9 @@ ChargeLevel level();
 bool        isCharging();
 bool        isUsbAvailable();
 float       voltage();
+void        notePowerKeyPressed(uint32_t now);
+bool        powerKeyIndicatorActive();
+bool        consumePowerKeyTopBarFullRedraw();
 
 float halReadBatteryVoltage();
 bool  halReadUsbAvailable();
