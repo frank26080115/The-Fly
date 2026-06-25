@@ -630,7 +630,15 @@ void ScrollView::drawContent()
 
     if (itemCount_ > 0)
     {
-        if (itemCount_ == 2)
+        if (itemCount_ == 1)
+        {
+            FlyGuiItem* center = selectedItem();
+            if (center)
+            {
+                drawItemInSlot(*center, SLOT_CENTER, false);
+            }
+        }
+        else if (itemCount_ == 2)
         {
             FlyGuiItem* neighbor = selectedIndex_ == 0 ? itemAt(1) : itemAt(0);
             if (neighbor)
@@ -653,10 +661,13 @@ void ScrollView::drawContent()
             }
         }
 
-        FlyGuiItem* center = selectedItem();
-        if (center)
+        if (itemCount_ > 1)
         {
-            drawItemInSlot(*center, SLOT_CENTER, false);
+            FlyGuiItem* center = selectedItem();
+            if (center)
+            {
+                drawItemInSlot(*center, SLOT_CENTER, false);
+            }
         }
 
         drawSelectedText();
