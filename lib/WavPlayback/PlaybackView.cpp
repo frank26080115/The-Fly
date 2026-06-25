@@ -56,7 +56,6 @@ constexpr uint32_t    kLongFilePrecisionThresholdMs = 120000;
 constexpr uint32_t    kPrecisionWindowMs            = 60000;
 constexpr uint32_t    kPrecisionHalfWindowMs        = kPrecisionWindowMs / 2;
 constexpr uint32_t    kPrecisionCatchupMs           = 1000;
-constexpr uint32_t    kDeleteConfirmDebounceMs      = 1000;
 constexpr const char* kDeleteConfirmText            = "confirm delete?";
 constexpr uint16_t    kPrecisionScrubColor          = 0xFDE0; // #FCBC00 converted to RGB565. 0xFF20 might also work
 
@@ -394,11 +393,6 @@ void PlaybackView::handleDelete()
         return;
     }
 
-    if (static_cast<uint32_t>(millis() - deleteArmedAtMs_) < kDeleteConfirmDebounceMs)
-    {
-        return;
-    }
-
     char deletedName[sizeof(fileName_)] = {};
     strlcpy(deletedName, fileName_[0] != '\0' ? fileName_ : "Audio file", sizeof(deletedName));
 
@@ -679,8 +673,7 @@ void PlaybackView::setDeleteArmed(bool armed)
         return;
     }
 
-    deleteArmed_     = armed;
-    deleteArmedAtMs_ = armed ? millis() : 0;
+    deleteArmed_ = armed;
     if (armed)
     {
         deleteButton_.setSprite(sprite_trashconfirm_50,

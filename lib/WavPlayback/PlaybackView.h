@@ -77,6 +77,5 @@ private:
     bool                          frameDirty_                 = true;
     bool                          precisionWindowInitialized_ = false;
     uint32_t                      extCodecStateGeneration_    = UINT32_MAX;
-    uint32_t                      deleteArmedAtMs_            = 0;
     std::unique_ptr<FilePlayback> playback_;
 };
