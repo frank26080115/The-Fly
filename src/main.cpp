@@ -130,7 +130,13 @@ void setup()
         draw_splash_boot_info();
     }
 
-    ExtCodec::init();
+    const bool extCodecOk = ExtCodec::init();
+#ifdef ENFORCE_EXTERNAL_CODEC
+    if (!extCodecOk)
+    {
+        show_boot_error_f(true, "external codec init failed");
+    }
+#endif
 
     if (!MicroSdCard::begin())
     {

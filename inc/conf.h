@@ -32,6 +32,7 @@ use this file for preprocessor definitions that are used to configure parts of t
 //#define ENABLE_SOFTWARE_NOTCH_FILTER
 #define NS4168_USE_STEREO
 #define USE_LEDC_PWM_AS_MCLK
+#define ENFORCE_EXTERNAL_CODEC
 
 #if !defined(BUILD_WITH_SECURITY_LEVEL)
 #error BUILD_WITH_SECURITY_LEVEL must be defined!
