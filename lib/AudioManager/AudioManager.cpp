@@ -90,6 +90,9 @@ SpeakerPath       g_speaker_path           = SpeakerPath::None;
 ExtCodec::State   g_synced_ext_codec_state = ExtCodec::EXTCODEC_UNAVAIL;
 bool              g_ext_codec_route_synced = false;
 bool              g_force_ext_codec_line_in_right_mic = false;
+bool              g_force_external_headphone_for_ext_codec = false;
+bool              g_force_internal_speaker_for_ext_codec = false;
+ExternalCodecMicOverride g_ext_codec_mic_override = ExternalCodecMicOverride::Auto;
 i2s_chan_handle_t g_i2s_tx                 = nullptr;
 i2s_chan_handle_t g_i2s_rx                 = nullptr;
 I2sConfig         g_i2s_config             = I2sConfig::None;
@@ -149,6 +152,7 @@ bool   enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz = kSampleRateH
 bool   ensure_exti2scodec_i2s(uint32_t sampleRateHz);
 bool   sync_external_codec_routing();
 void   sync_mic_filter_for_external_codec_state(ExtCodec::State state);
+ExtCodec::State external_codec_route_state(ExtCodec::State current);
 bool   ns4168_required_for_speaker();
 bool   sync_speaker_output_for_external_codec_state();
 uint32_t current_i2s_sample_rate_or_default();
@@ -294,7 +298,52 @@ bool syncExternalCodecRouting()
 void forceExternalCodecLineInRightMic(bool force)
 {
     g_force_ext_codec_line_in_right_mic = force;
+    setExternalCodecMicOverride(force ? ExternalCodecMicOverride::LineInRight : ExternalCodecMicOverride::Auto);
+}
+
+void forceExternalHeadphoneForExternalCodec(bool force)
+{
+    g_force_external_headphone_for_ext_codec = force;
+    if (force)
+    {
+        g_force_internal_speaker_for_ext_codec = false;
+    }
+}
+
+bool externalHeadphoneForcedForExternalCodec()
+{
+    return g_force_external_headphone_for_ext_codec;
+}
+
+void forceInternalSpeakerForExternalCodec(bool force)
+{
+    g_force_internal_speaker_for_ext_codec = force;
+    if (force)
+    {
+        g_force_external_headphone_for_ext_codec = false;
+    }
+}
+
+bool internalSpeakerForcedForExternalCodec()
+{
+    return g_force_internal_speaker_for_ext_codec;
+}
+
+void setExternalCodecMicOverride(ExternalCodecMicOverride overrideMode)
+{
+    if (g_ext_codec_mic_override == overrideMode)
+    {
+        return;
+    }
+
+    g_force_ext_codec_line_in_right_mic = overrideMode == ExternalCodecMicOverride::LineInRight;
+    g_ext_codec_mic_override            = overrideMode;
     g_ext_codec_route_synced            = false;
+}
+
+ExternalCodecMicOverride externalCodecMicOverride()
+{
+    return g_ext_codec_mic_override;
 }
 
 P2TMode mode()
@@ -1107,6 +1156,7 @@ bool enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz)
         return false;
     }
 
+    const bool use_internal_speaker = nextMode == P2TMode::FullDuplex && ns4168_required_for_speaker();
     if (nextMode == P2TMode::Speaker)
     {
         g_fifo_bt2spk.clear();
@@ -1125,13 +1175,23 @@ bool enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz)
     }
 
     g_mode = nextMode;
-    set_external_codec_headphone_enabled(nextMode == P2TMode::Speaker || nextMode == P2TMode::FullDuplex);
+    if (use_internal_speaker)
+    {
+        set_external_codec_headphone_enabled(false);
+        set_ns4168_speaker_enabled(true);
+        g_speaker_path = SpeakerPath::NS4168;
+    }
+    else
+    {
+        set_external_codec_headphone_enabled(nextMode == P2TMode::Speaker || nextMode == P2TMode::FullDuplex);
+    }
+    const ExtCodec::State route_state = external_codec_route_state(ExtCodec::state());
     DBG_LOGI(TAG,
              "ExternalI2SCodec mode=%u sampleRate=%lu state=%s micInput=%s",
              static_cast<unsigned>(nextMode),
              static_cast<unsigned long>(sampleRateHz),
              ExtCodec::stateName(ExtCodec::state()),
-             ExtCodec::micInputName(ExtCodec::micInputForState(ExtCodec::state())));
+             ExtCodec::micInputName(ExtCodec::micInputForState(route_state)));
     return true;
 }
 
@@ -1175,7 +1235,7 @@ bool sync_external_codec_routing()
     }
 
     const ExtCodec::State current     = ExtCodec::state();
-    const ExtCodec::State route_state = g_force_ext_codec_line_in_right_mic ? ExtCodec::EXTCODEC_NO_EARBUD : current;
+    const ExtCodec::State route_state = external_codec_route_state(current);
     sync_mic_filter_for_external_codec_state(route_state);
     if (g_ext_codec_route_synced && g_synced_ext_codec_state == route_state)
     {
@@ -1212,9 +1272,35 @@ void sync_mic_filter_for_external_codec_state(ExtCodec::State state)
     );
 }
 
+ExtCodec::State external_codec_route_state(ExtCodec::State current)
+{
+    switch (g_ext_codec_mic_override)
+    {
+    case ExternalCodecMicOverride::LineInRight:
+        return ExtCodec::EXTCODEC_NO_EARBUD;
+    case ExternalCodecMicOverride::DedicatedMic:
+        return ExtCodec::EXTCODEC_YES_EARBUD_WITH_MIC;
+    case ExternalCodecMicOverride::Auto:
+    default:
+        return current;
+    }
+}
+
 bool ns4168_required_for_speaker()
 {
-    return g_hardware != Hardware::ExternalI2SCodec || ExtCodec::pushToTalkRequired();
+    if (g_hardware != Hardware::ExternalI2SCodec)
+    {
+        return true;
+    }
+    if (g_force_internal_speaker_for_ext_codec)
+    {
+        return true;
+    }
+    if (g_force_external_headphone_for_ext_codec)
+    {
+        return false;
+    }
+    return ExtCodec::pushToTalkRequired();
 }
 
 bool sync_speaker_output_for_external_codec_state()

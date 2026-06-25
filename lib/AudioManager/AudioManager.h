@@ -25,6 +25,13 @@ enum class P2TMode
     FullDuplex,
 };
 
+enum class ExternalCodecMicOverride
+{
+    Auto,
+    LineInRight,
+    DedicatedMic,
+};
+
 enum class HfpCodec
 {
     Cvsd,
@@ -96,6 +103,12 @@ bool    enableMicMode();
 bool    enableFullDuplexMode(uint32_t sampleRateHz = kSampleRateHz);
 bool    syncExternalCodecRouting();
 void    forceExternalCodecLineInRightMic(bool force);
+void    forceExternalHeadphoneForExternalCodec(bool force);
+bool    externalHeadphoneForcedForExternalCodec();
+void    forceInternalSpeakerForExternalCodec(bool force);
+bool    internalSpeakerForcedForExternalCodec();
+void    setExternalCodecMicOverride(ExternalCodecMicOverride overrideMode);
+ExternalCodecMicOverride externalCodecMicOverride();
 P2TMode mode();
 
 void pump_bt2spk();

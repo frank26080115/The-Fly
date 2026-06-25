@@ -243,6 +243,12 @@ void setup()
         draw_splash_idle_prompt();
     }
 
+#ifdef RUN_BRINGUP_TEST
+    if (!gui->showView(FLYGUI_VIEW_MASTER_TEST))
+    {
+        show_boot_error_f(true, "Failed to show master test view");
+    }
+#else
     if (!gui->currentView())
     {
         if (!gui->showView(FLYGUI_VIEW_MAIN))
@@ -250,6 +256,7 @@ void setup()
             show_boot_error_f(true, "Failed to show main view");
         }
     }
+#endif
 
     xTaskCreateUniversal(loopTask_core0,
                          "loopTask_core0",
