@@ -3,11 +3,13 @@
 #include "nvs_flash.h"
 #include "M5Unified.h"
 #include "AudioManager.h"
+#include "ClockAgent.h"
 #include "FlyGui.h"
 #include "ConnWaitingView.h"
 #include "ErrorView.h"
 #include "FirmwareUpdateView.h"
 #include "MainScreenView.h"
+#include "MasterTestView.h"
 #include "ModalDialog.h"
 #include "PlaybackView.h"
 #include "PinPadView.h"
@@ -48,6 +50,7 @@ FirmwareUpdateView g_firmware_update_view;
 PlaybackView       g_playback_view;
 PinPadView         g_pin_pad_view;
 QrCodeView         g_qr_code_view;
+MasterTestView     g_master_test_view;
 #ifdef BUILD_CLOUD_FEATURES
 CloudUploadView g_cloud_upload_view(cloud_upload_cancel);
 #endif
@@ -64,6 +67,10 @@ void all_init()
     g_nvs_ready = init_nvs();
     check_reset_flag();
     init_m5();
+    if (!Clock.begin())
+    {
+        DBG_LOGW(TAG, "clock initialization failed; will retry on demand");
+    }
     init_gui();
     AudioManager::configure_i2s_shared();
 }
@@ -129,6 +136,7 @@ void init_gui()
     gui->addView(g_playback_view);
     gui->addView(g_pin_pad_view);
     gui->addView(g_qr_code_view);
+    gui->addView(g_master_test_view);
 
     g_scroll_view.setOnClickBluetoothHost(onclick_bluetooth_host);
     g_scroll_view.setOnClickBluetoothPair(onclick_bluetooth_pair);

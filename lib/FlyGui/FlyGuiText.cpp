@@ -297,24 +297,24 @@ bool FlyGuiDateTime::redraw(bool forced)
     {
         snprintf(text,
                  sizeof(text),
-                 "DEBUG-%02u-%02u %02u:%02u:%02u",
-                 now.date.month,
-                 now.date.date,
-                 now.time.hours,
-                 now.time.minutes,
-                 now.time.seconds);
+                 "DEBUG-%02d-%02d %02d:%02d:%02d",
+                 static_cast<int>(now.date.month),
+                 static_cast<int>(now.date.date),
+                 static_cast<int>(now.time.hours),
+                 static_cast<int>(now.time.minutes),
+                 static_cast<int>(now.time.seconds));
     }
     else
     {
         snprintf(text,
                  sizeof(text),
-                 "%04u-%02u-%02u %02u:%02u:%02u",
-                 now.date.year,
-                 now.date.month,
-                 now.date.date,
-                 now.time.hours,
-                 now.time.minutes,
-                 now.time.seconds);
+                 "%04d-%02d-%02d %02d:%02d:%02d",
+                 static_cast<int>(now.date.year),
+                 static_cast<int>(now.date.month),
+                 static_cast<int>(now.date.date),
+                 static_cast<int>(now.time.hours),
+                 static_cast<int>(now.time.minutes),
+                 static_cast<int>(now.time.seconds));
     }
     setText(text);
     return FlyGuiText::redraw(forced);

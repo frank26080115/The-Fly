@@ -17,6 +17,7 @@ namespace
 
 static bool               valid_date(const m5::rtc_date_t& date);
 static bool               valid_time(const m5::rtc_time_t& time);
+static bool               valid_datetime(const m5::rtc_datetime_t& datetime);
 static int64_t            datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime);
 static m5::rtc_datetime_t epoch_seconds_to_datetime(int64_t epoch_seconds);
 #ifdef TEST_MOCK_SCRAMBLE_TIME
@@ -44,13 +45,13 @@ ClockAgent Clock;
 
 bool ClockAgent::begin()
 {
-    return syncFromRtc();
+    return syncToCompileTime() || syncFromRtc();
 }
 
 bool ClockAgent::syncFromRtc()
 {
     m5::rtc_datetime_t utc_datetime;
-    if (!M5.Rtc.getDateTime(&utc_datetime) || !valid_date(utc_datetime.date) || !valid_time(utc_datetime.time))
+    if (!M5.Rtc.getDateTime(&utc_datetime) || !valid_datetime(utc_datetime))
     {
         synced_ = false;
         return false;
@@ -82,8 +83,7 @@ bool ClockAgent::syncToCompileTime()
     }
 
     m5::rtc_datetime_t rtc_datetime = {};
-    const bool         rtc_valid =
-        M5.Rtc.getDateTime(&rtc_datetime) && valid_date(rtc_datetime.date) && valid_time(rtc_datetime.time);
+    const bool         rtc_valid = M5.Rtc.getDateTime(&rtc_datetime) && valid_datetime(rtc_datetime);
     if (!rtc_valid || static_cast<int64_t>(compile_epoch_seconds) > datetime_to_epoch_seconds(rtc_datetime))
     {
         return setUnixTime(compile_epoch_seconds);
@@ -98,7 +98,7 @@ bool ClockAgent::syncToCompileTime()
 
 bool ClockAgent::ensureSynced()
 {
-    return synced_ || syncFromRtc();
+    return synced_ || syncToCompileTime() || syncFromRtc();
 }
 
 bool ClockAgent::getDateTime(m5::rtc_date_t* date, m5::rtc_time_t* time)
@@ -338,6 +338,11 @@ bool valid_time(const m5::rtc_time_t& time)
 {
     return time.hours >= 0 && time.hours <= 23 && time.minutes >= 0 && time.minutes <= 59 && time.seconds >= 0 &&
            time.seconds <= 59;
+}
+
+bool valid_datetime(const m5::rtc_datetime_t& datetime)
+{
+    return valid_date(datetime.date) && valid_time(datetime.time);
 }
 
 int64_t datetime_to_epoch_seconds(const m5::rtc_datetime_t& datetime)
