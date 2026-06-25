@@ -442,7 +442,18 @@ void ScrollView::scrollLeft()
 
     resetBluetoothDeleteHold();
     exitDeleteMode();
-    selectedIndex_ = selectedIndex_ == 0 ? itemCount_ - 1 : selectedIndex_ - 1;
+    if (selectedIndex_ == 0)
+    {
+        if (itemCount_ <= 2)
+        {
+            return;
+        }
+        selectedIndex_ = itemCount_ - 1;
+    }
+    else
+    {
+        --selectedIndex_;
+    }
     setDirty();
 }
 
@@ -455,7 +466,18 @@ void ScrollView::scrollRight()
 
     resetBluetoothDeleteHold();
     exitDeleteMode();
-    selectedIndex_ = (selectedIndex_ + 1) % itemCount_;
+    if (selectedIndex_ >= itemCount_ - 1)
+    {
+        if (itemCount_ <= 2)
+        {
+            return;
+        }
+        selectedIndex_ = 0;
+    }
+    else
+    {
+        ++selectedIndex_;
+    }
     setDirty();
 }
 
@@ -608,16 +630,7 @@ void ScrollView::drawContent()
 
     if (itemCount_ > 0)
     {
-        if (itemCount_ == 1)
-        {
-            FlyGuiItem* only = selectedItem();
-            if (only)
-            {
-                drawItemInSlot(*only, SLOT_LEFT, true);
-                drawItemInSlot(*only, SLOT_RIGHT, true);
-            }
-        }
-        else if (itemCount_ == 2)
+        if (itemCount_ == 2)
         {
             FlyGuiItem* neighbor = selectedIndex_ == 0 ? itemAt(1) : itemAt(0);
             if (neighbor)
