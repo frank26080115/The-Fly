@@ -89,3 +89,6 @@ sdkconfig.thefly*
 .vscode/settings.json
 *.af~lock~
 /gfx-assets/sprites_resized
+
+# WARNING: THIS IS THE PRIVATE KEY, DO NOT EVER LEAK IT
+secure_boot_signing_key.pem

@@ -1,4 +1,8 @@
 cryptography
+ecdsa
+reedsolo
+bitstring
+pyserial
 faster-whisper
 
 # Optional local transcription backend supported by scripts/models.py.

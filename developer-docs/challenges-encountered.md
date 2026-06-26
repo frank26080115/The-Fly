@@ -87,3 +87,17 @@ For the internal electret mic connected to line-in-right, several steps were tak
  * experiment with targeting the 1000 Hz peak with a firmware notch filter worked
  * randomizing the 1000Hz loop rate did not meaningfully lower the noise
  * the notch filter was moved into the SGTL5000's internal DSP (called the DAP)
+
+## Missing Python Dependencies for Secure Build
+
+`espsecure.py` is missing a few packages when running from the PlatformIO build environment.
+
+```
+cryptography
+ecdsa
+reedsolo
+bitstring
+pyserial
+```
+
+`tools\build_security.py` will pick a python environment that works, but if none works, then the developer needs to install the above libraries.
