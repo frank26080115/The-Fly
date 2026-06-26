@@ -95,3 +95,4 @@ To explain what this does:
 When these custom configuration items exist in the `custom_sdkconfig`, the flash memory will become encrypted and the firmware will need to be securely signed.
 
 But when using PlatformIO, the signing of the firmware isn't automatic. Please use `tools\build_security.py` to properly build firmware with security features.
+That script uses PlatformIO's `espsecure.py`, which may need Python packages from `scripts\requirements.txt` installed into the Python environment reported by the script.

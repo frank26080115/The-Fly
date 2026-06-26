@@ -202,10 +202,18 @@ def candidate_python_executables(platformio_env: Any | None = None) -> list[Path
     return unique
 
 
-ESPSECURE_IMPORT_MODULES = ("cryptography", "serial", "ecdsa", "reedsolo", "bitstring")
+ESPSECURE_IMPORT_MODULES = (
+    "cryptography",
+    "serial",
+    "ecdsa",
+    "reedsolo",
+    "bitstring",
+    "intelhex",
+)
 ESPSECURE_PIP_PACKAGES = {
     "serial": "pyserial",
 }
+MODULE_NOT_FOUND_RE = re.compile(r"ModuleNotFoundError:\s+No module named ['\"]([^'\"]+)['\"]")
 
 
 class PythonProbe:
@@ -298,6 +306,14 @@ def python_executable(platformio_env: Any | None = None, espsecure: Path | None 
         )
 
     import_error = best_probe.import_error or "espsecure import failed without stderr output"
+    missing_match = MODULE_NOT_FOUND_RE.search(import_error)
+    if missing_match:
+        module_name = missing_match.group(1)
+        package_name = ESPSECURE_PIP_PACKAGES.get(module_name, module_name)
+        install_hint = f"\nSuggested install: {best_probe.python} -m pip install {package_name}"
+    else:
+        install_hint = ""
+
     raise BuildSecurityError(
         "found Python packages for espsecure.py, but espsecure itself still failed to import\n"
         f"Python: {best_probe.python}\n"
@@ -305,6 +321,7 @@ def python_executable(platformio_env: Any | None = None, espsecure: Path | None 
         f"Reproduce with: {best_probe.python} -c \"import sys; "
         f"sys.path.insert(0, {str(espsecure.parent)!r}); import espsecure\"\n"
         f"{import_error}"
+        f"{install_hint}"
     )
 
 

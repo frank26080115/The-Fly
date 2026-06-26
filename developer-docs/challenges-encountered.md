@@ -90,7 +90,7 @@ For the internal electret mic connected to line-in-right, several steps were tak
 
 ## Missing Python Dependencies for Secure Build
 
-`espsecure.py` is missing a few packages when running from the PlatformIO build environment.
+`espsecure.py` can be missing packages when running from the PlatformIO build environment. For the current PlatformIO `tool-esptoolpy` package used by this project, the expected direct Python packages are:
 
 ```
 cryptography
@@ -98,6 +98,13 @@ ecdsa
 reedsolo
 bitstring
 pyserial
+intelhex
 ```
 
-`tools\build_security.py` will pick a python environment that works, but if none works, then the developer needs to install the above libraries.
+Install them into whichever Python environment `tools\build_security.py` reports, for example:
+
+```
+python -m pip install cryptography ecdsa reedsolo bitstring pyserial intelhex
+```
+
+`tools\build_security.py` will pick a Python environment that works. If none works, it first reports any known missing packages. If the known packages are present but `espsecure.py` still fails to import, the script prints the real import traceback and a reproduce command. That usually means PlatformIO changed `tool-esptoolpy` and introduced another dependency that should be added here and to `scripts\requirements.txt`.

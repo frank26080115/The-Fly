@@ -3,6 +3,7 @@ ecdsa
 reedsolo
 bitstring
 pyserial
+intelhex
 faster-whisper
 
 # Optional local transcription backend supported by scripts/models.py.
