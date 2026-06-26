@@ -2835,6 +2835,44 @@
     "commit_hash": "3157aa61f945df7cbd0342463ba1cfd56c3a3e67"
   },
   {
+    "timestamp": "2026-06-14T04:07:10.046Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: user-docs/user-manual-wifi-operations.md",
+      "",
+      "## My request for Codex:",
+      "you know how the web interface doesn't present the \"sync time\" button unless the time is out of sync? make a change, just always present that button as long as `/get_cfg` succeeds"
+    ],
+    "agent_reply": [
+      "Done. I changed [html/script.js](D:/GithubRepos/The-Fly/html/script.js:10) so a successful `/get_cfg` sets a `config_load_succeeded` flag, rerenders the info panel, and always shows the `Sync Time` button after the time offset row, even when the offset is in range or unknown. I also regenerated [inc/web_assets.h](D:/GithubRepos/The-Fly/inc/web_assets.h) so firmware uses the updated UI.",
+      "",
+      "Verified with:",
+      "- `node --check html\\script.js`",
+      "- `python tools\\package_web_assets.py`",
+      "- `pio run -e thefly_sec1`",
+      "",
+      "Note: `pio run -e thefly` still fails because that env does not define `BUILD_WITH_SECURITY_LEVEL`; `thefly_sec1` builds successfully. Unrelated dirty files were already present and left alone.",
+      "",
+      "Done. I changed [html/script.js](D:/GithubRepos/The-Fly/html/script.js:10) so a successful `/get_cfg` sets a `config_load_succeeded` flag, rerenders the info panel, and always shows the `Sync Time` button after the time offset row, even when the offset is in range or unknown. I also regenerated [inc/web_assets.h](D:/GithubRepos/The-Fly/inc/web_assets.h) so firmware uses the updated UI.",
+      "",
+      "Verified with:",
+      "- `node --check html\\script.js`",
+      "- `python tools\\package_web_assets.py`",
+      "- `pio run -e thefly_sec1`",
+      "",
+      "Note: `pio run -e thefly` still fails because that env does not define `BUILD_WITH_SECURITY_LEVEL`; `thefly_sec1` builds successfully. Unrelated dirty files were already present and left alone."
+    ],
+    "files": [
+      "html/script.js",
+      "tools/package_web_assets.py",
+      "inc/web_assets.h",
+      "src/version.c",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
+    ]
+  },
+  {
     "timestamp": "2026-06-14T04:22:31Z",
     "type": "git_commit",
     "commit_message": "time sync always available",

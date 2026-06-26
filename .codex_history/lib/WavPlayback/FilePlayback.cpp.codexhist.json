@@ -416,5 +416,41 @@
     "type": "git_commit",
     "commit_message": "more screenshot stuff",
     "commit_hash": "f28c5490101268c4e2dcd3c955c64e070d5b05b2"
+  },
+  {
+    "timestamp": "2026-06-13T19:58:52.590Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "for the recording and playback mechanisms, under security level 1 or more, are there any allocations for mbedtls that we can free when wifi launches? by policy, entering wifi mode will force the user to reboot as the method of ending wifi"
+    ],
+    "agent_reply": [
+      "Short version: recording mbedTLS cleanup is already happening before Wi-Fi; playback cleanup exists, but Wi-Fi launch does not explicitly call it.",
+      "",
+      "In the current code:",
+      "",
+      "- `WifiManager::startSoftAp()` / station connect call `shutdown_for_wifi_activation()`, which calls `AudioManager::stop()` and `AudioFileRecorder::stopRecording()` before Wi-Fi starts: [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1389).",
+      "- `AudioFileRecorder::stopRecording()` reaches `stop_recording_encryption_locked()`, which calls `mbedtls_gcm_free(&g_recording_gcm)`: [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:988).",
+      "- Encrypted playback also frees its GCM context through `FilePlayback::stop()` -> `closeFileAndSource()` -> `endSource()` -> `endDecryption()` -> `mbedtls_gcm_free(&playback_gcm_)`: [FilePlayback.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.cpp:133) and [FilePlayback.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.cpp:351).",
+      "",
+      "The missing hard guarantee is playback: `shutdown_for_wifi_activation()` does not explicitly stop `PlaybackView` / active `FilePlayback`. In normal UI flow that may already be stopped, but given your reboot-only Wi-Fi policy, I think it would be reasonable to explicitly stop playback before Wi-Fi activation too.",
+      "",
+      "One important caveat: the bigger always-present RAM is probably not mbedTLS. The GCM contexts can free their internals, but the static audio crypto buffers stay allocated:",
+      "",
+      "- `g_wav_plaintext_audio[8192]`",
+      "- `g_wav_encrypted_audio[8220]` under security level >= 1",
+      "",
+      "Those cannot be freed unless changed from static arrays to dynamic buffers. If you want real internal-RAM clawback for Wi-Fi mode, that is likely the more useful target than mbedTLS itself. Also, encrypted playback is currently only compiled for security level 1, not 2+, via [conf.h](D:/GithubRepos/The-Fly/inc/conf.h:63)."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/WavPlayback/FilePlayback.cpp",
+      "inc/conf.h"
+    ]
   }
 ]

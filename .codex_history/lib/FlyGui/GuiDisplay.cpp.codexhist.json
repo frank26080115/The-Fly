@@ -361,5 +361,39 @@
     "type": "git_commit",
     "commit_message": "more screenshot stuff",
     "commit_hash": "f28c5490101268c4e2dcd3c955c64e070d5b05b2"
+  },
+  {
+    "timestamp": "2026-06-13T19:27:37.181Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "the screenshot mechanism is disabled but is it still allocating memory?"
+    ],
+    "agent_reply": [
+      "No. With `TEST_BUILD_SCREENSHOT` commented out in [conf.h](D:/GithubRepos/The-Fly/inc/conf.h:27), the screenshot mechanism is compiled out.",
+      "",
+      "Specifically:",
+      "- [GuiDisplay.h](D:/GithubRepos/The-Fly/lib/FlyGui/GuiDisplay.h:9) wraps the whole screenshot/mirror class in `#ifdef TEST_BUILD_SCREENSHOT`.",
+      "- When disabled, `GuiDisplay` is just an alias for `M5GFX`, so there is no `M5Canvas screenshotCanvas_` member.",
+      "- [GuiDisplay.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/GuiDisplay.cpp:3) is also wrapped in `#ifdef TEST_BUILD_SCREENSHOT`, so none of the screenshot allocation code is compiled.",
+      "- [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:89) uses `thefly_display = M5.Display` directly when disabled, instead of constructing `GuiDisplay`.",
+      "",
+      "So disabled screenshot mode should allocate **zero screenshot-specific memory**.",
+      "",
+      "When enabled, it can allocate:",
+      "- mirror framebuffer canvas in PSRAM",
+      "- screenshot BMP canvas in PSRAM on request",
+      "- maybe a temporary row buffer when writing BMP, though for 320px width it likely does not need padding."
+    ],
+    "files": [
+      "inc/conf.h",
+      "lib/FlyGui/GuiDisplay.h",
+      "lib/FlyGui/GuiDisplay.cpp",
+      "src/main.cpp"
+    ]
   }
 ]

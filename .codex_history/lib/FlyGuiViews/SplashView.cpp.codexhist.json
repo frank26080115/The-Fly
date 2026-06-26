@@ -1017,5 +1017,315 @@
     "type": "git_commit",
     "commit_message": "splash screen says a click message",
     "commit_hash": "6a3e8c91f913b7c9bd65471b51b6ff671cac7d07"
+  },
+  {
+    "timestamp": "2026-06-13T18:41:35.017Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## My request for Codex:",
+      "same behaviour as before",
+      "",
+      "your change has been reverted, moving a big file to another request would not work, if one big request breaks, two big requests will break, and it works on security level 0 so it's not the suspect",
+      "",
+      "to the diagnostics, break down the heap memory into internal and PSRAM, make the messages shorter by using shorter key names"
+    ],
+    "agent_reply": [
+      "Done. Diagnostics now tracks heap minima separately for:",
+      "",
+      "`ih_min` = internal 8-bit heap minimum  ",
+      "`ps_min` = PSRAM 8-bit heap minimum",
+      "",
+      "The line is shorter now, like:",
+      "",
+      "```text",
+      "diag t=07:51:12 stk_min=5636 ih_min=... ps_min=... c0=982.0 c1=535.0 fps=3.0 lw=0.0 i2si=0.0 i2so=0.0 fo=0.0 fu=0.0",
+      "```",
+      "",
+      "Changed [inc/diagnostics.h](D:/GithubRepos/The-Fly/inc/diagnostics.h:8) and [src/diagnostics.cpp](D:/GithubRepos/The-Fly/src/diagnostics.cpp:101).",
+      "",
+      "Verified with `pio run -e thefly_sec1`: build passes. It still emits the existing `SplashView.cpp` `fontHeight` deprecation warning, but nothing from this change."
+    ],
+    "files": [
+      "src/diagnostics.cpp",
+      "inc/diagnostics.h",
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-14T05:18:01.595Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WebCfgHandlers.cpp",
+      "",
+      "## Active selection of the file:",
+      "uint8_t* allocate_large_buffer(size_t size)",
+      "",
+      "## My request for Codex:",
+      "remove `uint8_t* allocate_buffer(size_t size)` from `lib\\WifiManager\\DecryptedDownload.cpp`, as it is a duplicate of `uint8_t* allocate_large_buffer(size_t size)` in `lib\\WifiManager\\WebCfgHandlers.cpp`, in fact, move that one to `lib\\UtilFuncs\\utilfuncs.cpp`"
+    ],
+    "agent_reply": [
+      "Done. I moved the shared PSRAM-first allocator into [utilfuncs.cpp](D:/GithubRepos/The-Fly/lib/UtilFuncs/utilfuncs.cpp:239) and declared it in [utilfuncs.h](D:/GithubRepos/The-Fly/lib/UtilFuncs/utilfuncs.h:49).",
+      "",
+      "I removed the duplicate local helpers from [WebCfgHandlers.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebCfgHandlers.cpp) and [DecryptedDownload.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/DecryptedDownload.cpp), then updated decrypted-download call sites to use `allocate_large_buffer()`.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, which passed. It still emits the existing `fontHeight` deprecation warning in `SplashView.cpp`. Unrelated dirty files were left alone."
+    ],
+    "files": [
+      "lib/UtilFuncs/utilfuncs.cpp",
+      "lib/UtilFuncs/utilfuncs.h",
+      "lib/WifiManager/DecryptedDownload.cpp",
+      "lib/WifiManager/WebCfgHandlers.cpp",
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-14T06:06:17.973Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/MicGainManager.cpp",
+      "",
+      "## My request for Codex:",
+      "I want a change to `lib\\AudioManager\\MicGainManager.cpp`",
+      "",
+      "I want a boolean to enable or disable the high pass filter part of it.",
+      "",
+      "If we are using the `ExtCodec` at all, disable the high pass filter, as it is only useful for the PDM mic that has that problem"
+    ],
+    "agent_reply": [
+      "Done. I added a high-pass filter toggle to `MicGainManager`:",
+      "",
+      "- [MicGainManager.h](D:/GithubRepos/The-Fly/lib/AudioManager/MicGainManager.h:27): `setHighPassFilterEnabled()` / `highPassFilterEnabled()`",
+      "- [MicGainManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/MicGainManager.cpp:194): stores the boolean and resets HPF state when it changes",
+      "- [MicGainManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/MicGainManager.cpp:367): `high_pass_filter()` now returns the raw sample when disabled",
+      "",
+      "Then I wired `AudioManager` so the filter is enabled only for the internal PDM mic and disabled for `ExternalI2SCodec`:",
+      "",
+      "- [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:200)",
+      "- [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1027)",
+      "- [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1049)",
+      "",
+      "Verified with `pio run -e thefly_sec1`, which passed. The build still has the existing `SplashView.cpp` `fontHeight` deprecation warning. I left your existing experimental AGC edits and other unrelated dirty files alone.",
+      "",
+      "Done. I added a high-pass filter toggle to `MicGainManager`:",
+      "",
+      "- [MicGainManager.h](D:/GithubRepos/The-Fly/lib/AudioManager/MicGainManager.h:27): `setHighPassFilterEnabled()` / `highPassFilterEnabled()`",
+      "- [MicGainManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/MicGainManager.cpp:194): stores the boolean and resets HPF state when it changes",
+      "- [MicGainManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/MicGainManager.cpp:367): `high_pass_filter()` now returns the raw sample when disabled",
+      "",
+      "Then I wired `AudioManager` so the filter is enabled only for the internal PDM mic and disabled for `ExternalI2SCodec`:",
+      "",
+      "- [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:200)",
+      "- [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1027)",
+      "- [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1049)",
+      "",
+      "Verified with `pio run -e thefly_sec1`, which passed. The build still has the existing `SplashView.cpp` `fontHeight` deprecation warning. I left your existing experimental AGC edits and other unrelated dirty files alone."
+    ],
+    "files": [
+      "lib/AudioManager/MicGainManager.h",
+      "lib/AudioManager/AudioManager.cpp",
+      "lib/AudioManager/MicGainManager.cpp",
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-17T05:49:28.850Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## My request for Codex:",
+      "hot-plug and hot-unplug isn't working inside `lib\\WavPlayback\\PlaybackView.cpp`, please fix, as similarly to how `lib\\FlyGuiViews\\RecordingView\\RecordingView.cpp` as possible"
+    ],
+    "agent_reply": [
+      "Implemented the playback hot-plug/hot-unplug sync.",
+      "",
+      "Changed [PlaybackView.cpp](<D:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.cpp:541>) and [PlaybackView.h](<D:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.h:49>) to mirror the recording view pattern: playback now tracks `ExtCodec::stateGeneration()` and calls `AudioManager::syncExternalCodecRouting()` on load and during redraw. That lets the existing AudioManager logic switch between SGTL5000 earbuds and NS4168 while playback is open.",
+      "",
+      "If routing sync fails, playback now logs it and shows `Speaker routing failed` in the existing status area.",
+      "",
+      "Verified with `pio run -e thefly_sec1`: success. There’s still the existing `SplashView.cpp` deprecated `fontHeight()` warning, unrelated to this change."
+    ],
+    "files": [
+      "lib/WavPlayback/PlaybackView.h",
+      "lib/WavPlayback/PlaybackView.cpp",
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-17T07:16:13.034Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.h",
+      "",
+      "## Active selection of the file:",
+      "EXTCODEC_NO_EARBUD",
+      "",
+      "## My request for Codex:",
+      "this is important, the left channel is floating, so in `EXTCODEC_NO_EARBUD` state, we need to only use right channel data, no mixing, no running AGC, there should only ever be one AGC ever"
+    ],
+    "agent_reply": [
+      "Fixed in [AudioManager.cpp](<D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:500>).",
+      "",
+      "For `MicInput::LineInRight`, which includes `EXTCODEC_NO_EARBUD`, the external codec mic path now:",
+      "",
+      "1. Reads SGTL5000 I2S stereo as before.",
+      "2. Copies only the right channel into `g_mono_buffer`.",
+      "3. Runs the single `MicGainManager::process()` once on that mono right-channel buffer.",
+      "4. Queues mono data directly to BT/file FIFOs.",
+      "",
+      "So the floating left channel is no longer mixed, queued, or allowed to influence AGC/peak/silence-gate behavior.",
+      "",
+      "I left the non-line-in-right path unchanged. Verified with `pio run -e thefly_sec1`: success. The existing unrelated `SplashView.cpp` deprecated `fontHeight()` warning remains."
+    ],
+    "files": [
+      "lib/AudioManager/AudioManager.cpp",
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-24T03:13:12.450Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WebServer.cpp",
+      "",
+      "## Active selection of the file:",
+      "\"secu",
+      "",
+      "## My request for Codex:",
+      "where's the line of code where the security level is shown on the splash screen?"
+    ],
+    "agent_reply": [
+      "The splash screen shows it in [lib/FlyGuiViews/SplashView.cpp](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:183):",
+      "",
+      "```cpp",
+      "snprintf(text,",
+      "         sizeof(text),",
+      "         \"FW: %s\\nSecurity: %d\",",
+      "         BUILD_VERSION,",
+      "         BUILD_WITH_SECURITY_LEVEL);",
+      "```",
+      "",
+      "That’s inside `draw_splash_boot_info()`. The `Security: %d` text is the label/value, and `BUILD_WITH_SECURITY_LEVEL` is the compile-time security level being shown."
+    ],
+    "files": [
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-24T03:15:29.538Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/SplashView.cpp",
+      "",
+      "## My request for Codex:",
+      "make that two snprintf calls instead of one, I might selectively disable the second one later"
+    ],
+    "agent_reply": [
+      "Done in [lib/FlyGuiViews/SplashView.cpp](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/SplashView.cpp:182).",
+      "",
+      "It now builds the splash text with two `snprintf` calls: first the firmware line, then the security line appended separately so you can wrap or remove that second call later."
+    ],
+    "files": [
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-24T04:45:30Z",
+    "type": "git_commit",
+    "commit_message": "removed security level display for 0 level",
+    "commit_hash": "653e60f0c0edcca3a93df63cbceeb44c7d06a9b9"
+  },
+  {
+    "timestamp": "2026-06-25T04:14:34.797Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main.cpp",
+      "",
+      "## My request for Codex:",
+      "I have added a preprocessor define `ENFORCE_EXTERNAL_CODEC` to `conf.h`",
+      "",
+      "in `main.cpp` `void setup()`, if `ENFORCE_EXTERNAL_CODEC` is defined, then failure to initialize the `ExtCodec` causes a fatal error with a screen, actually fatal and frozen.",
+      ""
+    ],
+    "agent_reply": [
+      "Implemented in [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:130).",
+      "",
+      "`setup()` now captures `ExtCodec::init()`, and when `ENFORCE_EXTERNAL_CODEC` is defined, a failed init calls:",
+      "",
+      "```cpp",
+      "show_boot_error_f(true, \"external codec init failed\");",
+      "```",
+      "",
+      "That uses the existing fatal boot error screen and stays frozen in the fatal loop.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, which passed. Only warning was the pre-existing deprecated `fontHeight()` warning in `SplashView.cpp`.",
+      "",
+      "Implemented in [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:130).",
+      "",
+      "`setup()` now captures `ExtCodec::init()`, and when `ENFORCE_EXTERNAL_CODEC` is defined, a failed init calls:",
+      "",
+      "```cpp",
+      "show_boot_error_f(true, \"external codec init failed\");",
+      "```",
+      "",
+      "That uses the existing fatal boot error screen and stays frozen in the fatal loop.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, which passed. Only warning was the pre-existing deprecated `fontHeight()` warning in `SplashView.cpp`."
+    ],
+    "files": [
+      "src/main.cpp",
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-25T07:58:09.230Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BattTracker/BattTracker.cpp",
+      "",
+      "## My request for Codex:",
+      "try that please"
+    ],
+    "agent_reply": [
+      "Done. I added `topBarLastPowerKeyIndicator_` in [FlyGui.h](D:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.h:127), and [drawTopBar()](D:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:361) now checks whether `BattTracker::powerKeyIndicatorActive()` changed since the last top-bar draw.",
+      "",
+      "So the redraw gate now treats the ZZZ state as a reason to redraw immediately:",
+      "",
+      "```cpp",
+      "const bool powerKeyIndicator = BattTracker::powerKeyIndicatorActive();",
+      "const bool indicatorChanged = powerKeyIndicator != topBarLastPowerKeyIndicator_;",
+      "const bool fullRedraw = forced || topBarNeedsFullRedraw_ || indicatorChanged;",
+      "```",
+      "",
+      "That should stop it from waiting for the seconds value to change when the marker appears or disappears.",
+      "",
+      "Verified with `pio run -e thefly_sec0`: build succeeded. There is one unrelated existing warning in `SplashView.cpp` about deprecated `fontHeight()`."
+    ],
+    "files": [
+      "lib/FlyGui/FlyGui.h",
+      "lib/FlyGui/FlyGui.cpp",
+      "src/version.c",
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
   }
 ]

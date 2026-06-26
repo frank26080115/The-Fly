@@ -138,5 +138,54 @@
     "type": "git_commit",
     "commit_message": "pcb layout use ledc pwm mclk",
     "commit_hash": "04015710a5033a9d56018ba571170e8a0b3dd174"
+  },
+  {
+    "timestamp": "2026-06-15T03:51:21Z",
+    "type": "git_commit",
+    "commit_message": "layout change to add dc block on mic path",
+    "commit_hash": "b3f936af11568782cab2a87c606487bae3e61f17"
+  },
+  {
+    "timestamp": "2026-06-23T18:05:29Z",
+    "type": "git_commit",
+    "commit_message": "pcb layout removed agnd, more caps",
+    "commit_hash": "f8433d095c71fef0f01e7fa88ad9f9c0c7ea9f04"
+  },
+  {
+    "timestamp": "2026-06-24T04:41:33Z",
+    "type": "git_commit",
+    "commit_message": "pcb layout change",
+    "commit_hash": "4814b7380c15fb336f93b949293a2f40fd20f2ca"
+  },
+  {
+    "timestamp": "2026-06-24T06:08:51.418Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_extcodec_adc.cpp",
+      "",
+      "## My request for Codex:",
+      "so it initialized fine, and the earbud_adc is still stuck at 4095",
+      "",
+      "these boards are easy to swap and I swapped in a working one, and it, well, works.",
+      "",
+      "are you able to look at the schematic?",
+      "",
+      "just to sanity check your ability, what is the purpose of R1, R2, and R9?"
+    ],
+    "agent_reply": [
+      "Yes. I looked at [hardware/thefly.sch](/D:/GithubRepos/The-Fly/hardware/thefly.sch:2299) and the local ExtCodec notes.",
+      "",
+      "- `R1` is `2K2`: mic-bias feed from SGTL5000 `MIC_BIAS` to `HP-MIC`. It biases an inline/electret mic; the mic signal is then AC-coupled through `C7` into the codec mic input.",
+      "- `R2` is `1M`: weak pull-up from `VDDA` to the `MIC_BIAS` node. It helps define/bias that inline-mic detect/mic-bias network.",
+      "- `R9` is `1M`: pull-up from `HP-SENSE-L` to `3.3V`. `HP-SENSE-L` goes to the jack detect contact and to the earbud ADC path, which firmware reads on GPIO35 in [pins.h](/D:/GithubRepos/The-Fly/inc/pins.h:24).",
+      "",
+      "So for your stuck `4095`: that is very plausibly not codec init. `R9` is literally supposed to pull the earbud sense line high; the jack/sense contact should change that when unplugged. I’d suspect the jack sense switch/contact, solder on `J1` pin 5 or related contact, continuity from `HP-SENSE-L`, or an accidental short/leak to `3.3V`."
+    ],
+    "files": [
+      "hardware/thefly.sch",
+      "inc/pins.h"
+    ]
   }
 ]

@@ -1,0 +1,78 @@
+[
+  {
+    "timestamp": "2026-06-14T08:05:52.175Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: developer-docs/audio-pipeline.md",
+      "",
+      "## My request for Codex:",
+      "using mermaid flowchar LR, draw our audio pipeline in `developer-docs\\audio-pipeline.md`, one for recording, another simpler one for playback",
+      "",
+      "ignore the fact we have an optional external codec, just generalize to having one mic input and one speaker output and one input from the Bluetooth",
+      "",
+      "include the FIFOs (all 4 should be shown), `lib\\AudioManager\\MicGainManager.cpp` should also be included and broken up into its two stages (HPF and AGC)"
+    ],
+    "agent_reply": [
+      "Added [audio-pipeline.md](D:/GithubRepos/The-Fly/developer-docs/audio-pipeline.md) with two Mermaid `flowchart LR` diagrams:",
+      "",
+      "- Recording pipeline with mic input, Bluetooth input, speaker output, all four FIFOs, `AudioFileRecorder::pump()`, and `MicGainManager.cpp` split into HPF and AGC.",
+      "- Simpler playback pipeline from microSD decode through `g_fifo_bt2spk` to speaker output.",
+      "",
+      "Note: this file was untracked before the edit, so it now shows as a new doc in git."
+    ],
+    "files": [
+      "developer-docs/audio-pipeline.md",
+      "lib/AudioManager/MicGainManager.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-14T08:07:14.758Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: Untitled-1",
+      "",
+      "## My request for Codex:",
+      "hmmm you are using literal `\\n` in there, but it's not rendering those"
+    ],
+    "agent_reply": "Fixed in [audio-pipeline.md](D:/GithubRepos/The-Fly/developer-docs/audio-pipeline.md). I replaced the literal `\\n` label breaks with `<br/>` throughout both Mermaid flowcharts.",
+    "files": [
+      "developer-docs/audio-pipeline.md"
+    ]
+  },
+  {
+    "timestamp": "2026-06-14T08:09:40.480Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: developer-docs/audio-pipeline.md",
+      "",
+      "## My request for Codex:",
+      "can you make it so the mic section goes on top and the bluetooth section goes on the bottom? also, include the software gain part on the speaker path"
+    ],
+    "agent_reply": [
+      "Updated [audio-pipeline.md](D:/GithubRepos/The-Fly/developer-docs/audio-pipeline.md).",
+      "",
+      "The recording chart now has a `Mic section` subgraph declared above the `Bluetooth section`, with all four FIFOs still shown. I also added `AudioManager::apply_speaker_software_volume()` between `pump_bt2spk()` and speaker output in both the recording and playback diagrams."
+    ],
+    "files": [
+      "developer-docs/audio-pipeline.md"
+    ]
+  },
+  {
+    "timestamp": "2026-06-14T08:12:15Z",
+    "type": "git_commit",
+    "commit_message": "dev documentation update",
+    "commit_hash": "0ad7ce7b96f00534dee73cd4d9425e45ce4c4748"
+  },
+  {
+    "timestamp": "2026-06-18T17:54:12Z",
+    "type": "git_commit",
+    "commit_message": "Update audio-pipeline.md",
+    "commit_hash": "0b12c80eac487d6fc975ca05bd2499e327ffaa08"
+  }
+]

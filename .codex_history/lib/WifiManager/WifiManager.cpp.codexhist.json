@@ -3101,15 +3101,221 @@
     "commit_hash": "cf4c87c19c4ec95b3045649f603c983553313167"
   },
   {
+    "timestamp": "2026-06-13T06:39:04.824Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: sdkconfig.defaults",
+      "",
+      "## My request for Codex:",
+      "solve the build error for `thefly_sec1` right now please"
+    ],
+    "agent_reply": [
+      "Fixed and verified.",
+      "",
+      "I restored the build back onto the prebuilt framework package path, which avoids the broken `custom_sdkconfig` rebuild path, then aligned FTP guards so security level 1 is consistent:",
+      "",
+      "- [WebServer.cpp](</d:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp>) now allows FTP setup for `BUILD_WITH_SECURITY_LEVEL <= 1`.",
+      "- [WifiManager.cpp](</d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp>) now includes and polls FTP for `BUILD_WITH_SECURITY_LEVEL <= 1`.",
+      "",
+      "Verification passed:",
+      "",
+      "```text",
+      "pio run -e thefly_sec1",
+      "[SUCCESS] Took 49.12 seconds",
+      "```",
+      "",
+      "I left the other existing dirty files alone, like `inc/conf.h`, `dependencies.lock`, `src/version.c`, and the doc/image assets."
+    ],
+    "files": [
+      "platformio.ini",
+      "lib/WifiManager/WifiManager.cpp",
+      "lib/WifiManager/WebServer.cpp",
+      "inc/conf.h",
+      "src/version.c",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "iram0_overflow_problem/good_working_build/config/sdkconfig.h",
+      "dependencies.lock"
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T07:53:51.418Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "importantly, it was working under security level 0, just keep that in mind, don't be too drastic"
+    ],
+    "agent_reply": [
+      "Good constraint. I kept this scoped to the sec1+ path.",
+      "",
+      "I changed [WifiManager.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1449) so security level 1 starts the WPA3 AP through Arduino’s normal `WiFi.softAP(...)` lifecycle first, then applies the stricter WPA3/PMF config with `esp_wifi_set_config()`. Security level 0 keeps the old low-level path.",
+      "",
+      "I also changed [WebServer.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp:746) so serving `/` or `index.html` increments the page-load counter. Previously that counter only moved after `/get_info`, so it could stay `0` even if the HTML request itself worked but JS never got going.",
+      "",
+      "Verified:",
+      "",
+      "```text",
+      "pio run -e thefly_sec1",
+      "SUCCESS",
+      "```",
+      "",
+      "I also tried `thefly_sec0`; `WifiManager.cpp` compiled, but the build hit the existing IRAM link overflow, so I didn’t chase that here.",
+      "",
+      "For the next device test, use the LCD IP directly first, like `http://192.168.4.1/` or `http://<LCD IP>/get_info`, not `.local` and not `https://`. With this patch, if the root page is served, the LCD page-load counter should increment immediately. If it still stays `0`, the next thing to look at is whether the AP screen shows a client MAC / connection count."
+    ],
+    "files": [
+      "lib/WifiManager/WebServer.cpp",
+      "lib/WifiManager/WifiManager.cpp",
+      "inc/conf.h",
+      "html/index.html"
+    ]
+  },
+  {
     "timestamp": "2026-06-13T18:25:45Z",
     "type": "git_commit",
     "commit_message": "fix small build errors around ftp",
     "commit_hash": "0294068094a17c9099af5f343af0390e9ff1fd25"
   },
   {
+    "timestamp": "2026-06-13T19:58:52.590Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "for the recording and playback mechanisms, under security level 1 or more, are there any allocations for mbedtls that we can free when wifi launches? by policy, entering wifi mode will force the user to reboot as the method of ending wifi"
+    ],
+    "agent_reply": [
+      "Short version: recording mbedTLS cleanup is already happening before Wi-Fi; playback cleanup exists, but Wi-Fi launch does not explicitly call it.",
+      "",
+      "In the current code:",
+      "",
+      "- `WifiManager::startSoftAp()` / station connect call `shutdown_for_wifi_activation()`, which calls `AudioManager::stop()` and `AudioFileRecorder::stopRecording()` before Wi-Fi starts: [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1389).",
+      "- `AudioFileRecorder::stopRecording()` reaches `stop_recording_encryption_locked()`, which calls `mbedtls_gcm_free(&g_recording_gcm)`: [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:988).",
+      "- Encrypted playback also frees its GCM context through `FilePlayback::stop()` -> `closeFileAndSource()` -> `endSource()` -> `endDecryption()` -> `mbedtls_gcm_free(&playback_gcm_)`: [FilePlayback.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.cpp:133) and [FilePlayback.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/FilePlayback.cpp:351).",
+      "",
+      "The missing hard guarantee is playback: `shutdown_for_wifi_activation()` does not explicitly stop `PlaybackView` / active `FilePlayback`. In normal UI flow that may already be stopped, but given your reboot-only Wi-Fi policy, I think it would be reasonable to explicitly stop playback before Wi-Fi activation too.",
+      "",
+      "One important caveat: the bigger always-present RAM is probably not mbedTLS. The GCM contexts can free their internals, but the static audio crypto buffers stay allocated:",
+      "",
+      "- `g_wav_plaintext_audio[8192]`",
+      "- `g_wav_encrypted_audio[8220]` under security level >= 1",
+      "",
+      "Those cannot be freed unless changed from static arrays to dynamic buffers. If you want real internal-RAM clawback for Wi-Fi mode, that is likely the more useful target than mbedTLS itself. Also, encrypted playback is currently only compiled for security level 1, not 2+, via [conf.h](D:/GithubRepos/The-Fly/inc/conf.h:63)."
+    ],
+    "files": [
+      "lib/WifiManager/WifiManager.cpp",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/WavPlayback/FilePlayback.cpp",
+      "inc/conf.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T20:04:02.291Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "if the download-encrypted functions still need those buffers, allocate them again"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "I moved the shared recording/playback crypto audio buffers out of static internal RAM and into lazy PSRAM allocation:",
+      "",
+      "- `g_wav_plaintext_audio` and `g_wav_encrypted_audio` are now PSRAM-backed pointers in [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:165).",
+      "- Added `AudioFileRecorder::ensureAudioBuffers()` / `releaseAudioBuffers()` in [AudioFileRecorder.h](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h:57).",
+      "- Recording allocates the buffers before it starts using them.",
+      "- Encrypted playback and decrypted downloads still call the existing buffer accessors, and those accessors allocate the PSRAM buffers again on demand after Wi-Fi starts.",
+      "- Wi-Fi activation now frees the buffers after recorder shutdown in [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1402).",
+      "",
+      "Verification: `python tools\\sterile_rebuild.py -e thefly_sec1` completed successfully. The first normal `pio run -e thefly_sec1` hit the stale/dirty IRAM link failure, but the sterile rebuild cleared it and passed.",
+      "",
+      "Implemented.",
+      "",
+      "I moved the shared recording/playback crypto audio buffers out of static internal RAM and into lazy PSRAM allocation:",
+      "",
+      "- `g_wav_plaintext_audio` and `g_wav_encrypted_audio` are now PSRAM-backed pointers in [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:165).",
+      "- Added `AudioFileRecorder::ensureAudioBuffers()` / `releaseAudioBuffers()` in [AudioFileRecorder.h](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h:57).",
+      "- Recording allocates the buffers before it starts using them.",
+      "- Encrypted playback and decrypted downloads still call the existing buffer accessors, and those accessors allocate the PSRAM buffers again on demand after Wi-Fi starts.",
+      "- Wi-Fi activation now frees the buffers after recorder shutdown in [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1402).",
+      "",
+      "Verification: `python tools\\sterile_rebuild.py -e thefly_sec1` completed successfully. The first normal `pio run -e thefly_sec1` hit the stale/dirty IRAM link failure, but the sterile rebuild cleared it and passed."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.h",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/WifiManager/WifiManager.cpp",
+      "tools/sterile_rebuild.py"
+    ]
+  },
+  {
     "timestamp": "2026-06-13T20:25:41Z",
     "type": "git_commit",
     "commit_message": "free'ed some RAM, sec1 build crashing maybe fixed",
     "commit_hash": "9ae30e0240b8fe1396746d6f316af2686d52fbe3"
+  },
+  {
+    "timestamp": "2026-06-14T00:31:25.394Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "",
+      "## Active selection of the file:",
+      "g_wav_mic_samples",
+      "",
+      "## My request for Codex:",
+      "```",
+      "Make the remaining recorder staging buffers dynamic/free-on-Wi-Fi",
+      "The map still shows these internal DRAM statics:",
+      "g_wav_mic_samples 2304, g_wav_host_samples 2304, g_mp3_stereo_samples 4608.",
+      "That is about 9 KB sitting around even when Wi-Fi policy says recording is done. This is probably the next big code-side win after the crypto buffers.",
+      "```",
+      "",
+      "please make this happen, allocate them on initialization but free them where we free all the other audio related buffers"
+    ],
+    "agent_reply": [
+      "Done. The three recorder staging arrays are now PSRAM-backed dynamic buffers:",
+      "",
+      "- `g_wav_mic_samples`",
+      "- `g_wav_host_samples`",
+      "- `g_mp3_stereo_samples`",
+      "",
+      "They allocate during `AudioFileRecorder::init()` and are re-ensured before recording starts, then freed by the existing `AudioFileRecorder::releaseAudioBuffers()` path that Wi-Fi startup already calls from [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1402).",
+      "",
+      "I also added guard checks in the pump path so it won’t touch freed staging pointers in an odd non-reboot test flow.",
+      "",
+      "Verification: `pio run -e thefly_sec1` passed. The map now shows those symbols as 4-byte pointers/counts only, not 2304/2304/4608-byte internal DRAM arrays. `src/version.c` changed from the build generation.",
+      "",
+      "Done. The three recorder staging arrays are now PSRAM-backed dynamic buffers:",
+      "",
+      "- `g_wav_mic_samples`",
+      "- `g_wav_host_samples`",
+      "- `g_mp3_stereo_samples`",
+      "",
+      "They allocate during `AudioFileRecorder::init()` and are re-ensured before recording starts, then freed by the existing `AudioFileRecorder::releaseAudioBuffers()` path that Wi-Fi startup already calls from [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1402).",
+      "",
+      "I also added guard checks in the pump path so it won’t touch freed staging pointers in an odd non-reboot test flow.",
+      "",
+      "Verification: `pio run -e thefly_sec1` passed. The map now shows those symbols as 4-byte pointers/counts only, not 2304/2304/4608-byte internal DRAM arrays. `src/version.c` changed from the build generation."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/WifiManager/WifiManager.cpp",
+      "src/version.c"
+    ]
   }
 ]

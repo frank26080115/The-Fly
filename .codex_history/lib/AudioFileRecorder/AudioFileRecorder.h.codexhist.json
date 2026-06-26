@@ -1430,6 +1430,49 @@
     ]
   },
   {
+    "timestamp": "2026-06-13T20:04:02.291Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "if the download-encrypted functions still need those buffers, allocate them again"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "I moved the shared recording/playback crypto audio buffers out of static internal RAM and into lazy PSRAM allocation:",
+      "",
+      "- `g_wav_plaintext_audio` and `g_wav_encrypted_audio` are now PSRAM-backed pointers in [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:165).",
+      "- Added `AudioFileRecorder::ensureAudioBuffers()` / `releaseAudioBuffers()` in [AudioFileRecorder.h](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h:57).",
+      "- Recording allocates the buffers before it starts using them.",
+      "- Encrypted playback and decrypted downloads still call the existing buffer accessors, and those accessors allocate the PSRAM buffers again on demand after Wi-Fi starts.",
+      "- Wi-Fi activation now frees the buffers after recorder shutdown in [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1402).",
+      "",
+      "Verification: `python tools\\sterile_rebuild.py -e thefly_sec1` completed successfully. The first normal `pio run -e thefly_sec1` hit the stale/dirty IRAM link failure, but the sterile rebuild cleared it and passed.",
+      "",
+      "Implemented.",
+      "",
+      "I moved the shared recording/playback crypto audio buffers out of static internal RAM and into lazy PSRAM allocation:",
+      "",
+      "- `g_wav_plaintext_audio` and `g_wav_encrypted_audio` are now PSRAM-backed pointers in [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:165).",
+      "- Added `AudioFileRecorder::ensureAudioBuffers()` / `releaseAudioBuffers()` in [AudioFileRecorder.h](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h:57).",
+      "- Recording allocates the buffers before it starts using them.",
+      "- Encrypted playback and decrypted downloads still call the existing buffer accessors, and those accessors allocate the PSRAM buffers again on demand after Wi-Fi starts.",
+      "- Wi-Fi activation now frees the buffers after recorder shutdown in [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1402).",
+      "",
+      "Verification: `python tools\\sterile_rebuild.py -e thefly_sec1` completed successfully. The first normal `pio run -e thefly_sec1` hit the stale/dirty IRAM link failure, but the sterile rebuild cleared it and passed."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.h",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/WifiManager/WifiManager.cpp",
+      "tools/sterile_rebuild.py"
+    ]
+  },
+  {
     "timestamp": "2026-06-13T20:25:41Z",
     "type": "git_commit",
     "commit_message": "free'ed some RAM, sec1 build crashing maybe fixed",

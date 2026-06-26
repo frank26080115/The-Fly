@@ -141,5 +141,59 @@
     "type": "git_commit",
     "commit_message": "better batt status display when full but usb in",
     "commit_hash": "ad32940c8599a2f9ac059d155c54a9d3600328d8"
+  },
+  {
+    "timestamp": "2026-06-25T07:40:46.934Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BattTracker/BattTracker.cpp",
+      "",
+      "## Active selection of the file:",
+      "kPollIntervalMs",
+      "",
+      "## My request for Codex:",
+      "first, I reverted a bunch of stuff, so refresh your context of the project",
+      "",
+      "inside `lib\\BattTracker\\BattTracker.cpp`, lower `kPollIntervalMs` to 100ms.",
+      "",
+      "while getting the battery info, also poll the power key",
+      "",
+      "normally, the top of the screen will say something like \"2026-06-24 01:23:45\" as the clock",
+      "",
+      "when the power key is pressed, make it say \"2026-06-24 01:23:45 ZZZ?\", the \"ZZZ?\" should show up immediately. also, take a timestamp.",
+      "",
+      "If 2.5 seconds passes since the timestamp, remove the \"ZZZ?\" with a full refresh.",
+      "",
+      "also, during boot, configure the AXP192 to use a 2 second press before shutdown, place the code inside `lib\\BattTracker\\BattTracker.cpp` for now"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "Changed [BattTracker.cpp](D:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:13) so `kPollIntervalMs` is now `100ms`, BattTracker polls the PMIC power-key latch during battery updates, and it latches a `ZZZ?` indicator for `2500ms`.",
+      "",
+      "Also added AXP192 boot-time config in [BattTracker.cpp](D:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:218), changing register `0x36` power-off timing bits to the inferred 2-second setting while preserving the rest of the register.",
+      "",
+      "Wired the UI side so:",
+      "- [FlyGuiText.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/FlyGuiText.cpp:296) appends ` ZZZ?` to the clock while BattTracker’s indicator is active.",
+      "- [FlyGui.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:156) also listens to `M5.BtnPWR.wasClicked()/wasHold()` after `M5.update()`, because M5Unified can consume the PMIC key event before BattTracker’s 100ms poll sees it.",
+      "- [FlyGui.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:183) requests a top-bar full redraw when the marker appears or clears.",
+      "",
+      "Verified with `pio run -e thefly_sec0`: build succeeded."
+    ],
+    "files": [
+      "lib/BattTracker/BattTracker.cpp",
+      "lib/FlyGui/FlyGuiText.cpp",
+      "lib/FlyGui/FlyGui.cpp",
+      "lib/BattTracker/BattTracker.h",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-25T08:22:12Z",
+    "type": "git_commit",
+    "commit_message": "ZZZ display for pwr key",
+    "commit_hash": "b11501505cfa335d3f3d9fa2b851881450f4fe80"
   }
 ]

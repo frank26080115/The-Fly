@@ -1,0 +1,147 @@
+[
+  {
+    "timestamp": "2026-06-24T05:32:46.119Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.h",
+      "",
+      "## Active selection of the file:",
+      "EXTCODEC_",
+      "",
+      "## My request for Codex:",
+      "implement `test_extcodec_adc`, initialize ExtCodec, and using the serial port only, report the `EXTCODEC_*` state and also the two ADC values, every 200ms, with timestamps"
+    ],
+    "agent_reply": [
+      "Implemented [test_extcodec_adc.cpp](/D:/GithubRepos/The-Fly/src/tests/test_extcodec_adc.cpp:28).",
+      "",
+      "It now starts serial, brings up shared I2S/MCLK, calls `ExtCodec::init()`, prints an init summary, then reports every 200 ms:",
+      "",
+      "```text",
+      "test_extcodec_adc: ms=... state=EXTCODEC_... gen=... earbud_adc=... inline_mic_adc=...",
+      "```",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes. I also cleaned the generated `src/version.c` churn from the build.",
+      "",
+      "Implemented [test_extcodec_adc.cpp](/D:/GithubRepos/The-Fly/src/tests/test_extcodec_adc.cpp:28).",
+      "",
+      "It now starts serial, brings up shared I2S/MCLK, calls `ExtCodec::init()`, prints an init summary, then reports every 200 ms:",
+      "",
+      "```text",
+      "test_extcodec_adc: ms=... state=EXTCODEC_... gen=... earbud_adc=... inline_mic_adc=...",
+      "```",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes. I also cleaned the generated `src/version.c` churn from the build."
+    ],
+    "files": [
+      "src/tests/test_extcodec_adc.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-24T05:45:00.719Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_extcodec_adc.cpp",
+      "",
+      "## Active selection of the file:",
+      "test_extcodec_adc",
+      "",
+      "## My request for Codex:",
+      "to `test_extcodec_adc`, make a small change, right before the while loop, play out a single buffer's worth of silence to the I2S output, use the AudioFifo if you want",
+      "",
+      "make this section of code easily disabled if needed"
+    ],
+    "agent_reply": [
+      "Added the silence prime block to [test_extcodec_adc.cpp](/D:/GithubRepos/The-Fly/src/tests/test_extcodec_adc.cpp:29).",
+      "",
+      "Right before the reporting loop, it now calls `prime_i2s_output_with_silence()`, which:",
+      "- is gated by `kPrimeI2sOutputWithSilence`",
+      "- enables the external codec full-duplex I2S path",
+      "- queues one `240`-sample silent buffer via `AudioFifo::queueSilence()`",
+      "- pumps `AudioManager::pump_bt2spk()` briefly",
+      "",
+      "To disable it later, set:",
+      "",
+      "```cpp",
+      "constexpr bool kPrimeI2sOutputWithSilence = false;",
+      "```",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes.",
+      "",
+      "Added the silence prime block to [test_extcodec_adc.cpp](/D:/GithubRepos/The-Fly/src/tests/test_extcodec_adc.cpp:29).",
+      "",
+      "Right before the reporting loop, it now calls `prime_i2s_output_with_silence()`, which:",
+      "- is gated by `kPrimeI2sOutputWithSilence`",
+      "- enables the external codec full-duplex I2S path",
+      "- queues one `240`-sample silent buffer via `AudioFifo::queueSilence()`",
+      "- pumps `AudioManager::pump_bt2spk()` briefly",
+      "",
+      "To disable it later, set:",
+      "",
+      "```cpp",
+      "constexpr bool kPrimeI2sOutputWithSilence = false;",
+      "```",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes."
+    ],
+    "files": [
+      "src/tests/test_extcodec_adc.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-24T05:59:14.413Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_extcodec_adc.cpp",
+      "",
+      "## Active selection of the file:",
+      "test_extcodec_adc",
+      "",
+      "## My request for Codex:",
+      "beef up `test_extcodec_adc`, I need to see if the codec did not initialize properly, so just halt the test if it did not"
+    ],
+    "agent_reply": [
+      "Beefed up [test_extcodec_adc.cpp](/D:/GithubRepos/The-Fly/src/tests/test_extcodec_adc.cpp:30).",
+      "",
+      "It now prints a `post-init` codec diagnostic with:",
+      "",
+      "```text",
+      "state, generation, earbud_adc, inline_mic_adc, ANA_STATUS read result/value, PLL lock",
+      "```",
+      "",
+      "Then it halts before the silence prime or ADC loop if any of these are false:",
+      "",
+      "```cpp",
+      "i2s_ok && extcodec_ok && initialized && available",
+      "```",
+      "",
+      "On failure it prints:",
+      "",
+      "```text",
+      "HALT codec init failed ...",
+      "failed-init ...",
+      "```",
+      "",
+      "then flushes serial and calls `idle_forever()`.",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes."
+    ],
+    "files": [
+      "src/tests/test_extcodec_adc.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-24T07:31:51Z",
+    "type": "git_commit",
+    "commit_message": "test to debug bad PCB solder joint",
+    "commit_hash": "45cdf1bdb4f3f45b08ae9416b7fc792d64d15fd5"
+  }
+]

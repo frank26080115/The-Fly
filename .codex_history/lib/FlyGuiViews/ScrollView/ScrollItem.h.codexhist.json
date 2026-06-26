@@ -653,5 +653,57 @@
     "type": "git_commit",
     "commit_message": "file size/duration in scrollview",
     "commit_hash": "6508f6595eb442daba8ba77aca0531ff1f75eab5"
+  },
+  {
+    "timestamp": "2026-06-24T03:19:48.159Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## Active selection of the file:",
+      "BUILD_CLOUD_FEATURES",
+      "",
+      "## My request for Codex:",
+      "We have a `ScrollView` that is shown when in Wi-Fi station connected state, that is supposed to list cloud upload options, but we have not built that functionality fully yet, so they won't be loaded. But I want there to be a single clickable `sprite_cloudupload_100` that simply shows a modal dialog that says \"cloud upload is an unimplemented future feature\" or something like that, only in the situation when `BUILD_CLOUD_FEATURES` is not enabled"
+    ],
+    "agent_reply": [
+      "Implemented the non-cloud placeholder.",
+      "",
+      "In [ScrollView.cpp](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:233), `populateCloud()` now adds a `Cloud Upload` item with `sprite_cloudupload_100` only under `#else` when `BUILD_CLOUD_FEATURES` is not enabled. Tapping it is handled in [ScrollView.cpp](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1038), where it opens a modal saying:",
+      "",
+      "```text",
+      "Cloud upload is an unimplemented future feature.",
+      "```",
+      "",
+      "I also added the placeholder item/task IDs in [ScrollItem.h](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollItem.h:25).",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes. The default `thefly` env still fails before this code because it does not define `BUILD_WITH_SECURITY_LEVEL`.",
+      "",
+      "Implemented the non-cloud placeholder.",
+      "",
+      "In [ScrollView.cpp](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:233), `populateCloud()` now adds a `Cloud Upload` item with `sprite_cloudupload_100` only under `#else` when `BUILD_CLOUD_FEATURES` is not enabled. Tapping it is handled in [ScrollView.cpp](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1038), where it opens a modal saying:",
+      "",
+      "```text",
+      "Cloud upload is an unimplemented future feature.",
+      "```",
+      "",
+      "I also added the placeholder item/task IDs in [ScrollItem.h](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollItem.h:25).",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes. The default `thefly` env still fails before this code because it does not define `BUILD_WITH_SECURITY_LEVEL`."
+    ],
+    "files": [
+      "lib/FlyGuiViews/ScrollView/ScrollItem.h",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "src/version.c",
+      "inc/conf.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-24T04:42:21Z",
+    "type": "git_commit",
+    "commit_message": "added dummy cloud dialog",
+    "commit_hash": "18329160402873cef29bf25fa231505b4c41a1b2"
   }
 ]

@@ -137,5 +137,47 @@
       "lib/WavPlayback/FilePlayback.cpp",
       "lib/WavPlayback/Mp3EncryptedPlayback.cpp"
     ]
+  },
+  {
+    "timestamp": "2026-06-14T03:24:32.884Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "if the download-encrypted functions still need those buffers, allocate them again"
+    ],
+    "agent_reply": [
+      "Already handled in the current code.",
+      "",
+      "The encrypted download and encrypted playback paths call:",
+      "",
+      "```cpp",
+      "AudioFileRecorder::wavEncryptedAudioBuffer()",
+      "AudioFileRecorder::wavPlaintextAudioBuffer()",
+      "```",
+      "",
+      "Those accessors call `ensureAudioBuffers()`, which lazily reallocates the buffers in PSRAM if Wi-Fi startup previously freed them via `releaseAudioBuffers()`.",
+      "",
+      "So after Wi-Fi frees the audio buffers, a later encrypted download will allocate them again on demand. If PSRAM allocation fails, the encrypted download returns:",
+      "",
+      "```text",
+      "500 Decrypted download buffers are unavailable",
+      "```",
+      "",
+      "Relevant spots:",
+      "- [AudioFileRecorder.cpp](d:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:790)",
+      "- [DecryptedDownload.cpp](d:/GithubRepos/The-Fly/lib/WifiManager/DecryptedDownload.cpp:914)",
+      "- [WavEncryptedPlayback.cpp](d:/GithubRepos/The-Fly/lib/WavPlayback/WavEncryptedPlayback.cpp:130)",
+      "- [Mp3EncryptedPlayback.cpp](d:/GithubRepos/The-Fly/lib/WavPlayback/Mp3EncryptedPlayback.cpp:147)"
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/WifiManager/DecryptedDownload.cpp",
+      "lib/WavPlayback/WavEncryptedPlayback.cpp",
+      "lib/WavPlayback/Mp3EncryptedPlayback.cpp"
+    ]
   }
 ]

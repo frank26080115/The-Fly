@@ -10851,9 +10851,473 @@
     ]
   },
   {
+    "timestamp": "2026-06-13T06:39:04.824Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: sdkconfig.defaults",
+      "",
+      "## My request for Codex:",
+      "solve the build error for `thefly_sec1` right now please"
+    ],
+    "agent_reply": [
+      "Fixed and verified.",
+      "",
+      "I restored the build back onto the prebuilt framework package path, which avoids the broken `custom_sdkconfig` rebuild path, then aligned FTP guards so security level 1 is consistent:",
+      "",
+      "- [WebServer.cpp](</d:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp>) now allows FTP setup for `BUILD_WITH_SECURITY_LEVEL <= 1`.",
+      "- [WifiManager.cpp](</d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp>) now includes and polls FTP for `BUILD_WITH_SECURITY_LEVEL <= 1`.",
+      "",
+      "Verification passed:",
+      "",
+      "```text",
+      "pio run -e thefly_sec1",
+      "[SUCCESS] Took 49.12 seconds",
+      "```",
+      "",
+      "I left the other existing dirty files alone, like `inc/conf.h`, `dependencies.lock`, `src/version.c`, and the doc/image assets."
+    ],
+    "files": [
+      "platformio.ini",
+      "lib/WifiManager/WifiManager.cpp",
+      "lib/WifiManager/WebServer.cpp",
+      "inc/conf.h",
+      "src/version.c",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "iram0_overflow_problem/good_working_build/config/sdkconfig.h",
+      "dependencies.lock"
+    ]
+  },
+  {
+    "timestamp": "2026-06-14T00:31:25.394Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "",
+      "## Active selection of the file:",
+      "g_wav_mic_samples",
+      "",
+      "## My request for Codex:",
+      "```",
+      "Make the remaining recorder staging buffers dynamic/free-on-Wi-Fi",
+      "The map still shows these internal DRAM statics:",
+      "g_wav_mic_samples 2304, g_wav_host_samples 2304, g_mp3_stereo_samples 4608.",
+      "That is about 9 KB sitting around even when Wi-Fi policy says recording is done. This is probably the next big code-side win after the crypto buffers.",
+      "```",
+      "",
+      "please make this happen, allocate them on initialization but free them where we free all the other audio related buffers"
+    ],
+    "agent_reply": [
+      "Done. The three recorder staging arrays are now PSRAM-backed dynamic buffers:",
+      "",
+      "- `g_wav_mic_samples`",
+      "- `g_wav_host_samples`",
+      "- `g_mp3_stereo_samples`",
+      "",
+      "They allocate during `AudioFileRecorder::init()` and are re-ensured before recording starts, then freed by the existing `AudioFileRecorder::releaseAudioBuffers()` path that Wi-Fi startup already calls from [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1402).",
+      "",
+      "I also added guard checks in the pump path so it won’t touch freed staging pointers in an odd non-reboot test flow.",
+      "",
+      "Verification: `pio run -e thefly_sec1` passed. The map now shows those symbols as 4-byte pointers/counts only, not 2304/2304/4608-byte internal DRAM arrays. `src/version.c` changed from the build generation.",
+      "",
+      "Done. The three recorder staging arrays are now PSRAM-backed dynamic buffers:",
+      "",
+      "- `g_wav_mic_samples`",
+      "- `g_wav_host_samples`",
+      "- `g_mp3_stereo_samples`",
+      "",
+      "They allocate during `AudioFileRecorder::init()` and are re-ensured before recording starts, then freed by the existing `AudioFileRecorder::releaseAudioBuffers()` path that Wi-Fi startup already calls from [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1402).",
+      "",
+      "I also added guard checks in the pump path so it won’t touch freed staging pointers in an odd non-reboot test flow.",
+      "",
+      "Verification: `pio run -e thefly_sec1` passed. The map now shows those symbols as 4-byte pointers/counts only, not 2304/2304/4608-byte internal DRAM arrays. `src/version.c` changed from the build generation."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/WifiManager/WifiManager.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-14T04:07:10.046Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: user-docs/user-manual-wifi-operations.md",
+      "",
+      "## My request for Codex:",
+      "you know how the web interface doesn't present the \"sync time\" button unless the time is out of sync? make a change, just always present that button as long as `/get_cfg` succeeds"
+    ],
+    "agent_reply": [
+      "Done. I changed [html/script.js](D:/GithubRepos/The-Fly/html/script.js:10) so a successful `/get_cfg` sets a `config_load_succeeded` flag, rerenders the info panel, and always shows the `Sync Time` button after the time offset row, even when the offset is in range or unknown. I also regenerated [inc/web_assets.h](D:/GithubRepos/The-Fly/inc/web_assets.h) so firmware uses the updated UI.",
+      "",
+      "Verified with:",
+      "- `node --check html\\script.js`",
+      "- `python tools\\package_web_assets.py`",
+      "- `pio run -e thefly_sec1`",
+      "",
+      "Note: `pio run -e thefly` still fails because that env does not define `BUILD_WITH_SECURITY_LEVEL`; `thefly_sec1` builds successfully. Unrelated dirty files were already present and left alone.",
+      "",
+      "Done. I changed [html/script.js](D:/GithubRepos/The-Fly/html/script.js:10) so a successful `/get_cfg` sets a `config_load_succeeded` flag, rerenders the info panel, and always shows the `Sync Time` button after the time offset row, even when the offset is in range or unknown. I also regenerated [inc/web_assets.h](D:/GithubRepos/The-Fly/inc/web_assets.h) so firmware uses the updated UI.",
+      "",
+      "Verified with:",
+      "- `node --check html\\script.js`",
+      "- `python tools\\package_web_assets.py`",
+      "- `pio run -e thefly_sec1`",
+      "",
+      "Note: `pio run -e thefly` still fails because that env does not define `BUILD_WITH_SECURITY_LEVEL`; `thefly_sec1` builds successfully. Unrelated dirty files were already present and left alone."
+    ],
+    "files": [
+      "html/script.js",
+      "tools/package_web_assets.py",
+      "inc/web_assets.h",
+      "src/version.c",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
+    ]
+  },
+  {
     "timestamp": "2026-06-17T21:36:44Z",
     "type": "git_commit",
     "commit_message": "mic spectrum test",
     "commit_hash": "a0dd970eb383c7e049841df45fc7959400478d33"
+  },
+  {
+    "timestamp": "2026-06-18T07:02:25Z",
+    "type": "git_commit",
+    "commit_message": "more mic tuning",
+    "commit_hash": "faea569dd69086872157f381237cfa153cf16cc9"
+  },
+  {
+    "timestamp": "2026-06-24T03:19:48.159Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## Active selection of the file:",
+      "BUILD_CLOUD_FEATURES",
+      "",
+      "## My request for Codex:",
+      "We have a `ScrollView` that is shown when in Wi-Fi station connected state, that is supposed to list cloud upload options, but we have not built that functionality fully yet, so they won't be loaded. But I want there to be a single clickable `sprite_cloudupload_100` that simply shows a modal dialog that says \"cloud upload is an unimplemented future feature\" or something like that, only in the situation when `BUILD_CLOUD_FEATURES` is not enabled"
+    ],
+    "agent_reply": [
+      "Implemented the non-cloud placeholder.",
+      "",
+      "In [ScrollView.cpp](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:233), `populateCloud()` now adds a `Cloud Upload` item with `sprite_cloudupload_100` only under `#else` when `BUILD_CLOUD_FEATURES` is not enabled. Tapping it is handled in [ScrollView.cpp](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1038), where it opens a modal saying:",
+      "",
+      "```text",
+      "Cloud upload is an unimplemented future feature.",
+      "```",
+      "",
+      "I also added the placeholder item/task IDs in [ScrollItem.h](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollItem.h:25).",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes. The default `thefly` env still fails before this code because it does not define `BUILD_WITH_SECURITY_LEVEL`.",
+      "",
+      "Implemented the non-cloud placeholder.",
+      "",
+      "In [ScrollView.cpp](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:233), `populateCloud()` now adds a `Cloud Upload` item with `sprite_cloudupload_100` only under `#else` when `BUILD_CLOUD_FEATURES` is not enabled. Tapping it is handled in [ScrollView.cpp](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollView.cpp:1038), where it opens a modal saying:",
+      "",
+      "```text",
+      "Cloud upload is an unimplemented future feature.",
+      "```",
+      "",
+      "I also added the placeholder item/task IDs in [ScrollItem.h](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ScrollView/ScrollItem.h:25).",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes. The default `thefly` env still fails before this code because it does not define `BUILD_WITH_SECURITY_LEVEL`."
+    ],
+    "files": [
+      "lib/FlyGuiViews/ScrollView/ScrollItem.h",
+      "lib/FlyGuiViews/ScrollView/ScrollView.cpp",
+      "src/version.c",
+      "inc/conf.h"
+    ]
+  },
+  {
+    "timestamp": "2026-06-24T04:50:10.453Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/version.c",
+      "",
+      "## My request for Codex:",
+      "when I click on an icon representing a smartphone or laptom from the MainScreenView, it goes to a \"No Bluetooth host configured\" error screen, which is fine, but the entire device seems frozen after, I cannot exit out of the screen by pressing the back button, the clock isn't even ticking, the last message on the terminal is `[2026-06-23 21:48:36] [UNEXPECTED] No Bluetooth host configured`.",
+      "",
+      "However I do see that `Hotel` has dimmed the screen after a while",
+      ""
+    ],
+    "agent_reply": [
+      "Fixed the frozen-feeling path.",
+      "",
+      "The root cause was [src/main.cpp](/D:/GithubRepos/The-Fly/src/main.cpp:849): missing phone/laptop hosts were using `show_fatal_error_f(false, ...)`, which is still a blocking error-view loop. I changed that to `error_usercaused_f(FLYGUI_VIEW_MAIN, MAINTAG, ...)`, so it shows a normal dismissible warning modal and the main loop keeps running.",
+      "",
+      "I also added center-button handling to `ErrorView` in [ErrorView.cpp](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ErrorView.cpp:79), since the visible door-return action is centered but only the right hardware button was mapped before.",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes.",
+      "",
+      "Fixed the frozen-feeling path.",
+      "",
+      "The root cause was [src/main.cpp](/D:/GithubRepos/The-Fly/src/main.cpp:849): missing phone/laptop hosts were using `show_fatal_error_f(false, ...)`, which is still a blocking error-view loop. I changed that to `error_usercaused_f(FLYGUI_VIEW_MAIN, MAINTAG, ...)`, so it shows a normal dismissible warning modal and the main loop keeps running.",
+      "",
+      "I also added center-button handling to `ErrorView` in [ErrorView.cpp](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ErrorView.cpp:79), since the visible door-return action is centered but only the right hardware button was mapped before.",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes."
+    ],
+    "files": [
+      "src/main.cpp",
+      "lib/FlyGuiViews/ErrorView.h",
+      "lib/FlyGuiViews/ErrorView.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-24T05:32:46.119Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.h",
+      "",
+      "## Active selection of the file:",
+      "EXTCODEC_",
+      "",
+      "## My request for Codex:",
+      "implement `test_extcodec_adc`, initialize ExtCodec, and using the serial port only, report the `EXTCODEC_*` state and also the two ADC values, every 200ms, with timestamps"
+    ],
+    "agent_reply": [
+      "Implemented [test_extcodec_adc.cpp](/D:/GithubRepos/The-Fly/src/tests/test_extcodec_adc.cpp:28).",
+      "",
+      "It now starts serial, brings up shared I2S/MCLK, calls `ExtCodec::init()`, prints an init summary, then reports every 200 ms:",
+      "",
+      "```text",
+      "test_extcodec_adc: ms=... state=EXTCODEC_... gen=... earbud_adc=... inline_mic_adc=...",
+      "```",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes. I also cleaned the generated `src/version.c` churn from the build.",
+      "",
+      "Implemented [test_extcodec_adc.cpp](/D:/GithubRepos/The-Fly/src/tests/test_extcodec_adc.cpp:28).",
+      "",
+      "It now starts serial, brings up shared I2S/MCLK, calls `ExtCodec::init()`, prints an init summary, then reports every 200 ms:",
+      "",
+      "```text",
+      "test_extcodec_adc: ms=... state=EXTCODEC_... gen=... earbud_adc=... inline_mic_adc=...",
+      "```",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes. I also cleaned the generated `src/version.c` churn from the build."
+    ],
+    "files": [
+      "src/tests/test_extcodec_adc.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-24T05:45:00.719Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_extcodec_adc.cpp",
+      "",
+      "## Active selection of the file:",
+      "test_extcodec_adc",
+      "",
+      "## My request for Codex:",
+      "to `test_extcodec_adc`, make a small change, right before the while loop, play out a single buffer's worth of silence to the I2S output, use the AudioFifo if you want",
+      "",
+      "make this section of code easily disabled if needed"
+    ],
+    "agent_reply": [
+      "Added the silence prime block to [test_extcodec_adc.cpp](/D:/GithubRepos/The-Fly/src/tests/test_extcodec_adc.cpp:29).",
+      "",
+      "Right before the reporting loop, it now calls `prime_i2s_output_with_silence()`, which:",
+      "- is gated by `kPrimeI2sOutputWithSilence`",
+      "- enables the external codec full-duplex I2S path",
+      "- queues one `240`-sample silent buffer via `AudioFifo::queueSilence()`",
+      "- pumps `AudioManager::pump_bt2spk()` briefly",
+      "",
+      "To disable it later, set:",
+      "",
+      "```cpp",
+      "constexpr bool kPrimeI2sOutputWithSilence = false;",
+      "```",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes.",
+      "",
+      "Added the silence prime block to [test_extcodec_adc.cpp](/D:/GithubRepos/The-Fly/src/tests/test_extcodec_adc.cpp:29).",
+      "",
+      "Right before the reporting loop, it now calls `prime_i2s_output_with_silence()`, which:",
+      "- is gated by `kPrimeI2sOutputWithSilence`",
+      "- enables the external codec full-duplex I2S path",
+      "- queues one `240`-sample silent buffer via `AudioFifo::queueSilence()`",
+      "- pumps `AudioManager::pump_bt2spk()` briefly",
+      "",
+      "To disable it later, set:",
+      "",
+      "```cpp",
+      "constexpr bool kPrimeI2sOutputWithSilence = false;",
+      "```",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes."
+    ],
+    "files": [
+      "src/tests/test_extcodec_adc.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-24T05:59:14.413Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/tests/test_extcodec_adc.cpp",
+      "",
+      "## Active selection of the file:",
+      "test_extcodec_adc",
+      "",
+      "## My request for Codex:",
+      "beef up `test_extcodec_adc`, I need to see if the codec did not initialize properly, so just halt the test if it did not"
+    ],
+    "agent_reply": [
+      "Beefed up [test_extcodec_adc.cpp](/D:/GithubRepos/The-Fly/src/tests/test_extcodec_adc.cpp:30).",
+      "",
+      "It now prints a `post-init` codec diagnostic with:",
+      "",
+      "```text",
+      "state, generation, earbud_adc, inline_mic_adc, ANA_STATUS read result/value, PLL lock",
+      "```",
+      "",
+      "Then it halts before the silence prime or ADC loop if any of these are false:",
+      "",
+      "```cpp",
+      "i2s_ok && extcodec_ok && initialized && available",
+      "```",
+      "",
+      "On failure it prints:",
+      "",
+      "```text",
+      "HALT codec init failed ...",
+      "failed-init ...",
+      "```",
+      "",
+      "then flushes serial and calls `idle_forever()`.",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes."
+    ],
+    "files": [
+      "src/tests/test_extcodec_adc.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-25T07:40:46.934Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BattTracker/BattTracker.cpp",
+      "",
+      "## Active selection of the file:",
+      "kPollIntervalMs",
+      "",
+      "## My request for Codex:",
+      "first, I reverted a bunch of stuff, so refresh your context of the project",
+      "",
+      "inside `lib\\BattTracker\\BattTracker.cpp`, lower `kPollIntervalMs` to 100ms.",
+      "",
+      "while getting the battery info, also poll the power key",
+      "",
+      "normally, the top of the screen will say something like \"2026-06-24 01:23:45\" as the clock",
+      "",
+      "when the power key is pressed, make it say \"2026-06-24 01:23:45 ZZZ?\", the \"ZZZ?\" should show up immediately. also, take a timestamp.",
+      "",
+      "If 2.5 seconds passes since the timestamp, remove the \"ZZZ?\" with a full refresh.",
+      "",
+      "also, during boot, configure the AXP192 to use a 2 second press before shutdown, place the code inside `lib\\BattTracker\\BattTracker.cpp` for now"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "Changed [BattTracker.cpp](D:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:13) so `kPollIntervalMs` is now `100ms`, BattTracker polls the PMIC power-key latch during battery updates, and it latches a `ZZZ?` indicator for `2500ms`.",
+      "",
+      "Also added AXP192 boot-time config in [BattTracker.cpp](D:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:218), changing register `0x36` power-off timing bits to the inferred 2-second setting while preserving the rest of the register.",
+      "",
+      "Wired the UI side so:",
+      "- [FlyGuiText.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/FlyGuiText.cpp:296) appends ` ZZZ?` to the clock while BattTracker’s indicator is active.",
+      "- [FlyGui.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:156) also listens to `M5.BtnPWR.wasClicked()/wasHold()` after `M5.update()`, because M5Unified can consume the PMIC key event before BattTracker’s 100ms poll sees it.",
+      "- [FlyGui.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:183) requests a top-bar full redraw when the marker appears or clears.",
+      "",
+      "Verified with `pio run -e thefly_sec0`: build succeeded."
+    ],
+    "files": [
+      "lib/BattTracker/BattTracker.cpp",
+      "lib/FlyGui/FlyGuiText.cpp",
+      "lib/FlyGui/FlyGui.cpp",
+      "lib/BattTracker/BattTracker.h",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-25T07:58:09.230Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BattTracker/BattTracker.cpp",
+      "",
+      "## My request for Codex:",
+      "try that please"
+    ],
+    "agent_reply": [
+      "Done. I added `topBarLastPowerKeyIndicator_` in [FlyGui.h](D:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.h:127), and [drawTopBar()](D:/GithubRepos/The-Fly/lib/FlyGui/FlyGui.cpp:361) now checks whether `BattTracker::powerKeyIndicatorActive()` changed since the last top-bar draw.",
+      "",
+      "So the redraw gate now treats the ZZZ state as a reason to redraw immediately:",
+      "",
+      "```cpp",
+      "const bool powerKeyIndicator = BattTracker::powerKeyIndicatorActive();",
+      "const bool indicatorChanged = powerKeyIndicator != topBarLastPowerKeyIndicator_;",
+      "const bool fullRedraw = forced || topBarNeedsFullRedraw_ || indicatorChanged;",
+      "```",
+      "",
+      "That should stop it from waiting for the seconds value to change when the marker appears or disappears.",
+      "",
+      "Verified with `pio run -e thefly_sec0`: build succeeded. There is one unrelated existing warning in `SplashView.cpp` about deprecated `fontHeight()`."
+    ],
+    "files": [
+      "lib/FlyGui/FlyGui.h",
+      "lib/FlyGui/FlyGui.cpp",
+      "src/version.c",
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-25T08:06:55.375Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/BattTracker/BattTracker.cpp",
+      "",
+      "## My request for Codex:",
+      "make the power key press event register also as a UI interaction for Hotel, making it undim the screen"
+    ],
+    "agent_reply": [
+      "Done. Power-key detection now calls `Hotel::noteUserActivity()` inside `activatePowerKeyIndicator()` in [BattTracker.cpp](D:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:258), so either detection path should count as user activity and undim the screen.",
+      "",
+      "Verified with `pio run -e thefly_sec0`: build succeeded. I also restored the generated `src/version.c` hash after the build touched it.",
+      "",
+      "Done. Power-key detection now calls `Hotel::noteUserActivity()` inside `activatePowerKeyIndicator()` in [BattTracker.cpp](D:/GithubRepos/The-Fly/lib/BattTracker/BattTracker.cpp:258), so either detection path should count as user activity and undim the screen.",
+      "",
+      "Verified with `pio run -e thefly_sec0`: build succeeded. I also restored the generated `src/version.c` hash after the build touched it."
+    ],
+    "files": [
+      "lib/BattTracker/BattTracker.cpp",
+      "src/version.c"
+    ]
   }
 ]

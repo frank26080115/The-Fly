@@ -834,5 +834,49 @@
     "type": "git_commit",
     "commit_message": "diagnostics, fixed a bug with speaker peak decay",
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
+  },
+  {
+    "timestamp": "2026-06-24T04:50:10.453Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/version.c",
+      "",
+      "## My request for Codex:",
+      "when I click on an icon representing a smartphone or laptom from the MainScreenView, it goes to a \"No Bluetooth host configured\" error screen, which is fine, but the entire device seems frozen after, I cannot exit out of the screen by pressing the back button, the clock isn't even ticking, the last message on the terminal is `[2026-06-23 21:48:36] [UNEXPECTED] No Bluetooth host configured`.",
+      "",
+      "However I do see that `Hotel` has dimmed the screen after a while",
+      ""
+    ],
+    "agent_reply": [
+      "Fixed the frozen-feeling path.",
+      "",
+      "The root cause was [src/main.cpp](/D:/GithubRepos/The-Fly/src/main.cpp:849): missing phone/laptop hosts were using `show_fatal_error_f(false, ...)`, which is still a blocking error-view loop. I changed that to `error_usercaused_f(FLYGUI_VIEW_MAIN, MAINTAG, ...)`, so it shows a normal dismissible warning modal and the main loop keeps running.",
+      "",
+      "I also added center-button handling to `ErrorView` in [ErrorView.cpp](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ErrorView.cpp:79), since the visible door-return action is centered but only the right hardware button was mapped before.",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes.",
+      "",
+      "Fixed the frozen-feeling path.",
+      "",
+      "The root cause was [src/main.cpp](/D:/GithubRepos/The-Fly/src/main.cpp:849): missing phone/laptop hosts were using `show_fatal_error_f(false, ...)`, which is still a blocking error-view loop. I changed that to `error_usercaused_f(FLYGUI_VIEW_MAIN, MAINTAG, ...)`, so it shows a normal dismissible warning modal and the main loop keeps running.",
+      "",
+      "I also added center-button handling to `ErrorView` in [ErrorView.cpp](/D:/GithubRepos/The-Fly/lib/FlyGuiViews/ErrorView.cpp:79), since the visible door-return action is centered but only the right hardware button was mapped before.",
+      "",
+      "Verification: `pio run -e thefly_sec0` passes."
+    ],
+    "files": [
+      "src/main.cpp",
+      "lib/FlyGuiViews/ErrorView.h",
+      "lib/FlyGuiViews/ErrorView.cpp",
+      "src/version.c"
+    ]
+  },
+  {
+    "timestamp": "2026-06-24T04:55:16Z",
+    "type": "git_commit",
+    "commit_message": "fixed frozen error dialog",
+    "commit_hash": "0bc23e3cfc0c4ce3c37c74219359273dde930d80"
   }
 ]

@@ -535,9 +535,65 @@
     ]
   },
   {
+    "timestamp": "2026-06-17T05:49:28.850Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/AudioManager/AudioManager.cpp",
+      "",
+      "## My request for Codex:",
+      "hot-plug and hot-unplug isn't working inside `lib\\WavPlayback\\PlaybackView.cpp`, please fix, as similarly to how `lib\\FlyGuiViews\\RecordingView\\RecordingView.cpp` as possible"
+    ],
+    "agent_reply": [
+      "Implemented the playback hot-plug/hot-unplug sync.",
+      "",
+      "Changed [PlaybackView.cpp](<D:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.cpp:541>) and [PlaybackView.h](<D:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.h:49>) to mirror the recording view pattern: playback now tracks `ExtCodec::stateGeneration()` and calls `AudioManager::syncExternalCodecRouting()` on load and during redraw. That lets the existing AudioManager logic switch between SGTL5000 earbuds and NS4168 while playback is open.",
+      "",
+      "If routing sync fails, playback now logs it and shows `Speaker routing failed` in the existing status area.",
+      "",
+      "Verified with `pio run -e thefly_sec1`: success. There’s still the existing `SplashView.cpp` deprecated `fontHeight()` warning, unrelated to this change."
+    ],
+    "files": [
+      "lib/WavPlayback/PlaybackView.h",
+      "lib/WavPlayback/PlaybackView.cpp",
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-06-17T08:10:59Z",
     "type": "git_commit",
     "commit_message": "mic tweaks, db scale peak display",
     "commit_hash": "0b3e546dac086b9f57a21181e78f16ceaddc7d8a"
+  },
+  {
+    "timestamp": "2026-06-25T06:17:50.576Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "you know how in the playback view, there's a faded delete button, pressing it once makes it armed, then pressing it again deletes?",
+      "",
+      "it's taking two presses while armed to actually make the delete happen, please fix"
+    ],
+    "agent_reply": [
+      "Fixed. The playback delete button now behaves as intended: first press arms it, next press while armed deletes immediately.",
+      "",
+      "I removed the old one-second `kDeleteConfirmDebounceMs` guard from [PlaybackView.cpp](D:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.cpp:393) and removed the now-unused `deleteArmedAtMs_` member from [PlaybackView.h](D:/GithubRepos/The-Fly/lib/WavPlayback/PlaybackView.h:77). That debounce was swallowing the first confirm press if you tapped at normal human speed.",
+      "",
+      "Verified with:",
+      "",
+      "```text",
+      "pio run -e thefly_sec0",
+      "SUCCESS",
+      "```"
+    ],
+    "files": [
+      "lib/WavPlayback/PlaybackView.cpp",
+      "lib/WavPlayback/PlaybackView.h"
+    ]
   }
 ]

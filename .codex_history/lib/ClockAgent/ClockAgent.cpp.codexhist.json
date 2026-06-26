@@ -560,5 +560,41 @@
     "type": "git_commit",
     "commit_message": "way better time sync from browser, with timezones",
     "commit_hash": "3157aa61f945df7cbd0342463ba1cfd56c3a3e67"
+  },
+  {
+    "timestamp": "2026-06-25T05:02:13.779Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "the RTC on a fresh device, shows `2000-01-4294967295 4`, some sort of integer overflow happened. Detect conditions like this and force it to at least use the compiler time"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "Cause: `ClockAgent` already had compile-time fallback logic, but normal startup and lazy clock reads were using RTC-only sync. So a fresh/bad RTC value could survive long enough for the GUI clock to render it, and the `%u` formatting made a signed invalid day appear as `4294967295`.",
+      "",
+      "Changed:",
+      "- [ClockAgent.cpp](D:/GithubRepos/The-Fly/lib/ClockAgent/ClockAgent.cpp:46): `begin()` now enforces “at least compiler time”.",
+      "- [ClockAgent.cpp](D:/GithubRepos/The-Fly/lib/ClockAgent/ClockAgent.cpp:99): lazy sync now falls back through compile time too.",
+      "- [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp:123): startup now calls `Clock.begin()` immediately after `all_init()`.",
+      "- [FlyGuiText.cpp](D:/GithubRepos/The-Fly/lib/FlyGui/FlyGuiText.cpp:300): clock display formatting now casts signed RTC fields correctly, avoiding the unsigned wrap display.",
+      "",
+      "Validation: `pio run -e thefly_sec1` passed. Existing deprecation warnings only."
+    ],
+    "files": [
+      "lib/ClockAgent/ClockAgent.cpp",
+      "src/main.cpp",
+      "lib/FlyGui/FlyGuiText.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-25T05:45:51Z",
+    "type": "git_commit",
+    "commit_message": "fixed uninitialized RTC showing weird number",
+    "commit_hash": "7ce2982d0eafcd5994059f574828b055c7f595bc"
   }
 ]

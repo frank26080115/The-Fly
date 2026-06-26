@@ -2091,5 +2091,83 @@
       "lib/ESP-FTP-Server-Lib/src/FTPCommand.h",
       "lib/AudioManager/AudioManager.cpp"
     ]
+  },
+  {
+    "timestamp": "2026-06-13T07:53:51.418Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "importantly, it was working under security level 0, just keep that in mind, don't be too drastic"
+    ],
+    "agent_reply": [
+      "Good constraint. I kept this scoped to the sec1+ path.",
+      "",
+      "I changed [WifiManager.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1449) so security level 1 starts the WPA3 AP through Arduino’s normal `WiFi.softAP(...)` lifecycle first, then applies the stricter WPA3/PMF config with `esp_wifi_set_config()`. Security level 0 keeps the old low-level path.",
+      "",
+      "I also changed [WebServer.cpp](/d:/GithubRepos/The-Fly/lib/WifiManager/WebServer.cpp:746) so serving `/` or `index.html` increments the page-load counter. Previously that counter only moved after `/get_info`, so it could stay `0` even if the HTML request itself worked but JS never got going.",
+      "",
+      "Verified:",
+      "",
+      "```text",
+      "pio run -e thefly_sec1",
+      "SUCCESS",
+      "```",
+      "",
+      "I also tried `thefly_sec0`; `WifiManager.cpp` compiled, but the build hit the existing IRAM link overflow, so I didn’t chase that here.",
+      "",
+      "For the next device test, use the LCD IP directly first, like `http://192.168.4.1/` or `http://<LCD IP>/get_info`, not `.local` and not `https://`. With this patch, if the root page is served, the LCD page-load counter should increment immediately. If it still stays `0`, the next thing to look at is whether the AP screen shows a client MAC / connection count."
+    ],
+    "files": [
+      "lib/WifiManager/WebServer.cpp",
+      "lib/WifiManager/WifiManager.cpp",
+      "inc/conf.h",
+      "html/index.html"
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T18:28:31.995Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## My request for Codex:",
+      "it still doesn't work, the page won't load",
+      "",
+      "although sometimes it does get a 200 code and the page title but not the rest of the page",
+      "",
+      "the page load counter does increase by 1 but I am not sure when",
+      "",
+      "I reverted your change to how the Wi-Fi starts, that's something we know already works and has security implications when changed",
+      "",
+      "remember to use sterile_rebuild.py with a long timeout when it looks like the new sdkconfig is being ignored"
+    ],
+    "agent_reply": [
+      "I changed the page load path to stop blocking on the huge WebCrypto shim.",
+      "",
+      "In [html/index.html](D:/GithubRepos/The-Fly/html/index.html:5), I removed the synchronous `<script src=\"webcrypto-shim.min.js\">` from the head. `sec_helpers.js` already lazy-loads that file when crypto is actually needed, so the fallback remains available.",
+      "",
+      "In [tools/package_web_assets.py](D:/GithubRepos/The-Fly/tools/package_web_assets.py:52), I made `webcrypto-shim.min.js` a deferred standalone packaged asset, then regenerated [inc/web_assets.h](D:/GithubRepos/The-Fly/inc/web_assets.h:6).",
+      "",
+      "Result:",
+      "- `index.html` went from `154903` compressed bytes to `25389`",
+      "- `webcrypto-shim.min.js` is now served separately at `129520` compressed bytes",
+      "- `pio run -e thefly_sec1` passes",
+      "",
+      "I left the Wi-Fi/AP start behavior alone. I also didn’t need `sterile_rebuild.py` here because the normal build clearly regenerated assets and completed cleanly."
+    ],
+    "files": [
+      "html/index.html",
+      "tools/package_web_assets.py",
+      "inc/web_assets.h",
+      "html/webcrypto-shim.min.js",
+      "html/sec_helpers.js",
+      "tools/sterile_rebuild.py"
+    ]
   }
 ]

@@ -1016,6 +1016,35 @@
     "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"
   },
   {
+    "timestamp": "2026-06-14T05:18:01.595Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WebCfgHandlers.cpp",
+      "",
+      "## Active selection of the file:",
+      "uint8_t* allocate_large_buffer(size_t size)",
+      "",
+      "## My request for Codex:",
+      "remove `uint8_t* allocate_buffer(size_t size)` from `lib\\WifiManager\\DecryptedDownload.cpp`, as it is a duplicate of `uint8_t* allocate_large_buffer(size_t size)` in `lib\\WifiManager\\WebCfgHandlers.cpp`, in fact, move that one to `lib\\UtilFuncs\\utilfuncs.cpp`"
+    ],
+    "agent_reply": [
+      "Done. I moved the shared PSRAM-first allocator into [utilfuncs.cpp](D:/GithubRepos/The-Fly/lib/UtilFuncs/utilfuncs.cpp:239) and declared it in [utilfuncs.h](D:/GithubRepos/The-Fly/lib/UtilFuncs/utilfuncs.h:49).",
+      "",
+      "I removed the duplicate local helpers from [WebCfgHandlers.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WebCfgHandlers.cpp) and [DecryptedDownload.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/DecryptedDownload.cpp), then updated decrypted-download call sites to use `allocate_large_buffer()`.",
+      "",
+      "Verified with `pio run -e thefly_sec1`, which passed. It still emits the existing `fontHeight` deprecation warning in `SplashView.cpp`. Unrelated dirty files were left alone."
+    ],
+    "files": [
+      "lib/UtilFuncs/utilfuncs.cpp",
+      "lib/UtilFuncs/utilfuncs.h",
+      "lib/WifiManager/DecryptedDownload.cpp",
+      "lib/WifiManager/WebCfgHandlers.cpp",
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-06-14T06:50:02Z",
     "type": "git_commit",
     "commit_message": "moved a buffer allocation function to utilfuncs",

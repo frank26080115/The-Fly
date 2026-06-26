@@ -1,0 +1,89 @@
+[
+  {
+    "timestamp": "2026-05-29T08:57:32Z",
+    "type": "git_commit",
+    "commit_message": "Create custom-sdkconfig.md",
+    "commit_hash": "f6213d3c45b07d406c9b2ffeb06dd33c762dae99"
+  },
+  {
+    "timestamp": "2026-06-14T00:08:57Z",
+    "type": "git_commit",
+    "commit_message": "fixed build problem about mdns ram",
+    "commit_hash": "c064f910cf606f6c8f63c8edaa47a338c67ae118"
+  },
+  {
+    "timestamp": "2026-06-26T07:01:16Z",
+    "type": "git_commit",
+    "commit_message": "security build tools",
+    "commit_hash": "f249cafdf65f4c15debb4486bbba31e64283ad6b"
+  },
+  {
+    "timestamp": "2026-06-26T18:23:59.787Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: .gitignore",
+      "",
+      "## My request for Codex:",
+      "```",
+      "PS C:\\GitHubRepos\\The-Fly\\tools> python build_security.py --create-key",
+      "error: found Python packages for espsecure.py, but espsecure itself still failed to import",
+      "Python: C:\\Users\\frank\\.platformio\\penv\\.espidf-5.3.2\\Scripts\\python.exe",
+      "espsecure.py: C:\\Users\\frank\\.platformio\\packages\\tool-esptoolpy\\espsecure.py",
+      "Reproduce with: C:\\Users\\frank\\.platformio\\penv\\.espidf-5.3.2\\Scripts\\python.exe -c \"import sys; sys.path.insert(0, 'C:\\\\Users\\\\frank\\\\.platformio\\\\packages\\\\tool-esptoolpy'); import espsecure\"",
+      "Traceback (most recent call last):",
+      "  File \"<string>\", line 1, in <module>",
+      "  File \"C:\\Users\\frank\\.platformio\\packages\\tool-esptoolpy\\espsecure\\__init__.py\", line 26, in <module>",
+      "    import esptool",
+      "  File \"C:\\Users\\frank\\.platformio\\packages\\tool-esptoolpy\\esptool\\__init__.py\", line 42, in <module>",
+      "    from esptool.bin_image import intel_hex_to_bin",
+      "  File \"C:\\Users\\frank\\.platformio\\packages\\tool-esptoolpy\\esptool\\bin_image.py\", line 16, in <module>",
+      "    from intelhex import HexRecordError, IntelHex",
+      "ModuleNotFoundError: No module named 'intelhex'",
+      "```",
+      "",
+      "why was this missed? edit the documentation and requirements.txt and also look for other potential import failures"
+    ],
+    "agent_reply": [
+      "It was missed because `intelhex` was already installed on the first machine, so the observed failures only exposed `cryptography`, `pyserial`, `ecdsa`, `reedsolo`, and `bitstring`. On the other PC, once those were installed, `espsecure.py` got further and then hit the next direct dependency through `esptool.bin_image`: `intelhex`.",
+      "",
+      "I updated:",
+      "",
+      "- [scripts/requirements.txt](D:/GithubRepos/The-Fly/scripts/requirements.txt:1): added `intelhex`",
+      "- [developer-docs/challenges-encountered.md](D:/GithubRepos/The-Fly/developer-docs/challenges-encountered.md:93): documented the full current direct package list and why it may change with `tool-esptoolpy`",
+      "- [developer-docs/custom-sdkconfig.md](D:/GithubRepos/The-Fly/developer-docs/custom-sdkconfig.md:98): added a pointer to `scripts\\requirements.txt`",
+      "- [tools/build_security.py](D:/GithubRepos/The-Fly/tools/build_security.py:205): added `intelhex` to the known probe list and added a fallback that suggests the next missing module if `espsecure` still raises `ModuleNotFoundError`",
+      "",
+      "I also scanned the current `tool-esptoolpy` imports. For this version’s normal `espsecure`/`esptool` path, the direct non-stdlib packages are now covered:",
+      "",
+      "```text",
+      "cryptography",
+      "ecdsa",
+      "reedsolo",
+      "bitstring",
+      "pyserial",
+      "intelhex",
+      "```",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "python -m py_compile tools\\build_security.py",
+      "python tools\\build_security.py --help",
+      "```"
+    ],
+    "files": [
+      "scripts/requirements.txt",
+      "developer-docs/challenges-encountered.md",
+      "tools/build_security.py",
+      "developer-docs/custom-sdkconfig.md"
+    ]
+  },
+  {
+    "timestamp": "2026-06-26T18:26:07Z",
+    "type": "git_commit",
+    "commit_message": "more fixes for missing py modules during secure fw build",
+    "commit_hash": "53f5e20fb8b8b2b49ef32682154d40ce20aa46c4"
+  }
+]

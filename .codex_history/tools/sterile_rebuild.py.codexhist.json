@@ -229,5 +229,129 @@
       "lib/WifiManager/WifiManager.cpp",
       "tools/sterile_rebuild.py"
     ]
+  },
+  {
+    "timestamp": "2026-06-13T07:21:53.957Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "why not just use `tools\\sterile_rebuild.py` as the solution?"
+    ],
+    "agent_reply": [
+      "Yes, you were right: `tools\\sterile_rebuild.py` is the right way to test this, because it removes stale `.pio\\build` and `sdkconfig.*` artifacts before regenerating from `platformio.ini`.",
+      "",
+      "The catch was that sterile rebuild only works if the custom-sdkconfig path is actually usable. I added the missing support around that:",
+      "",
+      "- [tools/patch_pioarduino_custom_sdkconfig.py](/d:/GithubRepos/The-Fly/tools/patch_pioarduino_custom_sdkconfig.py) patches the pioarduino builder edge cases for inherited `custom_sdkconfig` and generated Arduino component names.",
+      "- [CMakeLists.txt](/d:/GithubRepos/The-Fly/CMakeLists.txt:3) now detects the generated `framework-arduinoespressif32...` component name instead of hardcoding one.",
+      "- [platformio.ini](/d:/GithubRepos/The-Fly/platformio.ini:43) wires in the patch script and keeps your custom sdkconfig changes active.",
+      "",
+      "Verification passed:",
+      "",
+      "- `python tools\\sterile_rebuild.py -e thefly_sec1` succeeded.",
+      "- `pio run -e thefly_sec1` also succeeded afterward.",
+      "- Generated firmware: `.pio\\build\\thefly_sec1\\firmware.bin`, `3,324,992` bytes.",
+      "- Confirmed `.pio\\build\\thefly_sec1\\config\\sdkconfig.h` contains `#define CONFIG_MDNS_MEMORY_ALLOC_SPIRAM 1`.",
+      "",
+      "Only remaining build output is existing deprecation warnings; the IRAM overflow is gone."
+    ],
+    "files": [
+      "tools/sterile_rebuild.py",
+      "tools/patch_pioarduino_custom_sdkconfig.py",
+      "CMakeLists.txt",
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "iram0_overflow_problem/good_working_build/config/sdkconfig.h",
+      "managed_components/espressif__esp-serial-flasher/examples/binaries/ESP32_AT_Firmware/Firmware.bin"
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T18:28:31.995Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## My request for Codex:",
+      "it still doesn't work, the page won't load",
+      "",
+      "although sometimes it does get a 200 code and the page title but not the rest of the page",
+      "",
+      "the page load counter does increase by 1 but I am not sure when",
+      "",
+      "I reverted your change to how the Wi-Fi starts, that's something we know already works and has security implications when changed",
+      "",
+      "remember to use sterile_rebuild.py with a long timeout when it looks like the new sdkconfig is being ignored"
+    ],
+    "agent_reply": [
+      "I changed the page load path to stop blocking on the huge WebCrypto shim.",
+      "",
+      "In [html/index.html](D:/GithubRepos/The-Fly/html/index.html:5), I removed the synchronous `<script src=\"webcrypto-shim.min.js\">` from the head. `sec_helpers.js` already lazy-loads that file when crypto is actually needed, so the fallback remains available.",
+      "",
+      "In [tools/package_web_assets.py](D:/GithubRepos/The-Fly/tools/package_web_assets.py:52), I made `webcrypto-shim.min.js` a deferred standalone packaged asset, then regenerated [inc/web_assets.h](D:/GithubRepos/The-Fly/inc/web_assets.h:6).",
+      "",
+      "Result:",
+      "- `index.html` went from `154903` compressed bytes to `25389`",
+      "- `webcrypto-shim.min.js` is now served separately at `129520` compressed bytes",
+      "- `pio run -e thefly_sec1` passes",
+      "",
+      "I left the Wi-Fi/AP start behavior alone. I also didn’t need `sterile_rebuild.py` here because the normal build clearly regenerated assets and completed cleanly."
+    ],
+    "files": [
+      "html/index.html",
+      "tools/package_web_assets.py",
+      "inc/web_assets.h",
+      "html/webcrypto-shim.min.js",
+      "html/sec_helpers.js",
+      "tools/sterile_rebuild.py"
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T20:04:02.291Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## My request for Codex:",
+      "if the download-encrypted functions still need those buffers, allocate them again"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "I moved the shared recording/playback crypto audio buffers out of static internal RAM and into lazy PSRAM allocation:",
+      "",
+      "- `g_wav_plaintext_audio` and `g_wav_encrypted_audio` are now PSRAM-backed pointers in [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:165).",
+      "- Added `AudioFileRecorder::ensureAudioBuffers()` / `releaseAudioBuffers()` in [AudioFileRecorder.h](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h:57).",
+      "- Recording allocates the buffers before it starts using them.",
+      "- Encrypted playback and decrypted downloads still call the existing buffer accessors, and those accessors allocate the PSRAM buffers again on demand after Wi-Fi starts.",
+      "- Wi-Fi activation now frees the buffers after recorder shutdown in [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1402).",
+      "",
+      "Verification: `python tools\\sterile_rebuild.py -e thefly_sec1` completed successfully. The first normal `pio run -e thefly_sec1` hit the stale/dirty IRAM link failure, but the sterile rebuild cleared it and passed.",
+      "",
+      "Implemented.",
+      "",
+      "I moved the shared recording/playback crypto audio buffers out of static internal RAM and into lazy PSRAM allocation:",
+      "",
+      "- `g_wav_plaintext_audio` and `g_wav_encrypted_audio` are now PSRAM-backed pointers in [AudioFileRecorder.cpp](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.cpp:165).",
+      "- Added `AudioFileRecorder::ensureAudioBuffers()` / `releaseAudioBuffers()` in [AudioFileRecorder.h](D:/GithubRepos/The-Fly/lib/AudioFileRecorder/AudioFileRecorder.h:57).",
+      "- Recording allocates the buffers before it starts using them.",
+      "- Encrypted playback and decrypted downloads still call the existing buffer accessors, and those accessors allocate the PSRAM buffers again on demand after Wi-Fi starts.",
+      "- Wi-Fi activation now frees the buffers after recorder shutdown in [WifiManager.cpp](D:/GithubRepos/The-Fly/lib/WifiManager/WifiManager.cpp:1402).",
+      "",
+      "Verification: `python tools\\sterile_rebuild.py -e thefly_sec1` completed successfully. The first normal `pio run -e thefly_sec1` hit the stale/dirty IRAM link failure, but the sterile rebuild cleared it and passed."
+    ],
+    "files": [
+      "lib/AudioFileRecorder/AudioFileRecorder.h",
+      "lib/AudioFileRecorder/AudioFileRecorder.cpp",
+      "lib/WifiManager/WifiManager.cpp",
+      "tools/sterile_rebuild.py"
+    ]
   }
 ]

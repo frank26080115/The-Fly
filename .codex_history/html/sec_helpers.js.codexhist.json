@@ -290,5 +290,47 @@
     "type": "git_commit",
     "commit_message": "benchmarked js key derivation speeds",
     "commit_hash": "df03d57fe0fee9ebfc23b4ff464213e61fd4a163"
+  },
+  {
+    "timestamp": "2026-06-13T18:28:31.995Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## My request for Codex:",
+      "it still doesn't work, the page won't load",
+      "",
+      "although sometimes it does get a 200 code and the page title but not the rest of the page",
+      "",
+      "the page load counter does increase by 1 but I am not sure when",
+      "",
+      "I reverted your change to how the Wi-Fi starts, that's something we know already works and has security implications when changed",
+      "",
+      "remember to use sterile_rebuild.py with a long timeout when it looks like the new sdkconfig is being ignored"
+    ],
+    "agent_reply": [
+      "I changed the page load path to stop blocking on the huge WebCrypto shim.",
+      "",
+      "In [html/index.html](D:/GithubRepos/The-Fly/html/index.html:5), I removed the synchronous `<script src=\"webcrypto-shim.min.js\">` from the head. `sec_helpers.js` already lazy-loads that file when crypto is actually needed, so the fallback remains available.",
+      "",
+      "In [tools/package_web_assets.py](D:/GithubRepos/The-Fly/tools/package_web_assets.py:52), I made `webcrypto-shim.min.js` a deferred standalone packaged asset, then regenerated [inc/web_assets.h](D:/GithubRepos/The-Fly/inc/web_assets.h:6).",
+      "",
+      "Result:",
+      "- `index.html` went from `154903` compressed bytes to `25389`",
+      "- `webcrypto-shim.min.js` is now served separately at `129520` compressed bytes",
+      "- `pio run -e thefly_sec1` passes",
+      "",
+      "I left the Wi-Fi/AP start behavior alone. I also didn’t need `sterile_rebuild.py` here because the normal build clearly regenerated assets and completed cleanly."
+    ],
+    "files": [
+      "html/index.html",
+      "tools/package_web_assets.py",
+      "inc/web_assets.h",
+      "html/webcrypto-shim.min.js",
+      "html/sec_helpers.js",
+      "tools/sterile_rebuild.py"
+    ]
   }
 ]

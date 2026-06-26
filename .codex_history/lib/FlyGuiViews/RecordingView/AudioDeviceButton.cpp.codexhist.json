@@ -444,6 +444,123 @@
     "commit_hash": "82482e83565b8109bfc890f07011e5299937b293"
   },
   {
+    "timestamp": "2026-06-17T05:00:50.723Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/control_sgtl5000.cpp",
+      "",
+      "## Active selection of the file:",
+      "micGain",
+      "",
+      "## My request for Codex:",
+      "when the peaking levels are displayed on the LCD screen, is it linear or logarithmic?"
+    ],
+    "agent_reply": [
+      "It’s linear, not logarithmic.",
+      "",
+      "The LCD meter path is:",
+      "",
+      "- Mic meter: `AudioDeviceButton::drawAudioMeter()` calls `AudioManager::micScaledPeakLevel()`",
+      "- Speaker meter: same function calls `AudioManager::speakerPeakLevel()`",
+      "- The level becomes meter width here in [AudioDeviceButton.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/RecordingView/AudioDeviceButton.cpp:104):",
+      "",
+      "```cpp",
+      "half = (width / 2) * level / 100",
+      "```",
+      "",
+      "The peak-to-percent conversion is linear in both places:",
+      "",
+      "[MicGainManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/MicGainManager.cpp:568)",
+      "",
+      "```cpp",
+      "return min(100, peak * 100 / 32767);",
+      "```",
+      "",
+      "[SpeakerPeakActivity.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/SpeakerPeakActivity.cpp:129)",
+      "",
+      "```cpp",
+      "return min(100, peak * 100 / 32767);",
+      "```",
+      "",
+      "So a displayed `50%` means about half-scale PCM peak, not `-6 dBFS` rendered through a dB meter scale."
+    ],
+    "files": [
+      "lib/FlyGuiViews/RecordingView/AudioDeviceButton.cpp",
+      "lib/AudioManager/MicGainManager.cpp",
+      "lib/AudioManager/SpeakerPeakActivity.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-17T05:02:13.347Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/RecordingView/AudioDeviceButton.cpp",
+      "",
+      "## My request for Codex:",
+      "use a constant lookup table in flash, implement a conversion to make it respond like a dB meter"
+    ],
+    "agent_reply": [
+      "Implemented in [AudioDeviceButton.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/RecordingView/AudioDeviceButton.cpp:13).",
+      "",
+      "The audio peak APIs still return their existing linear 0-100 levels, but the LCD meter now maps that through a `PROGMEM` lookup table before drawing width/color. The table uses a 60 dB floor, so quiet signals become more visible and the top end compresses like a dB-style meter.",
+      "",
+      "`0` still maps to `0`; full scale maps to `100`.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "```"
+    ],
+    "files": [
+      "lib/FlyGuiViews/RecordingView/AudioDeviceButton.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-17T05:08:16.936Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/FlyGuiViews/RecordingView/AudioDeviceButton.cpp",
+      "",
+      "## Active selection of the file:",
+      "linearLevel",
+      "",
+      "## My request for Codex:",
+      "it seems like the minimum size of the bar is still very large, can you please adjust the curve?"
+    ],
+    "agent_reply": [
+      "Adjusted the LCD meter curve in [AudioDeviceButton.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/RecordingView/AudioDeviceButton.cpp:13).",
+      "",
+      "The old table made `1%` linear peak display as `33%`, which was the chunky minimum bar you were seeing. The new table is much gentler at the bottom:",
+      "",
+      "```text",
+      "1% -> 0%",
+      "2% -> 2%",
+      "5% -> 12%",
+      "10% -> 25%",
+      "50% -> 72%",
+      "100% -> 100%",
+      "```",
+      "",
+      "It still compresses like a dB-style meter, but tiny noise no longer turns into a huge visible bar.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec1",
+      "```"
+    ],
+    "files": [
+      "lib/FlyGuiViews/RecordingView/AudioDeviceButton.cpp"
+    ]
+  },
+  {
     "timestamp": "2026-06-17T08:10:59Z",
     "type": "git_commit",
     "commit_message": "mic tweaks, db scale peak display",

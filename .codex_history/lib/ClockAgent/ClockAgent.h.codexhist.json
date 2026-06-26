@@ -326,5 +326,35 @@
     "type": "git_commit",
     "commit_message": "internal clock needs to actually care about time zone",
     "commit_hash": "908cedb1fdb07553f3978c6c04843c7fb8c95a1b"
+  },
+  {
+    "timestamp": "2026-06-25T05:08:42.044Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: src/main.cpp",
+      "",
+      "## Active selection of the file:",
+      "    if (!Clock.begin())",
+      "    {",
+      "        DBG_LOGW(MAINTAG, \"clock initialization failed; will retry on demand\");",
+      "    }",
+      "",
+      "## My request for Codex:",
+      "move the highlighted code into `all_init()`"
+    ],
+    "agent_reply": [
+      "Moved it into [all_init.cpp](D:/GithubRepos/The-Fly/src/all_init.cpp:67), right after `init_m5()` so the RTC is available before `Clock.begin()` runs.",
+      "",
+      "Also removed the now-unused `ClockAgent.h` include from [main.cpp](D:/GithubRepos/The-Fly/src/main.cpp).",
+      "",
+      "Validation: `pio run -e thefly_sec1` passed."
+    ],
+    "files": [
+      "src/all_init.cpp",
+      "src/main.cpp",
+      "lib/ClockAgent/ClockAgent.h"
+    ]
   }
 ]

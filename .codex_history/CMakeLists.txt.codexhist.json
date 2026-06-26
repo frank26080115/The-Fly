@@ -293,5 +293,73 @@
     "type": "git_commit",
     "commit_message": "fixed crashing BT connection",
     "commit_hash": "96977720a364b68ccd0cbc2bc2f5cc4cb7c0b431"
+  },
+  {
+    "timestamp": "2026-06-13T06:49:08.493Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "I need to test the custom sdkconfig changes, solving the build error by removing the changes I made is not acceptable"
+    ],
+    "agent_reply": "",
+    "files": [
+      "tools/patch_pioarduino_custom_sdkconfig.py",
+      "platformio.ini",
+      "sdkconfig.thefly_sec1",
+      "CMakeLists.txt",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "src/main.cpp",
+      "iram0_overflow_problem/good_working_build/config/sdkconfig.h",
+      "managed_components/espressif__libsodium/CMakeLists.txt"
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T07:21:53.957Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: platformio.ini",
+      "",
+      "## My request for Codex:",
+      "why not just use `tools\\sterile_rebuild.py` as the solution?"
+    ],
+    "agent_reply": [
+      "Yes, you were right: `tools\\sterile_rebuild.py` is the right way to test this, because it removes stale `.pio\\build` and `sdkconfig.*` artifacts before regenerating from `platformio.ini`.",
+      "",
+      "The catch was that sterile rebuild only works if the custom-sdkconfig path is actually usable. I added the missing support around that:",
+      "",
+      "- [tools/patch_pioarduino_custom_sdkconfig.py](/d:/GithubRepos/The-Fly/tools/patch_pioarduino_custom_sdkconfig.py) patches the pioarduino builder edge cases for inherited `custom_sdkconfig` and generated Arduino component names.",
+      "- [CMakeLists.txt](/d:/GithubRepos/The-Fly/CMakeLists.txt:3) now detects the generated `framework-arduinoespressif32...` component name instead of hardcoding one.",
+      "- [platformio.ini](/d:/GithubRepos/The-Fly/platformio.ini:43) wires in the patch script and keeps your custom sdkconfig changes active.",
+      "",
+      "Verification passed:",
+      "",
+      "- `python tools\\sterile_rebuild.py -e thefly_sec1` succeeded.",
+      "- `pio run -e thefly_sec1` also succeeded afterward.",
+      "- Generated firmware: `.pio\\build\\thefly_sec1\\firmware.bin`, `3,324,992` bytes.",
+      "- Confirmed `.pio\\build\\thefly_sec1\\config\\sdkconfig.h` contains `#define CONFIG_MDNS_MEMORY_ALLOC_SPIRAM 1`.",
+      "",
+      "Only remaining build output is existing deprecation warnings; the IRAM overflow is gone."
+    ],
+    "files": [
+      "tools/sterile_rebuild.py",
+      "tools/patch_pioarduino_custom_sdkconfig.py",
+      "CMakeLists.txt",
+      "platformio.ini",
+      "lib/ESP-FTP-Server-Lib/platformio.ini",
+      "iram0_overflow_problem/good_working_build/config/sdkconfig.h",
+      "managed_components/espressif__esp-serial-flasher/examples/binaries/ESP32_AT_Firmware/Firmware.bin"
+    ]
+  },
+  {
+    "timestamp": "2026-06-14T00:08:57Z",
+    "type": "git_commit",
+    "commit_message": "fixed build problem about mdns ram",
+    "commit_hash": "c064f910cf606f6c8f63c8edaa47a338c67ae118"
   }
 ]

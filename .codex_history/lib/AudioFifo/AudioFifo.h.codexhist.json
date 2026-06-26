@@ -1385,5 +1385,44 @@
     "type": "git_commit",
     "commit_message": "small documentation corrections",
     "commit_hash": "871d8adf7eabb92f3c3d2b3967e30dc53a4502cb"
+  },
+  {
+    "timestamp": "2026-06-17T07:13:34.210Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.cpp",
+      "",
+      "## Active selection of the file:",
+      "inputSelect",
+      "",
+      "## My request for Codex:",
+      "when using line-in, which channel are we actually reading from? left or right?"
+    ],
+    "agent_reply": [
+      "We are reading both I2S channels from the SGTL5000, but when we collapse to mono we effectively prefer **left**, not right.",
+      "",
+      "The path is:",
+      "",
+      "- [ExtCodec.cpp](<D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:261>) names the no-inline-mic source as `LineInRight`.",
+      "- [ExtCodec.cpp](<D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:294>) configures SGTL5000 with `inputSelect(AUDIO_INPUT_LINEIN)` and sets both line-in ADC gains equally.",
+      "- [AudioManager.cpp](<D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:446>) reads external codec mic data into `g_stereo_buffer`, so both left/right samples come in interleaved.",
+      "- [AudioManager.cpp](<D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:498>) runs AGC/HPF over both interleaved channels.",
+      "- [AudioFifo.h](<D:/GithubRepos/The-Fly/lib/AudioFifo/AudioFifo.h:424>) then collapses stereo with:",
+      "",
+      "```cpp",
+      "return frame[0] != 0 ? frame[0] : frame[1];",
+      "```",
+      "",
+      "So, assuming normal I2S order where `frame[0]` is left and `frame[1]` is right: even though the source is named `LineInRight`, our actual mono path uses **left whenever left is nonzero**, and only falls back to right if left is exactly zero.",
+      "",
+      "That means if your real mic is on SGTL5000 line-in right, this is probably wrong/noisy unless left is guaranteed hard-zero."
+    ],
+    "files": [
+      "lib/ExtCodec/ExtCodec.cpp",
+      "lib/AudioManager/AudioManager.cpp",
+      "lib/AudioFifo/AudioFifo.h"
+    ]
   }
 ]

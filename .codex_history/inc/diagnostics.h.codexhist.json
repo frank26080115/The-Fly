@@ -162,5 +162,48 @@
     "type": "git_commit",
     "commit_message": "diagnostics, fixed a bug with speaker peak decay",
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
+  },
+  {
+    "timestamp": "2026-06-13T18:41:35.017Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/WifiManager/WifiManager.cpp",
+      "",
+      "## My request for Codex:",
+      "same behaviour as before",
+      "",
+      "your change has been reverted, moving a big file to another request would not work, if one big request breaks, two big requests will break, and it works on security level 0 so it's not the suspect",
+      "",
+      "to the diagnostics, break down the heap memory into internal and PSRAM, make the messages shorter by using shorter key names"
+    ],
+    "agent_reply": [
+      "Done. Diagnostics now tracks heap minima separately for:",
+      "",
+      "`ih_min` = internal 8-bit heap minimum  ",
+      "`ps_min` = PSRAM 8-bit heap minimum",
+      "",
+      "The line is shorter now, like:",
+      "",
+      "```text",
+      "diag t=07:51:12 stk_min=5636 ih_min=... ps_min=... c0=982.0 c1=535.0 fps=3.0 lw=0.0 i2si=0.0 i2so=0.0 fo=0.0 fu=0.0",
+      "```",
+      "",
+      "Changed [inc/diagnostics.h](D:/GithubRepos/The-Fly/inc/diagnostics.h:8) and [src/diagnostics.cpp](D:/GithubRepos/The-Fly/src/diagnostics.cpp:101).",
+      "",
+      "Verified with `pio run -e thefly_sec1`: build passes. It still emits the existing `SplashView.cpp` `fontHeight` deprecation warning, but nothing from this change."
+    ],
+    "files": [
+      "src/diagnostics.cpp",
+      "inc/diagnostics.h",
+      "lib/FlyGuiViews/SplashView.cpp"
+    ]
+  },
+  {
+    "timestamp": "2026-06-13T20:25:41Z",
+    "type": "git_commit",
+    "commit_message": "free'ed some RAM, sec1 build crashing maybe fixed",
+    "commit_hash": "9ae30e0240b8fe1396746d6f316af2686d52fbe3"
   }
 ]

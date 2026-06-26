@@ -169,5 +169,55 @@
     "type": "git_commit",
     "commit_message": "memory reset button on frontend",
     "commit_hash": "6c323e6238d7e839e5d67bc97b2fb014d52453b8"
+  },
+  {
+    "timestamp": "2026-06-26T05:36:56.749Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: secure_builds.ini",
+      "",
+      "## My request for Codex:",
+      "validate how `secure_builds.ini`  works with `platformio.ini`",
+      "",
+      "then add `custom_sdkconfig` to `secure_builds.ini` in a way that the security level 1 and above builds have flash encryption and uses secureboot"
+    ],
+    "agent_reply": [
+      "Implemented.",
+      "",
+      "`platformio.ini` loads `secure_builds.ini` via `extra_configs`, and the secure envs extend `env:thefly`, so they inherit the normal board/platform/build setup and only add security-level-specific config.",
+      "",
+      "I updated [secure_builds.ini](D:/GithubRepos/The-Fly/secure_builds.ini:1) so `thefly_sec1`, `thefly_sec2`, and `thefly_sec3` share a `custom_sdkconfig` block. It keeps the existing HFP/IRAM/memory SDK tweaks and adds Secure Boot v2 plus flash encryption release mode. `thefly` and `thefly_sec0` remain without `custom_sdkconfig`.",
+      "",
+      "I also added `secure_boot_signing_key.pem` to [.gitignore](D:/GithubRepos/The-Fly/.gitignore:89), since signed secure builds need a local private key that should not be committed.",
+      "",
+      "Validated with `pio project config --json-output`:",
+      "```text",
+      "env:thefly       custom=False secure=False",
+      "env:thefly_sec0  custom=False secure=False",
+      "env:thefly_sec1  custom=True  secure=True",
+      "env:thefly_sec2  custom=True  secure=True",
+      "env:thefly_sec3  custom=True  secure=True",
+      "```",
+      "",
+      "I did not run a full secure build because `secure_boot_signing_key.pem` does not exist yet. Generate it locally before building, for example:",
+      "```powershell",
+      "espsecure.py generate_signing_key --version 2 secure_boot_signing_key.pem",
+      "```",
+      "",
+      "One important hardware caveat: these settings are real Secure Boot and flash encryption settings; first boot on hardware can burn permanent eFuses."
+    ],
+    "files": [
+      "secure_builds.ini",
+      ".gitignore",
+      "lib/ESP-FTP-Server-Lib/platformio.ini"
+    ]
+  },
+  {
+    "timestamp": "2026-06-26T07:01:16Z",
+    "type": "git_commit",
+    "commit_message": "security build tools",
+    "commit_hash": "f249cafdf65f4c15debb4486bbba31e64283ad6b"
   }
 ]

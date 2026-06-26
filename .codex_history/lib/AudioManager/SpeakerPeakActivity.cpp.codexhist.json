@@ -368,5 +368,54 @@
     "type": "git_commit",
     "commit_message": "speaker peak decay rate increased",
     "commit_hash": "6e697099060bcd50fb5be6cd6db43626738e7669"
+  },
+  {
+    "timestamp": "2026-06-17T05:00:50.723Z",
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/control_sgtl5000.cpp",
+      "",
+      "## Active selection of the file:",
+      "micGain",
+      "",
+      "## My request for Codex:",
+      "when the peaking levels are displayed on the LCD screen, is it linear or logarithmic?"
+    ],
+    "agent_reply": [
+      "It’s linear, not logarithmic.",
+      "",
+      "The LCD meter path is:",
+      "",
+      "- Mic meter: `AudioDeviceButton::drawAudioMeter()` calls `AudioManager::micScaledPeakLevel()`",
+      "- Speaker meter: same function calls `AudioManager::speakerPeakLevel()`",
+      "- The level becomes meter width here in [AudioDeviceButton.cpp](D:/GithubRepos/The-Fly/lib/FlyGuiViews/RecordingView/AudioDeviceButton.cpp:104):",
+      "",
+      "```cpp",
+      "half = (width / 2) * level / 100",
+      "```",
+      "",
+      "The peak-to-percent conversion is linear in both places:",
+      "",
+      "[MicGainManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/MicGainManager.cpp:568)",
+      "",
+      "```cpp",
+      "return min(100, peak * 100 / 32767);",
+      "```",
+      "",
+      "[SpeakerPeakActivity.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/SpeakerPeakActivity.cpp:129)",
+      "",
+      "```cpp",
+      "return min(100, peak * 100 / 32767);",
+      "```",
+      "",
+      "So a displayed `50%` means about half-scale PCM peak, not `-6 dBFS` rendered through a dB meter scale."
+    ],
+    "files": [
+      "lib/FlyGuiViews/RecordingView/AudioDeviceButton.cpp",
+      "lib/AudioManager/MicGainManager.cpp",
+      "lib/AudioManager/SpeakerPeakActivity.cpp"
+    ]
   }
 ]
