@@ -208,6 +208,17 @@ ESPSECURE_PIP_PACKAGES = {
 }
 
 
+class PythonProbe:
+    def __init__(self, python: Path, missing_modules: list[str], import_error: str = "") -> None:
+        self.python = python
+        self.missing_modules = missing_modules
+        self.import_error = import_error
+
+    @property
+    def can_run_espsecure(self) -> bool:
+        return not self.missing_modules and not self.import_error
+
+
 def missing_espsecure_modules(python: Path) -> list[str]:
     if not python.exists():
         return list(ESPSECURE_IMPORT_MODULES)
@@ -231,9 +242,9 @@ def missing_espsecure_modules(python: Path) -> list[str]:
     return [line.strip() for line in completed.stdout.splitlines() if line.strip()]
 
 
-def python_can_run_espsecure(python: Path, espsecure: Path) -> bool:
-    if missing_espsecure_modules(python):
-        return False
+def espsecure_import_error(python: Path, espsecure: Path) -> str:
+    if not python.exists():
+        return f"missing Python executable: {python}"
 
     completed = subprocess.run(
         [
@@ -246,30 +257,54 @@ def python_can_run_espsecure(python: Path, espsecure: Path) -> bool:
             ),
         ],
         stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True,
     )
-    return completed.returncode == 0
+    if completed.returncode == 0:
+        return ""
+    return completed.stderr.strip()
+
+
+def probe_python_for_espsecure(python: Path, espsecure: Path) -> PythonProbe:
+    missing_modules = missing_espsecure_modules(python)
+    if missing_modules:
+        return PythonProbe(python, missing_modules)
+    return PythonProbe(python, missing_modules, espsecure_import_error(python, espsecure))
+
+
+def python_can_run_espsecure(python: Path, espsecure: Path) -> bool:
+    return probe_python_for_espsecure(python, espsecure).can_run_espsecure
 
 
 def python_executable(platformio_env: Any | None = None, espsecure: Path | None = None) -> str:
     espsecure = espsecure or find_espsecure(platformio_env)
     existing_candidates = [path for path in candidate_python_executables(platformio_env) if path.exists()]
-    for candidate in existing_candidates:
-        if python_can_run_espsecure(candidate, espsecure):
-            return str(candidate)
+    probes = [probe_python_for_espsecure(candidate, espsecure) for candidate in existing_candidates]
+    for probe in probes:
+        if probe.can_run_espsecure:
+            return str(probe.python)
 
-    missing_by_candidate = [
-        (candidate, missing_espsecure_modules(candidate)) for candidate in existing_candidates
-    ]
-    install_target, missing_modules = min(
-        missing_by_candidate,
-        key=lambda item: len(item[1]),
-        default=(Path(sys.executable), list(ESPSECURE_IMPORT_MODULES)),
-    )
-    missing_packages = [ESPSECURE_PIP_PACKAGES.get(module, module) for module in missing_modules]
+    if not probes:
+        raise BuildSecurityError("could not find any Python interpreters to run espsecure.py")
+
+    best_probe = min(probes, key=lambda probe: len(probe.missing_modules))
+    if best_probe.missing_modules:
+        missing_packages = [
+            ESPSECURE_PIP_PACKAGES.get(module, module) for module in best_probe.missing_modules
+        ]
+        raise BuildSecurityError(
+            "could not find a Python interpreter with the packages needed by espsecure.py\n"
+            f"Install them with: {best_probe.python} -m pip install {' '.join(missing_packages)}"
+        )
+
+    import_error = best_probe.import_error or "espsecure import failed without stderr output"
     raise BuildSecurityError(
-        "could not find a Python interpreter with the packages needed by espsecure.py\n"
-        f"Install them with: {install_target} -m pip install {' '.join(missing_packages)}"
+        "found Python packages for espsecure.py, but espsecure itself still failed to import\n"
+        f"Python: {best_probe.python}\n"
+        f"espsecure.py: {espsecure}\n"
+        f"Reproduce with: {best_probe.python} -c \"import sys; "
+        f"sys.path.insert(0, {str(espsecure.parent)!r}); import espsecure\"\n"
+        f"{import_error}"
     )
 
 
