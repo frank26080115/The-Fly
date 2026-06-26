@@ -23,6 +23,8 @@ ROOT = project_root()
 DEFAULT_KEY = ROOT / "secure_boot_signing_key.pem"
 SECURE_ENVS = ("thefly_sec1", "thefly_sec2", "thefly_sec3")
 DEFAULT_FLASH_BAUD = 921600
+SECURE_BOOT_V2_RSA_BITS = 3072
+SECURE_BOOT_V2_RSA_PUBLIC_EXPONENT = 65537
 SDKCONFIG_REQUIRED_FLAGS = (
     "CONFIG_SECURE_BOOT",
     "CONFIG_SECURE_BOOT_V2_ENABLED",
@@ -593,30 +595,81 @@ def remove_sdkconfig_files() -> None:
             path.unlink()
 
 
-def create_signing_key(key_path: Path, *, force: bool) -> None:
+def import_keygen_crypto() -> tuple[Any, Any]:
+    try:
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric import rsa
+    except ModuleNotFoundError as exc:
+        if exc.name and exc.name.partition(".")[0] == "cryptography":
+            raise BuildSecurityError(
+                "missing Python package 'cryptography' for local Secure Boot key generation\n"
+                "Install it with: python -m pip install cryptography"
+            ) from exc
+        raise
+    return rsa, serialization
+
+
+def generate_secure_boot_v2_rsa_key_pem() -> bytes:
+    rsa, serialization = import_keygen_crypto()
+    private_key = rsa.generate_private_key(
+        public_exponent=SECURE_BOOT_V2_RSA_PUBLIC_EXPONENT,
+        key_size=SECURE_BOOT_V2_RSA_BITS,
+    )
+    pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    validate_secure_boot_v2_rsa_key_pem(pem)
+    return pem
+
+
+def validate_secure_boot_v2_rsa_key_pem(pem: bytes) -> None:
+    rsa, serialization = import_keygen_crypto()
+    private_key = serialization.load_pem_private_key(pem, password=None)
+    if not isinstance(private_key, rsa.RSAPrivateKey):
+        raise BuildSecurityError("generated signing key is not an RSA private key")
+    if private_key.key_size != SECURE_BOOT_V2_RSA_BITS:
+        raise BuildSecurityError(
+            f"generated signing key is {private_key.key_size} bits, "
+            f"expected {SECURE_BOOT_V2_RSA_BITS}"
+        )
+    public_numbers = private_key.private_numbers().public_numbers
+    if public_numbers.e != SECURE_BOOT_V2_RSA_PUBLIC_EXPONENT:
+        raise BuildSecurityError(
+            "generated signing key uses public exponent "
+            f"{public_numbers.e}, expected {SECURE_BOOT_V2_RSA_PUBLIC_EXPONENT}"
+        )
+
+
+def write_signing_key_atomically(key_path: Path, pem: bytes, *, force: bool) -> None:
     if key_path.exists() and not force:
         raise BuildSecurityError(
             f"signing key already exists: {key_path}\n"
             f"Use --force-key only if you intentionally want to replace it."
         )
 
-    if key_path.exists():
-        key_path.unlink()
-
-    espsecure = find_espsecure()
-    python = python_executable(espsecure=espsecure)
     key_path.parent.mkdir(parents=True, exist_ok=True)
-    run_command(
-        [
-            python,
-            str(espsecure),
-            "generate_signing_key",
-            "--version",
-            "2",
-            str(key_path),
-        ]
-    )
-    print(f"created {key_path}")
+    temp_path = key_path.with_name(f".{key_path.name}.tmp")
+    if temp_path.exists():
+        temp_path.unlink()
+
+    try:
+        temp_path.write_bytes(pem)
+        try:
+            temp_path.chmod(0o600)
+        except OSError:
+            pass
+        os.replace(temp_path, key_path)
+    finally:
+        if temp_path.exists():
+            temp_path.unlink()
+
+
+def create_signing_key(key_path: Path, *, force: bool) -> None:
+    pem = generate_secure_boot_v2_rsa_key_pem()
+    write_signing_key_atomically(key_path, pem, force=force)
+    print(f"created Secure Boot v2 RSA-{SECURE_BOOT_V2_RSA_BITS} signing key: {key_path}")
 
 
 def parse_args() -> argparse.Namespace:
