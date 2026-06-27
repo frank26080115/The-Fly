@@ -22,4 +22,4 @@ Mic bias is 2 kilo-ohm internal plus 2.2 kilo-ohm external, driven with 3.0V
 
 Mic amplifier is set to 40 dB gain
 
-Noise gate level set to 3.0% of full scale
+Noise gate level set to 8.0% of full scale

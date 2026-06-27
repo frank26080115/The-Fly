@@ -34,3 +34,4 @@ extern void test_sgtl5000_pll_lock();
 extern void test_continuous_sine();
 extern void test_noisespectrumanalyzer();
 extern void test_extcodec_adc();
+extern void test_allmicgains();
