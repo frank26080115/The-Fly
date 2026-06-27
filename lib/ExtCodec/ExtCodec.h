@@ -47,6 +47,7 @@ MicInput    micInputForState(State value);
 const char* micInputName(MicInput value);
 bool        configureAnalogPathForState(State value);
 bool        setAdcNotchFilterEnabled(bool enabled);
+bool        setDedicatedMicGainDb(uint8_t gainDb);
 
 uint16_t earbudSenseRaw();
 uint16_t inlineMicSenseRaw();

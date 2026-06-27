@@ -173,6 +173,18 @@ bool FlyGuiText::setText(const char* text)
     return true;
 }
 
+void FlyGuiText::setTextColor(uint16_t color)
+{
+    if (textColor_ == color)
+    {
+        return;
+    }
+
+    textColor_ = color;
+    colorDirty_ = true;
+    setDirty();
+}
+
 void FlyGuiText::setClearOnUpdate(bool clearOnUpdate)
 {
     clearOnUpdate_ = clearOnUpdate;
@@ -188,14 +200,15 @@ bool FlyGuiText::redraw(bool forced)
 
     thefly_display.setTextSize(fontSize_);
     thefly_display.setTextFont(fontStyle_);
-    thefly_display.setTextColor(TFT_WHITE, TFT_BLACK);
+    thefly_display.setTextColor(textColor_, TFT_BLACK);
     thefly_display.setTextDatum(top_left);
 
-    if (forced || clearOnUpdate_)
+    if (forced || clearOnUpdate_ || colorDirty_)
     {
         thefly_display.fillRect(x(), y(), width(), height(), TFT_BLACK);
         thefly_display.drawString(text_, x(), y());
         updateRememberedText();
+        colorDirty_ = false;
         markClean();
         return true;
     }
@@ -231,6 +244,7 @@ bool FlyGuiText::redraw(bool forced)
     }
 
     updateRememberedText();
+    colorDirty_ = false;
     markClean();
     return drawn;
 }

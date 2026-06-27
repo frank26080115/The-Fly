@@ -22,13 +22,13 @@ use this file for preprocessor definitions that are used to configure parts of t
 //#define TEST_MOCK_SCRAMBLE_TIME
 //#define TEST_MOCK_EXT_CODEC
 //#define TEST_TEENSY_AUDIO_BRD
-#define TEST_NO_MIC_AGC
+//#define TEST_NO_MIC_AGC
 
 //#define BUILD_PERIODIC_DIAGNOSTICS
 //#define TEST_BUILD_SCREENSHOT // this is only used to generate screenshots for documentation purposes
 
 //#define BUILD_SILENCE_GAP_REMOVAL
-//#define BUILD_USE_MP3_COMPRESSION
+#define BUILD_USE_MP3_COMPRESSION
 //#define ENABLE_SOFTWARE_NOTCH_FILTER
 #define NS4168_USE_STEREO
 #define USE_LEDC_PWM_AS_MCLK
@@ -99,7 +99,10 @@ use this file for preprocessor definitions that are used to configure parts of t
 constexpr float    kSGTL5000DefaultHeadphoneVolume     = 105.0f / 129.0f; // HP_VOL 0x17, +0.5 dB.
 constexpr uint8_t  kSGTL5000DefaultLineInLevel         = 6;               // ADC_VOL in +1.5 dB step units
 constexpr uint8_t  kSGTL5000DefaultDedicatedMicGainDb  = 40;              // micGain() -> ADC_VOL +1.5 dB.
+constexpr uint8_t  kSGTL5000MaximumDedicatedMicGainDb  = 63;              // Maximum SGTL5000 micGain() setting.
 constexpr uint16_t kInlineMicSilenceGateThresholdPercentX10    = 80;      // 8.0% of full scale.
+constexpr uint16_t kInlineMicMaximumGainSilenceGateThresholdPercentX10 = 100; // 10.0% of full scale.
+constexpr uint16_t kInlineMicMaximumGainEnterThresholdPercentX10 = 8;      // 0.8% of full scale.
 constexpr uint16_t kLineInRightSilenceGateThresholdPercentX10  = 8;       // 0.8% of full scale.
 
 #if defined(DBG_LOG_LOCAL_LEVEL) && DBG_LOG_LOCAL_LEVEL > DBG_LOG_ERROR

@@ -9,6 +9,7 @@
 #include "BluetoothManager.h"
 #include "CallManager.h"
 #include "ExtCodec.h"
+#include "MicGainManager.h"
 #include "ModalDialog.h"
 #include "RecordingViewCallbacks.h"
 #include "sprites.h"
@@ -41,6 +42,7 @@ constexpr uint8_t  kDurationTextFont   = 4;
 constexpr float    kCallerInfoTextSize = 1.0f;
 constexpr uint8_t  kCallerInfoTextFont = 2;
 constexpr uint32_t kCallerInfoCycleMs  = 3000;
+constexpr const char* kWeakInlineMicWarning = "earbud mic too weak";
 
 // -----------------------------------------------------------------------------
 // Function Prototypes
@@ -528,6 +530,26 @@ void RecordingView::syncText()
     {
         lastDurationSecond_ = elapsedSecond;
         durationText_.setDirty();
+    }
+
+    if (MicGainManager::inlineMicMaximumGainMode())
+    {
+        callerInfoWarningActive_ = true;
+        callerInfoText_.setTextColor(TFT_RED);
+        callerInfoText_.setText(kWeakInlineMicWarning);
+        return;
+    }
+
+    if (callerInfoWarningActive_)
+    {
+        callerInfoWarningActive_ = false;
+        callerInfoText_.setTextColor(TFT_WHITE);
+        callerInfoText_.setText("");
+        nextCallerInfoCycleMs_ = 0;
+    }
+    else
+    {
+        callerInfoText_.setTextColor(TFT_WHITE);
     }
 
     if (mode_ != Mode::Bluetooth)

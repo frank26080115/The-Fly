@@ -327,6 +327,21 @@ bool setAdcNotchFilterEnabled(bool enabled)
     #endif
 }
 
+bool setDedicatedMicGainDb(uint8_t gainDb)
+{
+    std::lock_guard<std::mutex> lock(g_codec_mutex);
+    #ifdef TEST_MOCK_EXT_CODEC
+    (void)gainDb;
+    return available();
+    #else
+    if (!available())
+    {
+        return false;
+    }
+    return g_codec.micGain(gainDb);
+    #endif
+}
+
 uint16_t earbudSenseRaw()
 {
     #ifndef TEST_MOCK_EXT_CODEC

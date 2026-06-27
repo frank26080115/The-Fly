@@ -89,6 +89,8 @@ P2TMode           g_mode                   = P2TMode::Stopped;
 SpeakerPath       g_speaker_path           = SpeakerPath::None;
 ExtCodec::State   g_synced_ext_codec_state = ExtCodec::EXTCODEC_UNAVAIL;
 bool              g_ext_codec_route_synced = false;
+bool              g_inline_mic_gain_mode_synced = false;
+MicGainManager::InlineMicGainMode g_synced_inline_mic_gain_mode = MicGainManager::InlineMicGainMode::Normal;
 bool              g_force_ext_codec_line_in_right_mic = false;
 bool              g_force_external_headphone_for_ext_codec = false;
 bool              g_force_internal_speaker_for_ext_codec = false;
@@ -152,7 +154,11 @@ bool   enable_exti2scodec(P2TMode nextMode, uint32_t sampleRateHz = kSampleRateH
 bool   ensure_exti2scodec_i2s(uint32_t sampleRateHz);
 bool   sync_external_codec_routing();
 void   sync_mic_filter_for_external_codec_state(ExtCodec::State state);
+bool   sync_inline_mic_gain_mode_for_external_codec_state(ExtCodec::State state);
 ExtCodec::State external_codec_route_state(ExtCodec::State current);
+uint16_t inline_mic_silence_gate_threshold_percent_x10(MicGainManager::InlineMicGainMode mode);
+uint8_t inline_mic_sgtl5000_gain_db(MicGainManager::InlineMicGainMode mode);
+const char* inline_mic_gain_mode_name(MicGainManager::InlineMicGainMode mode);
 bool   ns4168_required_for_speaker();
 bool   sync_speaker_output_for_external_codec_state();
 uint32_t current_i2s_sample_rate_or_default();
@@ -198,6 +204,7 @@ bool init(Hardware hardware)
     g_hardware = hardware;
     g_synced_ext_codec_state = ExtCodec::EXTCODEC_UNAVAIL;
     g_ext_codec_route_synced = false;
+    g_inline_mic_gain_mode_synced = false;
 
     if (!begin_fifos())
     {
@@ -287,7 +294,9 @@ bool syncExternalCodecRouting()
 
     if (g_hardware != Hardware::ExternalI2SCodec || !ExtCodec::available())
     {
+        MicGainManager::setInlineMicGainModeEnabled(false);
         MicGainManager::setOutputNotchFilterEnabled(false);
+        g_inline_mic_gain_mode_synced = false;
         return true;
     }
 
@@ -339,6 +348,7 @@ void setExternalCodecMicOverride(ExternalCodecMicOverride overrideMode)
     g_force_ext_codec_line_in_right_mic = overrideMode == ExternalCodecMicOverride::LineInRight;
     g_ext_codec_mic_override            = overrideMode;
     g_ext_codec_route_synced            = false;
+    g_inline_mic_gain_mode_synced       = false;
 }
 
 ExternalCodecMicOverride externalCodecMicOverride()
@@ -606,6 +616,7 @@ void pump_mic2bt()
                 });
             notify_ready = notify_ready || should_notify_hfp_outgoing_ready(queued_bt, true);
         }
+        sync_inline_mic_gain_mode_for_external_codec_state(external_codec_route_state(ExtCodec::state()));
     }
     else
     {
@@ -1134,6 +1145,7 @@ bool enable_spm1423_mic()
     }
 
     MicGainManager::setHighPassFilterEnabled(false);
+    MicGainManager::setInlineMicGainModeEnabled(false);
     MicGainManager::setOutputNotchFilterEnabled(false);
     MicGainManager::ignoreSamplesFor();
     g_i2s_config         = I2sConfig::InternalPdm;
@@ -1231,6 +1243,8 @@ bool sync_external_codec_routing()
     {
         g_synced_ext_codec_state = ExtCodec::EXTCODEC_UNAVAIL;
         g_ext_codec_route_synced = false;
+        g_inline_mic_gain_mode_synced = false;
+        MicGainManager::setInlineMicGainModeEnabled(false);
         return false;
     }
 
@@ -1239,7 +1253,7 @@ bool sync_external_codec_routing()
     sync_mic_filter_for_external_codec_state(route_state);
     if (g_ext_codec_route_synced && g_synced_ext_codec_state == route_state)
     {
-        return true;
+        return sync_inline_mic_gain_mode_for_external_codec_state(route_state);
     }
 
     if (!ExtCodec::configureAnalogPathForState(route_state))
@@ -1250,7 +1264,8 @@ bool sync_external_codec_routing()
 
     g_synced_ext_codec_state = route_state;
     g_ext_codec_route_synced = true;
-    return true;
+    g_inline_mic_gain_mode_synced = false;
+    return sync_inline_mic_gain_mode_for_external_codec_state(route_state);
 }
 
 void sync_mic_filter_for_external_codec_state(ExtCodec::State state)
@@ -1258,18 +1273,79 @@ void sync_mic_filter_for_external_codec_state(ExtCodec::State state)
     const ExtCodec::MicInput input = ExtCodec::micInputForState(state);
     const bool enable_high_pass_filter = input == ExtCodec::MicInput::LineInRight ||
                                          input == ExtCodec::MicInput::DedicatedMic;
+    const bool inline_mic = input == ExtCodec::MicInput::DedicatedMic;
     const uint16_t silence_gate_threshold_percent_x10 =
-        input == ExtCodec::MicInput::DedicatedMic ? kInlineMicSilenceGateThresholdPercentX10
-                                                  : kLineInRightSilenceGateThresholdPercentX10;
+        inline_mic ? inline_mic_silence_gate_threshold_percent_x10(MicGainManager::inlineMicGainMode())
+                   : kLineInRightSilenceGateThresholdPercentX10;
     MicGainManager::setHighPassFilterEnabled(enable_high_pass_filter);
+    MicGainManager::setInlineMicGainModeEnabled(inline_mic);
     MicGainManager::setOutputNotchFilterEnabled(false);
-    MicGainManager::setSilenceGateThresholdPercentX10(
-        #ifndef TEST_NO_MIC_AGC
-        silence_gate_threshold_percent_x10
-        #else
-        0
-        #endif
-    );
+    MicGainManager::setSilenceGateThresholdPercentX10(silence_gate_threshold_percent_x10);
+}
+
+bool sync_inline_mic_gain_mode_for_external_codec_state(ExtCodec::State state)
+{
+    if (ExtCodec::micInputForState(state) != ExtCodec::MicInput::DedicatedMic)
+    {
+        MicGainManager::setInlineMicGainModeEnabled(false);
+        g_inline_mic_gain_mode_synced = false;
+        return true;
+    }
+
+    MicGainManager::setInlineMicGainModeEnabled(true);
+
+    const MicGainManager::InlineMicGainMode mode = MicGainManager::inlineMicGainMode();
+    const uint16_t silence_gate_threshold_percent_x10 = inline_mic_silence_gate_threshold_percent_x10(mode);
+    MicGainManager::setSilenceGateThresholdPercentX10(silence_gate_threshold_percent_x10);
+
+    if (g_inline_mic_gain_mode_synced && g_synced_inline_mic_gain_mode == mode)
+    {
+        return true;
+    }
+
+    const uint8_t gain_db = inline_mic_sgtl5000_gain_db(mode);
+    if (!ExtCodec::setDedicatedMicGainDb(gain_db))
+    {
+        DBG_LOGW(TAG, "failed to set inline SGTL5000 mic gain to %u dB", static_cast<unsigned>(gain_db));
+        return false;
+    }
+
+    DBG_LOGI(TAG,
+             "inline mic gain mode=%s gain=%u dB gate=%u.%u%%",
+             inline_mic_gain_mode_name(mode),
+             static_cast<unsigned>(gain_db),
+             static_cast<unsigned>(silence_gate_threshold_percent_x10 / 10U),
+             static_cast<unsigned>(silence_gate_threshold_percent_x10 % 10U));
+
+    g_synced_inline_mic_gain_mode = mode;
+    g_inline_mic_gain_mode_synced = true;
+    return true;
+}
+
+uint16_t inline_mic_silence_gate_threshold_percent_x10(MicGainManager::InlineMicGainMode mode)
+{
+    return mode == MicGainManager::InlineMicGainMode::Maximum
+               ? kInlineMicMaximumGainSilenceGateThresholdPercentX10
+               : kInlineMicSilenceGateThresholdPercentX10;
+}
+
+uint8_t inline_mic_sgtl5000_gain_db(MicGainManager::InlineMicGainMode mode)
+{
+    return mode == MicGainManager::InlineMicGainMode::Maximum ? kSGTL5000MaximumDedicatedMicGainDb
+                                                              : kSGTL5000DefaultDedicatedMicGainDb;
+}
+
+const char* inline_mic_gain_mode_name(MicGainManager::InlineMicGainMode mode)
+{
+    switch (mode)
+    {
+    case MicGainManager::InlineMicGainMode::Normal:
+        return "normal";
+    case MicGainManager::InlineMicGainMode::Maximum:
+        return "maximum";
+    default:
+        return "unknown";
+    }
 }
 
 ExtCodec::State external_codec_route_state(ExtCodec::State current)
@@ -1537,8 +1613,7 @@ bool mic_input_active()
 bool external_codec_mic_uses_line_in_right()
 {
     return g_hardware == Hardware::ExternalI2SCodec &&
-           (g_force_ext_codec_line_in_right_mic ||
-            ExtCodec::micInputForState(ExtCodec::state()) == ExtCodec::MicInput::LineInRight);
+           ExtCodec::micInputForState(external_codec_route_state(ExtCodec::state())) == ExtCodec::MicInput::LineInRight;
 }
 
 void copy_right_channel_to_mono(const int16_t* interleavedSamples, int16_t* monoSamples, size_t frameCount)

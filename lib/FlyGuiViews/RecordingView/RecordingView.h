@@ -75,5 +75,6 @@ private:
     size_t            callerInfoIndex_        = 0;
     uint32_t          extCodecStateGeneration_ = UINT32_MAX;
     bool              bluetoothIconConnected_ = true;
+    bool              callerInfoWarningActive_ = false;
     bool              frameDirty_             = true;
 };

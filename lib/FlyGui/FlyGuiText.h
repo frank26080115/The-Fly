@@ -27,6 +27,7 @@ public:
     {
         return text_;
     }
+    void setTextColor(uint16_t color);
     void setClearOnUpdate(bool clearOnUpdate);
 
     bool redraw(bool forced) override;
@@ -45,10 +46,12 @@ private:
 
     float   fontSize_      = 1.0f;
     uint8_t fontStyle_     = 1;
+    uint16_t textColor_    = TFT_WHITE;
     size_t  maxLength_     = 0;
     char*   text_          = nullptr;
     char*   drawnText_     = nullptr;
     bool    clearOnUpdate_ = false;
+    bool    colorDirty_    = false;
 };
 
 class FlyGuiDateTime : public FlyGuiText

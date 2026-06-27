@@ -14,6 +14,12 @@ static constexpr float    kMaxGain                  = 3.0f;
 static constexpr float    kInitialGain              = 1.5f;
 static constexpr uint32_t kStartupTransientIgnoreMs = 200;
 
+enum class InlineMicGainMode : uint8_t
+{
+    Normal,
+    Maximum,
+};
+
 void init();
 
 // Processes mono signed 16-bit PCM in place. Passing nullptr with sampleCount 0
@@ -33,6 +39,11 @@ bool outputNotchFilterEnabled();
 void     setSilenceGateThresholdPercentX10(uint16_t thresholdPercentX10);
 uint16_t silenceGateThresholdPercentX10();
 uint16_t silenceGateThreshold();
+
+void              setInlineMicGainModeEnabled(bool enabled);
+bool              inlineMicGainModeEnabled();
+InlineMicGainMode inlineMicGainMode();
+bool              inlineMicMaximumGainMode();
 
 void setFixedGainMode(bool enabled);
 bool fixedGainMode();

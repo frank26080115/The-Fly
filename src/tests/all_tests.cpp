@@ -30,5 +30,5 @@ void run_test()
     // test_continuous_sine();
     // test_noisespectrumanalyzer();
     // test_extcodec_adc();
-    test_allmicgains();
+    // test_allmicgains();
 }
