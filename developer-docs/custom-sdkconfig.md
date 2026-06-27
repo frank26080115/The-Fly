@@ -90,9 +90,12 @@ To explain what this does:
     CONFIG_SECURE_FLASH_ENCRYPTION_MODE_RELEASE=y
     CONFIG_SECURE_FLASH_ENCRYPT_ONLY_IMAGE_LEN_IN_APP_PART=y
     CONFIG_SECURE_FLASH_CHECK_ENC_EN_IN_APP=y
+    CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
+    CONFIG_BOOTLOADER_APP_ANTI_ROLLBACK=y
+    CONFIG_BOOTLOADER_APP_SECURE_VERSION=1
+    CONFIG_BOOTLOADER_APP_SEC_VER_SIZE_EFUSE_FIELD=32
 ```
 
-When these custom configuration items exist in the `custom_sdkconfig`, the flash memory will become encrypted and the firmware will need to be securely signed.
+When these custom configuration items exist in the `custom_sdkconfig`, the flash memory will become encrypted and the firmware will need to be securely signed, with anti-rollback enabled.
 
-But when using PlatformIO, the signing of the firmware isn't automatic. Please use `tools\build_security.py` to properly build firmware with security features.
-That script uses PlatformIO's `espsecure.py`, which may need Python packages from `scripts\requirements.txt` installed into the Python environment reported by the script.
+But when using PlatformIO, the signing of the firmware isn't automatic. Please use `tools\build_security.py` to properly build firmware with security features. That script uses PlatformIO's `espsecure.py`, which may need Python packages from `scripts\requirements.txt` installed into the Python environment reported by the script.
