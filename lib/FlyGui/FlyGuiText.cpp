@@ -203,10 +203,11 @@ bool FlyGuiText::redraw(bool forced)
     thefly_display.setTextColor(textColor_, TFT_BLACK);
     thefly_display.setTextDatum(top_left);
 
-    if (forced || clearOnUpdate_ || colorDirty_)
+    const bool multiline = hasNewline(text_) || hasNewline(drawnText_);
+    if (forced || clearOnUpdate_ || colorDirty_ || multiline)
     {
         thefly_display.fillRect(x(), y(), width(), height(), TFT_BLACK);
-        thefly_display.drawString(text_, x(), y());
+        drawTextBlock();
         updateRememberedText();
         colorDirty_ = false;
         markClean();
@@ -264,6 +265,50 @@ void FlyGuiText::updateRememberedText()
     drawnText_[maxLength_] = '\0';
 }
 
+void FlyGuiText::drawTextBlock()
+{
+    if (!text_)
+    {
+        return;
+    }
+
+    int32_t lineY = y();
+    char*   start = text_;
+    while (start && *start != '\0')
+    {
+        char* end = start;
+        while (*end != '\0' && *end != '\r' && *end != '\n')
+        {
+            ++end;
+        }
+
+        const char saved = *end;
+        *end             = '\0';
+        if (*start != '\0')
+        {
+            thefly_display.drawString(start, x(), lineY);
+        }
+        *end = saved;
+
+        if (saved == '\0')
+        {
+            break;
+        }
+
+        lineY += lineHeight();
+        if (lineY >= y() + height())
+        {
+            break;
+        }
+
+        start = end + 1;
+        if (saved == '\r' && *start == '\n')
+        {
+            ++start;
+        }
+    }
+}
+
 void FlyGuiText::drawTextRun(size_t start, size_t end)
 {
     const int32_t originX    = x() + textPrefixWidth(text_, start);
@@ -296,6 +341,17 @@ int32_t FlyGuiText::textPrefixWidth(const char* text, size_t length) const
 int32_t FlyGuiText::textHeight() const
 {
     return height() > 0 ? height() : static_cast<int32_t>(fontSize_ * 8.0f) + 4;
+}
+
+int32_t FlyGuiText::lineHeight() const
+{
+    const int32_t height = thefly_display.fontHeight();
+    return height > 0 ? height : static_cast<int32_t>(fontSize_ * 8.0f) + 4;
+}
+
+bool FlyGuiText::hasNewline(const char* text) const
+{
+    return text && (strchr(text, '\r') || strchr(text, '\n'));
 }
 
 FlyGuiDateTime::FlyGuiDateTime(int16_t x, int16_t y, int16_t width, int16_t height, float fontSize, uint8_t fontStyle)

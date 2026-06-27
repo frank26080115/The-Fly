@@ -59,8 +59,8 @@ constexpr uint16_t kDefaultSilenceGateThresholdPercentX10 =
                                             #endif
 constexpr uint32_t kSilenceGateDurationMs    = 500;
 constexpr uint32_t kSilenceGateSampleLimit   = (kNominalSampleRateHz * kSilenceGateDurationMs) / 1000U;
-constexpr uint16_t kInlineMicMaximumGainEnterThreshold =
-    (kMaxSampleMagnitude * static_cast<uint32_t>(kInlineMicMaximumGainEnterThresholdPercentX10)) / 1000U;
+constexpr uint16_t kInlineMicWeakSignalThreshold =
+    (kMaxSampleMagnitude * static_cast<uint32_t>(kInlineMicWeakSignalThresholdPercentX10)) / 1000U;
 
 std::mutex g_mutex;
 
@@ -90,9 +90,9 @@ bool     g_silence_gate_active       = false;
 uint16_t g_silence_gate_threshold_percent_x10 = kDefaultSilenceGateThresholdPercentX10;
 uint16_t g_silence_gate_threshold =
     (kMaxSampleMagnitude * static_cast<uint32_t>(kDefaultSilenceGateThresholdPercentX10)) / 1000U;
-bool              g_inline_mic_gain_mode_enabled = false;
-InlineMicGainMode g_inline_mic_gain_mode         = InlineMicGainMode::Normal;
-uint32_t          g_inline_mic_max_gain_sample_count = 0;
+bool     g_inline_mic_weak_detection_enabled = false;
+bool     g_inline_mic_weak_detected          = false;
+uint32_t g_inline_mic_weak_sample_count      = 0;
 
 // -----------------------------------------------------------------------------
 // Function Prototypes
@@ -106,10 +106,9 @@ static void     apply_output_filter(int16_t* samples, size_t sampleCount);
 static void     reset_output_filter_state();
 static void     reset_high_pass_filter_state();
 static void     reset_silence_gate_state();
-static void     reset_inline_mic_gain_mode_state();
-static void     reset_inline_mic_max_gain_detection();
+static void     reset_inline_mic_weak_detection_state();
 static void     update_silence_gate(int16_t sample);
-static void     update_inline_mic_gain_mode(int16_t sample);
+static void     update_inline_mic_weak_detection(int16_t sample);
 static uint16_t threshold_from_percent_x10(uint16_t thresholdPercentX10);
 static bool     zero_crossed(int16_t sample);
 static uint16_t target_peak_for_state();
@@ -171,7 +170,7 @@ void process(int16_t* samples, size_t sampleCount)
         const int16_t raw_sample = samples[i];
         const int16_t hpf_sample = high_pass_filter(raw_sample);
         update_silence_gate(hpf_sample);
-        update_inline_mic_gain_mode(hpf_sample);
+        update_inline_mic_weak_detection(hpf_sample);
         if (ignoring)
         {
             samples[i] = 0;
@@ -298,13 +297,9 @@ void setSilenceGateThresholdPercentX10(uint16_t thresholdPercentX10)
         return;
     }
 
-    const uint16_t previous_threshold_percent_x10 = g_silence_gate_threshold_percent_x10;
     g_silence_gate_threshold_percent_x10 = thresholdPercentX10;
     g_silence_gate_threshold             = threshold_from_percent_x10(thresholdPercentX10);
-    if (thresholdPercentX10 < previous_threshold_percent_x10)
-    {
-        reset_silence_gate_state();
-    }
+    reset_silence_gate_state();
 }
 
 uint16_t silenceGateThresholdPercentX10()
@@ -319,34 +314,28 @@ uint16_t silenceGateThreshold()
     return g_silence_gate_threshold;
 }
 
-void setInlineMicGainModeEnabled(bool enabled)
+void setInlineMicWeakDetectionEnabled(bool enabled)
 {
     std::lock_guard<std::mutex> lock(g_mutex);
-    if (g_inline_mic_gain_mode_enabled == enabled)
+    if (g_inline_mic_weak_detection_enabled == enabled)
     {
         return;
     }
 
-    g_inline_mic_gain_mode_enabled = enabled;
-    reset_inline_mic_gain_mode_state();
+    g_inline_mic_weak_detection_enabled = enabled;
+    reset_inline_mic_weak_detection_state();
 }
 
-bool inlineMicGainModeEnabled()
+bool inlineMicWeakDetectionEnabled()
 {
     std::lock_guard<std::mutex> lock(g_mutex);
-    return g_inline_mic_gain_mode_enabled;
+    return g_inline_mic_weak_detection_enabled;
 }
 
-InlineMicGainMode inlineMicGainMode()
+bool inlineMicWeakDetected()
 {
     std::lock_guard<std::mutex> lock(g_mutex);
-    return g_inline_mic_gain_mode;
-}
-
-bool inlineMicMaximumGainMode()
-{
-    std::lock_guard<std::mutex> lock(g_mutex);
-    return g_inline_mic_gain_mode == InlineMicGainMode::Maximum;
+    return g_inline_mic_weak_detected;
 }
 
 void setFixedGainMode(bool enabled)
@@ -504,8 +493,8 @@ void init_unlocked()
     g_have_hpf_state  = false;
     g_have_last_hpf   = false;
     g_ignore_until_ms = 0;
-    g_inline_mic_gain_mode_enabled = false;
-    reset_inline_mic_gain_mode_state();
+    g_inline_mic_weak_detection_enabled = false;
+    reset_inline_mic_weak_detection_state();
     reset_output_filter_state();
     g_silence_gate_threshold_percent_x10 = kDefaultSilenceGateThresholdPercentX10;
     g_silence_gate_threshold             = threshold_from_percent_x10(kDefaultSilenceGateThresholdPercentX10);
@@ -584,17 +573,6 @@ void reset_silence_gate_state()
     g_silence_gate_active       = false;
 }
 
-void reset_inline_mic_gain_mode_state()
-{
-    g_inline_mic_gain_mode = InlineMicGainMode::Normal;
-    reset_inline_mic_max_gain_detection();
-}
-
-void reset_inline_mic_max_gain_detection()
-{
-    g_inline_mic_max_gain_sample_count = 0;
-}
-
 void update_silence_gate(int16_t sample)
 {
     if (sample_abs_peak(sample) > g_silence_gate_threshold)
@@ -610,26 +588,32 @@ void update_silence_gate(int16_t sample)
     g_silence_gate_active = g_silence_gate_sample_count > kSilenceGateSampleLimit;
 }
 
-void update_inline_mic_gain_mode(int16_t sample)
+void reset_inline_mic_weak_detection_state()
 {
-    if (!g_inline_mic_gain_mode_enabled || g_inline_mic_gain_mode != InlineMicGainMode::Normal)
+    g_inline_mic_weak_detected     = false;
+    g_inline_mic_weak_sample_count = 0;
+}
+
+void update_inline_mic_weak_detection(int16_t sample)
+{
+    if (!g_inline_mic_weak_detection_enabled || g_inline_mic_weak_detected)
     {
         return;
     }
 
-    if (sample_abs_peak(sample) > kInlineMicMaximumGainEnterThreshold)
+    if (sample_abs_peak(sample) > kInlineMicWeakSignalThreshold)
     {
-        reset_inline_mic_max_gain_detection();
+        g_inline_mic_weak_sample_count = 0;
         return;
     }
 
-    if (g_inline_mic_max_gain_sample_count <= kSilenceGateSampleLimit)
+    if (g_inline_mic_weak_sample_count <= kSilenceGateSampleLimit)
     {
-        ++g_inline_mic_max_gain_sample_count;
+        ++g_inline_mic_weak_sample_count;
     }
-    if (g_inline_mic_max_gain_sample_count > kSilenceGateSampleLimit)
+    if (g_inline_mic_weak_sample_count > kSilenceGateSampleLimit)
     {
-        g_inline_mic_gain_mode = InlineMicGainMode::Maximum;
+        g_inline_mic_weak_detected = true;
     }
 }
 

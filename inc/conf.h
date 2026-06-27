@@ -99,10 +99,8 @@ use this file for preprocessor definitions that are used to configure parts of t
 constexpr float    kSGTL5000DefaultHeadphoneVolume     = 105.0f / 129.0f; // HP_VOL 0x17, +0.5 dB.
 constexpr uint8_t  kSGTL5000DefaultLineInLevel         = 6;               // ADC_VOL in +1.5 dB step units
 constexpr uint8_t  kSGTL5000DefaultDedicatedMicGainDb  = 40;              // micGain() -> ADC_VOL +1.5 dB.
-constexpr uint8_t  kSGTL5000MaximumDedicatedMicGainDb  = 63;              // Maximum SGTL5000 micGain() setting.
 constexpr uint16_t kInlineMicSilenceGateThresholdPercentX10    = 80;      // 8.0% of full scale.
-constexpr uint16_t kInlineMicMaximumGainSilenceGateThresholdPercentX10 = 100; // 10.0% of full scale.
-constexpr uint16_t kInlineMicMaximumGainEnterThresholdPercentX10 = 8;      // 0.8% of full scale.
+constexpr uint16_t kInlineMicWeakSignalThresholdPercentX10 = 8;            // 0.8% of full scale.
 constexpr uint16_t kLineInRightSilenceGateThresholdPercentX10  = 8;       // 0.8% of full scale.
 
 #if defined(DBG_LOG_LOCAL_LEVEL) && DBG_LOG_LOCAL_LEVEL > DBG_LOG_ERROR

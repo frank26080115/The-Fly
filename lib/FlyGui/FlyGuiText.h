@@ -40,9 +40,12 @@ protected:
     }
 
 private:
+    void    drawTextBlock();
     void    drawTextRun(size_t start, size_t end);
     int32_t textPrefixWidth(const char* text, size_t length) const;
     int32_t textHeight() const;
+    int32_t lineHeight() const;
+    bool    hasNewline(const char* text) const;
 
     float   fontSize_      = 1.0f;
     uint8_t fontStyle_     = 1;

@@ -17,6 +17,7 @@ enum State : uint8_t
     EXTCODEC_NO_EARBUD,
     EXTCODEC_YES_EARBUD,
     EXTCODEC_YES_EARBUD_WITH_MIC,
+    EXTCODEC_YES_EARBUD_W_WEAK_MIC,
 };
 
 enum class MicInput : uint8_t
@@ -37,17 +38,18 @@ const char* stateName(State value);
 
 bool earbudPresent();
 bool inlineMicPresent();
+bool inlineMicWeak();
 bool fullDuplexAvailable();
 bool pushToTalkRequired();
 bool pllLocked();
 bool readChipAnaStatus(uint16_t& status);
 bool start_ledc_mclk();
+bool markInlineMicWeak();
 
 MicInput    micInputForState(State value);
 const char* micInputName(MicInput value);
 bool        configureAnalogPathForState(State value);
 bool        setAdcNotchFilterEnabled(bool enabled);
-bool        setDedicatedMicGainDb(uint8_t gainDb);
 
 uint16_t earbudSenseRaw();
 uint16_t inlineMicSenseRaw();

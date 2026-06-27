@@ -77,6 +77,7 @@ void     adc_task(void*);
 void     poll_adc_state();
 State    read_adc_state_sample();
 void     apply_adc_state_sample(State sample);
+State    adc_sample_for_current_state(State sample);
 void     reset_adc_state_samples();
 void     set_state(State next);
 void     set_event_bits(EventBits_t bits);
@@ -179,6 +180,8 @@ const char* stateName(State value)
         return "EXTCODEC_YES_EARBUD";
     case EXTCODEC_YES_EARBUD_WITH_MIC:
         return "EXTCODEC_YES_EARBUD_WITH_MIC";
+    case EXTCODEC_YES_EARBUD_W_WEAK_MIC:
+        return "EXTCODEC_YES_EARBUD_W_WEAK_MIC";
     default:
         return "UNKNOWN";
     }
@@ -191,12 +194,18 @@ const char* stateName(State value)
 bool earbudPresent()
 {
     const State current = state();
-    return current == EXTCODEC_YES_EARBUD || current == EXTCODEC_YES_EARBUD_WITH_MIC;
+    return current == EXTCODEC_YES_EARBUD || current == EXTCODEC_YES_EARBUD_WITH_MIC ||
+           current == EXTCODEC_YES_EARBUD_W_WEAK_MIC;
 }
 
 bool inlineMicPresent()
 {
     return state() == EXTCODEC_YES_EARBUD_WITH_MIC;
+}
+
+bool inlineMicWeak()
+{
+    return state() == EXTCODEC_YES_EARBUD_W_WEAK_MIC;
 }
 
 bool fullDuplexAvailable()
@@ -267,6 +276,22 @@ bool start_ledc_mclk()
     return true;
 }
 
+bool markInlineMicWeak()
+{
+    const State current = state();
+    if (current == EXTCODEC_YES_EARBUD_W_WEAK_MIC)
+    {
+        return true;
+    }
+    if (current != EXTCODEC_YES_EARBUD_WITH_MIC)
+    {
+        return false;
+    }
+
+    set_state(EXTCODEC_YES_EARBUD_W_WEAK_MIC);
+    return true;
+}
+
 MicInput micInputForState(State value)
 {
     return value == EXTCODEC_YES_EARBUD_WITH_MIC ? MicInput::DedicatedMic : MicInput::LineInRight;
@@ -327,21 +352,6 @@ bool setAdcNotchFilterEnabled(bool enabled)
     #endif
 }
 
-bool setDedicatedMicGainDb(uint8_t gainDb)
-{
-    std::lock_guard<std::mutex> lock(g_codec_mutex);
-    #ifdef TEST_MOCK_EXT_CODEC
-    (void)gainDb;
-    return available();
-    #else
-    if (!available())
-    {
-        return false;
-    }
-    return g_codec.micGain(gainDb);
-    #endif
-}
-
 uint16_t earbudSenseRaw()
 {
     #ifndef TEST_MOCK_EXT_CODEC
@@ -356,7 +366,7 @@ uint16_t inlineMicSenseRaw()
     #ifndef TEST_MOCK_EXT_CODEC
     return g_inline_mic_sense_raw.load();
     #else
-    return inlineMicPresent() ? 1200 : 0;
+    return inlineMicPresent() || inlineMicWeak() ? 1200 : 0;
     #endif
 }
 
@@ -546,6 +556,8 @@ void apply_adc_state_sample(State sample)
     static State    pending_state = EXTCODEC_UNAVAIL;
     static uint16_t pending_count = 0;
 
+    sample = adc_sample_for_current_state(sample);
+
     if (sample == state())
     {
         pending_state = EXTCODEC_UNAVAIL;
@@ -569,6 +581,13 @@ void apply_adc_state_sample(State sample)
     }
 }
 
+State adc_sample_for_current_state(State sample)
+{
+    return state() == EXTCODEC_YES_EARBUD_W_WEAK_MIC && sample == EXTCODEC_YES_EARBUD_WITH_MIC
+               ? EXTCODEC_YES_EARBUD_W_WEAK_MIC
+               : sample;
+}
+
 void reset_adc_state_samples()
 {
     apply_adc_state_sample(state());
@@ -576,6 +595,12 @@ void reset_adc_state_samples()
 
 void set_state(State next)
 {
+    const State current = state();
+    if (current == EXTCODEC_YES_EARBUD_W_WEAK_MIC && next == EXTCODEC_YES_EARBUD_WITH_MIC)
+    {
+        next = EXTCODEC_YES_EARBUD_W_WEAK_MIC;
+    }
+
     const State previous = g_state.exchange(next);
     if (previous == next)
     {

@@ -9,7 +9,6 @@
 #include "BluetoothManager.h"
 #include "CallManager.h"
 #include "ExtCodec.h"
-#include "MicGainManager.h"
 #include "ModalDialog.h"
 #include "RecordingViewCallbacks.h"
 #include "sprites.h"
@@ -35,6 +34,7 @@ constexpr int16_t  kElapsedTextY       = 62;
 constexpr int16_t  kInfoTextY          = 96;
 constexpr int16_t  kTextWidth          = 240;
 constexpr int16_t  kTextHeight         = 28;
+constexpr int16_t  kInfoTextHeight     = 34;
 constexpr float    kFileTextSize       = 1.0f;
 constexpr uint8_t  kFileTextFont       = 2;
 constexpr float    kDurationTextSize   = 1.0f;
@@ -42,7 +42,7 @@ constexpr uint8_t  kDurationTextFont   = 4;
 constexpr float    kCallerInfoTextSize = 1.0f;
 constexpr uint8_t  kCallerInfoTextFont = 2;
 constexpr uint32_t kCallerInfoCycleMs  = 3000;
-constexpr const char* kWeakInlineMicWarning = "earbud mic too weak";
+constexpr const char* kWeakInlineMicWarning = "earbud mic too weak\nusing built-in mic";
 
 // -----------------------------------------------------------------------------
 // Function Prototypes
@@ -67,7 +67,7 @@ RecordingView::RecordingView()
       answerCallButton_(kSideButtonX, kSideButtonY), memoTypeButton_(kSideButtonX, kSideButtonY),
       fileNameText_(kTextX, kFileTextY, kTextWidth, kTextHeight, kFileTextSize, kFileTextFont, 64),
       durationText_(kTextX, kElapsedTextY, kTextWidth, kTextHeight, kDurationTextSize, kDurationTextFont),
-      callerInfoText_(kTextX, kInfoTextY, kTextWidth, kTextHeight, kCallerInfoTextSize, kCallerInfoTextFont, 80)
+      callerInfoText_(kTextX, kInfoTextY, kTextWidth, kInfoTextHeight, kCallerInfoTextSize, kCallerInfoTextFont, 80)
 {
     activeInstance_ = this;
 
@@ -532,7 +532,7 @@ void RecordingView::syncText()
         durationText_.setDirty();
     }
 
-    if (MicGainManager::inlineMicMaximumGainMode())
+    if (ExtCodec::inlineMicWeak())
     {
         callerInfoWarningActive_ = true;
         callerInfoText_.setTextColor(TFT_RED);

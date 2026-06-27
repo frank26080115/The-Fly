@@ -494,6 +494,10 @@ void draw_status_lines(ExtCodec::State state, bool routeOk)
         draw_status_line("YES_EARBUD", y);
         draw_status_line("WITH_MIC", y);
         break;
+    case ExtCodec::EXTCODEC_YES_EARBUD_W_WEAK_MIC:
+        draw_status_line("YES_EARBUD", y);
+        draw_status_line("WEAK_MIC", y);
+        break;
     default:
         draw_status_line("UNKNOWN", y);
         break;
