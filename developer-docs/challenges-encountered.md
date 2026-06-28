@@ -108,3 +108,13 @@ python -m pip install cryptography ecdsa reedsolo bitstring pyserial intelhex
 ```
 
 `tools\build_security.py` will pick a Python environment that works. If none works, it first reports any known missing packages. If the known packages are present but `espsecure.py` still fails to import, the script prints the real import traceback and a reproduce command. That usually means PlatformIO changed `tool-esptoolpy` and introduced another dependency that should be added here and to `scripts\requirements.txt`.
+
+## Weak Earbud Inline Mic
+
+Some inexpensive earbuds obtained from Amazon has an inline mic but they are too weak. These might be identified by looking at the mic, if it has no air holes, then it is probably extremely weak.
+
+Testing with maximizing the gain on the SGTL5000 still resulted in unacceptably low voice volume during recording.
+
+The base noise floor level of multiple earbud mics was collected, the data showed that it is trivial to detect which ones had an unacceptably quiet mic.
+
+The solution is to detect any such mic, and then switch to the built-in mic instead, while also showing a error message to the user to explain.
