@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-18T06:35:02.698Z",
+    "timestamp": 1779086102,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -29,13 +29,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T06:47:15Z",
+    "timestamp": 1779086835,
     "type": "git_commit",
     "commit_message": "file history pruning",
     "commit_hash": "64d2f662e58a3e34857f5e6cf80d869277f9a5d2"
   },
   {
-    "timestamp": "2026-05-20T23:18:19.376Z",
+    "timestamp": 1779319099,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -77,13 +77,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T02:56:49Z",
+    "timestamp": 1779332209,
     "type": "git_commit",
     "commit_message": "more gui work, auto bt reconnect",
     "commit_hash": "c002fb0767624f8362097c9328ec1d3f695a20db"
   },
   {
-    "timestamp": "2026-05-22T04:10:41.003Z",
+    "timestamp": 1779423041,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -136,7 +136,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T05:08:26.537Z",
+    "timestamp": 1780031306,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -194,13 +194,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T05:15:25Z",
+    "timestamp": 1780031725,
     "type": "git_commit",
     "commit_message": "more cleanup about disabling cloud",
     "commit_hash": "42de74ba32ee5369a9a3f577c65e993d5d7d8d25"
   },
   {
-    "timestamp": "2026-05-31T03:58:31.339Z",
+    "timestamp": 1780199911,
     "type": "codex_task",
     "user_prompt": [
       "is most of my code using DBG_LOG or ESP_LOG?"
@@ -223,13 +223,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T07:05:04.713Z",
+    "timestamp": 1780383904,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -275,7 +275,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:15:08.280Z",
+    "timestamp": 1780384508,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -321,13 +321,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:29:38Z",
+    "timestamp": 1780385378,
     "type": "git_commit",
     "commit_message": "more code neatening",
     "commit_hash": "c5afbfcb864d5512e3efce82ca933f9fd49bb531"
   },
   {
-    "timestamp": "2026-06-02T09:34:42.263Z",
+    "timestamp": 1780392882,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -386,13 +386,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T17:23:48Z",
+    "timestamp": 1780421028,
     "type": "git_commit",
     "commit_message": "ran clang format",
     "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"
   },
   {
-    "timestamp": "2026-06-03T20:58:30.076Z",
+    "timestamp": 1780520310,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

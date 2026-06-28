@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-18T07:03:33.486Z",
+    "timestamp": 1781766213,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -36,7 +36,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-18T08:15:00Z",
+    "timestamp": 1781770500,
     "type": "git_commit",
     "commit_message": "implemented notch filter for mic noise problem",
     "commit_hash": "9f459f253dff692ad0f40ce6e3a701cd30996d55"

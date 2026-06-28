@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-22T02:46:36.363Z",
+    "timestamp": 1779417996,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -56,7 +56,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T02:50:50.398Z",
+    "timestamp": 1779418250,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -98,7 +98,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T02:53:17.859Z",
+    "timestamp": 1779418397,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -164,7 +164,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T02:56:13.275Z",
+    "timestamp": 1779418573,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -208,13 +208,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T03:27:25Z",
+    "timestamp": 1779420445,
     "type": "git_commit",
     "commit_message": "starting to add a web server",
     "commit_hash": "421a041f801f5f993b55e85fd21fbb828bf995c0"
   },
   {
-    "timestamp": "2026-05-22T03:30:51.605Z",
+    "timestamp": 1779420651,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -344,7 +344,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T04:10:41.003Z",
+    "timestamp": 1779423041,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -397,7 +397,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T05:29:46.618Z",
+    "timestamp": 1779427786,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -453,13 +453,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T06:02:06Z",
+    "timestamp": 1779429726,
     "type": "git_commit",
     "commit_message": "ftp code organization",
     "commit_hash": "df387f86d00534edd3aa28bde131b727f880666f"
   },
   {
-    "timestamp": "2026-05-23T07:06:39.390Z",
+    "timestamp": 1779519999,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -536,7 +536,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T07:20:47.803Z",
+    "timestamp": 1779520847,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -565,7 +565,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T07:38:44.792Z",
+    "timestamp": 1779521924,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -639,13 +639,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T09:06:40Z",
+    "timestamp": 1779527200,
     "type": "git_commit",
     "commit_message": "some work on secured web interactions",
     "commit_hash": "18565178bedd39532b6f4eeb03bf327ff678b30e"
   },
   {
-    "timestamp": "2026-05-23T23:29:25.350Z",
+    "timestamp": 1779578965,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -724,13 +724,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T00:09:46Z",
+    "timestamp": 1779581386,
     "type": "git_commit",
     "commit_message": "added \"set_cfg\" request handler",
     "commit_hash": "976c60f0ec74e8d902b255cd244c33b17b1f0771"
   },
   {
-    "timestamp": "2026-05-24T00:16:24.604Z",
+    "timestamp": 1779581784,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -789,7 +789,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T00:43:56.259Z",
+    "timestamp": 1779583436,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -869,7 +869,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T01:58:44.681Z",
+    "timestamp": 1779587924,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -908,7 +908,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T02:07:58.522Z",
+    "timestamp": 1779588478,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -952,7 +952,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T03:37:46.416Z",
+    "timestamp": 1779593866,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1027,7 +1027,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T07:24:07.776Z",
+    "timestamp": 1779607447,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1084,13 +1084,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T08:12:26Z",
+    "timestamp": 1779610346,
     "type": "git_commit",
     "commit_message": "web server related major work",
     "commit_hash": "5347b8785e4501a28ac8abae3f67111dfb8fe246"
   },
   {
-    "timestamp": "2026-05-24T23:49:11.552Z",
+    "timestamp": 1779666551,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1175,7 +1175,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-25T02:49:53.128Z",
+    "timestamp": 1779677393,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1294,13 +1294,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-25T03:26:11Z",
+    "timestamp": 1779679571,
     "type": "git_commit",
     "commit_message": "I'm checking in this state before tearing it all down",
     "commit_hash": "335274e4557167c4d8346db9a0eb5ce8adc4b329"
   },
   {
-    "timestamp": "2026-05-25T19:30:26.114Z",
+    "timestamp": 1779737426,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1393,13 +1393,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T02:07:37Z",
+    "timestamp": 1779761257,
     "type": "git_commit",
     "commit_message": "clean up for security levels",
     "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
   },
   {
-    "timestamp": "2026-05-26T04:42:06.088Z",
+    "timestamp": 1779770526,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1475,13 +1475,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T06:01:31Z",
+    "timestamp": 1779775291,
     "type": "git_commit",
     "commit_message": "wip on front-end interaction",
     "commit_hash": "31809cca15b2676842f49731d11ff55b42a22240"
   },
   {
-    "timestamp": "2026-05-26T07:40:09.893Z",
+    "timestamp": 1779781209,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1559,13 +1559,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T07:58:09Z",
+    "timestamp": 1779782289,
     "type": "git_commit",
     "commit_message": "password reset mechanism implementation",
     "commit_hash": "b912990e70975d6dcadba6ebc765222feaea1602"
   },
   {
-    "timestamp": "2026-05-26T07:58:25.651Z",
+    "timestamp": 1779782305,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1631,13 +1631,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T08:07:21Z",
+    "timestamp": 1779782841,
     "type": "git_commit",
     "commit_message": "reset memory button implementation",
     "commit_hash": "8bcf8a4aeece8bf576756b9657276588cef0f3e9"
   },
   {
-    "timestamp": "2026-05-26T08:08:06Z",
+    "timestamp": 1779782886,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1719,13 +1719,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T08:31:56Z",
+    "timestamp": 1779784316,
     "type": "git_commit",
     "commit_message": "implement the wifi ap view",
     "commit_hash": "d8fe002743fef62a02f8317b0e30b6a57eebd666"
   },
   {
-    "timestamp": "2026-05-26T19:32:54.578Z",
+    "timestamp": 1779823974,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1769,7 +1769,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T20:02:28.150Z",
+    "timestamp": 1779825748,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1808,13 +1808,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T20:16:37Z",
+    "timestamp": 1779826597,
     "type": "git_commit",
     "commit_message": "good progress on front end, organized the js files a bit, password and memory reset implemented",
     "commit_hash": "b338b968a3e7d8ae40716584d19bbabe6c5d77d1"
   },
   {
-    "timestamp": "2026-05-27T07:53:47.782Z",
+    "timestamp": 1779868427,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1857,13 +1857,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-27T16:44:03Z",
+    "timestamp": 1779900243,
     "type": "git_commit",
     "commit_message": "added mdns",
     "commit_hash": "316c40dfddd7d52fded92b739ee8508d9b48cccf"
   },
   {
-    "timestamp": "2026-05-27T20:50:14.200Z",
+    "timestamp": 1779915014,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1908,7 +1908,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-27T21:54:38.140Z",
+    "timestamp": 1779918878,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2427,13 +2427,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-27T22:01:12Z",
+    "timestamp": 1779919272,
     "type": "git_commit",
     "commit_message": "serving pages over soft AP works, had a hiccup about disk space retrieval too slow tripping the wdt",
     "commit_hash": "ed520c430d839d309262fb9c545eeca56856e91b"
   },
   {
-    "timestamp": "2026-05-28T18:55:04.939Z",
+    "timestamp": 1779994504,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2485,13 +2485,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-28T21:04:08Z",
+    "timestamp": 1780002248,
     "type": "git_commit",
     "commit_message": "time sync",
     "commit_hash": "5db774b132e9cf144c3a894ac806918762c92684"
   },
   {
-    "timestamp": "2026-05-29T00:27:46.075Z",
+    "timestamp": 1780014466,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2533,7 +2533,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T00:50:12.054Z",
+    "timestamp": 1780015812,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2612,13 +2612,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T01:26:49Z",
+    "timestamp": 1780018009,
     "type": "git_commit",
     "commit_message": "moved some utility funcs",
     "commit_hash": "fb86b0a5022c32571794dda2aba226de1cd4a2a0"
   },
   {
-    "timestamp": "2026-05-29T01:28:09.205Z",
+    "timestamp": 1780018089,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2658,19 +2658,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T01:32:37Z",
+    "timestamp": 1780018357,
     "type": "git_commit",
     "commit_message": "fix sprite typo",
     "commit_hash": "35a2b487220fe0993a1c66c1e5833f19656055bc"
   },
   {
-    "timestamp": "2026-05-29T04:55:49Z",
+    "timestamp": 1780030549,
     "type": "git_commit",
     "commit_message": "code neatened, remove cloud features with a predefine",
     "commit_hash": "d24eb445de9566caf462ed97068368a51fbd6009"
   },
   {
-    "timestamp": "2026-05-29T08:22:37.832Z",
+    "timestamp": 1780042957,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2708,13 +2708,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T08:57:28Z",
+    "timestamp": 1780045048,
     "type": "git_commit",
     "commit_message": "major progress on usability, added ntp sync",
     "commit_hash": "a1c937432bf18b83680cbd0120e09e8d29e67ac6"
   },
   {
-    "timestamp": "2026-05-29T18:08:51.752Z",
+    "timestamp": 1780078131,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2765,19 +2765,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T19:12:05Z",
+    "timestamp": 1780081925,
     "type": "git_commit",
     "commit_message": "better error screens with rescue wifi",
     "commit_hash": "e80a4d45b429f363956cf3178c63626d5c802a88"
   },
   {
-    "timestamp": "2026-05-31T04:24:21Z",
+    "timestamp": 1780201461,
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   },
   {
-    "timestamp": "2026-05-31T04:27:29.774Z",
+    "timestamp": 1780201649,
     "type": "codex_task",
     "user_prompt": [
       "attempts to initialize Aegis should only occur in `main.cpp` function `setup()`, remove all other calls to `Aegis::init()`"
@@ -2806,7 +2806,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T04:32:53.753Z",
+    "timestamp": 1780201973,
     "type": "codex_task",
     "user_prompt": [
       "the error `I (17055) Aegis: NVS Aegis namespace not found; keys unavailable",
@@ -2882,13 +2882,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T05:15:28Z",
+    "timestamp": 1780204528,
     "type": "git_commit",
     "commit_message": "fixed encrypted recording being too short",
     "commit_hash": "c0bd39e506d3fee4333871e81322156d26d47a3b"
   },
   {
-    "timestamp": "2026-05-31T07:15:56.221Z",
+    "timestamp": 1780211756,
     "type": "codex_task",
     "user_prompt": [
       "### Task: pin code related web server changes and front-end changes",
@@ -2951,13 +2951,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T07:32:19Z",
+    "timestamp": 1780212739,
     "type": "git_commit",
     "commit_message": "pin code web related implementation",
     "commit_hash": "ea3196085485e85e518ad62441377ac93a503ac9"
   },
   {
-    "timestamp": "2026-05-31T07:55:29.706Z",
+    "timestamp": 1780214129,
     "type": "codex_task",
     "user_prompt": [
       "is the browser time sync function completely wired up?"
@@ -2992,7 +2992,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T09:07:07.432Z",
+    "timestamp": 1780218427,
     "type": "codex_task",
     "user_prompt": [
       "### ask: decrypted download",
@@ -3054,7 +3054,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T09:43:49.901Z",
+    "timestamp": 1780220629,
     "type": "codex_task",
     "user_prompt": [
       "move as much of the new decrypted download functions inside `lib\\WifiManager\\DecryptedDownload.cpp` and `lib\\WifiManager\\DecryptedDownload.h`, protected by `BUILD_WITH_DECRYPTED_DOWNLOAD`",
@@ -3088,13 +3088,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T19:37:35Z",
+    "timestamp": 1780256255,
     "type": "git_commit",
     "commit_message": "untested web decrypted download",
     "commit_hash": "02321ce5bddcd71d137af3dd7defff62008405b8"
   },
   {
-    "timestamp": "2026-06-01T02:16:57.295Z",
+    "timestamp": 1780280217,
     "type": "codex_task",
     "user_prompt": [
       "",
@@ -3151,7 +3151,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T02:37:18.810Z",
+    "timestamp": 1780281438,
     "type": "codex_task",
     "user_prompt": [
       "uhhhh 10000 rounds took 5 seconds...",
@@ -3202,7 +3202,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T03:00:02.114Z",
+    "timestamp": 1780282802,
     "type": "codex_task",
     "user_prompt": [
       "ok the wdt problem is gone",
@@ -3258,7 +3258,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T04:25:55.162Z",
+    "timestamp": 1780287955,
     "type": "codex_task",
     "user_prompt": [
       "implement this, both front-end and back-end"
@@ -3311,7 +3311,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T04:32:22.350Z",
+    "timestamp": 1780288342,
     "type": "codex_task",
     "user_prompt": [
       "no, only encrypt the file name with the session key, no other parameters, I see no reason why this wouldn't work in the backend if the backend has a full copy of the session key as well"
@@ -3366,13 +3366,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T04:40:14Z",
+    "timestamp": 1780288814,
     "type": "git_commit",
     "commit_message": "file download and decrypted downloads work now",
     "commit_hash": "976ed18721b4929410684cde8839b3d62d1f7cce"
   },
   {
-    "timestamp": "2026-06-02T03:36:41.041Z",
+    "timestamp": 1780371401,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3414,13 +3414,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:04:17Z",
+    "timestamp": 1780376657,
     "type": "git_commit",
     "commit_message": "human code review just a bit",
     "commit_hash": "0cb13a08e420859cdc536de46041371e7cb0aaa9"
   },
   {
-    "timestamp": "2026-06-02T05:06:43.351Z",
+    "timestamp": 1780376803,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3485,19 +3485,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:21:00Z",
+    "timestamp": 1780381260,
     "type": "git_commit",
     "commit_message": "code clean up a bit, better error dialog routing",
     "commit_hash": "9cfa8004f61008a8d54cb2609ae348fc44e802c6"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T15:50:30.321Z",
+    "timestamp": 1780415430,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3549,19 +3549,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T16:03:42Z",
+    "timestamp": 1780416222,
     "type": "git_commit",
     "commit_message": "neaten",
     "commit_hash": "42dcc936c1f67b066fa14ea3a4986f0622bfbf05"
   },
   {
-    "timestamp": "2026-06-02T17:23:48Z",
+    "timestamp": 1780421028,
     "type": "git_commit",
     "commit_message": "ran clang format",
     "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"
   },
   {
-    "timestamp": "2026-06-03T04:19:44.350Z",
+    "timestamp": 1780460384,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3623,13 +3623,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T04:43:26Z",
+    "timestamp": 1780461806,
     "type": "git_commit",
     "commit_message": "refactor wifi manager",
     "commit_hash": "e854858ac4af04460f4ee1e885c7c0056edd16ac"
   },
   {
-    "timestamp": "2026-06-03T20:44:20.601Z",
+    "timestamp": 1780519460,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3726,7 +3726,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T21:04:00.349Z",
+    "timestamp": 1780520640,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3790,13 +3790,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T21:05:34Z",
+    "timestamp": 1780520734,
     "type": "git_commit",
     "commit_message": "added screen fades during slow parts",
     "commit_hash": "0d8363f535680e4532d2964847c2f4086d34575c"
   },
   {
-    "timestamp": "2026-06-04T07:03:38.504Z",
+    "timestamp": 1780556618,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3836,7 +3836,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T08:13:18.823Z",
+    "timestamp": 1780560798,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3889,13 +3889,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T08:34:39Z",
+    "timestamp": 1780562079,
     "type": "git_commit",
     "commit_message": "web file delete button now async",
     "commit_hash": "9e7f71e0350dda47db6699ee4c33222d98c64a22"
   },
   {
-    "timestamp": "2026-06-12T07:12:00.371Z",
+    "timestamp": 1781248320,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3931,13 +3931,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T18:59:01Z",
+    "timestamp": 1781290741,
     "type": "git_commit",
     "commit_message": "ftp password change",
     "commit_hash": "71c1dd2632b6d71e4241767108b4982df3b0ce7b"
   },
   {
-    "timestamp": "2026-06-13T06:39:04.824Z",
+    "timestamp": 1781332744,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3976,7 +3976,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-13T07:53:51.418Z",
+    "timestamp": 1781337231,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -4012,13 +4012,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-13T18:25:45Z",
+    "timestamp": 1781375145,
     "type": "git_commit",
     "commit_message": "fix small build errors around ftp",
     "commit_hash": "0294068094a17c9099af5f343af0390e9ff1fd25"
   },
   {
-    "timestamp": "2026-06-14T00:27:05.397Z",
+    "timestamp": 1781396825,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-12T17:33:05.014Z",
+    "timestamp": 1781285585,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -36,7 +36,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T17:41:52.524Z",
+    "timestamp": 1781286112,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -91,13 +91,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T18:59:29Z",
+    "timestamp": 1781290769,
     "type": "git_commit",
     "commit_message": "user manual documentation, python install instructions",
     "commit_hash": "54cf9eedc747acab8c1d2d7b135b289a7fca485f"
   },
   {
-    "timestamp": "2026-06-12T20:06:39.837Z",
+    "timestamp": 1781294799,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

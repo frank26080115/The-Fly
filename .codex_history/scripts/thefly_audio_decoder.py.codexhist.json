@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-14T18:24:22.544Z",
+    "timestamp": 1778783062,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -60,7 +60,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T19:37:54.713Z",
+    "timestamp": 1778787474,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -109,7 +109,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T19:46:55.402Z",
+    "timestamp": 1778788015,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -144,13 +144,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T20:17:11Z",
+    "timestamp": 1778789831,
     "type": "git_commit",
     "commit_message": "Create thefly_audio_decoder.py",
     "commit_hash": "5e1e90c6846cb15dde4c41174fdd10627b202fc5"
   },
   {
-    "timestamp": "2026-05-14T23:50:43.028Z",
+    "timestamp": 1778802643,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -181,13 +181,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T00:49:09Z",
+    "timestamp": 1778806149,
     "type": "git_commit",
     "commit_message": "decoder script, warn for fifo levels only if critical",
     "commit_hash": "e43f3c87b0ef353b563377b26fe5f7655244d7a8"
   },
   {
-    "timestamp": "2026-05-15T17:57:20.305Z",
+    "timestamp": 1778867840,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -219,13 +219,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T18:56:02Z",
+    "timestamp": 1778871362,
     "type": "git_commit",
     "commit_message": "decoder shows mic peak",
     "commit_hash": "f9134626ea9c18dd88470163da37526b2c7e4c6a"
   },
   {
-    "timestamp": "2026-05-18T23:00:00.926Z",
+    "timestamp": 1779145200,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -294,13 +294,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T23:22:32Z",
+    "timestamp": 1779146552,
     "type": "git_commit",
     "commit_message": "audio stream now embeds meta text",
     "commit_hash": "e75a61e97a39e9d34844d2197866ad8caf1ed1d0"
   },
   {
-    "timestamp": "2026-05-23T00:19:23.939Z",
+    "timestamp": 1779495563,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -388,13 +388,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T00:33:10Z",
+    "timestamp": 1779496390,
     "type": "git_commit",
     "commit_message": "decoder script less useless warnings",
     "commit_hash": "f440bf4042da92e2668d634451b46c5720ea392d"
   },
   {
-    "timestamp": "2026-05-26T04:31:14.087Z",
+    "timestamp": 1779769874,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -486,13 +486,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T04:37:55Z",
+    "timestamp": 1779770275,
     "type": "git_commit",
     "commit_message": "decoder handles encrypted files",
     "commit_hash": "3b1d42b6a45bbf536ef65d195e21a9149bd49f89"
   },
   {
-    "timestamp": "2026-05-28T21:43:39.757Z",
+    "timestamp": 1780004619,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -569,7 +569,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T01:36:35.002Z",
+    "timestamp": 1780191395,
     "type": "codex_task",
     "user_prompt": [
       "find me places in the code where the RIFF header is involved, look for mentions of 44, which is the length of the header, unless I am wrong about how we've implemented"

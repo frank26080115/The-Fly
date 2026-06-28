@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-01T18:42:40.803Z",
+    "timestamp": 1780339360,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -68,13 +68,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T19:24:23Z",
+    "timestamp": 1780341863,
     "type": "git_commit",
     "commit_message": "mp3 playback works",
     "commit_hash": "553ac578dd39c8724ac7cd871f259a68385d915e"
   },
   {
-    "timestamp": "2026-06-01T19:24:31.221Z",
+    "timestamp": 1780341871,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -126,19 +126,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T19:48:35Z",
+    "timestamp": 1780343315,
     "type": "git_commit",
     "commit_message": "a lot of duplicate string comparison implementations",
     "commit_hash": "90dc90455dec156a8460b220ef615f3e503154ab"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T16:04:22.176Z",
+    "timestamp": 1780416262,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -171,13 +171,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T16:14:15Z",
+    "timestamp": 1780416855,
     "type": "git_commit",
     "commit_message": "neaten",
     "commit_hash": "86d90ffafe35f5d236da1bafff3d2216e4365a2f"
   },
   {
-    "timestamp": "2026-06-02T17:07:28.842Z",
+    "timestamp": 1780420048,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -230,7 +230,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T07:24:26.108Z",
+    "timestamp": 1780471466,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -284,7 +284,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T05:24:15.293Z",
+    "timestamp": 1780550655,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -339,7 +339,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T05:42:28.235Z",
+    "timestamp": 1780551748,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -370,13 +370,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T08:10:39Z",
+    "timestamp": 1780560639,
     "type": "git_commit",
     "commit_message": "mp3 playback attempt to support other formats",
     "commit_hash": "820953b2bc80f581ef869762010c448fd12b66c6"
   },
   {
-    "timestamp": "2026-06-12T07:12:00.371Z",
+    "timestamp": 1781248320,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -412,13 +412,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T07:17:51Z",
+    "timestamp": 1781248671,
     "type": "git_commit",
     "commit_message": "more screenshot stuff",
     "commit_hash": "f28c5490101268c4e2dcd3c955c64e070d5b05b2"
   },
   {
-    "timestamp": "2026-06-13T19:58:52.590Z",
+    "timestamp": 1781380732,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-29T19:37:09.076Z",
+    "timestamp": 1780083429,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -92,7 +92,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T20:33:35.159Z",
+    "timestamp": 1780086815,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -176,7 +176,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T20:41:49Z",
+    "timestamp": 1780087309,
     "type": "git_commit",
     "commit_message": "firmware update kinda implemented",
     "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"

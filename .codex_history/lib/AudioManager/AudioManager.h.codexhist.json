@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-03T07:59:36.645Z",
+    "timestamp": 1777795176,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -48,13 +48,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-03T09:03:36Z",
+    "timestamp": 1777799016,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "29745920c6cf847fb4135d8f0efdf47683bcba94"
   },
   {
-    "timestamp": "2026-05-04T05:53:48.940Z",
+    "timestamp": 1777874028,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -104,7 +104,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T06:05:25.317Z",
+    "timestamp": 1777874725,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -188,7 +188,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T06:20:06.294Z",
+    "timestamp": 1777875606,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -233,7 +233,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T06:37:42.990Z",
+    "timestamp": 1777876662,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -277,7 +277,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T06:41:38.030Z",
+    "timestamp": 1777876898,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -330,7 +330,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T07:15:35.455Z",
+    "timestamp": 1777878935,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -356,7 +356,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T07:28:33.262Z",
+    "timestamp": 1777879713,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -402,13 +402,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T07:46:20Z",
+    "timestamp": 1777880780,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "0065bdba2a9c72d3ebef8982804023dd796267c9"
   },
   {
-    "timestamp": "2026-05-04T18:16:16.278Z",
+    "timestamp": 1777918576,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -456,7 +456,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T20:31:05.859Z",
+    "timestamp": 1777926665,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -493,19 +493,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T22:18:38Z",
+    "timestamp": 1777933118,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
   },
   {
-    "timestamp": "2026-05-11T02:11:23Z",
+    "timestamp": 1778465483,
     "type": "git_commit",
     "commit_message": "added optional bluedroid sbc",
     "commit_hash": "b77fa3fec7fad5b57c31ee53c9c2b12953b02757"
   },
   {
-    "timestamp": "2026-05-15T18:56:47.615Z",
+    "timestamp": 1778871407,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -592,13 +592,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T22:19:39Z",
+    "timestamp": 1778883579,
     "type": "git_commit",
     "commit_message": "added a mic preprocessor, HPF and AGC",
     "commit_hash": "e521f961cce7b271b736c720eb61e519219aa616"
   },
   {
-    "timestamp": "2026-05-16T08:12:32.581Z",
+    "timestamp": 1778919152,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -680,13 +680,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T08:46:51Z",
+    "timestamp": 1778921211,
     "type": "git_commit",
     "commit_message": "speakerphone test works, it did involve editing the esp-idf config and building the library in the back",
     "commit_hash": "0fb9d76750530a27bc80183add0ccf3c26959ed3"
   },
   {
-    "timestamp": "2026-05-16T09:27:52.764Z",
+    "timestamp": 1778923672,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -730,7 +730,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T09:37:41.541Z",
+    "timestamp": 1778924261,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -784,13 +784,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T10:26:31Z",
+    "timestamp": 1778927191,
     "type": "git_commit",
     "commit_message": "outgoing audio works",
     "commit_hash": "f8f3fdf74e476147651004e4bd8d6998a606ee7b"
   },
   {
-    "timestamp": "2026-05-20T04:22:18.956Z",
+    "timestamp": 1779250938,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -829,7 +829,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T06:09:57.127Z",
+    "timestamp": 1779257397,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -873,13 +873,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T07:17:21Z",
+    "timestamp": 1779261441,
     "type": "git_commit",
     "commit_message": "massive progress with RecordingView",
     "commit_hash": "1c4305479f888bd2dc55b13c27a109f8c8dc6cd7"
   },
   {
-    "timestamp": "2026-05-26T03:17:02.783Z",
+    "timestamp": 1779765422,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -936,13 +936,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-03T06:52:25.716Z",
+    "timestamp": 1780469545,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1021,7 +1021,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T22:14:16.888Z",
+    "timestamp": 1780524856,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1073,7 +1073,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T05:24:15.293Z",
+    "timestamp": 1780550655,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1128,13 +1128,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T08:10:39Z",
+    "timestamp": 1780560639,
     "type": "git_commit",
     "commit_message": "mp3 playback attempt to support other formats",
     "commit_hash": "820953b2bc80f581ef869762010c448fd12b66c6"
   },
   {
-    "timestamp": "2026-06-06T02:02:00.891Z",
+    "timestamp": 1780711320,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1191,13 +1191,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-06T04:45:57Z",
+    "timestamp": 1780721157,
     "type": "git_commit",
     "commit_message": "mock ext codec test",
     "commit_hash": "29e35603230f57c37d088b5def57ae546565ca33"
   },
   {
-    "timestamp": "2026-06-06T06:15:48.360Z",
+    "timestamp": 1780726548,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1268,7 +1268,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-07T06:31:35.066Z",
+    "timestamp": 1780813895,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1324,13 +1324,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-07T06:41:57Z",
+    "timestamp": 1780814517,
     "type": "git_commit",
     "commit_message": "more mclk pin shenanigans",
     "commit_hash": "037f76286b9ef3fefb0ee812d32eca185e46548e"
   },
   {
-    "timestamp": "2026-06-08T00:27:53.797Z",
+    "timestamp": 1780878473,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1355,13 +1355,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-08T03:05:24Z",
+    "timestamp": 1780887924,
     "type": "git_commit",
     "commit_message": "ledc as mclk shenanigans",
     "commit_hash": "3899800fdc93cf7a914ee480463eca1ff28cc754"
   },
   {
-    "timestamp": "2026-06-11T01:31:55.106Z",
+    "timestamp": 1781141515,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1416,7 +1416,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T18:46:58.605Z",
+    "timestamp": 1781722018,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1481,13 +1481,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T21:36:44Z",
+    "timestamp": 1781732204,
     "type": "git_commit",
     "commit_message": "mic spectrum test",
     "commit_hash": "a0dd970eb383c7e049841df45fc7959400478d33"
   },
   {
-    "timestamp": "2026-06-25T04:21:14.801Z",
+    "timestamp": 1782361274,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1588,7 +1588,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-25T05:45:26Z",
+    "timestamp": 1782366326,
     "type": "git_commit",
     "commit_message": "master hardware test",
     "commit_hash": "090aa12234263d308ba23efece40d8225a87d64a"

@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-12T17:33:05.014Z",
+    "timestamp": 1781285585,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -36,7 +36,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T17:41:52.524Z",
+    "timestamp": 1781286112,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -91,7 +91,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T17:55:15.015Z",
+    "timestamp": 1781286915,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -134,13 +134,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T18:59:29Z",
+    "timestamp": 1781290769,
     "type": "git_commit",
     "commit_message": "user manual documentation, python install instructions",
     "commit_hash": "54cf9eedc747acab8c1d2d7b135b289a7fca485f"
   },
   {
-    "timestamp": "2026-06-26T06:12:15.380Z",
+    "timestamp": 1782454335,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -249,7 +249,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T06:36:58.570Z",
+    "timestamp": 1782455818,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -326,13 +326,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T07:01:16Z",
+    "timestamp": 1782457276,
     "type": "git_commit",
     "commit_message": "security build tools",
     "commit_hash": "f249cafdf65f4c15debb4486bbba31e64283ad6b"
   },
   {
-    "timestamp": "2026-06-26T18:23:59.787Z",
+    "timestamp": 1782498239,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -395,7 +395,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T18:26:07Z",
+    "timestamp": 1782498367,
     "type": "git_commit",
     "commit_message": "more fixes for missing py modules during secure fw build",
     "commit_hash": "53f5e20fb8b8b2b49ef32682154d40ce20aa46c4"

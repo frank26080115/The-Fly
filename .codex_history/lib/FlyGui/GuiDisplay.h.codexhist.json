@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-11T18:29:39.262Z",
+    "timestamp": 1781202579,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -55,7 +55,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T19:12:39.476Z",
+    "timestamp": 1781205159,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -107,13 +107,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T19:14:03Z",
+    "timestamp": 1781205243,
     "type": "git_commit",
     "commit_message": "screenshotting build",
     "commit_hash": "f3c8446e475c3299a5cf7775fcc012328a46bf2c"
   },
   {
-    "timestamp": "2026-06-11T19:58:21.516Z",
+    "timestamp": 1781207901,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -147,13 +147,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T21:27:51Z",
+    "timestamp": 1781213271,
     "type": "git_commit",
     "commit_message": "screenshot now works without disturbing recording",
     "commit_hash": "5f4fb886e36e9854e411acca74dedaec901bacd0"
   },
   {
-    "timestamp": "2026-06-13T19:27:37.181Z",
+    "timestamp": 1781378857,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

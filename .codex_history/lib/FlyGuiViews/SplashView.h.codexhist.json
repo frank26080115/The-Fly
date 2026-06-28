@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-04T21:24:36.775Z",
+    "timestamp": 1777929876,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -31,13 +31,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T22:18:38Z",
+    "timestamp": 1777933118,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
   },
   {
-    "timestamp": "2026-05-19T09:25:55.209Z",
+    "timestamp": 1779182755,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -90,13 +90,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T09:44:16Z",
+    "timestamp": 1779183856,
     "type": "git_commit",
     "commit_message": "cleaned up display as param",
     "commit_hash": "44c732408fa59c62aa9a1734f91a61315fcfe7ed"
   },
   {
-    "timestamp": "2026-05-21T07:55:06.221Z",
+    "timestamp": 1779350106,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -139,13 +139,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T08:00:40Z",
+    "timestamp": 1779350440,
     "type": "git_commit",
     "commit_message": "graphics revamp normalize to 100x100 imgs",
     "commit_hash": "b1a1cbe13a47ccf6843b479b02dce075402a8028"
   },
   {
-    "timestamp": "2026-05-26T03:57:31.424Z",
+    "timestamp": 1779767851,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -215,7 +215,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T04:09:55.211Z",
+    "timestamp": 1779768595,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -281,13 +281,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T04:16:57Z",
+    "timestamp": 1779769017,
     "type": "git_commit",
     "commit_message": "better splashview",
     "commit_hash": "5d6e3cd59cf0a071c90542106fc384b1e1e8eab2"
   },
   {
-    "timestamp": "2026-06-03T05:02:04.931Z",
+    "timestamp": 1780462924,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -356,7 +356,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:51:45Z",
+    "timestamp": 1780469505,
     "type": "git_commit",
     "commit_message": "diagnostics, fixed a bug with speaker peak decay",
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"

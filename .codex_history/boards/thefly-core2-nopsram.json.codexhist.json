@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-15T07:13:31.934Z",
+    "timestamp": 1778829211,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -73,7 +73,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T07:44:56.545Z",
+    "timestamp": 1778831096,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -176,13 +176,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:30:56Z",
+    "timestamp": 1778837456,
     "type": "git_commit",
     "commit_message": "resolved some build and IRAM memory issues",
     "commit_hash": "5d25c9ab413bb6c8fe6e12ccf3ef2ffa96ea449e"
   },
   {
-    "timestamp": "2026-06-12T19:09:52.812Z",
+    "timestamp": 1781291392,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

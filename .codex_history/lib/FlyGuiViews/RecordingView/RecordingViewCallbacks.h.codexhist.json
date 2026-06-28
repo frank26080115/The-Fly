@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-20T05:49:38.809Z",
+    "timestamp": 1779256178,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -85,13 +85,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T07:17:21Z",
+    "timestamp": 1779261441,
     "type": "git_commit",
     "commit_message": "massive progress with RecordingView",
     "commit_hash": "1c4305479f888bd2dc55b13c27a109f8c8dc6cd7"
   },
   {
-    "timestamp": "2026-05-21T05:07:44.861Z",
+    "timestamp": 1779340064,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -163,13 +163,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T07:34:30Z",
+    "timestamp": 1779348870,
     "type": "git_commit",
     "commit_message": "progress on bluetooth but cannot initiate connection, can handle incoming though",
     "commit_hash": "e94d9d093825b8b6ff31e1ff98b191887cc736cc"
   },
   {
-    "timestamp": "2026-05-24T22:32:58.782Z",
+    "timestamp": 1779661978,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -208,13 +208,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T22:45:12Z",
+    "timestamp": 1779662712,
     "type": "git_commit",
     "commit_message": "bt connectable during memo recortding",
     "commit_hash": "3e542f23d6873064109f5ca94adc3193f8b4e692"
   },
   {
-    "timestamp": "2026-06-02T04:42:25.247Z",
+    "timestamp": 1780375345,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -271,13 +271,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:05:17Z",
+    "timestamp": 1780376717,
     "type": "git_commit",
     "commit_message": "hotel can shutdown if playback is paused",
     "commit_hash": "007c48def4bada6d12b761912b160f6f9de213b4"
   },
   {
-    "timestamp": "2026-06-03T22:47:40Z",
+    "timestamp": 1780526860,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -319,13 +319,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T22:57:11Z",
+    "timestamp": 1780527431,
     "type": "git_commit",
     "commit_message": "prevent rare race condition that restarts a recording from phone",
     "commit_hash": "ec0b41e94db41f542a220a0d668ecc30f0bfcf5b"
   },
   {
-    "timestamp": "2026-06-06T01:53:19.596Z",
+    "timestamp": 1780710799,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -387,7 +387,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-06T02:02:00.891Z",
+    "timestamp": 1780711320,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -444,7 +444,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-06T04:45:57Z",
+    "timestamp": 1780721157,
     "type": "git_commit",
     "commit_message": "mock ext codec test",
     "commit_hash": "29e35603230f57c37d088b5def57ae546565ca33"

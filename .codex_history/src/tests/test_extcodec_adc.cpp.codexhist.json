@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-24T05:32:46.119Z",
+    "timestamp": 1782279166,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -40,7 +40,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-24T05:45:00.719Z",
+    "timestamp": 1782279900,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -94,7 +94,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-24T05:59:14.413Z",
+    "timestamp": 1782280754,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -139,7 +139,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-24T07:31:51Z",
+    "timestamp": 1782286311,
     "type": "git_commit",
     "commit_message": "test to debug bad PCB solder joint",
     "commit_hash": "45cdf1bdb4f3f45b08ae9416b7fc792d64d15fd5"

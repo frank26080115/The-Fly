@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-01T17:45:37.224Z",
+    "timestamp": 1777657537,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -50,7 +50,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-01T18:04:11.211Z",
+    "timestamp": 1777658651,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -78,7 +78,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-01T18:42:55.334Z",
+    "timestamp": 1777660975,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -124,7 +124,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-03T08:28:59.905Z",
+    "timestamp": 1777796939,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -160,7 +160,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-03T08:35:26.219Z",
+    "timestamp": 1777797326,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -203,7 +203,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T06:37:42.990Z",
+    "timestamp": 1777876662,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

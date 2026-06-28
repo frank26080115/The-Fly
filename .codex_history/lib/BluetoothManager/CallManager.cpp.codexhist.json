@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-20T04:38:08.188Z",
+    "timestamp": 1779251888,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -96,7 +96,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T04:47:11.076Z",
+    "timestamp": 1779252431,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -135,13 +135,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T07:17:21Z",
+    "timestamp": 1779261441,
     "type": "git_commit",
     "commit_message": "massive progress with RecordingView",
     "commit_hash": "1c4305479f888bd2dc55b13c27a109f8c8dc6cd7"
   },
   {
-    "timestamp": "2026-05-29T00:27:46.075Z",
+    "timestamp": 1780014466,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -183,25 +183,25 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T00:36:51Z",
+    "timestamp": 1780015011,
     "type": "git_commit",
     "commit_message": "wired up the meta text stuff for recorded files",
     "commit_hash": "c988ffe1f5c5e6f6595aa52de195fa5fb6804044"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T08:19:32Z",
+    "timestamp": 1780388372,
     "type": "git_commit",
     "commit_message": "comments labeling modules",
     "commit_hash": "31550c50383ebe32a1fdcc074460e52d8390cbc9"
   },
   {
-    "timestamp": "2026-06-02T09:21:18.056Z",
+    "timestamp": 1780392078,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -262,7 +262,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T09:29:01Z",
+    "timestamp": 1780392541,
     "type": "git_commit",
     "commit_message": "another pass for neatening the code",
     "commit_hash": "69565ef8070e29a4eed56c25eb5f522168c02750"

@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-05T18:14:44.216Z",
+    "timestamp": 1778004884,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -22,7 +22,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-05T18:16:41.313Z",
+    "timestamp": 1778005001,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -63,19 +63,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-05T21:16:39Z",
+    "timestamp": 1778015799,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "6a8e6bd8033b3bb6a02c82981bb3ec72f49fac02"
   },
   {
-    "timestamp": "2026-05-29T20:41:49Z",
+    "timestamp": 1780087309,
     "type": "git_commit",
     "commit_message": "firmware update kinda implemented",
     "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
   },
   {
-    "timestamp": "2026-06-02T01:01:40.069Z",
+    "timestamp": 1780362100,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -140,13 +140,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:05:17Z",
+    "timestamp": 1780376717,
     "type": "git_commit",
     "commit_message": "hotel can shutdown if playback is paused",
     "commit_hash": "007c48def4bada6d12b761912b160f6f9de213b4"
   },
   {
-    "timestamp": "2026-06-12T03:01:32.095Z",
+    "timestamp": 1781233292,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -175,7 +175,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T07:12:00.371Z",
+    "timestamp": 1781248320,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

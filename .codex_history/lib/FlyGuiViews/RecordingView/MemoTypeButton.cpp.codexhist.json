@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-20T05:49:38.809Z",
+    "timestamp": 1779256178,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -85,13 +85,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T07:17:21Z",
+    "timestamp": 1779261441,
     "type": "git_commit",
     "commit_message": "massive progress with RecordingView",
     "commit_hash": "1c4305479f888bd2dc55b13c27a109f8c8dc6cd7"
   },
   {
-    "timestamp": "2026-05-22T00:33:09.152Z",
+    "timestamp": 1779409989,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -137,13 +137,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T03:27:25Z",
+    "timestamp": 1779420445,
     "type": "git_commit",
     "commit_message": "starting to add a web server",
     "commit_hash": "421a041f801f5f993b55e85fd21fbb828bf995c0"
   },
   {
-    "timestamp": "2026-05-29T00:27:46.075Z",
+    "timestamp": 1780014466,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -185,25 +185,25 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T00:36:51Z",
+    "timestamp": 1780015011,
     "type": "git_commit",
     "commit_message": "wired up the meta text stuff for recorded files",
     "commit_hash": "c988ffe1f5c5e6f6595aa52de195fa5fb6804044"
   },
   {
-    "timestamp": "2026-05-29T01:32:37Z",
+    "timestamp": 1780018357,
     "type": "git_commit",
     "commit_message": "fix sprite typo",
     "commit_hash": "35a2b487220fe0993a1c66c1e5833f19656055bc"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T10:16:14.683Z",
+    "timestamp": 1780395374,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -276,7 +276,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T15:20:12Z",
+    "timestamp": 1780413612,
     "type": "git_commit",
     "commit_message": "code neatening for the views",
     "commit_hash": "3dbd6b2cd2fdecdb22e7dcef84a89989f2e63669"

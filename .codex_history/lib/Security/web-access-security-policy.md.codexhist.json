@@ -1,30 +1,30 @@
 [
   {
-    "timestamp": "2026-05-23T09:06:40Z",
+    "timestamp": 1779527200,
     "type": "git_commit",
     "commit_message": "some work on secured web interactions",
     "commit_hash": "18565178bedd39532b6f4eeb03bf327ff678b30e"
   },
   {
-    "timestamp": "2026-05-24T08:09:57Z",
+    "timestamp": 1779610197,
     "type": "git_commit",
     "commit_message": "update security and web access policies",
     "commit_hash": "38999d066c106e6207c0e23a6cbfa8040c9e56c8"
   },
   {
-    "timestamp": "2026-05-25T03:26:11Z",
+    "timestamp": 1779679571,
     "type": "git_commit",
     "commit_message": "I'm checking in this state before tearing it all down",
     "commit_hash": "335274e4557167c4d8346db9a0eb5ce8adc4b329"
   },
   {
-    "timestamp": "2026-05-25T06:46:26Z",
+    "timestamp": 1779691586,
     "type": "git_commit",
     "commit_message": "major security implementation documentation change",
     "commit_hash": "fe0c1c66bf93638c6020b9ab9fa5a38880bb3a18"
   },
   {
-    "timestamp": "2026-05-30T03:48:53.736Z",
+    "timestamp": 1780112933,
     "type": "codex_task",
     "user_prompt": [
       "we are making a big change",
@@ -86,13 +86,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:06:18Z",
+    "timestamp": 1780113978,
     "type": "git_commit",
     "commit_message": "direct to wav file recording",
     "commit_hash": "64f9f8e6f7cc8677283c2f4afdfbd22660041ff6"
   },
   {
-    "timestamp": "2026-06-01T02:05:16.569Z",
+    "timestamp": 1780279516,
     "type": "codex_task",
     "user_prompt": [
       "I am testing a security level 1 build, I have activated the default secure soft Wi-Fi AP, I have loaded the front-end web page. I attempted to login to it, the error message I got is `n is not a constructor`",

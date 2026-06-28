@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-02T05:20:13.470Z",
+    "timestamp": 1780377613,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -83,7 +83,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:39:50.883Z",
+    "timestamp": 1780378790,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -112,7 +112,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:47:50.418Z",
+    "timestamp": 1780379270,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -165,7 +165,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:06:32.285Z",
+    "timestamp": 1780380392,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -246,7 +246,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:10:33.092Z",
+    "timestamp": 1780380633,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -294,19 +294,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:21:00Z",
+    "timestamp": 1780381260,
     "type": "git_commit",
     "commit_message": "code clean up a bit, better error dialog routing",
     "commit_hash": "9cfa8004f61008a8d54cb2609ae348fc44e802c6"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-03T04:19:44.350Z",
+    "timestamp": 1780460384,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -368,7 +368,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T04:43:26Z",
+    "timestamp": 1780461806,
     "type": "git_commit",
     "commit_message": "refactor wifi manager",
     "commit_hash": "e854858ac4af04460f4ee1e885c7c0056edd16ac"

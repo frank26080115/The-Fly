@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-01T18:42:55.334Z",
+    "timestamp": 1777660975,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -46,7 +46,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-01T22:27:49.668Z",
+    "timestamp": 1777674469,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -91,13 +91,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-01T22:30:37Z",
+    "timestamp": 1777674637,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "b8b0ab39dab7aef8677e5cf22c8807103a62ef05"
   },
   {
-    "timestamp": "2026-05-02T03:59:35.448Z",
+    "timestamp": 1777694375,
     "type": "codex_task",
     "user_prompt": [
       "Please implement the code as described by the comment on lib/UtilFuncs/utilfuncs.cpp:124",
@@ -124,13 +124,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-03T07:20:50Z",
+    "timestamp": 1777792850,
     "type": "git_commit",
     "commit_message": "ran clang-format",
     "commit_hash": "3d9ea7744be0307aa3f036911a5433b7fb358ce2"
   },
   {
-    "timestamp": "2026-05-15T06:48:21.866Z",
+    "timestamp": 1778827701,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -166,13 +166,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:30:10Z",
+    "timestamp": 1778837410,
     "type": "git_commit",
     "commit_message": "clean up some tests a bit",
     "commit_hash": "eb358d8766ce23080e7131aae68bf3fd9f89731d"
   },
   {
-    "timestamp": "2026-05-15T09:31:58.772Z",
+    "timestamp": 1778837518,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -198,13 +198,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:33:58Z",
+    "timestamp": 1778837638,
     "type": "git_commit",
     "commit_message": "bluetooth actually works now",
     "commit_hash": "c18fece1e916f4b71893eceaafe1c096e227e050"
   },
   {
-    "timestamp": "2026-05-15T17:37:35.875Z",
+    "timestamp": 1778866655,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -238,7 +238,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T05:23:35.843Z",
+    "timestamp": 1778995415,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -310,13 +310,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T06:33:21Z",
+    "timestamp": 1779086001,
     "type": "git_commit",
     "commit_message": "date time parser",
     "commit_hash": "f8a9954b775af74a503826ac784e7dfb7ae5d7ea"
   },
   {
-    "timestamp": "2026-05-20T04:47:11.076Z",
+    "timestamp": 1779252431,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -355,7 +355,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T06:16:05.518Z",
+    "timestamp": 1779257765,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -408,13 +408,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T07:17:21Z",
+    "timestamp": 1779261441,
     "type": "git_commit",
     "commit_message": "massive progress with RecordingView",
     "commit_hash": "1c4305479f888bd2dc55b13c27a109f8c8dc6cd7"
   },
   {
-    "timestamp": "2026-05-20T19:25:59.848Z",
+    "timestamp": 1779305159,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -475,13 +475,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T20:34:13Z",
+    "timestamp": 1779309253,
     "type": "git_commit",
     "commit_message": "disk stats, font changes",
     "commit_hash": "abd204ec22dfe148723d1f8633539f2232ca194b"
   },
   {
-    "timestamp": "2026-05-22T05:45:32.850Z",
+    "timestamp": 1779428732,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -536,13 +536,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T06:14:22Z",
+    "timestamp": 1779430462,
     "type": "git_commit",
     "commit_message": "cloud upload now includes a time nonce",
     "commit_hash": "cba97ed94aaf1818604d54d1bc92792c2ebabde4"
   },
   {
-    "timestamp": "2026-05-22T17:53:27.418Z",
+    "timestamp": 1779472407,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -592,7 +592,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T19:28:29.758Z",
+    "timestamp": 1779478109,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -676,13 +676,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T20:49:03Z",
+    "timestamp": 1779482943,
     "type": "git_commit",
     "commit_message": "minor clean up",
     "commit_hash": "86e23c1b9957c5fa15698d202e381e533889d055"
   },
   {
-    "timestamp": "2026-05-29T00:27:46.075Z",
+    "timestamp": 1780014466,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -724,13 +724,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T00:36:51Z",
+    "timestamp": 1780015011,
     "type": "git_commit",
     "commit_message": "wired up the meta text stuff for recorded files",
     "commit_hash": "c988ffe1f5c5e6f6595aa52de195fa5fb6804044"
   },
   {
-    "timestamp": "2026-05-29T00:50:12.054Z",
+    "timestamp": 1780015812,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -809,19 +809,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T01:26:49Z",
+    "timestamp": 1780018009,
     "type": "git_commit",
     "commit_message": "moved some utility funcs",
     "commit_hash": "fb86b0a5022c32571794dda2aba226de1cd4a2a0"
   },
   {
-    "timestamp": "2026-05-29T20:41:49Z",
+    "timestamp": 1780087309,
     "type": "git_commit",
     "commit_message": "firmware update kinda implemented",
     "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
   },
   {
-    "timestamp": "2026-05-30T08:51:42.394Z",
+    "timestamp": 1780131102,
     "type": "codex_task",
     "user_prompt": [
       "move the highlighted function to `utilfuncs.cpp`",
@@ -875,13 +875,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:58:27Z",
+    "timestamp": 1780131507,
     "type": "git_commit",
     "commit_message": "playback cosmetics",
     "commit_hash": "fc195cfc87e618d1f87c500b1c86a99d7d5b813d"
   },
   {
-    "timestamp": "2026-06-01T19:24:31.221Z",
+    "timestamp": 1780341871,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -933,19 +933,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T19:48:35Z",
+    "timestamp": 1780343315,
     "type": "git_commit",
     "commit_message": "a lot of duplicate string comparison implementations",
     "commit_hash": "90dc90455dec156a8460b220ef615f3e503154ab"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T09:34:42.263Z",
+    "timestamp": 1780392882,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1004,19 +1004,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T09:46:12Z",
+    "timestamp": 1780393572,
     "type": "git_commit",
     "commit_message": "more code neatening",
     "commit_hash": "41a16a83dde0bcbb0faacc0e153b905a9aac33e4"
   },
   {
-    "timestamp": "2026-06-02T17:23:48Z",
+    "timestamp": 1780421028,
     "type": "git_commit",
     "commit_message": "ran clang format",
     "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"
   },
   {
-    "timestamp": "2026-06-14T05:18:01.595Z",
+    "timestamp": 1781414281,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1045,7 +1045,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T06:50:02Z",
+    "timestamp": 1781419802,
     "type": "git_commit",
     "commit_message": "moved a buffer allocation function to utilfuncs",
     "commit_hash": "92e1708630fcc2d0e9dff6d968bdfe812db53346"

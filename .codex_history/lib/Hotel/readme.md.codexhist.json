@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-05T18:14:44.216Z",
+    "timestamp": 1778004884,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -24,13 +24,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-05T21:16:39Z",
+    "timestamp": 1778015799,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "6a8e6bd8033b3bb6a02c82981bb3ec72f49fac02"
   },
   {
-    "timestamp": "2026-05-21T18:17:58.604Z",
+    "timestamp": 1779387478,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -47,13 +47,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T19:17:26Z",
+    "timestamp": 1779391046,
     "type": "git_commit",
     "commit_message": "bt host delete, debug shown on top bar",
     "commit_hash": "faf2c6341baa36a0f9941de6378b0a239fcfab7a"
   },
   {
-    "timestamp": "2026-06-02T01:01:40.069Z",
+    "timestamp": 1780362100,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -118,19 +118,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:05:17Z",
+    "timestamp": 1780376717,
     "type": "git_commit",
     "commit_message": "hotel can shutdown if playback is paused",
     "commit_hash": "007c48def4bada6d12b761912b160f6f9de213b4"
   },
   {
-    "timestamp": "2026-06-02T08:19:32Z",
+    "timestamp": 1780388372,
     "type": "git_commit",
     "commit_message": "comments labeling modules",
     "commit_hash": "31550c50383ebe32a1fdcc074460e52d8390cbc9"
   },
   {
-    "timestamp": "2026-06-12T18:43:25.862Z",
+    "timestamp": 1781289805,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

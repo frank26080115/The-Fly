@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-03T07:02:29.491Z",
+    "timestamp": 1777791749,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -26,13 +26,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-03T07:14:11Z",
+    "timestamp": 1777792451,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "37471f5d99727676ebcaee90085bb7e9b6cfa054"
   },
   {
-    "timestamp": "2026-06-02T06:37:21.585Z",
+    "timestamp": 1780382241,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -85,13 +85,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:40:43Z",
+    "timestamp": 1780382443,
     "type": "git_commit",
     "commit_message": "update clang format scripts with ignore list",
     "commit_hash": "187500392e652aa2ba9d1d462740788359c2cd13"
   },
   {
-    "timestamp": "2026-06-03T06:58:32.450Z",
+    "timestamp": 1780469912,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -151,7 +151,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T07:03:56Z",
+    "timestamp": 1780470236,
     "type": "git_commit",
     "commit_message": "more clang format stuff",
     "commit_hash": "fa8a1e27b6b4982ce7a05c70f69ab0eb2ff14f79"

@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-15T08:52:55.665Z",
+    "timestamp": 1778835175,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -65,7 +65,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:04:03.763Z",
+    "timestamp": 1778835843,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -126,7 +126,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:12:30.271Z",
+    "timestamp": 1778836350,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -165,7 +165,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:25:38.362Z",
+    "timestamp": 1778837138,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -195,13 +195,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:29:28Z",
+    "timestamp": 1778837368,
     "type": "git_commit",
     "commit_message": "added PNG drawing",
     "commit_hash": "d1cce490ffbc23621fcbeef5fe4d31c5bd1ee448"
   },
   {
-    "timestamp": "2026-05-19T07:31:36.528Z",
+    "timestamp": 1779175896,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -241,7 +241,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T07:50:08.830Z",
+    "timestamp": 1779177008,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -271,13 +271,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T08:07:31Z",
+    "timestamp": 1779178051,
     "type": "git_commit",
     "commit_message": "good progress working on GUI but ran into memory problems with PNG decode",
     "commit_hash": "ce293de5bfe655e8023945176b68c324355ad1de"
   },
   {
-    "timestamp": "2026-05-19T09:25:55.209Z",
+    "timestamp": 1779182755,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -330,13 +330,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T09:44:16Z",
+    "timestamp": 1779183856,
     "type": "git_commit",
     "commit_message": "cleaned up display as param",
     "commit_hash": "44c732408fa59c62aa9a1734f91a61315fcfe7ed"
   },
   {
-    "timestamp": "2026-05-19T17:55:01.194Z",
+    "timestamp": 1779213301,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -451,13 +451,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T19:22:28Z",
+    "timestamp": 1779218548,
     "type": "git_commit",
     "commit_message": "sprites can be dimmed/dithered",
     "commit_hash": "c13d018e03ab7af65a09d647befd1f0c2118f7e9"
   },
   {
-    "timestamp": "2026-05-21T20:47:04.827Z",
+    "timestamp": 1779396424,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -479,13 +479,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T20:52:19Z",
+    "timestamp": 1779396739,
     "type": "git_commit",
     "commit_message": "spritedraw now supports transparency",
     "commit_hash": "25fc29156a7e506b33e61cc813835413c3c761a1"
   },
   {
-    "timestamp": "2026-05-24T05:27:42.824Z",
+    "timestamp": 1779600462,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -514,25 +514,25 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T08:10:45Z",
+    "timestamp": 1779610245,
     "type": "git_commit",
     "commit_message": "user customized icon rewrite",
     "commit_hash": "77e4a4ef8b64072a653f33ecc377d9b157bc4629"
   },
   {
-    "timestamp": "2026-05-31T04:24:21Z",
+    "timestamp": 1780201461,
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T10:16:14.683Z",
+    "timestamp": 1780395374,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -605,19 +605,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T15:20:12Z",
+    "timestamp": 1780413612,
     "type": "git_commit",
     "commit_message": "code neatening for the views",
     "commit_hash": "3dbd6b2cd2fdecdb22e7dcef84a89989f2e63669"
   },
   {
-    "timestamp": "2026-06-02T17:23:48Z",
+    "timestamp": 1780421028,
     "type": "git_commit",
     "commit_message": "ran clang format",
     "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"
   },
   {
-    "timestamp": "2026-06-11T21:22:20.111Z",
+    "timestamp": 1781212940,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-31T21:54:50Z",
+    "timestamp": 1780264490,
     "type": "git_commit",
     "commit_message": "python script rewrite for new file format",
     "commit_hash": "69a3e8656671f00fe321856f14ee4d1420110ebe"
   },
   {
-    "timestamp": "2026-06-01T20:06:27.818Z",
+    "timestamp": 1780344387,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -51,13 +51,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T20:35:36Z",
+    "timestamp": 1780346136,
     "type": "git_commit",
     "commit_message": "added mp3 support to python scripts",
     "commit_hash": "d72c1de012b436194c292aa397803b69de505dac"
   },
   {
-    "timestamp": "2026-06-02T00:13:40.244Z",
+    "timestamp": 1780359220,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

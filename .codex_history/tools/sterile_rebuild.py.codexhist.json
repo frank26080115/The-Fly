@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-26T09:07:26.205Z",
+    "timestamp": 1779786446,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -40,7 +40,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T09:11:28.750Z",
+    "timestamp": 1779786688,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -76,7 +76,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T09:12:24.299Z",
+    "timestamp": 1779786744,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -100,13 +100,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T09:17:06Z",
+    "timestamp": 1779787026,
     "type": "git_commit",
     "commit_message": "Create sterile_rebuild.py",
     "commit_hash": "5395bf88f36dfc76a81bf8042f23efc46673c74f"
   },
   {
-    "timestamp": "2026-05-26T20:06:52.337Z",
+    "timestamp": 1779826012,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -135,7 +135,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T22:01:30.062Z",
+    "timestamp": 1779832890,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -193,7 +193,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-27T17:44:07.744Z",
+    "timestamp": 1779903847,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -231,7 +231,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-13T07:21:53.957Z",
+    "timestamp": 1781335313,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -270,7 +270,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-13T18:28:31.995Z",
+    "timestamp": 1781375311,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -312,7 +312,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-13T20:04:02.291Z",
+    "timestamp": 1781381042,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-30T07:19:36.291Z",
+    "timestamp": 1780125576,
     "type": "codex_task",
     "user_prompt": [
       "### Task: Playback",
@@ -95,7 +95,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:16:39.800Z",
+    "timestamp": 1780128999,
     "type": "codex_task",
     "user_prompt": [
       "`ScrubBar` needs a major tweak for what I want to do next",
@@ -172,13 +172,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:35:05Z",
+    "timestamp": 1780130105,
     "type": "git_commit",
     "commit_message": "playback mechanism",
     "commit_hash": "813aab87ffb853eb373d960af6a773dbf5f74642"
   },
   {
-    "timestamp": "2026-05-30T08:36:09.015Z",
+    "timestamp": 1780130169,
     "type": "codex_task",
     "user_prompt": [
       "move the blue bar down 2 pixels",
@@ -210,13 +210,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:58:27Z",
+    "timestamp": 1780131507,
     "type": "git_commit",
     "commit_message": "playback cosmetics",
     "commit_hash": "fc195cfc87e618d1f87c500b1c86a99d7d5b813d"
   },
   {
-    "timestamp": "2026-05-30T23:22:09.574Z",
+    "timestamp": 1780183329,
     "type": "codex_task",
     "user_prompt": [
       "you know how the blue scrub bar displays the total duration up on top of the bar on the right side? that is overlapping with the delete button",
@@ -239,25 +239,25 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T23:29:32Z",
+    "timestamp": 1780183772,
     "type": "git_commit",
     "commit_message": "audio file delete button implemented",
     "commit_hash": "4c130675d3f65cbce5100ad682ceea13a0552ed2"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T16:14:15Z",
+    "timestamp": 1780416855,
     "type": "git_commit",
     "commit_message": "neaten",
     "commit_hash": "86d90ffafe35f5d236da1bafff3d2216e4365a2f"
   },
   {
-    "timestamp": "2026-06-03T05:02:04.931Z",
+    "timestamp": 1780462924,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -326,7 +326,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:51:45Z",
+    "timestamp": 1780469505,
     "type": "git_commit",
     "commit_message": "diagnostics, fixed a bug with speaker peak decay",
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"

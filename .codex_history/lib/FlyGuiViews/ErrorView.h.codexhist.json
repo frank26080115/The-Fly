@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-19T05:48:22.053Z",
+    "timestamp": 1779169702,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -60,13 +60,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T08:07:31Z",
+    "timestamp": 1779178051,
     "type": "git_commit",
     "commit_message": "good progress working on GUI but ran into memory problems with PNG decode",
     "commit_hash": "ce293de5bfe655e8023945176b68c324355ad1de"
   },
   {
-    "timestamp": "2026-05-19T09:25:55.209Z",
+    "timestamp": 1779182755,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -119,13 +119,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T09:44:16Z",
+    "timestamp": 1779183856,
     "type": "git_commit",
     "commit_message": "cleaned up display as param",
     "commit_hash": "44c732408fa59c62aa9a1734f91a61315fcfe7ed"
   },
   {
-    "timestamp": "2026-05-29T18:08:51.752Z",
+    "timestamp": 1780078131,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -176,19 +176,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T19:12:05Z",
+    "timestamp": 1780081925,
     "type": "git_commit",
     "commit_message": "better error screens with rescue wifi",
     "commit_hash": "e80a4d45b429f363956cf3178c63626d5c802a88"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-03T05:02:04.931Z",
+    "timestamp": 1780462924,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -257,13 +257,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:51:45Z",
+    "timestamp": 1780469505,
     "type": "git_commit",
     "commit_message": "diagnostics, fixed a bug with speaker peak decay",
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
   },
   {
-    "timestamp": "2026-06-24T04:50:10.453Z",
+    "timestamp": 1782276610,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -301,7 +301,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-24T04:55:16Z",
+    "timestamp": 1782276916,
     "type": "git_commit",
     "commit_message": "fixed frozen error dialog",
     "commit_hash": "0bc23e3cfc0c4ce3c37c74219359273dde930d80"

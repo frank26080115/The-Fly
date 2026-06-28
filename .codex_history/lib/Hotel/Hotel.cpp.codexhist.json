@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-05T18:14:44.216Z",
+    "timestamp": 1778004884,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -22,7 +22,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-05T18:16:41.313Z",
+    "timestamp": 1778005001,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -63,13 +63,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-05T21:16:39Z",
+    "timestamp": 1778015799,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "6a8e6bd8033b3bb6a02c82981bb3ec72f49fac02"
   },
   {
-    "timestamp": "2026-05-19T08:17:53.005Z",
+    "timestamp": 1779178673,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -127,7 +127,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T09:25:55.209Z",
+    "timestamp": 1779182755,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -180,7 +180,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T09:37:44.516Z",
+    "timestamp": 1779183464,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -208,13 +208,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T09:44:16Z",
+    "timestamp": 1779183856,
     "type": "git_commit",
     "commit_message": "cleaned up display as param",
     "commit_hash": "44c732408fa59c62aa9a1734f91a61315fcfe7ed"
   },
   {
-    "timestamp": "2026-05-20T07:04:37.621Z",
+    "timestamp": 1779260677,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -289,7 +289,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T07:06:04.707Z",
+    "timestamp": 1779260764,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -325,13 +325,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T07:17:21Z",
+    "timestamp": 1779261441,
     "type": "git_commit",
     "commit_message": "massive progress with RecordingView",
     "commit_hash": "1c4305479f888bd2dc55b13c27a109f8c8dc6cd7"
   },
   {
-    "timestamp": "2026-05-21T04:19:41.824Z",
+    "timestamp": 1779337181,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -357,13 +357,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T07:34:30Z",
+    "timestamp": 1779348870,
     "type": "git_commit",
     "commit_message": "progress on bluetooth but cannot initiate connection, can handle incoming though",
     "commit_hash": "e94d9d093825b8b6ff31e1ff98b191887cc736cc"
   },
   {
-    "timestamp": "2026-05-21T18:14:42.829Z",
+    "timestamp": 1779387282,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -404,7 +404,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T18:17:58.604Z",
+    "timestamp": 1779387478,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -421,13 +421,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T19:17:26Z",
+    "timestamp": 1779391046,
     "type": "git_commit",
     "commit_message": "bt host delete, debug shown on top bar",
     "commit_hash": "faf2c6341baa36a0f9941de6378b0a239fcfab7a"
   },
   {
-    "timestamp": "2026-05-29T05:28:04.736Z",
+    "timestamp": 1780032484,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -466,13 +466,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T06:27:46Z",
+    "timestamp": 1780036066,
     "type": "git_commit",
     "commit_message": "some uncommon shutdown scenarios",
     "commit_hash": "1bf925875d692a6196248b1d63e8e03cc8b0afe7"
   },
   {
-    "timestamp": "2026-05-31T04:05:56.226Z",
+    "timestamp": 1780200356,
     "type": "codex_task",
     "user_prompt": [
       "change it so that all the code within `src` and `lib` and `inc` use `DBG_LOG*`",
@@ -554,13 +554,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T04:24:21Z",
+    "timestamp": 1780201461,
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   },
   {
-    "timestamp": "2026-06-02T01:01:40.069Z",
+    "timestamp": 1780362100,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -625,7 +625,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T01:20:13.140Z",
+    "timestamp": 1780363213,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -677,19 +677,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:05:17Z",
+    "timestamp": 1780376717,
     "type": "git_commit",
     "commit_message": "hotel can shutdown if playback is paused",
     "commit_hash": "007c48def4bada6d12b761912b160f6f9de213b4"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T09:34:42.263Z",
+    "timestamp": 1780392882,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -748,13 +748,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T09:46:12Z",
+    "timestamp": 1780393572,
     "type": "git_commit",
     "commit_message": "more code neatening",
     "commit_hash": "41a16a83dde0bcbb0faacc0e153b905a9aac33e4"
   },
   {
-    "timestamp": "2026-06-12T03:01:32.095Z",
+    "timestamp": 1781233292,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -783,7 +783,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T07:12:00.371Z",
+    "timestamp": 1781248320,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -819,13 +819,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T07:17:51Z",
+    "timestamp": 1781248671,
     "type": "git_commit",
     "commit_message": "more screenshot stuff",
     "commit_hash": "f28c5490101268c4e2dcd3c955c64e070d5b05b2"
   },
   {
-    "timestamp": "2026-06-25T06:41:42.181Z",
+    "timestamp": 1782369702,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

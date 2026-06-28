@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-03T06:46:31.807Z",
+    "timestamp": 1777790791,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -43,19 +43,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-03T07:14:11Z",
+    "timestamp": 1777792451,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "37471f5d99727676ebcaee90085bb7e9b6cfa054"
   },
   {
-    "timestamp": "2026-05-03T07:20:50Z",
+    "timestamp": 1777792850,
     "type": "git_commit",
     "commit_message": "ran clang-format",
     "commit_hash": "3d9ea7744be0307aa3f036911a5433b7fb358ce2"
   },
   {
-    "timestamp": "2026-05-04T21:56:11.921Z",
+    "timestamp": 1777931771,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -121,7 +121,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T22:00:36.167Z",
+    "timestamp": 1777932036,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -159,13 +159,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T22:18:38Z",
+    "timestamp": 1777933118,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
   },
   {
-    "timestamp": "2026-05-06T23:39:21.801Z",
+    "timestamp": 1778110761,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -210,13 +210,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-07T00:37:28Z",
+    "timestamp": 1778114248,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "c31536e76af6564fcf9e33fe1e79c3fef9bf8e36"
   },
   {
-    "timestamp": "2026-05-07T00:45:01.453Z",
+    "timestamp": 1778114701,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -253,13 +253,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-07T00:54:23Z",
+    "timestamp": 1778115263,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "b3b772056c7834aba6a5a20ff399780150e87263"
   },
   {
-    "timestamp": "2026-05-14T17:30:12.151Z",
+    "timestamp": 1778779812,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -291,7 +291,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T19:20:48.671Z",
+    "timestamp": 1778786448,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -329,13 +329,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T20:16:33Z",
+    "timestamp": 1778789793,
     "type": "git_commit",
     "commit_message": "file recorder, statistics, pure pcm mode, no debugging",
     "commit_hash": "f700a259e2b1bafa901b4516f9bf8a959f9cdb87"
   },
   {
-    "timestamp": "2026-05-15T22:50:30.400Z",
+    "timestamp": 1778885430,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -376,7 +376,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T22:59:32.269Z",
+    "timestamp": 1778885972,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -411,13 +411,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T23:03:38Z",
+    "timestamp": 1778886218,
     "type": "git_commit",
     "commit_message": "file recorder track when cache was flushed, and autoflushes",
     "commit_hash": "e3f4e8b22b42525c0d2c6bee3cc4503194c63eb0"
   },
   {
-    "timestamp": "2026-05-17T05:28:33.911Z",
+    "timestamp": 1778995713,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -471,7 +471,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T06:35:02.698Z",
+    "timestamp": 1779086102,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -500,13 +500,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T06:47:15Z",
+    "timestamp": 1779086835,
     "type": "git_commit",
     "commit_message": "file history pruning",
     "commit_hash": "64d2f662e58a3e34857f5e6cf80d869277f9a5d2"
   },
   {
-    "timestamp": "2026-05-18T23:00:00.926Z",
+    "timestamp": 1779145200,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -575,19 +575,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T23:22:32Z",
+    "timestamp": 1779146552,
     "type": "git_commit",
     "commit_message": "audio stream now embeds meta text",
     "commit_hash": "e75a61e97a39e9d34844d2197866ad8caf1ed1d0"
   },
   {
-    "timestamp": "2026-05-29T00:27:07Z",
+    "timestamp": 1780014427,
     "type": "git_commit",
     "commit_message": "memo type file names",
     "commit_hash": "9e4b6c06eb18064ea09552cde79bc46b65dd8b36"
   },
   {
-    "timestamp": "2026-05-29T00:27:46.075Z",
+    "timestamp": 1780014466,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -629,13 +629,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T00:36:51Z",
+    "timestamp": 1780015011,
     "type": "git_commit",
     "commit_message": "wired up the meta text stuff for recorded files",
     "commit_hash": "c988ffe1f5c5e6f6595aa52de195fa5fb6804044"
   },
   {
-    "timestamp": "2026-05-29T06:33:00.429Z",
+    "timestamp": 1780036380,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1049,13 +1049,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T08:00:46Z",
+    "timestamp": 1780041646,
     "type": "git_commit",
     "commit_message": "fixed crashing BT connection",
     "commit_hash": "96977720a364b68ccd0cbc2bc2f5cc4cb7c0b431"
   },
   {
-    "timestamp": "2026-05-31T01:51:11.202Z",
+    "timestamp": 1780192271,
     "type": "codex_task",
     "user_prompt": [
       "### Task: major change to recorded encrypted file format",
@@ -1139,7 +1139,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T02:43:33.962Z",
+    "timestamp": 1780195413,
     "type": "codex_task",
     "user_prompt": [
       "In the `ScrollView` currently any item representing an encrypted file is not clickable. Change it so that now, it launches the same playback mechanism, but only if `BUILD_WITH_ENCRYPTED_PLAYBACK` is defined",
@@ -1201,13 +1201,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T03:56:19Z",
+    "timestamp": 1780199779,
     "type": "git_commit",
     "commit_message": "encrypted playback",
     "commit_hash": "b44ada573a1434b396178f2ddc13955d839d57f3"
   },
   {
-    "timestamp": "2026-05-31T09:37:26.627Z",
+    "timestamp": 1780220246,
     "type": "codex_task",
     "user_prompt": [
       "```",
@@ -1241,7 +1241,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T10:34:29.573Z",
+    "timestamp": 1780310069,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1288,19 +1288,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T11:03:22Z",
+    "timestamp": 1780311802,
     "type": "git_commit",
     "commit_message": "significant work trying to get MP3 encoding to work",
     "commit_hash": "41c73bdbaff03d906023ec27bbc082a6f5b295e6"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T06:45:37.824Z",
+    "timestamp": 1780382737,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1345,19 +1345,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:00:19Z",
+    "timestamp": 1780383619,
     "type": "git_commit",
     "commit_message": "neatened up AudioFileRecorder",
     "commit_hash": "7d2a40d0d20d22480cb9f4acece804b0179ab1a7"
   },
   {
-    "timestamp": "2026-06-02T17:23:48Z",
+    "timestamp": 1780421028,
     "type": "git_commit",
     "commit_message": "ran clang format",
     "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"
   },
   {
-    "timestamp": "2026-06-02T19:31:25.618Z",
+    "timestamp": 1780428685,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1430,7 +1430,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-13T20:04:02.291Z",
+    "timestamp": 1781381042,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1473,7 +1473,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-13T20:25:41Z",
+    "timestamp": 1781382341,
     "type": "git_commit",
     "commit_message": "free'ed some RAM, sec1 build crashing maybe fixed",
     "commit_hash": "9ae30e0240b8fe1396746d6f316af2686d52fbe3"

@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-15T06:41:43.718Z",
+    "timestamp": 1778827303,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -73,7 +73,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T06:48:21.866Z",
+    "timestamp": 1778827701,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -109,7 +109,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T06:50:06.614Z",
+    "timestamp": 1778827806,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -129,7 +129,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T06:55:40.662Z",
+    "timestamp": 1778828140,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -179,7 +179,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T07:37:37.245Z",
+    "timestamp": 1778830657,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -270,19 +270,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:29:54Z",
+    "timestamp": 1778837394,
     "type": "git_commit",
     "commit_message": "added bt tests",
     "commit_hash": "d3c291e69ab7f6d42eba1621c414eea70930cf28"
   },
   {
-    "timestamp": "2026-05-15T22:24:39Z",
+    "timestamp": 1778883879,
     "type": "git_commit",
     "commit_message": "disable the web stuff in test_btspeakerphone",
     "commit_hash": "c38a46e267093e17db6e853b446c6a21e707d777"
   },
   {
-    "timestamp": "2026-05-15T22:29:38.182Z",
+    "timestamp": 1778884178,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -325,7 +325,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T22:39:16.223Z",
+    "timestamp": 1778884756,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -369,13 +369,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T23:03:51Z",
+    "timestamp": 1778886231,
     "type": "git_commit",
     "commit_message": "speaker phone test more complicated controls",
     "commit_hash": "566530b7b0bdaa1a5b1a37bcb3186b61b38ee105"
   },
   {
-    "timestamp": "2026-05-16T05:30:20.442Z",
+    "timestamp": 1778909420,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -400,7 +400,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T05:32:05.592Z",
+    "timestamp": 1778909525,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -423,7 +423,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T05:38:37.356Z",
+    "timestamp": 1778909917,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -453,7 +453,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T08:12:32.581Z",
+    "timestamp": 1778919152,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -535,13 +535,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T08:46:51Z",
+    "timestamp": 1778921211,
     "type": "git_commit",
     "commit_message": "speakerphone test works, it did involve editing the esp-idf config and building the library in the back",
     "commit_hash": "0fb9d76750530a27bc80183add0ccf3c26959ed3"
   },
   {
-    "timestamp": "2026-05-16T09:16:27.357Z",
+    "timestamp": 1778922987,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -739,7 +739,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T09:19:34.290Z",
+    "timestamp": 1778923174,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -772,7 +772,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T09:27:52.764Z",
+    "timestamp": 1778923672,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -816,7 +816,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T09:37:41.541Z",
+    "timestamp": 1778924261,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -870,13 +870,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T10:26:31Z",
+    "timestamp": 1778927191,
     "type": "git_commit",
     "commit_message": "outgoing audio works",
     "commit_hash": "f8f3fdf74e476147651004e4bd8d6998a606ee7b"
   },
   {
-    "timestamp": "2026-05-16T10:29:22.790Z",
+    "timestamp": 1778927362,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -934,13 +934,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T10:52:48Z",
+    "timestamp": 1778928768,
     "type": "git_commit",
     "commit_message": "cleaned up diagnostics a bit, added mutex for pump functions",
     "commit_hash": "29089ae91ae93ddd946f37d2b0c1c4b345a20763"
   },
   {
-    "timestamp": "2026-05-16T21:56:48.622Z",
+    "timestamp": 1778968608,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -978,13 +978,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T03:30:13Z",
+    "timestamp": 1778988613,
     "type": "git_commit",
     "commit_message": "application infrastructure wip",
     "commit_hash": "380e678127c354bb1fcb6171bc0720f72caba667"
   },
   {
-    "timestamp": "2026-05-18T06:09:27.061Z",
+    "timestamp": 1779084567,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1050,13 +1050,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T06:48:14Z",
+    "timestamp": 1779086894,
     "type": "git_commit",
     "commit_message": "change bluetooth init behavior to be connectable",
     "commit_hash": "c413b9460ff7cad507efe70c6364120b3b62ea0b"
   },
   {
-    "timestamp": "2026-05-19T09:25:55.209Z",
+    "timestamp": 1779182755,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1109,13 +1109,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T09:44:16Z",
+    "timestamp": 1779183856,
     "type": "git_commit",
     "commit_message": "cleaned up display as param",
     "commit_hash": "44c732408fa59c62aa9a1734f91a61315fcfe7ed"
   },
   {
-    "timestamp": "2026-05-26T03:17:02.783Z",
+    "timestamp": 1779765422,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1172,31 +1172,31 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T03:37:42Z",
+    "timestamp": 1779766662,
     "type": "git_commit",
     "commit_message": "deleted SBC stuff",
     "commit_hash": "3161432d1a0fa698e9adc8c48bc6d9be0b51178c"
   },
   {
-    "timestamp": "2026-05-31T04:24:21Z",
+    "timestamp": 1780201461,
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-07T04:36:19Z",
+    "timestamp": 1780806979,
     "type": "git_commit",
     "commit_message": "progress on ext codec",
     "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"
   },
   {
-    "timestamp": "2026-06-11T01:50:26.674Z",
+    "timestamp": 1781142626,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

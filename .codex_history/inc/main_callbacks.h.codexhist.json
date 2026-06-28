@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-29T04:11:50.435Z",
+    "timestamp": 1780027910,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -29,13 +29,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T04:55:49Z",
+    "timestamp": 1780030549,
     "type": "git_commit",
     "commit_message": "code neatened, remove cloud features with a predefine",
     "commit_hash": "d24eb445de9566caf462ed97068368a51fbd6009"
   },
   {
-    "timestamp": "2026-05-29T05:08:26.537Z",
+    "timestamp": 1780031306,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -93,7 +93,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T08:42:28.370Z",
+    "timestamp": 1780044148,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -128,13 +128,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T08:57:28Z",
+    "timestamp": 1780045048,
     "type": "git_commit",
     "commit_message": "major progress on usability, added ntp sync",
     "commit_hash": "a1c937432bf18b83680cbd0120e09e8d29e67ac6"
   },
   {
-    "timestamp": "2026-05-30T05:13:22.971Z",
+    "timestamp": 1780118002,
     "type": "codex_task",
     "user_prompt": [
       "add a `ScrollView::populateFiles` function, along with enums to give it a `File List` context",
@@ -207,13 +207,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:35:05Z",
+    "timestamp": 1780130105,
     "type": "git_commit",
     "commit_message": "playback mechanism",
     "commit_hash": "813aab87ffb853eb373d960af6a773dbf5f74642"
   },
   {
-    "timestamp": "2026-06-02T03:53:34.093Z",
+    "timestamp": 1780372414,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -265,7 +265,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T04:07:20.473Z",
+    "timestamp": 1780373240,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -304,13 +304,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:05:17Z",
+    "timestamp": 1780376717,
     "type": "git_commit",
     "commit_message": "hotel can shutdown if playback is paused",
     "commit_hash": "007c48def4bada6d12b761912b160f6f9de213b4"
   },
   {
-    "timestamp": "2026-06-04T23:00:24.630Z",
+    "timestamp": 1780614024,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -348,7 +348,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T23:09:53.416Z",
+    "timestamp": 1780614593,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

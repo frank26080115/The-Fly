@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-22T03:14:29.243Z",
+    "timestamp": 1779419669,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -46,13 +46,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T03:27:25Z",
+    "timestamp": 1779420445,
     "type": "git_commit",
     "commit_message": "starting to add a web server",
     "commit_hash": "421a041f801f5f993b55e85fd21fbb828bf995c0"
   },
   {
-    "timestamp": "2026-05-22T03:30:51.605Z",
+    "timestamp": 1779420651,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -182,7 +182,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T04:00:41.556Z",
+    "timestamp": 1779422441,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -234,7 +234,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T04:29:58.722Z",
+    "timestamp": 1779424198,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -296,13 +296,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T04:56:41Z",
+    "timestamp": 1779425801,
     "type": "git_commit",
     "commit_message": "ftp server works",
     "commit_hash": "999c2544883494dd08561819dc74e913ba45cd35"
   },
   {
-    "timestamp": "2026-05-22T05:29:46.618Z",
+    "timestamp": 1779427786,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -358,13 +358,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T06:02:06Z",
+    "timestamp": 1779429726,
     "type": "git_commit",
     "commit_message": "ftp code organization",
     "commit_hash": "df387f86d00534edd3aa28bde131b727f880666f"
   },
   {
-    "timestamp": "2026-05-24T07:24:07.776Z",
+    "timestamp": 1779607447,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -421,13 +421,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T08:12:26Z",
+    "timestamp": 1779610346,
     "type": "git_commit",
     "commit_message": "web server related major work",
     "commit_hash": "5347b8785e4501a28ac8abae3f67111dfb8fe246"
   },
   {
-    "timestamp": "2026-06-03T04:19:44.350Z",
+    "timestamp": 1780460384,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -489,13 +489,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T04:43:26Z",
+    "timestamp": 1780461806,
     "type": "git_commit",
     "commit_message": "refactor wifi manager",
     "commit_hash": "e854858ac4af04460f4ee1e885c7c0056edd16ac"
   },
   {
-    "timestamp": "2026-06-07T04:36:19Z",
+    "timestamp": 1780806979,
     "type": "git_commit",
     "commit_message": "progress on ext codec",
     "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"

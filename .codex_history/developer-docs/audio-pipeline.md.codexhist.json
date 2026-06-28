@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-14T08:05:52.175Z",
+    "timestamp": 1781424352,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -28,7 +28,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T08:07:14.758Z",
+    "timestamp": 1781424434,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -44,7 +44,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T08:09:40.480Z",
+    "timestamp": 1781424580,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -64,13 +64,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T08:12:15Z",
+    "timestamp": 1781424735,
     "type": "git_commit",
     "commit_message": "dev documentation update",
     "commit_hash": "0ad7ce7b96f00534dee73cd4d9425e45ce4c4748"
   },
   {
-    "timestamp": "2026-06-18T17:54:12Z",
+    "timestamp": 1781805252,
     "type": "git_commit",
     "commit_message": "Update audio-pipeline.md",
     "commit_hash": "0b12c80eac487d6fc975ca05bd2499e327ffaa08"

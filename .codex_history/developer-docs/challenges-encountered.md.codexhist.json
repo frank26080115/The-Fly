@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-06-02T10:12:13Z",
+    "timestamp": 1780395133,
     "type": "git_commit",
     "commit_message": "Create challenges-encountered.md",
     "commit_hash": "2fb636ec60c3b5d501a6235c6d3546d293abab2e"
   },
   {
-    "timestamp": "2026-06-02T20:31:26.368Z",
+    "timestamp": 1780432286,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -26,31 +26,31 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T17:17:09Z",
+    "timestamp": 1780507029,
     "type": "git_commit",
     "commit_message": "Update challenges-encountered.md",
     "commit_hash": "e1babfd1f15bbbc32e3c588400cd4cb382f4c81e"
   },
   {
-    "timestamp": "2026-06-14T08:12:15Z",
+    "timestamp": 1781424735,
     "type": "git_commit",
     "commit_message": "dev documentation update",
     "commit_hash": "0ad7ce7b96f00534dee73cd4d9425e45ce4c4748"
   },
   {
-    "timestamp": "2026-06-18T08:15:00Z",
+    "timestamp": 1781770500,
     "type": "git_commit",
     "commit_message": "implemented notch filter for mic noise problem",
     "commit_hash": "9f459f253dff692ad0f40ce6e3a701cd30996d55"
   },
   {
-    "timestamp": "2026-06-26T07:01:16Z",
+    "timestamp": 1782457276,
     "type": "git_commit",
     "commit_message": "security build tools",
     "commit_hash": "f249cafdf65f4c15debb4486bbba31e64283ad6b"
   },
   {
-    "timestamp": "2026-06-26T18:23:59.787Z",
+    "timestamp": 1782498239,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -113,7 +113,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T18:26:07Z",
+    "timestamp": 1782498367,
     "type": "git_commit",
     "commit_message": "more fixes for missing py modules during secure fw build",
     "commit_hash": "53f5e20fb8b8b2b49ef32682154d40ce20aa46c4"

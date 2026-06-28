@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-06-01T06:33:47Z",
+    "timestamp": 1780295627,
     "type": "git_commit",
     "commit_message": "added a copy of arduino-liblame",
     "commit_hash": "9424277cacbfb1bc1ebf53c9ec83ea2e331b9b87"
   },
   {
-    "timestamp": "2026-06-01T06:39:29.679Z",
+    "timestamp": 1780295969,
     "type": "codex_task",
     "user_prompt": [
       "I'm trying to add a default bit-rate good for our use, I've highlighted a line, fill it in for me with something, I don't even know what unit the API expects"
@@ -27,13 +27,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T07:26:13Z",
+    "timestamp": 1780298773,
     "type": "git_commit",
     "commit_message": "liblame reconfigured",
     "commit_hash": "4bf69da6425fc74a95f264e24c0d992103c50a9f"
   },
   {
-    "timestamp": "2026-06-01T07:28:43.295Z",
+    "timestamp": 1780298923,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -59,13 +59,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T07:34:46Z",
+    "timestamp": 1780299286,
     "type": "git_commit",
     "commit_message": "mp3 encode disable reservoir",
     "commit_hash": "89bfd1eda9c87671e3e2fc196fcd714c165e8b5c"
   },
   {
-    "timestamp": "2026-06-01T07:37:21.969Z",
+    "timestamp": 1780299441,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -125,7 +125,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T08:20:53.767Z",
+    "timestamp": 1780302053,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -159,7 +159,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T08:45:54.434Z",
+    "timestamp": 1780303554,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -246,7 +246,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T10:46:06.064Z",
+    "timestamp": 1780310766,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -316,7 +316,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T11:02:55Z",
+    "timestamp": 1780311775,
     "type": "git_commit",
     "commit_message": "fixed some stuff in liblame, logging, PSRAM, null ptr exception",
     "commit_hash": "717e46f024df44a9518e453e4781787feb271d00"

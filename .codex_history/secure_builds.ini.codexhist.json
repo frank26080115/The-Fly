@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-26T05:36:56.749Z",
+    "timestamp": 1782452216,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -44,7 +44,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T06:00:31.422Z",
+    "timestamp": 1782453631,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -145,9 +145,82 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T07:01:16Z",
+    "timestamp": 1782457276,
     "type": "git_commit",
     "commit_message": "security build tools",
     "commit_hash": "f249cafdf65f4c15debb4486bbba31e64283ad6b"
+  },
+  {
+    "timestamp": 1782516012,
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: tools/build_security.py",
+      "",
+      "## My request for Codex:",
+      "how does anti-roll-back work with `tools\\build_security.py`?"
+    ],
+    "agent_reply": [
+      "Right now, `tools\\build_security.py` does **not** implement anti-rollback.",
+      "",
+      "It currently handles:",
+      "",
+      "- enforcing secure build envs: `thefly_sec1`, `thefly_sec2`, `thefly_sec3`",
+      "- checking secure sdkconfig flags exist",
+      "- requiring the Secure Boot signing key",
+      "- signing `firmware.bin`",
+      "- signing `bootloader.bin`",
+      "- optionally flashing the signed artifacts directly",
+      "",
+      "But ESP32 anti-rollback is a separate ESP-IDF feature. It usually depends on:",
+      "",
+      "- enabling anti-rollback in sdkconfig",
+      "- setting a firmware/app secure version",
+      "- burning or updating the eFuse secure version counter",
+      "- ensuring each released firmware increments the secure version when needed",
+      "",
+      "The important bit: **Secure Boot proves “this firmware was signed by us.” Anti-rollback proves “this signed firmware is not older than the device’s minimum allowed version.”** Signing alone does not stop an older signed firmware from being flashed.",
+      "",
+      "For this repo, `secure_builds.ini` currently has Secure Boot and flash encryption flags, but I do not see anti-rollback flags wired in yet. `BUILD_WITH_SECURITY_LEVEL=1/2/3` is a compile-time firmware security level, but unless the ESP-IDF app secure version is configured and eFuse state is managed, it is not the hardware anti-rollback mechanism.",
+      "",
+      "So the short answer: `build_security.py` makes sure the build is signed and flashable through the secure path, but anti-rollback still needs to be designed and added.",
+      "",
+      "Right now, `tools\\build_security.py` does **not** implement anti-rollback.",
+      "",
+      "It currently handles:",
+      "",
+      "- enforcing secure build envs: `thefly_sec1`, `thefly_sec2`, `thefly_sec3`",
+      "- checking secure sdkconfig flags exist",
+      "- requiring the Secure Boot signing key",
+      "- signing `firmware.bin`",
+      "- signing `bootloader.bin`",
+      "- optionally flashing the signed artifacts directly",
+      "",
+      "But ESP32 anti-rollback is a separate ESP-IDF feature. It usually depends on:",
+      "",
+      "- enabling anti-rollback in sdkconfig",
+      "- setting a firmware/app secure version",
+      "- burning or updating the eFuse secure version counter",
+      "- ensuring each released firmware increments the secure version when needed",
+      "",
+      "The important bit: **Secure Boot proves “this firmware was signed by us.” Anti-rollback proves “this signed firmware is not older than the device’s minimum allowed version.”** Signing alone does not stop an older signed firmware from being flashed.",
+      "",
+      "For this repo, `secure_builds.ini` currently has Secure Boot and flash encryption flags, but I do not see anti-rollback flags wired in yet. `BUILD_WITH_SECURITY_LEVEL=1/2/3` is a compile-time firmware security level, but unless the ESP-IDF app secure version is configured and eFuse state is managed, it is not the hardware anti-rollback mechanism.",
+      "",
+      "So the short answer: `build_security.py` makes sure the build is signed and flashable through the secure path, but anti-rollback still needs to be designed and added."
+    ],
+    "files": [
+      "tools/build_security.py",
+      "managed_components/espressif__esp-serial-flasher/examples/binaries/Hello-world/ESP32/bootloader.bin",
+      "managed_components/espressif__esp-serial-flasher/examples/binaries/ESP32_AT_Firmware/Firmware.bin",
+      "secure_builds.ini"
+    ]
+  },
+  {
+    "timestamp": 1782522069,
+    "type": "git_commit",
+    "commit_message": "anti-rollback",
+    "commit_hash": "9147ba669cfc4468e4a14dba5ca78ab4cd722a03"
   }
 ]

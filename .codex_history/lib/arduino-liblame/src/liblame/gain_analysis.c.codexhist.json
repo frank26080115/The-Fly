@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-06-01T06:33:47Z",
+    "timestamp": 1780295627,
     "type": "git_commit",
     "commit_message": "added a copy of arduino-liblame",
     "commit_hash": "9424277cacbfb1bc1ebf53c9ec83ea2e331b9b87"
   },
   {
-    "timestamp": "2026-06-01T07:13:04.644Z",
+    "timestamp": 1780297984,
     "type": "codex_task",
     "user_prompt": [
       "read through `lib\\arduino-liblame\\src\\liblame\\config.h` and optimize it since we are on a ESP32 with PSRAM"
@@ -60,7 +60,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T07:24:01.058Z",
+    "timestamp": 1780298641,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -91,13 +91,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T07:26:13Z",
+    "timestamp": 1780298773,
     "type": "git_commit",
     "commit_message": "liblame reconfigured",
     "commit_hash": "4bf69da6425fc74a95f264e24c0d992103c50a9f"
   },
   {
-    "timestamp": "2026-06-01T11:02:55Z",
+    "timestamp": 1780311775,
     "type": "git_commit",
     "commit_message": "fixed some stuff in liblame, logging, PSRAM, null ptr exception",
     "commit_hash": "717e46f024df44a9518e453e4781787feb271d00"

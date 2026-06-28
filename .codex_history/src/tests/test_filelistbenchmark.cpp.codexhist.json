@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-30T04:16:45.446Z",
+    "timestamp": 1780114605,
     "type": "codex_task",
     "user_prompt": [
       "implement `void test_filelistbenchmark()`",
@@ -37,19 +37,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:58:58Z",
+    "timestamp": 1780117138,
     "type": "git_commit",
     "commit_message": "benchmarking file listing and sorting",
     "commit_hash": "db2bcb144238b4b8215a303296a745cc1785c39c"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T07:26:24.481Z",
+    "timestamp": 1780385184,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

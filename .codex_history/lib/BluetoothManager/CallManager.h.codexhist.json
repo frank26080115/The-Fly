@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-20T04:38:08.188Z",
+    "timestamp": 1779251888,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -96,13 +96,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T07:17:21Z",
+    "timestamp": 1779261441,
     "type": "git_commit",
     "commit_message": "massive progress with RecordingView",
     "commit_hash": "1c4305479f888bd2dc55b13c27a109f8c8dc6cd7"
   },
   {
-    "timestamp": "2026-05-29T00:27:46.075Z",
+    "timestamp": 1780014466,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -144,13 +144,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T00:36:51Z",
+    "timestamp": 1780015011,
     "type": "git_commit",
     "commit_message": "wired up the meta text stuff for recorded files",
     "commit_hash": "c988ffe1f5c5e6f6595aa52de195fa5fb6804044"
   },
   {
-    "timestamp": "2026-05-29T20:41:49Z",
+    "timestamp": 1780087309,
     "type": "git_commit",
     "commit_message": "firmware update kinda implemented",
     "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"

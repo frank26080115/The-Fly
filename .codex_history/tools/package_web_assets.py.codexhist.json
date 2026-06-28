@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-22T01:09:17.258Z",
+    "timestamp": 1779412157,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -136,7 +136,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T02:43:41.783Z",
+    "timestamp": 1779417821,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -177,13 +177,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T03:27:25Z",
+    "timestamp": 1779420445,
     "type": "git_commit",
     "commit_message": "starting to add a web server",
     "commit_hash": "421a041f801f5f993b55e85fd21fbb828bf995c0"
   },
   {
-    "timestamp": "2026-05-22T04:00:41.556Z",
+    "timestamp": 1779422441,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -235,13 +235,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T04:56:52Z",
+    "timestamp": 1779425812,
     "type": "git_commit",
     "commit_message": "added progmem to web assets",
     "commit_hash": "53d3b582a755cea4602e14a0c7e8f882fc19ca4f"
   },
   {
-    "timestamp": "2026-05-24T03:37:46.416Z",
+    "timestamp": 1779593866,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -316,7 +316,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T04:41:12.070Z",
+    "timestamp": 1779597672,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -396,13 +396,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T08:09:14Z",
+    "timestamp": 1779610154,
     "type": "git_commit",
     "commit_message": "default to packaging web assets with html substitutions",
     "commit_hash": "aecd3ec348c575da3708e70f523ceabf63c1b938"
   },
   {
-    "timestamp": "2026-05-25T03:54:31.993Z",
+    "timestamp": 1779681271,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -432,7 +432,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-25T03:59:54.315Z",
+    "timestamp": 1779681594,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -492,7 +492,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-25T04:10:22.400Z",
+    "timestamp": 1779682222,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -552,13 +552,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-25T06:46:05Z",
+    "timestamp": 1779691565,
     "type": "git_commit",
     "commit_message": "added webcrypto shim",
     "commit_hash": "6a04737635273ab72e57a7653e9edc5929638d5a"
   },
   {
-    "timestamp": "2026-05-26T03:35:32.993Z",
+    "timestamp": 1779766532,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -602,13 +602,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T04:16:57Z",
+    "timestamp": 1779769017,
     "type": "git_commit",
     "commit_message": "better splashview",
     "commit_hash": "5d6e3cd59cf0a071c90542106fc384b1e1e8eab2"
   },
   {
-    "timestamp": "2026-06-01T04:25:55.162Z",
+    "timestamp": 1780287955,
     "type": "codex_task",
     "user_prompt": [
       "implement this, both front-end and back-end"
@@ -661,7 +661,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T04:32:22.350Z",
+    "timestamp": 1780288342,
     "type": "codex_task",
     "user_prompt": [
       "no, only encrypt the file name with the session key, no other parameters, I see no reason why this wouldn't work in the backend if the backend has a full copy of the session key as well"
@@ -716,7 +716,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T05:25:29.661Z",
+    "timestamp": 1780291529,
     "type": "codex_task",
     "user_prompt": [
       "ok I'm going to live with it now",
@@ -754,7 +754,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T05:30:58.795Z",
+    "timestamp": 1780291858,
     "type": "codex_task",
     "user_prompt": [
       "the \"save\" button on the frontend is butted up against the panel below it, add a small space there"
@@ -775,7 +775,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T05:34:15.811Z",
+    "timestamp": 1780292055,
     "type": "codex_task",
     "user_prompt": [
       "any error messages coming from \"save\" (\"/set_cfg\") should appear beside the save button, right now I see it in the login panel"
@@ -810,7 +810,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-13T18:28:31.995Z",
+    "timestamp": 1781375311,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -852,7 +852,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T04:07:10.046Z",
+    "timestamp": 1781410030,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

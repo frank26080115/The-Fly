@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-20T05:49:38.809Z",
+    "timestamp": 1779256178,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -85,7 +85,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T06:12:38.475Z",
+    "timestamp": 1779257558,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -155,13 +155,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T07:17:21Z",
+    "timestamp": 1779261441,
     "type": "git_commit",
     "commit_message": "massive progress with RecordingView",
     "commit_hash": "1c4305479f888bd2dc55b13c27a109f8c8dc6cd7"
   },
   {
-    "timestamp": "2026-05-21T07:42:44.530Z",
+    "timestamp": 1779349364,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -216,25 +216,25 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T08:00:40Z",
+    "timestamp": 1779350440,
     "type": "git_commit",
     "commit_message": "graphics revamp normalize to 100x100 imgs",
     "commit_hash": "b1a1cbe13a47ccf6843b479b02dce075402a8028"
   },
   {
-    "timestamp": "2026-05-29T01:32:37Z",
+    "timestamp": 1780018357,
     "type": "git_commit",
     "commit_message": "fix sprite typo",
     "commit_hash": "35a2b487220fe0993a1c66c1e5833f19656055bc"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T10:16:14.683Z",
+    "timestamp": 1780395374,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -307,13 +307,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T15:20:12Z",
+    "timestamp": 1780413612,
     "type": "git_commit",
     "commit_message": "code neatening for the views",
     "commit_hash": "3dbd6b2cd2fdecdb22e7dcef84a89989f2e63669"
   },
   {
-    "timestamp": "2026-06-03T05:02:04.931Z",
+    "timestamp": 1780462924,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -382,13 +382,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:51:45Z",
+    "timestamp": 1780469505,
     "type": "git_commit",
     "commit_message": "diagnostics, fixed a bug with speaker peak decay",
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
   },
   {
-    "timestamp": "2026-06-05T21:03:21.328Z",
+    "timestamp": 1780693401,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -438,13 +438,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T21:23:02Z",
+    "timestamp": 1780694582,
     "type": "git_commit",
     "commit_message": "new button graphics to indicate earbud",
     "commit_hash": "82482e83565b8109bfc890f07011e5299937b293"
   },
   {
-    "timestamp": "2026-06-17T05:00:50.723Z",
+    "timestamp": 1781672450,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -493,7 +493,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T05:02:13.347Z",
+    "timestamp": 1781672533,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -521,7 +521,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T05:08:16.936Z",
+    "timestamp": 1781672896,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -561,7 +561,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T08:10:59Z",
+    "timestamp": 1781683859,
     "type": "git_commit",
     "commit_message": "mic tweaks, db scale peak display",
     "commit_hash": "0b3e546dac086b9f57a21181e78f16ceaddc7d8a"

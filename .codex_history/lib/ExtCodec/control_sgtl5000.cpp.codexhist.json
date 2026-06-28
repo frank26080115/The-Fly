@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-06-05T20:16:54Z",
+    "timestamp": 1780690614,
     "type": "git_commit",
     "commit_message": "adding teensy library for SGTL5000",
     "commit_hash": "97599d61001edb8bc6be3cef95976cd1763365a7"
   },
   {
-    "timestamp": "2026-06-05T21:34:53.185Z",
+    "timestamp": 1780695293,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -70,13 +70,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T21:42:09Z",
+    "timestamp": 1780695729,
     "type": "git_commit",
     "commit_message": "fixed new i2c code from codec crashing",
     "commit_hash": "b267c0bae76f8066902a3ac296e1931f40d87725"
   },
   {
-    "timestamp": "2026-06-06T05:58:21.643Z",
+    "timestamp": 1780725501,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -131,13 +131,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-06T06:28:15Z",
+    "timestamp": 1780727295,
     "type": "git_commit",
     "commit_message": "NS4168 works on stereo, added SGTL5000 config for our I2S format",
     "commit_hash": "11c247e36a0c6f947687aa3d9179d6c4c97f6d0c"
   },
   {
-    "timestamp": "2026-06-14T05:00:30.983Z",
+    "timestamp": 1781413230,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -266,7 +266,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T05:07:43.409Z",
+    "timestamp": 1781413663,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -328,7 +328,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T05:35:39.092Z",
+    "timestamp": 1781415339,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -552,7 +552,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T04:36:21.301Z",
+    "timestamp": 1781670981,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -670,7 +670,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T04:38:34.546Z",
+    "timestamp": 1781671114,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -803,7 +803,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T06:02:41.573Z",
+    "timestamp": 1781676161,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -855,7 +855,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-18T05:46:07.236Z",
+    "timestamp": 1781761567,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -913,7 +913,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-18T06:35:08.160Z",
+    "timestamp": 1781764508,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -988,13 +988,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-18T07:02:25Z",
+    "timestamp": 1781766145,
     "type": "git_commit",
     "commit_message": "more mic tuning",
     "commit_hash": "faea569dd69086872157f381237cfa153cf16cc9"
   },
   {
-    "timestamp": "2026-06-18T07:57:21.313Z",
+    "timestamp": 1781769441,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

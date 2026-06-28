@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-21T09:27:27.993Z",
+    "timestamp": 1779355647,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -117,7 +117,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T09:50:57Z",
+    "timestamp": 1779357057,
     "type": "git_commit",
     "commit_message": "build was bootlooping, got it fixed",
     "commit_hash": "2210ad25eda9a153b925d60f216707eacc3e6403"

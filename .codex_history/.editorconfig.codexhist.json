@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-03T07:14:11Z",
+    "timestamp": 1777792451,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "37471f5d99727676ebcaee90085bb7e9b6cfa054"
   },
   {
-    "timestamp": "2026-05-26T03:35:32.993Z",
+    "timestamp": 1779766532,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -50,7 +50,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T04:16:57Z",
+    "timestamp": 1779769017,
     "type": "git_commit",
     "commit_message": "better splashview",
     "commit_hash": "5d6e3cd59cf0a071c90542106fc384b1e1e8eab2"

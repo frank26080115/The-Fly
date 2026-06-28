@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-01T18:42:40.803Z",
+    "timestamp": 1780339360,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -68,31 +68,31 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T19:24:23Z",
+    "timestamp": 1780341863,
     "type": "git_commit",
     "commit_message": "mp3 playback works",
     "commit_hash": "553ac578dd39c8724ac7cd871f259a68385d915e"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T16:14:15Z",
+    "timestamp": 1780416855,
     "type": "git_commit",
     "commit_message": "neaten",
     "commit_hash": "86d90ffafe35f5d236da1bafff3d2216e4365a2f"
   },
   {
-    "timestamp": "2026-06-02T17:23:48Z",
+    "timestamp": 1780421028,
     "type": "git_commit",
     "commit_message": "ran clang format",
     "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"
   },
   {
-    "timestamp": "2026-06-04T05:08:18.314Z",
+    "timestamp": 1780549698,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -133,7 +133,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T05:15:13.024Z",
+    "timestamp": 1780550113,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -184,7 +184,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T05:24:15.293Z",
+    "timestamp": 1780550655,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -239,7 +239,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T05:30:39.725Z",
+    "timestamp": 1780551039,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -274,7 +274,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T05:42:28.235Z",
+    "timestamp": 1780551748,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -305,7 +305,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T08:10:39Z",
+    "timestamp": 1780560639,
     "type": "git_commit",
     "commit_message": "mp3 playback attempt to support other formats",
     "commit_hash": "820953b2bc80f581ef869762010c448fd12b66c6"

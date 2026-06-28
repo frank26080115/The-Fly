@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-14T22:59:58.195Z",
+    "timestamp": 1778799598,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -32,13 +32,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T00:49:30Z",
+    "timestamp": 1778806170,
     "type": "git_commit",
     "commit_message": "lcd screen frame rate test",
     "commit_hash": "3483c987fd8f6be7940c6a6ade864583940bb6b7"
   },
   {
-    "timestamp": "2026-05-19T09:25:55.209Z",
+    "timestamp": 1779182755,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -91,19 +91,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T09:44:16Z",
+    "timestamp": 1779183856,
     "type": "git_commit",
     "commit_message": "cleaned up display as param",
     "commit_hash": "44c732408fa59c62aa9a1734f91a61315fcfe7ed"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-07T04:36:19Z",
+    "timestamp": 1780806979,
     "type": "git_commit",
     "commit_message": "progress on ext codec",
     "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"

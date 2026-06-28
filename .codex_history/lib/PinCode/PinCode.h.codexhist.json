@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-31T05:48:45.540Z",
+    "timestamp": 1780206525,
     "type": "codex_task",
     "user_prompt": [
       "### Task: Pin Code Core Functions",
@@ -37,7 +37,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T05:50:54.339Z",
+    "timestamp": 1780206654,
     "type": "codex_task",
     "user_prompt": [
       "I read your thoughts and realized I may have provided wrong instructions about NVS partitioning",
@@ -111,13 +111,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T06:36:39Z",
+    "timestamp": 1780209399,
     "type": "git_commit",
     "commit_message": "pin code backend infrastructure",
     "commit_hash": "edce3fc7b1dccd8c63fb39b66975c3701aec1045"
   },
   {
-    "timestamp": "2026-05-31T07:15:56.221Z",
+    "timestamp": 1780211756,
     "type": "codex_task",
     "user_prompt": [
       "### Task: pin code related web server changes and front-end changes",
@@ -180,13 +180,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T07:32:19Z",
+    "timestamp": 1780212739,
     "type": "git_commit",
     "commit_message": "pin code web related implementation",
     "commit_hash": "ea3196085485e85e518ad62441377ac93a503ac9"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"

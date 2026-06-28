@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-20T17:24:40.197Z",
+    "timestamp": 1779297880,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -73,13 +73,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T19:02:28Z",
+    "timestamp": 1779303748,
     "type": "git_commit",
     "commit_message": "good progress on GUI",
     "commit_hash": "3d988cb62856bfbc633ccac6598e1ba741663eec"
   },
   {
-    "timestamp": "2026-05-21T00:07:09.173Z",
+    "timestamp": 1779322029,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -119,13 +119,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T02:56:49Z",
+    "timestamp": 1779332209,
     "type": "git_commit",
     "commit_message": "more gui work, auto bt reconnect",
     "commit_hash": "c002fb0767624f8362097c9328ec1d3f695a20db"
   },
   {
-    "timestamp": "2026-05-21T07:42:44.530Z",
+    "timestamp": 1779349364,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -180,7 +180,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T18:28:00.038Z",
+    "timestamp": 1779388080,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -211,13 +211,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T19:17:26Z",
+    "timestamp": 1779391046,
     "type": "git_commit",
     "commit_message": "bt host delete, debug shown on top bar",
     "commit_hash": "faf2c6341baa36a0f9941de6378b0a239fcfab7a"
   },
   {
-    "timestamp": "2026-05-24T06:11:10.165Z",
+    "timestamp": 1779603070,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -355,25 +355,25 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T08:10:45Z",
+    "timestamp": 1779610245,
     "type": "git_commit",
     "commit_message": "user customized icon rewrite",
     "commit_hash": "77e4a4ef8b64072a653f33ecc377d9b157bc4629"
   },
   {
-    "timestamp": "2026-05-29T01:32:37Z",
+    "timestamp": 1780018357,
     "type": "git_commit",
     "commit_message": "fix sprite typo",
     "commit_hash": "35a2b487220fe0993a1c66c1e5833f19656055bc"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T10:16:14.683Z",
+    "timestamp": 1780395374,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -446,13 +446,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T15:20:12Z",
+    "timestamp": 1780413612,
     "type": "git_commit",
     "commit_message": "code neatening for the views",
     "commit_hash": "3dbd6b2cd2fdecdb22e7dcef84a89989f2e63669"
   },
   {
-    "timestamp": "2026-06-05T02:53:06.133Z",
+    "timestamp": 1780627986,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -501,7 +501,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T04:51:14Z",
+    "timestamp": 1780635074,
     "type": "git_commit",
     "commit_message": "add missing haptic",
     "commit_hash": "d3a9f7c0bc09daede9e547cb9f06b2e3b40a7ed9"

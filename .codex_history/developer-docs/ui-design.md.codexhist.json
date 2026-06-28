@@ -1,18 +1,18 @@
 [
   {
-    "timestamp": "2026-05-01T08:45:00Z",
+    "timestamp": 1777625100,
     "type": "git_commit",
     "commit_message": "progress",
     "commit_hash": "384fc246aafc465d1b9dc72802ba63530501f038"
   },
   {
-    "timestamp": "2026-05-03T07:14:11Z",
+    "timestamp": 1777792451,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "37471f5d99727676ebcaee90085bb7e9b6cfa054"
   },
   {
-    "timestamp": "2026-05-18T06:20:17.097Z",
+    "timestamp": 1779085217,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -83,7 +83,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T03:30:51.605Z",
+    "timestamp": 1779420651,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -213,13 +213,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T03:54:52Z",
+    "timestamp": 1779422092,
     "type": "git_commit",
     "commit_message": "minor documentation realignment",
     "commit_hash": "f2c709ecce52380184bf7572afec748da37a5039"
   },
   {
-    "timestamp": "2026-05-27T05:40:02.572Z",
+    "timestamp": 1779860402,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -312,13 +312,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-27T06:57:04Z",
+    "timestamp": 1779865024,
     "type": "git_commit",
     "commit_message": "documentation update",
     "commit_hash": "57dc5a2f4f0cef3e419f9ea5591534a223f89dad"
   },
   {
-    "timestamp": "2026-06-02T06:40:57Z",
+    "timestamp": 1780382457,
     "type": "git_commit",
     "commit_message": "Update ui-design.md",
     "commit_hash": "19817980e50d0b5b0e52e651763aa9c95c19a89f"

@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-17T03:36:03.485Z",
+    "timestamp": 1778988963,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -51,7 +51,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T03:49:08.938Z",
+    "timestamp": 1778989748,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -116,13 +116,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T05:06:49Z",
+    "timestamp": 1778994409,
     "type": "git_commit",
     "commit_message": "ntp sync",
     "commit_hash": "884cbfaa23c0534e6c9899c41dd63b855e7316d2"
   },
   {
-    "timestamp": "2026-05-29T08:37:41.983Z",
+    "timestamp": 1780043861,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -168,7 +168,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T09:00:42.476Z",
+    "timestamp": 1780045242,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -202,19 +202,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T09:06:04Z",
+    "timestamp": 1780045564,
     "type": "git_commit",
     "commit_message": "ntp actually works now",
     "commit_hash": "ea6ae0fe44d2a5fca5bbb776979ee38182077918"
   },
   {
-    "timestamp": "2026-05-31T04:24:21Z",
+    "timestamp": 1780201461,
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   },
   {
-    "timestamp": "2026-05-31T08:01:22.082Z",
+    "timestamp": 1780214482,
     "type": "codex_task",
     "user_prompt": [
       "I do want the RTC to store time as UTC, I do want the Wi-Fi manager to apply the time-zone, make this happen"
@@ -242,19 +242,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T08:15:01Z",
+    "timestamp": 1780215301,
     "type": "git_commit",
     "commit_message": "internal clock needs to actually care about time zone",
     "commit_hash": "908cedb1fdb07553f3978c6c04843c7fb8c95a1b"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T09:34:42.263Z",
+    "timestamp": 1780392882,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -313,13 +313,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T09:46:12Z",
+    "timestamp": 1780393572,
     "type": "git_commit",
     "commit_message": "more code neatening",
     "commit_hash": "41a16a83dde0bcbb0faacc0e153b905a9aac33e4"
   },
   {
-    "timestamp": "2026-06-03T04:19:44.350Z",
+    "timestamp": 1780460384,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -381,7 +381,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T04:43:26Z",
+    "timestamp": 1780461806,
     "type": "git_commit",
     "commit_message": "refactor wifi manager",
     "commit_hash": "e854858ac4af04460f4ee1e885c7c0056edd16ac"

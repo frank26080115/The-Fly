@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-15T18:09:43.980Z",
+    "timestamp": 1778868583,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -79,13 +79,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T18:55:29Z",
+    "timestamp": 1778871329,
     "type": "git_commit",
     "commit_message": "sync clock to compile time",
     "commit_hash": "4cba36ea455d68013e853597c04009d6649394a1"
   },
   {
-    "timestamp": "2026-05-15T18:56:47.615Z",
+    "timestamp": 1778871407,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -172,7 +172,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T19:13:48.319Z",
+    "timestamp": 1778872428,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -214,7 +214,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T19:21:07.702Z",
+    "timestamp": 1778872867,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -240,7 +240,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T19:43:34.317Z",
+    "timestamp": 1778874214,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -273,7 +273,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T20:26:42.543Z",
+    "timestamp": 1778876802,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -326,7 +326,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T20:33:24.615Z",
+    "timestamp": 1778877204,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -352,7 +352,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T22:39:16.223Z",
+    "timestamp": 1778884756,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -396,7 +396,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T06:50:59.520Z",
+    "timestamp": 1778914259,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -477,13 +477,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T08:46:51Z",
+    "timestamp": 1778921211,
     "type": "git_commit",
     "commit_message": "speakerphone test works, it did involve editing the esp-idf config and building the library in the back",
     "commit_hash": "0fb9d76750530a27bc80183add0ccf3c26959ed3"
   },
   {
-    "timestamp": "2026-05-17T05:28:33.911Z",
+    "timestamp": 1778995713,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -537,7 +537,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T06:09:27.061Z",
+    "timestamp": 1779084567,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -603,7 +603,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T06:20:17.097Z",
+    "timestamp": 1779085217,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -674,7 +674,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T06:35:02.698Z",
+    "timestamp": 1779086102,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -703,7 +703,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T16:45:40.132Z",
+    "timestamp": 1779122740,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -746,13 +746,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T22:48:44Z",
+    "timestamp": 1779144524,
     "type": "git_commit",
     "commit_message": "test the json file loading",
     "commit_hash": "18a60860b26e8891ff7f6d0e4dfd895368b81151"
   },
   {
-    "timestamp": "2026-05-19T05:24:58.887Z",
+    "timestamp": 1779168298,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -801,7 +801,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T05:33:37.128Z",
+    "timestamp": 1779168817,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -834,7 +834,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T05:38:11.332Z",
+    "timestamp": 1779169091,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -867,7 +867,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T05:48:22.053Z",
+    "timestamp": 1779169702,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -927,7 +927,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T06:01:07.611Z",
+    "timestamp": 1779170467,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -966,7 +966,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T06:08:35.665Z",
+    "timestamp": 1779170915,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1017,7 +1017,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T06:15:13.116Z",
+    "timestamp": 1779171313,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1062,7 +1062,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T06:19:50.473Z",
+    "timestamp": 1779171590,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1094,7 +1094,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T06:26:54.179Z",
+    "timestamp": 1779172014,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1176,7 +1176,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T06:28:56.612Z",
+    "timestamp": 1779172136,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1234,7 +1234,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T06:53:41.943Z",
+    "timestamp": 1779173621,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1287,7 +1287,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T07:13:26.667Z",
+    "timestamp": 1779174806,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1321,7 +1321,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T07:20:12.341Z",
+    "timestamp": 1779175212,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1353,7 +1353,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T07:31:36.528Z",
+    "timestamp": 1779175896,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1393,7 +1393,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T04:04:22.989Z",
+    "timestamp": 1779249862,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1430,7 +1430,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T04:22:18.956Z",
+    "timestamp": 1779250938,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1469,7 +1469,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T04:38:08.188Z",
+    "timestamp": 1779251888,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1565,7 +1565,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T04:47:11.076Z",
+    "timestamp": 1779252431,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1604,7 +1604,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T05:49:38.809Z",
+    "timestamp": 1779256178,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1689,7 +1689,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T06:09:57.127Z",
+    "timestamp": 1779257397,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1733,7 +1733,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T06:12:38.475Z",
+    "timestamp": 1779257558,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1803,7 +1803,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T06:28:19.351Z",
+    "timestamp": 1779258499,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1839,7 +1839,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T06:47:20.747Z",
+    "timestamp": 1779259640,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1874,7 +1874,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T23:18:19.376Z",
+    "timestamp": 1779319099,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1916,7 +1916,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T07:42:44.530Z",
+    "timestamp": 1779349364,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1971,7 +1971,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T07:55:06.221Z",
+    "timestamp": 1779350106,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2014,7 +2014,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T09:27:27.993Z",
+    "timestamp": 1779355647,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2134,7 +2134,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T09:50:19.910Z",
+    "timestamp": 1779357019,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2203,7 +2203,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T04:00:41.556Z",
+    "timestamp": 1779422441,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2255,7 +2255,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T04:58:02.877Z",
+    "timestamp": 1779425882,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2302,7 +2302,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T05:29:46.618Z",
+    "timestamp": 1779427786,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2358,7 +2358,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T05:45:32.850Z",
+    "timestamp": 1779428732,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2413,7 +2413,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T06:07:39.425Z",
+    "timestamp": 1779430059,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2465,7 +2465,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T06:46:07.997Z",
+    "timestamp": 1779432367,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2542,7 +2542,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T06:58:43.448Z",
+    "timestamp": 1779433123,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2573,7 +2573,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T07:09:07.622Z",
+    "timestamp": 1779433747,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2617,7 +2617,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T07:14:32.808Z",
+    "timestamp": 1779434072,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2651,7 +2651,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T17:53:27.418Z",
+    "timestamp": 1779472407,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2701,7 +2701,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T02:46:59.180Z",
+    "timestamp": 1779504419,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2754,7 +2754,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T03:25:03.554Z",
+    "timestamp": 1779506703,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2806,7 +2806,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T05:42:34.224Z",
+    "timestamp": 1779514954,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2898,7 +2898,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T07:06:39.390Z",
+    "timestamp": 1779519999,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2975,7 +2975,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T07:20:47.803Z",
+    "timestamp": 1779520847,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3004,7 +3004,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T07:38:44.792Z",
+    "timestamp": 1779521924,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3078,7 +3078,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T08:07:43.118Z",
+    "timestamp": 1779523663,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3138,7 +3138,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T08:25:24.629Z",
+    "timestamp": 1779524724,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3220,7 +3220,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T23:00:43.086Z",
+    "timestamp": 1779577243,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3264,7 +3264,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T23:29:25.350Z",
+    "timestamp": 1779578965,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3343,7 +3343,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T00:16:24.604Z",
+    "timestamp": 1779581784,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3402,7 +3402,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T00:22:38.059Z",
+    "timestamp": 1779582158,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3441,7 +3441,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T00:28:01.454Z",
+    "timestamp": 1779582481,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3499,7 +3499,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T00:43:56.259Z",
+    "timestamp": 1779583436,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3579,7 +3579,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T01:58:44.681Z",
+    "timestamp": 1779587924,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3618,7 +3618,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T02:07:58.522Z",
+    "timestamp": 1779588478,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3662,7 +3662,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T03:37:46.416Z",
+    "timestamp": 1779593866,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3737,7 +3737,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T06:11:10.165Z",
+    "timestamp": 1779603070,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3875,7 +3875,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T06:56:36.915Z",
+    "timestamp": 1779605796,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3918,7 +3918,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T07:24:07.776Z",
+    "timestamp": 1779607447,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3975,7 +3975,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T22:32:58.782Z",
+    "timestamp": 1779661978,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -4014,7 +4014,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T22:40:06.622Z",
+    "timestamp": 1779662406,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -4135,7 +4135,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T22:47:21.709Z",
+    "timestamp": 1779662841,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -4246,7 +4246,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T23:49:11.552Z",
+    "timestamp": 1779666551,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -4331,7 +4331,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-25T02:49:53.128Z",
+    "timestamp": 1779677393,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -4450,7 +4450,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-25T07:16:18.606Z",
+    "timestamp": 1779693378,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -4537,7 +4537,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T03:35:32.993Z",
+    "timestamp": 1779766532,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -4581,7 +4581,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T03:57:31.424Z",
+    "timestamp": 1779767851,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -4651,7 +4651,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T08:42:28.193Z",
+    "timestamp": 1779784948,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -4687,7 +4687,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T09:28:23.646Z",
+    "timestamp": 1779787703,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -4732,7 +4732,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T17:39:44.773Z",
+    "timestamp": 1779817184,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -4784,7 +4784,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-27T21:48:45.586Z",
+    "timestamp": 1779918525,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -4839,7 +4839,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-28T18:42:38.091Z",
+    "timestamp": 1779993758,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -4879,7 +4879,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-28T18:55:04.939Z",
+    "timestamp": 1779994504,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -4931,7 +4931,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-28T21:28:31.126Z",
+    "timestamp": 1780003711,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5013,7 +5013,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-28T21:43:39.757Z",
+    "timestamp": 1780004619,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5090,7 +5090,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T00:27:46.075Z",
+    "timestamp": 1780014466,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5132,7 +5132,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T00:50:12.054Z",
+    "timestamp": 1780015812,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5211,7 +5211,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T01:28:09.205Z",
+    "timestamp": 1780018089,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5251,7 +5251,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T02:57:59.162Z",
+    "timestamp": 1780023479,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5305,7 +5305,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T03:17:02.494Z",
+    "timestamp": 1780024622,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5333,7 +5333,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T03:57:09.244Z",
+    "timestamp": 1780027029,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5512,7 +5512,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T04:11:50.435Z",
+    "timestamp": 1780027910,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5541,7 +5541,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T04:39:23.077Z",
+    "timestamp": 1780029563,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5577,7 +5577,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T04:53:05.971Z",
+    "timestamp": 1780030385,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5620,7 +5620,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T05:08:26.537Z",
+    "timestamp": 1780031306,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5678,7 +5678,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T05:28:04.736Z",
+    "timestamp": 1780032484,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5717,7 +5717,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T08:11:07.299Z",
+    "timestamp": 1780042267,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5761,7 +5761,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T08:22:37.832Z",
+    "timestamp": 1780042957,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5799,7 +5799,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T19:12:57.399Z",
+    "timestamp": 1780081977,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5836,7 +5836,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T19:37:09.076Z",
+    "timestamp": 1780083429,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5928,7 +5928,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T22:32:18.232Z",
+    "timestamp": 1780093938,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -5953,7 +5953,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T23:24:47.579Z",
+    "timestamp": 1780097087,
     "type": "codex_task",
     "user_prompt": [
       "Implement `lib\\AudioFileRecorder\\AudioFileDecoder.cpp` and its associated header file. It should be a class object",
@@ -6031,7 +6031,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T23:44:04.452Z",
+    "timestamp": 1780098244,
     "type": "codex_task",
     "user_prompt": [
       "implement the test in `src\\tests\\test_decoderbenchmark.cpp`",
@@ -6093,7 +6093,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T23:55:46.407Z",
+    "timestamp": 1780098946,
     "type": "codex_task",
     "user_prompt": [
       "I want to make a change to logic of the decoding",
@@ -6119,7 +6119,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T00:14:56.628Z",
+    "timestamp": 1780100096,
     "type": "codex_task",
     "user_prompt": [
       "it crashed",
@@ -6378,7 +6378,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T00:19:00.288Z",
+    "timestamp": 1780100340,
     "type": "codex_task",
     "user_prompt": [
       "increase the stack size, 4096",
@@ -6412,7 +6412,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T03:17:19.002Z",
+    "timestamp": 1780111039,
     "type": "codex_task",
     "user_prompt": [
       "to `AudioFifo` add a `queueSilence` call that uses `memset` or something like `memset` to add silence to the FIFO, the caller specifies number of samples",
@@ -6440,7 +6440,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T03:48:53.736Z",
+    "timestamp": 1780112933,
     "type": "codex_task",
     "user_prompt": [
       "we are making a big change",
@@ -6502,7 +6502,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:08:16.203Z",
+    "timestamp": 1780114096,
     "type": "codex_task",
     "user_prompt": [
       "Thanks, that worked, I tested it with a quick call to my voicemail",
@@ -6523,7 +6523,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:16:45.446Z",
+    "timestamp": 1780114605,
     "type": "codex_task",
     "user_prompt": [
       "implement `void test_filelistbenchmark()`",
@@ -6560,7 +6560,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:27:18.427Z",
+    "timestamp": 1780115238,
     "type": "codex_task",
     "user_prompt": [
       "```",
@@ -6585,7 +6585,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T05:13:22.971Z",
+    "timestamp": 1780118002,
     "type": "codex_task",
     "user_prompt": [
       "add a `ScrollView::populateFiles` function, along with enums to give it a `File List` context",
@@ -6658,7 +6658,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T07:19:36.291Z",
+    "timestamp": 1780125576,
     "type": "codex_task",
     "user_prompt": [
       "### Task: Playback",
@@ -6753,7 +6753,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T07:31:44.345Z",
+    "timestamp": 1780126304,
     "type": "codex_task",
     "user_prompt": [
       "you said `I also made playback mix stereo to mono before feeding the speaker FIFO, so overlapping mic/BT channels won’t silently drop the right channel.`",
@@ -6781,7 +6781,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T07:40:42.406Z",
+    "timestamp": 1780126842,
     "type": "codex_task",
     "user_prompt": [
       "the positioning of the bottom row of buttons is all wrong",
@@ -6814,7 +6814,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T07:46:14.087Z",
+    "timestamp": 1780127174,
     "type": "codex_task",
     "user_prompt": [
       "weird, the speaker icon is responsive to touch, the quit button is responsive to touch, but not the play/pause button, it responds to the assigned button but not the screen touch"
@@ -6838,7 +6838,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:16:39.800Z",
+    "timestamp": 1780128999,
     "type": "codex_task",
     "user_prompt": [
       "`ScrubBar` needs a major tweak for what I want to do next",
@@ -6915,13 +6915,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:35:05Z",
+    "timestamp": 1780130105,
     "type": "git_commit",
     "commit_message": "playback mechanism",
     "commit_hash": "813aab87ffb853eb373d960af6a773dbf5f74642"
   },
   {
-    "timestamp": "2026-05-30T08:36:09.015Z",
+    "timestamp": 1780130169,
     "type": "codex_task",
     "user_prompt": [
       "move the blue bar down 2 pixels",
@@ -6953,7 +6953,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:43:43.265Z",
+    "timestamp": 1780130623,
     "type": "codex_task",
     "user_prompt": [
       "see the highlighted line? I want to tweak this yellow precisely, starting with `#FCBC00`"
@@ -6979,7 +6979,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:51:42.394Z",
+    "timestamp": 1780131102,
     "type": "codex_task",
     "user_prompt": [
       "move the highlighted function to `utilfuncs.cpp`",
@@ -7033,7 +7033,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:54:37.337Z",
+    "timestamp": 1780131277,
     "type": "codex_task",
     "user_prompt": [
       "`void PlaybackView::drawFileName() const` shall try to test a bigger font, see if it will exceed the screen, and use the current one if it does exceed"
@@ -7055,7 +7055,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T07:15:56.221Z",
+    "timestamp": 1780211756,
     "type": "codex_task",
     "user_prompt": [
       "### Task: pin code related web server changes and front-end changes",
@@ -7118,7 +7118,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T07:52:58.876Z",
+    "timestamp": 1780213978,
     "type": "codex_task",
     "user_prompt": [
       "add a function for \"show_all_unlock_buttons\" and \"hide_all_unlock_buttons\", we will hide them as soon as the file list is rendered, but unhide them as soon as authentication is complete (at the end of `/get_cfg`"
@@ -7136,7 +7136,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T09:07:07.432Z",
+    "timestamp": 1780218427,
     "type": "codex_task",
     "user_prompt": [
       "### ask: decrypted download",
@@ -7198,7 +7198,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T02:05:16.569Z",
+    "timestamp": 1780279516,
     "type": "codex_task",
     "user_prompt": [
       "I am testing a security level 1 build, I have activated the default secure soft Wi-Fi AP, I have loaded the front-end web page. I attempted to login to it, the error message I got is `n is not a constructor`",
@@ -7233,7 +7233,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T07:28:43.295Z",
+    "timestamp": 1780298923,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -7259,7 +7259,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T07:37:21.969Z",
+    "timestamp": 1780299441,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -7319,13 +7319,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T11:03:22Z",
+    "timestamp": 1780311802,
     "type": "git_commit",
     "commit_message": "significant work trying to get MP3 encoding to work",
     "commit_hash": "41c73bdbaff03d906023ec27bbc082a6f5b295e6"
   },
   {
-    "timestamp": "2026-06-01T17:45:07.920Z",
+    "timestamp": 1780335907,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -7427,7 +7427,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T18:42:40.803Z",
+    "timestamp": 1780339360,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -7495,7 +7495,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T19:24:31.221Z",
+    "timestamp": 1780341871,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -7547,7 +7547,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T19:50:42.352Z",
+    "timestamp": 1780343442,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -7606,13 +7606,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T19:57:41Z",
+    "timestamp": 1780343861,
     "type": "git_commit",
     "commit_message": "web changes to support MP3 and encrypted MP3",
     "commit_hash": "e8a8a42ecec4da2e257d83d7b53a74d88a8de7b7"
   },
   {
-    "timestamp": "2026-06-01T23:09:27.948Z",
+    "timestamp": 1780355367,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -7655,7 +7655,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T00:13:40.244Z",
+    "timestamp": 1780359220,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -7714,7 +7714,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T01:01:40.069Z",
+    "timestamp": 1780362100,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -7779,7 +7779,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:20:13.470Z",
+    "timestamp": 1780377613,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -7862,13 +7862,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T06:45:37.824Z",
+    "timestamp": 1780382737,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -7913,7 +7913,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:05:04.713Z",
+    "timestamp": 1780383904,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -7959,7 +7959,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:15:08.280Z",
+    "timestamp": 1780384508,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8005,7 +8005,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:30:30.516Z",
+    "timestamp": 1780385430,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8050,7 +8050,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T09:21:18.056Z",
+    "timestamp": 1780392078,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8111,7 +8111,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T09:34:42.263Z",
+    "timestamp": 1780392882,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8170,7 +8170,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T10:16:14.683Z",
+    "timestamp": 1780395374,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8243,7 +8243,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T15:29:40.832Z",
+    "timestamp": 1780414180,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8314,7 +8314,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T15:50:30.321Z",
+    "timestamp": 1780415430,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8366,7 +8366,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T16:04:22.176Z",
+    "timestamp": 1780416262,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8399,7 +8399,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T04:19:44.350Z",
+    "timestamp": 1780460384,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8461,7 +8461,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T05:02:04.931Z",
+    "timestamp": 1780462924,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8530,7 +8530,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T05:42:29.854Z",
+    "timestamp": 1780465349,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8590,7 +8590,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:54:20.863Z",
+    "timestamp": 1780469660,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8631,7 +8631,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:58:32.450Z",
+    "timestamp": 1780469912,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8691,7 +8691,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T07:00:10.319Z",
+    "timestamp": 1780470010,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8739,7 +8739,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T08:39:26.017Z",
+    "timestamp": 1780475966,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8780,7 +8780,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T17:41:48.790Z",
+    "timestamp": 1780508508,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8831,7 +8831,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T21:14:22.722Z",
+    "timestamp": 1780521262,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8906,7 +8906,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T07:04:56.856Z",
+    "timestamp": 1780556696,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8944,7 +8944,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T20:52:10.887Z",
+    "timestamp": 1780606330,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -8978,7 +8978,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T22:39:00.172Z",
+    "timestamp": 1780612740,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9027,7 +9027,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T23:00:24.630Z",
+    "timestamp": 1780614024,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9065,7 +9065,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T18:29:15.689Z",
+    "timestamp": 1780684155,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9122,7 +9122,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T21:03:21.328Z",
+    "timestamp": 1780693401,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9172,7 +9172,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T21:25:44.151Z",
+    "timestamp": 1780694744,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9207,7 +9207,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T21:34:53.185Z",
+    "timestamp": 1780695293,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9271,7 +9271,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-06T01:45:42.651Z",
+    "timestamp": 1780710342,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9312,7 +9312,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-06T01:53:19.596Z",
+    "timestamp": 1780710799,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9374,7 +9374,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-06T02:02:00.891Z",
+    "timestamp": 1780711320,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9431,7 +9431,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-06T02:31:53.759Z",
+    "timestamp": 1780713113,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9461,7 +9461,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-06T05:49:18.187Z",
+    "timestamp": 1780724958,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9531,7 +9531,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-06T05:58:21.643Z",
+    "timestamp": 1780725501,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9586,7 +9586,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-06T06:08:12.376Z",
+    "timestamp": 1780726092,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9615,7 +9615,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-07T02:20:54.114Z",
+    "timestamp": 1780798854,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9654,7 +9654,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-07T04:25:53.763Z",
+    "timestamp": 1780806353,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9703,7 +9703,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-07T05:02:05.080Z",
+    "timestamp": 1780808525,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9749,7 +9749,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-07T06:31:35.066Z",
+    "timestamp": 1780813895,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9805,7 +9805,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-08T00:02:22.095Z",
+    "timestamp": 1780876942,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9831,7 +9831,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-08T00:17:18.151Z",
+    "timestamp": 1780877838,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9866,7 +9866,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-08T00:27:53.797Z",
+    "timestamp": 1780878473,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9891,7 +9891,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-08T01:45:21.883Z",
+    "timestamp": 1780883121,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9930,7 +9930,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T00:00:50.258Z",
+    "timestamp": 1781136050,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -9955,7 +9955,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T00:11:46.029Z",
+    "timestamp": 1781136706,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10002,7 +10002,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T00:22:39.651Z",
+    "timestamp": 1781137359,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10065,7 +10065,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T00:33:31.773Z",
+    "timestamp": 1781138011,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10113,7 +10113,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T01:13:21.530Z",
+    "timestamp": 1781140401,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10145,7 +10145,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T01:31:55.106Z",
+    "timestamp": 1781141515,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10200,7 +10200,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T01:50:26.674Z",
+    "timestamp": 1781142626,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10249,7 +10249,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T03:32:25.218Z",
+    "timestamp": 1781148745,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10279,7 +10279,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T03:47:17.470Z",
+    "timestamp": 1781149637,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10322,7 +10322,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T03:58:40.512Z",
+    "timestamp": 1781150320,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10380,7 +10380,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T04:49:51.831Z",
+    "timestamp": 1781153391,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10424,7 +10424,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T07:39:39.057Z",
+    "timestamp": 1781163579,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10464,7 +10464,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T07:52:07.916Z",
+    "timestamp": 1781164327,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10500,7 +10500,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T08:03:43.803Z",
+    "timestamp": 1781165023,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10535,7 +10535,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T18:29:39.262Z",
+    "timestamp": 1781202579,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10590,7 +10590,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T01:45:54.163Z",
+    "timestamp": 1781228754,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10636,7 +10636,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T02:39:10.989Z",
+    "timestamp": 1781231950,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10665,7 +10665,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T02:46:28.583Z",
+    "timestamp": 1781232388,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10702,13 +10702,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T02:55:23Z",
+    "timestamp": 1781232923,
     "type": "git_commit",
     "commit_message": "screenshot fixed",
     "commit_hash": "e00743f2267394193706bdaf6443cc4292489116"
   },
   {
-    "timestamp": "2026-06-12T03:01:32.095Z",
+    "timestamp": 1781233292,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10737,7 +10737,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T03:30:30.588Z",
+    "timestamp": 1781235030,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10779,7 +10779,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T03:44:22.930Z",
+    "timestamp": 1781235862,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10809,13 +10809,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T07:17:51Z",
+    "timestamp": 1781248671,
     "type": "git_commit",
     "commit_message": "more screenshot stuff",
     "commit_hash": "f28c5490101268c4e2dcd3c955c64e070d5b05b2"
   },
   {
-    "timestamp": "2026-06-12T17:33:05.014Z",
+    "timestamp": 1781285585,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10851,7 +10851,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-13T06:39:04.824Z",
+    "timestamp": 1781332744,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10890,7 +10890,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T00:31:25.394Z",
+    "timestamp": 1781397085,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10942,7 +10942,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T04:07:10.046Z",
+    "timestamp": 1781410030,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -10980,19 +10980,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T21:36:44Z",
+    "timestamp": 1781732204,
     "type": "git_commit",
     "commit_message": "mic spectrum test",
     "commit_hash": "a0dd970eb383c7e049841df45fc7959400478d33"
   },
   {
-    "timestamp": "2026-06-18T07:02:25Z",
+    "timestamp": 1781766145,
     "type": "git_commit",
     "commit_message": "more mic tuning",
     "commit_hash": "faea569dd69086872157f381237cfa153cf16cc9"
   },
   {
-    "timestamp": "2026-06-24T03:19:48.159Z",
+    "timestamp": 1782271188,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -11038,7 +11038,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-24T04:50:10.453Z",
+    "timestamp": 1782276610,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -11076,7 +11076,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-24T05:32:46.119Z",
+    "timestamp": 1782279166,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -11116,7 +11116,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-24T05:45:00.719Z",
+    "timestamp": 1782279900,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -11170,7 +11170,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-24T05:59:14.413Z",
+    "timestamp": 1782280754,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -11215,7 +11215,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-25T07:40:46.934Z",
+    "timestamp": 1782373246,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -11263,7 +11263,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-25T07:58:09.230Z",
+    "timestamp": 1782374289,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -11296,7 +11296,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-25T08:06:55.375Z",
+    "timestamp": 1782374815,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

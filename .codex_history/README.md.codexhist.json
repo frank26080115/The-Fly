@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-01T08:45:00Z",
+    "timestamp": 1777625100,
     "type": "git_commit",
     "commit_message": "progress",
     "commit_hash": "384fc246aafc465d1b9dc72802ba63530501f038"
   },
   {
-    "timestamp": "2026-05-22T03:30:51.605Z",
+    "timestamp": 1779420651,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -134,13 +134,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T03:54:52Z",
+    "timestamp": 1779422092,
     "type": "git_commit",
     "commit_message": "minor documentation realignment",
     "commit_hash": "f2c709ecce52380184bf7572afec748da37a5039"
   },
   {
-    "timestamp": "2026-06-12T18:43:25.862Z",
+    "timestamp": 1781289805,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -163,25 +163,25 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T18:59:29Z",
+    "timestamp": 1781290769,
     "type": "git_commit",
     "commit_message": "user manual documentation, python install instructions",
     "commit_hash": "54cf9eedc747acab8c1d2d7b135b289a7fca485f"
   },
   {
-    "timestamp": "2026-06-12T19:08:44Z",
+    "timestamp": 1781291324,
     "type": "git_commit",
     "commit_message": "Update README.md",
     "commit_hash": "8c42bd882aa5c8934b015bd6abfc264f79218730"
   },
   {
-    "timestamp": "2026-06-23T18:06:17Z",
+    "timestamp": 1782237977,
     "type": "git_commit",
     "commit_message": "update docs with photos",
     "commit_hash": "8df4e133c0d169314386e8ae7aea9899f101e188"
   },
   {
-    "timestamp": "2026-06-23T19:08:14Z",
+    "timestamp": 1782241694,
     "type": "git_commit",
     "commit_message": "pamphlet",
     "commit_hash": "110093e96dd7ea06f02f9a5c75c54f4a21cde3a7"

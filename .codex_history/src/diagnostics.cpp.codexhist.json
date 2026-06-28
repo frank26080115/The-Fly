@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-03T05:42:29.854Z",
+    "timestamp": 1780465349,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -60,7 +60,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T05:51:36.839Z",
+    "timestamp": 1780465896,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -115,7 +115,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:26:35.876Z",
+    "timestamp": 1780467995,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -158,7 +158,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:47:54.397Z",
+    "timestamp": 1780469274,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -194,13 +194,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:51:45Z",
+    "timestamp": 1780469505,
     "type": "git_commit",
     "commit_message": "diagnostics, fixed a bug with speaker peak decay",
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
   },
   {
-    "timestamp": "2026-06-03T06:54:20.863Z",
+    "timestamp": 1780469660,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -241,13 +241,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T07:03:56Z",
+    "timestamp": 1780470236,
     "type": "git_commit",
     "commit_message": "more clang format stuff",
     "commit_hash": "fa8a1e27b6b4982ce7a05c70f69ab0eb2ff14f79"
   },
   {
-    "timestamp": "2026-06-04T07:38:57.564Z",
+    "timestamp": 1780558737,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -273,13 +273,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T02:55:23Z",
+    "timestamp": 1781232923,
     "type": "git_commit",
     "commit_message": "screenshot fixed",
     "commit_hash": "e00743f2267394193706bdaf6443cc4292489116"
   },
   {
-    "timestamp": "2026-06-13T18:41:35.017Z",
+    "timestamp": 1781376095,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -316,7 +316,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-13T20:25:41Z",
+    "timestamp": 1781382341,
     "type": "git_commit",
     "commit_message": "free'ed some RAM, sec1 build crashing maybe fixed",
     "commit_hash": "9ae30e0240b8fe1396746d6f316af2686d52fbe3"

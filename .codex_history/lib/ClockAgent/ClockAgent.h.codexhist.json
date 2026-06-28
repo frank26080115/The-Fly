@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-04T04:25:01.005Z",
+    "timestamp": 1777868701,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -60,13 +60,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T07:46:20Z",
+    "timestamp": 1777880780,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "0065bdba2a9c72d3ebef8982804023dd796267c9"
   },
   {
-    "timestamp": "2026-05-15T18:09:43.980Z",
+    "timestamp": 1778868583,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -145,7 +145,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T18:17:51.913Z",
+    "timestamp": 1778869071,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -177,13 +177,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T18:55:29Z",
+    "timestamp": 1778871329,
     "type": "git_commit",
     "commit_message": "sync clock to compile time",
     "commit_hash": "4cba36ea455d68013e853597c04009d6649394a1"
   },
   {
-    "timestamp": "2026-05-26T20:54:25.353Z",
+    "timestamp": 1779828865,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -224,13 +224,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T21:19:11Z",
+    "timestamp": 1779830351,
     "type": "git_commit",
     "commit_message": "HTTPS cloud upload",
     "commit_hash": "b1666ed641f04db9ed2dcef198f85144bad52595"
   },
   {
-    "timestamp": "2026-05-28T18:55:04.939Z",
+    "timestamp": 1779994504,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -282,19 +282,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-28T21:04:08Z",
+    "timestamp": 1780002248,
     "type": "git_commit",
     "commit_message": "time sync",
     "commit_hash": "5db774b132e9cf144c3a894ac806918762c92684"
   },
   {
-    "timestamp": "2026-05-29T20:41:49Z",
+    "timestamp": 1780087309,
     "type": "git_commit",
     "commit_message": "firmware update kinda implemented",
     "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
   },
   {
-    "timestamp": "2026-05-31T08:01:22.082Z",
+    "timestamp": 1780214482,
     "type": "codex_task",
     "user_prompt": [
       "I do want the RTC to store time as UTC, I do want the Wi-Fi manager to apply the time-zone, make this happen"
@@ -322,13 +322,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T08:15:01Z",
+    "timestamp": 1780215301,
     "type": "git_commit",
     "commit_message": "internal clock needs to actually care about time zone",
     "commit_hash": "908cedb1fdb07553f3978c6c04843c7fb8c95a1b"
   },
   {
-    "timestamp": "2026-06-25T05:08:42.044Z",
+    "timestamp": 1782364122,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

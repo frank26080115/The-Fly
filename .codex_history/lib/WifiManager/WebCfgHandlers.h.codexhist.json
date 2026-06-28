@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-24T02:07:58.522Z",
+    "timestamp": 1779588478,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -44,13 +44,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T08:12:26Z",
+    "timestamp": 1779610346,
     "type": "git_commit",
     "commit_message": "web server related major work",
     "commit_hash": "5347b8785e4501a28ac8abae3f67111dfb8fe246"
   },
   {
-    "timestamp": "2026-05-28T18:55:04.939Z",
+    "timestamp": 1779994504,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -102,13 +102,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-28T21:04:08Z",
+    "timestamp": 1780002248,
     "type": "git_commit",
     "commit_message": "time sync",
     "commit_hash": "5db774b132e9cf144c3a894ac806918762c92684"
   },
   {
-    "timestamp": "2026-05-31T07:15:56.221Z",
+    "timestamp": 1780211756,
     "type": "codex_task",
     "user_prompt": [
       "### Task: pin code related web server changes and front-end changes",
@@ -171,13 +171,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T07:32:19Z",
+    "timestamp": 1780212739,
     "type": "git_commit",
     "commit_message": "pin code web related implementation",
     "commit_hash": "ea3196085485e85e518ad62441377ac93a503ac9"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"

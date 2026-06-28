@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-04T07:46:20Z",
+    "timestamp": 1777880780,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "0065bdba2a9c72d3ebef8982804023dd796267c9"
   },
   {
-    "timestamp": "2026-05-18T06:20:17.097Z",
+    "timestamp": 1779085217,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -77,13 +77,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T06:48:14Z",
+    "timestamp": 1779086894,
     "type": "git_commit",
     "commit_message": "change bluetooth init behavior to be connectable",
     "commit_hash": "c413b9460ff7cad507efe70c6364120b3b62ea0b"
   },
   {
-    "timestamp": "2026-06-03T07:06:48.525Z",
+    "timestamp": 1780470408,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -106,7 +106,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T07:14:20Z",
+    "timestamp": 1780470860,
     "type": "git_commit",
     "commit_message": "Update readme.md",
     "commit_hash": "bd213f60cff7a769c95bec2328b0e7c9762461b7"

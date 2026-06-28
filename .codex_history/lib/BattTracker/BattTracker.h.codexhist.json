@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-04T17:32:58.461Z",
+    "timestamp": 1777915978,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -40,13 +40,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T22:18:38Z",
+    "timestamp": 1777933118,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
   },
   {
-    "timestamp": "2026-05-29T05:28:04.736Z",
+    "timestamp": 1780032484,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -85,19 +85,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T06:27:46Z",
+    "timestamp": 1780036066,
     "type": "git_commit",
     "commit_message": "some uncommon shutdown scenarios",
     "commit_hash": "1bf925875d692a6196248b1d63e8e03cc8b0afe7"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-05T23:41:05.245Z",
+    "timestamp": 1780702865,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -137,13 +137,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-06T01:28:29Z",
+    "timestamp": 1780709309,
     "type": "git_commit",
     "commit_message": "better batt status display when full but usb in",
     "commit_hash": "ad32940c8599a2f9ac059d155c54a9d3600328d8"
   },
   {
-    "timestamp": "2026-06-25T07:40:46.934Z",
+    "timestamp": 1782373246,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -191,7 +191,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-25T08:22:12Z",
+    "timestamp": 1782375732,
     "type": "git_commit",
     "commit_message": "ZZZ display for pwr key",
     "commit_hash": "b11501505cfa335d3f3d9fa2b851881450f4fe80"

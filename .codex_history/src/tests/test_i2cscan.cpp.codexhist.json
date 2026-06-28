@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-11T00:00:50.258Z",
+    "timestamp": 1781136050,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -25,7 +25,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T00:11:46.029Z",
+    "timestamp": 1781136706,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -72,7 +72,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T00:22:39.651Z",
+    "timestamp": 1781137359,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -135,7 +135,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T00:33:31.773Z",
+    "timestamp": 1781138011,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -183,7 +183,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T01:13:21.530Z",
+    "timestamp": 1781140401,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -215,13 +215,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T01:25:30Z",
+    "timestamp": 1781141130,
     "type": "git_commit",
     "commit_message": "testing to see if SGTL5000 shows up on I2C",
     "commit_hash": "a25d05b46812956a0837ba1885dfa4933919aca2"
   },
   {
-    "timestamp": "2026-06-11T08:07:11.011Z",
+    "timestamp": 1781165231,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

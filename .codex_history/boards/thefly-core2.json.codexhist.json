@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-19T18:23:48.331Z",
+    "timestamp": 1779215028,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -45,13 +45,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T19:21:14Z",
+    "timestamp": 1779218474,
     "type": "git_commit",
     "commit_message": "fixed build errors",
     "commit_hash": "fefd0f11575215446decf20402aeefa0bd7973f0"
   },
   {
-    "timestamp": "2026-06-11T18:14:18.122Z",
+    "timestamp": 1781201658,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -137,7 +137,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T19:09:52.812Z",
+    "timestamp": 1781291392,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -192,6 +192,100 @@
       "platformio.ini",
       "boards/thefly-core2.json",
       "boards/thefly-core2-nopsram.json"
+    ]
+  },
+  {
+    "timestamp": 1782516239,
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: tools/build_security.py",
+      "",
+      "## My request for Codex:",
+      "\"Anti-rollback expects an OTA partition scheme with ota_0 + ota_1, without a factory app partition.\" what does this mean? what is my current configuration?"
+    ],
+    "agent_reply": [
+      "It means anti-rollback only works with an OTA-style app layout where the bootloader chooses between OTA app slots, not a single fixed “factory” app.",
+      "",
+      "Your current configuration is already the right shape.",
+      "",
+      "Your board file [boards/thefly-core2.json](D:/GithubRepos/The-Fly/boards/thefly-core2.json:4) uses:",
+      "",
+      "```json",
+      "\"partitions\": \"default_16MB.csv\"",
+      "```",
+      "",
+      "That partition table is:",
+      "",
+      "```csv",
+      "# Name,   Type, SubType, Offset,  Size, Flags",
+      "nvs,      data, nvs,     0x9000,  0x5000,",
+      "otadata,  data, ota,     0xe000,  0x2000,",
+      "app0,     app,  ota_0,   0x10000, 0x640000,",
+      "app1,     app,  ota_1,   0x650000,0x640000,",
+      "spiffs,   data, spiffs,  0xc90000,0x360000,",
+      "coredump, data, coredump,0xFF0000,0x10000,",
+      "```",
+      "",
+      "So you have:",
+      "",
+      "- `otadata`: tracks which OTA slot should boot",
+      "- `app0`: OTA app slot `ota_0`",
+      "- `app1`: OTA app slot `ota_1`",
+      "- no `factory` app partition",
+      "",
+      "That matches the ESP-IDF anti-rollback requirement.",
+      "",
+      "The confusing part is that even though you flash firmware at `0x10000`, that address is not necessarily a “factory app.” It is just where your first OTA slot, `app0`, starts. A factory partition would look like this instead:",
+      "",
+      "```csv",
+      "factory, app, factory, 0x10000, ...",
+      "```",
+      "",
+      "You do **not** have that. Your current partition layout is OTA-compatible and anti-rollback-compatible.",
+      "",
+      "It means anti-rollback only works with an OTA-style app layout where the bootloader chooses between OTA app slots, not a single fixed “factory” app.",
+      "",
+      "Your current configuration is already the right shape.",
+      "",
+      "Your board file [boards/thefly-core2.json](D:/GithubRepos/The-Fly/boards/thefly-core2.json:4) uses:",
+      "",
+      "```json",
+      "\"partitions\": \"default_16MB.csv\"",
+      "```",
+      "",
+      "That partition table is:",
+      "",
+      "```csv",
+      "# Name,   Type, SubType, Offset,  Size, Flags",
+      "nvs,      data, nvs,     0x9000,  0x5000,",
+      "otadata,  data, ota,     0xe000,  0x2000,",
+      "app0,     app,  ota_0,   0x10000, 0x640000,",
+      "app1,     app,  ota_1,   0x650000,0x640000,",
+      "spiffs,   data, spiffs,  0xc90000,0x360000,",
+      "coredump, data, coredump,0xFF0000,0x10000,",
+      "```",
+      "",
+      "So you have:",
+      "",
+      "- `otadata`: tracks which OTA slot should boot",
+      "- `app0`: OTA app slot `ota_0`",
+      "- `app1`: OTA app slot `ota_1`",
+      "- no `factory` app partition",
+      "",
+      "That matches the ESP-IDF anti-rollback requirement.",
+      "",
+      "The confusing part is that even though you flash firmware at `0x10000`, that address is not necessarily a “factory app.” It is just where your first OTA slot, `app0`, starts. A factory partition would look like this instead:",
+      "",
+      "```csv",
+      "factory, app, factory, 0x10000, ...",
+      "```",
+      "",
+      "You do **not** have that. Your current partition layout is OTA-compatible and anti-rollback-compatible."
+    ],
+    "files": [
+      "boards/thefly-core2.json"
     ]
   }
 ]

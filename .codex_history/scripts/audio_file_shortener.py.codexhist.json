@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-05T03:31:08.577Z",
+    "timestamp": 1780630268,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -97,7 +97,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T03:44:46.308Z",
+    "timestamp": 1780631086,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -189,7 +189,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T04:09:38.388Z",
+    "timestamp": 1780632578,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -232,7 +232,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T04:51:25Z",
+    "timestamp": 1780635085,
     "type": "git_commit",
     "commit_message": "Create audio_file_shortener.py",
     "commit_hash": "6f39ebe561cab65c0f81705b51467280bc930591"

@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-26T22:01:30.062Z",
+    "timestamp": 1779832890,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -58,13 +58,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T23:43:50Z",
+    "timestamp": 1779839030,
     "type": "git_commit",
     "commit_message": "cloud upload progress view",
     "commit_hash": "38364a2ef3264fa32292357993ee56caf3c7d0c9"
   },
   {
-    "timestamp": "2026-05-27T05:40:02.572Z",
+    "timestamp": 1779860402,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -157,7 +157,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T19:12:57.399Z",
+    "timestamp": 1780081977,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -194,19 +194,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T19:33:23Z",
+    "timestamp": 1780083203,
     "type": "git_commit",
     "commit_message": "moved progress bar into its own element",
     "commit_hash": "f9287aa5d796258ff8abdf2bfa353e4f81a087e2"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T10:16:14.683Z",
+    "timestamp": 1780395374,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -279,7 +279,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T15:20:12Z",
+    "timestamp": 1780413612,
     "type": "git_commit",
     "commit_message": "code neatening for the views",
     "commit_hash": "3dbd6b2cd2fdecdb22e7dcef84a89989f2e63669"

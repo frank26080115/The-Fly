@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-26T20:16:37Z",
+    "timestamp": 1779826597,
     "type": "git_commit",
     "commit_message": "good progress on front end, organized the js files a bit, password and memory reset implemented",
     "commit_hash": "b338b968a3e7d8ae40716584d19bbabe6c5d77d1"
   },
   {
-    "timestamp": "2026-05-31T04:49:20.846Z",
+    "timestamp": 1780202960,
     "type": "codex_task",
     "user_prompt": [
       "during password reset through the web interface, I get `N.Pbkdf2HmacSha256 is not a function` as the error, something is wrong with the webcrypt shim?"
@@ -33,13 +33,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T05:15:28Z",
+    "timestamp": 1780204528,
     "type": "git_commit",
     "commit_message": "fixed encrypted recording being too short",
     "commit_hash": "c0bd39e506d3fee4333871e81322156d26d47a3b"
   },
   {
-    "timestamp": "2026-05-31T08:48:53.055Z",
+    "timestamp": 1780217333,
     "type": "codex_task",
     "user_prompt": [
       "ok hold on... you say network-key, I actually did write down that I wanted the session-key to be used for the encryption",
@@ -79,7 +79,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T09:07:07.432Z",
+    "timestamp": 1780218427,
     "type": "codex_task",
     "user_prompt": [
       "### ask: decrypted download",
@@ -141,7 +141,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T02:37:18.810Z",
+    "timestamp": 1780281438,
     "type": "codex_task",
     "user_prompt": [
       "uhhhh 10000 rounds took 5 seconds...",
@@ -192,7 +192,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T04:25:55.162Z",
+    "timestamp": 1780287955,
     "type": "codex_task",
     "user_prompt": [
       "implement this, both front-end and back-end"
@@ -245,13 +245,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T04:40:14Z",
+    "timestamp": 1780288814,
     "type": "git_commit",
     "commit_message": "file download and decrypted downloads work now",
     "commit_hash": "976ed18721b4929410684cde8839b3d62d1f7cce"
   },
   {
-    "timestamp": "2026-06-03T19:03:23.522Z",
+    "timestamp": 1780513403,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -286,13 +286,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T20:34:24Z",
+    "timestamp": 1780518864,
     "type": "git_commit",
     "commit_message": "benchmarked js key derivation speeds",
     "commit_hash": "df03d57fe0fee9ebfc23b4ff464213e61fd4a163"
   },
   {
-    "timestamp": "2026-06-13T18:28:31.995Z",
+    "timestamp": 1781375311,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

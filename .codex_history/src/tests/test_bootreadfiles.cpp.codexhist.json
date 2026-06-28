@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-18T18:51:39.104Z",
+    "timestamp": 1779130299,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -35,7 +35,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T21:34:19.294Z",
+    "timestamp": 1779140059,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -98,7 +98,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T21:55:35.966Z",
+    "timestamp": 1779141335,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -127,13 +127,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T22:48:44Z",
+    "timestamp": 1779144524,
     "type": "git_commit",
     "commit_message": "test the json file loading",
     "commit_hash": "18a60860b26e8891ff7f6d0e4dfd895368b81151"
   },
   {
-    "timestamp": "2026-05-23T05:42:34.224Z",
+    "timestamp": 1779514954,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -225,13 +225,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T09:06:27Z",
+    "timestamp": 1779527187,
     "type": "git_commit",
     "commit_message": "tested SD card with encryption",
     "commit_hash": "aa5a8d695449da500eedafc4b596671f4ac49351"
   },
   {
-    "timestamp": "2026-05-24T06:11:10.165Z",
+    "timestamp": 1779603070,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -368,7 +368,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T06:50:01.621Z",
+    "timestamp": 1779605401,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -392,13 +392,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T08:12:26Z",
+    "timestamp": 1779610346,
     "type": "git_commit",
     "commit_message": "web server related major work",
     "commit_hash": "5347b8785e4501a28ac8abae3f67111dfb8fe246"
   },
   {
-    "timestamp": "2026-05-25T19:30:26.114Z",
+    "timestamp": 1779737426,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -491,19 +491,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T02:07:37Z",
+    "timestamp": 1779761257,
     "type": "git_commit",
     "commit_message": "clean up for security levels",
     "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-03T04:19:44.350Z",
+    "timestamp": 1780460384,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -565,13 +565,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T04:43:26Z",
+    "timestamp": 1780461806,
     "type": "git_commit",
     "commit_message": "refactor wifi manager",
     "commit_hash": "e854858ac4af04460f4ee1e885c7c0056edd16ac"
   },
   {
-    "timestamp": "2026-06-07T04:36:19Z",
+    "timestamp": 1780806979,
     "type": "git_commit",
     "commit_message": "progress on ext codec",
     "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"

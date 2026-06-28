@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-06-05T20:16:54Z",
+    "timestamp": 1780690614,
     "type": "git_commit",
     "commit_message": "adding teensy library for SGTL5000",
     "commit_hash": "97599d61001edb8bc6be3cef95976cd1763365a7"
   },
   {
-    "timestamp": "2026-06-06T05:58:21.643Z",
+    "timestamp": 1780725501,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -61,13 +61,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-06T06:28:15Z",
+    "timestamp": 1780727295,
     "type": "git_commit",
     "commit_message": "NS4168 works on stereo, added SGTL5000 config for our I2S format",
     "commit_hash": "11c247e36a0c6f947687aa3d9179d6c4c97f6d0c"
   },
   {
-    "timestamp": "2026-06-14T05:00:30.983Z",
+    "timestamp": 1781413230,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -196,7 +196,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-15T04:42:05.349Z",
+    "timestamp": 1781498525,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -228,13 +228,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-15T04:48:36Z",
+    "timestamp": 1781498916,
     "type": "git_commit",
     "commit_message": "lower default gains for codec",
     "commit_hash": "b25eafeae1f5732edb44fbf496f8fa3c9caa9d35"
   },
   {
-    "timestamp": "2026-06-17T04:36:21.301Z",
+    "timestamp": 1781670981,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -352,7 +352,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T04:38:34.546Z",
+    "timestamp": 1781671114,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -485,7 +485,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T06:02:41.573Z",
+    "timestamp": 1781676161,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

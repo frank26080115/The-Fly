@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-04T04:25:01.005Z",
+    "timestamp": 1777868701,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -60,13 +60,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T07:46:20Z",
+    "timestamp": 1777880780,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "0065bdba2a9c72d3ebef8982804023dd796267c9"
   },
   {
-    "timestamp": "2026-05-15T18:09:43.980Z",
+    "timestamp": 1778868583,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -145,13 +145,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T18:55:29Z",
+    "timestamp": 1778871329,
     "type": "git_commit",
     "commit_message": "sync clock to compile time",
     "commit_hash": "4cba36ea455d68013e853597c04009d6649394a1"
   },
   {
-    "timestamp": "2026-05-16T06:50:59.520Z",
+    "timestamp": 1778914259,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -232,13 +232,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T08:46:51Z",
+    "timestamp": 1778921211,
     "type": "git_commit",
     "commit_message": "speakerphone test works, it did involve editing the esp-idf config and building the library in the back",
     "commit_hash": "0fb9d76750530a27bc80183add0ccf3c26959ed3"
   },
   {
-    "timestamp": "2026-05-26T20:54:25.353Z",
+    "timestamp": 1779828865,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -279,13 +279,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T21:19:11Z",
+    "timestamp": 1779830351,
     "type": "git_commit",
     "commit_message": "HTTPS cloud upload",
     "commit_hash": "b1666ed641f04db9ed2dcef198f85144bad52595"
   },
   {
-    "timestamp": "2026-05-28T18:55:04.939Z",
+    "timestamp": 1779994504,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -337,13 +337,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-28T21:04:08Z",
+    "timestamp": 1780002248,
     "type": "git_commit",
     "commit_message": "time sync",
     "commit_hash": "5db774b132e9cf144c3a894ac806918762c92684"
   },
   {
-    "timestamp": "2026-05-29T09:00:42.476Z",
+    "timestamp": 1780045242,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -377,7 +377,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T07:55:29.706Z",
+    "timestamp": 1780214129,
     "type": "codex_task",
     "user_prompt": [
       "is the browser time sync function completely wired up?"
@@ -412,7 +412,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T08:01:22.082Z",
+    "timestamp": 1780214482,
     "type": "codex_task",
     "user_prompt": [
       "I do want the RTC to store time as UTC, I do want the Wi-Fi manager to apply the time-zone, make this happen"
@@ -440,19 +440,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T08:15:01Z",
+    "timestamp": 1780215301,
     "type": "git_commit",
     "commit_message": "internal clock needs to actually care about time zone",
     "commit_hash": "908cedb1fdb07553f3978c6c04843c7fb8c95a1b"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T09:34:42.263Z",
+    "timestamp": 1780392882,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -511,13 +511,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T09:46:12Z",
+    "timestamp": 1780393572,
     "type": "git_commit",
     "commit_message": "more code neatening",
     "commit_hash": "41a16a83dde0bcbb0faacc0e153b905a9aac33e4"
   },
   {
-    "timestamp": "2026-06-05T18:48:12.787Z",
+    "timestamp": 1780685292,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -556,13 +556,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T18:57:17Z",
+    "timestamp": 1780685837,
     "type": "git_commit",
     "commit_message": "way better time sync from browser, with timezones",
     "commit_hash": "3157aa61f945df7cbd0342463ba1cfd56c3a3e67"
   },
   {
-    "timestamp": "2026-06-25T05:02:13.779Z",
+    "timestamp": 1782363733,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -592,7 +592,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-25T05:45:51Z",
+    "timestamp": 1782366351,
     "type": "git_commit",
     "commit_message": "fixed uninitialized RTC showing weird number",
     "commit_hash": "7ce2982d0eafcd5994059f574828b055c7f595bc"

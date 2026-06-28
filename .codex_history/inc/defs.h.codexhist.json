@@ -1,30 +1,30 @@
 [
   {
-    "timestamp": "2026-05-01T08:45:00Z",
+    "timestamp": 1777625100,
     "type": "git_commit",
     "commit_message": "progress",
     "commit_hash": "384fc246aafc465d1b9dc72802ba63530501f038"
   },
   {
-    "timestamp": "2026-05-02T07:20:03Z",
+    "timestamp": 1777706403,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "9495ca3e997d6aca003aa5a6ec502e2204cea031"
   },
   {
-    "timestamp": "2026-05-04T08:21:58Z",
+    "timestamp": 1777882918,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "dcdf504ad0b634fb1b6629ede78526be42cdf96e"
   },
   {
-    "timestamp": "2026-05-14T20:16:47Z",
+    "timestamp": 1778789807,
     "type": "git_commit",
     "commit_message": "no debugging fields in file packet header",
     "commit_hash": "11ab6eb78c58d2be476b07344087f2dea534bb90"
   },
   {
-    "timestamp": "2026-05-17T02:14:46.065Z",
+    "timestamp": 1778984086,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -76,13 +76,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T03:29:41Z",
+    "timestamp": 1778988581,
     "type": "git_commit",
     "commit_message": "icon lookup",
     "commit_hash": "b6b89e5847d7bc25ba28221a7c11ba0dce2e94c9"
   },
   {
-    "timestamp": "2026-05-18T22:51:18.362Z",
+    "timestamp": 1779144678,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -126,13 +126,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T22:54:31Z",
+    "timestamp": 1779144871,
     "type": "git_commit",
     "commit_message": "added filepkt_src_e",
     "commit_hash": "d617daf95bc61f0742f14d0d88b1bd228ebab221"
   },
   {
-    "timestamp": "2026-05-20T06:16:05.518Z",
+    "timestamp": 1779257765,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -185,19 +185,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T07:17:21Z",
+    "timestamp": 1779261441,
     "type": "git_commit",
     "commit_message": "massive progress with RecordingView",
     "commit_hash": "1c4305479f888bd2dc55b13c27a109f8c8dc6cd7"
   },
   {
-    "timestamp": "2026-05-20T19:02:28Z",
+    "timestamp": 1779303748,
     "type": "git_commit",
     "commit_message": "good progress on GUI",
     "commit_hash": "3d988cb62856bfbc633ccac6598e1ba741663eec"
   },
   {
-    "timestamp": "2026-05-21T00:33:25.873Z",
+    "timestamp": 1779323605,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -255,7 +255,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T07:42:44.530Z",
+    "timestamp": 1779349364,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -310,7 +310,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T00:31:50.454Z",
+    "timestamp": 1779409910,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -449,7 +449,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T00:33:09.152Z",
+    "timestamp": 1779409989,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -494,7 +494,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T01:09:17.258Z",
+    "timestamp": 1779412157,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -630,13 +630,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T03:27:25Z",
+    "timestamp": 1779420445,
     "type": "git_commit",
     "commit_message": "starting to add a web server",
     "commit_hash": "421a041f801f5f993b55e85fd21fbb828bf995c0"
   },
   {
-    "timestamp": "2026-05-22T03:30:51.605Z",
+    "timestamp": 1779420651,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -766,7 +766,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T06:11:10.165Z",
+    "timestamp": 1779603070,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -904,25 +904,25 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T08:10:45Z",
+    "timestamp": 1779610245,
     "type": "git_commit",
     "commit_message": "user customized icon rewrite",
     "commit_hash": "77e4a4ef8b64072a653f33ecc377d9b157bc4629"
   },
   {
-    "timestamp": "2026-05-26T02:07:37Z",
+    "timestamp": 1779761257,
     "type": "git_commit",
     "commit_message": "clean up for security levels",
     "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
   },
   {
-    "timestamp": "2026-05-27T07:01:32Z",
+    "timestamp": 1779865292,
     "type": "git_commit",
     "commit_message": "more icons",
     "commit_hash": "85ea670fbb96bddad0494a3ef75e7ec65c09adbf"
   },
   {
-    "timestamp": "2026-05-28T21:43:39.757Z",
+    "timestamp": 1780004619,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -999,7 +999,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T01:38:32.975Z",
+    "timestamp": 1780191512,
     "type": "codex_task",
     "user_prompt": [
       "please move `kWavHeaderSize` to `inc/defs.h` as `WAV_RIFF_HEADER_LENGTH`"
@@ -1044,7 +1044,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T01:51:11.202Z",
+    "timestamp": 1780192271,
     "type": "codex_task",
     "user_prompt": [
       "### Task: major change to recorded encrypted file format",
@@ -1128,13 +1128,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T02:20:05Z",
+    "timestamp": 1780194005,
     "type": "git_commit",
     "commit_message": "removed custom audio format, changed to encrypted wav",
     "commit_hash": "b058e63be582168fb18760c38aabbed0bdbccd8c"
   },
   {
-    "timestamp": "2026-05-31T02:36:12.474Z",
+    "timestamp": 1780194972,
     "type": "codex_task",
     "user_prompt": [
       "the encrypted block size might be too small, so the overhead is too large",
@@ -1166,13 +1166,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T03:56:19Z",
+    "timestamp": 1780199779,
     "type": "git_commit",
     "commit_message": "encrypted playback",
     "commit_hash": "b44ada573a1434b396178f2ddc13955d839d57f3"
   },
   {
-    "timestamp": "2026-06-01T06:11:25.696Z",
+    "timestamp": 1780294285,
     "type": "codex_task",
     "user_prompt": [
       "add the ideal encryption sizes for the given configuration somewhere"
@@ -1234,13 +1234,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T07:26:13Z",
+    "timestamp": 1780298773,
     "type": "git_commit",
     "commit_message": "liblame reconfigured",
     "commit_hash": "4bf69da6425fc74a95f264e24c0d992103c50a9f"
   },
   {
-    "timestamp": "2026-06-02T07:30:30.516Z",
+    "timestamp": 1780385430,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1285,7 +1285,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:49:30Z",
+    "timestamp": 1780386570,
     "type": "git_commit",
     "commit_message": "small reorg of conf.h and defs.h",
     "commit_hash": "3c45d79a3dd59ea97ce07b6dad9b8ea50a41fb68"

@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-31T07:40:06Z",
+    "timestamp": 1780213206,
     "type": "git_commit",
     "commit_message": "Create code-layout-policy.md",
     "commit_hash": "a112b4f6b372bf514d65b1e331abf4b17d23bada"
   },
   {
-    "timestamp": "2026-06-02T06:45:37.824Z",
+    "timestamp": 1780382737,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -51,7 +51,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:05:04.713Z",
+    "timestamp": 1780383904,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -97,7 +97,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:15:08.280Z",
+    "timestamp": 1780384508,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -143,7 +143,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:30:30.516Z",
+    "timestamp": 1780385430,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -188,7 +188,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T09:21:18.056Z",
+    "timestamp": 1780392078,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -249,7 +249,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T09:34:42.263Z",
+    "timestamp": 1780392882,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -308,7 +308,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T15:50:30.321Z",
+    "timestamp": 1780415430,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -360,7 +360,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T16:04:22.176Z",
+    "timestamp": 1780416262,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

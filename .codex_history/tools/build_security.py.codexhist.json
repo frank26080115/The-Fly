@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-04T22:39:00.172Z",
+    "timestamp": 1780612740,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -49,7 +49,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T06:00:31.422Z",
+    "timestamp": 1782453631,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -150,7 +150,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T06:12:15.380Z",
+    "timestamp": 1782454335,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -259,7 +259,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T06:35:40.293Z",
+    "timestamp": 1782455740,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -282,7 +282,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T06:42:06.931Z",
+    "timestamp": 1782456126,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -374,7 +374,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T06:45:55.202Z",
+    "timestamp": 1782456355,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -421,13 +421,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T18:18:35Z",
+    "timestamp": 1782497915,
     "type": "git_commit",
     "commit_message": "Create build_security.py",
     "commit_hash": "9c9e927e23e2493868e331cb295eac34111e1ebe"
   },
   {
-    "timestamp": "2026-06-26T18:21:17.936Z",
+    "timestamp": 1782498077,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -521,13 +521,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T18:22:15Z",
+    "timestamp": 1782498135,
     "type": "git_commit",
     "commit_message": "Update build_security.py",
     "commit_hash": "00d9bb2421f4419add1ae5ac996ee1ffdb0a0c65"
   },
   {
-    "timestamp": "2026-06-26T18:23:59.787Z",
+    "timestamp": 1782498239,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -590,9 +590,82 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T18:26:07Z",
+    "timestamp": 1782498367,
     "type": "git_commit",
     "commit_message": "more fixes for missing py modules during secure fw build",
     "commit_hash": "53f5e20fb8b8b2b49ef32682154d40ce20aa46c4"
+  },
+  {
+    "timestamp": 1782500195,
+    "type": "git_commit",
+    "commit_message": "build_security now uses internal code for key generation",
+    "commit_hash": "7f54a30b50b6875364dd984c975880d53ea710bb"
+  },
+  {
+    "timestamp": 1782516012,
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: tools/build_security.py",
+      "",
+      "## My request for Codex:",
+      "how does anti-roll-back work with `tools\\build_security.py`?"
+    ],
+    "agent_reply": [
+      "Right now, `tools\\build_security.py` does **not** implement anti-rollback.",
+      "",
+      "It currently handles:",
+      "",
+      "- enforcing secure build envs: `thefly_sec1`, `thefly_sec2`, `thefly_sec3`",
+      "- checking secure sdkconfig flags exist",
+      "- requiring the Secure Boot signing key",
+      "- signing `firmware.bin`",
+      "- signing `bootloader.bin`",
+      "- optionally flashing the signed artifacts directly",
+      "",
+      "But ESP32 anti-rollback is a separate ESP-IDF feature. It usually depends on:",
+      "",
+      "- enabling anti-rollback in sdkconfig",
+      "- setting a firmware/app secure version",
+      "- burning or updating the eFuse secure version counter",
+      "- ensuring each released firmware increments the secure version when needed",
+      "",
+      "The important bit: **Secure Boot proves “this firmware was signed by us.” Anti-rollback proves “this signed firmware is not older than the device’s minimum allowed version.”** Signing alone does not stop an older signed firmware from being flashed.",
+      "",
+      "For this repo, `secure_builds.ini` currently has Secure Boot and flash encryption flags, but I do not see anti-rollback flags wired in yet. `BUILD_WITH_SECURITY_LEVEL=1/2/3` is a compile-time firmware security level, but unless the ESP-IDF app secure version is configured and eFuse state is managed, it is not the hardware anti-rollback mechanism.",
+      "",
+      "So the short answer: `build_security.py` makes sure the build is signed and flashable through the secure path, but anti-rollback still needs to be designed and added.",
+      "",
+      "Right now, `tools\\build_security.py` does **not** implement anti-rollback.",
+      "",
+      "It currently handles:",
+      "",
+      "- enforcing secure build envs: `thefly_sec1`, `thefly_sec2`, `thefly_sec3`",
+      "- checking secure sdkconfig flags exist",
+      "- requiring the Secure Boot signing key",
+      "- signing `firmware.bin`",
+      "- signing `bootloader.bin`",
+      "- optionally flashing the signed artifacts directly",
+      "",
+      "But ESP32 anti-rollback is a separate ESP-IDF feature. It usually depends on:",
+      "",
+      "- enabling anti-rollback in sdkconfig",
+      "- setting a firmware/app secure version",
+      "- burning or updating the eFuse secure version counter",
+      "- ensuring each released firmware increments the secure version when needed",
+      "",
+      "The important bit: **Secure Boot proves “this firmware was signed by us.” Anti-rollback proves “this signed firmware is not older than the device’s minimum allowed version.”** Signing alone does not stop an older signed firmware from being flashed.",
+      "",
+      "For this repo, `secure_builds.ini` currently has Secure Boot and flash encryption flags, but I do not see anti-rollback flags wired in yet. `BUILD_WITH_SECURITY_LEVEL=1/2/3` is a compile-time firmware security level, but unless the ESP-IDF app secure version is configured and eFuse state is managed, it is not the hardware anti-rollback mechanism.",
+      "",
+      "So the short answer: `build_security.py` makes sure the build is signed and flashable through the secure path, but anti-rollback still needs to be designed and added."
+    ],
+    "files": [
+      "tools/build_security.py",
+      "managed_components/espressif__esp-serial-flasher/examples/binaries/Hello-world/ESP32/bootloader.bin",
+      "managed_components/espressif__esp-serial-flasher/examples/binaries/ESP32_AT_Firmware/Firmware.bin",
+      "secure_builds.ini"
+    ]
   }
 ]

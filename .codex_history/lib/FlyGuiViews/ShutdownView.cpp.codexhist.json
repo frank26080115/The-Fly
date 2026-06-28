@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-29T05:28:04.736Z",
+    "timestamp": 1780032484,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -39,7 +39,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T05:58:47.663Z",
+    "timestamp": 1780034327,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -80,19 +80,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T06:27:46Z",
+    "timestamp": 1780036066,
     "type": "git_commit",
     "commit_message": "some uncommon shutdown scenarios",
     "commit_hash": "1bf925875d692a6196248b1d63e8e03cc8b0afe7"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T10:16:14.683Z",
+    "timestamp": 1780395374,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -165,13 +165,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T15:20:12Z",
+    "timestamp": 1780413612,
     "type": "git_commit",
     "commit_message": "code neatening for the views",
     "commit_hash": "3dbd6b2cd2fdecdb22e7dcef84a89989f2e63669"
   },
   {
-    "timestamp": "2026-06-25T06:41:42.181Z",
+    "timestamp": 1782369702,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

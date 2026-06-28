@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-15T08:10:35.704Z",
+    "timestamp": 1778832635,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -62,7 +62,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T08:23:32.198Z",
+    "timestamp": 1778833412,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -119,43 +119,43 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:29:28Z",
+    "timestamp": 1778837368,
     "type": "git_commit",
     "commit_message": "added PNG drawing",
     "commit_hash": "d1cce490ffbc23621fcbeef5fe4d31c5bd1ee448"
   },
   {
-    "timestamp": "2026-05-19T08:07:31Z",
+    "timestamp": 1779178051,
     "type": "git_commit",
     "commit_message": "good progress working on GUI but ran into memory problems with PNG decode",
     "commit_hash": "ce293de5bfe655e8023945176b68c324355ad1de"
   },
   {
-    "timestamp": "2026-05-19T19:21:47Z",
+    "timestamp": 1779218507,
     "type": "git_commit",
     "commit_message": "more graphics",
     "commit_hash": "a4c40a2ef299c9dc8c5edb30434063e3347d8cc7"
   },
   {
-    "timestamp": "2026-05-20T07:17:21Z",
+    "timestamp": 1779261441,
     "type": "git_commit",
     "commit_message": "massive progress with RecordingView",
     "commit_hash": "1c4305479f888bd2dc55b13c27a109f8c8dc6cd7"
   },
   {
-    "timestamp": "2026-05-20T19:02:28Z",
+    "timestamp": 1779303748,
     "type": "git_commit",
     "commit_message": "good progress on GUI",
     "commit_hash": "3d988cb62856bfbc633ccac6598e1ba741663eec"
   },
   {
-    "timestamp": "2026-05-21T02:56:49Z",
+    "timestamp": 1779332209,
     "type": "git_commit",
     "commit_message": "more gui work, auto bt reconnect",
     "commit_hash": "c002fb0767624f8362097c9328ec1d3f695a20db"
   },
   {
-    "timestamp": "2026-05-21T07:55:06.221Z",
+    "timestamp": 1779350106,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -198,61 +198,61 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T08:00:40Z",
+    "timestamp": 1779350440,
     "type": "git_commit",
     "commit_message": "graphics revamp normalize to 100x100 imgs",
     "commit_hash": "b1a1cbe13a47ccf6843b479b02dce075402a8028"
   },
   {
-    "timestamp": "2026-05-21T19:17:26Z",
+    "timestamp": 1779391046,
     "type": "git_commit",
     "commit_message": "bt host delete, debug shown on top bar",
     "commit_hash": "faf2c6341baa36a0f9941de6378b0a239fcfab7a"
   },
   {
-    "timestamp": "2026-05-22T07:18:40Z",
+    "timestamp": 1779434320,
     "type": "git_commit",
     "commit_message": "recording works great now, tweaked the ui",
     "commit_hash": "62765d1d8b21f98b4d6f07736b3fb63a966637c5"
   },
   {
-    "timestamp": "2026-05-24T08:07:25Z",
+    "timestamp": 1779610045,
     "type": "git_commit",
     "commit_message": "more sprites, including overlays, goes along with icon rewrite",
     "commit_hash": "f107de3e02d1c3be3173a040dd07697c843d5376"
   },
   {
-    "timestamp": "2026-05-26T03:14:59Z",
+    "timestamp": 1779765299,
     "type": "git_commit",
     "commit_message": "new splash",
     "commit_hash": "84c268ddfdfee518b0e4448cba5f6b91d74d5b5b"
   },
   {
-    "timestamp": "2026-05-26T07:29:49Z",
+    "timestamp": 1779780589,
     "type": "git_commit",
     "commit_message": "more sprites",
     "commit_hash": "11916bb62ed150ecc65a7c4f49f9ab933e847667"
   },
   {
-    "timestamp": "2026-05-26T08:31:56Z",
+    "timestamp": 1779784316,
     "type": "git_commit",
     "commit_message": "implement the wifi ap view",
     "commit_hash": "d8fe002743fef62a02f8317b0e30b6a57eebd666"
   },
   {
-    "timestamp": "2026-05-27T07:01:32Z",
+    "timestamp": 1779865292,
     "type": "git_commit",
     "commit_message": "more icons",
     "commit_hash": "85ea670fbb96bddad0494a3ef75e7ec65c09adbf"
   },
   {
-    "timestamp": "2026-05-29T01:27:17Z",
+    "timestamp": 1780018037,
     "type": "git_commit",
     "commit_message": "fixing typo",
     "commit_hash": "42b1643fe57aa98764509adf38052986bbee0a78"
   },
   {
-    "timestamp": "2026-05-29T01:28:09.205Z",
+    "timestamp": 1780018089,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -292,55 +292,55 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T03:55:25Z",
+    "timestamp": 1780026925,
     "type": "git_commit",
     "commit_message": "work on wifi workflow",
     "commit_hash": "b4a10916d5b7ea69c537dd11e62033af5ee67a64"
   },
   {
-    "timestamp": "2026-05-29T19:12:05Z",
+    "timestamp": 1780081925,
     "type": "git_commit",
     "commit_message": "better error screens with rescue wifi",
     "commit_hash": "e80a4d45b429f363956cf3178c63626d5c802a88"
   },
   {
-    "timestamp": "2026-05-29T20:41:49Z",
+    "timestamp": 1780087309,
     "type": "git_commit",
     "commit_message": "firmware update kinda implemented",
     "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
   },
   {
-    "timestamp": "2026-05-30T04:59:21Z",
+    "timestamp": 1780117161,
     "type": "git_commit",
     "commit_message": "file related sprites",
     "commit_hash": "83a04173809f320e300851ba7154f4390892a314"
   },
   {
-    "timestamp": "2026-05-30T08:35:05Z",
+    "timestamp": 1780130105,
     "type": "git_commit",
     "commit_message": "playback mechanism",
     "commit_hash": "813aab87ffb853eb373d960af6a773dbf5f74642"
   },
   {
-    "timestamp": "2026-05-30T23:29:32Z",
+    "timestamp": 1780183772,
     "type": "git_commit",
     "commit_message": "audio file delete button implemented",
     "commit_hash": "4c130675d3f65cbce5100ad682ceea13a0552ed2"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T20:20:38Z",
+    "timestamp": 1780431638,
     "type": "git_commit",
     "commit_message": "file list view now use deterministic unique icon graphics",
     "commit_hash": "0e12e6b2d47a1972c811a105fcc7c2c8f1409e52"
   },
   {
-    "timestamp": "2026-06-03T06:54:20.863Z",
+    "timestamp": 1780469660,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -381,7 +381,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:58:32.450Z",
+    "timestamp": 1780469912,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -441,7 +441,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T07:00:10.319Z",
+    "timestamp": 1780470010,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -489,31 +489,31 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T07:05:04Z",
+    "timestamp": 1780470304,
     "type": "git_commit",
     "commit_message": "Update sprites.cpp",
     "commit_hash": "ded87a7c44dfbc17cfbc5a2f14774702c65bcc7f"
   },
   {
-    "timestamp": "2026-06-03T08:33:25Z",
+    "timestamp": 1780475605,
     "type": "git_commit",
     "commit_message": "randomized file explorer buttons",
     "commit_hash": "c833ed8c68cc020bff501c8dc9ed6f083d7df971"
   },
   {
-    "timestamp": "2026-06-05T18:30:06Z",
+    "timestamp": 1780684206,
     "type": "git_commit",
     "commit_message": "changed the wifi info button icon",
     "commit_hash": "7f6653a141f9af13df85095dd4c172be7c224247"
   },
   {
-    "timestamp": "2026-06-05T21:23:02Z",
+    "timestamp": 1780694582,
     "type": "git_commit",
     "commit_message": "new button graphics to indicate earbud",
     "commit_hash": "82482e83565b8109bfc890f07011e5299937b293"
   },
   {
-    "timestamp": "2026-06-06T01:28:29Z",
+    "timestamp": 1780709309,
     "type": "git_commit",
     "commit_message": "better batt status display when full but usb in",
     "commit_hash": "ad32940c8599a2f9ac059d155c54a9d3600328d8"

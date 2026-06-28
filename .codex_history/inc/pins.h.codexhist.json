@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-01T08:45:00Z",
+    "timestamp": 1777625100,
     "type": "git_commit",
     "commit_message": "progress",
     "commit_hash": "384fc246aafc465d1b9dc72802ba63530501f038"
   },
   {
-    "timestamp": "2026-06-03T21:14:22.722Z",
+    "timestamp": 1780521262,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -81,13 +81,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T22:45:19Z",
+    "timestamp": 1780526719,
     "type": "git_commit",
     "commit_message": "pins.h, tweaked FIFOs, added a test result",
     "commit_hash": "6fb57af7f759b4803b0e9978a01525d0a1fe1265"
   },
   {
-    "timestamp": "2026-06-04T20:51:11.374Z",
+    "timestamp": 1780606271,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -150,7 +150,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T20:52:10.887Z",
+    "timestamp": 1780606330,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -184,13 +184,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T21:07:04Z",
+    "timestamp": 1780607224,
     "type": "git_commit",
     "commit_message": "added potentially useful MCLK pin def",
     "commit_hash": "157078af7ebcc24ab5e289ef8dacf6471f4fb92a"
   },
   {
-    "timestamp": "2026-06-05T09:38:55.699Z",
+    "timestamp": 1780652335,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -247,7 +247,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T20:18:38.255Z",
+    "timestamp": 1780690718,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -317,13 +317,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T20:50:54Z",
+    "timestamp": 1780692654,
     "type": "git_commit",
     "commit_message": "external codec implementation",
     "commit_hash": "bb1a1fe14284387ce02c9a2c958393745f4c1598"
   },
   {
-    "timestamp": "2026-06-06T05:38:35.990Z",
+    "timestamp": 1780724315,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -411,7 +411,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-07T05:02:05.080Z",
+    "timestamp": 1780808525,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -457,13 +457,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-07T06:41:57Z",
+    "timestamp": 1780814517,
     "type": "git_commit",
     "commit_message": "more mclk pin shenanigans",
     "commit_hash": "037f76286b9ef3fefb0ee812d32eca185e46548e"
   },
   {
-    "timestamp": "2026-06-08T01:45:21.883Z",
+    "timestamp": 1780883121,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -502,13 +502,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-08T03:05:24Z",
+    "timestamp": 1780887924,
     "type": "git_commit",
     "commit_message": "ledc as mclk shenanigans",
     "commit_hash": "3899800fdc93cf7a914ee480463eca1ff28cc754"
   },
   {
-    "timestamp": "2026-06-11T08:07:11.011Z",
+    "timestamp": 1781165231,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -638,7 +638,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-24T06:08:51.418Z",
+    "timestamp": 1782281331,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

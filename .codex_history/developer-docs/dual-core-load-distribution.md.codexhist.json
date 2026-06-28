@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-02T04:28:55.472Z",
+    "timestamp": 1777696135,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -20,13 +20,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-02T07:20:03Z",
+    "timestamp": 1777706403,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "9495ca3e997d6aca003aa5a6ec502e2204cea031"
   },
   {
-    "timestamp": "2026-05-03T05:46:02.018Z",
+    "timestamp": 1777787162,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -109,13 +109,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T20:17:37Z",
+    "timestamp": 1778789857,
     "type": "git_commit",
     "commit_message": "documentation updates",
     "commit_hash": "e8fcbd92fdde04545ed653fb220c5571eb2376f8"
   },
   {
-    "timestamp": "2026-05-22T03:30:51.605Z",
+    "timestamp": 1779420651,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -245,7 +245,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T03:48:53.736Z",
+    "timestamp": 1780112933,
     "type": "codex_task",
     "user_prompt": [
       "we are making a big change",
@@ -307,13 +307,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:06:18Z",
+    "timestamp": 1780113978,
     "type": "git_commit",
     "commit_message": "direct to wav file recording",
     "commit_hash": "64f9f8e6f7cc8677283c2f4afdfbd22660041ff6"
   },
   {
-    "timestamp": "2026-06-03T22:45:19Z",
+    "timestamp": 1780526719,
     "type": "git_commit",
     "commit_message": "pins.h, tweaked FIFOs, added a test result",
     "commit_hash": "6fb57af7f759b4803b0e9978a01525d0a1fe1265"

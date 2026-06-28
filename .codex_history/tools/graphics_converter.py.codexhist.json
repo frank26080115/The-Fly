@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-15T08:10:35.704Z",
+    "timestamp": 1778832635,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -62,7 +62,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T08:23:32.198Z",
+    "timestamp": 1778833412,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -119,13 +119,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:29:28Z",
+    "timestamp": 1778837368,
     "type": "git_commit",
     "commit_message": "added PNG drawing",
     "commit_hash": "d1cce490ffbc23621fcbeef5fe4d31c5bd1ee448"
   },
   {
-    "timestamp": "2026-05-29T00:50:12.054Z",
+    "timestamp": 1780015812,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -204,13 +204,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T01:26:59Z",
+    "timestamp": 1780018019,
     "type": "git_commit",
     "commit_message": "fixed typo",
     "commit_hash": "b83a5233182b1cbd7abf45ff01f49d00cb52287e"
   },
   {
-    "timestamp": "2026-05-29T01:28:09.205Z",
+    "timestamp": 1780018089,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -250,7 +250,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T07:00:10.319Z",
+    "timestamp": 1780470010,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -298,7 +298,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T07:03:56Z",
+    "timestamp": 1780470236,
     "type": "git_commit",
     "commit_message": "more clang format stuff",
     "commit_hash": "fa8a1e27b6b4982ce7a05c70f69ab0eb2ff14f79"

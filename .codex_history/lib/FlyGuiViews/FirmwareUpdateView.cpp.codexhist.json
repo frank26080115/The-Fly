@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-29T19:37:09.076Z",
+    "timestamp": 1780083429,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -92,13 +92,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T20:41:49Z",
+    "timestamp": 1780087309,
     "type": "git_commit",
     "commit_message": "firmware update kinda implemented",
     "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
   },
   {
-    "timestamp": "2026-05-29T22:38:09.093Z",
+    "timestamp": 1780094289,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -120,7 +120,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T22:48:57.963Z",
+    "timestamp": 1780094937,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -157,25 +157,25 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T22:52:52Z",
+    "timestamp": 1780095172,
     "type": "git_commit",
     "commit_message": "fw updater polish",
     "commit_hash": "c31d23815b0e43b18399592f62f215ce374c5b3c"
   },
   {
-    "timestamp": "2026-05-31T04:24:21Z",
+    "timestamp": 1780201461,
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T10:16:14.683Z",
+    "timestamp": 1780395374,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -248,13 +248,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T15:20:12Z",
+    "timestamp": 1780413612,
     "type": "git_commit",
     "commit_message": "code neatening for the views",
     "commit_hash": "3dbd6b2cd2fdecdb22e7dcef84a89989f2e63669"
   },
   {
-    "timestamp": "2026-06-03T05:02:04.931Z",
+    "timestamp": 1780462924,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -323,13 +323,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:51:45Z",
+    "timestamp": 1780469505,
     "type": "git_commit",
     "commit_message": "diagnostics, fixed a bug with speaker peak decay",
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
   },
   {
-    "timestamp": "2026-06-03T20:44:20.601Z",
+    "timestamp": 1780519460,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -426,7 +426,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T21:04:00.349Z",
+    "timestamp": 1780520640,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -490,13 +490,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T21:05:34Z",
+    "timestamp": 1780520734,
     "type": "git_commit",
     "commit_message": "added screen fades during slow parts",
     "commit_hash": "0d8363f535680e4532d2964847c2f4086d34575c"
   },
   {
-    "timestamp": "2026-06-04T02:21:38.125Z",
+    "timestamp": 1780539698,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -541,7 +541,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T04:26:00.417Z",
+    "timestamp": 1780547160,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -579,13 +579,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T05:05:33Z",
+    "timestamp": 1780549533,
     "type": "git_commit",
     "commit_message": "haptics implemented across the board",
     "commit_hash": "b0281be08ff90256d2e231f0ba9c25e7422784c1"
   },
   {
-    "timestamp": "2026-06-04T18:55:30Z",
+    "timestamp": 1780599330,
     "type": "git_commit",
     "commit_message": "special icon to mark special builds",
     "commit_hash": "4db065d07114a8fedc766378980847e27904347f"

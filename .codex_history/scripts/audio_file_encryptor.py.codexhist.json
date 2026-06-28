@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-31T21:54:50Z",
+    "timestamp": 1780264490,
     "type": "git_commit",
     "commit_message": "python script rewrite for new file format",
     "commit_hash": "69a3e8656671f00fe321856f14ee4d1420110ebe"
   },
   {
-    "timestamp": "2026-06-01T23:09:27.948Z",
+    "timestamp": 1780355367,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -49,7 +49,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T00:13:40.244Z",
+    "timestamp": 1780359220,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -108,13 +108,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T00:59:32Z",
+    "timestamp": 1780361972,
     "type": "git_commit",
     "commit_message": "test encryptor script handles mp3 correctly",
     "commit_hash": "d41ba33eb6b32cefc874815de5e56826137e5947"
   },
   {
-    "timestamp": "2026-06-11T05:16:39.053Z",
+    "timestamp": 1781154999,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -162,7 +162,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T05:19:03.863Z",
+    "timestamp": 1781155143,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

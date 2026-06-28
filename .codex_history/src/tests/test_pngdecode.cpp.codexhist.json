@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-15T08:33:58.494Z",
+    "timestamp": 1778834038,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -28,7 +28,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T08:52:55.665Z",
+    "timestamp": 1778835175,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -93,7 +93,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:12:30.271Z",
+    "timestamp": 1778836350,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -132,19 +132,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:29:28Z",
+    "timestamp": 1778837368,
     "type": "git_commit",
     "commit_message": "added PNG drawing",
     "commit_hash": "d1cce490ffbc23621fcbeef5fe4d31c5bd1ee448"
   },
   {
-    "timestamp": "2026-05-17T03:30:13Z",
+    "timestamp": 1778988613,
     "type": "git_commit",
     "commit_message": "application infrastructure wip",
     "commit_hash": "380e678127c354bb1fcb6171bc0720f72caba667"
   },
   {
-    "timestamp": "2026-05-19T09:25:55.209Z",
+    "timestamp": 1779182755,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -197,13 +197,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T09:44:16Z",
+    "timestamp": 1779183856,
     "type": "git_commit",
     "commit_message": "cleaned up display as param",
     "commit_hash": "44c732408fa59c62aa9a1734f91a61315fcfe7ed"
   },
   {
-    "timestamp": "2026-05-19T17:55:01.194Z",
+    "timestamp": 1779213301,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -318,25 +318,25 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T19:22:28Z",
+    "timestamp": 1779218548,
     "type": "git_commit",
     "commit_message": "sprites can be dimmed/dithered",
     "commit_hash": "c13d018e03ab7af65a09d647befd1f0c2118f7e9"
   },
   {
-    "timestamp": "2026-05-29T01:32:37Z",
+    "timestamp": 1780018357,
     "type": "git_commit",
     "commit_message": "fix sprite typo",
     "commit_hash": "35a2b487220fe0993a1c66c1e5833f19656055bc"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-07T04:36:19Z",
+    "timestamp": 1780806979,
     "type": "git_commit",
     "commit_message": "progress on ext codec",
     "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"

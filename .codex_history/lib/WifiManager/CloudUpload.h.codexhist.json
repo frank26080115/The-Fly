@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-17T04:47:21.388Z",
+    "timestamp": 1778993241,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -76,13 +76,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T05:06:42Z",
+    "timestamp": 1778994402,
     "type": "git_commit",
     "commit_message": "cloud uploader",
     "commit_hash": "cd054c35764c06f5912ce3eb8475be22556367f4"
   },
   {
-    "timestamp": "2026-05-24T06:56:36.915Z",
+    "timestamp": 1779605796,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -125,7 +125,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-25T19:30:26.114Z",
+    "timestamp": 1779737426,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -218,13 +218,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T02:07:37Z",
+    "timestamp": 1779761257,
     "type": "git_commit",
     "commit_message": "clean up for security levels",
     "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
   },
   {
-    "timestamp": "2026-05-26T20:54:25.353Z",
+    "timestamp": 1779828865,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -265,13 +265,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T21:19:11Z",
+    "timestamp": 1779830351,
     "type": "git_commit",
     "commit_message": "HTTPS cloud upload",
     "commit_hash": "b1666ed641f04db9ed2dcef198f85144bad52595"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"

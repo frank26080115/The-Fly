@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-04T22:00:36.167Z",
+    "timestamp": 1777932036,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -38,7 +38,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T22:11:36.096Z",
+    "timestamp": 1777932696,
     "type": "codex_task",
     "user_prompt": [
       "Please implement the code as described by the comment on lib/AudioFileRecorder/MostRecentFiles.h:1",
@@ -71,7 +71,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-05T18:44:33.504Z",
+    "timestamp": 1778006673,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -125,7 +125,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-05T18:50:18.631Z",
+    "timestamp": 1778007018,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -145,7 +145,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-05T18:51:41.091Z",
+    "timestamp": 1778007101,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -199,7 +199,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-05T18:55:00.172Z",
+    "timestamp": 1778007300,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

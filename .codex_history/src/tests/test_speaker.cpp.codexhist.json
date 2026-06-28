@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-14T08:38:18.341Z",
+    "timestamp": 1778747898,
     "type": "codex_task",
     "user_prompt": [
       "Please implement the code as described by the comment on src/tests/test_speaker.cpp:1",
@@ -45,7 +45,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T08:43:41.492Z",
+    "timestamp": 1778748221,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -119,13 +119,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T09:06:33Z",
+    "timestamp": 1778749593,
     "type": "git_commit",
     "commit_message": "got a physical unit, starting bringup tests",
     "commit_hash": "9d0330a8d4292ae1c769e093080a2eba28dce43f"
   },
   {
-    "timestamp": "2026-05-15T06:48:21.866Z",
+    "timestamp": 1778827701,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -161,25 +161,25 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:30:10Z",
+    "timestamp": 1778837410,
     "type": "git_commit",
     "commit_message": "clean up some tests a bit",
     "commit_hash": "eb358d8766ce23080e7131aae68bf3fd9f89731d"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-07T04:36:19Z",
+    "timestamp": 1780806979,
     "type": "git_commit",
     "commit_message": "progress on ext codec",
     "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"
   },
   {
-    "timestamp": "2026-06-11T04:42:58.497Z",
+    "timestamp": 1781152978,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-04T22:11:36.096Z",
+    "timestamp": 1777932696,
     "type": "codex_task",
     "user_prompt": [
       "Please implement the code as described by the comment on lib/AudioFileRecorder/MostRecentFiles.h:1",
@@ -33,13 +33,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T22:18:38Z",
+    "timestamp": 1777933118,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
   },
   {
-    "timestamp": "2026-05-05T18:55:00.172Z",
+    "timestamp": 1778007300,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -99,13 +99,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-05T21:16:39Z",
+    "timestamp": 1778015799,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "6a8e6bd8033b3bb6a02c82981bb3ec72f49fac02"
   },
   {
-    "timestamp": "2026-05-22T04:10:41.003Z",
+    "timestamp": 1779423041,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -158,7 +158,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:08:16.203Z",
+    "timestamp": 1780114096,
     "type": "codex_task",
     "user_prompt": [
       "Thanks, that worked, I tested it with a quick call to my voicemail",
@@ -179,13 +179,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:13:58Z",
+    "timestamp": 1780114438,
     "type": "git_commit",
     "commit_message": "most recent file lister now dynamic",
     "commit_hash": "b79ebd28a52eeb2ee7d8e79a31483299aa31b930"
   },
   {
-    "timestamp": "2026-05-30T04:24:37.463Z",
+    "timestamp": 1780115077,
     "type": "codex_task",
     "user_prompt": [
       "clarify, because I am reading `MostRecentFiles` function `is_recorded_file` and I'm not understanding if the test is valid, and if the new `.wav` files are considered true for this"
@@ -238,7 +238,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:26:18.235Z",
+    "timestamp": 1780115178,
     "type": "codex_task",
     "user_prompt": [
       "how is it so slow to calculate DiskStats but sorting 50 files only took 17 milliseconds?"
@@ -293,7 +293,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T23:32:34.714Z",
+    "timestamp": 1780183954,
     "type": "codex_task",
     "user_prompt": [
       "under security level 0, `lib\\AudioFileRecorder\\MostRecentFiles.cpp` should only list `*.wav` files. under higher security levels, both `*.wav` and `*.rec` files are listed. Do not modify `ScrollView` (except remove any constants limiting the number of items), which should retain the ability to list unknown file types ",
@@ -331,13 +331,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T01:24:59Z",
+    "timestamp": 1780190699,
     "type": "git_commit",
     "commit_message": "bigger file list, with file type filters",
     "commit_hash": "d6a25adee4657573953623be354baa1c4ea5d71b"
   },
   {
-    "timestamp": "2026-06-01T18:42:40.803Z",
+    "timestamp": 1780339360,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -405,13 +405,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T19:24:23Z",
+    "timestamp": 1780341863,
     "type": "git_commit",
     "commit_message": "mp3 playback works",
     "commit_hash": "553ac578dd39c8724ac7cd871f259a68385d915e"
   },
   {
-    "timestamp": "2026-06-01T19:24:31.221Z",
+    "timestamp": 1780341871,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -463,19 +463,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T19:48:35Z",
+    "timestamp": 1780343315,
     "type": "git_commit",
     "commit_message": "a lot of duplicate string comparison implementations",
     "commit_hash": "90dc90455dec156a8460b220ef615f3e503154ab"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T07:05:04.713Z",
+    "timestamp": 1780383904,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -521,7 +521,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:15:08.280Z",
+    "timestamp": 1780384508,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -567,13 +567,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:29:38Z",
+    "timestamp": 1780385378,
     "type": "git_commit",
     "commit_message": "more code neatening",
     "commit_hash": "c5afbfcb864d5512e3efce82ca933f9fd49bb531"
   },
   {
-    "timestamp": "2026-06-03T17:41:48.790Z",
+    "timestamp": 1780508508,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -624,7 +624,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T18:37:57Z",
+    "timestamp": 1780511877,
     "type": "git_commit",
     "commit_message": "file size/duration in scrollview",
     "commit_hash": "6508f6595eb442daba8ba77aca0531ff1f75eab5"

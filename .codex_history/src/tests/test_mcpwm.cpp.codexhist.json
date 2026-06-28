@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-08T00:17:18.151Z",
+    "timestamp": 1780877838,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -35,7 +35,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-08T03:05:24Z",
+    "timestamp": 1780887924,
     "type": "git_commit",
     "commit_message": "ledc as mclk shenanigans",
     "commit_hash": "3899800fdc93cf7a914ee480463eca1ff28cc754"

@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-22T01:09:17.258Z",
+    "timestamp": 1779412157,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -134,13 +134,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T03:27:25Z",
+    "timestamp": 1779420445,
     "type": "git_commit",
     "commit_message": "starting to add a web server",
     "commit_hash": "421a041f801f5f993b55e85fd21fbb828bf995c0"
   },
   {
-    "timestamp": "2026-05-24T03:04:55.190Z",
+    "timestamp": 1779591895,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -173,7 +173,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T03:07:21.788Z",
+    "timestamp": 1779592041,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -193,7 +193,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T03:09:31.032Z",
+    "timestamp": 1779592171,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -209,7 +209,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T03:25:06.913Z",
+    "timestamp": 1779593106,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -235,7 +235,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T03:37:46.416Z",
+    "timestamp": 1779593866,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -310,7 +310,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T03:55:31.128Z",
+    "timestamp": 1779594931,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -352,7 +352,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T04:29:16.012Z",
+    "timestamp": 1779596956,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -402,7 +402,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T04:41:12.070Z",
+    "timestamp": 1779597672,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -482,7 +482,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T06:26:47.760Z",
+    "timestamp": 1779604007,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -538,7 +538,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T06:32:51.009Z",
+    "timestamp": 1779604371,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -578,7 +578,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T07:14:17.267Z",
+    "timestamp": 1779606857,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -616,13 +616,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T08:09:42Z",
+    "timestamp": 1779610182,
     "type": "git_commit",
     "commit_message": "work on html front-end",
     "commit_hash": "1645edb5032a7f7e5d79630177d3d1cadc2ee54f"
   },
   {
-    "timestamp": "2026-05-26T02:32:19.727Z",
+    "timestamp": 1779762739,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -715,13 +715,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T03:15:17Z",
+    "timestamp": 1779765317,
     "type": "git_commit",
     "commit_message": "got rid of the temp key in frontend",
     "commit_hash": "eee569157d9e06dc13bd4b2bae89ad0b49a091fa"
   },
   {
-    "timestamp": "2026-05-26T06:08:33.204Z",
+    "timestamp": 1779775713,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -768,13 +768,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T07:29:40Z",
+    "timestamp": 1779780580,
     "type": "git_commit",
     "commit_message": "memory reset button on frontend",
     "commit_hash": "6c323e6238d7e839e5d67bc97b2fb014d52453b8"
   },
   {
-    "timestamp": "2026-05-26T07:36:11.601Z",
+    "timestamp": 1779780971,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -810,13 +810,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T07:39:46Z",
+    "timestamp": 1779781186,
     "type": "git_commit",
     "commit_message": "frontend changes about password fields",
     "commit_hash": "e67bb26814f4504f12da189d69f11529ad1c28fd"
   },
   {
-    "timestamp": "2026-05-26T07:40:09.893Z",
+    "timestamp": 1779781209,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -894,13 +894,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T07:58:09Z",
+    "timestamp": 1779782289,
     "type": "git_commit",
     "commit_message": "password reset mechanism implementation",
     "commit_hash": "b912990e70975d6dcadba6ebc765222feaea1602"
   },
   {
-    "timestamp": "2026-05-26T07:58:25.651Z",
+    "timestamp": 1779782305,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -966,13 +966,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T08:07:21Z",
+    "timestamp": 1779782841,
     "type": "git_commit",
     "commit_message": "reset memory button implementation",
     "commit_hash": "8bcf8a4aeece8bf576756b9657276588cef0f3e9"
   },
   {
-    "timestamp": "2026-05-26T18:45:01.544Z",
+    "timestamp": 1779821101,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1002,13 +1002,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T20:16:37Z",
+    "timestamp": 1779826597,
     "type": "git_commit",
     "commit_message": "good progress on front end, organized the js files a bit, password and memory reset implemented",
     "commit_hash": "b338b968a3e7d8ae40716584d19bbabe6c5d77d1"
   },
   {
-    "timestamp": "2026-05-27T06:53:38.148Z",
+    "timestamp": 1779864818,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1038,13 +1038,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-27T07:01:32Z",
+    "timestamp": 1779865292,
     "type": "git_commit",
     "commit_message": "more icons",
     "commit_hash": "85ea670fbb96bddad0494a3ef75e7ec65c09adbf"
   },
   {
-    "timestamp": "2026-05-28T18:42:38.091Z",
+    "timestamp": 1779993758,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1084,13 +1084,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-28T18:53:53Z",
+    "timestamp": 1779994433,
     "type": "git_commit",
     "commit_message": "single name column for BT hosts",
     "commit_hash": "0dc7f5510c3f05971b4e8a50538487de88946deb"
   },
   {
-    "timestamp": "2026-05-28T18:55:04.939Z",
+    "timestamp": 1779994504,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1142,13 +1142,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-28T21:04:08Z",
+    "timestamp": 1780002248,
     "type": "git_commit",
     "commit_message": "time sync",
     "commit_hash": "5db774b132e9cf144c3a894ac806918762c92684"
   },
   {
-    "timestamp": "2026-05-31T06:51:59.372Z",
+    "timestamp": 1780210319,
     "type": "codex_task",
     "user_prompt": [
       "make what I have highlighted look nice",
@@ -1164,7 +1164,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T06:55:08.997Z",
+    "timestamp": 1780210508,
     "type": "codex_task",
     "user_prompt": [
       "hold on, you've exposed both modes by a tab, that's wrong, the mode is determined by security level later, the user can't just choose between them at will"
@@ -1186,7 +1186,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T07:15:56.221Z",
+    "timestamp": 1780211756,
     "type": "codex_task",
     "user_prompt": [
       "### Task: pin code related web server changes and front-end changes",
@@ -1249,13 +1249,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T07:32:19Z",
+    "timestamp": 1780212739,
     "type": "git_commit",
     "commit_message": "pin code web related implementation",
     "commit_hash": "ea3196085485e85e518ad62441377ac93a503ac9"
   },
   {
-    "timestamp": "2026-05-31T07:41:10.807Z",
+    "timestamp": 1780213270,
     "type": "codex_task",
     "user_prompt": [
       "there is a delete button for files listed in the front-end ui, explain how the graphic icon is implemented"
@@ -1318,7 +1318,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T07:45:10.532Z",
+    "timestamp": 1780213510,
     "type": "codex_task",
     "user_prompt": [
       "I need an unlock icon in the exact same styling, extend `#files_test` to have another column to the left of the delete button with the unlock button, make it link to `/decrypt_file?file_name=`. Do not edit javascript or actual code, I just want a preview for the icon for now"
@@ -1334,7 +1334,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T07:50:21.021Z",
+    "timestamp": 1780213821,
     "type": "codex_task",
     "user_prompt": [
       "thanks, that looks great",
@@ -1368,13 +1368,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T08:14:37Z",
+    "timestamp": 1780215277,
     "type": "git_commit",
     "commit_message": "preview a front end change for downloading decrypted files",
     "commit_hash": "e820b2d8ba37e6123b8d7424159ac18145bc0f20"
   },
   {
-    "timestamp": "2026-06-01T05:25:29.661Z",
+    "timestamp": 1780291529,
     "type": "codex_task",
     "user_prompt": [
       "ok I'm going to live with it now",
@@ -1412,7 +1412,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T05:30:58.795Z",
+    "timestamp": 1780291858,
     "type": "codex_task",
     "user_prompt": [
       "the \"save\" button on the frontend is butted up against the panel below it, add a small space there"
@@ -1433,7 +1433,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T05:32:30.481Z",
+    "timestamp": 1780291950,
     "type": "codex_task",
     "user_prompt": [
       "I clicked save and got a 500 error with `Bluetooth config save failed` as the response (not visible in the UI, I am using developer tools)"
@@ -1447,13 +1447,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T06:00:34Z",
+    "timestamp": 1780293634,
     "type": "git_commit",
     "commit_message": "fixed a lot of web issues",
     "commit_hash": "a1e8949e841901b5e57b90e644f9dae0d3e50adc"
   },
   {
-    "timestamp": "2026-06-04T08:13:18.823Z",
+    "timestamp": 1780560798,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1506,7 +1506,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T08:20:21.087Z",
+    "timestamp": 1780561221,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1537,7 +1537,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T08:34:39Z",
+    "timestamp": 1780562079,
     "type": "git_commit",
     "commit_message": "web file delete button now async",
     "commit_hash": "9e7f71e0350dda47db6699ee4c33222d98c64a22"

@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-04T22:18:38Z",
+    "timestamp": 1777933118,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
   },
   {
-    "timestamp": "2026-05-05T18:55:00.172Z",
+    "timestamp": 1778007300,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -66,13 +66,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-05T21:16:39Z",
+    "timestamp": 1778015799,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "6a8e6bd8033b3bb6a02c82981bb3ec72f49fac02"
   },
   {
-    "timestamp": "2026-05-14T07:41:49.115Z",
+    "timestamp": 1778744509,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -163,7 +163,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T07:46:33.226Z",
+    "timestamp": 1778744793,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -206,7 +206,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T08:09:59.952Z",
+    "timestamp": 1778746199,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -249,7 +249,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T08:13:13.526Z",
+    "timestamp": 1778746393,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -291,7 +291,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T08:18:41.867Z",
+    "timestamp": 1778746721,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -318,19 +318,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T09:06:33Z",
+    "timestamp": 1778749593,
     "type": "git_commit",
     "commit_message": "got a physical unit, starting bringup tests",
     "commit_hash": "9d0330a8d4292ae1c769e093080a2eba28dce43f"
   },
   {
-    "timestamp": "2026-05-14T20:17:05Z",
+    "timestamp": 1778789825,
     "type": "git_commit",
     "commit_message": "only print card stats during tests",
     "commit_hash": "a70773ab62be390bba2aa984edb37963efc45449"
   },
   {
-    "timestamp": "2026-05-15T09:00:38.459Z",
+    "timestamp": 1778835638,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -364,13 +364,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T02:56:49Z",
+    "timestamp": 1779332209,
     "type": "git_commit",
     "commit_message": "more gui work, auto bt reconnect",
     "commit_hash": "c002fb0767624f8362097c9328ec1d3f695a20db"
   },
   {
-    "timestamp": "2026-05-22T03:30:51.605Z",
+    "timestamp": 1779420651,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -500,7 +500,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T04:10:41.003Z",
+    "timestamp": 1779423041,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -553,13 +553,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T04:56:41Z",
+    "timestamp": 1779425801,
     "type": "git_commit",
     "commit_message": "ftp server works",
     "commit_hash": "999c2544883494dd08561819dc74e913ba45cd35"
   },
   {
-    "timestamp": "2026-05-22T06:46:07.997Z",
+    "timestamp": 1779432367,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -636,7 +636,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T07:12:33.494Z",
+    "timestamp": 1779433953,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -687,19 +687,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T07:18:40Z",
+    "timestamp": 1779434320,
     "type": "git_commit",
     "commit_message": "recording works great now, tweaked the ui",
     "commit_hash": "62765d1d8b21f98b4d6f07736b3fb63a966637c5"
   },
   {
-    "timestamp": "2026-05-27T22:01:12Z",
+    "timestamp": 1779919272,
     "type": "git_commit",
     "commit_message": "serving pages over soft AP works, had a hiccup about disk space retrieval too slow tripping the wdt",
     "commit_hash": "ed520c430d839d309262fb9c545eeca56856e91b"
   },
   {
-    "timestamp": "2026-05-29T19:37:09.076Z",
+    "timestamp": 1780083429,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -791,13 +791,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T20:41:49Z",
+    "timestamp": 1780087309,
     "type": "git_commit",
     "commit_message": "firmware update kinda implemented",
     "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
   },
   {
-    "timestamp": "2026-05-30T04:26:18.235Z",
+    "timestamp": 1780115178,
     "type": "codex_task",
     "user_prompt": [
       "how is it so slow to calculate DiskStats but sorting 50 files only took 17 milliseconds?"
@@ -852,13 +852,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T04:24:21Z",
+    "timestamp": 1780201461,
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   },
   {
-    "timestamp": "2026-06-01T04:49:29.362Z",
+    "timestamp": 1780289369,
     "type": "codex_task",
     "user_prompt": [
       "ok, this works, it's slow, 250kb/s, 40MB file takes a bit under 3 minutes, representing 10 minutes of stereo data, even with debugging messages mostly off",
@@ -927,19 +927,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T08:19:32Z",
+    "timestamp": 1780388372,
     "type": "git_commit",
     "commit_message": "comments labeling modules",
     "commit_hash": "31550c50383ebe32a1fdcc074460e52d8390cbc9"
   },
   {
-    "timestamp": "2026-06-02T09:34:42.263Z",
+    "timestamp": 1780392882,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -998,13 +998,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T09:46:12Z",
+    "timestamp": 1780393572,
     "type": "git_commit",
     "commit_message": "more code neatening",
     "commit_hash": "41a16a83dde0bcbb0faacc0e153b905a9aac33e4"
   },
   {
-    "timestamp": "2026-06-03T21:14:22.722Z",
+    "timestamp": 1780521262,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1079,13 +1079,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T22:45:19Z",
+    "timestamp": 1780526719,
     "type": "git_commit",
     "commit_message": "pins.h, tweaked FIFOs, added a test result",
     "commit_hash": "6fb57af7f759b4803b0e9978a01525d0a1fe1265"
   },
   {
-    "timestamp": "2026-06-04T07:45:48.046Z",
+    "timestamp": 1780559148,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1140,7 +1140,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-25T05:53:22.758Z",
+    "timestamp": 1782366802,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

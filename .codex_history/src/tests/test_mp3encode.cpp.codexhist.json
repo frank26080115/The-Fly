@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-01T08:12:43.359Z",
+    "timestamp": 1780301563,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -18,7 +18,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T08:27:26.497Z",
+    "timestamp": 1780302446,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -68,7 +68,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T08:41:59.297Z",
+    "timestamp": 1780303319,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -118,7 +118,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T08:45:54.434Z",
+    "timestamp": 1780303554,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -205,7 +205,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T08:55:52.639Z",
+    "timestamp": 1780304152,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -264,7 +264,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T09:11:24.590Z",
+    "timestamp": 1780305084,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -307,7 +307,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T09:35:11.536Z",
+    "timestamp": 1780306511,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -365,13 +365,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T11:03:22Z",
+    "timestamp": 1780311802,
     "type": "git_commit",
     "commit_message": "significant work trying to get MP3 encoding to work",
     "commit_hash": "41c73bdbaff03d906023ec27bbc082a6f5b295e6"
   },
   {
-    "timestamp": "2026-06-01T17:45:07.920Z",
+    "timestamp": 1780335907,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -473,19 +473,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T18:38:10Z",
+    "timestamp": 1780339090,
     "type": "git_commit",
     "commit_message": "shine encoder implemented, it",
     "commit_hash": "e24eb27b276d6ca89fee5afbe70f5d9e1bc43ee0"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-03T19:53:53.745Z",
+    "timestamp": 1780516433,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -533,13 +533,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T20:34:06Z",
+    "timestamp": 1780518846,
     "type": "git_commit",
     "commit_message": "benchmarked mp3 encoder again with random noise",
     "commit_hash": "146eefa9beca269c0cb76575f1d97a9f63b67182"
   },
   {
-    "timestamp": "2026-06-07T04:36:19Z",
+    "timestamp": 1780806979,
     "type": "git_commit",
     "commit_message": "progress on ext codec",
     "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"

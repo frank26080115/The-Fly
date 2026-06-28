@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-30T07:19:36.291Z",
+    "timestamp": 1780125576,
     "type": "codex_task",
     "user_prompt": [
       "### Task: Playback",
@@ -95,7 +95,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T07:40:42.406Z",
+    "timestamp": 1780126842,
     "type": "codex_task",
     "user_prompt": [
       "the positioning of the bottom row of buttons is all wrong",
@@ -128,7 +128,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T07:46:14.087Z",
+    "timestamp": 1780127174,
     "type": "codex_task",
     "user_prompt": [
       "weird, the speaker icon is responsive to touch, the quit button is responsive to touch, but not the play/pause button, it responds to the assigned button but not the screen touch"
@@ -152,7 +152,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:07:10.991Z",
+    "timestamp": 1780128430,
     "type": "codex_task",
     "user_prompt": [
       "while the time shown is in seconds, what actual unit is tracking time in this playback module?"
@@ -178,7 +178,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:16:39.800Z",
+    "timestamp": 1780128999,
     "type": "codex_task",
     "user_prompt": [
       "`ScrubBar` needs a major tweak for what I want to do next",
@@ -255,13 +255,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:35:05Z",
+    "timestamp": 1780130105,
     "type": "git_commit",
     "commit_message": "playback mechanism",
     "commit_hash": "813aab87ffb853eb373d960af6a773dbf5f74642"
   },
   {
-    "timestamp": "2026-05-30T08:36:09.015Z",
+    "timestamp": 1780130169,
     "type": "codex_task",
     "user_prompt": [
       "move the blue bar down 2 pixels",
@@ -293,7 +293,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:43:43.265Z",
+    "timestamp": 1780130623,
     "type": "codex_task",
     "user_prompt": [
       "see the highlighted line? I want to tweak this yellow precisely, starting with `#FCBC00`"
@@ -319,7 +319,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:51:42.394Z",
+    "timestamp": 1780131102,
     "type": "codex_task",
     "user_prompt": [
       "move the highlighted function to `utilfuncs.cpp`",
@@ -373,7 +373,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:54:37.337Z",
+    "timestamp": 1780131277,
     "type": "codex_task",
     "user_prompt": [
       "`void PlaybackView::drawFileName() const` shall try to test a bigger font, see if it will exceed the screen, and use the current one if it does exceed"
@@ -395,13 +395,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:58:27Z",
+    "timestamp": 1780131507,
     "type": "git_commit",
     "commit_message": "playback cosmetics",
     "commit_hash": "fc195cfc87e618d1f87c500b1c86a99d7d5b813d"
   },
   {
-    "timestamp": "2026-05-30T23:08:55.980Z",
+    "timestamp": 1780182535,
     "type": "codex_task",
     "user_prompt": [
       "For context about our previous work on `PlaybackView`, see `.codex_history\\lib\\WavPlayback\\PlaybackView.cpp.codexhist.json`",
@@ -439,7 +439,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T23:25:12.061Z",
+    "timestamp": 1780183512,
     "type": "codex_task",
     "user_prompt": [
       "just to the left of the delete button, when the user arms the delete button, write in font 2 \"confirm delete?\", the Y location of the text should be just above the blue scrub bar, this way it won't ever overlap with the name"
@@ -457,19 +457,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T23:29:32Z",
+    "timestamp": 1780183772,
     "type": "git_commit",
     "commit_message": "audio file delete button implemented",
     "commit_hash": "4c130675d3f65cbce5100ad682ceea13a0552ed2"
   },
   {
-    "timestamp": "2026-05-31T04:24:21Z",
+    "timestamp": 1780201461,
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   },
   {
-    "timestamp": "2026-06-01T18:42:40.803Z",
+    "timestamp": 1780339360,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -537,13 +537,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T19:24:23Z",
+    "timestamp": 1780341863,
     "type": "git_commit",
     "commit_message": "mp3 playback works",
     "commit_hash": "553ac578dd39c8724ac7cd871f259a68385d915e"
   },
   {
-    "timestamp": "2026-06-02T01:01:40.069Z",
+    "timestamp": 1780362100,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -608,13 +608,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:05:17Z",
+    "timestamp": 1780376717,
     "type": "git_commit",
     "commit_message": "hotel can shutdown if playback is paused",
     "commit_hash": "007c48def4bada6d12b761912b160f6f9de213b4"
   },
   {
-    "timestamp": "2026-06-02T05:06:43.351Z",
+    "timestamp": 1780376803,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -679,7 +679,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:55:15.311Z",
+    "timestamp": 1780379715,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -742,7 +742,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:57:06.622Z",
+    "timestamp": 1780379826,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -807,7 +807,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:59:09.977Z",
+    "timestamp": 1780379949,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -840,19 +840,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:21:00Z",
+    "timestamp": 1780381260,
     "type": "git_commit",
     "commit_message": "code clean up a bit, better error dialog routing",
     "commit_hash": "9cfa8004f61008a8d54cb2609ae348fc44e802c6"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T16:04:22.176Z",
+    "timestamp": 1780416262,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -885,19 +885,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T16:14:15Z",
+    "timestamp": 1780416855,
     "type": "git_commit",
     "commit_message": "neaten",
     "commit_hash": "86d90ffafe35f5d236da1bafff3d2216e4365a2f"
   },
   {
-    "timestamp": "2026-06-02T17:23:48Z",
+    "timestamp": 1780421028,
     "type": "git_commit",
     "commit_message": "ran clang format",
     "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"
   },
   {
-    "timestamp": "2026-06-03T05:02:04.931Z",
+    "timestamp": 1780462924,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -966,13 +966,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:51:45Z",
+    "timestamp": 1780469505,
     "type": "git_commit",
     "commit_message": "diagnostics, fixed a bug with speaker peak decay",
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
   },
   {
-    "timestamp": "2026-06-03T07:24:26.108Z",
+    "timestamp": 1780471466,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1026,7 +1026,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T07:26:31.376Z",
+    "timestamp": 1780471591,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1045,13 +1045,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T07:29:17Z",
+    "timestamp": 1780471757,
     "type": "git_commit",
     "commit_message": "playback error text reposition",
     "commit_hash": "3b02a069c0bf021b27db65f463208cd07f7f1f46"
   },
   {
-    "timestamp": "2026-06-03T20:58:30.076Z",
+    "timestamp": 1780520310,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1132,7 +1132,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T21:04:00.349Z",
+    "timestamp": 1780520640,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1196,13 +1196,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T21:05:34Z",
+    "timestamp": 1780520734,
     "type": "git_commit",
     "commit_message": "added screen fades during slow parts",
     "commit_hash": "0d8363f535680e4532d2964847c2f4086d34575c"
   },
   {
-    "timestamp": "2026-06-04T05:42:28.235Z",
+    "timestamp": 1780551748,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1233,13 +1233,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T08:10:39Z",
+    "timestamp": 1780560639,
     "type": "git_commit",
     "commit_message": "mp3 playback attempt to support other formats",
     "commit_hash": "820953b2bc80f581ef869762010c448fd12b66c6"
   },
   {
-    "timestamp": "2026-06-12T07:12:00.371Z",
+    "timestamp": 1781248320,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1275,7 +1275,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T05:49:28.850Z",
+    "timestamp": 1781675368,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1301,13 +1301,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T08:10:59Z",
+    "timestamp": 1781683859,
     "type": "git_commit",
     "commit_message": "mic tweaks, db scale peak display",
     "commit_hash": "0b3e546dac086b9f57a21181e78f16ceaddc7d8a"
   },
   {
-    "timestamp": "2026-06-25T05:53:22.758Z",
+    "timestamp": 1782366802,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1478,7 +1478,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-25T06:17:50.576Z",
+    "timestamp": 1782368270,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1508,7 +1508,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-25T06:24:34Z",
+    "timestamp": 1782368674,
     "type": "git_commit",
     "commit_message": "fixed delete button needing 3 presses",
     "commit_hash": "afda0fbdb5623a4e0f44801ea07e103f665d39cb"

@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-17T04:47:21.388Z",
+    "timestamp": 1778993241,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -76,7 +76,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T04:55:26.163Z",
+    "timestamp": 1778993726,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -147,7 +147,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T04:57:13.183Z",
+    "timestamp": 1778993833,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -189,13 +189,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T05:06:42Z",
+    "timestamp": 1778994402,
     "type": "git_commit",
     "commit_message": "cloud uploader",
     "commit_hash": "cd054c35764c06f5912ce3eb8475be22556367f4"
   },
   {
-    "timestamp": "2026-05-22T06:07:39.425Z",
+    "timestamp": 1779430059,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -247,13 +247,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T06:14:22Z",
+    "timestamp": 1779430462,
     "type": "git_commit",
     "commit_message": "cloud upload now includes a time nonce",
     "commit_hash": "cba97ed94aaf1818604d54d1bc92792c2ebabde4"
   },
   {
-    "timestamp": "2026-05-23T05:42:34.224Z",
+    "timestamp": 1779514954,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -335,7 +335,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T06:49:16.829Z",
+    "timestamp": 1779518956,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -385,13 +385,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T09:06:40Z",
+    "timestamp": 1779527200,
     "type": "git_commit",
     "commit_message": "some work on secured web interactions",
     "commit_hash": "18565178bedd39532b6f4eeb03bf327ff678b30e"
   },
   {
-    "timestamp": "2026-05-24T06:56:36.915Z",
+    "timestamp": 1779605796,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -434,13 +434,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T08:11:50Z",
+    "timestamp": 1779610310,
     "type": "git_commit",
     "commit_message": "cleaned up usage of password in cloud, todo: add real authentication",
     "commit_hash": "19bc76b7453c6b58864d3ccd33d0085a3e68c6e6"
   },
   {
-    "timestamp": "2026-05-24T23:49:11.552Z",
+    "timestamp": 1779666551,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -525,13 +525,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-25T03:26:11Z",
+    "timestamp": 1779679571,
     "type": "git_commit",
     "commit_message": "I'm checking in this state before tearing it all down",
     "commit_hash": "335274e4557167c4d8346db9a0eb5ce8adc4b329"
   },
   {
-    "timestamp": "2026-05-25T19:30:26.114Z",
+    "timestamp": 1779737426,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -624,13 +624,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T02:07:37Z",
+    "timestamp": 1779761257,
     "type": "git_commit",
     "commit_message": "clean up for security levels",
     "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
   },
   {
-    "timestamp": "2026-05-26T20:54:25.353Z",
+    "timestamp": 1779828865,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -671,7 +671,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T21:12:17.700Z",
+    "timestamp": 1779829937,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -724,31 +724,31 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T21:19:11Z",
+    "timestamp": 1779830351,
     "type": "git_commit",
     "commit_message": "HTTPS cloud upload",
     "commit_hash": "b1666ed641f04db9ed2dcef198f85144bad52595"
   },
   {
-    "timestamp": "2026-05-26T21:32:30Z",
+    "timestamp": 1779831150,
     "type": "git_commit",
     "commit_message": "Update CloudUpload.cpp",
     "commit_hash": "9d48d3bb4669beb7790bb5dc5226f5a2baae535a"
   },
   {
-    "timestamp": "2026-05-31T04:24:21Z",
+    "timestamp": 1780201461,
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T15:50:30.321Z",
+    "timestamp": 1780415430,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -800,13 +800,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T16:03:42Z",
+    "timestamp": 1780416222,
     "type": "git_commit",
     "commit_message": "neaten",
     "commit_hash": "42dcc936c1f67b066fa14ea3a4986f0622bfbf05"
   },
   {
-    "timestamp": "2026-06-02T17:23:48Z",
+    "timestamp": 1780421028,
     "type": "git_commit",
     "commit_message": "ran clang format",
     "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"

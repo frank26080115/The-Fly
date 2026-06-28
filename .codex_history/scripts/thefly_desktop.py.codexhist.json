@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-29T00:43:58.836Z",
+    "timestamp": 1780015438,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -90,13 +90,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T00:49:23Z",
+    "timestamp": 1780015763,
     "type": "git_commit",
     "commit_message": "Create thefly_desktop.py",
     "commit_hash": "07e5980b40d78c649d29167974976efd95605106"
   },
   {
-    "timestamp": "2026-05-30T03:48:53.736Z",
+    "timestamp": 1780112933,
     "type": "codex_task",
     "user_prompt": [
       "we are making a big change",
@@ -158,19 +158,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:06:18Z",
+    "timestamp": 1780113978,
     "type": "git_commit",
     "commit_message": "direct to wav file recording",
     "commit_hash": "64f9f8e6f7cc8677283c2f4afdfbd22660041ff6"
   },
   {
-    "timestamp": "2026-05-31T21:54:50Z",
+    "timestamp": 1780264490,
     "type": "git_commit",
     "commit_message": "python script rewrite for new file format",
     "commit_hash": "69a3e8656671f00fe321856f14ee4d1420110ebe"
   },
   {
-    "timestamp": "2026-06-01T20:06:27.818Z",
+    "timestamp": 1780344387,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -215,13 +215,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T20:35:36Z",
+    "timestamp": 1780346136,
     "type": "git_commit",
     "commit_message": "added mp3 support to python scripts",
     "commit_hash": "d72c1de012b436194c292aa397803b69de505dac"
   },
   {
-    "timestamp": "2026-06-01T23:09:27.948Z",
+    "timestamp": 1780355367,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -264,7 +264,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T00:13:40.244Z",
+    "timestamp": 1780359220,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -323,7 +323,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T00:53:19.780Z",
+    "timestamp": 1780361599,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -370,13 +370,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T00:59:52Z",
+    "timestamp": 1780361992,
     "type": "git_commit",
     "commit_message": "python scripts alignment, clean up and comments",
     "commit_hash": "4bbc638afa0ed586b06c2fc6a5ea053e29224800"
   },
   {
-    "timestamp": "2026-06-04T20:38:33.992Z",
+    "timestamp": 1780605513,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -413,13 +413,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T20:48:58Z",
+    "timestamp": 1780606138,
     "type": "git_commit",
     "commit_message": "web file list exposes file size",
     "commit_hash": "edf6c719fd41c3cc8de47ad3714ad79b542ffc40"
   },
   {
-    "timestamp": "2026-06-05T01:49:50.745Z",
+    "timestamp": 1780624190,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -509,7 +509,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T03:10:25.344Z",
+    "timestamp": 1780629025,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -556,7 +556,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T03:31:08.577Z",
+    "timestamp": 1780630268,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -653,7 +653,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T03:44:46.308Z",
+    "timestamp": 1780631086,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -745,7 +745,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T04:12:59.320Z",
+    "timestamp": 1780632779,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -774,13 +774,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T04:51:53Z",
+    "timestamp": 1780635113,
     "type": "git_commit",
     "commit_message": "python changed to use newer scripts",
     "commit_hash": "4b427adfc24b1fd970a3e82cc013219d05e6b787"
   },
   {
-    "timestamp": "2026-06-12T17:55:15.015Z",
+    "timestamp": 1781286915,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -823,7 +823,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T17:59:25.466Z",
+    "timestamp": 1781287165,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -867,7 +867,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T18:01:28.099Z",
+    "timestamp": 1781287288,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -910,7 +910,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T18:07:24.878Z",
+    "timestamp": 1781287644,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -950,7 +950,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T18:09:06.382Z",
+    "timestamp": 1781287746,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -991,7 +991,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T18:11:15.274Z",
+    "timestamp": 1781287875,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1051,7 +1051,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T18:18:51.348Z",
+    "timestamp": 1781288331,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1068,7 +1068,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T18:59:56Z",
+    "timestamp": 1781290796,
     "type": "git_commit",
     "commit_message": "args for default AI models, plus a installer script",
     "commit_hash": "b27d80ab27d3f3f281ada53afbf308a68e04a646"

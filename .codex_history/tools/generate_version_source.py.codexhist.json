@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-15T18:09:43.980Z",
+    "timestamp": 1778868583,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -79,13 +79,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T18:55:29Z",
+    "timestamp": 1778871329,
     "type": "git_commit",
     "commit_message": "sync clock to compile time",
     "commit_hash": "4cba36ea455d68013e853597c04009d6649394a1"
   },
   {
-    "timestamp": "2026-05-16T05:17:41.548Z",
+    "timestamp": 1778908661,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -117,7 +117,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T05:21:29.683Z",
+    "timestamp": 1778908889,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -142,7 +142,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T06:50:59.520Z",
+    "timestamp": 1778914259,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -223,19 +223,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T08:46:51Z",
+    "timestamp": 1778921211,
     "type": "git_commit",
     "commit_message": "speakerphone test works, it did involve editing the esp-idf config and building the library in the back",
     "commit_hash": "0fb9d76750530a27bc80183add0ccf3c26959ed3"
   },
   {
-    "timestamp": "2026-05-18T06:47:36Z",
+    "timestamp": 1779086856,
     "type": "git_commit",
     "commit_message": "Update generate_version_source.py",
     "commit_hash": "8773ce7f6be6ccb5bc016a5f936933a4c2d27743"
   },
   {
-    "timestamp": "2026-05-26T03:35:32.993Z",
+    "timestamp": 1779766532,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -279,13 +279,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T04:16:57Z",
+    "timestamp": 1779769017,
     "type": "git_commit",
     "commit_message": "better splashview",
     "commit_hash": "5d6e3cd59cf0a071c90542106fc384b1e1e8eab2"
   },
   {
-    "timestamp": "2026-06-03T07:00:10.319Z",
+    "timestamp": 1780470010,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -333,13 +333,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T07:03:56Z",
+    "timestamp": 1780470236,
     "type": "git_commit",
     "commit_message": "more clang format stuff",
     "commit_hash": "fa8a1e27b6b4982ce7a05c70f69ab0eb2ff14f79"
   },
   {
-    "timestamp": "2026-06-24T04:56:48Z",
+    "timestamp": 1782277008,
     "type": "git_commit",
     "commit_message": "update version",
     "commit_hash": "bcfde5396babe88e18ad4d37bafd43301c9adaa4"

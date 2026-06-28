@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-14T07:10:12.644Z",
+    "timestamp": 1778742612,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -49,7 +49,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T07:22:06.152Z",
+    "timestamp": 1778743326,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -87,7 +87,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T07:37:04.197Z",
+    "timestamp": 1778744224,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -227,7 +227,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T07:40:21.233Z",
+    "timestamp": 1778744421,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -278,7 +278,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T07:53:54.434Z",
+    "timestamp": 1778745234,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -375,7 +375,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T08:01:30.531Z",
+    "timestamp": 1778745690,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -417,7 +417,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T08:55:13.965Z",
+    "timestamp": 1778748913,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -460,13 +460,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T09:06:33Z",
+    "timestamp": 1778749593,
     "type": "git_commit",
     "commit_message": "got a physical unit, starting bringup tests",
     "commit_hash": "9d0330a8d4292ae1c769e093080a2eba28dce43f"
   },
   {
-    "timestamp": "2026-05-14T19:24:15.832Z",
+    "timestamp": 1778786655,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -517,13 +517,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T20:17:29Z",
+    "timestamp": 1778789849,
     "type": "git_commit",
     "commit_message": "better sd card test with latency and various chunk sizes",
     "commit_hash": "7f8cabf8e0323005034b80958c70a3d0511b1833"
   },
   {
-    "timestamp": "2026-05-15T06:48:21.866Z",
+    "timestamp": 1778827701,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -559,13 +559,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:30:10Z",
+    "timestamp": 1778837410,
     "type": "git_commit",
     "commit_message": "clean up some tests a bit",
     "commit_hash": "eb358d8766ce23080e7131aae68bf3fd9f89731d"
   },
   {
-    "timestamp": "2026-05-23T08:25:24.629Z",
+    "timestamp": 1779524724,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -647,13 +647,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T09:06:27Z",
+    "timestamp": 1779527187,
     "type": "git_commit",
     "commit_message": "tested SD card with encryption",
     "commit_hash": "aa5a8d695449da500eedafc4b596671f4ac49351"
   },
   {
-    "timestamp": "2026-05-24T23:49:11.552Z",
+    "timestamp": 1779666551,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -738,19 +738,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-25T03:26:11Z",
+    "timestamp": 1779679571,
     "type": "git_commit",
     "commit_message": "I'm checking in this state before tearing it all down",
     "commit_hash": "335274e4557167c4d8346db9a0eb5ce8adc4b329"
   },
   {
-    "timestamp": "2026-05-26T02:07:37Z",
+    "timestamp": 1779761257,
     "type": "git_commit",
     "commit_message": "clean up for security levels",
     "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
   },
   {
-    "timestamp": "2026-05-31T01:51:11.202Z",
+    "timestamp": 1780192271,
     "type": "codex_task",
     "user_prompt": [
       "### Task: major change to recorded encrypted file format",
@@ -834,13 +834,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T02:20:05Z",
+    "timestamp": 1780194005,
     "type": "git_commit",
     "commit_message": "removed custom audio format, changed to encrypted wav",
     "commit_hash": "b058e63be582168fb18760c38aabbed0bdbccd8c"
   },
   {
-    "timestamp": "2026-05-31T04:27:29.774Z",
+    "timestamp": 1780201649,
     "type": "codex_task",
     "user_prompt": [
       "attempts to initialize Aegis should only occur in `main.cpp` function `setup()`, remove all other calls to `Aegis::init()`"
@@ -869,13 +869,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T05:15:28Z",
+    "timestamp": 1780204528,
     "type": "git_commit",
     "commit_message": "fixed encrypted recording being too short",
     "commit_hash": "c0bd39e506d3fee4333871e81322156d26d47a3b"
   },
   {
-    "timestamp": "2026-06-01T08:12:43.359Z",
+    "timestamp": 1780301563,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -893,7 +893,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T08:20:53.767Z",
+    "timestamp": 1780302053,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -927,13 +927,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-07T04:36:19Z",
+    "timestamp": 1780806979,
     "type": "git_commit",
     "commit_message": "progress on ext codec",
     "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"

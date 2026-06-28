@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-01T19:26:25.452Z",
+    "timestamp": 1777663585,
     "type": "codex_task",
     "user_prompt": [
       "Please implement the code as described by the comment on lib/Buttons/Buttons.cpp:3",
@@ -41,7 +41,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-01T19:52:39.870Z",
+    "timestamp": 1777665159,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -84,19 +84,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-01T22:30:37Z",
+    "timestamp": 1777674637,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "b8b0ab39dab7aef8677e5cf22c8807103a62ef05"
   },
   {
-    "timestamp": "2026-05-03T07:20:50Z",
+    "timestamp": 1777792850,
     "type": "git_commit",
     "commit_message": "ran clang-format",
     "commit_hash": "3d9ea7744be0307aa3f036911a5433b7fb358ce2"
   },
   {
-    "timestamp": "2026-05-05T18:16:41.313Z",
+    "timestamp": 1778005001,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -137,13 +137,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-05T21:16:39Z",
+    "timestamp": 1778015799,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "6a8e6bd8033b3bb6a02c82981bb3ec72f49fac02"
   },
   {
-    "timestamp": "2026-05-19T08:17:53.005Z",
+    "timestamp": 1779178673,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -201,19 +201,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T08:19:32Z",
+    "timestamp": 1780388372,
     "type": "git_commit",
     "commit_message": "comments labeling modules",
     "commit_hash": "31550c50383ebe32a1fdcc074460e52d8390cbc9"
   },
   {
-    "timestamp": "2026-06-02T09:34:42.263Z",
+    "timestamp": 1780392882,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -272,13 +272,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T09:46:12Z",
+    "timestamp": 1780393572,
     "type": "git_commit",
     "commit_message": "more code neatening",
     "commit_hash": "41a16a83dde0bcbb0faacc0e153b905a9aac33e4"
   },
   {
-    "timestamp": "2026-06-25T06:39:27.198Z",
+    "timestamp": 1782369567,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

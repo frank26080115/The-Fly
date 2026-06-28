@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-02T04:08:12.609Z",
+    "timestamp": 1777694892,
     "type": "codex_task",
     "user_prompt": [
       "Please implement the code as described by the comment on src/mic_sd_recorder_demo.cpp:1",
@@ -43,7 +43,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-03T05:21:36.224Z",
+    "timestamp": 1777785696,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -67,7 +67,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-03T05:29:47.052Z",
+    "timestamp": 1777786187,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -98,7 +98,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-03T06:46:31.807Z",
+    "timestamp": 1777790791,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -141,7 +141,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-03T08:35:26.219Z",
+    "timestamp": 1777797326,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -184,7 +184,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T04:25:01.005Z",
+    "timestamp": 1777868701,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -244,7 +244,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T06:37:42.990Z",
+    "timestamp": 1777876662,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -288,7 +288,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T22:00:36.167Z",
+    "timestamp": 1777932036,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -326,7 +326,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T22:11:36.096Z",
+    "timestamp": 1777932696,
     "type": "codex_task",
     "user_prompt": [
       "Please implement the code as described by the comment on lib/AudioFileRecorder/MostRecentFiles.h:1",
@@ -359,7 +359,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-05T18:16:41.313Z",
+    "timestamp": 1778005001,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -400,7 +400,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-05T18:44:33.504Z",
+    "timestamp": 1778006673,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -454,7 +454,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-05T18:55:00.172Z",
+    "timestamp": 1778007300,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

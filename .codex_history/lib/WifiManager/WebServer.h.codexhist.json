@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-22T02:46:36.363Z",
+    "timestamp": 1779417996,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -56,13 +56,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T03:27:25Z",
+    "timestamp": 1779420445,
     "type": "git_commit",
     "commit_message": "starting to add a web server",
     "commit_hash": "421a041f801f5f993b55e85fd21fbb828bf995c0"
   },
   {
-    "timestamp": "2026-05-24T02:07:58.522Z",
+    "timestamp": 1779588478,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -106,13 +106,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T08:12:26Z",
+    "timestamp": 1779610346,
     "type": "git_commit",
     "commit_message": "web server related major work",
     "commit_hash": "5347b8785e4501a28ac8abae3f67111dfb8fe246"
   },
   {
-    "timestamp": "2026-05-24T23:49:11.552Z",
+    "timestamp": 1779666551,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -197,7 +197,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-25T02:49:53.128Z",
+    "timestamp": 1779677393,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -316,13 +316,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-25T03:26:11Z",
+    "timestamp": 1779679571,
     "type": "git_commit",
     "commit_message": "I'm checking in this state before tearing it all down",
     "commit_hash": "335274e4557167c4d8346db9a0eb5ce8adc4b329"
   },
   {
-    "timestamp": "2026-06-01T04:32:22.350Z",
+    "timestamp": 1780288342,
     "type": "codex_task",
     "user_prompt": [
       "no, only encrypt the file name with the session key, no other parameters, I see no reason why this wouldn't work in the backend if the backend has a full copy of the session key as well"
@@ -377,19 +377,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T04:40:14Z",
+    "timestamp": 1780288814,
     "type": "git_commit",
     "commit_message": "file download and decrypted downloads work now",
     "commit_hash": "976ed18721b4929410684cde8839b3d62d1f7cce"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-12T07:17:51Z",
+    "timestamp": 1781248671,
     "type": "git_commit",
     "commit_message": "more screenshot stuff",
     "commit_hash": "f28c5490101268c4e2dcd3c955c64e070d5b05b2"

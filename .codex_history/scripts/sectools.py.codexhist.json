@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-26T04:31:14.087Z",
+    "timestamp": 1779769874,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -90,7 +90,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T04:37:02.609Z",
+    "timestamp": 1779770222,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -148,7 +148,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T04:37:55Z",
+    "timestamp": 1779770275,
     "type": "git_commit",
     "commit_message": "decoder handles encrypted files",
     "commit_hash": "3b1d42b6a45bbf536ef65d195e21a9149bd49f89"

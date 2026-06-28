@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-02T06:44:29.179Z",
+    "timestamp": 1777704269,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -28,13 +28,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-02T07:20:03Z",
+    "timestamp": 1777706403,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "9495ca3e997d6aca003aa5a6ec502e2204cea031"
   },
   {
-    "timestamp": "2026-05-17T02:50:54.188Z",
+    "timestamp": 1778986254,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -95,13 +95,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T03:32:30Z",
+    "timestamp": 1778988750,
     "type": "git_commit",
     "commit_message": "update template json files",
     "commit_hash": "020c08d34800ca31f015dab33b52d5a0092f8327"
   },
   {
-    "timestamp": "2026-05-18T18:51:39.104Z",
+    "timestamp": 1779130299,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -134,7 +134,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T02:56:13.275Z",
+    "timestamp": 1779418573,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -175,7 +175,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T03:30:51.605Z",
+    "timestamp": 1779420651,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -303,7 +303,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T05:42:34.224Z",
+    "timestamp": 1779514954,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -385,7 +385,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T22:40:06.622Z",
+    "timestamp": 1779662406,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -504,7 +504,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T22:47:21.709Z",
+    "timestamp": 1779662841,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

@@ -1,24 +1,24 @@
 [
   {
-    "timestamp": "2026-05-29T08:57:32Z",
+    "timestamp": 1780045052,
     "type": "git_commit",
     "commit_message": "Create custom-sdkconfig.md",
     "commit_hash": "f6213d3c45b07d406c9b2ffeb06dd33c762dae99"
   },
   {
-    "timestamp": "2026-06-14T00:08:57Z",
+    "timestamp": 1781395737,
     "type": "git_commit",
     "commit_message": "fixed build problem about mdns ram",
     "commit_hash": "c064f910cf606f6c8f63c8edaa47a338c67ae118"
   },
   {
-    "timestamp": "2026-06-26T07:01:16Z",
+    "timestamp": 1782457276,
     "type": "git_commit",
     "commit_message": "security build tools",
     "commit_hash": "f249cafdf65f4c15debb4486bbba31e64283ad6b"
   },
   {
-    "timestamp": "2026-06-26T18:23:59.787Z",
+    "timestamp": 1782498239,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -81,9 +81,15 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T18:26:07Z",
+    "timestamp": 1782498367,
     "type": "git_commit",
     "commit_message": "more fixes for missing py modules during secure fw build",
     "commit_hash": "53f5e20fb8b8b2b49ef32682154d40ce20aa46c4"
+  },
+  {
+    "timestamp": 1782522069,
+    "type": "git_commit",
+    "commit_message": "anti-rollback",
+    "commit_hash": "9147ba669cfc4468e4a14dba5ca78ab4cd722a03"
   }
 ]

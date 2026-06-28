@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-02T04:45:58.981Z",
+    "timestamp": 1777697158,
     "type": "codex_task",
     "user_prompt": [
       "Please implement the code as described by the comment on lib/AudioFifo/AudioFifo.h:3",
@@ -58,7 +58,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-02T04:55:14.404Z",
+    "timestamp": 1777697714,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -101,7 +101,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-02T04:58:02.113Z",
+    "timestamp": 1777697882,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -129,7 +129,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-02T04:59:37.772Z",
+    "timestamp": 1777697977,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -159,7 +159,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-02T07:08:31.722Z",
+    "timestamp": 1777705711,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -198,7 +198,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-02T07:09:32.858Z",
+    "timestamp": 1777705772,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -226,13 +226,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-02T07:20:03Z",
+    "timestamp": 1777706403,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "9495ca3e997d6aca003aa5a6ec502e2204cea031"
   },
   {
-    "timestamp": "2026-05-03T05:16:03.675Z",
+    "timestamp": 1777785363,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -266,7 +266,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-03T06:46:31.807Z",
+    "timestamp": 1777790791,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -309,19 +309,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-03T07:14:11Z",
+    "timestamp": 1777792451,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "37471f5d99727676ebcaee90085bb7e9b6cfa054"
   },
   {
-    "timestamp": "2026-05-03T07:20:50Z",
+    "timestamp": 1777792850,
     "type": "git_commit",
     "commit_message": "ran clang-format",
     "commit_hash": "3d9ea7744be0307aa3f036911a5433b7fb358ce2"
   },
   {
-    "timestamp": "2026-05-03T07:25:30.648Z",
+    "timestamp": 1777793130,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -356,13 +356,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-03T09:03:36Z",
+    "timestamp": 1777799016,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "29745920c6cf847fb4135d8f0efdf47683bcba94"
   },
   {
-    "timestamp": "2026-05-04T06:09:37.489Z",
+    "timestamp": 1777874977,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -417,7 +417,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T06:22:42.334Z",
+    "timestamp": 1777875762,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -471,13 +471,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T07:46:20Z",
+    "timestamp": 1777880780,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "0065bdba2a9c72d3ebef8982804023dd796267c9"
   },
   {
-    "timestamp": "2026-05-04T18:03:06.752Z",
+    "timestamp": 1777917786,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -515,7 +515,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T20:42:33.551Z",
+    "timestamp": 1777927353,
     "type": "codex_task",
     "user_prompt": [
       "Please implement the code as described by the comment on lib/AudioFifo/AudioFifo.h:351",
@@ -537,13 +537,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T22:18:38Z",
+    "timestamp": 1777933118,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
   },
   {
-    "timestamp": "2026-05-06T23:55:06.888Z",
+    "timestamp": 1778111706,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -570,13 +570,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-07T00:37:28Z",
+    "timestamp": 1778114248,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "c31536e76af6564fcf9e33fe1e79c3fef9bf8e36"
   },
   {
-    "timestamp": "2026-05-07T00:41:19.013Z",
+    "timestamp": 1778114479,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -645,13 +645,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-07T00:54:23Z",
+    "timestamp": 1778115263,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "b3b772056c7834aba6a5a20ff399780150e87263"
   },
   {
-    "timestamp": "2026-05-14T08:01:30.531Z",
+    "timestamp": 1778745690,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -693,13 +693,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T09:06:33Z",
+    "timestamp": 1778749593,
     "type": "git_commit",
     "commit_message": "got a physical unit, starting bringup tests",
     "commit_hash": "9d0330a8d4292ae1c769e093080a2eba28dce43f"
   },
   {
-    "timestamp": "2026-05-14T17:58:30.135Z",
+    "timestamp": 1778781510,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -744,13 +744,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T20:16:03Z",
+    "timestamp": 1778789763,
     "type": "git_commit",
     "commit_message": "fifo reports percentage better, no zeros or 100 unless actually empty or full",
     "commit_hash": "0acebb7c4a8087939fd8aae55349ab6f28116c3b"
   },
   {
-    "timestamp": "2026-05-14T23:37:11.793Z",
+    "timestamp": 1778801831,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -788,13 +788,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T00:48:18Z",
+    "timestamp": 1778806098,
     "type": "git_commit",
     "commit_message": "audiofifo can be choked, so local recordings don't stuff up the bt fifo",
     "commit_hash": "f76a0d35bc5aa9b1e16d871c7896efc7b1715d40"
   },
   {
-    "timestamp": "2026-05-15T07:11:27.574Z",
+    "timestamp": 1778829087,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -859,13 +859,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:31:10Z",
+    "timestamp": 1778837470,
     "type": "git_commit",
     "commit_message": "AudioFifo can free up memeory",
     "commit_hash": "a9a9c22ecfb4968a77255d161ab4cf82062776f0"
   },
   {
-    "timestamp": "2026-05-22T03:30:51.605Z",
+    "timestamp": 1779420651,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -995,7 +995,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T23:24:47.579Z",
+    "timestamp": 1780097087,
     "type": "codex_task",
     "user_prompt": [
       "Implement `lib\\AudioFileRecorder\\AudioFileDecoder.cpp` and its associated header file. It should be a class object",
@@ -1073,13 +1073,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T00:53:41Z",
+    "timestamp": 1780102421,
     "type": "git_commit",
     "commit_message": "added a decoder",
     "commit_hash": "66c153975daea31fb102791f88bbb449b20add9c"
   },
   {
-    "timestamp": "2026-05-30T03:17:19.002Z",
+    "timestamp": 1780111039,
     "type": "codex_task",
     "user_prompt": [
       "to `AudioFifo` add a `queueSilence` call that uses `memset` or something like `memset` to add silence to the FIFO, the caller specifies number of samples",
@@ -1107,7 +1107,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T03:48:53.736Z",
+    "timestamp": 1780112933,
     "type": "codex_task",
     "user_prompt": [
       "we are making a big change",
@@ -1169,19 +1169,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:06:18Z",
+    "timestamp": 1780113978,
     "type": "git_commit",
     "commit_message": "direct to wav file recording",
     "commit_hash": "64f9f8e6f7cc8677283c2f4afdfbd22660041ff6"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-03T05:42:29.854Z",
+    "timestamp": 1780465349,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1241,19 +1241,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:51:45Z",
+    "timestamp": 1780469505,
     "type": "git_commit",
     "commit_message": "diagnostics, fixed a bug with speaker peak decay",
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
   },
   {
-    "timestamp": "2026-06-03T07:03:56Z",
+    "timestamp": 1780470236,
     "type": "git_commit",
     "commit_message": "more clang format stuff",
     "commit_hash": "fa8a1e27b6b4982ce7a05c70f69ab0eb2ff14f79"
   },
   {
-    "timestamp": "2026-06-03T22:10:32.021Z",
+    "timestamp": 1780524632,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1289,7 +1289,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T22:14:16.888Z",
+    "timestamp": 1780524856,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1341,13 +1341,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T22:45:19Z",
+    "timestamp": 1780526719,
     "type": "git_commit",
     "commit_message": "pins.h, tweaked FIFOs, added a test result",
     "commit_hash": "6fb57af7f759b4803b0e9978a01525d0a1fe1265"
   },
   {
-    "timestamp": "2026-06-05T00:35:21.041Z",
+    "timestamp": 1780619721,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1381,13 +1381,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T02:54:19Z",
+    "timestamp": 1780628059,
     "type": "git_commit",
     "commit_message": "small documentation corrections",
     "commit_hash": "871d8adf7eabb92f3c3d2b3967e30dc53a4502cb"
   },
   {
-    "timestamp": "2026-06-17T07:13:34.210Z",
+    "timestamp": 1781680414,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

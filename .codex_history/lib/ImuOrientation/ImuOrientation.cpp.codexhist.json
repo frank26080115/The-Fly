@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-18T17:40:45.938Z",
+    "timestamp": 1779126045,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -18,7 +18,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T17:50:21.763Z",
+    "timestamp": 1779126621,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -53,7 +53,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T17:51:51.400Z",
+    "timestamp": 1779126711,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -89,7 +89,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T17:54:54.503Z",
+    "timestamp": 1779126894,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -126,25 +126,25 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T22:47:47Z",
+    "timestamp": 1779144467,
     "type": "git_commit",
     "commit_message": "imu orientation",
     "commit_hash": "7d83353b0d74f1142da1bdab0e7982ee4ef2ff85"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T08:19:32Z",
+    "timestamp": 1780388372,
     "type": "git_commit",
     "commit_message": "comments labeling modules",
     "commit_hash": "31550c50383ebe32a1fdcc074460e52d8390cbc9"
   },
   {
-    "timestamp": "2026-06-05T09:38:55.699Z",
+    "timestamp": 1780652335,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

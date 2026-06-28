@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-26T17:39:44.773Z",
+    "timestamp": 1779817184,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -52,7 +52,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T17:48:57.260Z",
+    "timestamp": 1779817737,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -79,7 +79,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T18:04:49.199Z",
+    "timestamp": 1779818689,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -118,7 +118,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T18:15:55.130Z",
+    "timestamp": 1779819355,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -183,7 +183,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T18:23:15.482Z",
+    "timestamp": 1779819795,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -212,13 +212,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T18:24:05Z",
+    "timestamp": 1779819845,
     "type": "git_commit",
     "commit_message": "codex pace checker",
     "commit_hash": "8c896bd13bb0cce493365b7c93ba24500bd617a8"
   },
   {
-    "timestamp": "2026-05-29T02:57:59.162Z",
+    "timestamp": 1780023479,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -272,7 +272,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T03:17:02.494Z",
+    "timestamp": 1780024622,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -300,7 +300,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T03:55:25Z",
+    "timestamp": 1780026925,
     "type": "git_commit",
     "commit_message": "work on wifi workflow",
     "commit_hash": "b4a10916d5b7ea69c537dd11e62033af5ee67a64"

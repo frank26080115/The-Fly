@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-20T19:08:36.376Z",
+    "timestamp": 1779304116,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -61,13 +61,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T20:34:13Z",
+    "timestamp": 1779309253,
     "type": "git_commit",
     "commit_message": "disk stats, font changes",
     "commit_hash": "abd204ec22dfe148723d1f8633539f2232ca194b"
   },
   {
-    "timestamp": "2026-05-20T23:18:19.376Z",
+    "timestamp": 1779319099,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -109,13 +109,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T02:56:49Z",
+    "timestamp": 1779332209,
     "type": "git_commit",
     "commit_message": "more gui work, auto bt reconnect",
     "commit_hash": "c002fb0767624f8362097c9328ec1d3f695a20db"
   },
   {
-    "timestamp": "2026-05-22T04:10:41.003Z",
+    "timestamp": 1779423041,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -168,7 +168,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-27T21:54:38.140Z",
+    "timestamp": 1779918878,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -687,13 +687,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-27T22:01:12Z",
+    "timestamp": 1779919272,
     "type": "git_commit",
     "commit_message": "serving pages over soft AP works, had a hiccup about disk space retrieval too slow tripping the wdt",
     "commit_hash": "ed520c430d839d309262fb9c545eeca56856e91b"
   },
   {
-    "timestamp": "2026-05-29T05:08:26.537Z",
+    "timestamp": 1780031306,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -751,13 +751,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T05:15:25Z",
+    "timestamp": 1780031725,
     "type": "git_commit",
     "commit_message": "more cleanup about disabling cloud",
     "commit_hash": "42de74ba32ee5369a9a3f577c65e993d5d7d8d25"
   },
   {
-    "timestamp": "2026-05-29T19:37:09.076Z",
+    "timestamp": 1780083429,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -849,7 +849,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T20:33:35.159Z",
+    "timestamp": 1780086815,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -933,13 +933,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T20:41:49Z",
+    "timestamp": 1780087309,
     "type": "git_commit",
     "commit_message": "firmware update kinda implemented",
     "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
   },
   {
-    "timestamp": "2026-05-30T04:26:18.235Z",
+    "timestamp": 1780115178,
     "type": "codex_task",
     "user_prompt": [
       "how is it so slow to calculate DiskStats but sorting 50 files only took 17 milliseconds?"
@@ -994,7 +994,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:27:18.427Z",
+    "timestamp": 1780115238,
     "type": "codex_task",
     "user_prompt": [
       "```",
@@ -1019,13 +1019,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:58:58Z",
+    "timestamp": 1780117138,
     "type": "git_commit",
     "commit_message": "benchmarking file listing and sorting",
     "commit_hash": "db2bcb144238b4b8215a303296a745cc1785c39c"
   },
   {
-    "timestamp": "2026-06-01T18:42:40.803Z",
+    "timestamp": 1780339360,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1093,19 +1093,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T19:24:23Z",
+    "timestamp": 1780341863,
     "type": "git_commit",
     "commit_message": "mp3 playback works",
     "commit_hash": "553ac578dd39c8724ac7cd871f259a68385d915e"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T07:05:04.713Z",
+    "timestamp": 1780383904,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1151,19 +1151,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:14:05Z",
+    "timestamp": 1780384445,
     "type": "git_commit",
     "commit_message": "neatened up DiskStats",
     "commit_hash": "c84849ce023f2f430cfa445b9e7cb4f08e1bac14"
   },
   {
-    "timestamp": "2026-06-02T17:23:48Z",
+    "timestamp": 1780421028,
     "type": "git_commit",
     "commit_message": "ran clang format",
     "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"
   },
   {
-    "timestamp": "2026-06-03T20:58:30.076Z",
+    "timestamp": 1780520310,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1244,7 +1244,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-25T05:53:22.758Z",
+    "timestamp": 1782366802,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

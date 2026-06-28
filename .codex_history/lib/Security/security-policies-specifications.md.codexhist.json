@@ -1,54 +1,54 @@
 [
   {
-    "timestamp": "2026-05-22T20:49:07Z",
+    "timestamp": 1779482947,
     "type": "git_commit",
     "commit_message": "Create security-policies-specifications.md",
     "commit_hash": "7893dc842f755c94eccca21a4d23946e9c17c4d7"
   },
   {
-    "timestamp": "2026-05-22T21:02:22Z",
+    "timestamp": 1779483742,
     "type": "git_commit",
     "commit_message": "Update security-policies-specifications.md",
     "commit_hash": "77d1f6295e3403c0afe52056e61a1207dd50ca63"
   },
   {
-    "timestamp": "2026-05-23T00:33:22Z",
+    "timestamp": 1779496402,
     "type": "git_commit",
     "commit_message": "more security preplanning documentation",
     "commit_hash": "d54a2163dff5d8043b16b593e83dfe4bebe042c7"
   },
   {
-    "timestamp": "2026-05-23T05:27:27Z",
+    "timestamp": 1779514047,
     "type": "git_commit",
     "commit_message": "more security related stuff, added aegis",
     "commit_hash": "fcddb3a6f3e99bb13c78572eef0e5bab1d5e6da3"
   },
   {
-    "timestamp": "2026-05-23T09:06:27Z",
+    "timestamp": 1779527187,
     "type": "git_commit",
     "commit_message": "tested SD card with encryption",
     "commit_hash": "aa5a8d695449da500eedafc4b596671f4ac49351"
   },
   {
-    "timestamp": "2026-05-24T08:09:57Z",
+    "timestamp": 1779610197,
     "type": "git_commit",
     "commit_message": "update security and web access policies",
     "commit_hash": "38999d066c106e6207c0e23a6cbfa8040c9e56c8"
   },
   {
-    "timestamp": "2026-05-25T03:26:11Z",
+    "timestamp": 1779679571,
     "type": "git_commit",
     "commit_message": "I'm checking in this state before tearing it all down",
     "commit_hash": "335274e4557167c4d8346db9a0eb5ce8adc4b329"
   },
   {
-    "timestamp": "2026-05-25T06:46:26Z",
+    "timestamp": 1779691586,
     "type": "git_commit",
     "commit_message": "major security implementation documentation change",
     "commit_hash": "fe0c1c66bf93638c6020b9ab9fa5a38880bb3a18"
   },
   {
-    "timestamp": "2026-05-25T07:16:18.606Z",
+    "timestamp": 1779693378,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -135,13 +135,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-25T08:12:57Z",
+    "timestamp": 1779696777,
     "type": "git_commit",
     "commit_message": "added security levels in docs, will implement later",
     "commit_hash": "d07ac1b0a9aeb6ff34d24f1f400b5189cd61bc11"
   },
   {
-    "timestamp": "2026-05-30T03:48:53.736Z",
+    "timestamp": 1780112933,
     "type": "codex_task",
     "user_prompt": [
       "we are making a big change",
@@ -203,19 +203,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:06:18Z",
+    "timestamp": 1780113978,
     "type": "git_commit",
     "commit_message": "direct to wav file recording",
     "commit_hash": "64f9f8e6f7cc8677283c2f4afdfbd22660041ff6"
   },
   {
-    "timestamp": "2026-05-31T06:36:39Z",
+    "timestamp": 1780209399,
     "type": "git_commit",
     "commit_message": "pin code backend infrastructure",
     "commit_hash": "edce3fc7b1dccd8c63fb39b66975c3701aec1045"
   },
   {
-    "timestamp": "2026-06-05T00:37:50.372Z",
+    "timestamp": 1780619870,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -280,7 +280,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T02:54:19Z",
+    "timestamp": 1780628059,
     "type": "git_commit",
     "commit_message": "small documentation corrections",
     "commit_hash": "871d8adf7eabb92f3c3d2b3967e30dc53a4502cb"

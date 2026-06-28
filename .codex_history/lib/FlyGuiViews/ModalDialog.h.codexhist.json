@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-20T17:47:01.561Z",
+    "timestamp": 1779299221,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -57,13 +57,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T19:02:28Z",
+    "timestamp": 1779303748,
     "type": "git_commit",
     "commit_message": "good progress on GUI",
     "commit_hash": "3d988cb62856bfbc633ccac6598e1ba741663eec"
   },
   {
-    "timestamp": "2026-05-21T04:40:43.884Z",
+    "timestamp": 1779338443,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -104,13 +104,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T07:34:30Z",
+    "timestamp": 1779348870,
     "type": "git_commit",
     "commit_message": "progress on bluetooth but cannot initiate connection, can handle incoming though",
     "commit_hash": "e94d9d093825b8b6ff31e1ff98b191887cc736cc"
   },
   {
-    "timestamp": "2026-05-26T08:42:28.193Z",
+    "timestamp": 1779784948,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -146,19 +146,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T09:17:01Z",
+    "timestamp": 1779787021,
     "type": "git_commit",
     "commit_message": "more text to splashview",
     "commit_hash": "b1655f1c6fc96dc46272ecf28f4050765a5723e6"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-03T05:02:04.931Z",
+    "timestamp": 1780462924,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -227,7 +227,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:51:45Z",
+    "timestamp": 1780469505,
     "type": "git_commit",
     "commit_message": "diagnostics, fixed a bug with speaker peak decay",
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"

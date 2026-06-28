@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-19T09:25:55.209Z",
+    "timestamp": 1779182755,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -53,13 +53,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T09:44:16Z",
+    "timestamp": 1779183856,
     "type": "git_commit",
     "commit_message": "cleaned up display as param",
     "commit_hash": "44c732408fa59c62aa9a1734f91a61315fcfe7ed"
   },
   {
-    "timestamp": "2026-06-11T18:18:34.517Z",
+    "timestamp": 1781201914,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -124,7 +124,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T18:29:39.262Z",
+    "timestamp": 1781202579,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -179,7 +179,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T19:14:03Z",
+    "timestamp": 1781205243,
     "type": "git_commit",
     "commit_message": "screenshotting build",
     "commit_hash": "f3c8446e475c3299a5cf7775fcc012328a46bf2c"

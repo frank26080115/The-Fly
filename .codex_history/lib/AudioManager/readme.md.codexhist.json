@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-03T09:03:36Z",
+    "timestamp": 1777799016,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "29745920c6cf847fb4135d8f0efdf47683bcba94"
   },
   {
-    "timestamp": "2026-05-04T06:37:42.990Z",
+    "timestamp": 1777876662,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -50,7 +50,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T06:41:38.030Z",
+    "timestamp": 1777876898,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -103,19 +103,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-04T07:46:20Z",
+    "timestamp": 1777880780,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "0065bdba2a9c72d3ebef8982804023dd796267c9"
   },
   {
-    "timestamp": "2026-05-04T22:18:38Z",
+    "timestamp": 1777933118,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "3aabe4121c9f5bc9a089f1bac7c4c9b01071ba99"
   },
   {
-    "timestamp": "2026-05-06T00:19:16.966Z",
+    "timestamp": 1778026756,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -209,13 +209,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:29:38Z",
+    "timestamp": 1780385378,
     "type": "git_commit",
     "commit_message": "more code neatening",
     "commit_hash": "c5afbfcb864d5512e3efce82ca933f9fd49bb531"
   },
   {
-    "timestamp": "2026-06-05T00:35:21.041Z",
+    "timestamp": 1780619721,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -249,7 +249,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-19T05:17:37.268Z",
+    "timestamp": 1781846257,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

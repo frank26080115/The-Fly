@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-16T21:56:48.622Z",
+    "timestamp": 1778968608,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -38,13 +38,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T03:30:13Z",
+    "timestamp": 1778988613,
     "type": "git_commit",
     "commit_message": "application infrastructure wip",
     "commit_hash": "380e678127c354bb1fcb6171bc0720f72caba667"
   },
   {
-    "timestamp": "2026-05-19T05:33:37.128Z",
+    "timestamp": 1779168817,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -77,7 +77,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T05:48:22.053Z",
+    "timestamp": 1779169702,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -137,7 +137,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T06:35:49.663Z",
+    "timestamp": 1779172549,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -174,13 +174,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T08:07:31Z",
+    "timestamp": 1779178051,
     "type": "git_commit",
     "commit_message": "good progress working on GUI but ran into memory problems with PNG decode",
     "commit_hash": "ce293de5bfe655e8023945176b68c324355ad1de"
   },
   {
-    "timestamp": "2026-05-19T09:25:55.209Z",
+    "timestamp": 1779182755,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -233,13 +233,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T09:44:16Z",
+    "timestamp": 1779183856,
     "type": "git_commit",
     "commit_message": "cleaned up display as param",
     "commit_hash": "44c732408fa59c62aa9a1734f91a61315fcfe7ed"
   },
   {
-    "timestamp": "2026-05-19T19:27:57.685Z",
+    "timestamp": 1779218877,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -296,13 +296,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T20:24:59Z",
+    "timestamp": 1779222299,
     "type": "git_commit",
     "commit_message": "ConnWaitingView",
     "commit_hash": "bfcb6fb2ae99b36477cb3952cbffd6ee8f2e6e41"
   },
   {
-    "timestamp": "2026-05-20T05:49:38.809Z",
+    "timestamp": 1779256178,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -387,7 +387,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T06:41:59.068Z",
+    "timestamp": 1779259319,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -486,7 +486,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T06:57:07.215Z",
+    "timestamp": 1779260227,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -536,13 +536,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T07:17:21Z",
+    "timestamp": 1779261441,
     "type": "git_commit",
     "commit_message": "massive progress with RecordingView",
     "commit_hash": "1c4305479f888bd2dc55b13c27a109f8c8dc6cd7"
   },
   {
-    "timestamp": "2026-05-20T17:24:40.197Z",
+    "timestamp": 1779297880,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -615,7 +615,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T17:47:01.561Z",
+    "timestamp": 1779299221,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -672,13 +672,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T19:02:28Z",
+    "timestamp": 1779303748,
     "type": "git_commit",
     "commit_message": "good progress on GUI",
     "commit_hash": "3d988cb62856bfbc633ccac6598e1ba741663eec"
   },
   {
-    "timestamp": "2026-05-20T23:43:36.433Z",
+    "timestamp": 1779320616,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -726,7 +726,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T23:58:28.108Z",
+    "timestamp": 1779321508,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -772,13 +772,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T02:56:49Z",
+    "timestamp": 1779332209,
     "type": "git_commit",
     "commit_message": "more gui work, auto bt reconnect",
     "commit_hash": "c002fb0767624f8362097c9328ec1d3f695a20db"
   },
   {
-    "timestamp": "2026-05-21T03:23:25.408Z",
+    "timestamp": 1779333805,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -818,7 +818,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T03:55:02.320Z",
+    "timestamp": 1779335702,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -846,7 +846,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T04:07:12.933Z",
+    "timestamp": 1779336432,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -866,13 +866,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T07:34:30Z",
+    "timestamp": 1779348870,
     "type": "git_commit",
     "commit_message": "progress on bluetooth but cannot initiate connection, can handle incoming though",
     "commit_hash": "e94d9d093825b8b6ff31e1ff98b191887cc736cc"
   },
   {
-    "timestamp": "2026-05-21T18:28:00.038Z",
+    "timestamp": 1779388080,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -903,13 +903,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T19:17:26Z",
+    "timestamp": 1779391046,
     "type": "git_commit",
     "commit_message": "bt host delete, debug shown on top bar",
     "commit_hash": "faf2c6341baa36a0f9941de6378b0a239fcfab7a"
   },
   {
-    "timestamp": "2026-05-22T07:09:07.622Z",
+    "timestamp": 1779433747,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -953,13 +953,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T07:18:40Z",
+    "timestamp": 1779434320,
     "type": "git_commit",
     "commit_message": "recording works great now, tweaked the ui",
     "commit_hash": "62765d1d8b21f98b4d6f07736b3fb63a966637c5"
   },
   {
-    "timestamp": "2026-05-24T22:32:58.782Z",
+    "timestamp": 1779661978,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -998,13 +998,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T22:45:12Z",
+    "timestamp": 1779662712,
     "type": "git_commit",
     "commit_message": "bt connectable during memo recortding",
     "commit_hash": "3e542f23d6873064109f5ca94adc3193f8b4e692"
   },
   {
-    "timestamp": "2026-05-26T03:57:31.424Z",
+    "timestamp": 1779767851,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1074,7 +1074,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T04:09:55.211Z",
+    "timestamp": 1779768595,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1140,13 +1140,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T04:16:57Z",
+    "timestamp": 1779769017,
     "type": "git_commit",
     "commit_message": "better splashview",
     "commit_hash": "5d6e3cd59cf0a071c90542106fc384b1e1e8eab2"
   },
   {
-    "timestamp": "2026-05-26T05:47:26.442Z",
+    "timestamp": 1779774446,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1195,7 +1195,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T08:08:06Z",
+    "timestamp": 1779782886,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1277,13 +1277,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T08:31:56Z",
+    "timestamp": 1779784316,
     "type": "git_commit",
     "commit_message": "implement the wifi ap view",
     "commit_hash": "d8fe002743fef62a02f8317b0e30b6a57eebd666"
   },
   {
-    "timestamp": "2026-05-26T08:42:28.193Z",
+    "timestamp": 1779784948,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1319,13 +1319,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T09:17:01Z",
+    "timestamp": 1779787021,
     "type": "git_commit",
     "commit_message": "more text to splashview",
     "commit_hash": "b1655f1c6fc96dc46272ecf28f4050765a5723e6"
   },
   {
-    "timestamp": "2026-05-26T22:01:30.062Z",
+    "timestamp": 1779832890,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1383,13 +1383,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T23:43:50Z",
+    "timestamp": 1779839030,
     "type": "git_commit",
     "commit_message": "cloud upload progress view",
     "commit_hash": "38364a2ef3264fa32292357993ee56caf3c7d0c9"
   },
   {
-    "timestamp": "2026-05-27T05:40:02.572Z",
+    "timestamp": 1779860402,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1482,13 +1482,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-27T07:01:52Z",
+    "timestamp": 1779865312,
     "type": "git_commit",
     "commit_message": "splash screen format",
     "commit_hash": "de317286a885ee6fe19210498dfd686348c7a342"
   },
   {
-    "timestamp": "2026-05-29T02:57:59.162Z",
+    "timestamp": 1780023479,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1542,7 +1542,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T03:37:36.810Z",
+    "timestamp": 1780025856,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1582,13 +1582,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T03:55:25Z",
+    "timestamp": 1780026925,
     "type": "git_commit",
     "commit_message": "work on wifi workflow",
     "commit_hash": "b4a10916d5b7ea69c537dd11e62033af5ee67a64"
   },
   {
-    "timestamp": "2026-05-29T03:57:09.244Z",
+    "timestamp": 1780027029,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1767,7 +1767,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T04:11:50.435Z",
+    "timestamp": 1780027910,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1796,13 +1796,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T04:55:49Z",
+    "timestamp": 1780030549,
     "type": "git_commit",
     "commit_message": "code neatened, remove cloud features with a predefine",
     "commit_hash": "d24eb445de9566caf462ed97068368a51fbd6009"
   },
   {
-    "timestamp": "2026-05-29T05:08:26.537Z",
+    "timestamp": 1780031306,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1860,13 +1860,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T05:15:25Z",
+    "timestamp": 1780031725,
     "type": "git_commit",
     "commit_message": "more cleanup about disabling cloud",
     "commit_hash": "42de74ba32ee5369a9a3f577c65e993d5d7d8d25"
   },
   {
-    "timestamp": "2026-05-29T06:29:31.761Z",
+    "timestamp": 1780036171,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1895,7 +1895,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T08:29:18.459Z",
+    "timestamp": 1780043358,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1954,7 +1954,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T08:37:41.983Z",
+    "timestamp": 1780043861,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2000,7 +2000,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T08:46:16.273Z",
+    "timestamp": 1780044376,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2023,13 +2023,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T08:57:28Z",
+    "timestamp": 1780045048,
     "type": "git_commit",
     "commit_message": "major progress on usability, added ntp sync",
     "commit_hash": "a1c937432bf18b83680cbd0120e09e8d29e67ac6"
   },
   {
-    "timestamp": "2026-05-29T18:08:51.752Z",
+    "timestamp": 1780078131,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2080,7 +2080,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T19:07:37.345Z",
+    "timestamp": 1780081657,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2108,13 +2108,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T19:12:05Z",
+    "timestamp": 1780081925,
     "type": "git_commit",
     "commit_message": "better error screens with rescue wifi",
     "commit_hash": "e80a4d45b429f363956cf3178c63626d5c802a88"
   },
   {
-    "timestamp": "2026-05-29T19:37:09.076Z",
+    "timestamp": 1780083429,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2206,13 +2206,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T20:41:49Z",
+    "timestamp": 1780087309,
     "type": "git_commit",
     "commit_message": "firmware update kinda implemented",
     "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
   },
   {
-    "timestamp": "2026-05-30T05:13:22.971Z",
+    "timestamp": 1780118002,
     "type": "codex_task",
     "user_prompt": [
       "add a `ScrollView::populateFiles` function, along with enums to give it a `File List` context",
@@ -2285,7 +2285,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T07:19:36.291Z",
+    "timestamp": 1780125576,
     "type": "codex_task",
     "user_prompt": [
       "### Task: Playback",
@@ -2380,13 +2380,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:35:05Z",
+    "timestamp": 1780130105,
     "type": "git_commit",
     "commit_message": "playback mechanism",
     "commit_hash": "813aab87ffb853eb373d960af6a773dbf5f74642"
   },
   {
-    "timestamp": "2026-05-31T03:22:12.739Z",
+    "timestamp": 1780197732,
     "type": "codex_task",
     "user_prompt": [
       "### Task: Pin Pad",
@@ -2438,19 +2438,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T03:55:58Z",
+    "timestamp": 1780199758,
     "type": "git_commit",
     "commit_message": "pin pad",
     "commit_hash": "d540172a737c01e04e839cf1e820ef3c9a8bb7ea"
   },
   {
-    "timestamp": "2026-05-31T04:24:21Z",
+    "timestamp": 1780201461,
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   },
   {
-    "timestamp": "2026-05-31T08:19:48.645Z",
+    "timestamp": 1780215588,
     "type": "codex_task",
     "user_prompt": [
       "### Task: QR Code for Wi-Fi AP",
@@ -2493,13 +2493,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T08:31:36Z",
+    "timestamp": 1780216296,
     "type": "git_commit",
     "commit_message": "added qr code for wifi ap",
     "commit_hash": "e50c7f1535342551fc6413dc25e2f27385492e4e"
   },
   {
-    "timestamp": "2026-06-02T03:43:35.253Z",
+    "timestamp": 1780371815,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2546,7 +2546,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T03:53:34.093Z",
+    "timestamp": 1780372414,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2598,7 +2598,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T04:07:20.473Z",
+    "timestamp": 1780373240,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2637,7 +2637,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:02:04.842Z",
+    "timestamp": 1780376524,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2667,13 +2667,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:04:17Z",
+    "timestamp": 1780376657,
     "type": "git_commit",
     "commit_message": "human code review just a bit",
     "commit_hash": "0cb13a08e420859cdc536de46041371e7cb0aaa9"
   },
   {
-    "timestamp": "2026-06-02T05:06:43.351Z",
+    "timestamp": 1780376803,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2738,7 +2738,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:20:13.470Z",
+    "timestamp": 1780377613,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2821,19 +2821,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:21:00Z",
+    "timestamp": 1780381260,
     "type": "git_commit",
     "commit_message": "code clean up a bit, better error dialog routing",
     "commit_hash": "9cfa8004f61008a8d54cb2609ae348fc44e802c6"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-03T04:19:44.350Z",
+    "timestamp": 1780460384,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2895,13 +2895,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T04:44:54Z",
+    "timestamp": 1780461894,
     "type": "git_commit",
     "commit_message": "clang format",
     "commit_hash": "050209b43354fe0248f6252b8efadfbee8143265"
   },
   {
-    "timestamp": "2026-06-03T08:39:26.017Z",
+    "timestamp": 1780475966,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2942,7 +2942,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T20:51:11.374Z",
+    "timestamp": 1780606271,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3005,7 +3005,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-07T04:25:53.763Z",
+    "timestamp": 1780806353,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3054,7 +3054,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-07T05:02:05.080Z",
+    "timestamp": 1780808525,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3100,13 +3100,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-07T06:41:57Z",
+    "timestamp": 1780814517,
     "type": "git_commit",
     "commit_message": "more mclk pin shenanigans",
     "commit_hash": "037f76286b9ef3fefb0ee812d32eca185e46548e"
   },
   {
-    "timestamp": "2026-06-11T01:31:55.106Z",
+    "timestamp": 1781141515,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3161,13 +3161,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T01:43:32Z",
+    "timestamp": 1781142212,
     "type": "git_commit",
     "commit_message": "got sound out of SGTL5000 earbuds",
     "commit_hash": "ee09e2dddae323537b6a3feb4bca7927234ba995"
   },
   {
-    "timestamp": "2026-06-11T08:07:11.011Z",
+    "timestamp": 1781165231,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3297,7 +3297,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T18:14:18.122Z",
+    "timestamp": 1781201658,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3383,7 +3383,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T18:29:39.262Z",
+    "timestamp": 1781202579,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3438,13 +3438,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T19:14:03Z",
+    "timestamp": 1781205243,
     "type": "git_commit",
     "commit_message": "screenshotting build",
     "commit_hash": "f3c8446e475c3299a5cf7775fcc012328a46bf2c"
   },
   {
-    "timestamp": "2026-06-25T04:21:14.801Z",
+    "timestamp": 1782361274,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3545,7 +3545,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-25T05:08:42.044Z",
+    "timestamp": 1782364122,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3575,7 +3575,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-25T05:45:51Z",
+    "timestamp": 1782366351,
     "type": "git_commit",
     "commit_message": "fixed uninitialized RTC showing weird number",
     "commit_hash": "7ce2982d0eafcd5994059f574828b055c7f595bc"

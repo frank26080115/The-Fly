@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-01T17:45:07.920Z",
+    "timestamp": 1780335907,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -102,13 +102,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T18:38:10Z",
+    "timestamp": 1780339090,
     "type": "git_commit",
     "commit_message": "shine encoder implemented, it",
     "commit_hash": "e24eb27b276d6ca89fee5afbe70f5d9e1bc43ee0"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"

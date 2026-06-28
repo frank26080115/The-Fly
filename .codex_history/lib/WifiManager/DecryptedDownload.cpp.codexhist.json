@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-31T09:43:49.901Z",
+    "timestamp": 1780220629,
     "type": "codex_task",
     "user_prompt": [
       "move as much of the new decrypted download functions inside `lib\\WifiManager\\DecryptedDownload.cpp` and `lib\\WifiManager\\DecryptedDownload.h`, protected by `BUILD_WITH_DECRYPTED_DOWNLOAD`",
@@ -34,13 +34,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T19:37:35Z",
+    "timestamp": 1780256255,
     "type": "git_commit",
     "commit_message": "untested web decrypted download",
     "commit_hash": "02321ce5bddcd71d137af3dd7defff62008405b8"
   },
   {
-    "timestamp": "2026-06-01T03:10:16.600Z",
+    "timestamp": 1780283416,
     "type": "codex_task",
     "user_prompt": [
       "problem is not fixed, same symptom, second load of the file list returns blank",
@@ -74,7 +74,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T03:28:52.737Z",
+    "timestamp": 1780284532,
     "type": "codex_task",
     "user_prompt": [
       "Make a `lib\\WifiManager\\AsyncFsManager.cpp` and its associated header file",
@@ -139,7 +139,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T04:25:55.162Z",
+    "timestamp": 1780287955,
     "type": "codex_task",
     "user_prompt": [
       "implement this, both front-end and back-end"
@@ -192,7 +192,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T04:32:22.350Z",
+    "timestamp": 1780288342,
     "type": "codex_task",
     "user_prompt": [
       "no, only encrypt the file name with the session key, no other parameters, I see no reason why this wouldn't work in the backend if the backend has a full copy of the session key as well"
@@ -247,13 +247,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T04:40:14Z",
+    "timestamp": 1780288814,
     "type": "git_commit",
     "commit_message": "file download and decrypted downloads work now",
     "commit_hash": "976ed18721b4929410684cde8839b3d62d1f7cce"
   },
   {
-    "timestamp": "2026-06-01T19:24:31.221Z",
+    "timestamp": 1780341871,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -305,13 +305,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T19:48:35Z",
+    "timestamp": 1780343315,
     "type": "git_commit",
     "commit_message": "a lot of duplicate string comparison implementations",
     "commit_hash": "90dc90455dec156a8460b220ef615f3e503154ab"
   },
   {
-    "timestamp": "2026-06-01T19:50:42.352Z",
+    "timestamp": 1780343442,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -370,19 +370,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T19:57:41Z",
+    "timestamp": 1780343861,
     "type": "git_commit",
     "commit_message": "web changes to support MP3 and encrypted MP3",
     "commit_hash": "e8a8a42ecec4da2e257d83d7b53a74d88a8de7b7"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T15:29:40.832Z",
+    "timestamp": 1780414180,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -453,13 +453,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T15:47:56Z",
+    "timestamp": 1780415276,
     "type": "git_commit",
     "commit_message": "nneaten",
     "commit_hash": "3d7a26fcceaef14d95f8411cc106b2808772450b"
   },
   {
-    "timestamp": "2026-06-03T04:19:44.350Z",
+    "timestamp": 1780460384,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -521,13 +521,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T04:43:26Z",
+    "timestamp": 1780461806,
     "type": "git_commit",
     "commit_message": "refactor wifi manager",
     "commit_hash": "e854858ac4af04460f4ee1e885c7c0056edd16ac"
   },
   {
-    "timestamp": "2026-06-14T00:27:05.397Z",
+    "timestamp": 1781396825,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -598,7 +598,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T03:24:32.884Z",
+    "timestamp": 1781407472,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -640,7 +640,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T05:18:01.595Z",
+    "timestamp": 1781414281,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -669,7 +669,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T06:50:02Z",
+    "timestamp": 1781419802,
     "type": "git_commit",
     "commit_message": "moved a buffer allocation function to utilfuncs",
     "commit_hash": "92e1708630fcc2d0e9dff6d968bdfe812db53346"

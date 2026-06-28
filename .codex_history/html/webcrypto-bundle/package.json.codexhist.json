@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-01T02:05:16.569Z",
+    "timestamp": 1780279516,
     "type": "codex_task",
     "user_prompt": [
       "I am testing a security level 1 build, I have activated the default secure soft Wi-Fi AP, I have loaded the front-end web page. I attempted to login to it, the error message I got is `n is not a constructor`",
@@ -35,7 +35,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T17:26:11Z",
+    "timestamp": 1780421171,
     "type": "git_commit",
     "commit_message": "add the bundle for webcrypto shim",
     "commit_hash": "7be6ce0df407868e4e85d82edb31b1e0b37b9ca6"

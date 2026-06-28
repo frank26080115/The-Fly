@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-16T06:50:59.520Z",
+    "timestamp": 1778914259,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -77,7 +77,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T08:45:13.731Z",
+    "timestamp": 1778921113,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -127,13 +127,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T08:46:51Z",
+    "timestamp": 1778921211,
     "type": "git_commit",
     "commit_message": "speakerphone test works, it did involve editing the esp-idf config and building the library in the back",
     "commit_hash": "0fb9d76750530a27bc80183add0ccf3c26959ed3"
   },
   {
-    "timestamp": "2026-05-16T08:56:52Z",
+    "timestamp": 1778921812,
     "type": "git_commit",
     "commit_message": "update the stuff for managed_components",
     "commit_hash": "7fc34aaee0c446b065de553e9af6e66763dda1f4"

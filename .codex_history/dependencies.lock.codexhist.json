@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-16T08:45:13.731Z",
+    "timestamp": 1778921113,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -50,7 +50,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T08:55:10.453Z",
+    "timestamp": 1778921710,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -80,19 +80,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T10:27:07Z",
+    "timestamp": 1778927227,
     "type": "git_commit",
     "commit_message": "stuff added when managed_components was needed",
     "commit_hash": "363b24e8afe5f8b3b5859992486853dfb80fb510"
   },
   {
-    "timestamp": "2026-05-29T08:00:46Z",
+    "timestamp": 1780041646,
     "type": "git_commit",
     "commit_message": "fixed crashing BT connection",
     "commit_hash": "96977720a364b68ccd0cbc2bc2f5cc4cb7c0b431"
   },
   {
-    "timestamp": "2026-06-13T06:39:04.824Z",
+    "timestamp": 1781332744,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -131,7 +131,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T07:01:16Z",
+    "timestamp": 1782457276,
     "type": "git_commit",
     "commit_message": "security build tools",
     "commit_hash": "f249cafdf65f4c15debb4486bbba31e64283ad6b"

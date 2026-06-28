@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-17T03:36:03.485Z",
+    "timestamp": 1778988963,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -52,7 +52,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T03:49:08.938Z",
+    "timestamp": 1778989748,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -117,19 +117,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T05:06:49Z",
+    "timestamp": 1778994409,
     "type": "git_commit",
     "commit_message": "ntp sync",
     "commit_hash": "884cbfaa23c0534e6c9899c41dd63b855e7316d2"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-03T04:19:44.350Z",
+    "timestamp": 1780460384,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -191,7 +191,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T04:43:26Z",
+    "timestamp": 1780461806,
     "type": "git_commit",
     "commit_message": "refactor wifi manager",
     "commit_hash": "e854858ac4af04460f4ee1e885c7c0056edd16ac"

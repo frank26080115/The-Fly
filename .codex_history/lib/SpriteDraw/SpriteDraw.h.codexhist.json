@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-15T08:52:55.665Z",
+    "timestamp": 1778835175,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -65,7 +65,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:12:30.271Z",
+    "timestamp": 1778836350,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -104,7 +104,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:25:38.362Z",
+    "timestamp": 1778837138,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -134,13 +134,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:29:28Z",
+    "timestamp": 1778837368,
     "type": "git_commit",
     "commit_message": "added PNG drawing",
     "commit_hash": "d1cce490ffbc23621fcbeef5fe4d31c5bd1ee448"
   },
   {
-    "timestamp": "2026-05-19T07:31:36.528Z",
+    "timestamp": 1779175896,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -180,13 +180,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T08:07:31Z",
+    "timestamp": 1779178051,
     "type": "git_commit",
     "commit_message": "good progress working on GUI but ran into memory problems with PNG decode",
     "commit_hash": "ce293de5bfe655e8023945176b68c324355ad1de"
   },
   {
-    "timestamp": "2026-05-19T09:25:55.209Z",
+    "timestamp": 1779182755,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -239,13 +239,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T09:44:16Z",
+    "timestamp": 1779183856,
     "type": "git_commit",
     "commit_message": "cleaned up display as param",
     "commit_hash": "44c732408fa59c62aa9a1734f91a61315fcfe7ed"
   },
   {
-    "timestamp": "2026-05-19T17:55:01.194Z",
+    "timestamp": 1779213301,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -360,19 +360,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T19:22:28Z",
+    "timestamp": 1779218548,
     "type": "git_commit",
     "commit_message": "sprites can be dimmed/dithered",
     "commit_hash": "c13d018e03ab7af65a09d647befd1f0c2118f7e9"
   },
   {
-    "timestamp": "2026-05-29T20:41:49Z",
+    "timestamp": 1780087309,
     "type": "git_commit",
     "commit_message": "firmware update kinda implemented",
     "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"

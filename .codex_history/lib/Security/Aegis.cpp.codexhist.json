@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-23T03:25:03.554Z",
+    "timestamp": 1779506703,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -52,19 +52,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T05:27:27Z",
+    "timestamp": 1779514047,
     "type": "git_commit",
     "commit_message": "more security related stuff, added aegis",
     "commit_hash": "fcddb3a6f3e99bb13c78572eef0e5bab1d5e6da3"
   },
   {
-    "timestamp": "2026-05-23T09:06:27Z",
+    "timestamp": 1779527187,
     "type": "git_commit",
     "commit_message": "tested SD card with encryption",
     "commit_hash": "aa5a8d695449da500eedafc4b596671f4ac49351"
   },
   {
-    "timestamp": "2026-05-24T02:46:14.102Z",
+    "timestamp": 1779590774,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -94,13 +94,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T08:11:20Z",
+    "timestamp": 1779610280,
     "type": "git_commit",
     "commit_message": "added default salt and test password gen to aegis",
     "commit_hash": "2a0c5ebd3eba780ebe1ead58c0db5191e23cdb8b"
   },
   {
-    "timestamp": "2026-05-24T23:49:11.552Z",
+    "timestamp": 1779666551,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -185,13 +185,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-25T03:26:11Z",
+    "timestamp": 1779679571,
     "type": "git_commit",
     "commit_message": "I'm checking in this state before tearing it all down",
     "commit_hash": "335274e4557167c4d8346db9a0eb5ce8adc4b329"
   },
   {
-    "timestamp": "2026-05-25T07:16:18.606Z",
+    "timestamp": 1779693378,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -278,13 +278,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-25T08:12:57Z",
+    "timestamp": 1779696777,
     "type": "git_commit",
     "commit_message": "added security levels in docs, will implement later",
     "commit_hash": "d07ac1b0a9aeb6ff34d24f1f400b5189cd61bc11"
   },
   {
-    "timestamp": "2026-05-26T07:40:09.893Z",
+    "timestamp": 1779781209,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -362,25 +362,25 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T07:58:09Z",
+    "timestamp": 1779782289,
     "type": "git_commit",
     "commit_message": "password reset mechanism implementation",
     "commit_hash": "b912990e70975d6dcadba6ebc765222feaea1602"
   },
   {
-    "timestamp": "2026-05-31T04:24:21Z",
+    "timestamp": 1780201461,
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   },
   {
-    "timestamp": "2026-05-31T05:15:28Z",
+    "timestamp": 1780204528,
     "type": "git_commit",
     "commit_message": "fixed encrypted recording being too short",
     "commit_hash": "c0bd39e506d3fee4333871e81322156d26d47a3b"
   },
   {
-    "timestamp": "2026-05-31T05:50:54.339Z",
+    "timestamp": 1780206654,
     "type": "codex_task",
     "user_prompt": [
       "I read your thoughts and realized I may have provided wrong instructions about NVS partitioning",
@@ -454,13 +454,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T06:36:39Z",
+    "timestamp": 1780209399,
     "type": "git_commit",
     "commit_message": "pin code backend infrastructure",
     "commit_hash": "edce3fc7b1dccd8c63fb39b66975c3701aec1045"
   },
   {
-    "timestamp": "2026-06-01T02:16:57.295Z",
+    "timestamp": 1780280217,
     "type": "codex_task",
     "user_prompt": [
       "",
@@ -517,19 +517,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T04:40:14Z",
+    "timestamp": 1780288814,
     "type": "git_commit",
     "commit_message": "file download and decrypted downloads work now",
     "commit_hash": "976ed18721b4929410684cde8839b3d62d1f7cce"
   },
   {
-    "timestamp": "2026-06-01T06:00:34Z",
+    "timestamp": 1780293634,
     "type": "git_commit",
     "commit_message": "fixed a lot of web issues",
     "commit_hash": "a1e8949e841901b5e57b90e644f9dae0d3e50adc"
   },
   {
-    "timestamp": "2026-06-02T06:14:53.606Z",
+    "timestamp": 1780380893,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -614,25 +614,25 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:21:00Z",
+    "timestamp": 1780381260,
     "type": "git_commit",
     "commit_message": "code clean up a bit, better error dialog routing",
     "commit_hash": "9cfa8004f61008a8d54cb2609ae348fc44e802c6"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T08:19:32Z",
+    "timestamp": 1780388372,
     "type": "git_commit",
     "commit_message": "comments labeling modules",
     "commit_hash": "31550c50383ebe32a1fdcc074460e52d8390cbc9"
   },
   {
-    "timestamp": "2026-06-02T15:50:30.321Z",
+    "timestamp": 1780415430,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -684,19 +684,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T16:03:42Z",
+    "timestamp": 1780416222,
     "type": "git_commit",
     "commit_message": "neaten",
     "commit_hash": "42dcc936c1f67b066fa14ea3a4986f0622bfbf05"
   },
   {
-    "timestamp": "2026-06-02T17:23:48Z",
+    "timestamp": 1780421028,
     "type": "git_commit",
     "commit_message": "ran clang format",
     "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"
   },
   {
-    "timestamp": "2026-06-03T20:34:24Z",
+    "timestamp": 1780518864,
     "type": "git_commit",
     "commit_message": "benchmarked js key derivation speeds",
     "commit_hash": "df03d57fe0fee9ebfc23b4ff464213e61fd4a163"

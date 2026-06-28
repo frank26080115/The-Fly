@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-16T08:45:13.731Z",
+    "timestamp": 1778921113,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -50,7 +50,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T03:25:03.554Z",
+    "timestamp": 1779506703,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

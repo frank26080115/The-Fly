@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-15T05:26:16.948Z",
+    "timestamp": 1778822776,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -50,7 +50,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T05:39:46.654Z",
+    "timestamp": 1778823586,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -96,7 +96,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T05:43:37.720Z",
+    "timestamp": 1778823817,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -162,7 +162,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T05:48:38.743Z",
+    "timestamp": 1778824118,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -195,7 +195,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T06:31:26.274Z",
+    "timestamp": 1778826686,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -219,7 +219,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T06:48:21.866Z",
+    "timestamp": 1778827701,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -255,7 +255,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T06:50:06.614Z",
+    "timestamp": 1778827806,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -275,7 +275,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T06:55:40.662Z",
+    "timestamp": 1778828140,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -325,13 +325,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:29:54Z",
+    "timestamp": 1778837394,
     "type": "git_commit",
     "commit_message": "added bt tests",
     "commit_hash": "d3c291e69ab7f6d42eba1621c414eea70930cf28"
   },
   {
-    "timestamp": "2026-05-16T21:56:48.622Z",
+    "timestamp": 1778968608,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -369,25 +369,25 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T03:30:13Z",
+    "timestamp": 1778988613,
     "type": "git_commit",
     "commit_message": "application infrastructure wip",
     "commit_hash": "380e678127c354bb1fcb6171bc0720f72caba667"
   },
   {
-    "timestamp": "2026-05-31T04:24:21Z",
+    "timestamp": 1780201461,
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-07T04:36:19Z",
+    "timestamp": 1780806979,
     "type": "git_commit",
     "commit_message": "progress on ext codec",
     "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"

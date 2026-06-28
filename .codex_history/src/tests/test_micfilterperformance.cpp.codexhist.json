@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-15T20:41:14.899Z",
+    "timestamp": 1778877674,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -47,7 +47,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T20:50:17.968Z",
+    "timestamp": 1778878217,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -73,19 +73,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T22:19:39Z",
+    "timestamp": 1778883579,
     "type": "git_commit",
     "commit_message": "added a mic preprocessor, HPF and AGC",
     "commit_hash": "e521f961cce7b271b736c720eb61e519219aa616"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-07T04:36:19Z",
+    "timestamp": 1780806979,
     "type": "git_commit",
     "commit_message": "progress on ext codec",
     "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"

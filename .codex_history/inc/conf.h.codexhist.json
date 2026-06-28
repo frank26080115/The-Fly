@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-01T08:45:00Z",
+    "timestamp": 1777625100,
     "type": "git_commit",
     "commit_message": "progress",
     "commit_hash": "384fc246aafc465d1b9dc72802ba63530501f038"
   },
   {
-    "timestamp": "2026-05-03T05:29:47.052Z",
+    "timestamp": 1777786187,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -37,13 +37,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-03T07:14:11Z",
+    "timestamp": 1777792451,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "37471f5d99727676ebcaee90085bb7e9b6cfa054"
   },
   {
-    "timestamp": "2026-05-11T02:02:02.681Z",
+    "timestamp": 1778464922,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -94,13 +94,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-11T02:11:23Z",
+    "timestamp": 1778465483,
     "type": "git_commit",
     "commit_message": "added optional bluedroid sbc",
     "commit_hash": "b77fa3fec7fad5b57c31ee53c9c2b12953b02757"
   },
   {
-    "timestamp": "2026-05-16T08:27:20.827Z",
+    "timestamp": 1778920040,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -147,7 +147,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T08:36:30.159Z",
+    "timestamp": 1778920590,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -192,13 +192,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T10:26:31Z",
+    "timestamp": 1778927191,
     "type": "git_commit",
     "commit_message": "outgoing audio works",
     "commit_hash": "f8f3fdf74e476147651004e4bd8d6998a606ee7b"
   },
   {
-    "timestamp": "2026-05-16T10:29:22.790Z",
+    "timestamp": 1778927362,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -256,13 +256,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T10:52:48Z",
+    "timestamp": 1778928768,
     "type": "git_commit",
     "commit_message": "cleaned up diagnostics a bit, added mutex for pump functions",
     "commit_hash": "29089ae91ae93ddd946f37d2b0c1c4b345a20763"
   },
   {
-    "timestamp": "2026-05-22T03:30:51.605Z",
+    "timestamp": 1779420651,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -392,7 +392,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T07:12:33.494Z",
+    "timestamp": 1779433953,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -443,7 +443,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T08:25:24.629Z",
+    "timestamp": 1779524724,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -525,13 +525,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T09:06:27Z",
+    "timestamp": 1779527187,
     "type": "git_commit",
     "commit_message": "tested SD card with encryption",
     "commit_hash": "aa5a8d695449da500eedafc4b596671f4ac49351"
   },
   {
-    "timestamp": "2026-05-25T19:30:26.114Z",
+    "timestamp": 1779737426,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -624,13 +624,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T02:07:37Z",
+    "timestamp": 1779761257,
     "type": "git_commit",
     "commit_message": "clean up for security levels",
     "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
   },
   {
-    "timestamp": "2026-05-29T03:57:09.244Z",
+    "timestamp": 1780027029,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -809,13 +809,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T04:55:49Z",
+    "timestamp": 1780030549,
     "type": "git_commit",
     "commit_message": "code neatened, remove cloud features with a predefine",
     "commit_hash": "d24eb445de9566caf462ed97068368a51fbd6009"
   },
   {
-    "timestamp": "2026-05-29T05:08:26.537Z",
+    "timestamp": 1780031306,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -873,31 +873,31 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T05:15:25Z",
+    "timestamp": 1780031725,
     "type": "git_commit",
     "commit_message": "more cleanup about disabling cloud",
     "commit_hash": "42de74ba32ee5369a9a3f577c65e993d5d7d8d25"
   },
   {
-    "timestamp": "2026-05-29T06:27:46Z",
+    "timestamp": 1780036066,
     "type": "git_commit",
     "commit_message": "some uncommon shutdown scenarios",
     "commit_hash": "1bf925875d692a6196248b1d63e8e03cc8b0afe7"
   },
   {
-    "timestamp": "2026-05-29T19:12:05Z",
+    "timestamp": 1780081925,
     "type": "git_commit",
     "commit_message": "better error screens with rescue wifi",
     "commit_hash": "e80a4d45b429f363956cf3178c63626d5c802a88"
   },
   {
-    "timestamp": "2026-05-29T19:12:54Z",
+    "timestamp": 1780081974,
     "type": "git_commit",
     "commit_message": "Update conf.h",
     "commit_hash": "c0a2e2e4707e7be2ffa9cc0445ee5842e371ffa6"
   },
   {
-    "timestamp": "2026-05-29T20:27:32.554Z",
+    "timestamp": 1780086452,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -951,7 +951,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T20:33:35.159Z",
+    "timestamp": 1780086815,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1035,13 +1035,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T20:41:49Z",
+    "timestamp": 1780087309,
     "type": "git_commit",
     "commit_message": "firmware update kinda implemented",
     "commit_hash": "584c7b5f11886f7bb1fee19ed348d8db5279a8cc"
   },
   {
-    "timestamp": "2026-05-30T23:31:15.673Z",
+    "timestamp": 1780183875,
     "type": "codex_task",
     "user_prompt": [
       "under security level 0, `lib\\AudioFileRecorder\\MostRecentFiles.cpp` should only list `*.wav` files. under higher security levels, both `*.wav` and `*.rec` files are listed. Do not modify `ScrollView`, which should retain the ability to list unknown file types",
@@ -1054,7 +1054,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T23:32:34.714Z",
+    "timestamp": 1780183954,
     "type": "codex_task",
     "user_prompt": [
       "under security level 0, `lib\\AudioFileRecorder\\MostRecentFiles.cpp` should only list `*.wav` files. under higher security levels, both `*.wav` and `*.rec` files are listed. Do not modify `ScrollView` (except remove any constants limiting the number of items), which should retain the ability to list unknown file types ",
@@ -1092,13 +1092,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T01:24:59Z",
+    "timestamp": 1780190699,
     "type": "git_commit",
     "commit_message": "bigger file list, with file type filters",
     "commit_hash": "d6a25adee4657573953623be354baa1c4ea5d71b"
   },
   {
-    "timestamp": "2026-05-31T02:36:12.474Z",
+    "timestamp": 1780194972,
     "type": "codex_task",
     "user_prompt": [
       "the encrypted block size might be too small, so the overhead is too large",
@@ -1130,13 +1130,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T03:56:19Z",
+    "timestamp": 1780199779,
     "type": "git_commit",
     "commit_message": "encrypted playback",
     "commit_hash": "b44ada573a1434b396178f2ddc13955d839d57f3"
   },
   {
-    "timestamp": "2026-05-31T04:05:56.226Z",
+    "timestamp": 1780200356,
     "type": "codex_task",
     "user_prompt": [
       "change it so that all the code within `src` and `lib` and `inc` use `DBG_LOG*`",
@@ -1218,19 +1218,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T04:24:21Z",
+    "timestamp": 1780201461,
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   },
   {
-    "timestamp": "2026-05-31T05:15:28Z",
+    "timestamp": 1780204528,
     "type": "git_commit",
     "commit_message": "fixed encrypted recording being too short",
     "commit_hash": "c0bd39e506d3fee4333871e81322156d26d47a3b"
   },
   {
-    "timestamp": "2026-05-31T05:48:45.540Z",
+    "timestamp": 1780206525,
     "type": "codex_task",
     "user_prompt": [
       "### Task: Pin Code Core Functions",
@@ -1267,7 +1267,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T05:50:54.339Z",
+    "timestamp": 1780206654,
     "type": "codex_task",
     "user_prompt": [
       "I read your thoughts and realized I may have provided wrong instructions about NVS partitioning",
@@ -1341,13 +1341,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T06:36:39Z",
+    "timestamp": 1780209399,
     "type": "git_commit",
     "commit_message": "pin code backend infrastructure",
     "commit_hash": "edce3fc7b1dccd8c63fb39b66975c3701aec1045"
   },
   {
-    "timestamp": "2026-05-31T09:43:49.901Z",
+    "timestamp": 1780220629,
     "type": "codex_task",
     "user_prompt": [
       "move as much of the new decrypted download functions inside `lib\\WifiManager\\DecryptedDownload.cpp` and `lib\\WifiManager\\DecryptedDownload.h`, protected by `BUILD_WITH_DECRYPTED_DOWNLOAD`",
@@ -1381,19 +1381,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T19:37:50Z",
+    "timestamp": 1780256270,
     "type": "git_commit",
     "commit_message": "added another mock switch",
     "commit_hash": "47267f3e7a27b2cd750b8b26645b8496fd1f4935"
   },
   {
-    "timestamp": "2026-06-01T06:00:04Z",
+    "timestamp": 1780293604,
     "type": "git_commit",
     "commit_message": "remove silence chunks",
     "commit_hash": "e6a06e72499cd20e900e5fc97cf79b1f3acd6b6b"
   },
   {
-    "timestamp": "2026-06-01T06:07:41.971Z",
+    "timestamp": 1780294061,
     "type": "codex_task",
     "user_prompt": [
       "see the highlighted chunk of code",
@@ -1453,7 +1453,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T06:11:25.696Z",
+    "timestamp": 1780294285,
     "type": "codex_task",
     "user_prompt": [
       "add the ideal encryption sizes for the given configuration somewhere"
@@ -1515,7 +1515,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T06:44:07.003Z",
+    "timestamp": 1780296247,
     "type": "codex_task",
     "user_prompt": [
       "adjust everything in `inc\\conf.h` to match this configuration"
@@ -1576,7 +1576,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T06:50:45.623Z",
+    "timestamp": 1780296645,
     "type": "codex_task",
     "user_prompt": [
       "and if I simply edit MP3_LAME_MP3_FRAMES_PER_CHUNK to be like... 8, does it break anything? I believe some of the buffers are set differently"
@@ -1633,13 +1633,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T07:26:13Z",
+    "timestamp": 1780298773,
     "type": "git_commit",
     "commit_message": "liblame reconfigured",
     "commit_hash": "4bf69da6425fc74a95f264e24c0d992103c50a9f"
   },
   {
-    "timestamp": "2026-06-01T07:37:21.969Z",
+    "timestamp": 1780299441,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1699,7 +1699,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T08:45:54.434Z",
+    "timestamp": 1780303554,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1786,7 +1786,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T10:46:06.064Z",
+    "timestamp": 1780310766,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1856,7 +1856,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T10:49:50.211Z",
+    "timestamp": 1780310990,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1895,13 +1895,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T11:03:22Z",
+    "timestamp": 1780311802,
     "type": "git_commit",
     "commit_message": "significant work trying to get MP3 encoding to work",
     "commit_hash": "41c73bdbaff03d906023ec27bbc082a6f5b295e6"
   },
   {
-    "timestamp": "2026-06-01T17:45:07.920Z",
+    "timestamp": 1780335907,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2003,13 +2003,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T18:38:10Z",
+    "timestamp": 1780339090,
     "type": "git_commit",
     "commit_message": "shine encoder implemented, it",
     "commit_hash": "e24eb27b276d6ca89fee5afbe70f5d9e1bc43ee0"
   },
   {
-    "timestamp": "2026-06-02T04:32:35.409Z",
+    "timestamp": 1780374755,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2062,7 +2062,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:41:36.732Z",
+    "timestamp": 1780386096,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2115,13 +2115,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T07:49:30Z",
+    "timestamp": 1780386570,
     "type": "git_commit",
     "commit_message": "small reorg of conf.h and defs.h",
     "commit_hash": "3c45d79a3dd59ea97ce07b6dad9b8ea50a41fb68"
   },
   {
-    "timestamp": "2026-06-03T19:45:35.259Z",
+    "timestamp": 1780515935,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2171,7 +2171,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T07:38:57.564Z",
+    "timestamp": 1780558737,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2197,19 +2197,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T08:35:00Z",
+    "timestamp": 1780562100,
     "type": "git_commit",
     "commit_message": "testing macro",
     "commit_hash": "ca21b30da5ab14da8f28f7c362ca414e5ebaaa75"
   },
   {
-    "timestamp": "2026-06-04T18:55:30Z",
+    "timestamp": 1780599330,
     "type": "git_commit",
     "commit_message": "special icon to mark special builds",
     "commit_hash": "4db065d07114a8fedc766378980847e27904347f"
   },
   {
-    "timestamp": "2026-06-04T19:20:01.271Z",
+    "timestamp": 1780600801,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2245,13 +2245,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T19:53:12Z",
+    "timestamp": 1780602792,
     "type": "git_commit",
     "commit_message": "more upload reliability",
     "commit_hash": "25d83af066a6038020b1cfc7c15b9c1fbf4eebf7"
   },
   {
-    "timestamp": "2026-06-04T22:39:00.172Z",
+    "timestamp": 1780612740,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2300,7 +2300,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T00:37:50.372Z",
+    "timestamp": 1780619870,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2365,13 +2365,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T18:57:17Z",
+    "timestamp": 1780685837,
     "type": "git_commit",
     "commit_message": "way better time sync from browser, with timezones",
     "commit_hash": "3157aa61f945df7cbd0342463ba1cfd56c3a3e67"
   },
   {
-    "timestamp": "2026-06-06T01:45:42.651Z",
+    "timestamp": 1780710342,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2412,31 +2412,31 @@
     ]
   },
   {
-    "timestamp": "2026-06-06T04:45:57Z",
+    "timestamp": 1780721157,
     "type": "git_commit",
     "commit_message": "mock ext codec test",
     "commit_hash": "29e35603230f57c37d088b5def57ae546565ca33"
   },
   {
-    "timestamp": "2026-06-06T06:28:15Z",
+    "timestamp": 1780727295,
     "type": "git_commit",
     "commit_message": "NS4168 works on stereo, added SGTL5000 config for our I2S format",
     "commit_hash": "11c247e36a0c6f947687aa3d9179d6c4c97f6d0c"
   },
   {
-    "timestamp": "2026-06-11T01:25:30Z",
+    "timestamp": 1781141130,
     "type": "git_commit",
     "commit_message": "testing to see if SGTL5000 shows up on I2C",
     "commit_hash": "a25d05b46812956a0837ba1885dfa4933919aca2"
   },
   {
-    "timestamp": "2026-06-11T05:36:14Z",
+    "timestamp": 1781156174,
     "type": "git_commit",
     "commit_message": "ext codec playback with ledc pwm as mclk",
     "commit_hash": "698aca1726c9ac99bc4d92d25616c861ed2821eb"
   },
   {
-    "timestamp": "2026-06-11T08:03:43.803Z",
+    "timestamp": 1781165023,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2471,13 +2471,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T08:06:35Z",
+    "timestamp": 1781165195,
     "type": "git_commit",
     "commit_message": "volume ceiling, and went back to using software vol control",
     "commit_hash": "18185835bb99fd4f52bbe9f81038a13d75f23842"
   },
   {
-    "timestamp": "2026-06-11T18:29:39.262Z",
+    "timestamp": 1781202579,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2532,31 +2532,31 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T19:14:03Z",
+    "timestamp": 1781205243,
     "type": "git_commit",
     "commit_message": "screenshotting build",
     "commit_hash": "f3c8446e475c3299a5cf7775fcc012328a46bf2c"
   },
   {
-    "timestamp": "2026-06-11T21:27:51Z",
+    "timestamp": 1781213271,
     "type": "git_commit",
     "commit_message": "screenshot now works without disturbing recording",
     "commit_hash": "5f4fb886e36e9854e411acca74dedaec901bacd0"
   },
   {
-    "timestamp": "2026-06-12T02:55:23Z",
+    "timestamp": 1781232923,
     "type": "git_commit",
     "commit_message": "screenshot fixed",
     "commit_hash": "e00743f2267394193706bdaf6443cc4292489116"
   },
   {
-    "timestamp": "2026-06-12T07:17:51Z",
+    "timestamp": 1781248671,
     "type": "git_commit",
     "commit_message": "more screenshot stuff",
     "commit_hash": "f28c5490101268c4e2dcd3c955c64e070d5b05b2"
   },
   {
-    "timestamp": "2026-06-13T06:39:04.824Z",
+    "timestamp": 1781332744,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2595,7 +2595,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-13T07:53:51.418Z",
+    "timestamp": 1781337231,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2631,13 +2631,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-13T18:25:45Z",
+    "timestamp": 1781375145,
     "type": "git_commit",
     "commit_message": "fix small build errors around ftp",
     "commit_hash": "0294068094a17c9099af5f343af0390e9ff1fd25"
   },
   {
-    "timestamp": "2026-06-13T19:27:37.181Z",
+    "timestamp": 1781378857,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2671,7 +2671,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-13T19:58:52.590Z",
+    "timestamp": 1781380732,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2707,7 +2707,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T04:38:24.310Z",
+    "timestamp": 1781411904,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2781,7 +2781,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T04:43:57.974Z",
+    "timestamp": 1781412237,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2864,7 +2864,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T05:00:30.983Z",
+    "timestamp": 1781413230,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -2993,7 +2993,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T05:15:19.220Z",
+    "timestamp": 1781414119,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3030,13 +3030,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-14T06:50:30Z",
+    "timestamp": 1781419830,
     "type": "git_commit",
     "commit_message": "tweaks of how mic input works to manage silence and switching noise",
     "commit_hash": "9ac5b984e359f45bde029dd0f64f5d09f8463e67"
   },
   {
-    "timestamp": "2026-06-15T04:42:05.349Z",
+    "timestamp": 1781498525,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3068,13 +3068,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-15T04:48:36Z",
+    "timestamp": 1781498916,
     "type": "git_commit",
     "commit_message": "lower default gains for codec",
     "commit_hash": "b25eafeae1f5732edb44fbf496f8fa3c9caa9d35"
   },
   {
-    "timestamp": "2026-06-17T05:35:03.100Z",
+    "timestamp": 1781674503,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3224,7 +3224,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T06:02:41.573Z",
+    "timestamp": 1781676161,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3276,13 +3276,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T08:10:59Z",
+    "timestamp": 1781683859,
     "type": "git_commit",
     "commit_message": "mic tweaks, db scale peak display",
     "commit_hash": "0b3e546dac086b9f57a21181e78f16ceaddc7d8a"
   },
   {
-    "timestamp": "2026-06-18T05:46:07.236Z",
+    "timestamp": 1781761567,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3340,7 +3340,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-18T05:58:36.622Z",
+    "timestamp": 1781762316,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3372,7 +3372,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-18T06:35:08.160Z",
+    "timestamp": 1781764508,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3447,13 +3447,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-18T07:02:25Z",
+    "timestamp": 1781766145,
     "type": "git_commit",
     "commit_message": "more mic tuning",
     "commit_hash": "faea569dd69086872157f381237cfa153cf16cc9"
   },
   {
-    "timestamp": "2026-06-18T07:57:21.313Z",
+    "timestamp": 1781769441,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3504,13 +3504,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-18T08:15:00Z",
+    "timestamp": 1781770500,
     "type": "git_commit",
     "commit_message": "implemented notch filter for mic noise problem",
     "commit_hash": "9f459f253dff692ad0f40ce6e3a701cd30996d55"
   },
   {
-    "timestamp": "2026-06-24T03:19:48.159Z",
+    "timestamp": 1782271188,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -3556,27 +3556,187 @@
     ]
   },
   {
-    "timestamp": "2026-06-24T04:45:54Z",
+    "timestamp": 1782276354,
     "type": "git_commit",
     "commit_message": "build config change",
     "commit_hash": "2aed1f7f8cc6b19ac28900897994e0316f68cc11"
   },
   {
-    "timestamp": "2026-06-24T05:15:47Z",
+    "timestamp": 1782278147,
     "type": "git_commit",
     "commit_message": "reenable mp3",
     "commit_hash": "f39e891cfcec3079dd74453e92f653553527b4fa"
   },
   {
-    "timestamp": "2026-06-24T07:31:51Z",
+    "timestamp": 1782286311,
     "type": "git_commit",
     "commit_message": "test to debug bad PCB solder joint",
     "commit_hash": "45cdf1bdb4f3f45b08ae9416b7fc792d64d15fd5"
   },
   {
-    "timestamp": "2026-06-25T04:18:40Z",
+    "timestamp": 1782361120,
     "type": "git_commit",
     "commit_message": "enforce ext codec",
     "commit_hash": "421279e34249d126b9ba234bb39984f29bb940d2"
+  },
+  {
+    "timestamp": 1782534075,
+    "type": "git_commit",
+    "commit_message": "more mic noise gate tuning",
+    "commit_hash": "43af8d0dbd38b812e1076ac98659b52d8d313091"
+  },
+  {
+    "timestamp": 1782534379,
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: inc/conf.h",
+      "",
+      "## Active selection of the file:",
+      "kSGTL5000DefaultDedicatedMicGainDb",
+      "",
+      "## My request for Codex:",
+      "I need to add another state machine to `MicGainManager`",
+      "",
+      "This only applies to the inline earbud mic.",
+      "",
+      "There is to be a normal mic gain mode, and a maximum mic gain mode. When the earbud is unplugged, reset to the normal mic gain mode.",
+      "",
+      "normal mic gain mode uses `kInlineMicSilenceGateThresholdPercentX10` (right now 8%) as the threshold and `kSGTL5000DefaultDedicatedMicGainDb` (right now 40)",
+      "",
+      "maximum mic gain mode uses 10% (so 100 in numerical value) as the noise gate threshold, and a gain of 63 db",
+      "",
+      "As we are tracking the samples to see if all of them are below the noise gate threshold, only while in normal mode, if the noise threshold is continuously below 0.8%, then transition into maximum mic gain mode. It cannot exit this mode without unplugging the mic.",
+      "",
+      "put constants into `inc\\conf.h` when similar to the other constants I've mentioned."
+    ],
+    "agent_reply": [
+      "Implemented the inline-earbud mic gain mode state machine.",
+      "",
+      "Key changes:",
+      "- Added constants in [conf.h](D:/GithubRepos/The-Fly/inc/conf.h:102) for 63 dB max gain, 10.0% max-mode gate, and 0.8% enter threshold.",
+      "- Added `MicGainManager::InlineMicGainMode` and sample tracking in [MicGainManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/MicGainManager.cpp:613). It enters max mode after 500 ms continuously below 0.8%, only while inline mic mode is enabled.",
+      "- Wired `AudioManager` so only the dedicated inline mic route enables this mode, and unplug/non-inline routing resets it to normal in [AudioManager.cpp](D:/GithubRepos/The-Fly/lib/AudioManager/AudioManager.cpp:1286).",
+      "- Added `ExtCodec::setDedicatedMicGainDb()` in [ExtCodec.cpp](D:/GithubRepos/The-Fly/lib/ExtCodec/ExtCodec.cpp:330) so gain writes stay mutex-protected.",
+      "- Kept gate thresholds active even with `TEST_NO_MIC_AGC`, since this new behavior depends on the noise gate while AGC is off.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed. I left the unrelated existing doc/hardware working tree changes alone."
+    ],
+    "files": [
+      "inc/conf.h",
+      "lib/AudioManager/MicGainManager.h",
+      "lib/AudioManager/MicGainManager.cpp",
+      "lib/ExtCodec/ExtCodec.h",
+      "lib/ExtCodec/ExtCodec.cpp",
+      "lib/AudioManager/AudioManager.cpp"
+    ]
+  },
+  {
+    "timestamp": 1782536943,
+    "type": "git_commit",
+    "commit_message": "mic gain manager has a max gain setting",
+    "commit_hash": "5170302c320ba0f79040c095f400d6d1e716103c"
+  },
+  {
+    "timestamp": 1782537170,
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.h",
+      "",
+      "## Active selection of the file:",
+      "EXTCODEC_NO_EARBUD",
+      "",
+      "## My request for Codex:",
+      "ok I did a live test with everything enabled, it's still not loud enough",
+      "",
+      "we need to undo some stuff",
+      "",
+      "keep the detection for the weak mic",
+      "",
+      "but we will not have a high gain mode, remove any unused tuning constants",
+      "",
+      "instead, the ExtCodec will have a new state that is `EXTCODEC_YES_EARBUD_W_WEAK_MIC`, only `EXTCODEC_YES_EARBUD_WITH_MIC` can transition to `EXTCODEC_YES_EARBUD_W_WEAK_MIC`, and `EXTCODEC_YES_EARBUD_W_WEAK_MIC` cannot transition into `EXTCODEC_YES_EARBUD_WITH_MIC`",
+      "",
+      "while in the `EXTCODEC_YES_EARBUD_W_WEAK_MIC`, it behaves exactly like `EXTCODEC_NO_EARBUD`, except, the error message `earbud mic too weak` is shown. In fact, that message is now two lines, `earbud mic too weak\\nusing built-in mic`"
+    ],
+    "agent_reply": "",
+    "files": [
+      "inc/conf.h",
+      "lib/AudioManager/MicGainManager.h",
+      "lib/AudioManager/MicGainManager.cpp",
+      "lib/ExtCodec/ExtCodec.h",
+      "lib/ExtCodec/ExtCodec.cpp"
+    ]
+  },
+  {
+    "timestamp": 1782537390,
+    "type": "codex_task",
+    "user_prompt": [
+      "# Context from my IDE setup:",
+      "",
+      "## Active file: lib/ExtCodec/ExtCodec.h",
+      "",
+      "## Active selection of the file:",
+      "EXTCODEC_YES_EARBUD",
+      "",
+      "## My request for Codex:",
+      "I made a mistake in my instruction, I copied in the wrong enum, correct instructions should be `while in the EXTCODEC_YES_EARBUD_W_WEAK_MIC, it behaves exactly like EXTCODEC_YES_EARBUD`",
+      "",
+      "here's the whole thing again",
+      "",
+      "ok I did a live test with everything enabled, it's still not loud enough",
+      "",
+      "we need to undo some stuff",
+      "",
+      "keep the detection for the weak mic",
+      "",
+      "but we will not have a high gain mode, remove any unused tuning constants",
+      "",
+      "instead, the ExtCodec will have a new state that is `EXTCODEC_YES_EARBUD_W_WEAK_MIC`, only `EXTCODEC_YES_EARBUD_WITH_MIC` can transition to `EXTCODEC_YES_EARBUD_W_WEAK_MIC`, and `EXTCODEC_YES_EARBUD_W_WEAK_MIC` cannot transition into `EXTCODEC_YES_EARBUD_WITH_MIC`",
+      "",
+      "while in the `EXTCODEC_YES_EARBUD_W_WEAK_MIC`, it behaves exactly like `EXTCODEC_YES_EARBUD`, except, the error message `earbud mic too weak` is shown. In fact, that message is now two lines, `earbud mic too weak\\nusing built-in mic`"
+    ],
+    "agent_reply": [
+      "Implemented the corrected weak-inline-mic flow.",
+      "",
+      "- Removed the high-gain mode and unused max-gain tuning constants from [conf.h](D:/GithubRepos/The-Fly/inc/conf.h:103) and `MicGainManager`.",
+      "- Added `EXTCODEC_YES_EARBUD_W_WEAK_MIC`; only `EXTCODEC_YES_EARBUD_WITH_MIC` can mark itself weak, and weak will not transition back to `WITH_MIC` until unplug/replug.",
+      "- Weak state now routes like `EXTCODEC_YES_EARBUD`: line-in/right built-in mic path, earbud present, full duplex available.",
+      "- `RecordingView` now shows red two-line text: `earbud mic too weak\\nusing built-in mic`, for both Bluetooth and local memo recording.",
+      "- Added multiline support to `FlyGuiText` so that warning renders properly.",
+      "",
+      "Verified with:",
+      "",
+      "```powershell",
+      "pio run -e thefly_sec0",
+      "```",
+      "",
+      "Build passed. I also checked that the old high-gain symbols are gone. Unrelated dirty files already in the worktree were left alone."
+    ],
+    "files": [
+      "lib/ExtCodec/ExtCodec.cpp",
+      "lib/AudioManager/AudioManager.cpp",
+      "lib/FlyGui/FlyGuiText.h",
+      "lib/FlyGui/FlyGuiText.cpp",
+      "lib/FlyGuiViews/RecordingView/RecordingView.cpp",
+      "lib/FlyGuiViews/MasterTestView.cpp",
+      "lib/AudioManager/MicGainManager.cpp",
+      "inc/conf.h"
+    ]
+  },
+  {
+    "timestamp": 1782539924,
+    "type": "git_commit",
+    "commit_message": "weak mic now switches to internal mic",
+    "commit_hash": "30e047db7a2f754ba98435491b033006d986c266"
   }
 ]

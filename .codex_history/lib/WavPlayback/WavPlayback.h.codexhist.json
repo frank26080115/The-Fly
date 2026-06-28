@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-30T07:19:36.291Z",
+    "timestamp": 1780125576,
     "type": "codex_task",
     "user_prompt": [
       "### Task: Playback",
@@ -95,13 +95,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:35:05Z",
+    "timestamp": 1780130105,
     "type": "git_commit",
     "commit_message": "playback mechanism",
     "commit_hash": "813aab87ffb853eb373d960af6a773dbf5f74642"
   },
   {
-    "timestamp": "2026-05-31T01:36:35.002Z",
+    "timestamp": 1780191395,
     "type": "codex_task",
     "user_prompt": [
       "find me places in the code where the RIFF header is involved, look for mentions of 44, which is the length of the header, unless I am wrong about how we've implemented"
@@ -193,7 +193,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T01:38:32.975Z",
+    "timestamp": 1780191512,
     "type": "codex_task",
     "user_prompt": [
       "please move `kWavHeaderSize` to `inc/defs.h` as `WAV_RIFF_HEADER_LENGTH`"
@@ -238,7 +238,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T01:51:11.202Z",
+    "timestamp": 1780192271,
     "type": "codex_task",
     "user_prompt": [
       "### Task: major change to recorded encrypted file format",
@@ -322,13 +322,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T02:20:05Z",
+    "timestamp": 1780194005,
     "type": "git_commit",
     "commit_message": "removed custom audio format, changed to encrypted wav",
     "commit_hash": "b058e63be582168fb18760c38aabbed0bdbccd8c"
   },
   {
-    "timestamp": "2026-06-01T18:42:40.803Z",
+    "timestamp": 1780339360,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -396,13 +396,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T19:24:23Z",
+    "timestamp": 1780341863,
     "type": "git_commit",
     "commit_message": "mp3 playback works",
     "commit_hash": "553ac578dd39c8724ac7cd871f259a68385d915e"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"

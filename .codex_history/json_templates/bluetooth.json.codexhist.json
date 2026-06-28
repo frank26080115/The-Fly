@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-02T06:47:49.077Z",
+    "timestamp": 1777704469,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -35,13 +35,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-02T07:20:03Z",
+    "timestamp": 1777706403,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "9495ca3e997d6aca003aa5a6ec502e2204cea031"
   },
   {
-    "timestamp": "2026-05-16T23:25:56.561Z",
+    "timestamp": 1778973956,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -96,7 +96,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T23:33:26.331Z",
+    "timestamp": 1778974406,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -136,7 +136,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T02:14:46.065Z",
+    "timestamp": 1778984086,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -188,7 +188,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T02:19:09.953Z",
+    "timestamp": 1778984349,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -261,13 +261,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-17T03:32:30Z",
+    "timestamp": 1778988750,
     "type": "git_commit",
     "commit_message": "update template json files",
     "commit_hash": "020c08d34800ca31f015dab33b52d5a0092f8327"
   },
   {
-    "timestamp": "2026-05-18T18:51:39.104Z",
+    "timestamp": 1779130299,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -300,7 +300,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T04:04:22.989Z",
+    "timestamp": 1779249862,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -335,7 +335,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T06:41:59.068Z",
+    "timestamp": 1779259319,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -433,7 +433,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T04:15:59.407Z",
+    "timestamp": 1779336959,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -465,7 +465,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T04:26:49.791Z",
+    "timestamp": 1779337609,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -513,7 +513,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T04:37:46.678Z",
+    "timestamp": 1779338266,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -547,7 +547,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T07:16:23.058Z",
+    "timestamp": 1779347783,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -643,7 +643,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T19:03:06.293Z",
+    "timestamp": 1779390186,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -697,7 +697,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T03:30:51.605Z",
+    "timestamp": 1779420651,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -825,7 +825,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T05:42:34.224Z",
+    "timestamp": 1779514954,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -907,7 +907,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T22:40:06.622Z",
+    "timestamp": 1779662406,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1026,7 +1026,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T22:47:21.709Z",
+    "timestamp": 1779662841,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

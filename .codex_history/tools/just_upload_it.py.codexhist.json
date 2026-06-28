@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-27T21:46:02Z",
+    "timestamp": 1779918362,
     "type": "git_commit",
     "commit_message": "Create just_upload_it.py",
     "commit_hash": "61d5c08efb8e415f13aca2f905a96a3f53de9ccb"
   },
   {
-    "timestamp": "2026-06-26T06:42:06.931Z",
+    "timestamp": 1782456126,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -98,7 +98,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T06:45:55.202Z",
+    "timestamp": 1782456355,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

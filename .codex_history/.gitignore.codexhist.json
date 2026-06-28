@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-01T06:41:29Z",
+    "timestamp": 1777617689,
     "type": "git_commit",
     "commit_message": "Initial commit",
     "commit_hash": "60fbea01c9563e7ebff5bd9ad0d67ff5949440be"
   },
   {
-    "timestamp": "2026-05-01T07:33:05.965Z",
+    "timestamp": 1777620785,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -30,13 +30,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-01T08:45:00Z",
+    "timestamp": 1777625100,
     "type": "git_commit",
     "commit_message": "progress",
     "commit_hash": "384fc246aafc465d1b9dc72802ba63530501f038"
   },
   {
-    "timestamp": "2026-05-14T07:10:12.644Z",
+    "timestamp": 1778742612,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -85,13 +85,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-14T09:06:33Z",
+    "timestamp": 1778749593,
     "type": "git_commit",
     "commit_message": "got a physical unit, starting bringup tests",
     "commit_hash": "9d0330a8d4292ae1c769e093080a2eba28dce43f"
   },
   {
-    "timestamp": "2026-05-16T08:45:13.731Z",
+    "timestamp": 1778921113,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -141,37 +141,37 @@
     ]
   },
   {
-    "timestamp": "2026-05-16T08:56:52Z",
+    "timestamp": 1778921812,
     "type": "git_commit",
     "commit_message": "update the stuff for managed_components",
     "commit_hash": "7fc34aaee0c446b065de553e9af6e66763dda1f4"
   },
   {
-    "timestamp": "2026-05-16T10:53:03Z",
+    "timestamp": 1778928783,
     "type": "git_commit",
     "commit_message": "need to rename \"utils.h\" for build error",
     "commit_hash": "3bcbc18d61c82a3d9ceeec927cd1c2fd3cd81584"
   },
   {
-    "timestamp": "2026-05-23T00:32:59Z",
+    "timestamp": 1779496379,
     "type": "git_commit",
     "commit_message": "Update .gitignore",
     "commit_hash": "2070aa3d46c56d0207ce8a7b0abe9d96db37468e"
   },
   {
-    "timestamp": "2026-05-26T04:16:57Z",
+    "timestamp": 1779769017,
     "type": "git_commit",
     "commit_message": "better splashview",
     "commit_hash": "5d6e3cd59cf0a071c90542106fc384b1e1e8eab2"
   },
   {
-    "timestamp": "2026-05-26T07:29:40Z",
+    "timestamp": 1779780580,
     "type": "git_commit",
     "commit_message": "memory reset button on frontend",
     "commit_hash": "6c323e6238d7e839e5d67bc97b2fb014d52453b8"
   },
   {
-    "timestamp": "2026-06-26T05:36:56.749Z",
+    "timestamp": 1782452216,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -215,9 +215,15 @@
     ]
   },
   {
-    "timestamp": "2026-06-26T07:01:16Z",
+    "timestamp": 1782457276,
     "type": "git_commit",
     "commit_message": "security build tools",
     "commit_hash": "f249cafdf65f4c15debb4486bbba31e64283ad6b"
+  },
+  {
+    "timestamp": 1782500668,
+    "type": "git_commit",
+    "commit_message": "untracked version.c since it's auto generated",
+    "commit_hash": "ccac05d57cfa71abcd846d8f4a4438e97e30a3a2"
   }
 ]

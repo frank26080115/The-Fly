@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-12T20:06:39.837Z",
+    "timestamp": 1781294799,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -52,7 +52,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T20:21:17.491Z",
+    "timestamp": 1781295677,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -113,7 +113,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T20:24:07.605Z",
+    "timestamp": 1781295847,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -145,7 +145,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T21:36:56Z",
+    "timestamp": 1781732216,
     "type": "git_commit",
     "commit_message": "artboard generator",
     "commit_hash": "5d493428594a77973ebc66fdaf7e1e4d648aa3a6"

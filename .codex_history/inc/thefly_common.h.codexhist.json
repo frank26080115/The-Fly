@@ -1,24 +1,24 @@
 [
   {
-    "timestamp": "2026-05-01T08:45:00Z",
+    "timestamp": 1777625100,
     "type": "git_commit",
     "commit_message": "progress",
     "commit_hash": "384fc246aafc465d1b9dc72802ba63530501f038"
   },
   {
-    "timestamp": "2026-05-02T07:20:03Z",
+    "timestamp": 1777706403,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "9495ca3e997d6aca003aa5a6ec502e2204cea031"
   },
   {
-    "timestamp": "2026-05-04T08:21:58Z",
+    "timestamp": 1777882918,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "dcdf504ad0b634fb1b6629ede78526be42cdf96e"
   },
   {
-    "timestamp": "2026-05-07T00:24:15.710Z",
+    "timestamp": 1778113455,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -124,25 +124,25 @@
     ]
   },
   {
-    "timestamp": "2026-05-07T00:37:28Z",
+    "timestamp": 1778114248,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "c31536e76af6564fcf9e33fe1e79c3fef9bf8e36"
   },
   {
-    "timestamp": "2026-05-16T10:53:03Z",
+    "timestamp": 1778928783,
     "type": "git_commit",
     "commit_message": "need to rename \"utils.h\" for build error",
     "commit_hash": "3bcbc18d61c82a3d9ceeec927cd1c2fd3cd81584"
   },
   {
-    "timestamp": "2026-05-17T03:30:13Z",
+    "timestamp": 1778988613,
     "type": "git_commit",
     "commit_message": "application infrastructure wip",
     "commit_hash": "380e678127c354bb1fcb6171bc0720f72caba667"
   },
   {
-    "timestamp": "2026-05-19T05:48:22.053Z",
+    "timestamp": 1779169702,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -202,13 +202,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-19T08:07:31Z",
+    "timestamp": 1779178051,
     "type": "git_commit",
     "commit_message": "good progress working on GUI but ran into memory problems with PNG decode",
     "commit_hash": "ce293de5bfe655e8023945176b68c324355ad1de"
   },
   {
-    "timestamp": "2026-05-20T06:16:05.518Z",
+    "timestamp": 1779257765,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -259,7 +259,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-23T08:25:24.629Z",
+    "timestamp": 1779524724,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -333,7 +333,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T20:33:35.159Z",
+    "timestamp": 1780086815,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -417,7 +417,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T01:38:32.975Z",
+    "timestamp": 1780191512,
     "type": "codex_task",
     "user_prompt": [
       "please move `kWavHeaderSize` to `inc/defs.h` as `WAV_RIFF_HEADER_LENGTH`"
@@ -462,7 +462,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T02:36:12.474Z",
+    "timestamp": 1780194972,
     "type": "codex_task",
     "user_prompt": [
       "the encrypted block size might be too small, so the overhead is too large",
@@ -494,13 +494,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T03:56:19Z",
+    "timestamp": 1780199779,
     "type": "git_commit",
     "commit_message": "encrypted playback",
     "commit_hash": "b44ada573a1434b396178f2ddc13955d839d57f3"
   },
   {
-    "timestamp": "2026-06-02T05:20:13.470Z",
+    "timestamp": 1780377613,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -583,13 +583,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:21:00Z",
+    "timestamp": 1780381260,
     "type": "git_commit",
     "commit_message": "code clean up a bit, better error dialog routing",
     "commit_hash": "9cfa8004f61008a8d54cb2609ae348fc44e802c6"
   },
   {
-    "timestamp": "2026-06-03T05:42:29.854Z",
+    "timestamp": 1780465349,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -649,13 +649,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:51:45Z",
+    "timestamp": 1780469505,
     "type": "git_commit",
     "commit_message": "diagnostics, fixed a bug with speaker peak decay",
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
   },
   {
-    "timestamp": "2026-06-03T21:14:22.722Z",
+    "timestamp": 1780521262,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

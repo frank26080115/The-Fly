@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-06-02T06:21:00Z",
+    "timestamp": 1780381260,
     "type": "git_commit",
     "commit_message": "code clean up a bit, better error dialog routing",
     "commit_hash": "9cfa8004f61008a8d54cb2609ae348fc44e802c6"
   },
   {
-    "timestamp": "2026-06-05T00:35:21.041Z",
+    "timestamp": 1780619721,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -40,7 +40,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T00:37:50.372Z",
+    "timestamp": 1780619870,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -105,7 +105,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T02:54:19Z",
+    "timestamp": 1780628059,
     "type": "git_commit",
     "commit_message": "small documentation corrections",
     "commit_hash": "871d8adf7eabb92f3c3d2b3967e30dc53a4502cb"

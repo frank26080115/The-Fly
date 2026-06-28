@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-01T08:45:00Z",
+    "timestamp": 1777625100,
     "type": "git_commit",
     "commit_message": "progress",
     "commit_hash": "384fc246aafc465d1b9dc72802ba63530501f038"
   },
   {
-    "timestamp": "2026-05-22T03:30:51.605Z",
+    "timestamp": 1779420651,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -136,19 +136,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T03:54:52Z",
+    "timestamp": 1779422092,
     "type": "git_commit",
     "commit_message": "minor documentation realignment",
     "commit_hash": "f2c709ecce52380184bf7572afec748da37a5039"
   },
   {
-    "timestamp": "2026-05-27T06:57:04Z",
+    "timestamp": 1779865024,
     "type": "git_commit",
     "commit_message": "documentation update",
     "commit_hash": "57dc5a2f4f0cef3e419f9ea5591534a223f89dad"
   },
   {
-    "timestamp": "2026-05-30T03:48:53.736Z",
+    "timestamp": 1780112933,
     "type": "codex_task",
     "user_prompt": [
       "we are making a big change",
@@ -210,13 +210,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:06:18Z",
+    "timestamp": 1780113978,
     "type": "git_commit",
     "commit_message": "direct to wav file recording",
     "commit_hash": "64f9f8e6f7cc8677283c2f4afdfbd22660041ff6"
   },
   {
-    "timestamp": "2026-05-31T01:51:11.202Z",
+    "timestamp": 1780192271,
     "type": "codex_task",
     "user_prompt": [
       "### Task: major change to recorded encrypted file format",
@@ -300,25 +300,25 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T02:20:05Z",
+    "timestamp": 1780194005,
     "type": "git_commit",
     "commit_message": "removed custom audio format, changed to encrypted wav",
     "commit_hash": "b058e63be582168fb18760c38aabbed0bdbccd8c"
   },
   {
-    "timestamp": "2026-05-31T04:01:41Z",
+    "timestamp": 1780200101,
     "type": "git_commit",
     "commit_message": "Update recording-file-format.md",
     "commit_hash": "81790de1594c036cdc4a6149c2cfb760b694638f"
   },
   {
-    "timestamp": "2026-06-01T07:26:54Z",
+    "timestamp": 1780298814,
     "type": "git_commit",
     "commit_message": "preping docs for mp3 build",
     "commit_hash": "ca8a274ef70f1c6e966b0aa37d97726cc50bc72b"
   },
   {
-    "timestamp": "2026-06-01T07:28:43.295Z",
+    "timestamp": 1780298923,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -344,13 +344,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T07:34:46Z",
+    "timestamp": 1780299286,
     "type": "git_commit",
     "commit_message": "mp3 encode disable reservoir",
     "commit_hash": "89bfd1eda9c87671e3e2fc196fcd714c165e8b5c"
   },
   {
-    "timestamp": "2026-06-01T10:46:06.064Z",
+    "timestamp": 1780310766,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -420,7 +420,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T00:37:50.372Z",
+    "timestamp": 1780619870,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

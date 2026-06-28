@@ -1,18 +1,18 @@
 [
   {
-    "timestamp": "2026-05-14T09:06:33Z",
+    "timestamp": 1778749593,
     "type": "git_commit",
     "commit_message": "got a physical unit, starting bringup tests",
     "commit_hash": "9d0330a8d4292ae1c769e093080a2eba28dce43f"
   },
   {
-    "timestamp": "2026-05-15T00:49:50Z",
+    "timestamp": 1778806190,
     "type": "git_commit",
     "commit_message": "mic recorder test",
     "commit_hash": "2ec47590c1f36f43fc0486ebc00d258608376b05"
   },
   {
-    "timestamp": "2026-05-15T06:41:43.718Z",
+    "timestamp": 1778827303,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -85,19 +85,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T09:29:54Z",
+    "timestamp": 1778837394,
     "type": "git_commit",
     "commit_message": "added bt tests",
     "commit_hash": "d3c291e69ab7f6d42eba1621c414eea70930cf28"
   },
   {
-    "timestamp": "2026-05-15T18:55:51Z",
+    "timestamp": 1778871351,
     "type": "git_commit",
     "commit_message": "visual indicator for mic recorder test",
     "commit_hash": "0c213a90e4ee3be82cbb102784694de7f34a02d5"
   },
   {
-    "timestamp": "2026-05-15T20:41:14.899Z",
+    "timestamp": 1778877674,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -143,7 +143,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T21:43:58.761Z",
+    "timestamp": 1778881438,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -203,31 +203,31 @@
     ]
   },
   {
-    "timestamp": "2026-05-15T22:19:39Z",
+    "timestamp": 1778883579,
     "type": "git_commit",
     "commit_message": "added a mic preprocessor, HPF and AGC",
     "commit_hash": "e521f961cce7b271b736c720eb61e519219aa616"
   },
   {
-    "timestamp": "2026-05-16T08:46:51Z",
+    "timestamp": 1778921211,
     "type": "git_commit",
     "commit_message": "speakerphone test works, it did involve editing the esp-idf config and building the library in the back",
     "commit_hash": "0fb9d76750530a27bc80183add0ccf3c26959ed3"
   },
   {
-    "timestamp": "2026-05-18T22:48:44Z",
+    "timestamp": 1779144524,
     "type": "git_commit",
     "commit_message": "test the json file loading",
     "commit_hash": "18a60860b26e8891ff7f6d0e4dfd895368b81151"
   },
   {
-    "timestamp": "2026-05-19T08:07:31Z",
+    "timestamp": 1779178051,
     "type": "git_commit",
     "commit_message": "good progress working on GUI but ran into memory problems with PNG decode",
     "commit_hash": "ce293de5bfe655e8023945176b68c324355ad1de"
   },
   {
-    "timestamp": "2026-05-20T20:03:05.320Z",
+    "timestamp": 1779307385,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -291,13 +291,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T20:34:13Z",
+    "timestamp": 1779309253,
     "type": "git_commit",
     "commit_message": "disk stats, font changes",
     "commit_hash": "abd204ec22dfe148723d1f8633539f2232ca194b"
   },
   {
-    "timestamp": "2026-05-21T03:34:06.361Z",
+    "timestamp": 1779334446,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -343,13 +343,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T07:34:30Z",
+    "timestamp": 1779348870,
     "type": "git_commit",
     "commit_message": "progress on bluetooth but cannot initiate connection, can handle incoming though",
     "commit_hash": "e94d9d093825b8b6ff31e1ff98b191887cc736cc"
   },
   {
-    "timestamp": "2026-05-21T09:27:27.993Z",
+    "timestamp": 1779355647,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -468,7 +468,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T06:46:07.997Z",
+    "timestamp": 1779432367,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -542,13 +542,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T07:18:40Z",
+    "timestamp": 1779434320,
     "type": "git_commit",
     "commit_message": "recording works great now, tweaked the ui",
     "commit_hash": "62765d1d8b21f98b4d6f07736b3fb63a966637c5"
   },
   {
-    "timestamp": "2026-05-23T08:25:24.629Z",
+    "timestamp": 1779524724,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -630,31 +630,31 @@
     ]
   },
   {
-    "timestamp": "2026-05-24T00:09:46Z",
+    "timestamp": 1779581386,
     "type": "git_commit",
     "commit_message": "added \"set_cfg\" request handler",
     "commit_hash": "976c60f0ec74e8d902b255cd244c33b17b1f0771"
   },
   {
-    "timestamp": "2026-05-24T22:45:12Z",
+    "timestamp": 1779662712,
     "type": "git_commit",
     "commit_message": "bt connectable during memo recortding",
     "commit_hash": "3e542f23d6873064109f5ca94adc3193f8b4e692"
   },
   {
-    "timestamp": "2026-05-26T03:15:34Z",
+    "timestamp": 1779765334,
     "type": "git_commit",
     "commit_message": "nvs load and save test",
     "commit_hash": "203192593a6aa867a74e6bb0c74cd9cd6de4edf4"
   },
   {
-    "timestamp": "2026-05-30T00:53:41Z",
+    "timestamp": 1780102421,
     "type": "git_commit",
     "commit_message": "added a decoder",
     "commit_hash": "66c153975daea31fb102791f88bbb449b20add9c"
   },
   {
-    "timestamp": "2026-05-30T04:16:45.446Z",
+    "timestamp": 1780114605,
     "type": "codex_task",
     "user_prompt": [
       "implement `void test_filelistbenchmark()`",
@@ -691,13 +691,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:58:58Z",
+    "timestamp": 1780117138,
     "type": "git_commit",
     "commit_message": "benchmarking file listing and sorting",
     "commit_hash": "db2bcb144238b4b8215a303296a745cc1785c39c"
   },
   {
-    "timestamp": "2026-05-31T01:51:11.202Z",
+    "timestamp": 1780192271,
     "type": "codex_task",
     "user_prompt": [
       "### Task: major change to recorded encrypted file format",
@@ -781,13 +781,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T04:40:14Z",
+    "timestamp": 1780288814,
     "type": "git_commit",
     "commit_message": "file download and decrypted downloads work now",
     "commit_hash": "976ed18721b4929410684cde8839b3d62d1f7cce"
   },
   {
-    "timestamp": "2026-06-01T08:27:26.497Z",
+    "timestamp": 1780302446,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -837,43 +837,43 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T11:03:22Z",
+    "timestamp": 1780311802,
     "type": "git_commit",
     "commit_message": "significant work trying to get MP3 encoding to work",
     "commit_hash": "41c73bdbaff03d906023ec27bbc082a6f5b295e6"
   },
   {
-    "timestamp": "2026-06-01T18:38:10Z",
+    "timestamp": 1780339090,
     "type": "git_commit",
     "commit_message": "shine encoder implemented, it",
     "commit_hash": "e24eb27b276d6ca89fee5afbe70f5d9e1bc43ee0"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-03T20:34:06Z",
+    "timestamp": 1780518846,
     "type": "git_commit",
     "commit_message": "benchmarked mp3 encoder again with random noise",
     "commit_hash": "146eefa9beca269c0cb76575f1d97a9f63b67182"
   },
   {
-    "timestamp": "2026-06-04T05:05:33Z",
+    "timestamp": 1780549533,
     "type": "git_commit",
     "commit_message": "haptics implemented across the board",
     "commit_hash": "b0281be08ff90256d2e231f0ba9c25e7422784c1"
   },
   {
-    "timestamp": "2026-06-08T03:05:24Z",
+    "timestamp": 1780887924,
     "type": "git_commit",
     "commit_message": "ledc as mclk shenanigans",
     "commit_hash": "3899800fdc93cf7a914ee480463eca1ff28cc754"
   },
   {
-    "timestamp": "2026-06-11T00:00:50.258Z",
+    "timestamp": 1781136050,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -898,7 +898,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T00:11:46.029Z",
+    "timestamp": 1781136706,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -945,13 +945,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T01:43:32Z",
+    "timestamp": 1781142212,
     "type": "git_commit",
     "commit_message": "got sound out of SGTL5000 earbuds",
     "commit_hash": "ee09e2dddae323537b6a3feb4bca7927234ba995"
   },
   {
-    "timestamp": "2026-06-11T03:47:17.470Z",
+    "timestamp": 1781149637,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -994,7 +994,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T04:49:51.831Z",
+    "timestamp": 1781153391,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1038,13 +1038,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-11T05:36:14Z",
+    "timestamp": 1781156174,
     "type": "git_commit",
     "commit_message": "ext codec playback with ledc pwm as mclk",
     "commit_hash": "698aca1726c9ac99bc4d92d25616c861ed2821eb"
   },
   {
-    "timestamp": "2026-06-17T18:46:58.605Z",
+    "timestamp": 1781722018,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -1109,21 +1109,27 @@
     ]
   },
   {
-    "timestamp": "2026-06-17T21:36:44Z",
+    "timestamp": 1781732204,
     "type": "git_commit",
     "commit_message": "mic spectrum test",
     "commit_hash": "a0dd970eb383c7e049841df45fc7959400478d33"
   },
   {
-    "timestamp": "2026-06-24T07:31:51Z",
+    "timestamp": 1782286311,
     "type": "git_commit",
     "commit_message": "test to debug bad PCB solder joint",
     "commit_hash": "45cdf1bdb4f3f45b08ae9416b7fc792d64d15fd5"
   },
   {
-    "timestamp": "2026-06-25T05:45:26Z",
+    "timestamp": 1782366326,
     "type": "git_commit",
     "commit_message": "master hardware test",
     "commit_hash": "090aa12234263d308ba23efece40d8225a87d64a"
+  },
+  {
+    "timestamp": 1782536943,
+    "type": "git_commit",
+    "commit_message": "mic gain manager has a max gain setting",
+    "commit_hash": "5170302c320ba0f79040c095f400d6d1e716103c"
   }
 ]

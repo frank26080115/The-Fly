@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-22T04:14:49.024Z",
+    "timestamp": 1779423289,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -63,7 +63,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T04:50:24.288Z",
+    "timestamp": 1779425424,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -107,7 +107,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T18:34:13Z",
+    "timestamp": 1780598053,
     "type": "git_commit",
     "commit_message": "made ftp server thread safe",
     "commit_hash": "b031f8fd852eaea966d5b6554b414320bb9e696b"

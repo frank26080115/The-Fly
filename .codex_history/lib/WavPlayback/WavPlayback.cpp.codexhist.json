@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-30T07:19:36.291Z",
+    "timestamp": 1780125576,
     "type": "codex_task",
     "user_prompt": [
       "### Task: Playback",
@@ -95,7 +95,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T07:31:44.345Z",
+    "timestamp": 1780126304,
     "type": "codex_task",
     "user_prompt": [
       "you said `I also made playback mix stereo to mono before feeding the speaker FIFO, so overlapping mic/BT channels won’t silently drop the right channel.`",
@@ -123,7 +123,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:07:10.991Z",
+    "timestamp": 1780128430,
     "type": "codex_task",
     "user_prompt": [
       "while the time shown is in seconds, what actual unit is tracking time in this playback module?"
@@ -149,7 +149,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:28:23.118Z",
+    "timestamp": 1780129703,
     "type": "codex_task",
     "user_prompt": [
       "I need to use a generated sample file. So I found a 10 minute long MP3 song on my computer. I have it open in Audacity. I want to export it to WAV. Since we are not generating the RIFF header on-device, how can I be sure that the export is compatible with our device?"
@@ -203,13 +203,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T08:35:05Z",
+    "timestamp": 1780130105,
     "type": "git_commit",
     "commit_message": "playback mechanism",
     "commit_hash": "813aab87ffb853eb373d960af6a773dbf5f74642"
   },
   {
-    "timestamp": "2026-05-31T01:36:35.002Z",
+    "timestamp": 1780191395,
     "type": "codex_task",
     "user_prompt": [
       "find me places in the code where the RIFF header is involved, look for mentions of 44, which is the length of the header, unless I am wrong about how we've implemented"
@@ -301,7 +301,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T02:43:33.962Z",
+    "timestamp": 1780195413,
     "type": "codex_task",
     "user_prompt": [
       "In the `ScrollView` currently any item representing an encrypted file is not clickable. Change it so that now, it launches the same playback mechanism, but only if `BUILD_WITH_ENCRYPTED_PLAYBACK` is defined",
@@ -363,19 +363,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T03:56:19Z",
+    "timestamp": 1780199779,
     "type": "git_commit",
     "commit_message": "encrypted playback",
     "commit_hash": "b44ada573a1434b396178f2ddc13955d839d57f3"
   },
   {
-    "timestamp": "2026-05-31T04:24:21Z",
+    "timestamp": 1780201461,
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   },
   {
-    "timestamp": "2026-05-31T04:27:29.774Z",
+    "timestamp": 1780201649,
     "type": "codex_task",
     "user_prompt": [
       "attempts to initialize Aegis should only occur in `main.cpp` function `setup()`, remove all other calls to `Aegis::init()`"
@@ -404,13 +404,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T05:15:28Z",
+    "timestamp": 1780204528,
     "type": "git_commit",
     "commit_message": "fixed encrypted recording being too short",
     "commit_hash": "c0bd39e506d3fee4333871e81322156d26d47a3b"
   },
   {
-    "timestamp": "2026-06-01T18:42:40.803Z",
+    "timestamp": 1780339360,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -478,19 +478,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T19:24:23Z",
+    "timestamp": 1780341863,
     "type": "git_commit",
     "commit_message": "mp3 playback works",
     "commit_hash": "553ac578dd39c8724ac7cd871f259a68385d915e"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T16:04:22.176Z",
+    "timestamp": 1780416262,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -523,13 +523,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T16:14:15Z",
+    "timestamp": 1780416855,
     "type": "git_commit",
     "commit_message": "neaten",
     "commit_hash": "86d90ffafe35f5d236da1bafff3d2216e4365a2f"
   },
   {
-    "timestamp": "2026-06-02T17:23:48Z",
+    "timestamp": 1780421028,
     "type": "git_commit",
     "commit_message": "ran clang format",
     "commit_hash": "3843ce9538f0624ded2406db5642f64123739a23"

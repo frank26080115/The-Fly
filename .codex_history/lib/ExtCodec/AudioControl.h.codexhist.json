@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-05T20:18:38.255Z",
+    "timestamp": 1780690718,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -70,7 +70,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T20:50:54Z",
+    "timestamp": 1780692654,
     "type": "git_commit",
     "commit_message": "external codec implementation",
     "commit_hash": "bb1a1fe14284387ce02c9a2c958393745f4c1598"

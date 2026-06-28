@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-21T03:34:06.361Z",
+    "timestamp": 1779334446,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -48,7 +48,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T03:41:20.850Z",
+    "timestamp": 1779334880,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -82,19 +82,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-21T07:34:30Z",
+    "timestamp": 1779348870,
     "type": "git_commit",
     "commit_message": "progress on bluetooth but cannot initiate connection, can handle incoming though",
     "commit_hash": "e94d9d093825b8b6ff31e1ff98b191887cc736cc"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-05T23:41:05.245Z",
+    "timestamp": 1780702865,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -134,7 +134,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-07T04:36:19Z",
+    "timestamp": 1780806979,
     "type": "git_commit",
     "commit_message": "progress on ext codec",
     "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"

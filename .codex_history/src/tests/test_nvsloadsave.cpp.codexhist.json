@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-26T02:52:31.612Z",
+    "timestamp": 1779763951,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -39,7 +39,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T03:07:02.798Z",
+    "timestamp": 1779764822,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -197,7 +197,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T03:10:20.964Z",
+    "timestamp": 1779765020,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -238,19 +238,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T03:15:34Z",
+    "timestamp": 1779765334,
     "type": "git_commit",
     "commit_message": "nvs load and save test",
     "commit_hash": "203192593a6aa867a74e6bb0c74cd9cd6de4edf4"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-03T04:19:44.350Z",
+    "timestamp": 1780460384,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -312,13 +312,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T04:43:26Z",
+    "timestamp": 1780461806,
     "type": "git_commit",
     "commit_message": "refactor wifi manager",
     "commit_hash": "e854858ac4af04460f4ee1e885c7c0056edd16ac"
   },
   {
-    "timestamp": "2026-06-07T04:36:19Z",
+    "timestamp": 1780806979,
     "type": "git_commit",
     "commit_message": "progress on ext codec",
     "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"

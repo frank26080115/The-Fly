@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-26T20:16:37Z",
+    "timestamp": 1779826597,
     "type": "git_commit",
     "commit_message": "good progress on front end, organized the js files a bit, password and memory reset implemented",
     "commit_hash": "b338b968a3e7d8ae40716584d19bbabe6c5d77d1"
   },
   {
-    "timestamp": "2026-06-05T18:20:10.430Z",
+    "timestamp": 1780683610,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -70,7 +70,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T18:29:15.689Z",
+    "timestamp": 1780684155,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -127,7 +127,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T18:57:17Z",
+    "timestamp": 1780685837,
     "type": "git_commit",
     "commit_message": "way better time sync from browser, with timezones",
     "commit_hash": "3157aa61f945df7cbd0342463ba1cfd56c3a3e67"

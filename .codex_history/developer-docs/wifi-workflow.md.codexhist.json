@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-02T06:44:29.179Z",
+    "timestamp": 1777704269,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -28,13 +28,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-02T07:20:03Z",
+    "timestamp": 1777706403,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "9495ca3e997d6aca003aa5a6ec502e2204cea031"
   },
   {
-    "timestamp": "2026-05-18T06:20:17.097Z",
+    "timestamp": 1779085217,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -105,13 +105,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-18T06:48:14Z",
+    "timestamp": 1779086894,
     "type": "git_commit",
     "commit_message": "change bluetooth init behavior to be connectable",
     "commit_hash": "c413b9460ff7cad507efe70c6364120b3b62ea0b"
   },
   {
-    "timestamp": "2026-05-22T03:30:51.605Z",
+    "timestamp": 1779420651,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -239,7 +239,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-22T03:54:52Z",
+    "timestamp": 1779422092,
     "type": "git_commit",
     "commit_message": "minor documentation realignment",
     "commit_hash": "f2c709ecce52380184bf7572afec748da37a5039"

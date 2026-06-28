@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-25T08:12:57Z",
+    "timestamp": 1779696777,
     "type": "git_commit",
     "commit_message": "added security levels in docs, will implement later",
     "commit_hash": "d07ac1b0a9aeb6ff34d24f1f400b5189cd61bc11"
   },
   {
-    "timestamp": "2026-05-25T19:30:26.114Z",
+    "timestamp": 1779737426,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -99,19 +99,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T02:07:37Z",
+    "timestamp": 1779761257,
     "type": "git_commit",
     "commit_message": "clean up for security levels",
     "commit_hash": "c99eb02155cab68dfb1be96f8a8c16f5da021564"
   },
   {
-    "timestamp": "2026-05-27T16:44:03Z",
+    "timestamp": 1779900243,
     "type": "git_commit",
     "commit_message": "added mdns",
     "commit_hash": "316c40dfddd7d52fded92b739ee8508d9b48cccf"
   },
   {
-    "timestamp": "2026-05-30T03:48:53.736Z",
+    "timestamp": 1780112933,
     "type": "codex_task",
     "user_prompt": [
       "we are making a big change",
@@ -173,19 +173,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-30T04:06:18Z",
+    "timestamp": 1780113978,
     "type": "git_commit",
     "commit_message": "direct to wav file recording",
     "commit_hash": "64f9f8e6f7cc8677283c2f4afdfbd22660041ff6"
   },
   {
-    "timestamp": "2026-05-31T06:36:39Z",
+    "timestamp": 1780209399,
     "type": "git_commit",
     "commit_message": "pin code backend infrastructure",
     "commit_hash": "edce3fc7b1dccd8c63fb39b66975c3701aec1045"
   },
   {
-    "timestamp": "2026-06-05T00:37:50.372Z",
+    "timestamp": 1780619870,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -250,7 +250,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T02:54:19Z",
+    "timestamp": 1780628059,
     "type": "git_commit",
     "commit_message": "small documentation corrections",
     "commit_hash": "871d8adf7eabb92f3c3d2b3967e30dc53a4502cb"

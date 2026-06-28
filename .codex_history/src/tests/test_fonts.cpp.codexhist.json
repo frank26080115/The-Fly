@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-20T20:03:05.320Z",
+    "timestamp": 1779307385,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -66,7 +66,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T20:17:46.545Z",
+    "timestamp": 1779308266,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -97,19 +97,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-20T20:34:13Z",
+    "timestamp": 1779309253,
     "type": "git_commit",
     "commit_message": "disk stats, font changes",
     "commit_hash": "abd204ec22dfe148723d1f8633539f2232ca194b"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-07T04:36:19Z",
+    "timestamp": 1780806979,
     "type": "git_commit",
     "commit_message": "progress on ext codec",
     "commit_hash": "28489459214b4c910aaab8c8b97c193d720c0970"

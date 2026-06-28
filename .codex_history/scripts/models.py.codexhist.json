@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-05T01:49:50.745Z",
+    "timestamp": 1780624190,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -90,7 +90,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T03:10:25.344Z",
+    "timestamp": 1780629025,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -137,7 +137,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T03:31:08.577Z",
+    "timestamp": 1780630268,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -234,7 +234,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T03:44:46.308Z",
+    "timestamp": 1780631086,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -326,7 +326,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T04:09:38.388Z",
+    "timestamp": 1780632578,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -369,7 +369,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T04:20:45.895Z",
+    "timestamp": 1780633245,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -469,13 +469,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T04:51:31Z",
+    "timestamp": 1780635091,
     "type": "git_commit",
     "commit_message": "Create models.py",
     "commit_hash": "3cecc6f860d7a630dcfe222b5004a6cecf107cc7"
   },
   {
-    "timestamp": "2026-06-12T17:49:11.166Z",
+    "timestamp": 1781286551,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -504,7 +504,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T17:59:25.466Z",
+    "timestamp": 1781287165,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -548,7 +548,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T18:01:28.099Z",
+    "timestamp": 1781287288,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -591,7 +591,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T18:09:06.382Z",
+    "timestamp": 1781287746,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -632,7 +632,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T18:11:15.274Z",
+    "timestamp": 1781287875,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -692,7 +692,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T18:59:56Z",
+    "timestamp": 1781290796,
     "type": "git_commit",
     "commit_message": "args for default AI models, plus a installer script",
     "commit_hash": "b27d80ab27d3f3f281ada53afbf308a68e04a646"

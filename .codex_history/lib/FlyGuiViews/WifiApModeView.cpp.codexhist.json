@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-26T08:08:06Z",
+    "timestamp": 1779782886,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -82,13 +82,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T08:31:56Z",
+    "timestamp": 1779784316,
     "type": "git_commit",
     "commit_message": "implement the wifi ap view",
     "commit_hash": "d8fe002743fef62a02f8317b0e30b6a57eebd666"
   },
   {
-    "timestamp": "2026-05-26T09:28:23.646Z",
+    "timestamp": 1779787703,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -133,13 +133,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T09:47:27Z",
+    "timestamp": 1779788847,
     "type": "git_commit",
     "commit_message": "expose connected mac and cnts in ap view",
     "commit_hash": "e486cd8c44f77f484940b29cfd1db4b676546f90"
   },
   {
-    "timestamp": "2026-05-26T20:32:28.140Z",
+    "timestamp": 1779827548,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -171,13 +171,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T21:19:25Z",
+    "timestamp": 1779830365,
     "type": "git_commit",
     "commit_message": "yellow font for wifi ap info",
     "commit_hash": "d99d619f239d7b74081421ba1f8a0c9eb9386994"
   },
   {
-    "timestamp": "2026-05-27T07:09:50.885Z",
+    "timestamp": 1779865790,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -216,7 +216,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-27T07:16:46.863Z",
+    "timestamp": 1779866206,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -239,19 +239,19 @@
     ]
   },
   {
-    "timestamp": "2026-05-27T07:19:54Z",
+    "timestamp": 1779866394,
     "type": "git_commit",
     "commit_message": "cosmetic changes to the AP view",
     "commit_hash": "e3f40ea5ec1850dfe0639330642683514a481a9a"
   },
   {
-    "timestamp": "2026-05-27T16:44:03Z",
+    "timestamp": 1779900243,
     "type": "git_commit",
     "commit_message": "added mdns",
     "commit_hash": "316c40dfddd7d52fded92b739ee8508d9b48cccf"
   },
   {
-    "timestamp": "2026-05-27T20:50:14.200Z",
+    "timestamp": 1779915014,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -296,13 +296,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-29T01:32:37Z",
+    "timestamp": 1780018357,
     "type": "git_commit",
     "commit_message": "fix sprite typo",
     "commit_hash": "35a2b487220fe0993a1c66c1e5833f19656055bc"
   },
   {
-    "timestamp": "2026-05-31T08:19:48.645Z",
+    "timestamp": 1780215588,
     "type": "codex_task",
     "user_prompt": [
       "### Task: QR Code for Wi-Fi AP",
@@ -345,13 +345,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T08:31:36Z",
+    "timestamp": 1780216296,
     "type": "git_commit",
     "commit_message": "added qr code for wifi ap",
     "commit_hash": "e50c7f1535342551fc6413dc25e2f27385492e4e"
   },
   {
-    "timestamp": "2026-06-01T05:40:19.144Z",
+    "timestamp": 1780292419,
     "type": "codex_task",
     "user_prompt": [
       "when WifiApModeView is shown, the default is to unhide the sensitive data. the user has just interacted with the interface and needs to know the info, so the default is to unhide"
@@ -374,13 +374,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T06:00:34Z",
+    "timestamp": 1780293634,
     "type": "git_commit",
     "commit_message": "fixed a lot of web issues",
     "commit_hash": "a1e8949e841901b5e57b90e644f9dae0d3e50adc"
   },
   {
-    "timestamp": "2026-06-02T03:36:41.041Z",
+    "timestamp": 1780371401,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -422,7 +422,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T05:06:43.351Z",
+    "timestamp": 1780376803,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -487,13 +487,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-02T10:16:14.683Z",
+    "timestamp": 1780395374,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -566,13 +566,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T15:20:12Z",
+    "timestamp": 1780413612,
     "type": "git_commit",
     "commit_message": "code neatening for the views",
     "commit_hash": "3dbd6b2cd2fdecdb22e7dcef84a89989f2e63669"
   },
   {
-    "timestamp": "2026-06-03T04:19:44.350Z",
+    "timestamp": 1780460384,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -634,19 +634,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T04:43:26Z",
+    "timestamp": 1780461806,
     "type": "git_commit",
     "commit_message": "refactor wifi manager",
     "commit_hash": "e854858ac4af04460f4ee1e885c7c0056edd16ac"
   },
   {
-    "timestamp": "2026-06-03T04:44:54Z",
+    "timestamp": 1780461894,
     "type": "git_commit",
     "commit_message": "clang format",
     "commit_hash": "050209b43354fe0248f6252b8efadfbee8143265"
   },
   {
-    "timestamp": "2026-06-03T05:02:04.931Z",
+    "timestamp": 1780462924,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -715,13 +715,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T06:51:45Z",
+    "timestamp": 1780469505,
     "type": "git_commit",
     "commit_message": "diagnostics, fixed a bug with speaker peak decay",
     "commit_hash": "311580eed06e5f10cfa3514cc88c8335c5753cc5"
   },
   {
-    "timestamp": "2026-06-04T02:21:38.125Z",
+    "timestamp": 1780539698,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -766,7 +766,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T04:26:00.417Z",
+    "timestamp": 1780547160,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -804,13 +804,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T05:05:33Z",
+    "timestamp": 1780549533,
     "type": "git_commit",
     "commit_message": "haptics implemented across the board",
     "commit_hash": "b0281be08ff90256d2e231f0ba9c25e7422784c1"
   },
   {
-    "timestamp": "2026-06-05T02:53:06.133Z",
+    "timestamp": 1780627986,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -859,7 +859,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T04:51:14Z",
+    "timestamp": 1780635074,
     "type": "git_commit",
     "commit_message": "add missing haptic",
     "commit_hash": "d3a9f7c0bc09daede9e547cb9f06b2e3b40a7ed9"

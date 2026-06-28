@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-05-15T18:56:26Z",
+    "timestamp": 1778871386,
     "type": "git_commit",
     "commit_message": "compile version and time strings",
     "commit_hash": "87a81687274051f62cc8379b90514f05af82870c"
   },
   {
-    "timestamp": "2026-05-16T06:50:59.520Z",
+    "timestamp": 1778914259,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",

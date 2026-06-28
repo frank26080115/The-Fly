@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-05T04:56:35.927Z",
+    "timestamp": 1780635395,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -29,7 +29,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-05T07:06:00Z",
+    "timestamp": 1780643160,
     "type": "git_commit",
     "commit_message": "electrical started",
     "commit_hash": "f2f96cbee4273f842bd44f1b07767a9c0f516ef6"

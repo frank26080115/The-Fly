@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-06T23:58:59.897Z",
+    "timestamp": 1778111939,
     "type": "codex_task",
     "user_prompt": [
       "Please implement the code as described by the comment on inc/dbg_log.h:3",
@@ -31,13 +31,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-07T00:37:28Z",
+    "timestamp": 1778114248,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "c31536e76af6564fcf9e33fe1e79c3fef9bf8e36"
   },
   {
-    "timestamp": "2026-05-07T00:48:16.082Z",
+    "timestamp": 1778114896,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -62,13 +62,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-07T00:54:23Z",
+    "timestamp": 1778115263,
     "type": "git_commit",
     "commit_message": "work in progress",
     "commit_hash": "b3b772056c7834aba6a5a20ff399780150e87263"
   },
   {
-    "timestamp": "2026-05-31T03:58:31.339Z",
+    "timestamp": 1780199911,
     "type": "codex_task",
     "user_prompt": [
       "is most of my code using DBG_LOG or ESP_LOG?"
@@ -91,7 +91,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T04:01:55.090Z",
+    "timestamp": 1780200115,
     "type": "codex_task",
     "user_prompt": [
       "change it so that all the code within `src` and `lib` and `inc` use `DBG_LOG*`",
@@ -105,7 +105,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T04:05:56.226Z",
+    "timestamp": 1780200356,
     "type": "codex_task",
     "user_prompt": [
       "change it so that all the code within `src` and `lib` and `inc` use `DBG_LOG*`",
@@ -187,13 +187,13 @@
     ]
   },
   {
-    "timestamp": "2026-05-31T04:24:21Z",
+    "timestamp": 1780201461,
     "type": "git_commit",
     "commit_message": "made debug logging work again",
     "commit_hash": "d0e481168fa1f67bf35320570a9c4e9e12753577"
   },
   {
-    "timestamp": "2026-06-12T05:55:10.831Z",
+    "timestamp": 1781243710,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -214,7 +214,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-12T07:17:51Z",
+    "timestamp": 1781248671,
     "type": "git_commit",
     "commit_message": "more screenshot stuff",
     "commit_hash": "f28c5490101268c4e2dcd3c955c64e070d5b05b2"

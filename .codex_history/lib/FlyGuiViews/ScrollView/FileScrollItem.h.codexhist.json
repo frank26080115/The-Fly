@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-02T19:31:25.618Z",
+    "timestamp": 1780428685,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -73,13 +73,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-02T20:20:38Z",
+    "timestamp": 1780431638,
     "type": "git_commit",
     "commit_message": "file list view now use deterministic unique icon graphics",
     "commit_hash": "0e12e6b2d47a1972c811a105fcc7c2c8f1409e52"
   },
   {
-    "timestamp": "2026-06-03T17:41:48.790Z",
+    "timestamp": 1780508508,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -130,7 +130,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T18:37:57Z",
+    "timestamp": 1780511877,
     "type": "git_commit",
     "commit_message": "file size/duration in scrollview",
     "commit_hash": "6508f6595eb442daba8ba77aca0531ff1f75eab5"

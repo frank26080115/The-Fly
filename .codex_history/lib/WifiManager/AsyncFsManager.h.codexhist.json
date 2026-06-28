@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-01T03:28:52.737Z",
+    "timestamp": 1780284532,
     "type": "codex_task",
     "user_prompt": [
       "Make a `lib\\WifiManager\\AsyncFsManager.cpp` and its associated header file",
@@ -65,7 +65,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T04:13:27.535Z",
+    "timestamp": 1780287207,
     "type": "codex_task",
     "user_prompt": [
       "the shared resource is SPI, I bet it's being interrupted by a GUI redraw",
@@ -102,19 +102,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-01T04:40:14Z",
+    "timestamp": 1780288814,
     "type": "git_commit",
     "commit_message": "file download and decrypted downloads work now",
     "commit_hash": "976ed18721b4929410684cde8839b3d62d1f7cce"
   },
   {
-    "timestamp": "2026-06-02T06:34:50Z",
+    "timestamp": 1780382090,
     "type": "git_commit",
     "commit_message": "clang-format",
     "commit_hash": "6d967392bbefb9c6f7304a47e930eb1b72a6b63a"
   },
   {
-    "timestamp": "2026-06-04T07:04:56.856Z",
+    "timestamp": 1780556696,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -152,7 +152,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T07:20:48.986Z",
+    "timestamp": 1780557648,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -204,13 +204,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T08:10:10Z",
+    "timestamp": 1780560610,
     "type": "git_commit",
     "commit_message": "file upload now reliable",
     "commit_hash": "974a083c64ba058bb8149721698c791ae53334de"
   },
   {
-    "timestamp": "2026-06-04T19:20:01.271Z",
+    "timestamp": 1780600801,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -246,7 +246,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T19:38:48.583Z",
+    "timestamp": 1780601928,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -277,13 +277,13 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T19:53:12Z",
+    "timestamp": 1780602792,
     "type": "git_commit",
     "commit_message": "more upload reliability",
     "commit_hash": "25d83af066a6038020b1cfc7c15b9c1fbf4eebf7"
   },
   {
-    "timestamp": "2026-06-04T20:32:53.847Z",
+    "timestamp": 1780605173,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -331,7 +331,7 @@
     ]
   },
   {
-    "timestamp": "2026-06-04T20:48:58Z",
+    "timestamp": 1780606138,
     "type": "git_commit",
     "commit_message": "web file list exposes file size",
     "commit_hash": "edf6c719fd41c3cc8de47ad3714ad79b542ffc40"

@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-05-04T21:24:36.775Z",
+    "timestamp": 1777929876,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -30,7 +30,7 @@
     ]
   },
   {
-    "timestamp": "2026-05-26T03:14:59Z",
+    "timestamp": 1779765299,
     "type": "git_commit",
     "commit_message": "new splash",
     "commit_hash": "84c268ddfdfee518b0e4448cba5f6b91d74d5b5b"

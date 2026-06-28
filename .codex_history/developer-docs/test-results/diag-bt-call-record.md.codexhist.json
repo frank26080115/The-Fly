@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-03T21:54:32.679Z",
+    "timestamp": 1780523672,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
@@ -117,19 +117,19 @@
     ]
   },
   {
-    "timestamp": "2026-06-03T22:45:19Z",
+    "timestamp": 1780526719,
     "type": "git_commit",
     "commit_message": "pins.h, tweaked FIFOs, added a test result",
     "commit_hash": "6fb57af7f759b4803b0e9978a01525d0a1fe1265"
   },
   {
-    "timestamp": "2026-06-03T22:57:57Z",
+    "timestamp": 1780527477,
     "type": "git_commit",
     "commit_message": "Update diag-bt-call-record.md",
     "commit_hash": "3f9b2d1bea9915c9805b4e11c2d80a66e1cbc4a4"
   },
   {
-    "timestamp": "2026-06-05T00:35:21.041Z",
+    "timestamp": 1780619721,
     "type": "codex_task",
     "user_prompt": [
       "# Context from my IDE setup:",
