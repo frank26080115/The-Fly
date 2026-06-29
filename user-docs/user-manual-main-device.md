@@ -116,3 +116,7 @@ For more instructions, see [the User Manual about Wi-Fi Operations](user-manual-
 To transcribe and summarize audio recordings without using a cloud service, you can run a local server on your own network using your own computer.
 
 For more instructions, see [the User Manual about Local Servers](user-manual-local-server.md)
+
+# File Encryption
+
+A firmware version with file encryption is available for testing. Fully releasing this feature will cost me more money so I have not prioritized it. For current testers, you may ask me for this feature.
