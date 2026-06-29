@@ -31,4 +31,5 @@ void run_test()
     // test_noisespectrumanalyzer();
     // test_extcodec_adc();
     // test_allmicgains();
+    // test_batteryburn();
 }

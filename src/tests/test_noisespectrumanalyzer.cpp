@@ -6,6 +6,7 @@
 
 #include "AudioManager.h"
 #include "ExtCodec.h"
+#include "MicGainManager.h"
 #include "utilfuncs.h"
 
 namespace
@@ -29,10 +30,26 @@ constexpr uint16_t    kSelectedColour       = TFT_ORANGE;
 constexpr uint16_t    kSmallScaleColour     = TFT_WHITE;
 constexpr uint16_t    kFullScaleColour      = TFT_GREEN;
 
+enum class AnalyzerMicSource : uint8_t
+{
+    LineInRight,
+    EarbudInlineMic,
+};
+
+constexpr AnalyzerMicSource kAnalyzerMicSource = AnalyzerMicSource::LineInRight;
+constexpr bool              kBypassMicGainManager = true;
+
 enum class ScaleMode : uint8_t
 {
     Small,
     Full,
+};
+
+enum class AudioSetupResult : uint8_t
+{
+    Ok,
+    MissingInlineMic,
+    InitFailed,
 };
 
 TaskHandle_t g_core0_task = nullptr;
@@ -89,7 +106,29 @@ void show_fatal(const char* message)
     M5.Display.setTextSize(1.0f);
     M5.Display.setTextDatum(top_left);
     M5.Display.setTextColor(TFT_RED, TFT_BLACK);
-    M5.Display.drawString(message ? message : "fatal error", 4, 4);
+    const char* text = message ? message : "fatal error";
+    int32_t     y    = 4;
+    while (*text != '\0')
+    {
+        const char* line_end = text;
+        while (*line_end != '\0' && *line_end != '\n' && *line_end != '\r')
+        {
+            ++line_end;
+        }
+
+        char line[48];
+        const size_t line_len = min<size_t>(static_cast<size_t>(line_end - text), sizeof(line) - 1);
+        memcpy(line, text, line_len);
+        line[line_len] = '\0';
+        M5.Display.drawString(line, 4, y);
+        y += M5.Display.fontHeight() + 2;
+
+        text = line_end;
+        while (*text == '\n' || *text == '\r')
+        {
+            ++text;
+        }
+    }
     idle_forever();
 }
 
@@ -135,28 +174,96 @@ void setup_audio_fifos()
     fifo.setSilenceWhenEmpty(false);
 }
 
-bool setup_audio()
+const char* analyzer_mic_source_name()
+{
+    switch (kAnalyzerMicSource)
+    {
+    case AnalyzerMicSource::LineInRight:
+        return "line-in-right";
+    case AnalyzerMicSource::EarbudInlineMic:
+        return "earbud-inline-mic";
+    default:
+        return "unknown";
+    }
+}
+
+AudioManager::ExternalCodecMicOverride analyzer_mic_override()
+{
+    switch (kAnalyzerMicSource)
+    {
+    case AnalyzerMicSource::LineInRight:
+        return AudioManager::ExternalCodecMicOverride::LineInRight;
+    case AnalyzerMicSource::EarbudInlineMic:
+        return AudioManager::ExternalCodecMicOverride::DedicatedMic;
+    default:
+        return AudioManager::ExternalCodecMicOverride::Auto;
+    }
+}
+
+bool analyzer_source_requires_inline_mic()
+{
+    return kAnalyzerMicSource == AnalyzerMicSource::EarbudInlineMic;
+}
+
+bool wait_for_inline_mic(uint32_t timeout_ms)
+{
+    const uint32_t started_ms = millis();
+    while (!ExtCodec::inlineMicPresent() && static_cast<uint32_t>(millis() - started_ms) < timeout_ms)
+    {
+        ExtCodec::waitForEvents(ExtCodec::kStateChangedEvent, pdMS_TO_TICKS(80));
+    }
+    return ExtCodec::inlineMicPresent();
+}
+
+AudioSetupResult setup_audio()
 {
     const bool i2s_ok   = AudioManager::configure_i2s_shared();
     const bool codec_ok = ExtCodec::init();
+    if (codec_ok && analyzer_source_requires_inline_mic() && !wait_for_inline_mic(1000))
+    {
+        Serial.printf("%s: inline mic not detected: state=%s earbud_adc=%u inline_mic_adc=%u\n",
+                      TAG,
+                      ExtCodec::stateName(ExtCodec::state()),
+                      static_cast<unsigned>(ExtCodec::earbudSenseRaw()),
+                      static_cast<unsigned>(ExtCodec::inlineMicSenseRaw()));
+        return AudioSetupResult::MissingInlineMic;
+    }
+
     const bool audio_ok = AudioManager::init(AudioManager::Hardware::ExternalI2SCodec);
 
-    AudioManager::forceExternalCodecLineInRightMic(true);
+    AudioManager::setExternalCodecMicOverride(analyzer_mic_override());
     setup_audio_fifos();
 
     const bool mic_ok = audio_ok && AudioManager::enableMicMode();
+    MicGainManager::setBypass(kBypassMicGainManager);
     AudioManager::setMicMuted(false);
 
-    Serial.printf("%s: init i2s=%u codec=%u available=%u audio=%u mic=%u state=%s forced_input=line-in-right\n",
+    Serial.printf("%s: init i2s=%u codec=%u available=%u audio=%u mic=%u state=%s forced_input=%s mic_gain_bypass=%u\n",
                   TAG,
                   i2s_ok ? 1U : 0U,
                   codec_ok ? 1U : 0U,
                   ExtCodec::available() ? 1U : 0U,
                   audio_ok ? 1U : 0U,
                   mic_ok ? 1U : 0U,
-                  ExtCodec::stateName(ExtCodec::state()));
+                  ExtCodec::stateName(ExtCodec::state()),
+                  analyzer_mic_source_name(),
+                  kBypassMicGainManager ? 1U : 0U);
 
-    return i2s_ok && codec_ok && audio_ok && mic_ok;
+    return i2s_ok && codec_ok && audio_ok && mic_ok ? AudioSetupResult::Ok : AudioSetupResult::InitFailed;
+}
+
+const char* audio_setup_failure_message(AudioSetupResult result)
+{
+    switch (result)
+    {
+    case AudioSetupResult::MissingInlineMic:
+        return "plug in earbud\nwith inline mic";
+    case AudioSetupResult::InitFailed:
+        return "audio init failed";
+    case AudioSetupResult::Ok:
+    default:
+        return "audio setup failed";
+    }
 }
 
 void noise_analyzer_core0_task(void*)
@@ -499,9 +606,10 @@ void test_noisespectrumanalyzer()
     setup_buttons();
 
     logf("starting noise spectrum analyzer");
-    if (!setup_audio())
+    const AudioSetupResult audio_setup = setup_audio();
+    if (audio_setup != AudioSetupResult::Ok)
     {
-        show_fatal("audio init failed");
+        show_fatal(audio_setup_failure_message(audio_setup));
     }
     if (!start_core0_audio_task())
     {
